@@ -310,5 +310,5 @@ def _address(face: int, level: int, cs: int, ct: int) -> tuple[Tile, Edge, int]:
     column = cs // TILE
     y = ct // TILE
     if column > last:
-        return Tile(face, level, last, y), "E", ct - TILE * last
-    return Tile(face, level, column, y), "W", ct - TILE * column
+        return Tile(face, level, last, y), "E", ct - TILE * y
+    return Tile(face, level, column, y), "W", ct - TILE * y
