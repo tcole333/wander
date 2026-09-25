@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import constants from '@shared/constants.json';
+import constants from '@shared/constants.json' with { type: 'json' };
 import { describe, expect, it } from 'vitest';
 import {
   EDGES,

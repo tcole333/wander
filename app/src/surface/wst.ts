@@ -1,7 +1,7 @@
 // The surface tile decoder (streaming.md 3.1), the inverse of pipeline/src/prebuild/wst.py: inflate
 // a .wst, check it, undo its predictors, and build what the GPU takes. It is pure and imports no
 // three, so the decode worker stays small; the worker only wraps it.
-import constants from '@shared/constants.json';
+import constants from '@shared/constants.json' with { type: 'json' };
 import { codeToMeters } from './codes';
 import { BORDER, TILE, tileKey, type Tile } from './cube';
 import { HALF_EXACT, halfBitsOf } from './half';

@@ -2,7 +2,7 @@
 // its whole mip chain and never reallocated. A write uploads one mip of one slot. The recipe
 // relies on how three 0.186.1 allocates and copies textures, and the pool smoke test
 // (e2e/gpu-pool.spec.ts) checks the exact GL calls three makes for it.
-import constants from '@shared/constants.json';
+import constants from '@shared/constants.json' with { type: 'json' };
 import {
   ClampToEdgeWrapping,
   DataArrayTexture,
