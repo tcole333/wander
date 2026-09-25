@@ -1,7 +1,9 @@
 {
   "formats": {
     "surfaceTile": { "magic": "WST1", "version": 1 },
+    "surfaceBounds": { "magic": "WSB1", "version": 1 },
     "overlayTile": { "magic": "WOT1", "version": 1 },
+    "overlayIndex": { "magic": "WOI1", "version": 1 },
     "borderPreviews": { "magic": "WBP1", "version": 1 },
     "climate": { "magic": "WCY1", "version": 1 },
     "effect": { "magic": "WFX1", "version": 1 }
