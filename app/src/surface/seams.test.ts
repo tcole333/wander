@@ -4,6 +4,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadSurfaceTile, readSurfaceRecord, type FixtureTile } from '../test/fixture';
 import {
+  FIXTURE_CROSS_FACE,
   LAST_ENTRY,
   crossFaceMisses,
   edgeCodes,
@@ -134,7 +135,13 @@ describe('across a face edge', () => {
 
   it('border texels map into neighbor column k, near the codes around them', () => {
     const off = faceEdges().flatMap(([t, edge]) =>
-      crossFaceMisses(t, edge, tile(t).decoded, tile(neighbor(t, edge).tile).decoded),
+      crossFaceMisses(
+        t,
+        edge,
+        tile(t).decoded,
+        tile(neighbor(t, edge).tile).decoded,
+        FIXTURE_CROSS_FACE,
+      ),
     );
     expect(off).toEqual([]);
   });
