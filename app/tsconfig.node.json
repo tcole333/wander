@@ -23,6 +23,7 @@
     "vitest.bake.config.ts",
     "playwright.config.ts",
     "e2e",
+    "scripts",
     "src/**/*.test.ts",
     "src/**/*.verify.ts",
     "src/test"

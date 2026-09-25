@@ -19,5 +19,5 @@ export default defineConfig({
   // The app ships as one entry bundle with no lazy chunks (streaming design, section 2), so
   // Vite's code-splitting hint does not apply; section 6 budgets the entry at 500 KB compressed.
   build: { chunkSizeWarningLimit: 1500 },
-  test: { include: ['src/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'] },
 });
