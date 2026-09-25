@@ -977,19 +977,28 @@ become R2 keys. `fetch` and `excerpts` write no record.
 
 ### 7.3 Fixture, dev and CI
 
-- **Excerpts** (committed, ≤ 3 MB, `pipeline/tests/data/`): for each window a source pyramid (15" over
-  the L6-L7 footprint, 1' over L4-L5, 4' over L2-L3; ~260 KB each, stored compressed) at Sumbawa (an
-  L2-L7 chain) and at the Kirkuk corner, where three faces meet; the 0.5° global grid; clipped NE coast,
-  lakes and rivers; borders 1815 and 1878; an ecoregion sample; ModE-RA mean for 1815-07 to 1816-06
-  (crossing a year boundary) and 2 months of spread, as float32; 200 events covering deep time
-  (−15 Myr), BCE, prehistoric, year-precision, parent/child and inherited-location cases; and a 3-beat
-  mini story in `stories/_fixture/` (laid out as in 3.9) with one small public-domain JPEG, one CC0
-  WAV, a route and a spread field.
-- **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout with
-  stage records. `uv run prebuild media --offline _fixture --out build/fixture` (repo-root `build/`) writes
+- **Excerpts** (committed, ≤ 3 MB, `pipeline/tests/data/`): GEBCO source pyramids at Sumbawa (an
+  L2-L7 chain: 4' over L2-L3, 1' over L4-L5, 15" over L6-L7) and at the Kirkuk corner, where three
+  faces meet (4' over L3-L4, 1' over L5-L6, 15" over L7; owner decision 15); the 0.5° global grid;
+  NE land polygons (tiered), minor islands, lakes and rivers; borders 1815 and 1878; an ecoregion
+  sample; ModE-RA mean for 1815-07 to 1816-06 (crossing a year boundary) and 2 months of spread, as
+  float32; 200 events covering deep time (−15 Myr), BCE, prehistoric, year-precision, parent/child
+  and inherited-location cases; and a 3-beat mini story in `stories/_fixture/` (laid out as in 3.9)
+  with one small public-domain JPEG, one CC0 WAV, a route and a spread field. The surface excerpts
+  take about 1.8 MB [E]. Rasters are int16 gzip and vectors gzipped WKB, each with a JSON sidecar;
+  FlatGeobuf output is not deterministic.
+- **Fixture sources and tiles:** `pipeline/config/fixture.yaml` gives the fixture its own source
+  per level and window: L0-L1 and the Kirkuk L2 tiles from the 0.5° grid, and the pyramids above
+  elsewhere. Only the sources differ from 3.1's rule; the real encoder runs. It lists 55 tiles: all
+  of L0-L1, the Sumbawa chain `2/1/3/1` to `7/1/103/50` plus its L7 neighbor `7/1/102/50`, and the
+  18 Kirkuk corner tiles (faces 0, 1 and 4 at L2-L7).
+- **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
+  its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
+  samples, 3.0 item 9) in `build/stages/fixture/expect/`.
+  `uv run prebuild --profile fixture media --story _fixture --offline` writes
   `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
-  `npm run publish-data -- --fixture` writes `app/src/generated/release.fixture.json` (dataHost
-  `http://127.0.0.1:8791`) and uploads nothing.
+  `npm run publish-data -- --profile fixture` writes `app/src/generated/release.fixture.json`
+  (dataHost `http://127.0.0.1:8791`) and uploads nothing.
 - **Release selection:** the app imports the release through a Vite alias chosen by
   `WANDER_RELEASE=fixture|prod`, and `npm run stories` compiles against the same release.
 - **Dev:** `npm ci && npm run dev` runs against production data (CORS `*`), so a fresh clone needs no
@@ -998,13 +1007,20 @@ become R2 keys. `fetch` and `excerpts` write no record.
 - **CI** (GitHub Actions, Linux, per PR; `.github/workflows/ci.yml`):
   1. Lint: `ruff check` and `ruff format --check` in `pipeline/`; ESLint and Prettier in `app/`.
   2. `uv run pytest` on the excerpts.
-  3. The fixture build above, using the real encoders.
+  3. The fixture build above, using the real encoders. The app job installs uv after `npm ci`, runs
+     `uv sync --locked` in `pipeline/`, then `npm run fixture` before Vitest, so no test compares
+     against a hash computed on another machine; the pipeline and app jobs stay parallel. A Vitest
+     suite that needs `build/fixture` fails, naming `npm run fixture`, when the fixture is missing
+     or its stamp (7.2) is stale; none is skipped.
   4. **Vitest:**
      - fixture decode: the Tambora summit is within qLand; the shore sign is right at known points; cube
        keys round-trip; `cube.ts` matches the Python samples (3.0 item 9)
      - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit; across face
-       edges (the cube-corner fixture), edge profiles are bit-identical and border texels match within
-       1 code
+       edges (the cube-corner fixture), edge profiles are bit-identical, the border texel k columns
+       past a face edge maps into the neighbor's texel column k (the perpendicular coordinate is
+       continuous), and each border code lies within the neighbor face's 3×3 code range around the
+       mapped point, ±2 codes. A 1-code bound fails at the Kirkuk corner, where the difference
+       reaches 5 codes [M, GEBCO at L4].
      - pure logic: `lod.ts` (balancing, edge flags), the scheduler (fake clock, network shim), the flight
        time-warp, the event query and page residency, date conversion including the −15 Myr row, and the
        snapshot rule (on 50-07-01 CE the tie goes to `bc1`)
@@ -1018,14 +1034,18 @@ become R2 keys. `fetch` and `excerpts` write no record.
      decoding from the byte cache with the network blocked, and a reload with `?s&b` landing on the
      Continue plate; no request to the Pages origin after boot; each L0 URL fetched once (the preload is
      used); every label renders; reduced motion, the article page and the no-WebGL2 redirect; and the
-     pool smoke test (5.5).
+     pool smoke test (5.5). The pool test runs a test-only page on the Vite dev server (with
+     `optimizeDeps.include: ['three']`), not the production build, so nothing of it reaches the
+     bundle.
   7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
-- **GPU matrix (local):** `npm run e2e:gpu` on the target machines, in Chromium, WebKit and
-  Firefox, against production data. It runs when renderer, streaming or format code changes, and at
-  milestone releases; results go in the PR description. It covers frame p95 across every story walk;
-  seams at Sumbawa, the Strait of Magellan, Florence, the Sierra Nevada, the Kirkuk corner and a pole;
-  and throttled walks at 10 Mbps / 60 ms and 5 Mbps / 150 ms through the app's fetch shim (`?net=…`, dev
-  and test builds only). The 30-minute soak runs in E1, and again only if the governor changes.
+- **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
+  starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
+  matrix as WebKit and Firefox projects join. It runs when renderer, streaming or format code
+  changes, and at milestone releases; results go in the PR description. It covers frame p95 across
+  every story walk; seams at Sumbawa, the Strait of Magellan, Florence, the Sierra Nevada, the Kirkuk
+  corner and a pole; and throttled walks at 10 Mbps / 60 ms and 5 Mbps / 150 ms through the app's
+  fetch shim (`?net=…`, dev and test builds only). The 30-minute soak runs in E1, and again only if
+  the governor changes.
 
 ---
 
@@ -1039,10 +1059,11 @@ become R2 keys. `fetch` and `excerpts` write no record.
    Actions CI that runs lint, Vitest and a one-frame SwiftShader smoke test, then deploys the
    placeholder.
 1. **Surface core:** `sources.toml` and `fetch`; `cube.py` and `cube.ts` with the cross-check; the
-   `.wst` encoder; `uv run prebuild surface --profile region`, which builds L0-L4 globally from GEBCO
-   plus L5-L6 inside `pipeline/config/regions-milestone1.yaml` (the Tambora beat footprints and the Kirkuk
-   corner) and L7 inside `l7.yaml` (Sumbawa, 118.0°E 8.25°S, 150 km); the decode worker; `gpuPool.ts`
-   with its pool smoke test.
+   `.wst` encoder; the `excerpts` and `coverage` stages and the fixture;
+   `uv run prebuild --profile region`, which builds L0-L4 globally from GEBCO plus L5-L6 inside
+   `pipeline/config/regions-milestone1.yaml` (the tiles the Tambora beats refine to at the full tier,
+   with separate L5 and L6 radii, and the Kirkuk corner; owner decision 16) and L7 inside `l7.yaml`
+   (Sumbawa, 118.0°E 8.25°S, 150 km); the decode worker; `gpuPool.ts` with its pool smoke test.
 2. **E1 and E2** on that set, with synthetic overlay, climate and spread textures in the production
    formats (random ids, noise fields), so neither waits for those pipelines. They decide material (a) or
    (b), the lite tap count, the seam rules, the AA method and the planning tile size, and give the owner
