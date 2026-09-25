@@ -212,15 +212,17 @@ def test_edge_profiles_agree_at_the_tile_corners(built, tile):
     assert edges[S, 256] == edges[E, 0]
 
 
-def test_a_built_tile_centers_its_codes_and_round_trips(built):
-    tile = built(KIRKUK_TOP)
-    assert tile.code_mid == (tile.code_min + tile.code_max) // 2
-    stored = np.concatenate([tile.codes.ravel(), tile.edges.ravel()]).astype(np.int64)
-    assert np.abs(stored - tile.code_mid).max() <= MAX_OFFSET
-    back = from_file(to_file(tile), KIRKUK_TOP)
+@pytest.mark.parametrize("tile", FIXTURE_TILES, ids=Tile.key)
+def test_a_built_tile_centers_its_codes_and_round_trips(built, tile):
+    planes = built(tile)
+    assert planes.code_mid == (planes.code_min + planes.code_max) // 2
+    stored = np.concatenate([planes.codes.ravel(), planes.edges.ravel()]).astype(np.int64)
+    assert np.abs(stored - planes.code_mid).max() <= MAX_OFFSET
+    back = from_file(to_file(planes), tile)
     for plane in ("codes", "shore", "water", "edges"):
-        np.testing.assert_array_equal(getattr(back, plane), getattr(tile, plane))
-    assert (back.flags, back.q_land) == (tile.flags, tile.q_land)
+        np.testing.assert_array_equal(getattr(back, plane), getattr(planes, plane))
+    header = ("flags", "q_land", "code_mid", "code_min", "code_max")
+    assert [getattr(back, name) for name in header] == [getattr(planes, name) for name in header]
 
 
 def test_edge_entries_round_half_away_from_zero(fixture_surface):
