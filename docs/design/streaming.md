@@ -1034,12 +1034,13 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        edges (all of L0-L1 and the cube-corner fixture), edge profiles are bit-identical, the border
        texel k columns past a face edge maps into the neighbor's texel column k (the perpendicular
        coordinate is continuous), and each border code lies within the neighbor face's 3×3 code
-       range around the mapped point, widened by 2 codes plus half its width, and to 0 where the
-       coastal clamp reaches the border texel. The grids meet at an angle, so their texels cover
-       different ground, and a high or low inside one texel can fall outside the 3×3 range. In the
-       fixture, whose Kirkuk sources are coarser than the texels at L3 and L5-L6, 39 of 110,592
-       border texels miss the range ±2 codes, by up to 14 codes where it spans 153 [M, fixture
-       bake].
+       range around the mapped point, widened by 2 codes plus an eighth of its width, and to 0
+       where the coastal clamp reaches the border texel. The grids meet at an angle, so their texels
+       cover different ground, and a high or low inside one texel can fall outside the 3×3 range,
+       further where the relief is steeper. In the fixture, the range ±2 codes misses 39 of 110,592
+       border texels (1 at L0, 38 at the Kirkuk corner at L2-L7), by up to 14 codes where it spans
+       153; the largest miss past ±2 codes is 10.3% of the range's width, so an eighth passes every
+       texel and a tenth does not [M, fixture bake].
      - pure logic: `lod.ts` (balancing, edge flags), the scheduler (fake clock, network shim), the flight
        time-warp, the event query and page residency, date conversion including the −15 Myr row, and the
        snapshot rule (on 50-07-01 CE the tie goes to `bc1`)
