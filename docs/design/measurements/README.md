@@ -22,10 +22,11 @@ Metal through Playwright, Safari 26.5 and Firefox 156:
   flattened), whether the block samples with implicit derivatives, an explicit level, or is split
   over eight separately guarded blocks. Chromium's figures are GPU time from timer queries; Safari
   and Firefox have none, so theirs are wall time to a readback, at their 1 ms timer resolution.
-- `e1/results/browser-features-*.json`: what each browser offers. No browser decompresses zstd
-  natively. Safari has neither `requestIdleCallback` nor `scheduler.postTask`. Firefox lacks
+- `e1/results/browser-features-*.json`: what each browser offers. No browser's
+  `DecompressionStream` takes zstd. Safari has neither `requestIdleCallback` nor `scheduler.postTask`. Firefox lacks
   `KHR_parallel_shader_compile`, `EXT_clip_control` and timer queries, and its texture size limit is
   8,192. Chromium's timer queries give 64 bits for elapsed time and 0 for timestamps.
 - `e2/results/gpu-pool-*.json`: the pool smoke test (streaming.md 5.5) passes in Safari and Firefox
-  with the same GL calls and exact readbacks as in Chromium, so the pool path holds on WebKit; E2
-  still times the uploads.
+  under Chromium's assertions: the same GL calls, exact reads at texel centers, from unwritten
+  levels and slots and of the edge profiles, and filtered reads within one code. The pool path holds
+  on WebKit; E2 still times the uploads.

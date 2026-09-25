@@ -628,7 +628,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 - **React:** holds discrete state only. The camera, date and ruler update through transient Zustand
   subscriptions that write straight to uniforms and the DOM.
 - **Idle work:** budgeted queues run inside rAF and yield through `MessageChannel`, because Safari
-  lacks `requestIdleCallback` and `scheduler.postTask` [M e1/results/browser-features-safari.json:
+  lacks `requestIdleCallback` and `scheduler.postTask` [M `e1/results/browser-features-safari.json`:
   Safari 26.5].
 
 ### 5.2 Requests: classes, cancellation, stalls
@@ -852,8 +852,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - **Scene state:** include the real lights and shadows, an off-screen label, the depth pass, and every
     effect program for the tier.
   - **API:** use `compileAsync` where `KHR_parallel_shader_compile` exists. Firefox on macOS lacks it
-    [M e1/results/browser-features-firefox.json: Firefox 156; the pre-launch rerun checks Windows], so
-    there one material compiles per frame.
+    [M `e1/results/browser-features-firefox.json`: Firefox 156; the pre-launch rerun checks
+    Windows], so there one material compiles per frame.
 - **Fragment samplers:** the surface program uses about 13 of the 16 guaranteed: height, channels,
   overlay pool, indirection, palette/scale LUT, previews, noise, climate ring, annual chunk, spread,
   shadow, environment and ramp. Adding one needs a check against that limit.
