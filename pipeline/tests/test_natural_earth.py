@@ -5,20 +5,25 @@ import pyogrio.raw
 import pytest
 import shapely
 
-from prebuild.config import WaterConfig
+from prebuild.config import WaterConfig, load_water
 from prebuild.natural_earth import (
     SEGMENT_DEG,
+    ZIPS,
     Layer,
     Vectors,
     from_wkb,
     lakes,
     land,
+    load_vectors,
     read_excerpt_layer,
     read_zip_layer,
     rivers,
     to_wkb,
     write_excerpt_layer,
 )
+from prebuild.paths import REPO_ROOT, excerpts_dir
+from prebuild.profiles import Profile, make_context
+from prebuild.sources import load_sources
 
 WATER = WaterConfig(
     half_width_km={rank: 0.1 for rank in range(13)},
@@ -199,3 +204,22 @@ def test_prepared_layers_survive_the_hand_off_to_workers():
     assert shapely.equals_exact(back.lakes, vectors.lakes, 0)
     assert back.rivers.attrs["scalerank"].tolist() == [4, 12]
     assert len(back.rivers) == 2
+
+
+def test_the_committed_excerpts_name_the_pinned_zips():
+    registry = load_sources()
+    for name, (source_id, filename) in ZIPS.items():
+        sidecar = (excerpts_dir() / "ne" / f"{name}.json").read_text(encoding="utf-8")
+        pinned = next(f for f in registry[source_id].files if f.path.endswith(filename))
+        assert f'"sha256": "{pinned.sha256}"' in sidecar
+        assert f'"file": "{pinned.path}"' in sidecar
+
+
+def test_the_fixture_prepares_the_committed_excerpts_without_raw_data():
+    ctx = make_context(Profile.FIXTURE, 1, REPO_ROOT)
+    vectors = load_vectors(ctx, load_water())
+    assert shapely.contains_xy(vectors.land, 117.96, -8.25)  # Tambora
+    assert not shapely.contains_xy(vectors.land, 117.7, -8.0)  # the Flores Sea
+    assert shapely.contains_xy(vectors.lakes, 45.5, 37.7)  # Lake Urmia
+    assert max_step(vectors.land) <= SEGMENT_DEG
+    assert len(vectors.rivers) > 0
