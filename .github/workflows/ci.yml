@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pipeline:
+    name: Pipeline (ruff, pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.12.0"
+          enable-cache: true
+          cache-dependency-glob: pipeline/uv.lock
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+
+  app:
+    name: App (lint, Vitest, build, smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: app/.nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run test:smoke
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: app/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Keep the tested build for the deploy job
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-dist
+          path: app/dist
+          include-hidden-files: true
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [pipeline, app]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: deploy-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: app-dist
+          path: app/dist
+      - name: Deploy
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Account IDs are identifiers, not credentials.
+          accountId: 5cd6b468f9f946f44222ad8a966999ca
+          wranglerVersion: "4.139.0"
+          command: pages deploy app/dist --project-name=wander --branch=main
+      - name: Check the deployment serves the app and real 404s
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          curl -fsS "$DEPLOYMENT_URL/" | grep -q '<title>Wander</title>'
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$DEPLOYMENT_URL/no-such-page")
+          test "$status" = 404 || { echo "missing path returned $status, not 404"; exit 1; }
