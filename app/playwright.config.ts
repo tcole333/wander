@@ -23,19 +23,37 @@ const gpuChromium: Project = {
   },
 };
 
-// Lab runs on this Mac (`npm run lab`): measurements and cross-browser checks, in *.lab.ts files
-// that no other project matches. Chromium runs on this GPU through Playwright; the installed Safari
-// and Firefox open lab pages that post their reports to the dev server (e2e/lab/external.ts).
-// Never in CI.
+// Lab runs on this Mac (`npm run lab`, which sets WANDER_LAB): measurements and cross-browser
+// checks, in *.lab.ts files that no other project matches. Chromium runs on this GPU through
+// Playwright, as itself on a Retina display rather than an emulated desktop, so the reports record
+// what it really is; the installed Safari and Firefox open lab pages that post their reports to the
+// dev server (e2e/lab/external.ts). One test at a time, so runs never share the GPU. Never in CI,
+// and never in a run that did not ask for it, since it opens windows in both browsers.
 const lab: Project = {
   name: 'lab',
   testMatch: '**/*.lab.ts',
   timeout: 5 * 60_000,
+  workers: 1,
   use: {
-    ...devices['Desktop Chrome'],
+    browserName: 'chromium',
     viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
     launchOptions: { args: ['--use-angle=metal'] },
   },
+};
+
+const LAB = !!process.env.WANDER_LAB;
+
+// vite preview serves the production build for the smoke test; the lab needs only the dev server.
+const preview = {
+  command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
+  url: PREVIEW_URL,
+  reuseExistingServer: !process.env.CI,
+};
+const dev = {
+  command: `npm run dev -- --host 127.0.0.1 --port ${DEV_PORT} --strictPort`,
+  url: DEV_URL,
+  reuseExistingServer: !process.env.CI,
 };
 
 export default defineConfig({
@@ -47,17 +65,6 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  projects: process.env.CI ? [swiftshader] : [swiftshader, gpuChromium, lab],
-  webServer: [
-    {
-      command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
-      url: PREVIEW_URL,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: `npm run dev -- --host 127.0.0.1 --port ${DEV_PORT} --strictPort`,
-      url: DEV_URL,
-      reuseExistingServer: !process.env.CI,
-    },
-  ],
+  projects: process.env.CI ? [swiftshader] : LAB ? [lab] : [swiftshader, gpuChromium],
+  webServer: LAB ? [dev] : [preview, dev],
 });
