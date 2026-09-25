@@ -187,7 +187,7 @@ ids run 1..0xFFFD. Spread days use 65535 for never.
 u16 x | u16 y
 f32 qLand          meters per code at or above −200 m; one value per level
 f32 qDeep          = 4·qLand, meters per code below −200 m
-i16 codeMid        integer; the GPU stores code − codeMid
+i16 codeMid        ⌊(codeMin + codeMax)/2⌋; the GPU stores code − codeMid
 i16 codeMin | i16 codeMax          over the stored 264² and the edge profiles; for decoding only
                                    (LOD uses the meter bounds in bounds.bin, 3.8)
 i16 edge[4][257]   edge profiles N, E, S, W at texel corners 0..256 (3.0 item 7)
@@ -275,8 +275,9 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
     vertex k (at corner 8k) is h of the mean of the four mip-2 codes around it, and boundary vertices
     are h of the edge-profile code at their corner. Both are exact dyadic values, so Python and
     TypeScript agree bit for bit.
-  - It rejects a wrong key, magic, version or length, any |code − codeMid| > 2048, and a codeMin or
-    codeMax that does not match the planes and edges.
+  - It rejects a wrong key, magic, version or length, a qLand that is not positive or a qDeep other
+    than 4·qLand, any |code − codeMid| > 2048, and a codeMin or codeMax that does not match the
+    planes and edges.
 - **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 2 KiB = **359 KiB** [D].
 - **Size:** GEBCO L6 height alone measured 24.8 KiB mean / 43.8 p90 on random windows, 37.4 KiB on
   land-heavy windows and 53-66 KiB on major ranges, with zstd-19 on lat/lon windows rather than cube
