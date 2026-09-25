@@ -1,19 +1,25 @@
 # Wander: asset storage, delivery and streaming
 
-Merged design, 2026-09-24, revised after a fact-check, a brief-conformance audit and a buildability
+Merged design, 2026-09-24, revised after a fact-check, a PRD-conformance audit and a buildability
 review. It is written for whoever builds milestone 1 and what follows. It works under the owner's
 decisions: every layer independently toggleable; an all-eras event index built for explore in v1;
 desktop only; audio in v1; a museum-exhibit stance with exaggerated relief; beat stories with
 break-out; framed image cards; borders from the nearest historical-basemaps snapshot with its year
-shown; TypeScript, Vite, React, r3f, drei, Zustand; a Python (uv) offline prebuild; Pages + R2 at
-`wander.traviscole.xyz`; a public GitHub repo with Actions CI.
+shown; TypeScript, Vite, React, r3f, drei, Zustand; a Python (uv) offline prebuild; Pages at
+`wander.traviscole.xyz` and R2 at `wander-data.traviscole.xyz`; a public GitHub repo with Actions CI.
 
 Tags: **[M]** measured (file or source named; **[M proxy]** when the machine, browser or format differs
 from the target), **[S]** docs or source code, **[D]** arithmetic from [M]/[S], **[model]** output of
 `work/judge/beats_judge.py` (camera footprints × planning tile sizes, not a measured build), **[E]**
-estimate that the first build or the named experiment replaces. Paths are relative to
-`docs/design/measurements/`. Timing and feel constants are named in `code` and listed once in section 10;
-they live in `src/config/tunables.ts`, and tests read them from there.
+estimate that the first build or the named experiment replaces. Paths inside tags are relative to
+`docs/design/measurements/`; every other path is relative to the repo root. Timing and feel constants
+are named in `code` and listed once in section 10; they live in `app/src/config/tunables.ts`, and tests
+read them from there.
+
+Repo layout: `app/` is the npm project (the app); `pipeline/` is the uv project (the prebuild), with its
+config, queries and test excerpts; `shared/constants.json` is read by both; `stories/<story>/` holds
+each story's source; `build/` (git-ignored) holds prebuild output, `build/out/` in the R2 key layout and
+`build/fixture/`. `uv run prebuild <stage>` runs in `pipeline/`, and `npm run <script>` in `app/`.
 
 ---
 
@@ -35,21 +41,21 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 
 | Area | Decision | Why |
 |---|---|---|
-| **Surface tiling** | Equiangular cube sphere, a quadtree per face, 256² tiles plus a 4-texel border of real neighbour data. Conventions in 3.0; `cube.py` and `cube.ts` are checked against each other in CI. | No polar singularity, small streaming units, and 25% fewer texels than equirect at equal density [D]. |
-| **Surface content** | `.wst` (3.1): int16 height codes, u8 shoreline and u8 rivers-and-lakes distance fields, edge profiles. The shader computes colour, roughness, normals and engraving (a port of the spike's `surface.js`). No KTX2, Basis, albedo or normal maps. | A palette change is a GLSL edit, and there is no transcoder or per-browser format split. GEBCO L6 height alone measured 25-37 KiB mean [M `alt/gebco_tiles.json`]. |
-| **Levels and coverage** | L0-L4 everywhere. L5-L6 where the tile or its border touches land or shelf (GEBCO > −200 m, or an NE 10m land or minor-island polygon, dilated one texel). L7 only inside `prebuild/config/l7.yaml` regions. About 15.5K tiles [M ETOPO estimate, `work/asset-sizing/cube-land-fraction.json`]. | A global L7 raises the median beat from 2.2 to 3.2 MB for a gain seen only on close views [model]. L6 (611 m) is a deliberate reduction from GEBCO's ~464 m spacing. |
+| **Surface tiling** | Equiangular cube sphere, a quadtree per face, 256² tiles plus a 4-texel border of real neighbor data. Conventions in 3.0; `cube.py` and `cube.ts` are checked against each other in CI. | No polar singularity, small streaming units, and 25% fewer texels than equirect at equal density [D]. |
+| **Surface content** | `.wst` (3.1): int16 height codes, u8 shoreline and u8 rivers-and-lakes distance fields, edge profiles. The shader computes color, roughness, normals and engraving (a port of the spike's `surface.js`). No KTX2, Basis, albedo or normal maps. | A palette change is a GLSL edit, and there is no transcoder or per-browser format split. GEBCO L6 height alone measured 25-37 KiB mean [M `alt/gebco_tiles.json`]. |
+| **Levels and coverage** | L0-L4 everywhere. L5-L6 where the tile or its border touches land or shelf (GEBCO > −200 m, or a Natural Earth (NE) 10m land or minor-island polygon, dilated one texel). L7 only inside `pipeline/config/l7.yaml` regions. About 15.5K tiles [M ETOPO estimate, `work/asset-sizing/cube-land-fraction.json`]. | A global L7 raises the median beat from 2.2 to 3.2 MB for a gain seen only on close views [model]. L6 (611 m) is a deliberate reduction from GEBCO's ~464 m spacing. |
 | **Geometry and seams** | One instanced draw of a shared 33² grid (17² on lite) with skirts. Balanced levels, canonical edges, parent-position morphs and batched reveals (5.6). The `surfaceHeight()` GLSL is shared with attached geometry. | One level apart the seam step is 155-324 m p95; three levels apart it is a 4-6 km cliff at ×8 [M `work/critic-smoothness/seamstep*.json`]. |
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
-| **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders, range names follow Mountains, ocean and sea names follow Labels. Petroleum and minerals are labelled modern geological context. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. |
+| **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders, range names follow Mountains, ocean and sea names follow Labels. Petroleum and minerals are labeled modern geological context. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. |
 | **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders: 1878 snapshot"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; ~105-112 KB per year [M]. ES3 guarantees only 256 array layers [S]. |
-| **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, labelled illustrative. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
+| **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, labeled illustrative. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
 | **Story compile and media** | `uv run prebuild media <story>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
-| **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then full set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on full; also keeping N+1 full and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
+| **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then desired set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on the full tier; also keeping N+1's desired set and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
 | **Transitions** | van Wijk-Nuij flights with a readiness gate: a late beat slows into a short hold, then lands on ancestors (5.7). Optional refinement never blocks. | Flight + hold covers the largest critical set down to ~5.5 Mbps and the median down to ~2 Mbps [D from the model]. |
-| **Audio** | Web Audio. The AudioContext resumes in the Enter click handler. Buses ui, bed and cue. UI sounds are synthesized on the audio clock (`detents`; the flight whir via `setTargetAtTime`); beds are synthesis plus short CC0 mono AAC loops joined with `loopCrossfade` at loop points from the lock, and beds change over `bedCrossfade` (3.9). Sample sizes start at `audioEncodedMax` / `audioDecodedMax`. | The brief puts synthesis first; AAC decodes in every target browser. The allowance is a starting value, raised after the Tambora bed is heard. |
+| **Audio** | Web Audio. The AudioContext resumes in the Enter click handler. Buses ui, bed and cue. UI sounds are synthesized on the audio clock (`detents`; the flight whir via `setTargetAtTime`); beds are synthesis plus short CC0 mono AAC loops joined with `loopCrossfade` at loop points from the lock, and beds change over `bedCrossfade` (3.9). Sample sizes start at `audioEncodedMax` / `audioDecodedMax`. | The PRD puts synthesis first; AAC decodes in every target browser. The allowance is a starting value, raised after the Tambora bed is heard. |
 | **Hosting** | App on Pages at `wander.traviscole.xyz`: one entry bundle, no lazy chunks, same-origin workers built at boot. Data on R2 at `wander-data.traviscole.xyz`: immutable whole files (2 KB to ~3 MB) under content-versioned keys. Binaries are gzip streams stored as `application/octet-stream` with no `Content-Encoding`, inflated by `DecompressionStream`; small JSON is plain and edge-compressed. | A first-level name is covered by Universal SSL. `new Worker()` needs a same-origin script. Whole files give simple cancellation and whole-response caching. Stored `Content-Encoding` passthrough on R2 is unverified. |
 | **Browser caching** | The HTTP cache with `immutable`, plus an in-memory compressed-byte cache for the current story (16 / 32 MiB, lite / full). No Service Worker or Cache API in v1. | A SW brings update skew, and Safari clears script-writable storage after 7 days without interaction; a story's tiles fit the byte cache. |
 | **Scheduling** | Main-thread fetches (so preloads apply) in three classes, with a stall watchdog and no throughput estimator. 2 decode workers and 1 event worker. Uploads admitted by bytes (5.2, 5.4). | At 150 ms RTT six streams of ~45 KB objects top out near 14 Mbps [D], so 12 fetches run at once. Flights gate on readiness, so an estimator would only add false alarms. |
@@ -57,7 +63,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Quality tiers** | Two tiers, lite and full, fixed before a story starts, plus a render-scale governor (5.8). | No program compiles after the lobby. |
 | **Anti-aliasing** | Canvas `antialias: false`; SMAA in the composer; MSAA only on full, and only if E1 shows headroom. | r3f's default `antialias: true` plus three's 4-sample output target would add ~60 MiB at 1440×900 [S r3f 9.8.0, three `WebGLOutput.js`]. |
 | **Context loss, deploys** | In-place restore by re-running the boot GPU init from the byte cache, with a reload as fallback (5.9). Nothing is fetched from Pages after boot. R2 keys are never overwritten or deleted in v1. `release.json` is bundled, with an immutable copy on R2. | With three-managed pools, restore is the boot path again, and it avoids the extra click a reload needs for audio. Old tabs can live for days. |
-| **Fonts and labels** | EB Garamond (latin + italic, woff2) on Pages, preloaded. The display face and the troika label face (`.woff`, subset to exactly the characters used) load from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One drei `<Html>` per label creates its own React root [M]. |
+| **Fonts and labels** | Source Serif 4, the reading face (latin + italic, woff2), on Pages, preloaded. Libre Baskerville, the display face, and the troika label face (`.woff`, subset to exactly the characters used) load from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One drei `<Html>` per label creates its own React root [M]. |
 
 ---
 
@@ -65,16 +71,17 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 
 All binary files are gzip streams of packed little-endian bytes with no implicit padding. Headers are
 padded so every typed array starts at a multiple of its element size. Each file starts with a 4-byte
-magic and a u8 version. Key names are content hashes (`<sha16>`) or layer versions (`<ver8>`, a hash of
-the layer's output bytes). Magics, sentinels and the layer order live in one `shared/constants.json`,
-read by Python and imported by TypeScript.
+magic and a u8 format `version`. Key names are content hashes (`<sha16>`) or layer versions (`<ver8>`, a
+hash of the layer's output bytes). A format version is `version` in a binary header and `v` in JSON;
+`ver` is always a layer version. Magics, sentinels and the layer order (3.9) live in one
+`shared/constants.json`, read by Python and imported by TypeScript.
 
 ### 3.0 Conventions
 
 **Cube sphere** (`cube.py` and `cube.ts` implement exactly this):
 1. Globe frame G, right-handed: +X = (0°N, 0°E), +Y = (0°N, 90°E), +Z = north pole. three.js space is
    (G.y, G.z, G.x): north is +Y and longitude 0 faces +Z.
-2. Faces as (centre C, U, V):
+2. Faces as (center C, U, V):
 
    | Face | C | U | V |
    |---|---|---|---|
@@ -91,7 +98,7 @@ read by Python and imported by TypeScript.
    |component| (the sign picks + or −); ties go to the lowest face index.
 4. Tile (f, L, x, y): n = 2^L; x runs along U and y along V; y = 0 at t = −1; s spans
    [−1 + 2x/n, −1 + 2(x+1)/n], and t likewise.
-5. Texel (i, j), with i, j in −4..259, is centred at `s0 + (i + 0.5)·(2/n)/256` (and likewise t). Border
+5. Texel (i, j), with i, j in −4..259, is centered at `s0 + (i + 0.5)·(2/n)/256` (and likewise t). Border
    texels beyond a face edge use the same formula (tan stays finite) and sample the source there. The
    stored index is i + 4; row 0 is j = −4 (smallest t); textures upload with `flipY = false`.
 6. Tile-local τ in [0, 1] maps to `uv = (4 + 256τ)/264`, which is the same uv at mips 1 and 2 (and
@@ -101,14 +108,14 @@ read by Python and imported by TypeScript.
    tile's own order, reversed where the two faces' parameters run opposite.
 8. Node index (availability bitmap, `index.bin`, `bounds.bin`) = `2(4^L − 1) + f·4^L + y·2^L + x`. Bit
    k is byte k>>3, bit k&7, least significant bit first.
-9. Cross-check: the fixture build writes Python samples (lon, lat, L) → (f, x, y, s, t, texel-centre
+9. Cross-check: the fixture build writes Python samples (lon, lat, L) → (f, x, y, s, t, texel-center
    vector). Vitest requires 1e-9 on s and t, and equal keys only for points at least 1e-6 of a tile
    width from an edge (numpy and V8 may differ in the last ulp of `atan`).
 
 **Equirect rasters** (spread fields, border previews, ModE-RA): row 0 is the northmost. Texel (i, j) is
-centred at lon = west + (i + 0.5)·(east − west)/w and lat = north − (j + 0.5)·(north − south)/h. West is
+centered at lon = west + (i + 0.5)·(east − west)/w and lat = north − (j + 0.5)·(north − south)/h. West is
 less than east, and east may run to 540 for boxes that cross the dateline. Previews cover −180..180
-and 90..−90. ModE-RA columns are cell centres from −180° in 1.875° steps, and its rows are the 96
+and 90..−90. ModE-RA columns are cell centers from −180° in 1.875° steps, and its rows are the 96
 Gaussian latitudes.
 
 **Time:** a date is a day number since 0001-01-01 in the proleptic Gregorian calendar with astronomical
@@ -130,10 +137,10 @@ ids run 1..0xFFFD. Spread days use 65535 for never.
 ### 3.1 Surface tile `surf/<ver8>/<L>/<face>/<x>/<y>.wst`
 
 ```
-'WST1' u8 ver | u8 face | u8 level | u8 flags (bit0 has inland water, bit1 all sea)
+'WST1' u8 version | u8 face | u8 level | u8 flags (bit0 has inland water, bit1 all sea)
 u16 x | u16 y
-f32 qLand          metres per code at or above −200 m; one value per level
-f32 qDeep          = 4·qLand, metres per code below −200 m
+f32 qLand          meters per code at or above −200 m; one value per level
+f32 qDeep          = 4·qLand, meters per code below −200 m
 i16 codeMid        integer; the GPU stores code − codeMid
 i16 codeMin | i16 codeMax          over the stored 264² and the edge profiles, for LOD bounds
 i16 edge[4][257]   edge profiles N, E, S, W at texel corners 0..256 (3.0 item 7)
@@ -144,29 +151,29 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
                      inside < 0
 ```
 
-- **Height values:** each texel is the mean of 4×4 bilinear sub-samples of GEBCO metres over its
+- **Height values:** each texel is the mean of 4×4 bilinear sub-samples of GEBCO meters over its
   footprint, taken from the finest source whose cell is no larger than the texel: 15" at L5-L7, a 1'
   block mean at L3-L4, 4' at L1-L2 and 16' at L0 (the coverage stage builds these overviews once).
   Within 2 texels of the NE shore, land texels are clamped to max(h, 0) and sea texels to min(h, 0);
   inland depressions such as the Dead Sea keep their negative heights. Codes round half away from zero.
-- **Codes to metres:** `c200 = round(−200/qLand)`. For `c ≥ c200`, `h = c·qLand`; below it,
+- **Codes to meters:** `c200 = round(−200/qLand)`. For `c ≥ c200`, `h = c·qLand`; below it,
   `h = c200·qLand + (c − c200)·qDeep`. `qLand = max(2 m, texel/1000)`, raised per level until every
-  tile's code range is at most 4,096 (the coverage stage reports q per level; expect ≤ 3 m at L5 [E]).
+  tile's code range is at most 4,096 (the coverage stage reports qLand per level; expect ≤ 3 m at L5 [E]).
   Then `|code − codeMid| ≤ 2048`, which half-float holds exactly.
-- **Shore and water fields:** rasterised at 4× over the 264² tile plus a 12-texel margin, then a
+- **Shore and water fields:** rasterized at 4× over the 264² tile plus a 12-texel margin, then a
   Euclidean distance transform, so every value depends only on its position. Rivers by level:
   scalerank ≤ 2 at L0-L1, ≤ 4 at L2, ≤ 6 at L3, and all at L4 and deeper. Half-width is
-  `max(0.35 texel, w_km[scalerank] / texel_km(L))`, with `w_km` in `prebuild/config/water.yaml`. The
+  `max(0.35 texel, w_km[scalerank] / texel_km(L))`, with `w_km` in `pipeline/config/water.yaml`. The
   shader holds on-screen line width with `fwidth`.
-- **Edges:** within a face, border texels equal the neighbour's interior values because both are the
+- **Edges:** within a face, border texels equal the neighbor's interior values because both are the
   same function of position. Across a face edge the texel grids do not line up, so the build samples
-  each shared edge once, at positions both faces parameterise identically, and writes the same 257
+  each shared edge once, at positions both faces parameterize identically, and writes the same 257
   codes (from the clamped field) into both tiles. Corner entries are computed once for all tiles that
   meet there.
 - **Decode (TS worker):** inflate, undo the predictor, then build mips 132 and 66 with integer
   arithmetic, `m = (a + b + c + d + 2) >> 2`, for codes, shore and water alike. Mips are built only
   here. Output: R16F offsets (code − codeMid) and RG8 (shore, water) for 3 mips, the R16F edge
-  profiles, a 33² Float32 metre grid, and the compressed buffer handed back (5.2). The measured
+  profiles, a 33² Float32 meter grid, and the compressed buffer handed back (5.2). The measured
   0.32 ms per tile is a proxy [M proxy: the older two-plane format on an M5]; E1 re-measures.
 - **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 2 KiB = **359 KiB** [D].
 - **Size:** GEBCO L6 height alone measured 24.8 KiB mean / 43.8 p90 on random windows, 37.4 KiB on
@@ -181,32 +188,33 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
 The layers are `ecoregions`, `petroleum`, `mountains` and `borders-<stem>` (one per snapshot).
 
 ```
-'WOT1' u8 ver | u8 face | u8 level | u8 flags | u16 x | u16 y | u16 layerId
-four 132×132 planes (2-texel border of real neighbour data), each (v − pred) mod 256:
+'WOT1' u8 version | u8 face | u8 level | u8 flags | u16 x | u16 y | u16 layerId
+four 132×132 planes (2-texel border of real neighbor data), each (v − pred) mod 256:
   idLo, idHi   feature id, u16, 0 = none, exact
   dist         min(255, 16·d), d = texels to the nearest boundary between different ids
   aux          borders: the source's boundary-precision class of the nearest boundary;
                mountains: spine distance, min(255, 16·d); otherwise 0
 ```
 
-- **`ov/<layer>/<ver8>/index.bin`** (gzip): one u16 per node L0..lmax by node index (3.0): `0xFFFE`
+- **`ov/<layer>/<ver8>/index.bin`** (gzip): one u16 per node L0..maxLevel by node index (3.0): `0xFFFE`
   means a file exists, `0xFFFF` means empty, and any other value is a constant feature id (no file).
-  That is 8,190 entries (16 KB raw) at lmax 5.
-- **`meta.json`:** `id → {name, attrs, colour, labelPoint}`, the offline 4-colouring for border
-  snapshots, the source and the licence.
+  That is 8,190 entries (16 KB raw) at maxLevel 5.
+- **`meta.json`:** `id → {name, attrs, color, labelPoint}`, the offline 4-coloring for border
+  snapshots, the source and the license.
 - **GPU:** a 132² RGBA8 array plus a 66² mip. Ids are read with `texelFetch`; distance is read with
   filtered `texture()`. The mountain hatch is procedural from the fill id, and its outline comes from
   `dist`.
-- **Indirection:** one RG16UI array texture, (6·2^lmax) × 2^lmax per layer at the deepest lmax of any
-  layer (192×32 at L5), one array layer per active overlay channel (at most 6). R holds the slot
-  (`0xFFFE` constant, `0xFFFF` empty); G holds the resident tile's level, or the constant id.
+- **Indirection:** one RG16UI array texture, (6·2^maxLevel) × 2^maxLevel per layer at the deepest
+  `maxLevel` of any layer (192×32 at L5), one array layer per active overlay channel (at most 6). R
+  holds the slot (`0xFFFE` constant, `0xFFFF` empty); G holds the resident tile's level, or the
+  constant id.
 - **Tint:** fills stop one texel short of a boundary, so the id stair-steps sit under an untinted
   margin. Along coasts, fills are clipped by the surface's shore channel.
 
 ### 3.3 Border previews `ov/borders-previews/<ver8>/previews.bin`
 
 ```
-'WBP1' u8 ver | u8 pad | u16 count (54) | u16 w (512) | u16 h (256) | i32 years[54] (astronomical)
+'WBP1' u8 version | u8 pad | u16 count (54) | u16 w (512) | u16 h (256) | i32 years[54] (astronomical)
 u8 dist[54][256][512]   equirect (3.0); min(255, 16·d) in preview texels to the nearest border
 ```
 
@@ -240,28 +248,27 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   (~21 rows each), filled by score, and leftovers by score. If the corpus is at most 100K rows and
   16 MiB decoded, the rest goes into `all.wev`. Otherwise it is split into `p00..p23` by era bin: a row
   goes into every bin it overlaps, except rows spanning more than 3 bins, which go into `long.wev`.
-- **Committed config:** `prebuild/config/era_bins.yaml` (24 bins in astronomical years, edges −∞,
+- **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
-  1700, 1800, 1850, 1900, 1950, 2000, +∞); `prebuild/config/regions.geojson` (8 macro-regions);
-  `prebuild/config/classes.yaml` (the class allowlist and weights, which keep out sporting seasons and
-  similar noise); `prebuild/queries/*.rq` with each export's timestamp.
+  1700, 1800, 1850, 1900, 1950, 2000, +∞); `pipeline/config/macro-regions.geojson` (8 macro-regions);
+  `pipeline/config/classes.yaml` (the class allowlist and weights, which keep out sporting seasons and
+  similar noise); `pipeline/queries/*.rq` with each export's timestamp.
 - **Cleaning (build):**
-  - **Dates** are normalised to proleptic Gregorian. The original string, calendar and alternate claims
+  - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
     go to `details/<n>.json` (built in v1, loaded in v1.1).
   - **Places:** direct coordinates first, then inherited ones (flagged). Unlocated parents take the
     centroid of their children, then the P17 centroid, then an override.
   - **Hierarchy:** one canonical display parent per event.
 - **Score:** the per-era percentile of `log2(1 + sitelinks)`, times the class weight, plus curated
-  boosts, scaled to 0-1000. How to balance eras and regions is owner decision 3; the quotas above are
-  the recommended default.
-- **Deep time:** storage and bins take any date. Whether pre-human geology (the Ries impact at −15 Myr,
-  the Messinian crisis) belongs in the allowlist is owner decision 2. The fixture has a −15 Myr row
-  either way.
+  boosts, scaled to 0-1000. Owner decision 3 adopts the quotas above.
+- **Deep time:** storage and bins take any date. Owner decision 2 admits only well-known deep-time
+  events, such as the Ries impact at −15 Myr, shown in a compressed deep-time segment of the time
+  ruler. The fixture has a −15 Myr row.
 
 ### 3.5 Climate `fd/modera/<ver8>/{mean,spread}/<year>.bin` and `annual.bin`
 
 ```
-'WCY1' u8 ver | u8 variable (0 mean, 1 spread, 2 annual mean) | i16 firstYear | u16 frames
+'WCY1' u8 version | u8 variable (0 mean, 1 spread, 2 annual mean) | i16 firstYear | u16 frames
 u16 nlat (96) | u16 nlon (192) | u16 pad
 f32 scale[frames] | f32 offset[frames]    K = u8·scale + offset; 255 = missing
 u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitudes in release.json)
@@ -275,7 +282,7 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 - Year files have 12 frames. `annual.bin` has 588 frames, 1421-2008. Months follow the source's
   `(year, month)` indexing; its hour offsets are not reinterpreted through dates.
 - **GPU:** an R8 ring of 60 monthly layers (1.1 MB), and the annual means in three arrays covering
-  1421-1617, 1617-1813 and 1813-2008 (197/197/196 layers). The boundary year sits in both neighbours,
+  1421-1617, 1617-1813 and 1813-2008 (197/197/196 layers). The boundary year sits in both neighbors,
   so interpolation never spans two textures. Per-frame scale and offset live in a small LUT texture.
 - **Shader:** mix frames `floor(m)` and `ceil(m)`, sample bicubically on the sphere through a 96-entry
   latitude LUT, and apply a diverging palette that saturates at `climateRangeK`, independent of the
@@ -288,15 +295,15 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 
 - **Spread `fx/<sha16>.bin`:**
   ```
-  'WFX1' u8 ver | u8 kind (1 = spread) | u8 planes (1 arrival; 2 arrival + clearing) | u8 pad
+  'WFX1' u8 version | u8 kind (1 = spread) | u8 planes (1 arrival; 2 arrival + clearing) | u8 pad
   i32 epochDay | u16 w | u16 h | f32 bbox[4] (west, south, east, north; equirect, 3.0)
   u16 days[planes][h][w]    days since epochDay; 65535 = never
   ```
   - **GPU:** R16F, with "never" mapped to 65504 (the half-float maximum). It is exact to 2,048 days,
     then in 2-day steps to 4,096 and 4-day steps to 8,192; the build warns past 8,192 days (~22 years).
-  - **Shader:** `coverage = smoothstep(arrival − w, arrival, t)`, with `t` in days since the epoch. The
-    glowing front is the contour of `arrival` at `t`. With two planes, a cell shows while
-    `arrival ≤ t < clearing`.
+  - **Shader:** `coverage = smoothstep(arrival − wDays, arrival, t)`, with `t` in days since the epoch
+    and `wDays` the front width from the story (3.9). The glowing front is the contour of `arrival`
+    at `t`. With two planes, a cell shows while `arrival ≤ t < clearing`.
   - **Grid:** 0.1° by default, 0.05° where needed. One u16 plane at 0.05° over a 72° × 40° box measured
     417 KB gzip on a synthetic field [M `work/story-first/spread.json`]. The build reports each size,
     and the story core absorbs it.
@@ -320,7 +327,7 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
     "camera": {"target":[lon,lat], "viewKm", "tilt", "heading", "drift"},
     "focal": {"qid", "label", "t", "at":[lon,lat]},
     "html": "<p>…</p>",
-    "image": {"preview", "avif", "jpg", "w", "h", "crop":[x0,y0,x1,y1], "alt", "credit", "licence", "source"},
+    "image": {"preview", "avif", "jpg", "w", "h", "crop":[x0,y0,x1,y1], "alt", "credit", "license", "source"},
     "layers": {"relief":true, "bathymetry":false, "coastline":true, "landSea":true, "water":true,
                "graticule":false, "labels":true, "borders":true, "ecoregions":false,
                "petroleum":false, "mountains":false, "minerals":false,
@@ -335,16 +342,16 @@ The border snapshot is not in the beat; the runtime computes it from the date (3
 by qid only. The story index (titles, plaque text, beat 1's date, camera and layers) and the article
 pages are built from the same JSON.
 
-### 3.8 `src/generated/release.json` (committed and bundled; copy at `rel/<id>.json`)
+### 3.8 `app/src/generated/release.json` (committed and bundled; copy at `rel/<id>.json`)
 
 `npm run publish-data` is its only writer; it merges the stage records (7.2).
 
 ```
 { "id":"<sha16 of this JSON's canonical form without the id field>", "built":"…",
   "dataHost":"https://wander-data.traviscole.xyz",
-  "surface": {"ver", "maxLevel":7, "q":[…per level], "c200":[…], "avail":"<base64, 1 bit per node>",
+  "surface": {"ver", "maxLevel":7, "qLand":[…per level], "c200":[…], "avail":"<base64, 1 bit per node>",
               "bounds":"surf/<ver8>/bounds.bin"},
-  "overlays": {"ecoregions":{"ver","lmax":5}, "petroleum":{…}, "mountains":{…}},
+  "thematic": {"ecoregions":{"ver","maxLevel":5}, "petroleum":{…}, "mountains":{…}},
   "borders": {"stems":["bc123000", …, "2010"], "years":[-122999, …, 2010], "ver":{"1815":"…", …},
               "previews":"ov/borders-previews/<ver8>/previews.bin"},
   "events": {"ver", "overview", "files":[{"key","t0","t1","rows","bytes"}]},
@@ -357,11 +364,11 @@ pages are built from the same JSON.
 
 The availability bitmap is 131,070 bits at L7 (16 KB raw) and sparse, so it compresses well inside the
 bundle. At run time a node uses its parent's height bounds until its own tile loads; `bounds.bin`
-(i16 min and max metres per available node) serves the warm planner in Node.
+(i16 min and max meters per available node) serves the warm planner in Node.
 
 ### 3.9 Story source
 
-- **`stories/<id>/story.md`:** front matter (id, title, blurb, credits), then per beat one H2, one
+- **`stories/<story>/story.md`:** front matter (id, title, blurb, credits), then per beat one H2, one
   fenced YAML block tagged `beat`, and 60-120 words of text.
 - **Beat fields:**
   - `id`
@@ -376,18 +383,18 @@ bundle. At run time a node uses its parent's height bounds until its own tile lo
     ecoregions, petroleum, mountains, minerals, climate, events. `climate` may carry
     `{mode: monthly | annual}`.
   - `effects`: a list of `{plume | spread | route | pulse | callout: params}`; spread and route take
-    `{dataset, w_days, style}`
+    `{dataset, wDays, style}`
   - `audio: {cues: [...]}`
   - `meanwhile: auto | [qids]`
-- **Datasets:** `stories/<id>/data/<name>.geojson`, with kind, epoch and grid in top-level properties
+- **Datasets:** `stories/<story>/data/<name>.geojson`, with kind, epoch and grid in top-level properties
   that Python reads. A spread is isochrone polygons, each with a `by` date. A route is a LineString with
   a per-vertex date array.
-- **Beds:** `stories/<id>/audio/bed.json` holds `{synth: {...}, loops: [{src, gain}], oneShots: [...]}`,
+- **Beds:** `stories/<story>/audio/bed.json` holds `{synth: {...}, loops: [{src, gain}], oneShots: [...]}`,
   with the CC0 WAV sources committed beside it.
 - **Meanwhile, auto:** the top `meanwhileCount` events by score inside the beat window that lie more
   than `meanwhileMinKm` from the target, at most one per macro-region.
-- **Lock** (`stories/<id>/story.lock.json`, written by the media stage, committed):
-  `{eventsVer, images: [{key, bytes, w, h, credit, licence, source}], audio: [{key, bytes, loopStart,
+- **Lock** (`stories/<story>/story.lock.json`, written by the media stage, committed):
+  `{eventsVer, images: [{key, bytes, w, h, credit, license, source}], audio: [{key, bytes, loopStart,
   loopEnd}], events: {qid: {label, t, at}}, meanwhile: {beatId: [qid, …]}}`.
 
 ---
@@ -412,7 +419,7 @@ rel/<id>.json                                           immutable copy of each r
 
 ### 4.2 Hostnames, zone settings and headers (Free plan)
 
-- **App, `wander.traviscole.xyz` (Pages):**
+- **App, `wander.traviscole.xyz` (Pages project `wander`, default host `wander-7z4.pages.dev`):**
   - `index.html` is served `max-age=0, must-revalidate`; `/assets/*` and `/fonts/*` are
     `public, max-age=31536000, immutable`.
   - A top-level `404.html` makes a missing asset a real 404; without it, Pages serves `index.html` for
@@ -443,7 +450,7 @@ rel/<id>.json                                           immutable copy of each r
 3. `npm run publish-data`:
    - uploads the keys in `build/out/` that R2 lacks (`rclone --immutable --ignore-existing`, with
      headers)
-   - runs the smoke test: GET 20 random new objects twice; expect `HIT` on the second (from this
+   - runs the publish check: GET 20 random new objects twice; expect `HIT` on the second (from this
      machine), a byte-exact sha, CORS and the right Content-Type
    - warms the cache (4.4)
    - writes `release.json` from the stage records and uploads `rel/<id>.json`
@@ -451,8 +458,8 @@ rel/<id>.json                                           immutable copy of each r
    `rel/<id>.json` is live on the data host, and deploys Pages last, so HTML never names data that is
    not live.
 
-- **R2 writes happen on the owner's machine,** because CI needs none. CI holds only the Pages token.
-  Long-lived R2 API tokens scope to whole buckets; if CI ever needs to write, a temporary credential can
+- **R2 writes happen on the owner's machine,** because CI needs none. CI holds only a Pages-scoped
+  API token, the `CLOUDFLARE_API_TOKEN` repository secret. Long-lived R2 API tokens scope to whole buckets; if CI ever needs to write, a temporary credential can
   be limited to a prefix [S R2 temporary credentials].
 - **Retention:** no key is overwritten or deleted in v1. Overwriting is unsafe because 404s and old
   bodies get cached at the edge and in browsers, and edge caches cannot be purged reliably (on Free,
@@ -463,11 +470,11 @@ rel/<id>.json                                           immutable copy of each r
 ### 4.4 Warming and cost
 
 - **One-shot warm in `publish-data`** (~200-300 MB [D]): surface L0-L4 (2,046 tiles); every story's
-  core and per-beat critical and full sets for both tiers at 1440×900, 1536×864 and 1920×1080 CSS
+  core and per-beat critical and desired sets for both tiers at 1440×900, 1536×864 and 1920×1080 CSS
   (computed by `lod.ts` in Node from `bounds.bin`); overlay L0-L2 for every layer; border previews,
   indexes and metas; events; the climate years stories use.
-- **What warming covers:** the owner's nearest Cloudflare data centre and the Smart Tiered upper tier
-  only [S `work/cloudflare/tiered.md`]. Visitors elsewhere miss their local data centre and pay the round
+- **What warming covers:** the owner's nearest Cloudflare data center and the Smart Tiered upper tier
+  only [S `work/cloudflare/tiered.md`]. Visitors elsewhere miss their local data center and pay the round
   trip to the upper tier. The flight hold and prefetch are sized against that fill latency from the
   farthest target region (E4), not against a local HIT. The 17 ms HIT and 152 ms cold R2 figures are
   curl range requests from Boston to another host [M proxy `work/cloudflare/`].
@@ -505,8 +512,8 @@ rel/<id>.json                                           immutable copy of each r
 | Class | Contents, in order | In flight |
 |---|---|---|
 | **now** | missing roots (L0-L1); the current view's desired set with ancestors, coarsest first; a toggled layer's view tiles; the current beat's core and critical items; a Resume, Back or jump target; the predicted resting view of a zoom gesture; after the ruler rests on a new snapshot, its `index.bin` and `meta.json`, then its view tiles | up to 11 while background has queued work, else 12 |
-| **next** | the hovered story's core and beat-1 critical set; the rest of the story core; N+1 critical; N+1 full | ≤ 4, shared with background |
-| **background** | L2; the event overview, then event pages (5.3); border previews; for each thematic layer, `index.bin` and `meta.json`, then its L0 tiles; label and display fonts; climate years within `climatePrefetchYears` of the cursor while climate is on (`annual.bin` once climate is first shown); neighbouring snapshots' index, meta and view tiles | ≥ 1 whenever it has work |
+| **next** | the hovered story's core and beat-1 critical set; the rest of the story core; N+1 critical; N+1 desired | ≤ 4, shared with background |
+| **background** | L2; the event overview, then event pages (5.3); border previews; for each thematic layer, `index.bin` and `meta.json`, then its L0 tiles; label and display fonts; climate years within `climatePrefetchYears` of the cursor while climate is on (`annual.bin` once climate is first shown); neighboring snapshots' index, meta and view tiles | ≥ 1 whenever it has work |
 
 - **Concurrency:** `inFlight`, split as in the table.
 - **Fetch:** `fetch(url, {priority, mode: 'cors', credentials: 'omit'})`, with priority `high` for now
@@ -536,13 +543,13 @@ rel/<id>.json                                           immutable copy of each r
   dropped to fit memory.
 - **Query:** over the ruler's visible span and the view, at up to `eventQueryHz` while moving, with
   generation ids. Story focal events and Meanwhile lists are exempt from the budget.
-- **Detail budget:** `markers` and `labels` per tier. Focal events always show. A parent shows until its
-  on-screen extent passes `parentSplitPx`, then its children replace it (and it returns below
-  `parentMergePx`). At most `declutterPerCell` events per 64 px cell. A newcomer needs `hysteresisScore`
+- **Detail budget:** `eventMarkers` and `eventLabels` per tier. Focal events always show. A parent
+  shows until its on-screen extent passes `parentSplitPx`, then its children replace it (and it returns
+  below `parentMergePx`). At most `declutterPerCell` events per 64 px cell. A newcomer needs `hysteresisScore`
   more than an incumbent to displace it. Fades take `eventFade`.
 - **References:** story JSON and the lock name events by qid; the worker builds a qid → row map on load.
 - **Meanwhile panel:** while a beat is showing, its compiled list. During break-out, the worker runs the
-  same rule (3.9) on the ruler window and the view centre.
+  same rule (3.9) on the ruler window and the view center.
 
 ### 5.4 Uploads per frame
 
@@ -558,7 +565,7 @@ rel/<id>.json                                           immutable copy of each r
 
 ### 5.5 Pools, residency, eviction
 
-- **Pool recipe (`src/gpu/gpuPool.ts`):**
+- **Pool recipe (`app/src/gpu/gpuPool.ts`):**
   1. `new DataArrayTexture(null, 264, 264, slots)` with the channel's format and type (132² for
      overlays). Set `generateMipmaps = false`, `mipmaps = [{}, {}, {}]` (two entries for overlays) so
      three allocates that many levels in `texStorage3D`, `minFilter = LinearMipmapLinearFilter`,
@@ -575,7 +582,7 @@ rel/<id>.json                                           immutable copy of each r
 - **Allocation:** every pool, the climate ring and annual arrays, the previews, and the indirection and
   draw-index textures are allocated at boot. Each is touched once behind the poster, because ANGLE may
   zero-fill lazily on first use [E]. None is ever reallocated.
-- **Sizes:** surface 256 / 160 slots (full / lite). Overlay `overlaySlots` to start; E3 counts the peak
+- **Sizes:** surface 160 / 256 slots (lite / full). Overlay `overlaySlots` to start; E3 counts the peak
   with every layer on and resizes to the peak plus 25%. No array may exceed 256 layers, the ES3 minimum
   [S]; a peak above that is absorbed by the coarser-ancestor rule below, not by a second array (which
   would cost a sampler).
@@ -617,7 +624,7 @@ rel/<id>.json                                           immutable copy of each r
 
 - **Instance data (6 × vec4):** key (face, L, x, y); source slot + sub-rect (u0, v0, scale);
   fade-partner slot + sub-rect; parent slot + sub-rect; codeMid of source, partner and parent + fade
-  start; per-edge flags (neighbour node level −1/0/+1, edge on the coarser source's tile boundary, that
+  start; per-edge flags (neighbor node level −1/0/+1, edge on the coarser source's tile boundary, that
   edge's mip) + fade duration + source level + node level.
 - **Rules:**
   1. **Balance.** `lod.ts` balances twice, across face edges too: adjacent drawn nodes differ by at most
@@ -628,7 +635,7 @@ rel/<id>.json                                           immutable copy of each r
   3. **Shared-edge heights:** an edge on the coarser source's tile boundary takes its heights from that
      source's edge profile; any other shared edge samples the coarser source's 2D texture at its m.
   4. **T-junctions:** on the finer side of a 2:1 node edge, odd vertices sit at the midpoint of their two
-     even neighbours' final displaced positions and take no height sample.
+     even neighbors' final displaced positions and take no height sample.
   5. **Diagonal:** every quad splits along corner (k, l)–(k+1, l+1).
   6. **Morph start:** a new child's vertex is the barycentric blend of its parent triangle's three
      vertices, each computed with the parent's own source, mip and edge rules. That is why the instance
@@ -646,7 +653,7 @@ rel/<id>.json                                           immutable copy of each r
 
 - **`lod.ts` is a pure function** of camera, viewport (CSS px), tier, exaggeration, availability and
   per-node code bounds, with frustum and horizon culling.
-  - **Refine** while a texel covers more than `refinePx` (0.83 CSS px full, 1.5 lite); **merge** below
+  - **Refine** while a texel covers more than `refinePx` (1.5 CSS px lite, 0.83 full); **merge** below
     0.7× that. These are the beat model's Medium and Low profiles, so changing them invalidates the
     budgets in section 6 and the pool sizes.
   - Viewports over 1440×900 CSS scale the threshold by √(area ratio), so tile counts stay inside the
@@ -656,8 +663,8 @@ rel/<id>.json                                           immutable copy of each r
 - **Per-beat plan:**
   - **Critical** = the beat's story-core items + surface tiles at desired−1 + the beat's overlay tiles
     (with its snapshot's index and meta) + the decoded card.
-  - **Full** = the desired level.
-  - **On landing at N:** the rest of the core, then N+1 critical, then N+1 full, then background. N−1
+  - **Desired** = the desired level.
+  - **On landing at N:** the rest of the core, then N+1 critical, then N+1 desired, then background. N−1
     stays compressed in the byte cache.
   - **Layers:** every beat transition (Next, Back, Resume) applies the beat's layer set; toggles made
     during break-out last until then.
@@ -676,7 +683,7 @@ rel/<id>.json                                           immutable copy of each r
   | Time | On screen | Loading |
   |---|---|---|
   | 0 s (click) | rings swing open; unlock sound | the AudioContext resumes in the click handler; beat-1 core and critical move to now |
-  | 0.4-2.6 s | flight into beat 1; the ruler slides to the story date | beat-1 core, critical, then full |
+  | 0.4-2.6 s | flight into beat 1; the ruler slides to the story date | beat-1 core, critical, then desired |
   | 2.2-3.0 s | the title plate engraves in once `document.fonts.load()` resolves (fallback after `titleFontWait`); the text card slides in | beat 2 enters next |
 
 - **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years, snapshot
@@ -702,12 +709,12 @@ rel/<id>.json                                           immutable copy of each r
   time-dependent effect, or the instrument's motion. Otherwise it is `"demand"`, and every stream
   completion calls `invalidate()`. The delta is clamped after idle or a hidden tab.
 - **Lobby precompile,** behind the poster:
-  - **Render target:** compile with the composer's input target bound, because three r186 keys programs
-    on the bound target's tone mapping and colour space [S `WebGLPrograms.js`].
+  - **Render target:** compile with the composer's input target bound, because three 0.186.1 keys programs
+    on the bound target's tone mapping and color space [S `WebGLPrograms.js`].
   - **Scene state:** include the real lights and shadows, an off-screen label, the depth pass, and every
     effect program for the tier.
   - **API:** use `compileAsync` where `KHR_parallel_shader_compile` exists. Firefox on macOS lacks it
-    [M proxy; E1 checks Windows], so there one material compiles per frame.
+    [M proxy; the pre-launch rerun checks Windows], so there one material compiles per frame.
 - **Fragment samplers:** the surface program uses about 13 of the 16 guaranteed: height, channels,
   overlay pool, indirection, palette/scale LUT, previews, noise, climate ring, annual chunk, spread,
   shadow, environment and ramp. Adding one needs a check against that limit.
@@ -755,7 +762,7 @@ Rows marked "reported" are not gates: the story-walk test prints any beat or sto
 
 | Budget | Number | Basis |
 |---|---|---|
-| **Before the first live frame** | **~0.95 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M]; L0 surface 6 × ~50 KB [E]. The instrument and environment are procedural; there is no transcoder. |
+| **Before the first live frame** | **~0.95 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M on EB Garamond, the earlier choice; re-measured for Source Serif 4]; L0 surface 6 × ~50 KB [E]. The instrument and environment are procedural; there is no transcoder. |
 | **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.95 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
 | **Lobby settle** (background) | ≤ 3 MB before L2 | L1 ~1.1-1.4 MB [D from the planning mean]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
@@ -776,26 +783,26 @@ Rows marked "reported" are not gates: the story-walk test prints any beat or sto
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
-| `uv run prebuild fetch` | `prebuild/sources.toml` (`{url, version or commit, sha256, licence}` per input: GEBCO_2026; NE 10m land, coastline, lakes, rivers and minor islands; NE bathymetry; historical-basemaps at a pinned commit; RESOLVE 2017; USGS petroleum and minerals; the legacy-derived 42-range GMBA v2.0 selection `world-major-ranges-v1.json`; ModE-RA mean and spread; the QLever exports) → downloads what is missing and verifies every sha256 | minutes (network) | local |
+| `uv run prebuild fetch` | `pipeline/sources.toml` (`{url, version or commit, sha256, license}` per input: GEBCO_2026; NE 10m land, coastline, lakes, rivers and minor islands; NE bathymetry; historical-basemaps at a pinned commit; RESOLVE 2017; USGS petroleum and minerals; the legacy-derived 42-range GMBA v2.0 selection `world-major-ranges-v1.json`; ModE-RA mean and spread; the QLever exports) → downloads what is missing and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
-| `coverage` | GEBCO + NE + `prebuild/config/l7.yaml` (`[{name, lon, lat, radiusKm}]`) → the 1', 4' and 16' overviews, L5-L7 availability, q and c200 per level, tile counts | minutes [E] | local |
+| `coverage` | GEBCO + NE + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm}]`) → the 1', 4' and 16' overviews, L5-L7 availability, qLand and c200 per level, tile counts | minutes [E] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | ~15-20 min in one process, ~3-5 min with 8 [E], extrapolated from a 55 ms ETOPO proxy tile [M `work/critic-simplicity/tiletime.out`]; the first bake measures it | local |
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews | ~5-15 s per snapshot [E; an 8192×4096 id raster took 1.0 s, M] | local |
-| `overlays` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterise + EDT ~2-5 min per layer [E] | local |
+| `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | curated names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
-| `events` | pinned exports in `prebuild/queries/` → `.wev` + details | build < 1 min [E] | local |
+| `events` | pinned exports in `pipeline/queries/` → `.wev` + details | build < 1 min [E] | local |
 | `modera` | two ~520 MB NetCDFs → 1,176 year files + annual; reports the largest step | ~2-5 min [E] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media <story>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `build/out/img`, `aud` + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
-| `npm run poster` | Playwright renders the lobby at 1440×900 → `src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same centre. | seconds | local |
-| `npm run publish-data` | stage records → `release.json`; uploads, smoke test, warm (4.3) | minutes | local |
+| `npm run poster` | Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
+| `npm run publish-data` | stage records → `release.json`; uploads, publish check, warm (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
 
-- **`npm run stories` fails** with "run `uv run prebuild media <id>`" when the Markdown references
+- **`npm run stories` fails** with "run `uv run prebuild media <story>`" when the Markdown references
   something the lock lacks, or when `lock.eventsVer` differs from `release.events.ver`. It warns when a
   beat is more than `borderWarnYears` from its snapshot, when a beat has `viewKm < l7WarnViewKm` with no
   L7 region covering its target, when a flight would exceed 4.5 s, and on an image under 1024 px or
-  without a licence.
+  without a license.
 - **Incremental builds:** each stage is deterministic: sorted iteration, gzip mtime 0, a fixed
   compression level, and libraries pinned in `uv.lock`. A layer's version is a hash of its output bytes,
   so an unchanged layer reproduces its version and uploads nothing. A story text edit needs only CI.
@@ -806,10 +813,10 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
 
 | Stage | Record |
 |---|---|
-| coverage | `{q[L], c200[L], counts[L]}` |
+| coverage | `{qLand[L], c200[L], counts[L]}` |
 | surface | `{ver, maxLevel, avail, bounds}` |
 | borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}` |
-| overlays | `{layer: {ver, lmax}}` |
+| thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` |
 | modera | `{ver, years, lat[96], lon0, dlon, bytes{variable: {year}}}` |
@@ -818,37 +825,41 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
 
 ### 7.3 Fixture, dev and CI
 
-- **Excerpts** (committed, ≤ 3 MB, `prebuild/tests/data/`): for each window a source pyramid (15" over
+- **Excerpts** (committed, ≤ 3 MB, `pipeline/tests/data/`): for each window a source pyramid (15" over
   the L6-L7 footprint, 1' over L4-L5, 4' over L2-L3; ~260 KB each, stored compressed) at Sumbawa (an
   L2-L7 chain) and at the Kirkuk corner, where three faces meet; the 0.5° global grid; clipped NE coast,
   lakes and rivers; borders 1815 and 1878; an ecoregion sample; ModE-RA mean for 1815-07 to 1816-06
   (crossing a year boundary) and 2 months of spread, as float32; 200 events covering deep time
   (−15 Myr), BCE, prehistoric, year-precision, parent/child and inherited-location cases; and a 3-beat
-  mini story in `prebuild/tests/data/story/` with one small public-domain JPEG, one CC0 WAV, a route and
-  a spread field.
+  mini story in `stories/_fixture/` (laid out as in 3.9) with one small public-domain JPEG, one CC0
+  WAV, a route and a spread field.
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout with
   stage records. `uv run prebuild media --offline _fixture --out build/fixture` writes
-  `stories/_fixture/story.lock.json` and touches neither Commons nor R2. `npm run publish-data --fixture`
-  writes `src/generated/release.fixture.json` (dataHost `http://127.0.0.1:8791`) and uploads nothing.
+  `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
+  `npm run publish-data -- --fixture` writes `app/src/generated/release.fixture.json` (dataHost
+  `http://127.0.0.1:8791`) and uploads nothing.
 - **Release selection:** the app imports the release through a Vite alias chosen by
   `WANDER_RELEASE=fixture|prod`, and `npm run stories` compiles against the same release.
 - **Dev:** `npm ci && npm run dev` runs against production data (CORS `*`), so a fresh clone needs no
   download. `npm run dev:fixture` builds the fixture and serves `build/fixture` on :8791 with production
   headers.
-- **CI** (GitHub Actions, Linux, per PR):
-  1. `uv run pytest` on the excerpts.
-  2. The fixture build above, using the real encoders.
-  3. **Vitest:**
-     - fixture decode: the Tambora summit is within q; the shore sign is right at known points; cube
+- **CI** (GitHub Actions, Linux, per PR; `.github/workflows/ci.yml`):
+  1. Lint: `ruff check` and `ruff format --check` in `pipeline/`; ESLint and Prettier in `app/`.
+  2. `uv run pytest` on the excerpts.
+  3. The fixture build above, using the real encoders.
+  4. **Vitest:**
+     - fixture decode: the Tambora summit is within qLand; the shore sign is right at known points; cube
        keys round-trip; `cube.ts` matches the Python samples (3.0 item 9)
-     - within a face, mip 0-2 border texels equal the neighbour's interior bit for bit; across face
+     - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit; across face
        edges (the cube-corner fixture), edge profiles are bit-identical and border texels match within
        1 code
      - pure logic: `lod.ts` (balancing, edge flags), the scheduler (fake clock, network shim), the flight
        time-warp, the event query and page residency, date conversion including the −15 Myr row, and the
        snapshot rule (on 50-07-01 CE the tie goes to `bc1`)
-  4. **Playwright:** Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`, ~960×600, lite
-     tier; the app on :5173 and `build/fixture` on :8791 with production headers. It checks: zero
+  5. Compile the stories, then build the app.
+  6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
+     ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
+     :8791 with production headers. It checks: the one-frame render smoke test (8.1 step 0); zero
      key-check magenta at each beat once ready; no new program after the lobby; landing at desired−1 or
      finer, no hold over `holdMax`, and fetched object counts per beat within 10% of the plan (bytes
      reported); an injected 3 s stall still lands; a seam depth scan; in-place context-loss restore
@@ -856,7 +867,7 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
      Continue plate; no request to the Pages origin after boot; each L0 URL fetched once (the preload is
      used); every label renders; reduced motion, the article page and the no-WebGL2 redirect; and the
      pool smoke test (5.5).
-  5. Compile the stories. On `main`, HEAD `rel/<id>.json` on the data host, then deploy Pages.
+  7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, in Chromium, WebKit and
   Firefox, against production data. It runs when renderer, streaming or format code changes, and at
   milestone releases; results go in the PR description. It covers frame p95 across every story walk;
@@ -872,14 +883,14 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
 
 0. **Infrastructure (E4 setup):** the bucket, custom domain, Cache Rule, Transform Rule, Smart Tiered
    Cache and HTTP/3, plus a placeholder Pages project with `404.html`. This starts E4's 7-day clock. Set
-   up the repo, the uv and npm projects, `shared/constants.json`, `src/config/tunables.ts`, and an
+   up the repo, the uv and npm projects, `shared/constants.json`, `app/src/config/tunables.ts`, and an
    Actions CI that runs lint, Vitest and a one-frame SwiftShader smoke test, then deploys the
    placeholder.
 1. **Surface core:** `sources.toml` and `fetch`; `cube.py` and `cube.ts` with the cross-check; the
    `.wst` encoder; `uv run prebuild surface --profile region`, which builds L0-L4 globally from GEBCO
-   plus L5-L6 inside `prebuild/config/regions-m1.yaml` (the Tambora beat footprints and the Kirkuk
+   plus L5-L6 inside `pipeline/config/regions-milestone1.yaml` (the Tambora beat footprints and the Kirkuk
    corner) and L7 inside `l7.yaml` (Sumbawa, 118.0°E 8.25°S, 150 km); the decode worker; `gpuPool.ts`
-   with its smoke test.
+   with its pool smoke test.
 2. **E1 and E2** on that set, with synthetic overlay, climate and spread textures in the production
    formats (random ids, noise fields), so neither waits for those pipelines. They decide material (a) or
    (b), the lite tap count, the seam rules, the AA method and the planning tile size, and give the owner
@@ -897,10 +908,10 @@ After milestone 1: E6 with the other thematic layers, the global L5-L6 bake, the
 
 ### 8.2 Experiments
 
-**Hardware note (owner decision, 2026-09-24).** Until lower-end hardware is available, the target
+**Hardware note (owner decision 8, 2026-09-24).** Until lower-end hardware is available, the target
 machines are the development MacBook Pro (Apple M5): run each check at 1440×900 with the full tier,
 then again with the lite tier forced as a rough low-end proxy. Rerun E1-E3 on an M1-class Mac and an
-Intel Iris Xe laptop before launch. "Both laptops" below means these two runs until then.
+Intel Iris Xe laptop before launch. "The target machines" below means these two runs until then.
 
 **E1. Surface shader cost, on the target machines, with a real GEBCO Sumbawa patch.**
 - **Setup:** port `surface.js` to the `onBeforeCompile` material. Render the same cameras, lights and
@@ -912,14 +923,15 @@ Intel Iris Xe laptop before launch. "Both laptops" below means these two runs un
   Views: the whole instrument, 1,500 km, Sumbawa at 300 km, and close looks at 100, 50 and 30 km for the
   zoom floor, each with all layers off and then all on (borders, three thematic layers, climate, spread,
   labels).
-- **Measure:** presented-frame p95; GPU time (timer query in Chrome); compile time on ANGLE D3D11 and
-  Firefox, and whether ANGLE flattens uniform branches; first-touch and resize hitches; a 30-minute M1
-  Air soak; SMAA, FXAA and MSAA cost and memory; troika atlas time. Also: gzip-9 and zstd-19 sizes of
-  real cube tiles including the water channel (this sets the planning tile size); `.wst` decode time on
-  both laptops; `requestIdleCallback` and `scheduler.postTask` in shipping Safari; and
-  `KHR_parallel_shader_compile` in Firefox on Windows.
+- **Measure:** presented-frame p95; GPU time (timer query in Chrome); compile time, and whether ANGLE
+  flattens uniform branches; first-touch and resize hitches; a 30-minute soak; SMAA, FXAA and MSAA cost
+  and memory; troika atlas time. Also: gzip-9 and zstd-19 sizes of real cube tiles including the water
+  channel (this sets the planning tile size); `.wst` decode time on the target machines; and
+  `requestIdleCallback` and `scheduler.postTask` in shipping Safari. The Windows checks (compile time on
+  ANGLE D3D11 and in Firefox, and `KHR_parallel_shader_compile` in Firefox) wait for the Iris Xe laptop
+  in the pre-launch rerun.
 - **Pass:** the intended look, judged against the spike's shots, and p95 ≤ 22.2 ms at 1440×900 with
-  all layers on, on both machines. Compiles stay hidden behind the poster.
+  all layers on, on the target machines. Compiles stay hidden behind the poster.
 - **If it fails:** ship material (b). If ANGLE flattens uniform branches, precompile variants and choose
   one in the lobby. If a compile takes more than ~1 s, draw a small lobby program until the full one is
   ready. Lite then drops bicubic, then plume particles, then shadow refresh.
@@ -927,12 +939,12 @@ Intel Iris Xe laptop before launch. "Both laptops" below means these two runs un
 **E2. LOD seams and the pool path across a cube edge.**
 - **Setup:** four tiles meeting at the Kirkuk corner with three source levels, the pool recipe (5.5) and
   the seam rules (5.6), plus an L7 cell at Sumbawa for the attachment check.
-- **Script:** delayed children, mixed neighbour densities, reverse zoom, exaggeration ×8 and ×16, and
+- **Script:** delayed children, mixed neighbor densities, reverse zoom, exaggeration ×8 and ×16, and
   layer toggles while moving, at 300 km and 30 km views (30 km may need a debug override of the zoom
   floor).
 - **Measure:** key-check magenta; exposed skirt walls; the screen offset of child vertices at morph
   start against the coarse mesh; depth and normal discontinuity along edges; attached geometry on the L7
-  cell; per-slot upload time and `gl.getError()` in Chrome, Safari and Firefox on both laptops.
+  cell; per-slot upload time and `gl.getError()` in Chrome, Safari and Firefox on the target machines.
 - **Pass:** zero magenta and no skirt walls; morph-start offset < 0.1 px; depth discontinuity < 0.5 px;
   normals within ~2°; attached geometry on the drawn surface; uploads fit the admission caps.
 - **If it fails:** fix edge ownership and morphing before any bake. If per-mip `copyTextureToTexture`
@@ -986,7 +998,7 @@ acceptance).**
 - **Setup:** build the accepted corpus (all eras) from the pinned exports, and record its rows and
   decoded MiB. This sets the event worker's index cap and whether pages are evicted.
 - **Measure:** the full worker query (window, cone, extents, hierarchy, declutter, hysteresis) on both
-  laptops, over that corpus and over the 465K-row broad set.
+  target machines, over that corpus and over the 465K-row broad set.
 - **Pass:** results reach the main thread within 2 frames (~33 ms) of a camera or ruler change, at no
   more than 0.5 ms of main-thread work per result. Overview decode time is reported.
 - **If it fails:** add spatial sub-pages (cube L2 cells) inside the busiest era bins.
@@ -995,8 +1007,8 @@ acceptance).**
 - **Setup:** bake ecoregions, petroleum, mountains and borders 1815 + 1878 as L0-L5 `.wot`.
 - **Measure:** view Sumbawa close and the Sierra Nevada at 300 km; report the bytes per layer.
 - **Pass:** the owner accepts the edges and fills by eye.
-- **If it fails:** use lmax 6 (1.22 km) for the failing layer (the indirection is sized by lmax, 3.2), or
-  a finer distance step.
+- **If it fails:** use `maxLevel` 6 (1.22 km) for the failing layer (the indirection is sized by
+  `maxLevel`, 3.2), or a finer distance step.
 
 ---
 
@@ -1021,12 +1033,12 @@ acceptance).**
 
 ## 10. Tunables
 
-Starting values, in `src/config/tunables.ts`. "Eye" or "ear" means tuned by looking or listening;
-an E-number means that experiment sets it.
+Starting values, in `app/src/config/tunables.ts`. "Eye" or "ear" means tuned by looking or listening;
+an E-number means that experiment sets it. Paired values are lite / full.
 
 | Name | Start | Controls | Tuned by |
 |---|---|---|---|
-| `refinePx` | 0.83 (full) / 1.5 (lite) CSS px; merge at 0.7× | LOD refinement | fixed: the beat-model profiles; changing them invalidates section 6 |
+| `refinePx` | 1.5 / 0.83 CSS px; merge at 0.7× | LOD refinement | fixed: the beat-model profiles; changing them invalidates section 6 |
 | `zoomFloorKm` | ~100 km across | closest view | owner decision 1, after E1/E2 |
 | `revealHold`, `revealMorph` | 300 ms, 700 ms | still-camera batched reveal | eye, E2 |
 | `tileFade` | 250 ms | per-tile crossfade while moving | eye |
@@ -1035,10 +1047,10 @@ an E-number means that experiment sets it.
 | `borderWarnYears` | 20 | build warning: beat far from its snapshot | author note |
 | `l7WarnViewKm` | 400 | build warning: close beat outside L7 regions | author note |
 | `eventQueryHz` | 30 | event query rate while moving | E5 |
-| `markers`, `labels` | 80 / 140, 24 / 40 (lite / full) | event detail budget | eye, when explore opens |
+| `eventMarkers`, `eventLabels` | 80 / 140, 24 / 40 | event detail budget | eye, when explore opens |
 | `parentSplitPx`, `parentMergePx` | 150, 120 px | parent → children switch | eye |
 | `declutterPerCell` | 2 per 64 px cell | event declutter | eye |
-| `hysteresisScore` | 20 on 0-1000 (Fable's 5 on a u8 scale) | margin to displace an incumbent | eye |
+| `hysteresisScore` | 20 on the 0-1000 score scale | margin to displace an incumbent | eye |
 | `eventFade` | 300 ms | event fades | eye |
 | `meanwhileCount`, `meanwhileMinKm` | 6, 2,000 km, one per macro-region | Meanwhile rule | eye |
 | `placeLabelsMax` | 30 | place labels shown | eye |
@@ -1053,15 +1065,15 @@ an E-number means that experiment sets it.
 | `stallBytes`, `stallHeaders` | 2.5 s, 4 s | watchdog | E3 stall test |
 | `retryDelays`, `degradeFor` | 0.5, 2, 8 s with jitter; 60 s | retries | E3 |
 | `motionLodRate` | 1 screen or 1 level per second | request cap at desired−2 | E2, E3 |
-| `uploadAnimated`, `uploadIdle` | 512 / 256 KiB, 2 / 1 MiB (full / lite) | upload admission | E1, E2 (idle caps are a guess) |
+| `uploadAnimated`, `uploadIdle` | 256 / 512 KiB, 1 / 2 MiB | upload admission | E1, E2 (idle caps are a guess) |
 | `uploadStopMs`, `uploadSlowCall` | ~1 ms, 0.5 ms | early stop | E1, E2 (guess) |
 | `slotQuarantine` | 2 frames | slot reuse delay | E2 |
 | `lodBiasStep`, `lodBiasRelax` | 0.25; after 5 s below 80% occupancy | pool-pressure LOD bias | E3 |
-| `overlaySlots` | 256 / 160 | overlay pool | E3 count, peak + 25% |
+| `overlaySlots` | 160 / 256 | overlay pool | E3 count, peak + 25% |
 | `probeFrames`, `probeGpuMs`, `probeMissFrac` | 120, 12 ms, 10% | lobby tier probe | E1 |
 | `governor` | down at > 10% missed vsyncs over 120 animated frames; up after 10 s with GPU p90 < 55% of the interval, or a 30 s probe with no misses; revert if > 5% missed within 5 s, then back off 2 min | render-scale governor | E1 |
 | `renderScale` | full 1.0-2.0, lite 0.75-1.25, steps of 0.25, start 1.0 | render scale range | E1 |
-| `plumeParticles` | 4,000 / 1,500 | plume count | E1 |
+| `plumeParticles` | 1,500 / 4,000 | plume count | E1 |
 | `restoreTimeout` | 3 s | context-loss restore before reload | E3 |
 | `labelSyncTimeout` | 3 s | troika label sync before logging | E1 |
 | `climateMonthlySpan`, `climatePrefetchYears` | 20 years, ±2 years | monthly vs annual; prefetch | eye |
@@ -1078,7 +1090,8 @@ an E-number means that experiment sets it.
 Review items not taken as written, one line each:
 
 - **Event date floor at −5 Myr (buildability):** not taken. Float64 t0/t1 costs 8 B per row and leaves
-  the content question (deep-time geology) to the owner instead of the storage type.
+  the content question (deep-time geology) to the owner instead of the storage type; owner decision 2
+  settled it.
 - **Per-mip `DataArrayTexture` + `addLayerUpdate` fallback (prior merge, from Fable):** removed. It needs
   a full CPU copy of each array (~89 MiB for the surface pool) and takes the samplers to 17 of 16.
 - **Media step as `npm run media --offline` (buildability):** applied as `uv run prebuild media
@@ -1089,26 +1102,27 @@ Review items not taken as written, one line each:
   (cube conventions, seam rules, build contract, fixture, story source, milestone order) and the
   tunables table add more, so the doc grew about 30%.
 - **Event density, Meanwhile during break-out, place-label toggles, beat layers on Next/Back, AA method,
-  per-story caps, data hostname, M1 surface scope, all 54 snapshots in M1 (raised as owner questions):**
+  per-story caps, data hostname, milestone 1 surface scope, all 54 snapshots in milestone 1 (raised as
+  owner questions):**
   decided in the doc, as technical choices or direct consequences of the owner's rules.
 - **Border pins as an open owner question (audit):** not reopened. The owner already chose the nearest
   snapshot with its year shown, so pins are removed; the 20-year build warning stays as an author note.
 
 ## Owner decisions
 
-Decided 2026-09-24 (starting values, tunable):
+Decided 2026-09-24 (starting values, tunable). The rest of the doc cites these by number.
 
-- **Era and region balance:** equal quotas across era bins and macro-regions for the overview, with
-  per-era percentile scores and class weights.
-- **Bathymetry source:** GEBCO contours at Natural Earth's depth intervals; the legend credits both.
-- **"Normal broadband":** 25 Mbps / 50 ms with a cold cache for the 3 s bar; beats still land within
-  the hold at 5 Mbps.
-- **Border licence:** derived border tiles are published as GPL-3.0 with the licence, source commit
-  and build script linked.
-- **Tambora beat list:** start from the 8 drafted beats in `work/story-first/beats.py` (issue #10).
-- **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
-- **Deep-time geology:** include only well-known deep-time events (such as the Ries impact at
-  −15 Myr), shown in a compressed deep-time segment of the time ruler.
+2. **Deep-time geology:** include only well-known deep-time events (such as the Ries impact at
+   −15 Myr), shown in a compressed deep-time segment of the time ruler.
+3. **Era and region balance:** equal quotas across era bins and macro-regions for the overview, with
+   per-era percentile scores and class weights.
+4. **Bathymetry source:** GEBCO contours at Natural Earth's depth intervals; the legend credits both.
+5. **"Normal broadband":** 25 Mbps / 50 ms with a cold cache for the 3 s bar; beats still land within
+   the hold at 5 Mbps.
+6. **Border license:** derived border tiles are published as GPL-3.0 with the license, source commit
+   and build script linked.
+7. **Tambora beat list:** start from the 8 drafted beats in `work/story-first/beats.py` (issue #10).
+8. **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
 
 Still open:
 

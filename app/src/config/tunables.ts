@@ -20,8 +20,8 @@ export const tunables = {
   borderWarnYears: 20,
   l7WarnViewKm: 400,
   eventQueryHz: 30,
-  markers: { lite: 80, full: 140 },
-  labels: { lite: 24, full: 40 },
+  eventMarkers: { lite: 80, full: 140 },
+  eventLabels: { lite: 24, full: 40 },
   parentSplitPx: 150,
   parentMergePx: 120,
   // Events per 64 px screen cell.
