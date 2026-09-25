@@ -9,11 +9,14 @@ import { EXTERNAL_BROWSERS, runInBrowser } from './external';
 
 // Skipped measures near 0 and flattened near 1; a quarter leaves room for timer resolution.
 const SKIPPED = 0.25;
+// The block must cost far more than the 1 ms timer step spread over a sample's draws (0.05 ms).
+const MEASURABLE_MS = 1;
 const TIMEOUT = 3 * 60_000;
 
 function expectSkipped(report: UniformBranchReport): void {
   expect(report.glError).toBe(0);
   for (const family of FAMILIES) {
+    expect(report.blockMsPerDraw[family], family).toBeGreaterThan(MEASURABLE_MS);
     expect(report.paidWhenOff[family], family).toBeLessThan(SKIPPED);
   }
 }
@@ -25,6 +28,7 @@ test('Chromium on Metal skips blocks behind uniforms that are off', async ({ pag
   if (!report) throw new Error('e2e/lab/uniform-branches.html did not start the probe');
   expect(report.renderer).toMatch(/Metal/);
   expect(report.timerQuery).toBe(true);
+  expect(Object.values(report.timeBase)).toEqual(['gpu', 'gpu', 'gpu']);
   expectSkipped(report);
 });
 
