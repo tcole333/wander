@@ -77,8 +77,8 @@ def clear_stamp(ctx: Context) -> None:
 
 
 def write_expectations(ctx: Context, inputs: str) -> None:
-    """Write the sidecars, then the stamp; runs last in a full fixture build. `inputs` is the
-    caller's tree hash of FIXTURE_PATHS, taken before the stages ran."""
+    """Write the cube samples and the synthetic tiles, then the stamp; runs last in a full fixture
+    build. `inputs` is the caller's tree hash of FIXTURE_PATHS, taken before the stages ran."""
     if ctx.profile is not Profile.FIXTURE:
         raise ValueError(f"test sidecars belong to the fixture build, not {ctx.profile}")
     ctx.out.mkdir(parents=True, exist_ok=True)

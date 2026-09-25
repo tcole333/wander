@@ -55,10 +55,11 @@ def plan(
 
 
 def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGES) -> None:
-    """Run the stages in order. Every fixture run clears the stamp first, and only a full fixture
-    build then writes the test sidecars and, last, the stamp, so a failed or partial build never
-    looks fresh. The stamp hashes the inputs as they stood before the stages ran, so a file saved
-    during the build leaves the fixture stale."""
+    """Run the stages in order. Every fixture run clears the stamp first. The surface stage
+    writes its own sidecars (tiles.json, points.json) whenever it runs; only a full fixture build
+    then writes the cube samples and the synthetic tiles and, last, the stamp, so a failed or
+    partial build never looks fresh. The stamp hashes the inputs as they stood before the stages
+    ran, so a file saved during the build leaves the fixture stale."""
     fixture = ctx.profile is Profile.FIXTURE
     full_fixture = fixture and list(names) == default_stages(ctx.profile, stages)
     if fixture:
