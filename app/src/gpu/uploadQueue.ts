@@ -120,9 +120,6 @@ export class UploadQueue {
       }
     }
     run.ms = now() - start;
-    if (this.#queue.length === 0 && run.stoppedBy !== 'slow' && run.stoppedBy !== 'time') {
-      run.stoppedBy = 'empty';
-    }
     return run;
   }
 }

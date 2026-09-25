@@ -85,6 +85,8 @@ describe('evictionCandidate', () => {
     table.reserve('2/0/0/1');
     expect(table.evictionCandidate((key) => key === '2/0/0/0')).toBe('2/0/1/0');
     expect(table.evictionCandidate((key) => key.startsWith('2/'))).toBeUndefined();
+    // Left alone with the uploading tile, eviction finds nothing.
+    expect(table.evictionCandidate((key) => key !== '2/0/0/1')).toBeUndefined();
   });
 
   test('takes tiles marked last only when nothing else is left', () => {

@@ -33,16 +33,23 @@ function job(
   };
 }
 
-const options = { stopMs: tunables.uploadStopMs, slowCallMs: tunables.uploadSlowCall };
+// The rules' own numbers, so the tests below state what they check; the surface tile test uses
+// the real tunables.
+const options = { stopMs: 1, slowCallMs: 0.5 };
 
 describe('a surface tile at the lite animated budget', () => {
   test('takes two frames, height first', () => {
     const time = clock();
-    const queue = new UploadQueue({ ...options, now: time.now });
+    const queue = new UploadQueue({
+      stopMs: tunables.uploadStopMs,
+      slowCallMs: tunables.uploadSlowCall,
+      now: time.now,
+    });
     const written: string[] = [];
     queue.enqueue(job('7/1/103/50', SURFACE_PARTS, written, 0.01, time));
     const first = queue.run(tunables.uploadAnimated.lite);
     expect(first).toMatchObject({ parts: 3, bytes: 182_952, stoppedBy: 'budget', published: [] });
+    expect(written).toEqual(['7/1/103/50#0', '7/1/103/50#1', '7/1/103/50#2']);
     const second = queue.run(tunables.uploadAnimated.lite);
     expect(second).toMatchObject({
       parts: 4,
