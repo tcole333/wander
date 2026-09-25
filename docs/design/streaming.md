@@ -964,7 +964,8 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
 
 Every stage writes its profile's output root in the exact R2 key layout, plus a record at
 `build/stages/<profile>/<stage>.json`, outside the tree `publish-data` uploads, so records never
-become R2 keys. `fetch` and `excerpts` write no record.
+become R2 keys. `fetch`, `excerpts` and `media` write no record: `media` lists what it wrote in the
+committed lock (3.9), which `npm run stories` reads, and `release.json` has no media section.
 
 | Stage | Record |
 |---|---|
