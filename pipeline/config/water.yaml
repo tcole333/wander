@@ -14,15 +14,16 @@ riversMaxScalerank: {0: 2, 1: 2, 2: 4, 3: 6}
 riverClasses: [River, Lake Centerline, River (Intermittent)]
 lakeClasses: [Lake, Alkaline Lake]
 
-# NE reservoirs that are natural lakes a dam later raised or regulates, keyed by ne_id; every other
-# reservoir is dropped. All 230 NE reservoirs were reviewed by their wikidataid and history. A
-# reservoir stays when a natural lake held the same basin before the dam, even one the dam
-# enlarged a few times over, as at Zaysan. It goes when the dam made the water body (Mead, Powell,
-# Nasser, Volta, Kariba, Gatun, the Volga and Dnieper chains, Tharthar, Akkajaure, Ossokmanuan), or
-# when the natural lake was a small part of what the dam flooded: Kinbasket and Pedder; Lac Bermen,
-# whose NE polygon is about 5 times the natural lake; Manicouagan, whose ring the dam filled from
-# two smaller crater lakes; and the Khantayka reservoir, whose NE polygon lies west of the natural
-# Ozero Khantayskoye (an NE Lake, which draws). Lac Low is part of the Opinaca reservoir.
+# NE reservoirs that are natural lakes whose level a dam or control structure later raised, lowered
+# or regulated, keyed by ne_id; every other reservoir is dropped. All 230 NE reservoirs were
+# reviewed by their wikidataid and history. A reservoir stays when a natural lake held the same
+# basin before the dam, even one the dam enlarged a few times over, as at Zaysan. It goes when the
+# dam made the water body (Mead, Powell, Nasser, Volta, Kariba, Gatun, the Volga and Dnieper chains,
+# Tharthar, Akkajaure, Ossokmanuan), or when the natural lake was a small part of what the dam
+# flooded: Kinbasket and Pedder; Lac Bermen, whose NE polygon is about 5 times the natural lake;
+# Manicouagan, whose ring the dam filled from two smaller crater lakes; and the Khantayka reservoir,
+# whose NE polygon lies west of the natural Ozero Khantayskoye (an NE Lake, which draws). Lac Low is
+# part of the Opinaca reservoir.
 reservoirAllowlist:
   # The owner's list.
   - {ne_id: 1159123281, name: "Lake Il'men'"}
@@ -33,7 +34,7 @@ reservoirAllowlist:
   - {ne_id: 1159123795, name: Lake Abitibi}
   - {ne_id: 1159123651, name: Southern Indian Lake}  # raised by the Churchill River diversion
   - {ne_id: 1159123681, name: Cedar Lake}  # raised by the Grand Rapids dam
-  # Found in the review: natural lakes that a dam or regulator now raises or controls.
+  # Found in the review: natural lakes that a dam or regulator now raises, lowers or controls.
   # Habbaniyah is a depression lake (a flying-boat stop in the 1930s) that Euphrates regulators have
   # fed since 1956.
   - {ne_id: 1159123107, name: Lake Habbaniyah}
@@ -54,11 +55,12 @@ reservoirAllowlist:
   - {ne_id: 1159124345, name: Upper Arrow Lake}
   - {ne_id: 1159124141, name: Lake Chelan}  # a glacial lake a dam raised a few meters
   - {ne_id: 1159125041, name: Ozero Kubenskoye}
-  # New Zealand lakes, raised or controlled for hydropower.
+  # New Zealand lakes, raised, lowered or controlled for hydropower. Manapouri and Te Anau are held
+  # within their natural range; the plan to raise Manapouri was dropped.
   - {ne_id: 1159127169, name: Lake Pukaki}
   - {ne_id: 1159127183, name: Lake Manapouri}
   - {ne_id: 1159127195, name: Lake Te Anau}
   - {ne_id: 1159127227, name: Lake Hawea}
   - {ne_id: 1159127275, name: Lake Coleridge}
-  - {ne_id: 1159127287, name: Lake Waikaremoana}
+  - {ne_id: 1159127287, name: Lake Waikaremoana}  # lowered 5 m in 1946 for the power scheme
   - {ne_id: 1159127329, name: Lake Monowai}
