@@ -8,6 +8,10 @@ import math
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+import numpy.typing as npt
+
+from prebuild.codes import field_bytes, meters_to_codes, q_land_start, round_half_away
 from prebuild.cube import (
     TILE,
     Tile,
@@ -23,6 +27,17 @@ from prebuild.cube import (
 from prebuild.hashing import FIXTURE_PATHS
 from prebuild.profiles import Context, Profile
 from prebuild.records import write_json
+from prebuild.wst import (
+    EDGE_ENTRIES,
+    PLANE_SHAPE,
+    SIZE,
+    E,
+    N,
+    S,
+    W,
+    WstTile,
+    tile_flags,
+)
 
 SUMBAWA = (118.0, -8.25)
 TAMBORA_SUMMIT = (117.9604, -8.2479)  # the GEBCO maximum on the rim
@@ -88,6 +103,90 @@ def cube_sample(lon: float, lat: float, level: int) -> dict[str, Any]:
         "j": j,
         "center": [float(v) for v in center],
     }
+
+
+def synthetic_tiles() -> dict[str, WstTile]:
+    """Tiles for the .wst round trip between the Python encoder and the app's decoder
+    (streaming.md 3.1). The bake that makes real planes comes later; these are built to reach the
+    corners of the format."""
+    return {"extremes": _extremes(), "trench": _trench(), "random": _random()}
+
+
+def edge_profiles(codes: npt.ArrayLike) -> npt.NDArray[np.int64]:
+    """Edge profiles N, E, S, W of a tile's own 264² codes, as the bake writes them within a face:
+    each entry is the rha mean of the four texel codes around its corner."""
+    c = np.asarray(codes, dtype=np.int64)
+    around = c[:-1, :-1] + c[:-1, 1:] + c[1:, :-1] + c[1:, 1:]
+    # around[r, q] is the corner after stored row r and column q: tile corner (q - 3, r - 3).
+    at = round_half_away(around / 4)
+    k = np.arange(EDGE_ENTRIES) + 3
+    last = EDGE_ENTRIES - 1 + 3
+    return np.stack([at[last, k], at[k, last], at[3, k], at[k, 3]])  # N, E, S, W
+
+
+def _extremes() -> WstTile:
+    """Codes at codeMid ± 2048 in 8-texel blocks, and texel by texel (the largest residuals, ±8,192)
+    in the upper half; shore and water at 0 and 255, whose residuals wrap past 0 and 255. The
+    face-4 tile at the Kirkuk corner."""
+    mid, reach = 1000, 2048
+    j, i = np.indices(PLANE_SHAPE)
+    high = np.where(j < SIZE // 2, (i // 8 + j // 8) % 2 == 1, (i + j) % 2 == 1)
+    edges = np.where((np.arange(EDGE_ENTRIES) + np.arange(4)[:, None]) % 2 == 1, 1, -1)
+    edges = mid + reach * edges
+    edges[W, -1], edges[E, -1] = edges[N, 0], edges[N, -1]
+    edges[W, 0], edges[E, 0] = edges[S, 0], edges[S, -1]
+    shore_d = np.where(high, np.inf, -np.inf)
+    water_d = np.where(high, -8.0, 8.0)
+    return WstTile.from_planes(
+        Tile(4, 7, 127, 0),
+        flags=tile_flags(shore_d, water_d),
+        q_land=q_land_start(7),
+        codes=np.where(high, mid + reach, mid - reach),
+        shore=field_bytes(shore_d),
+        water=field_bytes(water_d),
+        edges=edges,
+    )
+
+
+def _trench() -> WstTile:
+    """All sea: a trench 6 km deep, far below c200, beside a shelf that crosses -200 m. Heights
+    fall toward the trench's axis, so residuals run negative as well as positive. Sumbawa's L7
+    tile."""
+    j, i = np.indices(PLANE_SHAPE) - 4
+    h = -150 - 5800 * np.exp(-(((i - 100) / 30) ** 2)) + 120 * np.sin(j / 17)
+    q = q_land_start(7)
+    codes = meters_to_codes(h, q)
+    shore_d = -0.25 - (SIZE - 1 - i) / 16
+    water_d = np.full(PLANE_SHAPE, np.inf)
+    return WstTile.from_planes(
+        Tile(1, 7, 103, 50),
+        flags=tile_flags(shore_d, water_d),
+        q_land=q,
+        codes=codes,
+        shore=field_bytes(shore_d),
+        water=field_bytes(water_d),
+        edges=edge_profiles(codes),
+    )
+
+
+def _random() -> WstTile:
+    """Seeded random codes, shore and water, with inland water, a qLand that is not a whole
+    number of meters, and x and y past one byte."""
+    rng = np.random.default_rng(3)
+    codes = rng.integers(-1500, 1500, PLANE_SHAPE)
+    shore_d = rng.uniform(-10, 10, PLANE_SHAPE)
+    water_d = rng.uniform(-10, 10, PLANE_SHAPE)
+    shore_d[rng.random(PLANE_SHAPE) < 0.05] = np.inf
+    water_d[rng.random(PLANE_SHAPE) < 0.05] = -np.inf
+    return WstTile.from_planes(
+        Tile(5, 9, 300, 257),
+        flags=tile_flags(shore_d, water_d),
+        q_land=q_land_start(4),
+        codes=codes,
+        shore=field_bytes(shore_d),
+        water=field_bytes(water_d),
+        edges=edge_profiles(codes),
+    )
 
 
 def _json_rows(rows: list[dict[str, Any]]) -> str:
