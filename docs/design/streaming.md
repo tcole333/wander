@@ -74,10 +74,18 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 
 All binary files are gzip streams of packed little-endian bytes with no implicit padding. Headers are
 padded so every typed array starts at a multiple of its element size. Each file starts with a 4-byte
-magic and a u8 format `version`. Key names are content hashes (`<sha16>`) or layer versions (`<ver8>`, a
-hash of the layer's output bytes). A format version is `version` in a binary header and `v` in JSON;
-`ver` is always a layer version. Magics, sentinels and the layer order (3.9) live in one
-`shared/constants.json`, read by Python and imported by TypeScript.
+magic and a u8 format `version`. Key names are content hashes or layer versions:
+
+- `<sha16>` is the first 16 hex characters of the SHA-256 of the stored (gzip) bytes.
+- `<ver8>` is the first 8 hex characters of the SHA-256 over one line `"<path> <sha256>\n"` per file
+  of the layer, sorted bytewise: `<path>` is relative to the layer root (`7/1/103/50.wst`,
+  `bounds.bin`) and `<sha256>` is the full hex digest of the stored bytes. The full key cannot be
+  hashed, because it contains `<ver8>`. A layer is written to a temporary directory and renamed to
+  its `<ver8>` once every file is hashed.
+
+A format version is `version` in a binary header and `v` in JSON; `ver` is always a layer version.
+Magics, sentinels and the layer order (3.9) live in one `shared/constants.json`, read by Python and
+imported by TypeScript.
 
 ### 3.0 Conventions
 
@@ -145,7 +153,8 @@ u16 x | u16 y
 f32 qLand          meters per code at or above −200 m; one value per level
 f32 qDeep          = 4·qLand, meters per code below −200 m
 i16 codeMid        integer; the GPU stores code − codeMid
-i16 codeMin | i16 codeMax          over the stored 264² and the edge profiles, for LOD bounds
+i16 codeMin | i16 codeMax          over the stored 264² and the edge profiles; for decoding only
+                                   (LOD uses the meter bounds in bounds.bin, 3.8)
 i16 edge[4][257]   edge profiles N, E, S, W at texel corners 0..256 (3.0 item 7)
 u16 height[264*264]  zigzag(code − pred), pred = left + up − upleft (0 outside the grid)
 u8  shore[264*264]   (s − pred) mod 256; s = min(255, 128 + 16·d), d = signed texels to the NE 10m
@@ -202,6 +211,9 @@ four 132×132 planes (2-texel border of real neighbor data), each (v − pred) m
 - **`ov/<layer>/<ver8>/index.bin`** (gzip): one u16 per node L0..maxLevel by node index (3.0): `0xFFFE`
   means a file exists, `0xFFFF` means empty, and any other value is a constant feature id (no file).
   That is 8,190 entries (16 KB raw) at maxLevel 5.
+  ```
+  'WOI1' u8 version | u8 maxLevel | u16 pad | u16 entry[2(4^(maxLevel+1) − 1)]
+  ```
 - **`meta.json`:** `id → {name, attrs, color, labelPoint}`, the offline 4-coloring for border
   snapshots, the source and the license.
 - **GPU:** a 132² RGBA8 array plus a 66² mip. Ids are read with `texelFetch`; distance is read with
@@ -367,8 +379,16 @@ pages are built from the same JSON.
 ```
 
 The availability bitmap is 131,070 bits at L7 (16 KB raw) and sparse, so it compresses well inside the
-bundle. At run time a node uses its parent's height bounds until its own tile loads; `bounds.bin`
-(i16 min and max meters per available node) serves the warm planner in Node.
+bundle. At run time a node uses its parent's height bounds until its own tile loads.
+`surf/<ver8>/bounds.bin` (gzip) holds every available node's bounds for the warm planner in Node:
+
+```
+'WSB1' u8 version | u8 maxLevel | u16 pad | u32 count (available nodes)
+i16 bounds[count][2]   min and max meters per available node, in node order (3.0 item 8)
+```
+
+LOD bounds are meters everywhere. A node's bounds are [floor(m(codeMin)), ceil(m(codeMax))], where m
+maps codes to meters (3.1): the same values the decoder returns for a loaded tile.
 
 ### 3.9 Story source
 
@@ -657,7 +677,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 ### 5.7 LOD, prefetch and readiness
 
 - **`lod.ts` is a pure function** of camera, viewport (CSS px), tier, exaggeration, availability and
-  per-node code bounds, with frustum and horizon culling.
+  per-node meter bounds (3.8), with frustum and horizon culling.
   - **Refine** while a texel covers more than `refinePx` (1.5 CSS px lite, 0.83 full); **merge** below
     0.7× that. These are the beat model's Low and Medium profiles, so changing them invalidates the
     budgets in section 6 and the pool sizes.
