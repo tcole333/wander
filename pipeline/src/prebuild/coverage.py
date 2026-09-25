@@ -63,14 +63,13 @@ from prebuild.profiles import Context, Profile
 from prebuild.records import read_record, write_record
 from prebuild.sources import load_sources, pinned_file
 from prebuild.tiles import height_bound, surface
-from prebuild.wst import MAX_RANGE
+from prebuild.wst import GRID, GRID_STEP, MAX_RANGE
 
 type Bound = tuple[float, float]  # lowest and highest meters a tile's codes can take
 
 STAGE = "coverage"
 EVERYWHERE_BELOW = 5  # levels 0-4 bake every tile
 DILATION = 1  # texels past a tile's stored border that land or shelf may touch
-MESH = 33  # mesh corners a side, at every 8th texel corner
 _REGION_CHUNK = 256  # tiles whose mesh corners are tested at once
 # The configs each profile reads, whose hashes the record keeps.
 CONFIGS: dict[Profile, tuple[str, ...]] = {
@@ -186,7 +185,7 @@ def in_regions(tiles: Sequence[Tile], regions: Sequence[Region]) -> list[bool]:
     level = levels.pop()
     inside = np.zeros(len(tiles), dtype=bool)
     at_level = [r for r in regions if level in r.radius_km]
-    steps = np.arange(MESH) * (TILE // (MESH - 1))
+    steps = np.arange(GRID) * GRID_STEP
     for start in range(0, len(tiles), _REGION_CHUNK):
         chunk = tiles[start : start + _REGION_CHUNK]
         face = np.array([t.face for t in chunk])
