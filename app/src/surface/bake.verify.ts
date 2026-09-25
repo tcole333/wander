@@ -7,7 +7,7 @@
 // locally, since the bake reads the raw data; a missing or stale bake fails, naming the command.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { surfaceAvailability } from '../test/fixture';
-import { TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
+import { DATELINE_GEBCO, TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
 import {
   layerFiles,
   layerVersion,
@@ -58,12 +58,6 @@ const LAKE_HURON = { lon: -82.35, lat: 44.73, radiusKm: 30 };
 const EARTH_RADIUS_KM = 6371.0088;
 const GRID_DEG = 0.1;
 const GRID_KM = 11.1; // 0.1° of latitude
-// Points on the dateline, one on each face it crosses; the texel there reads GEBCO across it.
-const DATELINE_FACES: [face: number, lat: number][] = [
-  [2, 0],
-  [4, 70],
-  [5, -70],
-];
 
 const bake = readRegionBake();
 const avail = surfaceAvailability(bake.surface);
@@ -194,6 +188,12 @@ function locate(lon: number, lat: number, level: number): { tile: Tile; at: numb
   return { tile, at: (j + BORDER) * SIZE + (i + BORDER) };
 }
 
+/** Half the wider gap from a code's meters to a neighbor's: the most rounding moves a height. */
+function halfStep(code: number, q: number): number {
+  const meters = codeToMeters(code, q);
+  return Math.max(codeToMeters(code + 1, q) - meters, meters - codeToMeters(code - 1, q)) / 2;
+}
+
 function waterByte(tile: DecodedWst, at: number): number {
   return tile.channelMips[0][2 * at + 1] ?? NaN;
 }
@@ -297,16 +297,24 @@ describe('known places', () => {
   });
 
   it.each(
-    DATELINE_FACES.flatMap(([face, lat]) => everywhere.map((level) => [face, level, lat] as const)),
-  )('the dateline texel on face %i at L%i decodes within its bounds', async (face, level, lat) => {
-    const { tile, at } = locate(180, lat, level);
-    expect(tile.face).toBe(face);
-    const found = await decoded(tile);
-    const meters = codeToMeters(codeAt(found, 0, at), found.header.qLand);
-    const [low, high] = bounds.get(nodeIndex(tile)) ?? [NaN, NaN];
-    expect(meters).toBeGreaterThanOrEqual(low);
-    expect(meters).toBeLessThanOrEqual(high);
-  });
+    DATELINE_GEBCO.flatMap(({ face, lat, meters }) =>
+      meters.map(([lowest, highest], level) => [face, level, lat, lowest, highest] as const),
+    ),
+  )(
+    "the dateline texel on face %i at L%i and its neighbors along s hold GEBCO's heights there",
+    async (face, level, lat, lowest, highest) => {
+      const { tile, at } = locate(180, lat, level);
+      expect(tile.face).toBe(face);
+      const found = await decoded(tile);
+      const q = found.header.qLand;
+      for (const k of [at - 1, at, at + 1]) {
+        const code = codeAt(found, 0, k);
+        const meters = codeToMeters(code, q);
+        expect(meters).toBeGreaterThanOrEqual(lowest - halfStep(code, q));
+        expect(meters).toBeLessThanOrEqual(highest + halfStep(code, q));
+      }
+    },
+  );
 
   it("decodes Tambora's summit at L7 at its texel mean, below GEBCO's highest cell", async () => {
     const { tile } = locate(TAMBORA_GEBCO_MAX.lon, TAMBORA_GEBCO_MAX.lat, 7);
