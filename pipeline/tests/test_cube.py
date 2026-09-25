@@ -356,6 +356,53 @@ def test_profile_owner_inside_a_face_is_the_face_itself():
             assert profile_owner(across.tile, across.edge, k) == owner
 
 
+def edge_entry_corner(t: Tile, edge: str, k: int) -> tuple[int, int]:
+    """Face-global texel corner (cs, ct) of entry k: N and S edges run along s, E and W along t."""
+    x0, y0 = TILE * t.x, TILE * t.y
+    match edge:
+        case "N":
+            return x0 + k, y0 + TILE
+        case "E":
+            return x0 + TILE, y0 + k
+        case "S":
+            return x0 + k, y0
+        case _:
+            return x0, y0 + k
+
+
+def corner_directions(level: int, corners: list[tuple[int, int, int]]) -> np.ndarray:
+    face, cs, ct = np.array(corners).T
+    return st_to_dir(face, corner(level, cs), corner(level, ct))
+
+
+@pytest.mark.parametrize("level", range(4))
+def test_profile_owner_addresses_the_same_point_as_the_asked_entry(level):
+    side = 1 << level
+    asked, owned = [], []
+    for face, x, y, edge in itertools.product(range(6), range(side), range(side), EDGES):
+        t = Tile(face, level, x, y)
+        for k in [*range(0, TILE + 1, 8), 1, TILE - 1]:
+            owner, owner_edge, owner_k = profile_owner(t, edge, k)
+            assert 0 <= owner_k <= TILE, (t, edge, k)
+            asked.append((face, *edge_entry_corner(t, edge, k)))
+            owned.append((owner.face, *edge_entry_corner(owner, owner_edge, owner_k)))
+    gap = corner_directions(level, asked) - corner_directions(level, owned)
+    assert np.max(np.abs(gap)) <= 1e-12
+
+
+@pytest.mark.parametrize(
+    ("ask", "owner"),
+    [
+        ((Tile(1, 7, 103, 50), "W", 1), (Tile(1, 7, 103, 50), "W", 1)),
+        ((Tile(1, 7, 103, 50), "E", 1), (Tile(1, 7, 104, 50), "W", 1)),
+        ((Tile(0, 1, 0, 0), "E", 1), (Tile(0, 1, 1, 0), "W", 1)),
+        ((Tile(1, 2, 0, 0), "W", 128), (Tile(0, 2, 3, 0), "E", 128)),
+    ],
+)
+def test_profile_owner_of_an_entry_along_an_east_or_west_edge(ask, owner):
+    assert profile_owner(*ask) == owner
+
+
 def test_profile_owner_rejects_an_entry_off_the_edge():
     with pytest.raises(ValueError):
         profile_owner(Tile(0, 1, 0, 0), "N", 257)
