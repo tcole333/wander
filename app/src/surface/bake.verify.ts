@@ -316,7 +316,7 @@ describe('known places', () => {
     },
   );
 
-  it("decodes Tambora's summit at L7 at its texel mean, below GEBCO's highest cell", async () => {
+  it("decodes Tambora's L7 summit between its texel mean less q/2 and GEBCO's peak", async () => {
     const { tile } = locate(TAMBORA_GEBCO_MAX.lon, TAMBORA_GEBCO_MAX.lat, 7);
     expect(availableNodes.has(nodeIndex(tile))).toBe(true);
     const summit = await decoded(tile);
