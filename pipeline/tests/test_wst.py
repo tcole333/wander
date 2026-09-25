@@ -1,5 +1,6 @@
 import dataclasses
 import gzip
+import math
 import struct
 
 import numpy as np
@@ -274,6 +275,9 @@ KEY = SYNTHETIC["extremes"].tile
         (b"WST2" + RAW[4:], "magic"),
         (poke(RAW, 4, "<B", 2), "version"),
         (poke(RAW, 16, "<f", 7.0), "qDeep"),
+        (poke(RAW, 12, "<ff", 0.0, 0.0), "positive"),
+        (poke(RAW, 12, "<ff", -2.0, -8.0), "positive"),
+        (poke(RAW, 12, "<ff", math.inf, math.inf), "positive"),
         (poke(RAW, 20, "<h", SYNTHETIC["extremes"].code_mid + 1), "codeMid"),
         (poke(RAW, 22, "<h", SYNTHETIC["extremes"].code_min - 1), "header codes"),
         (poke(RAW, 24, "<h", SYNTHETIC["extremes"].code_max + 1), "header codes"),
