@@ -10,5 +10,6 @@ geometry, and art direction, not as a code base to extend: it bakes globe textur
 - `src/instrument.js`: armillary rings, yoke, gears, pedestal, engraved ring textures
 - `src/main.js`: museum-lamp lighting, PMREM environment, bloom, markers, labels, camera presets
 
-It expects `data/` and `stories/` folders from the first project's release; the screenshots in
-`docs/reference/spike-*.jpg` show what it produced.
+It expects `data/` and `stories/` folders from the first project's release (everywhen), which
+now live in the raw-data folder `~/projects/wander-data` as `legacy-derived/` and `stories/`; the
+screenshots in `docs/reference/spike-*.jpg` show what it produced.

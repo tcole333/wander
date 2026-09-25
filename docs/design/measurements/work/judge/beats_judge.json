@@ -1,0 +1,200 @@
+{
+ "Lmax6 | High (DPR2, texel<=1.25 dev px)": {
+  "new_tiles": {
+   "median": 59,
+   "p90": 139,
+   "max": 181
+  },
+  "new_MB": {
+   "median": 2.76,
+   "p90": 6.48,
+   "max": 8.53
+  },
+  "crit_tiles": {
+   "median": 26,
+   "p90": 51,
+   "max": 57
+  },
+  "crit_MB": {
+   "median": 1.17,
+   "p90": 2.38,
+   "max": 2.56
+  },
+  "view_tiles_with_anc": {
+   "median": 94,
+   "max": 188
+  },
+  "story_MB": {
+   "tambora": 34.4,
+   "oil": 23.6,
+   "magellan": 25.8,
+   "plague": 28.9,
+   "goldrush": 21.9
+  }
+ },
+ "Lmax6 | Medium (DPR2 @1.5 scale, texel<=1.67 dev px)": {
+  "new_tiles": {
+   "median": 49,
+   "p90": 108,
+   "max": 137
+  },
+  "new_MB": {
+   "median": 2.21,
+   "p90": 5.02,
+   "max": 6.33
+  },
+  "crit_tiles": {
+   "median": 19,
+   "p90": 42,
+   "max": 48
+  },
+  "crit_MB": {
+   "median": 0.81,
+   "p90": 1.86,
+   "max": 2.21
+  },
+  "view_tiles_with_anc": {
+   "median": 65,
+   "max": 145
+  },
+  "story_MB": {
+   "tambora": 23.0,
+   "oil": 17.1,
+   "magellan": 21.0,
+   "plague": 23.3,
+   "goldrush": 15.8
+  }
+ },
+ "Lmax6 | Low (DPR1, texel<=1.5 px)": {
+  "new_tiles": {
+   "median": 24,
+   "p90": 45,
+   "max": 51
+  },
+  "new_MB": {
+   "median": 1.06,
+   "p90": 2.09,
+   "max": 2.36
+  },
+  "crit_tiles": {
+   "median": 7,
+   "p90": 18,
+   "max": 23
+  },
+  "crit_MB": {
+   "median": 0.32,
+   "p90": 0.8,
+   "max": 0.98
+  },
+  "view_tiles_with_anc": {
+   "median": 37,
+   "max": 57
+  },
+  "story_MB": {
+   "tambora": 8.1,
+   "oil": 8.8,
+   "magellan": 11.3,
+   "plague": 10.8,
+   "goldrush": 7.5
+  }
+ },
+ "Lmax7 | High (DPR2, texel<=1.25 dev px)": {
+  "new_tiles": {
+   "median": 96,
+   "p90": 157,
+   "max": 181
+  },
+  "new_MB": {
+   "median": 4.6,
+   "p90": 7.87,
+   "max": 8.53
+  },
+  "crit_tiles": {
+   "median": 30,
+   "p90": 64,
+   "max": 71
+  },
+  "crit_MB": {
+   "median": 1.35,
+   "p90": 3.1,
+   "max": 3.44
+  },
+  "view_tiles_with_anc": {
+   "median": 144,
+   "max": 188
+  },
+  "story_MB": {
+   "tambora": 36.8,
+   "oil": 38.0,
+   "magellan": 42.8,
+   "plague": 42.7,
+   "goldrush": 29.6
+  }
+ },
+ "Lmax7 | Medium (DPR2 @1.5 scale, texel<=1.67 dev px)": {
+  "new_tiles": {
+   "median": 63,
+   "p90": 122,
+   "max": 137
+  },
+  "new_MB": {
+   "median": 3.24,
+   "p90": 6.0,
+   "max": 6.47
+  },
+  "crit_tiles": {
+   "median": 19,
+   "p90": 44,
+   "max": 48
+  },
+  "crit_MB": {
+   "median": 0.93,
+   "p90": 1.89,
+   "max": 2.21
+  },
+  "view_tiles_with_anc": {
+   "median": 99,
+   "max": 145
+  },
+  "story_MB": {
+   "tambora": 24.8,
+   "oil": 26.5,
+   "magellan": 32.9,
+   "plague": 32.5,
+   "goldrush": 21.1
+  }
+ },
+ "Lmax7 | Low (DPR1, texel<=1.5 px)": {
+  "new_tiles": {
+   "median": 28,
+   "p90": 47,
+   "max": 51
+  },
+  "new_MB": {
+   "median": 1.28,
+   "p90": 2.15,
+   "max": 2.39
+  },
+  "crit_tiles": {
+   "median": 7,
+   "p90": 18,
+   "max": 23
+  },
+  "crit_MB": {
+   "median": 0.32,
+   "p90": 0.8,
+   "max": 0.98
+  },
+  "view_tiles_with_anc": {
+   "median": 47,
+   "max": 58
+  },
+  "story_MB": {
+   "tambora": 8.9,
+   "oil": 10.0,
+   "magellan": 13.1,
+   "plague": 12.0,
+   "goldrush": 8.3
+  }
+ }
+}
