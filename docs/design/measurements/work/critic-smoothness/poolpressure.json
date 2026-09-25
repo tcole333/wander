@@ -1,0 +1,200 @@
+{
+ "High": {
+  "pool": 384,
+  "protected": {
+   "median": 139,
+   "p90": 251,
+   "max": 259,
+   "over_pool": 0,
+   "n": 41
+  },
+  "with_back": {
+   "median": 226,
+   "p90": 321,
+   "max": 411,
+   "over_pool": 2,
+   "n": 41
+  },
+  "with_full_next": {
+   "median": 257,
+   "p90": 405,
+   "max": 515,
+   "over_pool": 6,
+   "n": 41
+  },
+  "worst": [
+   {
+    "story": "tambora",
+    "beat": 7,
+    "name": "New England 1816",
+    "protected": 259,
+    "with_back": 411,
+    "with_full_next": 515
+   },
+   {
+    "story": "tambora",
+    "beat": 6,
+    "name": "Europe 1816",
+    "protected": 246,
+    "with_back": 321,
+    "with_full_next": 445
+   },
+   {
+    "story": "goldrush",
+    "beat": 6,
+    "name": "Guangdong 1852",
+    "protected": 251,
+    "with_back": 406,
+    "with_full_next": 410
+   },
+   {
+    "story": "plague",
+    "beat": 7,
+    "name": "Baltic 1349",
+    "protected": 200,
+    "with_back": 338,
+    "with_full_next": 405
+   },
+   {
+    "story": "goldrush",
+    "beat": 5,
+    "name": "overland trails",
+    "protected": 255,
+    "with_back": 290,
+    "with_full_next": 405
+   }
+  ]
+ },
+ "Medium": {
+  "pool": 256,
+  "protected": {
+   "median": 112,
+   "p90": 192,
+   "max": 206,
+   "over_pool": 0,
+   "n": 41
+  },
+  "with_back": {
+   "median": 169,
+   "p90": 248,
+   "max": 283,
+   "over_pool": 3,
+   "n": 41
+  },
+  "with_full_next": {
+   "median": 193,
+   "p90": 294,
+   "max": 330,
+   "over_pool": 10,
+   "n": 41
+  },
+  "worst": [
+   {
+    "story": "tambora",
+    "beat": 7,
+    "name": "New England 1816",
+    "protected": 192,
+    "with_back": 272,
+    "with_full_next": 330
+   },
+   {
+    "story": "plague",
+    "beat": 7,
+    "name": "Baltic 1349",
+    "protected": 160,
+    "with_back": 278,
+    "with_full_next": 317
+   },
+   {
+    "story": "tambora",
+    "beat": 6,
+    "name": "Europe 1816",
+    "protected": 160,
+    "with_back": 206,
+    "with_full_next": 299
+   },
+   {
+    "story": "goldrush",
+    "beat": 6,
+    "name": "Guangdong 1852",
+    "protected": 201,
+    "with_back": 283,
+    "with_full_next": 295
+   },
+   {
+    "story": "plague",
+    "beat": 6,
+    "name": "Paris/England 1348",
+    "protected": 192,
+    "with_back": 221,
+    "with_full_next": 294
+   }
+  ]
+ },
+ "Low": {
+  "pool": 128,
+  "protected": {
+   "median": 75,
+   "p90": 95,
+   "max": 99,
+   "over_pool": 0,
+   "n": 41
+  },
+  "with_back": {
+   "median": 100,
+   "p90": 124,
+   "max": 141,
+   "over_pool": 2,
+   "n": 41
+  },
+  "with_full_next": {
+   "median": 114,
+   "p90": 147,
+   "max": 151,
+   "over_pool": 15,
+   "n": 41
+  },
+  "worst": [
+   {
+    "story": "goldrush",
+    "beat": 6,
+    "name": "Guangdong 1852",
+    "protected": 97,
+    "with_back": 124,
+    "with_full_next": 151
+   },
+   {
+    "story": "plague",
+    "beat": 2,
+    "name": "Black Sea 1347",
+    "protected": 99,
+    "with_back": 123,
+    "with_full_next": 150
+   },
+   {
+    "story": "plague",
+    "beat": 3,
+    "name": "Messina 1347",
+    "protected": 88,
+    "with_back": 133,
+    "with_full_next": 149
+   },
+   {
+    "story": "magellan",
+    "beat": 4,
+    "name": "San Julian 1520",
+    "protected": 94,
+    "with_back": 141,
+    "with_full_next": 148
+   },
+   {
+    "story": "oil",
+    "beat": 5,
+    "name": "Abadan 1951",
+    "protected": 75,
+    "with_back": 118,
+    "with_full_next": 147
+   }
+  ]
+ }
+}

@@ -1,0 +1,107 @@
+{
+ "L3_norway": {
+  "fine_kb": 18.8,
+  "broad_kb": 21.6,
+  "both_kb": 40.4
+ },
+ "L3_aegean": {
+  "fine_kb": 16.4,
+  "broad_kb": 21.3,
+  "both_kb": 37.7
+ },
+ "L3_lesser_sunda": {
+  "fine_kb": 14.7,
+  "broad_kb": 17.9,
+  "both_kb": 32.6
+ },
+ "L3_chesapeake": {
+  "fine_kb": 11.3,
+  "broad_kb": 16.2,
+  "both_kb": 27.4
+ },
+ "L3_interior_asia": {
+  "fine_kb": 5.1,
+  "broad_kb": 9.9,
+  "both_kb": 15.0
+ },
+ "L3_open_pacific": {
+  "fine_kb": 5.0,
+  "broad_kb": 11.0,
+  "both_kb": 16.0
+ },
+ "L3_british_isles": {
+  "fine_kb": 17.5,
+  "broad_kb": 21.7,
+  "both_kb": 39.2
+ },
+ "L5_norway": {
+  "fine_kb": 13.9,
+  "broad_kb": 16.9,
+  "both_kb": 30.8
+ },
+ "L5_aegean": {
+  "fine_kb": 20.5,
+  "broad_kb": 19.8,
+  "both_kb": 40.3
+ },
+ "L5_lesser_sunda": {
+  "fine_kb": 8.7,
+  "broad_kb": 13.1,
+  "both_kb": 21.8
+ },
+ "L5_chesapeake": {
+  "fine_kb": 14.6,
+  "broad_kb": 17.4,
+  "both_kb": 32.0
+ },
+ "L5_interior_asia": {
+  "fine_kb": 0.1,
+  "broad_kb": 0.6,
+  "both_kb": 0.7
+ },
+ "L5_open_pacific": {
+  "fine_kb": 0.1,
+  "broad_kb": 3.2,
+  "both_kb": 3.3
+ },
+ "L5_british_isles": {
+  "fine_kb": 9.8,
+  "broad_kb": 14.2,
+  "both_kb": 24.0
+ },
+ "L7_norway": {
+  "fine_kb": 14.4,
+  "broad_kb": 14.5,
+  "both_kb": 28.9
+ },
+ "L7_aegean": {
+  "fine_kb": 4.2,
+  "broad_kb": 8.9,
+  "both_kb": 13.1
+ },
+ "L7_lesser_sunda": {
+  "fine_kb": 7.4,
+  "broad_kb": 11.4,
+  "both_kb": 18.8
+ },
+ "L7_chesapeake": {
+  "fine_kb": 12.2,
+  "broad_kb": 12.9,
+  "both_kb": 25.1
+ },
+ "L7_interior_asia": {
+  "fine_kb": 0.1,
+  "broad_kb": 0.1,
+  "both_kb": 0.2
+ },
+ "L7_open_pacific": {
+  "fine_kb": 0.1,
+  "broad_kb": 0.1,
+  "both_kb": 0.2
+ },
+ "L7_british_isles": {
+  "fine_kb": 4.8,
+  "broad_kb": 8.8,
+  "both_kb": 13.6
+ }
+}

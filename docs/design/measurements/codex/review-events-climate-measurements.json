@@ -1,0 +1,18 @@
+{
+  "source": "/Users/travcole/projects/wander-data/sources/mode-ra-temp2/ModE-RA_ensmean_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
+  "slice": "1814-01 through 1817-12, using catalogue month indexing",
+  "shape": [
+    48,
+    96,
+    192
+  ],
+  "minimum_K": -15.56884765625,
+  "maximum_K": 7.744354248046875,
+  "values_outside_plus_minus_12_K": 72,
+  "total_values": 884736,
+  "maximum_clipping_error_K": 3.56884765625,
+  "u8_10_day_max_span_without_sentinel": 2550,
+  "u8_10_day_max_span_with_255_never": 2540,
+  "1346_01_01_to_1353_01_01_days": 2557,
+  "1346_01_01_to_1353_12_31_days": 2921
+}

@@ -1,0 +1,8 @@
+load NE + tree 2.08 parts 7068
+height median 0.003 p90 0.003
+raster median 0.001 p90 0.002
+edt median 0.042 p90 0.048
+encode median 0.006 p90 0.007
+kb median 33.549 p90 55.404
+coastal 28 of 40
+total s/tile median 0.055 p90 0.061

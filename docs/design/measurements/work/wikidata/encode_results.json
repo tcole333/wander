@@ -1,0 +1,350 @@
+{
+ "hist_loc_sl>=0": {
+  "n": 48805,
+  "label_bytes_avg": 22.3,
+  "has_parent_in_set": 19702,
+  "colA_float32": {
+   "raw": 2652484,
+   "gzip9": 1093248,
+   "brotli11": 957884,
+   "zstd19": 1000922,
+   "bytes_per_rec_raw": 54.3,
+   "bytes_per_rec_brotli": 19.6
+  },
+  "colB_quant16_delta": {
+   "raw": 2310848,
+   "gzip9": 891385,
+   "brotli11": 791464,
+   "zstd19": 818895,
+   "bytes_per_rec_raw": 47.3,
+   "bytes_per_rec_brotli": 16.2
+  },
+  "json": {
+   "raw": 3503608,
+   "gzip9": 1299132,
+   "brotli11": 1011532,
+   "zstd19": 1060993,
+   "bytes_per_rec_raw": 71.8,
+   "bytes_per_rec_brotli": 20.7
+  }
+ },
+ "hist_loc_sl>=1": {
+  "n": 44105,
+  "label_bytes_avg": 21.4,
+  "has_parent_in_set": 17612,
+  "colA_float32": {
+   "raw": 2353109,
+   "gzip9": 994971,
+   "brotli11": 872733,
+   "zstd19": 914181,
+   "bytes_per_rec_raw": 53.4,
+   "bytes_per_rec_brotli": 19.8
+  },
+  "colB_quant16_delta": {
+   "raw": 2044373,
+   "gzip9": 811606,
+   "brotli11": 721550,
+   "zstd19": 747363,
+   "bytes_per_rec_raw": 46.4,
+   "bytes_per_rec_brotli": 16.4
+  },
+  "json": {
+   "raw": 3119002,
+   "gzip9": 1185537,
+   "brotli11": 928282,
+   "zstd19": 973210,
+   "bytes_per_rec_raw": 70.7,
+   "bytes_per_rec_brotli": 21.0
+  }
+ },
+ "hist_loc_sl>=5": {
+  "n": 17188,
+  "label_bytes_avg": 22.3,
+  "has_parent_in_set": 8200,
+  "colA_float32": {
+   "raw": 933976,
+   "gzip9": 403651,
+   "brotli11": 356482,
+   "zstd19": 377310,
+   "bytes_per_rec_raw": 54.3,
+   "bytes_per_rec_brotli": 20.7
+  },
+  "colB_quant16_delta": {
+   "raw": 813659,
+   "gzip9": 330608,
+   "brotli11": 296240,
+   "zstd19": 309195,
+   "bytes_per_rec_raw": 47.3,
+   "bytes_per_rec_brotli": 17.2
+  },
+  "json": {
+   "raw": 1224550,
+   "gzip9": 471121,
+   "brotli11": 379717,
+   "zstd19": 402359,
+   "bytes_per_rec_raw": 71.2,
+   "bytes_per_rec_brotli": 22.1
+  }
+ },
+ "hist_loc_sl>=20": {
+  "n": 3266,
+  "label_bytes_avg": 22.1,
+  "has_parent_in_set": 1397,
+  "colA_float32": {
+   "raw": 176827,
+   "gzip9": 82463,
+   "brotli11": 71662,
+   "zstd19": 78063,
+   "bytes_per_rec_raw": 54.1,
+   "bytes_per_rec_brotli": 21.9
+  },
+  "colB_quant16_delta": {
+   "raw": 153964,
+   "gzip9": 68548,
+   "brotli11": 60647,
+   "zstd19": 65309,
+   "bytes_per_rec_raw": 47.1,
+   "bytes_per_rec_brotli": 18.6
+  },
+  "json": {
+   "raw": 230623,
+   "gzip9": 91197,
+   "brotli11": 76008,
+   "zstd19": 82736,
+   "bytes_per_rec_raw": 70.6,
+   "bytes_per_rec_brotli": 23.3
+  }
+ },
+ "broad_loc_sl>=0": {
+  "n": 75867,
+  "label_bytes_avg": 22.4,
+  "has_parent_in_set": 21306,
+  "colA_float32": {
+   "raw": 4124824,
+   "gzip9": 1690740,
+   "brotli11": 1461317,
+   "zstd19": 1529116,
+   "bytes_per_rec_raw": 54.4,
+   "bytes_per_rec_brotli": 19.3
+  },
+  "colB_quant16_delta": {
+   "raw": 3593754,
+   "gzip9": 1393652,
+   "brotli11": 1222456,
+   "zstd19": 1261205,
+   "bytes_per_rec_raw": 47.4,
+   "bytes_per_rec_brotli": 16.1
+  },
+  "json": {
+   "raw": 5435498,
+   "gzip9": 2044233,
+   "brotli11": 1541240,
+   "zstd19": 1611712,
+   "bytes_per_rec_raw": 71.6,
+   "bytes_per_rec_brotli": 20.3
+  }
+ },
+ "broad_loc_sl>=1": {
+  "n": 62559,
+  "label_bytes_avg": 22.1,
+  "has_parent_in_set": 19147,
+  "colA_float32": {
+   "raw": 3387266,
+   "gzip9": 1421424,
+   "brotli11": 1238152,
+   "zstd19": 1290612,
+   "bytes_per_rec_raw": 54.1,
+   "bytes_per_rec_brotli": 19.8
+  },
+  "colB_quant16_delta": {
+   "raw": 2949352,
+   "gzip9": 1168674,
+   "brotli11": 1031809,
+   "zstd19": 1060517,
+   "bytes_per_rec_raw": 47.1,
+   "bytes_per_rec_brotli": 16.5
+  },
+  "json": {
+   "raw": 4461950,
+   "gzip9": 1713752,
+   "brotli11": 1310970,
+   "zstd19": 1369177,
+   "bytes_per_rec_raw": 71.3,
+   "bytes_per_rec_brotli": 21.0
+  }
+ },
+ "broad_loc_sl>=5": {
+  "n": 21538,
+  "label_bytes_avg": 23.2,
+  "has_parent_in_set": 8701,
+  "colA_float32": {
+   "raw": 1189896,
+   "gzip9": 513079,
+   "brotli11": 451260,
+   "zstd19": 475180,
+   "bytes_per_rec_raw": 55.2,
+   "bytes_per_rec_brotli": 21.0
+  },
+  "colB_quant16_delta": {
+   "raw": 1039129,
+   "gzip9": 419436,
+   "brotli11": 372326,
+   "zstd19": 389575,
+   "bytes_per_rec_raw": 48.2,
+   "bytes_per_rec_brotli": 17.3
+  },
+  "json": {
+   "raw": 1553056,
+   "gzip9": 600946,
+   "brotli11": 478502,
+   "zstd19": 505110,
+   "bytes_per_rec_raw": 72.1,
+   "bytes_per_rec_brotli": 22.2
+  }
+ },
+ "broad_loc_sl>=20": {
+  "n": 3864,
+  "label_bytes_avg": 22.4,
+  "has_parent_in_set": 1490,
+  "colA_float32": {
+   "raw": 210264,
+   "gzip9": 98347,
+   "brotli11": 85301,
+   "zstd19": 92345,
+   "bytes_per_rec_raw": 54.4,
+   "bytes_per_rec_brotli": 22.1
+  },
+  "colB_quant16_delta": {
+   "raw": 183215,
+   "gzip9": 81425,
+   "brotli11": 71700,
+   "zstd19": 77248,
+   "bytes_per_rec_raw": 47.4,
+   "bytes_per_rec_brotli": 18.6
+  },
+  "json": {
+   "raw": 273921,
+   "gzip9": 109173,
+   "brotli11": 90787,
+   "zstd19": 98568,
+   "bytes_per_rec_raw": 70.9,
+   "bytes_per_rec_brotli": 23.5
+  }
+ },
+ "all_loc_sl>=0": {
+  "n": 477020,
+  "label_bytes_avg": 40.0,
+  "has_parent_in_set": 141196,
+  "colA_float32": {
+   "raw": 34350336,
+   "gzip9": 8927399,
+   "brotli11": 6541232,
+   "zstd19": 7003534,
+   "bytes_per_rec_raw": 72.0,
+   "bytes_per_rec_brotli": 13.7
+  },
+  "colB_quant16_delta": {
+   "raw": 31011195,
+   "gzip9": 7672706,
+   "brotli11": 5665202,
+   "zstd19": 5912203,
+   "bytes_per_rec_raw": 65.0,
+   "bytes_per_rec_brotli": 11.9
+  },
+  "json": {
+   "raw": 43051658,
+   "gzip9": 10463327,
+   "brotli11": 6448622,
+   "zstd19": 6772068,
+   "bytes_per_rec_raw": 90.3,
+   "bytes_per_rec_brotli": 13.5
+  }
+ },
+ "all_loc_sl>=1": {
+  "n": 183409,
+  "label_bytes_avg": 30.1,
+  "has_parent_in_set": 43048,
+  "colA_float32": {
+   "raw": 11387206,
+   "gzip9": 3702405,
+   "brotli11": 2899680,
+   "zstd19": 3102871,
+   "bytes_per_rec_raw": 62.1,
+   "bytes_per_rec_brotli": 15.8
+  },
+  "colB_quant16_delta": {
+   "raw": 10103342,
+   "gzip9": 3137414,
+   "brotli11": 2497477,
+   "zstd19": 2597102,
+   "bytes_per_rec_raw": 55.1,
+   "bytes_per_rec_brotli": 13.6
+  },
+  "json": {
+   "raw": 14516904,
+   "gzip9": 4550384,
+   "brotli11": 2915683,
+   "zstd19": 3036188,
+   "bytes_per_rec_raw": 79.2,
+   "bytes_per_rec_brotli": 15.9
+  }
+ },
+ "all_loc_sl>=5": {
+  "n": 56850,
+  "label_bytes_avg": 31.5,
+  "has_parent_in_set": 18198,
+  "colA_float32": {
+   "raw": 3609452,
+   "gzip9": 1161676,
+   "brotli11": 965656,
+   "zstd19": 1024749,
+   "bytes_per_rec_raw": 63.5,
+   "bytes_per_rec_brotli": 17.0
+  },
+  "colB_quant16_delta": {
+   "raw": 3211501,
+   "gzip9": 971654,
+   "brotli11": 819309,
+   "zstd19": 849198,
+   "bytes_per_rec_raw": 56.5,
+   "bytes_per_rec_brotli": 14.4
+  },
+  "json": {
+   "raw": 4567606,
+   "gzip9": 1408928,
+   "brotli11": 968386,
+   "zstd19": 1014105,
+   "bytes_per_rec_raw": 80.3,
+   "bytes_per_rec_brotli": 17.0
+  }
+ },
+ "all_loc_sl>=20": {
+  "n": 8507,
+  "label_bytes_avg": 26.5,
+  "has_parent_in_set": 2878,
+  "colA_float32": {
+   "raw": 497858,
+   "gzip9": 181585,
+   "brotli11": 157238,
+   "zstd19": 168008,
+   "bytes_per_rec_raw": 58.5,
+   "bytes_per_rec_brotli": 18.5
+  },
+  "colB_quant16_delta": {
+   "raw": 438308,
+   "gzip9": 148606,
+   "brotli11": 130912,
+   "zstd19": 138966,
+   "bytes_per_rec_raw": 51.5,
+   "bytes_per_rec_brotli": 15.4
+  },
+  "json": {
+   "raw": 639651,
+   "gzip9": 201868,
+   "brotli11": 158510,
+   "zstd19": 169439,
+   "bytes_per_rec_raw": 75.2,
+   "bytes_per_rec_brotli": 18.6
+  }
+ }
+}

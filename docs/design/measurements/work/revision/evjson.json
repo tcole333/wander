@@ -1,0 +1,18 @@
+{
+ "rows_48805": {
+  "raw_kb": 3307,
+  "gzip9_kb": 1032,
+  "brotli11_kb": 880,
+  "parse_ms_median": 6.5,
+  "build_typed_ms_median": 7,
+  "note": "real hist_loc_sl0 rows"
+ },
+ "rows_80000": {
+  "raw_kb": 5353,
+  "gzip9_kb": 1690,
+  "brotli11_kb": 880,
+  "parse_ms_median": 10.4,
+  "build_typed_ms_median": 14.1,
+  "note": "80K rows = 48.8K real rows repeated (compression optimistic)"
+ }
+}
