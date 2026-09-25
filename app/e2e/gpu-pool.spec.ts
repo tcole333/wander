@@ -13,6 +13,7 @@ const RED = 0x1903;
 const RG = 0x8227;
 const HALF_FLOAT = 0x140b;
 const UNSIGNED_BYTE = 0x1401;
+const TRIANGLES = 0x0004;
 
 const RENDERER: Record<string, RegExp> = {
   swiftshader: /SwiftShader/,
@@ -68,9 +69,10 @@ test('allocates each pool once, with its whole mip chain', () => {
   ]);
 });
 
-test('warms every pool without an upload or a GL error', () => {
+test('warms each pool with one draw and no upload or GL error', () => {
+  const draw: GlCall = { fn: 'drawArrays', args: [TRIANGLES, 0, 3] };
   expect({ calls: report.calls.warm, glError: report.glError.warm }).toEqual({
-    calls: [],
+    calls: [draw, draw, draw],
     glError: 0,
   });
 });
