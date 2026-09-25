@@ -1,0 +1,64 @@
+# The rivers-and-lakes field (streaming.md 3.1, owner decision 13): which Natural Earth 10m lakes
+# and river lines draw, and how wide a river draws. Lakes draw at every level.
+
+# River half-width by NE scalerank (0-12), in km: starting values, tuned by eye in E1. A river never
+# draws thinner than 0.35 texel.
+halfWidthKm: {0: 2.0, 1: 1.2, 2: 0.8, 3: 0.6, 4: 0.45, 5: 0.35, 6: 0.25, 7: 0.2, 8: 0.15, 9: 0.12,
+              10: 0.1, 11: 0.1, 12: 0.1}
+
+# The largest river scalerank drawn at each level; deeper levels draw every river.
+riversMaxScalerank: {0: 2, 1: 2, 2: 4, 3: 6}
+
+# NE featurecla values that draw. Canals stay out. A Lake Centerline still draws through a dropped
+# reservoir, so the river it follows keeps its course.
+riverClasses: [River, Lake Centerline, River (Intermittent)]
+lakeClasses: [Lake, Alkaline Lake]
+
+# NE reservoirs that are natural lakes a dam later raised or regulates, keyed by ne_id; every other
+# reservoir is dropped. All 230 NE reservoirs were reviewed by their wikidataid and history. A
+# reservoir stays when a natural lake held the same basin before the dam, even one the dam
+# enlarged a few times over, as at Zaysan. It goes when the dam made the water body (Mead, Powell,
+# Nasser, Volta, Kariba, Gatun, the Volga and Dnieper chains, Tharthar, Akkajaure, Ossokmanuan), or
+# when the natural lake was a small part of what the dam flooded: Kinbasket and Pedder; Lac Bermen,
+# whose NE polygon is about 5 times the natural lake; Manicouagan, whose ring the dam filled from
+# two smaller crater lakes; and the Khantayka reservoir, whose NE polygon lies west of the natural
+# Ozero Khantayskoye (an NE Lake, which draws). Lac Low is part of the Opinaca reservoir.
+reservoirAllowlist:
+  # The owner's list.
+  - {ne_id: 1159123281, name: "Lake Il'men'"}
+  - {ne_id: 1159123839, name: Lac Saint-Jean}
+  - {ne_id: 1159123091, name: Lake Zaysan}  # the Bukhtarma dam raised it
+  - {ne_id: 1159123217, name: Lake Imandra}
+  - {ne_id: 1159123765, name: Lac Seul}
+  - {ne_id: 1159123795, name: Lake Abitibi}
+  - {ne_id: 1159123651, name: Southern Indian Lake}  # raised by the Churchill River diversion
+  - {ne_id: 1159123681, name: Cedar Lake}  # raised by the Grand Rapids dam
+  # Found in the review: natural lakes that a dam or regulator now raises or controls.
+  # Habbaniyah is a depression lake (a flying-boat stop in the 1930s) that Euphrates regulators have
+  # fed since 1956.
+  - {ne_id: 1159123107, name: Lake Habbaniyah}
+  - {ne_id: 1159123191, name: Lake Kovdozero}  # a lake the Knyazhegubskaya dam raised
+  - {ne_id: 1159123229, name: Ondozero}
+  - {ne_id: 1159123247, name: Koitere}
+  - {ne_id: 1159123265, name: Rikkavesi}
+  - {ne_id: 1159123301, name: Oulujärvi}
+  - {ne_id: 1159123319, name: Kemijärvi}
+  - {ne_id: 1159123333, name: Umbozero Lake}
+  - {ne_id: 1159123415, name: Stora Lulevatten}
+  - {ne_id: 1159123435, name: Mjøsa}  # Norway's largest lake
+  - {ne_id: 1159123697, name: Sipiwesk Lake}  # on the Nelson River
+  - {ne_id: 1159123733, name: Umfreville Lake}  # on the English River
+  - {ne_id: 1159123857, name: Lake Péribonka}
+  # The Arrow Lakes are widenings of the Columbia that the Keenleyside dam raised.
+  - {ne_id: 1159124087, name: Lower Arrow Lake}
+  - {ne_id: 1159124345, name: Upper Arrow Lake}
+  - {ne_id: 1159124141, name: Lake Chelan}  # a glacial lake a dam raised a few meters
+  - {ne_id: 1159125041, name: Ozero Kubenskoye}
+  # New Zealand lakes, raised or controlled for hydropower.
+  - {ne_id: 1159127169, name: Lake Pukaki}
+  - {ne_id: 1159127183, name: Lake Manapouri}
+  - {ne_id: 1159127195, name: Lake Te Anau}
+  - {ne_id: 1159127227, name: Lake Hawea}
+  - {ne_id: 1159127275, name: Lake Coleridge}
+  - {ne_id: 1159127287, name: Lake Waikaremoana}
+  - {ne_id: 1159127329, name: Lake Monowai}
