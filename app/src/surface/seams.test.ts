@@ -24,12 +24,15 @@ const SUMBAWA_WEST: Tile = { face: 1, level: 7, x: 102, y: 50 };
 const SUMBAWA_EAST: Tile = { face: 1, level: 7, x: 103, y: 50 };
 const KIRKUK_LEVELS = [2, 3, 4, 5, 6, 7];
 // Across a face edge a border code may miss the neighbor's 3×3 codes around the mapped point: the
-// grids meet at an angle, so their texels cover different ground, and the coastal clamp reads each
-// grid's own shore distance. The bound (streaming.md 7.3) widens that range by 2 codes plus half
-// its width, and to 0 where the clamp reaches the border texel. The range ± 2 codes alone misses
-// 39 of the 110,592 border texels checked here, by up to 14 codes where the range spans 153, on the
-// Kirkuk tiles whose sources are coarser than their texels (4′ for 4.9 km at L3, 1′ at L5-L6).
+// grids meet at an angle, so their texels cover different ground and a high or low inside one
+// texel can fall outside the other grid's range, and the coastal clamp reads each grid's own shore
+// distance. The bound (streaming.md 7.3) widens that range by 2 codes plus an eighth of its width,
+// and to 0 where the clamp reaches the border texel. The range ± 2 codes alone misses 39 of the
+// 110,592 border texels checked here (1 at L0, 38 at the Kirkuk corner at L2-L7), by up to 14
+// codes where the range spans 153. The largest miss past ± 2 codes is 10.3% of the range's width
+// (7 codes past a 68-code range), so an eighth passes every texel and a tenth does not.
 const CROSS_FACE_CODES = 2;
+const CROSS_FACE_RELIEF = 1 / 8; // of the 3×3 range's width
 const CLAMP_REACH_BYTES = 32; // 2 texels of shore distance, 16 bytes per texel around 128
 
 const record = readSurfaceRecord();
@@ -229,7 +232,7 @@ describe('across a face edge', () => {
           const code = codes[at] ?? NaN;
           const nearShore = Math.abs((shore[2 * at] ?? NaN) - 128) <= CLAMP_REACH_BYTES;
           const [low, high] = range3x3(theirs, si, sj, nearShore);
-          const slack = CROSS_FACE_CODES + (high - low) / 2;
+          const slack = CROSS_FACE_CODES + (high - low) * CROSS_FACE_RELIEF;
           if (column !== k || code < low - slack || code > high + slack) {
             off.push(`${tileKey(t)} ${edge} k=${k} along=${along}: ${code} vs ${low}..${high}`);
           }
