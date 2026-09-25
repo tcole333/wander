@@ -969,7 +969,7 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
 
 | Stage | Record |
 |---|---|
-| coverage | `{qLand[L], c200[L], counts[L], inputs}` |
+| coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds}` |
 | borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}` |
 | thematic | `{layer: {ver, maxLevel}}` |
