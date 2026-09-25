@@ -13,7 +13,8 @@ stages yet, and hosting and CI are live.
 
 ## Layout
 
-Paths in the docs are relative to the repo root.
+Paths in the docs are relative to the repo root, except the measurement citations in
+`docs/design/streaming.md`, which are relative to `docs/design/measurements/`.
 
 - `app/`: the npm project. TypeScript, Vite, React, react-three-fiber, three.js pinned to an exact
   version (the renderer relies on version-specific three.js APIs). drei and Zustand join with the

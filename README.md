@@ -10,7 +10,7 @@ Coming to [wander.traviscole.xyz](https://wander.traviscole.xyz).
 
 ## Status
 
-In design. See [the product requirements](docs/PRD.md) and
+Milestone 1 (the Tambora slice) is under way. See [the product requirements](docs/PRD.md) and
 [the asset streaming design](docs/design/streaming.md).
 
 ## License

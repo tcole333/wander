@@ -108,9 +108,9 @@ Every layer toggles independently:
 Borders come from the historical snapshot nearest the current date, and the snapshot's year is
 always shown.
 
-Several layers are present-day data (coastlines, rivers, ecoregions, geology, deposits). The
-Credits panel lists each source and its date once; the rest of the interface stays free of
-caveats.
+Several layers are present-day data (coastlines, rivers and lakes, ecoregions, petroleum provinces,
+mountain ranges, critical-mineral deposits). The Credits panel lists each source and its date once;
+the rest of the interface stays free of caveats.
 
 ### Effects
 
