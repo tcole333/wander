@@ -18,7 +18,7 @@ import { createGpuPool, surfacePoolSpecs } from './gpuPool';
 
 const PROBE_SLOTS = 8;
 
-/** Calls that allocate or write 3D storage, plus the copy paths a write must not take. */
+/** Calls that allocate or write 3D storage, the copy paths a write must not take, and draws. */
 const RECORDED = [
   'texStorage3D',
   'texImage3D',
@@ -28,6 +28,7 @@ const RECORDED = [
   'generateMipmap',
   'blitFramebuffer',
   'framebufferTextureLayer',
+  'drawArrays',
 ] as const;
 
 export interface GlCall {
