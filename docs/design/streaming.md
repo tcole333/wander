@@ -1134,6 +1134,26 @@ Decided 2026-09-24 (starting values, tunable). The rest of the doc cites these b
 8. **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
 9. **E4 scope:** measure cache retention from the owner's machine only; no checks from other regions.
 
+Decided for the surface core (issue #3), 2026-09-24 and 2026-09-25:
+
+10. **Raw-data root:** the prebuild reads `$WANDER_DATA`, falling back to `~/projects/wander-data`,
+    and `fetch` downloads missing inputs into `$WANDER_DATA/sources/<id>/`.
+11. **Source registry:** `pipeline/sources.toml` pins each input, keyed by the raw-data manifest's
+    ids and using its field names. It holds the surface core's inputs; each later issue pins the
+    inputs its stages read. The folder's `manifest.json` and README list its files, including the
+    unzipped GEBCO files and, once fetched, the minor-islands zip; the build reads neither.
+12. **Minor islands:** Natural Earth 10m minor islands count as land, for L5-L6 coverage and in the
+    shore field.
+13. **Water set:** natural lakes, plus an allowlist of natural lakes that dams later raised. Canals
+    and the other reservoirs are dropped; a dropped reservoir's river centerline still draws.
+14. **Python stack:** Python 3.14 with numpy, netCDF4, PyYAML, shapely, pyogrio and scipy, pinned in
+    `uv.lock`. xarray arrives with the `modera` stage.
+15. **Fixture at the Kirkuk corner:** a mid pyramid (4' for L3-L4, 1' for L5-L6, 15" for L7), so
+    cross-face seams are tested on real terrain at L3-L7.
+16. **Milestone-1 region:** L5-L6 only where the Tambora beats refine at the full tier, with separate
+    L5 and L6 radii.
+17. **Default profile:** a bare `uv run prebuild` builds the global profile into `build/out/`.
+
 Still open:
 
 1. **Zoom floor** for stories and explore (start ~100 km; compare 100/50/30 km in E1/E2).
