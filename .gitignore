@@ -1,0 +1,23 @@
+# dependencies and environments
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# build output
+dist/
+build/
+out/
+.vite/
+coverage/
+playwright-report/
+test-results/
+
+# pipeline output and local data (raw sources live in ~/projects/wander-data)
+/data/
+/pipeline/out/
+
+# local config and OS files
+.env
+.env.*
+.DS_Store
