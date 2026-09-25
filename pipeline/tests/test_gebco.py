@@ -112,6 +112,18 @@ def test_crop_reads_a_global_raster_stored_from_any_column(degree_grid):
     )
 
 
+def test_crop_takes_a_window_inside_a_window(degree_grid):
+    nc, _ = degree_grid
+    window = read_window(nc, 350, 60, 20, 10)
+    np.testing.assert_array_equal(
+        crop(window, 358, 62, 4, 3).data, read_window(nc, 358, 62, 4, 3).data
+    )
+    with pytest.raises(ValueError, match="not inside"):
+        crop(window, 358, 62, 13, 3)
+    with pytest.raises(ValueError, match="not inside"):
+        crop(window, 358, 59, 4, 3)
+
+
 def test_overviews_are_exact_block_means_cached_on_first_use(tmp_path, write_grid):
     # 1125" cells, so every overview divides the grid: 1152x576 -> 288x144, 72x36, 18x9. At 576
     # rows, the overviews are built from a full 320-row strip and a 256-row partial one.
