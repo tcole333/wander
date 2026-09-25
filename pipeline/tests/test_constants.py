@@ -8,7 +8,7 @@ U16_MAX = 0xFFFF
 
 
 def test_every_binary_magic_in_the_design_doc_is_shared():
-    documented = set(re.findall(r"^\s*'(W[A-Z]{2}\d)' u8 ver", DESIGN_DOC, flags=re.MULTILINE))
+    documented = set(re.findall(r"^\s*'(W[A-Z]{2}\d)' u8 version", DESIGN_DOC, flags=re.MULTILINE))
     shared = {fmt["magic"] for fmt in FORMATS.values()}
     assert documented == shared
 
