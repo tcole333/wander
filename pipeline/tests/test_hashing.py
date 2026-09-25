@@ -2,7 +2,7 @@ import hashlib
 
 import pytest
 
-from prebuild.hashing import lines_sha, tree_files, tree_sha, ver8
+from prebuild.hashing import layer_version, lines_sha, tree_files, tree_sha, ver8
 
 
 def sha(data: bytes) -> str:
@@ -30,6 +30,11 @@ def test_ver8_hashes_layer_relative_paths():
     files = {"bounds.bin": b"bounds", "7/1/103/50.wst": b"tile"}
     lines = f"7/1/103/50.wst {sha(b'tile')}\nbounds.bin {sha(b'bounds')}\n"
     assert ver8(files) == sha(lines.encode())[:8]
+
+
+def test_a_layer_version_from_digests_matches_one_from_bytes():
+    files = {"bounds.bin": b"bounds", "7/1/103/50.wst": b"tile"}
+    assert layer_version({path: sha(data) for path, data in files.items()}) == ver8(files)
 
 
 def test_tree_files_are_repo_relative_and_skip_missing_paths(tree):
