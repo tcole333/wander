@@ -87,7 +87,8 @@ def crop(r: Raster, i0: int, j0: int, w: int, h: int) -> Raster:
     """A window of a global raster, in its global cell indices."""
     if not r.is_global:
         raise ValueError("only a global raster can be cropped by global indices")
-    return Raster(_take(r.data, i0, j0, w, h, r.global_w), r.cell_arcsec, i0, j0)
+    data_i0 = (i0 - r.i0) % r.global_w
+    return Raster(_take(r.data, data_i0, j0, w, h, r.global_w), r.cell_arcsec, i0, j0)
 
 
 def overviews(nc: Path, cache: Path, factors: Mapping[str, int] = OVERVIEWS) -> dict[str, Raster]:
