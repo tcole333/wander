@@ -1,5 +1,6 @@
 import { defineConfig, devices, type Project } from '@playwright/test';
-import { DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/servers';
+import type { Profile } from './scripts/dataServer';
+import { DATA_URL, DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/servers';
 
 // CI's software renderer. SwiftShader screenshots misrepresent the look and timing, so this
 // project only proves that a frame renders and that the GPU pools behave.
@@ -44,7 +45,8 @@ const lab: Project = {
 
 const LAB = !!process.env.WANDER_LAB;
 
-// vite preview serves the production build for the smoke test; the lab needs only the dev server.
+// vite preview serves the production build for the smoke test; the lab needs only the dev server
+// and the region bake.
 const preview = {
   command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
   url: PREVIEW_URL,
@@ -55,6 +57,13 @@ const dev = {
   url: DEV_URL,
   reuseExistingServer: !process.env.CI,
 };
+// A build served as R2 serves it: the fixture for every run (CI builds it first), the region bake
+// for lab runs.
+const data = (profile: Profile) => ({
+  command: `node scripts/dataServer.ts --profile ${profile}`,
+  url: `${DATA_URL[profile]}/release.json`,
+  reuseExistingServer: !process.env.CI,
+});
 
 export default defineConfig({
   testDir: 'e2e',
@@ -66,5 +75,5 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: process.env.CI ? [swiftshader] : LAB ? [lab] : [swiftshader, gpuChromium],
-  webServer: LAB ? [dev] : [preview, dev],
+  webServer: LAB ? [dev, data('region')] : [preview, dev, data('fixture')],
 });
