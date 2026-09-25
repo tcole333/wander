@@ -86,11 +86,15 @@ def grid_cell_arcsec(nc: Path) -> int:
 
 
 def crop(r: Raster, i0: int, j0: int, w: int, h: int) -> Raster:
-    """A window of a global raster, in its global cell indices."""
-    if not r.is_global:
-        raise ValueError("only a global raster can be cropped by global indices")
+    """A window of a raster, in its global cell indices. A global raster wraps across ±180°; any
+    other must hold the whole window."""
     data_i0 = (i0 - r.i0) % r.global_w
-    return Raster(_take(r.data, data_i0, j0, w, h, r.global_w), r.cell_arcsec, i0, j0)
+    if r.is_global:
+        return Raster(_take(r.data, data_i0, j0, w, h, r.global_w), r.cell_arcsec, i0, j0)
+    if j0 < r.j0 or j0 + h > r.j0 + r.h or data_i0 + w > r.w:
+        raise ValueError(f"window {i0}, {j0}, {w}x{h} is not inside the raster's window")
+    rows = slice(j0 - r.j0, j0 - r.j0 + h)
+    return Raster(r.data[rows, data_i0 : data_i0 + w], r.cell_arcsec, i0, j0)
 
 
 def overviews(nc: Path, cache: Path, factors: Mapping[str, int] = OVERVIEWS) -> dict[str, Raster]:
