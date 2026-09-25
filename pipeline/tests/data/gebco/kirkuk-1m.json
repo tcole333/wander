@@ -1,0 +1,11 @@
+{
+  "source": "gebco-2026",
+  "file": "sources/gebco-2026/GEBCO_2026.nc",
+  "sha256": "71ceeb56a4b917a3f2d9fe3c6da8e7c5c5e6d8185b373eca6bac9a4d61cb3223",
+  "kind": "blockMean",
+  "cellArcsec": 60,
+  "i0": 13324,
+  "j0": 7354,
+  "w": 352,
+  "h": 328
+}
