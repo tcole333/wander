@@ -480,8 +480,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   indexes and metas; events; the climate years stories use.
 - **What warming covers:** the owner's nearest Cloudflare data center and the Smart Tiered upper tier
   only [S `work/cloudflare/tiered.md`]. Visitors elsewhere miss their local data center and pay the round
-  trip to the upper tier. The flight hold and prefetch are sized against that fill latency from the
-  farthest target region (E4), not against a local HIT. The 17 ms HIT and 152 ms cold R2 figures are
+  trip to the upper tier. The flight hold and prefetch are sized against a fill (E4's ~500 ms break
+  point), not against a local HIT; E4 measures fills from the owner's machine only (owner decision 9). The 17 ms HIT and 152 ms cold R2 figures are
   curl range requests from Boston to another host [M proxy `work/cloudflare/`].
 - **Freshness is not residence.** A one-year TTL sets freshness only; unpopular objects can be evicted
   sooner [S Cloudflare retention-vs-freshness]. E4 measures decay before any cron is added.
@@ -981,9 +981,11 @@ acceptance).**
   overflow under tilt, drop N+1 critical to desired−2. Move any fetch that breaks across a deploy to R2.
 
 **E4. Cold-edge retention and fill latency on a low-traffic domain.**
-- **Setup:** the infrastructure from 8.1 step 0. Upload 200 × 40 KB gzip-in-file objects under `_e4/` and warm them
-  once from the owner's machine.
-- **Measure,** from 2-3 locations including one in Europe or Asia: TTFB and `cf-cache-status` at 1 h,
+- **Setup:** the infrastructure from 8.1 step 0. Upload 200 × 40 KB gzip-in-file objects under `_e4/`
+  and warm them once from the owner's machine. The objects fall into four cohorts of 50, and each is
+  read only at its own checkpoint, so an early probe never re-warms a later one
+  (`docs/design/measurements/e4/e4.py`).
+- **Measure,** from the owner's machine only (owner decision 9): TTFB and `cf-cache-status` at 1 h,
   24 h, 72 h and 7 d, recording local HITs separately from upper-tier fills (by timing or zone
   analytics, since the client sees MISS for both); that HTTP/3 negotiates, bodies are byte-exact, and
   CORS and Content-Type are right; HTTP-cache revisits in Chrome, Firefox and Safari; Class B charges on
@@ -992,13 +994,13 @@ acceptance).**
   flight that is 4 waves, each costing one miss plus ~0.2 s of transfer at 25 Mbps. Four waves fit the
   median flight plus the maximum hold (1.7 + 1.5 = 3.2 s) only while a miss costs under ~0.6 s, so
   ~500 ms per miss is the break point.
-- **Pass:** at 72 h and 7 d, the p90 TTFB of warmed objects, and of upper-tier fills from each location,
-  stays under the break point.
+- **Pass:** at 72 h and 7 d, the p90 TTFB of warmed objects stays under the break point. Fills for
+  visitors in other regions are not measured (owner decision 9).
 - **If it fails:**
   - on decay, re-warm the story hot set (~50 MB) every 6-12 h from an Actions cron. The cron needs a
     keep-alive, because GitHub disables schedules in public repos after 60 days without activity [S].
-  - if fills from a far region exceed the break point, warm from that region too, or publish L5-L6
-    surface tiles as 2×2 quad packs (4× fewer requests)
+  - if misses from this machine exceed the break point, publish L5-L6 surface tiles as 2×2 quad packs
+    (4× fewer requests)
 
 **E5. Event corpus and query cost.**
 - **Setup:** build the accepted corpus (all eras) from the pinned exports, and record its rows and
@@ -1130,6 +1132,7 @@ Decided 2026-09-24 (starting values, tunable). The rest of the doc cites these b
 7. **Tambora beat list:** start from the 8 drafted beats in
    `docs/design/measurements/work/story-first/beats.py` (issue #10).
 8. **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
+9. **E4 scope:** measure cache retention from the owner's machine only; no checks from other regions.
 
 Still open:
 
