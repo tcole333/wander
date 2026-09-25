@@ -46,7 +46,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 |---|---|---|
 | **Surface tiling** | Equiangular cube sphere, a quadtree per face, 256² tiles plus a 4-texel border of real neighbor data. Conventions in 3.0; `cube.py` and `cube.ts` are checked against each other in CI. | No polar singularity, small streaming units, and 25% fewer texels than equirect at equal density [D]. |
 | **Surface content** | `.wst` (3.1): int16 height codes, u8 shoreline and u8 rivers-and-lakes distance fields, edge profiles. The shader computes color, roughness, normals and engraving (a port of the spike's `surface.js`). No KTX2, Basis, albedo or normal maps. | A palette change is a GLSL edit, and there is no transcoder or per-browser format split. GEBCO L6 height alone measured 25-37 KiB mean [M `alt/gebco_tiles.json`]. |
-| **Levels and coverage** | L0-L4 everywhere. L5-L6 where the tile or its border touches land or shelf (GEBCO > −200 m, or a Natural Earth (NE) 10m land or minor-island polygon, dilated one texel). L7 only inside `pipeline/config/l7.yaml` regions. About 15.5K tiles [M ETOPO estimate, `work/asset-sizing/cube-land-fraction.json`]. | A global L7 raises the median beat from 2.2 to 3.2 MB for a gain seen only on close views [model]. L6 (611 m) is a deliberate reduction from GEBCO's ~464 m spacing. |
+| **Levels and coverage** | L0-L4 everywhere. L5-L6 where the tile or its border touches land or shelf (GEBCO > −200 m, or a Natural Earth (NE) 10m land or minor-island polygon, dilated one texel). Minor islands (2 km² or smaller, which NE land leaves out) count as land here and in the shore field (owner decision 12). L7 only inside `pipeline/config/l7.yaml` regions. About 15.5K tiles [M ETOPO estimate, `work/asset-sizing/cube-land-fraction.json`]. | A global L7 raises the median beat from 2.2 to 3.2 MB for a gain seen only on close views [model]. L6 (611 m) is a deliberate reduction from GEBCO's ~464 m spacing. |
 | **Geometry and seams** | One instanced draw of a shared 33² grid (17² on lite) with skirts. Balanced levels, canonical edges, parent-position morphs and batched reveals (5.6). The `surfaceHeight()` GLSL is shared with attached geometry. | One level apart the seam step is 155-324 m p95; three levels apart it is a 4-6 km cliff at ×8 [M `work/critic-smoothness/seamstep*.json`]. |
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
@@ -188,36 +188,88 @@ i16 codeMin | i16 codeMax          over the stored 264² and the edge profiles; 
                                    (LOD uses the meter bounds in bounds.bin, 3.8)
 i16 edge[4][257]   edge profiles N, E, S, W at texel corners 0..256 (3.0 item 7)
 u16 height[264*264]  zigzag(code − pred), pred = left + up − upleft (0 outside the grid)
-u8  shore[264*264]   (s − pred) mod 256; s = min(255, 128 + 16·d), d = signed texels to the NE 10m
-                     land boundary, clamped ±8 (land > 0; lakes count as land here)
+u8  shore[264*264]   (s − pred) mod 256; s = min(255, rha(128 + 16·d)), d = signed texels to the
+                     NE 10m land ∪ minor-islands boundary, clamped ±8 (land > 0; lakes count as land)
 u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪ buffered rivers,
                      inside < 0
 ```
 
-- **Height values:** each texel is the mean of 4×4 bilinear sub-samples of GEBCO meters over its
-  footprint, taken from the finest source whose cell is no larger than the texel: 15" at L5-L7, a 1'
-  block mean at L3-L4, 4' at L1-L2 and 16' at L0 (the coverage stage builds these overviews once).
-  Within 2 texels of the NE shore, land texels are clamped to max(h, 0) and sea texels to min(h, 0);
-  inland depressions such as the Dead Sea keep their negative heights. Codes round half away from zero.
-- **Codes to meters:** `c200 = round(−200/qLand)`. For `c ≥ c200`, `h = c·qLand`; below it,
-  `h = c200·qLand + (c − c200)·qDeep`. `qLand = max(2 m, texel/1000)`, raised per level until every
-  tile's code range is at most 4,096 (the coverage stage reports qLand per level; expect ≤ 3 m at L5 [E]).
-  Then `|code − codeMid| ≤ 2048`, which half-float holds exactly.
-- **Shore and water fields:** rasterized at 4× over the 264² tile plus a 12-texel margin, then a
-  Euclidean distance transform, so every value depends only on its position. Rivers by level:
-  scalerank ≤ 2 at L0-L1, ≤ 4 at L2, ≤ 6 at L3, and all at L4 and deeper. Half-width is
-  `max(0.35 texel, w_km[scalerank] / texel_km(L))`, with `w_km` in `pipeline/config/water.yaml`. The
-  shader holds on-screen line width with `fwidth`.
+- **Height values:** each texel is the mean of its 4×4 bilinear sub-samples (3.0 item 5) of GEBCO
+  meters, taken from the coarsest source whose cell is no larger than the texel, or 15" where none
+  is: 15" at L5-L7, a 1' block mean at L3-L4, 4' at L1-L2 and 16' at L0 (the coverage stage builds
+  these overviews once). The 16 sub-samples are summed in a fixed order, t outer and s inner, then
+  multiplied by 1/16.
+- **Reading GEBCO:** rows run south first (row 0 is 89.998°S). Cells are center-registered, and
+  centers are computed from the index (lon = −180 + (i + 0.5)/240, lat = −90 + (j + 0.5)/240), not
+  read from the file. Bilinear sampling wraps longitude modulo 86,400 columns and clamps rows at the
+  poles, which have no row of their own.
+- **Coastal clamp:** where the unclamped shore distance has |d| ≤ 2 texels, d > 0 gives max(h, 0),
+  d < 0 gives min(h, 0) and d = 0 gives 0. Inland depressions such as the Dead Sea keep their
+  negative heights.
+- **Rounding:** rha(x) rounds half away from zero, everywhere in the build: r = trunc(x), plus
+  sign(x) when |x − r| ≥ 0.5. `np.round` rounds half to even and is never used.
+- **Codes to meters:** `c200 = rha(−200/qLand)`. For `c ≥ c200`, `h(c) = c·qLand`; below it,
+  `h(c) = c200·qLand + (c − c200)·qDeep`. A height's code is the rha of the inverse. qLand is chosen
+  per profile and level: the smallest multiple of 1/64 m, starting from max(2 m, texelM/1000)
+  rounded up, at which every tile the profile bakes at that level spans at most 4,096 codes over its
+  clamped 264² and edge profiles, where texelM = (π/2)·R/(256·2^L). A conservative bound from the
+  raw source is tried first, and a tile's exact fields are computed only when it fails. The coverage
+  stage reports qLand per level; expect ≤ 3 m at L5 [E]. Then `|code − codeMid| ≤ 2048`, which
+  half-float holds exactly.
+- **Flags:** bit0 is set when some texel has water d < 0, and bit1 when every texel has shore d < 0.
+- **Vector preparation,** once per layer when it loads, in the parent process (workers receive WKB):
+  1. `make_valid`
+  2. drop Null island (a 1 km square NE places at 0°N 0°E) and apply the class filters; the NE land
+     feature with no attributes (2,773 small islands) stays
+  3. union the layer: NE land ∪ minor islands (owner decision 12) for the shore; lakes for water
+  4. segmentize to at most 0.1° in lon and lat
+
+  The union keeps overlapping features from canceling under even-odd fill, as they would at Georgian
+  Bay, North Channel and Saginaw Bay inside Lake Huron, Whitefish Bay inside Lake Superior, and two
+  small islands that overlap NE land. NE coastline and ocean are not read.
+- **Per-tile clip:** the clip box is the raster's lon/lat footprint, padded by at least 0.1° plus the
+  largest river half-width, and spans all longitudes when the tile holds a pole. Clipped geometry is
+  segmentized again, which splits only the new clip-edge segments, so every segment that reaches a
+  raster is the same whichever tile clipped it.
+- **Shore and water fields:** each tile rasterizes 1152² subpixels, 4× over the 264² tile plus a
+  12-texel margin (texels −16..271), at the face-global subpixel centers (3.0 item 5).
+  - Vertices project to U = (s + 1)·512n − 0.5 (V likewise from t), in subpixels, with straight
+    segments between them. Polygons fill by the even-odd rule. A subpixel is river when its center
+    lies within the river's half-width of a segment, by an exact point-to-segment distance.
+  - An exact Euclidean distance transform between subpixel centers gives D = +(E_in − 0.5) inside
+    and −(E_out − 0.5) outside. A texel's d is the mean D of its 2×2 central subpixels, divided by 4,
+    and ±∞ when the raster holds only one class. The stored byte is
+    min(255, rha(128 + 16·clamp(d, −8, 8))).
+  - The margin exceeds the ±8 reach, so every value depends only on its position.
+- **Water:** NE lakes and river lines, without canals or reservoirs. Reservoirs on an allowlist of
+  natural lakes that dams later raised stay, and a dropped reservoir's Lake Centerline still draws
+  (owner decision 13). Lakes draw at every level. Rivers by level: scalerank ≤ 2 at L0-L1, ≤ 4 at L2,
+  ≤ 6 at L3, and all at L4 and deeper. Half-width is
+  `max(0.35 texel, halfWidthKm[scalerank] / texel_km(L))`. `pipeline/config/water.yaml` holds
+  `halfWidthKm` for scalerank 0-12 and the allowlist, keyed by NE id. The shader holds on-screen line
+  width with `fwidth`.
 - **Edges:** within a face, border texels equal the neighbor's interior values because both are the
-  same function of position. Across a face edge the texel grids do not line up, so the build samples
-  each shared edge once, at positions both faces parameterize identically, and writes the same 257
-  codes (from the clamped field) into both tiles. Corner entries are computed once for all tiles that
-  meet there.
+  same function of position. Across a face edge the texel grids do not line up, so each edge-profile
+  entry is computed once, by its owner face (3.0 item 7): the rha mean of the four owner-face texel
+  codes around its corner, from the clamped field, owner-frame border texels included. Owner-frame
+  texels are computed as strips by the same functions of position, so the owner's tile need not be
+  baked. Every tile that shares the corner writes that code in its own order, and a tile's corner
+  entries agree: N[0] = W[256], N[256] = E[256], S[0] = W[0] and S[256] = E[0].
 - **Decode (TS worker):** inflate, undo the predictor, then build mips 132 and 66 with integer
   arithmetic, `m = (a + b + c + d + 2) >> 2`, for codes, shore and water alike. Mips are built only
   here. Output: R16F offsets (code − codeMid) and RG8 (shore, water) for 3 mips, the R16F edge
-  profiles, a 33² Float32 meter grid, and the compressed buffer handed back (5.2). The measured
-  0.32 ms per tile is a proxy [M proxy: the older two-plane format on an M5]; E1 re-measures.
+  profiles, the meter bounds, a 33² Float32 meter grid, and the compressed buffer handed back (5.2).
+  The measured 0.32 ms per tile is a proxy [M proxy: the older two-plane format on an M5]; E1
+  re-measures.
+  - R16F values are f16 bits from an exact integer-to-half conversion (|v| ≤ 2048; Node 22 has no
+    `Float16Array`). The decoder is a pure function that does not import three; the worker wraps it
+    and posts its results with `{ transfer }`.
+  - The meter bounds are [floor(h(codeMin)), ceil(h(codeMax))] (3.8). In the 33² grid, interior
+    vertex k (at corner 8k) is h of the mean of the four mip-2 codes around it, and boundary vertices
+    take the edge-profile codes. Both are exact dyadic values, so Python and TypeScript agree bit for
+    bit.
+  - It rejects a wrong key, magic, version or length, any |code − codeMid| > 2048, and a codeMin or
+    codeMax that does not match the planes and edges.
 - **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 2 KiB = **359 KiB** [D].
 - **Size:** GEBCO L6 height alone measured 24.8 KiB mean / 43.8 p90 on random windows, 37.4 KiB on
   land-heavy windows and 53-66 KiB on major ranges, with zstd-19 on lat/lon windows rather than cube
@@ -418,8 +470,8 @@ bundle. At run time a node uses its parent's height bounds until its own tile lo
 i16 bounds[count][2]   min and max meters per available node, in node order (3.0 item 8)
 ```
 
-LOD bounds are meters everywhere. A node's bounds are [floor(m(codeMin)), ceil(m(codeMax))], where m
-maps codes to meters (3.1): the same values the decoder returns for a loaded tile.
+LOD bounds are meters everywhere. A node's bounds are [floor(h(codeMin)), ceil(h(codeMax))], where
+h(c) maps codes to meters (3.1): the same values the decoder returns for a loaded tile.
 
 ### 3.9 Story source
 
