@@ -1,0 +1,4 @@
+# L7 is baked only inside these discs, and only on land or shelf (streaming.md 2, 7.1): a tile is
+# inside when one of its 33x33 mesh corners lies within radiusKm[7] of the center, or the center
+# lies in the tile.
+- {name: sumbawa, lon: 118.0, lat: -8.25, radiusKm: {7: 150}}

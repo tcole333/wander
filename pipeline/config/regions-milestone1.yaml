@@ -1,0 +1,17 @@
+# L5-L6 for the region profile, the milestone-1 bake (streaming.md 8.1, owner decision 16): the
+# tiles the Tambora beats refine to at the full tier, with a radius per level, plus the cube corner
+# where faces 0, 1 and 4 meet. A tile is inside when one of its 33x33 mesh corners lies within the
+# level's radius of the center, or the center lies in the tile.
+#
+# The radii come from the beat camera of docs/design/measurements/work/story-first/beats.py at
+# 1440x900 CSS px with a 30° vertical field of view, refining while a texel spans more than 0.83
+# CSS px (refinePx on the full tier). Each is the farthest point that wants the level, rounded up.
+# The 5,000 km and whole-globe beats want L4 at most, so they add nothing here.
+#   Sunda region (1,500 km, tilt 20°): L5 1,733 km, L6 946 km.
+#   Sumbawa close (300 km, tilt 45°): L5 and L6 760 km.
+#   Ash over Java and Bali (1,500 km, tilt 30°): L5 1,809 km, L6 946 km.
+#   New England 1816 (1,500 km, tilt 20°): L5 1,733 km, L6 946 km.
+- {name: sunda, lon: 118.0, lat: -8.25, radiusKm: {5: 1800, 6: 950}}
+- {name: java-bali, lon: 114.5, lat: -8.0, radiusKm: {5: 1850, 6: 950}}
+- {name: new-england, lon: -72.0, lat: 43.0, radiusKm: {5: 1800, 6: 950}}
+- {name: kirkuk-corner, lon: 45.0, lat: 35.26439, radiusKm: {5: 400, 6: 400}}
