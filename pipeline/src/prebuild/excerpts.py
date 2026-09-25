@@ -22,7 +22,8 @@ import shapely
 
 from prebuild.codes import round_half_away
 from prebuild.config import FixtureConfig, load_fixture
-from prebuild.cube import TILE, Tile, corner, dir_to_lonlat, st_to_dir
+from prebuild.cube import BORDER, TILE, Tile, corner, dir_to_lonlat, st_to_dir
+from prebuild.fields import MARGIN_TEXELS
 from prebuild.footprint import Window, tile_window, union_windows
 from prebuild.gebco import (
     GEBCO,
@@ -47,8 +48,10 @@ from prebuild.profiles import Context
 from prebuild.sources import Source, SourceUnavailable, load_sources, pinned_file, verified_path
 
 CAP_BYTES = 3_000_000  # the committed excerpts, all of pipeline/tests/data (streaming.md 7.3)
-FIELD_TEXELS = 16  # a tile's fields rasterize texels -16..271: the border and a 12-texel margin
-BOX_PAD_DEG = 0.25  # past the fields' clip pad: 0.1° plus the widest L2 river, at any latitude
+FIELD_TEXELS = BORDER + MARGIN_TEXELS  # texels a tile's fields rasterize past each edge
+# Past fields.clip_boxes' pad at the levels cut here (widest at L2: 0.16° in latitude) up to
+# about 70° latitude, where the pad's longitude part, which grows as 1/cos(latitude), is 0.25°.
+BOX_PAD_DEG = 0.25
 BOX_STEPS_PER_DEG = 100  # boxes round outward to 0.01°
 WORLD_SIMPLIFY_DEG = 0.2
 WORLD_MIN_PART_DEG2 = 0.1
