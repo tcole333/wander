@@ -1,0 +1,116 @@
+{
+ "what": "The region bake (every available tile, layer 085efb54) fetched cross-origin from npm run data and decoded in the two decode workers by e2e/lab/decode.lab.ts; decode time is measured in the worker around decodeWst, one tile at a time; stored sizes are the .wst files. Every tile decoded to the same planes as Node and to its bounds in bounds.bin.",
+ "browser": "firefox",
+ "machine": "MacBook Pro, Apple M5, macOS 26.5",
+ "release": {
+  "id": "a67159a5a1fd99f1",
+  "ver": "085efb54",
+  "maxLevel": 7
+ },
+ "workers": 2,
+ "tiles": 2649,
+ "wallMs": 2456,
+ "decodeMs": {
+  "p50": 2,
+  "p90": 2,
+  "max": 13
+ },
+ "byLevel": {
+  "0": {
+   "tiles": 6,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 4,
+    "max": 4
+   },
+   "storedKB": {
+    "p50": 47.62,
+    "max": 76.39
+   }
+  },
+  "1": {
+   "tiles": 24,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 3,
+    "max": 3
+   },
+   "storedKB": {
+    "p50": 50.83,
+    "max": 77.2
+   }
+  },
+  "2": {
+   "tiles": 96,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 3,
+    "max": 3
+   },
+   "storedKB": {
+    "p50": 46.85,
+    "max": 80.47
+   }
+  },
+  "3": {
+   "tiles": 384,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 3,
+    "max": 9
+   },
+   "storedKB": {
+    "p50": 50.42,
+    "max": 102.08
+   }
+  },
+  "4": {
+   "tiles": 1536,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 2,
+    "max": 13
+   },
+   "storedKB": {
+    "p50": 45.13,
+    "max": 109.26
+   }
+  },
+  "5": {
+   "tiles": 257,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 2,
+    "max": 11
+   },
+   "storedKB": {
+    "p50": 51.27,
+    "max": 88.79
+   }
+  },
+  "6": {
+   "tiles": 328,
+   "decodeMs": {
+    "p50": 2,
+    "p90": 2,
+    "max": 12
+   },
+   "storedKB": {
+    "p50": 44.12,
+    "max": 78.75
+   }
+  },
+  "7": {
+   "tiles": 18,
+   "decodeMs": {
+    "p50": 1,
+    "p90": 2,
+    "max": 2
+   },
+   "storedKB": {
+    "p50": 32.01,
+    "max": 49.49
+   }
+  }
+ }
+}

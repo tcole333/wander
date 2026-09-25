@@ -30,3 +30,8 @@ Metal through Playwright, Safari 26.5 and Firefox 156:
   under Chromium's assertions: the same GL calls, exact reads at texel centers, from unwritten
   levels and slots and of the edge profiles, and filtered reads within one code. The pool path holds
   on WebKit; E2 still times the uploads.
+- `e1/results/decode-*.json`: every tile of the region bake, fetched from `npm run data` and decoded
+  in the two decode workers, matches Node's decode and `bounds.bin` in all three browsers. Decode
+  time per tile, in the worker: 1.5 ms at the median (2.7 ms p90) in Chromium, 2 ms (2 ms) in
+  Firefox, and 2 ms (8 ms) in Safari, where L5-L7 tiles take 8 ms and the slowest 70 ms. Safari and
+  Firefox time at 1 ms steps.
