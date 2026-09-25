@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from prebuild.cli import STAGES, main, plan, run
+from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.profiles import Profile
 
 REPO = Path("/repo")
@@ -143,6 +144,22 @@ def test_a_failed_fixture_build_leaves_no_stamp(tmp_path):
     with pytest.raises(RuntimeError):
         run(ctx, names, stages)
     assert not (ctx.stages_dir / "stamp.json").exists()
+
+
+def test_a_file_saved_during_the_build_leaves_the_fixture_stale(tmp_path):
+    source = tmp_path / "pipeline" / "src" / "stage.py"
+    source.parent.mkdir(parents=True)
+    source.write_text("print('before')\n")
+
+    def edit_during_the_build(ctx):
+        source.write_text("print('during')\n")
+
+    stages = {**STAND_INS, "coverage": edit_during_the_build}
+    before = tree_sha(FIXTURE_PATHS, tmp_path)
+    ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
+    run(ctx, names, stages)
+    stamp = json.loads((ctx.stages_dir / "stamp.json").read_text())
+    assert stamp["inputs"] == before != tree_sha(FIXTURE_PATHS, tmp_path)
 
 
 def test_other_profiles_write_no_sidecars(tmp_path):
