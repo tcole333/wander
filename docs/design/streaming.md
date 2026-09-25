@@ -11,15 +11,18 @@ shown; TypeScript, Vite, React, r3f, drei, Zustand; a Python (uv) offline prebui
 Tags: **[M]** measured (file or source named; **[M proxy]** when the machine, browser or format differs
 from the target), **[S]** docs or source code, **[D]** arithmetic from [M]/[S], **[model]** output of
 `work/judge/beats_judge.py` (camera footprints × planning tile sizes, not a measured build), **[E]**
-estimate that the first build or the named experiment replaces. Paths inside tags are relative to
-`docs/design/measurements/`; every other path is relative to the repo root. Timing and feel constants
+estimate that the first build or the named experiment replaces. Paths inside tags and in this key are
+relative to `docs/design/measurements/`; every other path is relative to the repo root. Timing and feel constants
 are named in `code` and listed once in section 10; they live in `app/src/config/tunables.ts`, and tests
-read them from there.
+read them from there. `app/src/config/tunables.test.ts` checks that file against section 10's table,
+and `pipeline/tests/test_constants.py` checks `shared/constants.json` against the magics in section 3
+and the layer order in 3.9, so renaming any of these means updating both.
 
 Repo layout: `app/` is the npm project (the app); `pipeline/` is the uv project (the prebuild), with its
 config, queries and test excerpts; `shared/constants.json` is read by both; `stories/<story>/` holds
 each story's source; `build/` (git-ignored) holds prebuild output, `build/out/` in the R2 key layout and
-`build/fixture/`. `uv run prebuild <stage>` runs in `pipeline/`, and `npm run <script>` in `app/`.
+`build/fixture/`. `uv run prebuild <stage>` runs in `pipeline/`, and `npm run <script>` in `app/`; both
+resolve `build/` from the repo root, whatever their working directory.
 
 ---
 
@@ -47,11 +50,11 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Geometry and seams** | One instanced draw of a shared 33² grid (17² on lite) with skirts. Balanced levels, canonical edges, parent-position morphs and batched reveals (5.6). The `surfaceHeight()` GLSL is shared with attached geometry. | One level apart the seam step is 155-324 m p95; three levels apart it is a 4-6 km cliff at ×8 [M `work/critic-smoothness/seamstep*.json`]. |
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
-| **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders, range names follow Mountains, ocean and sea names follow Labels. Petroleum and minerals are labeled modern geological context. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. |
+| **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders, range names follow Mountains, ocean and sea names follow Labels. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. |
 | **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders: 1878 snapshot"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; ~105-112 KB per year [M]. ES3 guarantees only 256 array layers [S]. |
-| **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, labeled illustrative. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
+| **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, noted as illustrative in Credits. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
 | **Story compile and media** | `uv run prebuild media <story>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
 | **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then desired set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on the full tier; also keeping N+1's desired set and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
 | **Transitions** | van Wijk-Nuij flights with a readiness gate: a late beat slows into a short hold, then lands on ancestors (5.7). Optional refinement never blocks. | Flight + hold covers the largest critical set down to ~5.5 Mbps and the median down to ~2 Mbps [D from the model]. |
@@ -61,7 +64,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Scheduling** | Main-thread fetches (so preloads apply) in three classes, with a stall watchdog and no throughput estimator. 2 decode workers and 1 event worker. Uploads admitted by bytes (5.2, 5.4). | At 150 ms RTT six streams of ~45 KB objects top out near 14 Mbps [D], so 12 fetches run at once. Flights gate on readiness, so an estimator would only add false alarms. |
 | **GPU pools** | Fixed pools allocated at boot and written through three's public `copyTextureToTexture`, one call per mip (recipe in 5.5). No private three fields. | It keeps one instanced draw, hardware mipmapping and exact `surfaceHeight()` on documented API [S three 0.186.1]. |
 | **Quality tiers** | Two tiers, lite and full, fixed before a story starts, plus a render-scale governor (5.8). | No program compiles after the lobby. |
-| **Anti-aliasing** | Canvas `antialias: false`; SMAA in the composer; MSAA only on full, and only if E1 shows headroom. | r3f's default `antialias: true` plus three's 4-sample output target would add ~60 MiB at 1440×900 [S r3f 9.8.0, three `WebGLOutput.js`]. |
+| **Anti-aliasing** | Canvas `antialias: false`; SMAA in the composer; MSAA only on full, and only if E1 shows headroom. | r3f's default `antialias: true` plus three's 4-sample output target would add ~60 MiB at 1440×900 [S r3f 9.8.1, three 0.186.1 `WebGLOutput.js`]. |
 | **Context loss, deploys** | In-place restore by re-running the boot GPU init from the byte cache, with a reload as fallback (5.9). Nothing is fetched from Pages after boot. R2 keys are never overwritten or deleted in v1. `release.json` is bundled, with an immutable copy on R2. | With three-managed pools, restore is the boot path again, and it avoids the extra click a reload needs for audio. Old tabs can live for days. |
 | **Fonts and labels** | Source Serif 4, the reading face (latin + italic, woff2), on Pages, preloaded. Libre Baskerville, the display face, and the troika label face (`.woff`, subset to exactly the characters used) load from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One drei `<Html>` per label creates its own React root [M]. |
 
@@ -259,7 +262,8 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   - **Places:** direct coordinates first, then inherited ones (flagged). Unlocated parents take the
     centroid of their children, then the P17 centroid, then an override.
   - **Hierarchy:** one canonical display parent per event.
-- **Score:** the per-era percentile of `log2(1 + sitelinks)`, times the class weight, plus curated
+- **Score:** the per-era percentile of `log2(1 + sitelinks)`, counting Wikipedia sitelinks only (the
+  PRD's language editions), times the class weight, plus curated
   boosts, scaled to 0-1000. Owner decision 3 adopts the quotas above.
 - **Deep time:** storage and bins take any date. Owner decision 2 admits only well-known deep-time
   events, such as the Ries impact at −15 Myr, shown in a compressed deep-time segment of the time
@@ -307,7 +311,7 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
   - **Grid:** 0.1° by default, 0.05° where needed. One u16 plane at 0.05° over a 72° × 40° box measured
     417 KB gzip on a synthetic field [M `work/story-first/spread.json`]. The build reports each size,
     and the story core absorbs it.
-  - **Labels:** the legend says the field is an authored reconstruction, not an observed daily front.
+  - **Credits:** the field is noted as an authored reconstruction, not an observed daily front.
 - **Route `fx/<sha16>.json`:** `{"v":1, "epochDay":…, "pts":[[lon,lat,dayOffset,flags],…],
   "labels":[{"i":…,"text":…}]}`. Densified along great circles, with dates interpolated by distance.
   flags: bit0 uncertain leg, bit1 sea.
@@ -415,6 +419,7 @@ img/<sha16>-256.avif | -1024.avif | -1024.jpg
 aud/<sha16>.m4a    fn/<sha16>.woff | .woff2
 lic/<sha16>.txt                                         GPL-3.0 text, source commit, build-script link, attributions (owner decision 6)
 rel/<id>.json                                           immutable copy of each release.json
+_smoke/<sha16>.*  _e4/…                                 hosting checks (issue #1), E4 test objects; in no release
 ```
 
 ### 4.2 Hostnames, zone settings and headers (Free plan)
@@ -494,7 +499,7 @@ rel/<id>.json                                           immutable copy of each r
 
 | Thread | Owns |
 |---|---|
-| Main | `lod.ts` (≤ 0.5 ms), the scheduler and every `fetch`, the byte cache, GPU uploads, instance buffers, DOM plaque placement, R3F and React |
+| Main | `lod.ts` (≤ 0.5 ms), the scheduler and every `fetch`, the byte cache, GPU uploads, instance buffers, event-label placement, R3F and React |
 | Decode workers × 2 | stateless: inflate and decode `.wst`, `.wot`, `.bin` and climate files; results and the compressed buffer come back as transferables |
 | Event worker × 1 | parses `.wev` into typed arrays, holds the resident pages, runs the detail-budget and Meanwhile queries |
 | Audio render thread | beds and synthesized UI sounds |
@@ -614,7 +619,7 @@ rel/<id>.json                                           immutable copy of each r
     mirrored into a float texture.
   - `surfaceHeight(dir)` evaluates exactly what the globe draws (source, fade partner, morph, edges), so
     ribbons, medallions, labels and the plume emitter stay on the surface mid-fade.
-  - The CPU `heightAt()` uses the 33² grids. It serves camera clearance and DOM plaque anchors, where a
+  - The CPU `heightAt()` uses the 33² grids. It serves camera clearance and event-label anchors, where a
     few pixels of error do not show.
 - **Debug key check** (debug builds only): a one-row RGBA8 texture holds each slot's tile key, written
   when the tile is published. The fragment shader outputs magenta where a slot's key differs from the
@@ -758,7 +763,8 @@ rel/<id>.json                                           immutable copy of each r
 
 ## 6. Budgets
 
-Rows marked "reported" are not gates: the story-walk test prints any beat or story above them.
+Rows marked "reported" are not gates: the story walks in `npm run e2e:gpu` (7.3) print any beat or
+story above them.
 
 | Budget | Number | Basis |
 |---|---|---|
@@ -772,7 +778,7 @@ Rows marked "reported" are not gates: the story-walk test prints any beat or sto
 | **Reading pace** | the next beat hides behind reading | a beat takes at least 15 s to read, so the full next beat needs 1.2 Mbps at the median and 3.4 Mbps at the maximum [D] |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 89 + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **225**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: 56 + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **165**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: React/three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
-| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread R3F/React ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, plaque placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
+| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread R3F/React ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year (12 × 18 KB) uploaded per frame; border previews crossfade with no fetch |
 
 ---
@@ -834,7 +840,7 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
   mini story in `stories/_fixture/` (laid out as in 3.9) with one small public-domain JPEG, one CC0
   WAV, a route and a spread field.
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout with
-  stage records. `uv run prebuild media --offline _fixture --out build/fixture` writes
+  stage records. `uv run prebuild media --offline _fixture --out build/fixture` (repo-root `build/`) writes
   `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
   `npm run publish-data -- --fixture` writes `app/src/generated/release.fixture.json` (dataHost
   `http://127.0.0.1:8791`) and uploads nothing.
@@ -975,7 +981,7 @@ acceptance).**
   overflow under tilt, drop N+1 critical to desired−2. Move any fetch that breaks across a deploy to R2.
 
 **E4. Cold-edge retention and fill latency on a low-traffic domain.**
-- **Setup:** the infrastructure from 8.1 step 0. Upload 200 × 40 KB gzip-in-file objects and warm them
+- **Setup:** the infrastructure from 8.1 step 0. Upload 200 × 40 KB gzip-in-file objects under `_e4/` and warm them
   once from the owner's machine.
 - **Measure,** from 2-3 locations including one in Europe or Asia: TTFB and `cf-cache-status` at 1 h,
   24 h, 72 h and 7 d, recording local HITs separately from upper-tier fills (by timing or zone
@@ -1121,7 +1127,8 @@ Decided 2026-09-24 (starting values, tunable). The rest of the doc cites these b
    the hold at 5 Mbps.
 6. **Border license:** derived border tiles are published as GPL-3.0 with the license, source commit
    and build script linked.
-7. **Tambora beat list:** start from the 8 drafted beats in `work/story-first/beats.py` (issue #10).
+7. **Tambora beat list:** start from the 8 drafted beats in
+   `docs/design/measurements/work/story-first/beats.py` (issue #10).
 8. **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
 
 Still open:
