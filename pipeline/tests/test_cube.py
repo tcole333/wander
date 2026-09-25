@@ -5,7 +5,6 @@ from fractions import Fraction
 import numpy as np
 import pytest
 
-from prebuild.constants import REPO_ROOT
 from prebuild.cube import (
     EDGES,
     FACE_EDGES,
@@ -34,6 +33,7 @@ from prebuild.cube import (
     tile_of,
     to_three,
 )
+from prebuild.paths import REPO_ROOT
 
 DESIGN_DOC = (REPO_ROOT / "docs" / "design" / "streaming.md").read_text(encoding="utf-8")
 LEVELS = range(8)

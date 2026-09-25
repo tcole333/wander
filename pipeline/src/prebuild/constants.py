@@ -2,10 +2,10 @@
 shared/constants.json."""
 
 import json
-from pathlib import Path
 from typing import TypedDict
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+from prebuild.paths import REPO_ROOT
+
 CONSTANTS_PATH = REPO_ROOT / "shared" / "constants.json"
 
 
