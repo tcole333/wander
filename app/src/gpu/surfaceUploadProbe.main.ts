@@ -1,7 +1,7 @@
 // Entry of e2e/surface-upload.html: uploads the tiles of the release at ?data=<origin>, at
 // ?tier=lite|full (lite by default), optionally only ?levels=<from>-<to> and at most ?limit=<n>
-// tiles, and exposes the report to Playwright; with ?report=<browser> it also posts it
-// (e2e/lab/surface-upload.lab.ts).
+// tiles spread through them, and exposes the report to Playwright; with ?report=<browser> it also
+// posts it (e2e/lab/surface-upload.lab.ts).
 import type { Tier } from '../config/tunables';
 import { labTarget, postLabReport, reportFailures } from '../lab/labReport';
 import { runSurfaceUpload } from './surfaceUploadProbe';

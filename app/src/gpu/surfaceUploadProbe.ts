@@ -22,7 +22,7 @@ const SURFACE_PARTS = 7;
 export interface SurfaceUploadOptions {
   tier: Tier;
   levels: [number, number];
-  /** Upload at most this many tiles, the first in node order. */
+  /** Upload at most this many tiles, spread evenly through the matching ones in node order. */
   limit: number;
 }
 
@@ -58,10 +58,10 @@ export async function runSurfaceUpload(
 ): Promise<SurfaceUploadReport> {
   const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
   const layer = await loadSurfaceLayer(release);
-  const wanted = layer
+  const matching = layer
     .tiles()
-    .filter((t) => t.level >= options.levels[0] && t.level <= options.levels[1])
-    .slice(0, options.limit);
+    .filter((t) => t.level >= options.levels[0] && t.level <= options.levels[1]);
+  const wanted = spread(matching, options.limit);
 
   const renderer = new WebGLRenderer({ antialias: false });
   const gl = renderer.getContext() as WebGL2RenderingContext;
@@ -147,6 +147,15 @@ export async function runSurfaceUpload(
   for (const pool of all) pool.dispose();
   renderer.dispose();
   return report;
+}
+
+/** Up to `limit` of `items`, spread evenly through them, in their order. */
+function spread<T>(items: T[], limit: number): T[] {
+  if (items.length <= limit) return items;
+  return Array.from(
+    { length: limit },
+    (_, i) => items[Math.floor((i * items.length) / limit)] as T,
+  );
 }
 
 /** Every uploaded slot sampled at its texel centers, level by level, against its decoded planes. */
