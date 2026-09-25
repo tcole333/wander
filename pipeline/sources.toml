@@ -1,0 +1,89 @@
+# The raw inputs the prebuild reads (streaming.md 7.1, owner decisions 10 and 11), keyed by the
+# ids of the raw-data folder's manifest.json and using its field names. Paths are relative to
+# $WANDER_DATA. `uv run prebuild fetch` downloads a missing file from its source_url (a file
+# without one is verify-only: checked, never downloaded), unzips each `unzipped` member beside its
+# zip, and checks every sha256. Other stages check only byte sizes.
+#
+# This holds the surface core's inputs (issue #3); each later issue pins the inputs its stages read.
+
+[gebco-2026]
+name = "GEBCO_2026 Grid, 15 arc-second global land and sea-floor elevation (ice surface), NetCDF"
+version = "GEBCO_2026"
+license = "Public domain (GEBCO terms of use; acknowledgement required; not for navigation)"
+license_url = "https://www.gebco.net/data-products/gridded-bathymetry-data"
+# The citation GEBCO's documentation gives (GEBCO_Grid_docmentation.pdf, p. 4).
+attribution = "GEBCO Compilation Group (2026) GEBCO 2026 Grid (doi: 10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa)"
+landing_page = "https://www.gebco.net/data-products-gridded-bathymetry-data/gebco2026-grid"
+retrieved = "2026-09-24"
+
+[[gebco-2026.files]]
+path = "sources/gebco-2026/GEBCO_2026.zip"
+source_url = "https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/netcdf/GEBCO_2026.zip"
+bytes = 4252016343
+sha256 = "b8e3a2cdfb354ab731fb28c75abb5dddbfba442156c4ee0863f05df1f9944808"
+
+[[gebco-2026.unzipped]]
+from = "sources/gebco-2026/GEBCO_2026.zip"
+member = "GEBCO_2026.nc"
+path = "sources/gebco-2026/GEBCO_2026.nc"
+bytes = 7466018396
+sha256 = "71ceeb56a4b917a3f2d9fe3c6da8e7c5c5e6d8185b373eca6bac9a4d61cb3223"
+
+[[gebco-2026.unzipped]]
+from = "sources/gebco-2026/GEBCO_2026.zip"
+member = "GEBCO_Grid_docmentation.pdf"  # GEBCO's spelling
+path = "sources/gebco-2026/GEBCO_Grid_docmentation.pdf"
+bytes = 266395
+sha256 = "f3ced9f031ff9c7eaf7ec19fe1137c9f37bb7913591dd1f55560eaf3b7eb5201"
+
+[[gebco-2026.unzipped]]
+from = "sources/gebco-2026/GEBCO_2026.zip"
+member = "GEBCO_Grid_terms_of_use.pdf"
+path = "sources/gebco-2026/GEBCO_Grid_terms_of_use.pdf"
+bytes = 145503
+sha256 = "3d0236bbb239fd1b29a432422e2879754f3ce21d75071ac1bf63929401bbb6bd"
+
+# The files are byte-identical to the NE 5.1.2 release. The layers inside carry their own
+# versions: land 5.1.1, lakes and rivers 5.0.0.
+[natural-earth-10m-physical]
+name = "Natural Earth 1:10m physical vectors (land, ocean, lakes, rivers, coastline)"
+version = "5.1.2"
+license = "Public domain (Natural Earth terms of use)"
+license_url = "https://www.naturalearthdata.com/about/terms-of-use/"
+attribution = "Made with Natural Earth."
+landing_page = "https://www.naturalearthdata.com/downloads/10m-physical-vectors/"
+retrieved = "2026-07-15"
+
+[[natural-earth-10m-physical.files]]
+path = "sources/natural-earth-10m-physical/ne_10m_land.zip"
+source_url = "https://naturalearth.s3.amazonaws.com/5.1.2/10m_physical/ne_10m_land.zip"
+bytes = 3269070
+sha256 = "e547d749445eaa0964aba76738090ec88f5e63c4585122170f98c67a7ea922dc"
+
+[[natural-earth-10m-physical.files]]
+path = "sources/natural-earth-10m-physical/ne_10m_lakes.zip"
+source_url = "https://naturalearth.s3.amazonaws.com/5.1.2/10m_physical/ne_10m_lakes.zip"
+bytes = 2349685
+sha256 = "0803a06f9c3cb4671d89b68c48b142aad9366ba40f665245e12a913fbc61722a"
+
+[[natural-earth-10m-physical.files]]
+path = "sources/natural-earth-10m-physical/ne_10m_rivers_lake_centerlines_scale_rank.zip"
+source_url = "https://naturalearth.s3.amazonaws.com/5.1.2/10m_physical/ne_10m_rivers_lake_centerlines_scale_rank.zip"
+bytes = 2410997
+sha256 = "a6fc02f8d663a0cb451b2564fbc361174410cd65d14c59d11ffb870ebb8c8566"
+
+# Islands of 2 km² or less (owner decision 12). The layer inside is version 4.1.0.
+[natural-earth-10m-minor-islands]
+name = "Natural Earth 1:10m minor islands"
+version = "5.1.2"
+license = "Public domain (Natural Earth terms of use)"
+license_url = "https://www.naturalearthdata.com/about/terms-of-use/"
+attribution = "Made with Natural Earth."
+landing_page = "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-minor-islands/"
+retrieved = "2026-09-25"
+
+[[natural-earth-10m-minor-islands.files]]
+path = "sources/natural-earth-10m-minor-islands/ne_10m_minor_islands.zip"
+source_url = "https://naturalearth.s3.amazonaws.com/5.1.2/10m_physical/ne_10m_minor_islands.zip"
+bytes = 314932
+sha256 = "47c0b3ce26df7b4dbabdbb251023918cb2f5c83462a426288f1f253da7284db2"
