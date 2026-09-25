@@ -145,35 +145,44 @@ def boxes(fixture: FixtureConfig, min_level: int) -> list[tuple[float, float, fl
     return [b for b in found if not any(o != b and _inside(b, o) for o in found)]
 
 
-def write_ne_excerpts(
-    ctx: Context, fixture: FixtureConfig, registry: dict[str, Source], folder: Path
-) -> None:
+def ne_tiers(fixture: FixtureConfig) -> dict[str, list[dict[str, Any]]]:
+    """The tiers each NE excerpt is cut in, by layer, as its sidecar records them."""
     near_boxes, detail_boxes = boxes(fixture, NEAR_LEVEL), boxes(fixture, DETAIL_LEVEL)
-    near = shapely.union_all([shapely.box(*b) for b in near_boxes])
-    detail = shapely.union_all([shapely.box(*b) for b in detail_boxes])
-    around = shapely.difference(near, detail)
-    world_tier = {
+    world = {
         "name": "world",
         "simplifyDeg": WORLD_SIMPLIFY_DEG,
         "minPartDeg2": WORLD_MIN_PART_DEG2,
         "outside": "near",
     }
-    near_tier = {"name": "near", "simplifyDeg": NEAR_SIMPLIFY_DEG, "boxes": near_boxes}
-    detail_tier = {"name": "detail", "simplifyDeg": 0, "boxes": detail_boxes}
+    near = {"name": "near", "simplifyDeg": NEAR_SIMPLIFY_DEG, "boxes": near_boxes}
+    detail = {"name": "detail", "simplifyDeg": 0, "boxes": detail_boxes}
+    return {
+        "land": [world, near, detail],
+        "minor_islands": [{**near, "simplifyDeg": 0}],
+        "lakes": [near, detail],
+        "rivers": [near, detail],
+    }
+
+
+def write_ne_excerpts(
+    ctx: Context, fixture: FixtureConfig, registry: dict[str, Source], folder: Path
+) -> None:
+    tiers = ne_tiers(fixture)
+    near = shapely.union_all([shapely.box(*b) for b in boxes(fixture, NEAR_LEVEL)])
+    detail = shapely.union_all([shapely.box(*b) for b in boxes(fixture, DETAIL_LEVEL)])
+    around = shapely.difference(near, detail)
     for name, (source_id, filename) in ZIPS.items():
         pin = pinned_file(registry[source_id], filename)
         layer = read_zip_layer(verified_path(ctx, source_id, filename, registry))
         if name == "land":
-            excerpt, tiers = land_tiers(layer, near, detail), [world_tier, near_tier, detail_tier]
+            excerpt = land_tiers(layer, near, detail)
         elif name == "minor_islands":
             excerpt = clip_tiers(layer, [("near", near, 0.0)], 2, KEPT_FIELDS[name])
-            tiers = [{**near_tier, "simplifyDeg": 0}]
         else:
             dim = 2 if name == "lakes" else 1
             cuts = [("detail", detail, 0.0), ("near", around, NEAR_SIMPLIFY_DEG)]
             excerpt = clip_tiers(layer, cuts, dim, KEPT_FIELDS[name])
-            tiers = [near_tier, detail_tier]
-        meta = {"source": source_id, "file": pin.path, "sha256": pin.sha256, "tiers": tiers}
+        meta = {"source": source_id, "file": pin.path, "sha256": pin.sha256, "tiers": tiers[name]}
         write_excerpt_layer(folder, name, excerpt, meta)
         print(f"excerpts: ne/{name} {len(excerpt)} rows", flush=True)
 
