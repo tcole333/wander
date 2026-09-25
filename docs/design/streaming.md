@@ -241,10 +241,12 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
     the continuous form of 3.0 item 5's A (the center of subpixel A sits at A_s = A), with straight
     segments between them. Polygons fill by the even-odd rule. A subpixel is river when its center
     lies within the river's half-width of a segment, by an exact point-to-segment distance.
-  - An exact Euclidean distance transform between subpixel centers gives D = +(E_in − 0.5) inside
-    and −(E_out − 0.5) outside. A texel's d is the mean D of its 2×2 central subpixels, divided by 4,
-    and ±∞ when the raster holds only one class. The stored byte is
-    min(255, rha(128 + 16·clamp(d, −8, 8))).
+  - An exact Euclidean distance transform gives each subpixel E, the distance in subpixels from its
+    center to the nearest center of the other class. D = +(E − 0.5) inside the mask and −(E − 0.5)
+    outside it. The shore mask is land, so land is positive. The water mask is lakes ∪ buffered
+    rivers, and the water field negates D, so water is negative (the header above). A texel's d is
+    the mean D of its 2×2 central subpixels divided by 4 (subpixels to texels), and ±∞ when the
+    raster holds only one class. The stored byte is min(255, rha(128 + 16·clamp(d, −8, 8))).
   - The margin exceeds the ±8 reach, so every value depends only on its position.
 - **Water:** NE lakes and river lines, without canals or reservoirs. Reservoirs on an allowlist of
   natural lakes that dams later raised stay, and a dropped reservoir's Lake Centerline still draws
