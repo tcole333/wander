@@ -17,7 +17,8 @@
     "verify:bake": "vitest run --config vitest.bake.config.ts",
     "fixture": "uv run --directory ../pipeline --locked prebuild --profile fixture",
     "e2e": "playwright test --project=swiftshader",
-    "e2e:gpu": "playwright test --project=gpu-chromium"
+    "e2e:gpu": "playwright test --project=gpu-chromium",
+    "lab": "playwright test --project=lab --workers=1"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.1",
