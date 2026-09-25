@@ -131,8 +131,8 @@ def cube_sample(lon: float, lat: float, level: int) -> dict[str, Any]:
 
 def synthetic_tiles() -> dict[str, WstTile]:
     """Tiles for the .wst round trip between the Python encoder and the app's decoder
-    (streaming.md 3.1). The bake that makes real planes comes later; these are built to reach the
-    corners of the format."""
+    (streaming.md 3.1), built to reach the corners of the format that the fixture's baked tiles
+    (`tiles.json`) do not."""
     return {"extremes": _extremes(), "trench": _trench(), "random": _random()}
 
 
