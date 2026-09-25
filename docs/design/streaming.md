@@ -1027,6 +1027,12 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
 - **Dev:** `npm ci && npm run dev` runs against production data (CORS `*`), so a fresh clone needs no
   download. `npm run dev:fixture` builds the fixture and serves `build/fixture` on :8791 with production
   headers.
+- **Local data server:** `npm run data -- --profile fixture|region` serves `build/<profile>/` in the
+  R2 key layout on its own origin (:8791 for the fixture, :8792 for the region bake), with 4.2's
+  headers and Content-Types and nothing outside the build, so local pages fetch data cross-origin
+  exactly as they fetch R2. It also serves `/release.json`, the build's release merged from its stage
+  records as `publish-data` merges them (3.8), with the server as `dataHost`. That route is not an R2
+  key; it lets lab and dev pages read a local build before any release is published.
 - **CI** (GitHub Actions, Linux, per PR; `.github/workflows/ci.yml`):
   1. Lint: `ruff check` and `ruff format --check` in `pipeline/`; ESLint and Prettier in `app/`.
   2. `uv run pytest` on the excerpts, plus a synthetic global `.nc` through the production GEBCO

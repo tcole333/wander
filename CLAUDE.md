@@ -42,6 +42,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   uv) into `build/fixture/` and `build/stages/fixture/`. Vitest checks against it and fails,
   naming this command, when it is missing or was built from other pipeline code, shared constants
   or excerpts than the working tree holds.
+- `npm run data -- --profile fixture|region`: serves `build/fixture/` on :8791 or `build/region/` on
+  :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
+  7.3).
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI. The smoke test runs
   against that build in `app/dist/` (it does not rebuild); the GPU pool test runs a test-only page
