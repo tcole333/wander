@@ -249,12 +249,12 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
     raster holds only one class. The stored byte is min(255, rha(128 + 16·clamp(d, −8, 8))).
   - The margin exceeds the ±8 reach, so every value depends only on its position.
 - **Water:** NE lakes and river lines, without canals or reservoirs. Reservoirs on an allowlist of
-  natural lakes that dams later raised stay, and a dropped reservoir's Lake Centerline still draws
-  (owner decision 13). Lakes draw at every level. Rivers by level: scalerank ≤ 2 at L0-L1, ≤ 4 at L2,
-  ≤ 6 at L3, and all at L4 and deeper. Half-width is
-  `max(0.35 texel, halfWidthKm[scalerank] / texel_km(L))`. `pipeline/config/water.yaml` holds
-  `halfWidthKm` for scalerank 0-12 and the allowlist, keyed by NE id. The shader holds on-screen line
-  width with `fwidth`.
+  natural lakes whose level a dam or control structure later raised, lowered or regulated stay, and
+  a dropped reservoir's Lake Centerline still draws (owner decision 13). Lakes draw at every level.
+  Rivers by level: scalerank ≤ 2 at L0-L1, ≤ 4 at L2, ≤ 6 at L3, and all at L4 and deeper.
+  Half-width is `max(0.35 texel, halfWidthKm[scalerank] / texel_km(L))`.
+  `pipeline/config/water.yaml` holds `halfWidthKm` for scalerank 0-12 and the allowlist, keyed by
+  NE id. The shader holds on-screen line width with `fwidth`.
 - **Edges:** within a face, border texels equal the neighbor's interior values because both are the
   same function of position. Across a face edge the texel grids do not line up, so each edge-profile
   entry is computed once, by its owner face (3.0 item 7): the rha mean of the four owner-face texel
@@ -1331,8 +1331,9 @@ Decided for the surface core (issue #3), 2026-09-24 and 2026-09-25:
     unzipped GEBCO files and, once fetched, the minor-islands zip; the build reads neither.
 12. **Minor islands:** Natural Earth 10m minor islands count as land, for L5-L6 coverage and in the
     shore field.
-13. **Water set:** natural lakes, plus an allowlist of natural lakes that dams later raised. Canals
-    and the other reservoirs are dropped; a dropped reservoir's river centerline still draws.
+13. **Water set:** natural lakes, plus an allowlist of natural lakes whose level dams or control
+    structures later raised, lowered or regulated. Canals and the other reservoirs are dropped; a
+    dropped reservoir's river centerline still draws.
 14. **Python stack:** Python 3.14 with numpy, netCDF4, PyYAML, shapely, pyogrio and scipy, pinned in
     `uv.lock`. xarray arrives with the `modera` stage.
 15. **Fixture at the Kirkuk corner:** a mid pyramid (4' for L3-L4, 1' for L5-L6, 15" for L7), so
