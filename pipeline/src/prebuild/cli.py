@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from prebuild import excerpts, fetch
+from prebuild import coverage, excerpts, fetch, surface
 from prebuild.expect import clear_stamp, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
@@ -14,7 +14,12 @@ from prebuild.profiles import DEFAULT_PROFILE, Context, Profile, default_jobs, m
 type Runner = Callable[[Context], None]
 
 # Every stage, in the order a run takes them. Each stage registers here when it lands.
-STAGES: dict[str, Runner] = {"fetch": fetch.run, "excerpts": excerpts.run}
+STAGES: dict[str, Runner] = {
+    "fetch": fetch.run,
+    "excerpts": excerpts.run,
+    "coverage": coverage.run,
+    "surface": surface.run,
+}
 
 # A run with no stage named leaves these out: excerpts rewrites committed files, and media
 # builds the one story named with --story.
