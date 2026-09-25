@@ -26,8 +26,9 @@ export const EXTERNAL_BROWSERS: ExternalBrowser[] = [
 const POLL_MS = 250;
 
 /**
- * Opens `page` (a path on the dev server, such as `e2e/gpu-pool.html`) in `browser` and resolves
- * with the report it posts as `what`. Throws with the page's error if it posted one.
+ * Opens `page` (a path on the dev server with any query of its own, such as `e2e/gpu-pool.html`)
+ * in `browser` and resolves with the report it posts as `what`. Throws with the page's error if it
+ * posted one.
  */
 export async function runInBrowser<T>(
   browser: ExternalBrowser,
@@ -38,10 +39,12 @@ export async function runInBrowser<T>(
   if (process.platform !== 'darwin') throw new Error('lab runs in external browsers need macOS');
   // The page echoes the run, so a report from any other tab is never taken for this one.
   const run = randomUUID();
-  const url = `${DEV_URL}/${page}?${new URLSearchParams({ report: browser.name, run })}`;
+  const url = new URL(page, `${DEV_URL}/`);
+  url.searchParams.set('report', browser.name);
+  url.searchParams.set('run', run);
   const file = labReportPath(`${what}-${browser.name}`);
   rmSync(file, { force: true });
-  await promisify(execFile)('open', ['-a', browser.app, url]);
+  await promisify(execFile)('open', ['-a', browser.app, url.href]);
 
   const deadline = Date.now() + timeoutMs;
   for (;;) {
