@@ -1064,11 +1064,22 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
      `optimizeDeps.include: ['three']`), not the production build, so nothing of it reaches the
      bundle.
   7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
-- **Bake check (local):** `npm run verify:bake` decodes every tile in `build/region/` and checks
-  within-face border identity, edge-profile identity within faces and across face edges, each
-  header's codeMin and codeMax, `bounds.bin` and availability against the files present. It covers
-  what the fixture never exercises: the overviews, global reads with the longitude wrap and pole
-  clamp, full NE data, and owner-frame rasters on real face edges.
+- **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
+  every tile in `build/region/` and checks, with the fixture's seam code:
+  - within a face, mip 0-2 border identity for every pair of available neighbors, and edge-profile
+    identity for every such pair and every pair across a face edge
+  - the cross-face border bound above on every face edge
+  - each header's codeMin and codeMax against its planes and edge profiles, and `bounds.bin`
+    against the decoded meter bounds
+  - availability against the files present, which hash to the layer's version
+  - known places: Georgian Bay and Lake Huron's main body are water; the texel on the dateline on
+    faces 2, 4 and 5 at L0-L4 decodes within its bounds; Tambora's summit texel at L7 lies within
+    qLand/2 of its texel mean (2,586.3 m) and no higher than GEBCO's 2,605 m there
+
+  It fails, naming the command, when the bake is missing or was built from other prebuild code,
+  configs or pinned sources. It covers what the fixture never exercises: the overviews, global reads
+  with the longitude wrap and pole clamp, full NE data, and owner-frame rasters on real face edges.
+  It needs the raw data, so it stays out of `npm test` and CI.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
   starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
   matrix as WebKit and Firefox projects join. It runs when renderer, streaming or format code

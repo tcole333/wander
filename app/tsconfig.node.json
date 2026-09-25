@@ -17,5 +17,13 @@
     "noEmit": true,
     "paths": { "@shared/*": ["../shared/*"] }
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "e2e", "src/**/*.test.ts", "src/test"]
+  "include": [
+    "vite.config.ts",
+    "vitest.bake.config.ts",
+    "playwright.config.ts",
+    "e2e",
+    "src/**/*.test.ts",
+    "src/**/*.verify.ts",
+    "src/test"
+  ]
 }
