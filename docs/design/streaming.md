@@ -78,7 +78,8 @@ All binary files are gzip streams of packed little-endian bytes with no implicit
 padded so every typed array starts at a multiple of its element size. Each file starts with a 4-byte
 magic and a u8 format `version`. Key names are content hashes or layer versions:
 
-- `<sha16>` is the first 16 hex characters of the SHA-256 of the stored (gzip) bytes.
+- `<sha16>` is the first 16 hex characters of the SHA-256 of the file's stored bytes (for a binary,
+  the gzip stream).
 - `<ver8>` is the first 8 hex characters of the SHA-256 over one line `"<path> <sha256>\n"` per file
   of the layer, sorted bytewise: `<path>` is relative to the layer root (`7/1/103/50.wst`,
   `bounds.bin`) and `<sha256>` is the full hex digest of the stored bytes. The full key cannot be
