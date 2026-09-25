@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from test_gebco import write_grid
 
 from prebuild.cube import TILE, Tile, dir_to_lonlat, st_to_dir, texel_center
 from prebuild.expect import TAMBORA_SUMMIT
@@ -95,11 +94,11 @@ def test_each_production_level_reads_the_coarsest_source_no_larger_than_its_texe
         assert name == max(fitting, key=cells.__getitem__, default=GRID)
 
 
-def test_the_production_source_reads_the_grid_per_tile_and_overviews_above_l5(tmp_path):
+def test_the_production_source_reads_the_grid_per_tile_and_overviews_above_l5(tmp_path, write_grid):
     # 2025" cells: 320 rows divide into the 16' overview's 64-row blocks.
     rng = np.random.default_rng(11)
     elevation = rng.integers(-6000, 6000, (320, 640)).astype(np.int16)
-    nc = write_grid(tmp_path / "grid.nc", elevation)
+    nc = write_grid(elevation)
     source = GebcoHeights(nc, overviews(nc, tmp_path / "cache"))
     tile = Tile(3, 5, 9, 20)
     window = source.raster(tile)
@@ -113,8 +112,8 @@ def test_the_production_source_reads_the_grid_per_tile_and_overviews_above_l5(tm
             assert source.raster(Tile(0, level, 0, 0)).cell_arcsec == 2025 * OVERVIEWS[name]
 
 
-def test_the_production_source_has_no_grid_past_l7(tmp_path):
-    nc = write_grid(tmp_path / "grid.nc", np.zeros((320, 640), dtype=np.int16))
+def test_the_production_source_has_no_grid_past_l7(write_grid):
+    nc = write_grid(np.zeros((320, 640), dtype=np.int16))
     with pytest.raises(ValueError, match="level 8"):
         GebcoHeights(nc, {}).raster(Tile(0, 8, 0, 0))
 

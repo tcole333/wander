@@ -1,8 +1,5 @@
 import gzip
-import warnings
-from pathlib import Path
 
-import netCDF4
 import numpy as np
 import pytest
 
@@ -20,32 +17,12 @@ from prebuild.gebco import (
 )
 
 
-def write_grid(path: Path, elevation: np.ndarray) -> Path:
-    """A global grid laid out as GEBCO's file: int16 `elevation` (lat, lon), rows south first,
-    cell centers half a cell in from -90° and -180°."""
-    rows, columns = elevation.shape
-    cell = 360 / columns
-    with netCDF4.Dataset(path, "w", format="NETCDF4") as dataset:
-        dataset.createDimension("lat", rows)
-        dataset.createDimension("lon", columns)
-        lat = dataset.createVariable("lat", "f8", ("lat",))
-        lon = dataset.createVariable("lon", "f8", ("lon",))
-        lat[:] = -90 + (np.arange(rows) + 0.5) * cell
-        lon[:] = -180 + (np.arange(columns) + 0.5) * cell
-        variable = dataset.createVariable("elevation", "i2", ("lat", "lon"), contiguous=True)
-        with warnings.catch_warnings():
-            # netCDF4 1.7.4 sets an array's shape when it writes, which numpy 2.5 deprecates.
-            warnings.filterwarnings("ignore", "Setting the shape", DeprecationWarning)
-            variable[:] = elevation
-    return path
-
-
 @pytest.fixture
-def degree_grid(tmp_path):
+def degree_grid(write_grid):
     """A global grid of 1° cells holding seeded random heights."""
     rng = np.random.default_rng(7)
     elevation = rng.integers(-8000, 8000, (180, 360)).astype(np.int16)
-    return write_grid(tmp_path / "grid.nc", elevation), elevation
+    return write_grid(elevation), elevation
 
 
 def test_a_window_across_the_dateline_reads_the_two_slices(degree_grid):
@@ -56,10 +33,10 @@ def test_a_window_across_the_dateline_reads_the_two_slices(degree_grid):
     assert (r.i0, r.j0, r.w, r.h, r.cell_arcsec) == (357, 40, 6, 3, 3600)
 
 
-def test_rows_run_south_first(tmp_path):
+def test_rows_run_south_first(write_grid):
     elevation = np.zeros((180, 360), dtype=np.int16)
     elevation[10, :] = 1234  # centered at 79.5°S
-    nc = write_grid(tmp_path / "grid.nc", elevation)
+    nc = write_grid(elevation)
     r = read_window(nc, 0, 0, 360, 180)
     assert bilinear(r, 20.0, -79.5) == 1234
     assert bilinear(r, 20.0, 79.5) == 0
@@ -135,12 +112,12 @@ def test_crop_reads_a_global_raster_stored_from_any_column(degree_grid):
     )
 
 
-def test_overviews_are_exact_block_means_cached_on_first_use(tmp_path):
+def test_overviews_are_exact_block_means_cached_on_first_use(tmp_path, write_grid):
     # 1125" cells, so every overview divides the grid: 1152x576 -> 288x144, 72x36, 18x9. At 576
     # rows, the overviews are built from a full 320-row strip and a 256-row partial one.
     rng = np.random.default_rng(11)
     elevation = rng.integers(-11000, 9000, (576, 1152)).astype(np.int16)
-    nc = write_grid(tmp_path / "grid.nc", elevation)
+    nc = write_grid(elevation)
     cache = tmp_path / "cache"
     built = overviews(nc, cache)
     for name, k in OVERVIEWS.items():
@@ -150,9 +127,9 @@ def test_overviews_are_exact_block_means_cached_on_first_use(tmp_path):
     assert sorted(p.name for p in cache.iterdir()) == ["16m.npy", "1m.npy", "4m.npy"]
 
 
-def test_overviews_are_read_back_from_the_cache(tmp_path):
+def test_overviews_are_read_back_from_the_cache(tmp_path, write_grid):
     elevation = np.arange(192 * 384, dtype=np.int64).reshape(192, 384) % 1000
-    nc = write_grid(tmp_path / "grid.nc", elevation.astype(np.int16))
+    nc = write_grid(elevation.astype(np.int16))
     first = overviews(nc, tmp_path / "cache")
     stamp = (tmp_path / "cache" / "1m.npy").stat().st_mtime_ns
     second = overviews(nc, tmp_path / "cache")
