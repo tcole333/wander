@@ -9,3 +9,7 @@ for the target laptops; the design's experiments (section 8.2) replace them with
 
 `work/story-first/beats.py` holds the drafted Tambora beat list (camera footprints per beat), the
 starting point for the first story.
+
+`work/surface-bake/region-bake.json` records the first bake of real cube tiles, the milestone-1
+region profile (2026-09-25): runtimes, tile counts and sizes, qLand, and the cross-face border
+statistics behind the seam check's bound.

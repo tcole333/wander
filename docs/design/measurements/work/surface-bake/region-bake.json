@@ -1,0 +1,280 @@
+{
+  "what": "The first milestone-1 region bake, `uv run prebuild --profile region` (streaming.md 3.1, 7.1, 7.3), run twice from pipeline/ at commit 367928b. Sizes are the stored .wst files (gzip level 9) in bytes; p50 and p90 are the nearest tile's size.",
+  "date": "2026-09-25",
+  "machine": {
+    "model": "MacBook Pro, Apple M5",
+    "cpus": 10,
+    "memoryGB": 24,
+    "os": "macOS 26.5",
+    "python": "3.14.6",
+    "jobs": 8
+  },
+  "ver8": "085efb54",
+  "reproduced": "The second run rebuilt the layer with surf/085efb54/ moved away and wrote the same ver8, byte-identical files and identical coverage and surface records.",
+  "wallSeconds": {
+    "firstRun": {
+      "note": "build/cache/gebco/ empty, so coverage builds the 1', 4' and 16' overviews",
+      "fetch": 4.4,
+      "coverage": 35.8,
+      "surface": 101.0,
+      "total": 141.4
+    },
+    "secondRun": {
+      "note": "overviews cached",
+      "fetch": 4.3,
+      "coverage": 29.6,
+      "surface": 104.3,
+      "total": 138.5
+    }
+  },
+  "counts": [
+    6,
+    24,
+    96,
+    384,
+    1536,
+    257,
+    328,
+    18
+  ],
+  "tiles": 2649,
+  "qLand": [
+    39.09375,
+    19.546875,
+    9.78125,
+    4.890625,
+    2.453125,
+    2.0,
+    2.0,
+    2.0
+  ],
+  "qLandNote": "L0-L4 each keep their starting value, texelM/1000 rounded up to 1/64 m, and L5-L7 the 2 m floor: no level needed a coarser step to fit 4,096 codes.",
+  "c200": [
+    -5,
+    -10,
+    -20,
+    -41,
+    -82,
+    -100,
+    -100,
+    -100
+  ],
+  "sizeBytesByLevel": [
+    {
+      "tiles": 6,
+      "p50": 47621,
+      "p90": 59066,
+      "max": 76385,
+      "mean": 52783,
+      "total": 316700
+    },
+    {
+      "tiles": 24,
+      "p50": 51576,
+      "p90": 69581,
+      "max": 77204,
+      "mean": 53657,
+      "total": 1287762
+    },
+    {
+      "tiles": 96,
+      "p50": 46882,
+      "p90": 67282,
+      "max": 80465,
+      "mean": 50202,
+      "total": 4819440
+    },
+    {
+      "tiles": 384,
+      "p50": 50449,
+      "p90": 72360,
+      "max": 102075,
+      "mean": 53310,
+      "total": 20471213
+    },
+    {
+      "tiles": 1536,
+      "p50": 45142,
+      "p90": 71146,
+      "max": 109262,
+      "mean": 48860,
+      "total": 75048720
+    },
+    {
+      "tiles": 257,
+      "p50": 51265,
+      "p90": 74525,
+      "max": 88792,
+      "mean": 51954,
+      "total": 13352075
+    },
+    {
+      "tiles": 328,
+      "p50": 44228,
+      "p90": 65773,
+      "max": 78751,
+      "mean": 43314,
+      "total": 14206998
+    },
+    {
+      "tiles": 18,
+      "p50": 32012,
+      "p90": 46237,
+      "max": 49491,
+      "mean": 31538,
+      "total": 567679
+    }
+  ],
+  "sizeBytes": {
+    "L5-L6 (land or shelf, inside the regions)": {
+      "tiles": 585,
+      "p50": 47603,
+      "p90": 69733,
+      "max": 88792,
+      "mean": 47110,
+      "total": 27559073
+    },
+    "L5-L6 reaching 2,000 m": {
+      "tiles": 91,
+      "p50": 62918,
+      "p90": 77265,
+      "max": 87640,
+      "mean": 62056,
+      "total": 5647106
+    },
+    "all": {
+      "tiles": 2649,
+      "p50": 46579,
+      "p90": 70442,
+      "max": 109262,
+      "mean": 49102,
+      "total": 130070587
+    },
+    "bounds.bin": 9641
+  },
+  "largestTiles": [
+    {
+      "key": "4/1/9/13",
+      "bytes": 109262,
+      "highestM": 5860.5
+    },
+    {
+      "key": "4/1/9/12",
+      "bytes": 103532,
+      "highestM": 4732.1
+    },
+    {
+      "key": "4/1/5/14",
+      "bytes": 102710,
+      "highestM": 7261.2
+    },
+    {
+      "key": "3/1/4/6",
+      "bytes": 102075,
+      "highestM": 6573.0
+    },
+    {
+      "key": "4/4/4/11",
+      "bytes": 101919,
+      "highestM": 2396.7
+    }
+  ],
+  "tambora": {
+    "note": "the highest texel of L7 tile 7/1/103/50, as decoded",
+    "meters": 2586.0,
+    "lon": 117.9588,
+    "lat": -8.2437
+  },
+  "crossFaceBorder": {
+    "note": "Border texels past a face edge against the neighbor's 3x3 codes around the mapped point, widened to 0 where the coastal clamp reaches the border texel (streaming.md 7.3). 'split' texels are those near the shore where no texel of the 3x3 lies on the border texel's side of the shore; they are not compared. A miss at a fraction f lies more than 2 codes plus f times the range's width outside it.",
+    "tileEdges": 830,
+    "texels": 849920,
+    "split": 23,
+    "splitMissingAThird": [
+      "4/4/15/14 E k=0 along=39: code 18 (44 m, an island at 124.61E 39.45N) vs -3..0"
+    ],
+    "missingTwoCodes": 1325,
+    "missingAnEighth": 122,
+    "missingAQuarter": 11,
+    "missingAThird": 0,
+    "largestFractionAwayFromShore": 0.308,
+    "byLevel": [
+      {
+        "level": 0,
+        "tileEdges": 24,
+        "texels": 24576,
+        "missingTwoCodes": 1,
+        "missingAnEighth": 0,
+        "missingAQuarter": 0,
+        "largestFractionAwayFromShore": 0,
+        "split": 5
+      },
+      {
+        "level": 1,
+        "tileEdges": 48,
+        "texels": 49152,
+        "missingTwoCodes": 62,
+        "missingAnEighth": 13,
+        "missingAQuarter": 2,
+        "largestFractionAwayFromShore": 0.286,
+        "split": 6
+      },
+      {
+        "level": 2,
+        "tileEdges": 96,
+        "texels": 98304,
+        "missingTwoCodes": 63,
+        "missingAnEighth": 3,
+        "missingAQuarter": 0,
+        "largestFractionAwayFromShore": 0.152,
+        "split": 5
+      },
+      {
+        "level": 3,
+        "tileEdges": 192,
+        "texels": 196608,
+        "missingTwoCodes": 479,
+        "missingAnEighth": 62,
+        "missingAQuarter": 7,
+        "largestFractionAwayFromShore": 0.279,
+        "split": 3
+      },
+      {
+        "level": 4,
+        "tileEdges": 384,
+        "texels": 393216,
+        "missingTwoCodes": 517,
+        "missingAnEighth": 19,
+        "missingAQuarter": 1,
+        "largestFractionAwayFromShore": 0.308,
+        "split": 4
+      },
+      {
+        "level": 5,
+        "tileEdges": 34,
+        "texels": 34816,
+        "missingTwoCodes": 121,
+        "missingAnEighth": 16,
+        "missingAQuarter": 1,
+        "largestFractionAwayFromShore": 0.298,
+        "split": 0
+      },
+      {
+        "level": 6,
+        "tileEdges": 52,
+        "texels": 53248,
+        "missingTwoCodes": 82,
+        "missingAnEighth": 9,
+        "missingAQuarter": 0,
+        "largestFractionAwayFromShore": 0.233,
+        "split": 0
+      }
+    ],
+    "mappingErrors": {
+      "note": "Misses of the calibrated bound (a third) when each border texel is compared at a wrong place on the neighbor",
+      "oneTexelAlongTheEdge": 622,
+      "twoTexelsAlongTheEdge": 26079,
+      "edgeReversed": 629340
+    }
+  }
+}

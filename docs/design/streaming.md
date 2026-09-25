@@ -218,8 +218,10 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
   rounded up, at which every tile the profile bakes at that level spans at most 4,096 codes over its
   clamped 264² and edge profiles, where texelM = (π/2)·R/(256·2^L). A conservative bound from the
   raw source is tried first, and a tile's exact fields are computed only when it fails. The coverage
-  stage reports qLand per level; expect ≤ 3 m at L5 [E]. Then `|code − codeMid| ≤ 2048`, which
-  half-float holds exactly.
+  stage reports qLand per level. On the region bake every level keeps its starting value: 39.09,
+  19.55, 9.78, 4.89 and 2.45 m at L0-L4 and 2 m at L5-L7 [M `work/surface-bake/region-bake.json`].
+  The global bake takes every L5-L6 tile on land or shelf, the Himalaya's among them, and reports its
+  own values there. Then `|code − codeMid| ≤ 2048`, which half-float holds exactly.
 - **Flags:** bit0 is set when some texel has water d < 0, and bit1 when every texel has shore d < 0.
 - **Vector preparation,** once per layer when it loads, in the parent process (workers receive WKB):
   1. `make_valid`
@@ -279,12 +281,15 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
     than 4·qLand, any |code − codeMid| > 2048, and a codeMin or codeMax that does not match the
     planes and edges.
 - **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 2 KiB = **359 KiB** [D].
-- **Size:** GEBCO L6 height alone measured 24.8 KiB mean / 43.8 p90 on random windows, 37.4 KiB on
-  land-heavy windows and 53-66 KiB on major ranges, with zstd-19 on lat/lon windows rather than cube
-  tiles [M `alt/gebco_tiles.json`]. gzip runs ~11% larger [M `work/vector-runtime/hlevels.json`], shore
-  adds 4-20 KB on coastal tiles [M `work/judge/coastfield2.json`], and water is unmeasured. Planning:
-  ~50-65 KB per L5-L6 land or shelf tile and ~85 KB on mountains [E]; E1 replaces this with the first
-  cube-tile bake. Levers if needed: a 5 m step at L6 (~20% smaller) and a coarser shore step.
+- **Size,** as stored (all three planes, gzip), measured on the region bake's 2,649 tiles
+  [M `work/surface-bake/region-bake.json`], and the planning sizes from here on:
+  - L5-L6 land or shelf tiles: 47.6 KB p50, 69.7 KB p90 and 88.8 KB at most, 47.1 KB mean. The 91
+    that reach 2,000 m: 62.9 KB p50 and 77.3 KB p90.
+  - L0-L4, every tile: 45-52 KB p50 and 59-72 KB p90 per level, and 109 KB at most, in eastern
+    Tibet at L4.
+  - L7 around Sumbawa: 32.0 KB p50.
+
+  Levers if needed: a 5 m step at L6 (~20% smaller) and a coarser shore step.
 
 ### 3.2 Overlay tile `ov/<layer>/<ver8>/<L>/<face>/<x>/<y>.wot`
 
@@ -929,8 +934,8 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
 |---|---|---|---|
 | `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs) and NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
-| `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | minutes [E] | local |
-| `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | ~15-20 min in one process, ~3-5 min with 8 [E], extrapolated from a 55 ms ETOPO proxy tile [M `work/critic-simplicity/tiletime.out`]; the first bake measures it | local |
+| `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
+| `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 101-104 s for the region profile's 2,649 tiles with 8 workers [M `work/surface-bake/region-bake.json`]; at that rate the global profile's ~15.5K tiles take ~10 min [D] | local |
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews | ~5-15 s per snapshot [E; an 8192×4096 id raster took 1.0 s, M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | curated names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
@@ -1092,8 +1097,7 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
    (Sumbawa, 118.0°E 8.25°S, 150 km); the decode worker; `gpuPool.ts` with its pool smoke test.
 2. **E1 and E2** on that set, with synthetic overlay, climate and spread textures in the production
    formats (random ids, noise fields), so neither waits for those pipelines. They decide material (a) or
-   (b), the lite tap count, the seam rules, the AA method and the planning tile size, and give the owner
-   a zoom-floor look.
+   (b), the lite tap count, the seam rules and the AA method, and give the owner a zoom-floor look.
 3. **Globe runtime:** `lod.ts`, the scheduler, the byte cache, the instanced globe, and the lobby with
    its poster and precompile.
 4. **Data stages:** borders (all 54 snapshots and previews), labels, modera, events (run E5 here), and
@@ -1124,8 +1128,8 @@ Intel Iris Xe laptop before launch. "The target machines" below means these two 
   labels).
 - **Measure:** presented-frame p95; GPU time (timer query in Chrome); compile time, and whether ANGLE
   flattens uniform branches; first-touch and resize hitches; a 30-minute soak; SMAA, FXAA and MSAA cost
-  and memory; troika atlas time. Also: gzip-9 and zstd-19 sizes of real cube tiles including the water
-  channel (this sets the planning tile size); `.wst` decode time on the target machines; and
+  and memory; troika atlas time. Also: zstd-19 against gzip-9 on the region bake's tiles (3.1 has
+  their gzip sizes); `.wst` decode time on the target machines; and
   `requestIdleCallback` and `scheduler.postTask` in shipping Safari. The Windows checks (compile time on
   ANGLE D3D11 and in Firefox, and `KHR_parallel_shader_compile` in Firefox) wait for the Iris Xe laptop
   in the pre-launch rerun.
