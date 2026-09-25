@@ -125,6 +125,16 @@ def test_crop_takes_a_window_of_a_global_raster(degree_grid):
     )
 
 
+def test_crop_reads_a_global_raster_stored_from_any_column(degree_grid):
+    nc, _ = degree_grid
+    whole = read_window(nc, 0, 0, 360, 180)
+    rotated = Raster(np.roll(whole.data, -5, axis=1), whole.cell_arcsec, 5, 0)
+    assert rotated.is_global
+    np.testing.assert_array_equal(
+        crop(rotated, 358, 5, 4, 2).data, read_window(nc, 358, 5, 4, 2).data
+    )
+
+
 def test_overviews_are_exact_block_means_cached_on_first_use(tmp_path):
     # 3375" cells, so every overview divides the grid: 384x192 -> 96x48, 24x12, 6x3.
     rng = np.random.default_rng(11)
