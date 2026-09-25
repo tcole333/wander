@@ -54,7 +54,13 @@ WORLD_MIN_PART_DEG2 = 0.1
 NEAR_SIMPLIFY_DEG = 0.01
 NEAR_LEVEL = 2  # tiles at this level and deeper get the 0.01° tier around them
 DETAIL_LEVEL = 5  # and at this level and deeper, full detail
-KEPT_FIELDS = ("featurecla", "scalerank", "ne_id", "name")  # lakes and rivers
+# The columns each clipped NE excerpt keeps: the ones the loaders read. `land()` reads only the
+# minor islands' geometry.
+KEPT_FIELDS: dict[str, tuple[str, ...]] = {
+    "minor_islands": (),
+    "lakes": ("featurecla", "ne_id"),
+    "rivers": ("featurecla", "scalerank"),
+}
 
 
 def run(ctx: Context) -> None:
@@ -160,12 +166,13 @@ def write_ne_excerpts(
         if name == "land":
             excerpt, tiers = land_tiers(layer, near, detail), [world_tier, near_tier, detail_tier]
         elif name == "minor_islands":
-            excerpt = clip_tiers(layer, [("near", near, 0.0)], 2)
+            excerpt = clip_tiers(layer, [("near", near, 0.0)], 2, KEPT_FIELDS[name])
             tiers = [{**near_tier, "simplifyDeg": 0}]
         else:
             dim = 2 if name == "lakes" else 1
             cuts = [("detail", detail, 0.0), ("near", around, NEAR_SIMPLIFY_DEG)]
-            excerpt, tiers = clip_tiers(layer, cuts, dim, KEPT_FIELDS), [near_tier, detail_tier]
+            excerpt = clip_tiers(layer, cuts, dim, KEPT_FIELDS[name])
+            tiers = [near_tier, detail_tier]
         meta = {"source": source_id, "file": pin.path, "sha256": pin.sha256, "tiers": tiers}
         write_excerpt_layer(folder, name, excerpt, meta)
         print(f"excerpts: ne/{name} {len(excerpt)} rows", flush=True)
@@ -198,7 +205,7 @@ def clip_tiers(
     layer: Layer,
     cuts: list[tuple[str, shapely.Geometry, float]],
     dim: int,
-    fields: Iterable[str] = ("featurecla",),
+    fields: Iterable[str],
 ) -> Layer:
     """For each (tier, region, simplify) cut, every feature's part inside the region, simplified
     first when simplify > 0: one row per feature and tier, keeping `fields`."""
