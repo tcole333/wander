@@ -203,8 +203,8 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
   multiplied by 1/16.
 - **Reading GEBCO:** rows run south first (row 0 is 89.998°S). Cells are center-registered, and
   centers are computed from the index (lon = −180 + (i + 0.5)/240, lat = −90 + (j + 0.5)/240), not
-  read from the file. Bilinear sampling wraps longitude modulo 86,400 columns and clamps rows at the
-  poles, which have no row of their own.
+  read from the file. The build's own numpy bilinear sampling wraps longitude modulo 86,400 columns
+  and clamps rows at the poles, which have no row of their own.
 - **Coastal clamp:** where the unclamped shore distance has |d| ≤ 2 texels, d > 0 gives max(h, 0),
   d < 0 gives min(h, 0) and d = 0 gives 0. Inland depressions such as the Dead Sea keep their
   negative heights.
@@ -1006,7 +1006,8 @@ become R2 keys. `fetch` and `excerpts` write no record.
   headers.
 - **CI** (GitHub Actions, Linux, per PR; `.github/workflows/ci.yml`):
   1. Lint: `ruff check` and `ruff format --check` in `pipeline/`; ESLint and Prettier in `app/`.
-  2. `uv run pytest` on the excerpts.
+  2. `uv run pytest` on the excerpts, plus a synthetic global `.nc` through the production GEBCO
+     reader.
   3. The fixture build above, using the real encoders. The app job installs uv after `npm ci`, runs
      `uv sync --locked` in `pipeline/`, then `npm run fixture` before Vitest, so no test compares
      against a hash computed on another machine; the pipeline and app jobs stay parallel. A Vitest
@@ -1038,6 +1039,11 @@ become R2 keys. `fetch` and `excerpts` write no record.
      `optimizeDeps.include: ['three']`), not the production build, so nothing of it reaches the
      bundle.
   7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
+- **Bake check (local):** `npm run verify:bake` decodes every tile in `build/region/` and checks
+  within-face border identity, edge-profile identity within faces and across face edges, each
+  header's codeMin and codeMax, `bounds.bin` and availability against the files present. It covers
+  what the fixture never exercises: the overviews, global reads with the longitude wrap and pole
+  clamp, full NE data, and owner-frame rasters on real face edges.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
   starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
   matrix as WebKit and Firefox projects join. It runs when renderer, streaming or format code
