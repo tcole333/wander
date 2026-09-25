@@ -23,6 +23,21 @@ const gpuChromium: Project = {
   },
 };
 
+// Lab runs on this Mac (`npm run lab`): measurements and cross-browser checks, in *.lab.ts files
+// that no other project matches. Chromium runs on this GPU through Playwright; the installed Safari
+// and Firefox open lab pages that post their reports to the dev server (e2e/lab/external.ts).
+// Never in CI.
+const lab: Project = {
+  name: 'lab',
+  testMatch: '**/*.lab.ts',
+  timeout: 5 * 60_000,
+  use: {
+    ...devices['Desktop Chrome'],
+    viewport: { width: 1440, height: 900 },
+    launchOptions: { args: ['--use-angle=metal'] },
+  },
+};
+
 export default defineConfig({
   testDir: 'e2e',
   forbidOnly: !!process.env.CI,
@@ -32,7 +47,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  projects: process.env.CI ? [swiftshader] : [swiftshader, gpuChromium],
+  projects: process.env.CI ? [swiftshader] : [swiftshader, gpuChromium, lab],
   webServer: [
     {
       command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
