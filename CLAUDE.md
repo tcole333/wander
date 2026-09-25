@@ -34,8 +34,9 @@ without the data folder.
 - Every test passes before a push. CI runs on every pull request.
 - Check visual work in a real browser with a real GPU. Headless Chromium on this Mac can use the
   GPU with `--use-angle=metal`; SwiftShader screenshots misrepresent rendering and timing.
-- Performance targets are measured on an M1 MacBook Air and an Intel Iris Xe laptop, not on the
-  development machine.
+- Performance is measured on this MacBook Pro (Apple M5) for now, at 1440x900, with the lite
+  quality tier forced for lite-tier checks as a rough low-end proxy. Lower-end machines get checked
+  before launch.
 
 ## Writing
 

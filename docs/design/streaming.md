@@ -553,7 +553,8 @@ rel/<id>.json                                           immutable copy of each r
 - **Staging:** a surface slot (359 KiB) may take two frames, height first. A tile becomes drawable only
   when every part is uploaded.
 - **Order:** roots, the current view coarsest first, a toggled layer, N+1 critical, then the rest.
-- **Tuning:** the caps rise only from E1/E2 measurements on the target laptops.
+- **Tuning:** the caps rise only from E1/E2 measurements on the target machines (see the hardware
+  note in 8.2).
 
 ### 5.5 Pools, residency, eviction
 
@@ -764,7 +765,7 @@ Rows marked "reported" are not gates: the story-walk test prints any beat or sto
 | **Reading pace** | the next beat hides behind reading | a beat takes at least 15 s to read, so the full next beat needs 1.2 Mbps at the median and 3.4 Mbps at the maximum [D] |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 89 + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **225**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: 56 + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **165**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: React/three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
-| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the M1 Air (full) and Iris Xe (lite), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread R3F/React ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, plaque placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
+| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread R3F/React ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, plaque placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year (12 × 18 KB) uploaded per frame; border previews crossfade with no fetch |
 
 ---
@@ -856,7 +857,7 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
      used); every label renders; reduced motion, the article page and the no-WebGL2 redirect; and the
      pool smoke test (5.5).
   5. Compile the stories. On `main`, HEAD `rel/<id>.json` on the data host, then deploy Pages.
-- **GPU matrix (local):** `npm run e2e:gpu` on the M1 Air and an Iris Xe laptop, in Chromium, WebKit and
+- **GPU matrix (local):** `npm run e2e:gpu` on the target machines, in Chromium, WebKit and
   Firefox, against production data. It runs when renderer, streaming or format code changes, and at
   milestone releases; results go in the PR description. It covers frame p95 across every story walk;
   seams at Sumbawa, the Strait of Magellan, Florence, the Sierra Nevada, the Kirkuk corner and a pole;
@@ -896,7 +897,12 @@ After milestone 1: E6 with the other thematic layers, the global L5-L6 bake, the
 
 ### 8.2 Experiments
 
-**E1. Surface shader cost, on the M1 Air and an Iris Xe laptop, with a real GEBCO Sumbawa patch.**
+**Hardware note (owner decision, 2026-09-24).** Until lower-end hardware is available, the target
+machines are the development MacBook Pro (Apple M5): run each check at 1440×900 with the full tier,
+then again with the lite tier forced as a rough low-end proxy. Rerun E1-E3 on an M1-class Mac and an
+Intel Iris Xe laptop before launch. "Both laptops" below means these two runs until then.
+
+**E1. Surface shader cost, on the target machines, with a real GEBCO Sumbawa patch.**
 - **Setup:** port `surface.js` to the `onBeforeCompile` material. Render the same cameras, lights and
   geometry with three materials:
   - (a) normals from height (5 taps + bicubic; 3 taps on lite)
@@ -1088,14 +1094,23 @@ Review items not taken as written, one line each:
 - **Border pins as an open owner question (audit):** not reopened. The owner already chose the nearest
   snapshot with its year shown, so pins are removed; the 20-year build warning stays as an author note.
 
-## Owner decisions still open
+## Owner decisions
+
+Decided 2026-09-24 (starting values, tunable):
+
+- **Era and region balance:** equal quotas across era bins and macro-regions for the overview, with
+  per-era percentile scores and class weights.
+- **Bathymetry source:** GEBCO contours at Natural Earth's depth intervals; the legend credits both.
+- **"Normal broadband":** 25 Mbps / 50 ms with a cold cache for the 3 s bar; beats still land within
+  the hold at 5 Mbps.
+- **Border licence:** derived border tiles are published as GPL-3.0 with the licence, source commit
+  and build script linked.
+- **Tambora beat list:** start from the 8 drafted beats in `work/story-first/beats.py` (issue #10).
+- **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
+
+Still open:
 
 1. **Zoom floor** for stories and explore (start ~100 km; compare 100/50/30 km in E1/E2).
-2. **Deep-time geology** in the "all eras" index (Ries impact −15 Myr, Messinian crisis).
-3. **Era and region balance** of the overview and scoring (about 49% of history events sit in a Europe
-   bbox).
-4. **Bathymetry source:** GEBCO contours at NE depth intervals instead of NE bathymetry polygons.
-5. **"Normal broadband"** for the 3 s bar (25 Mbps / 50 ms cold) and the lowest bandwidth at which
-   beats must still land within the hold (~5 Mbps).
-6. **GPL-3.0 share-alike** for derived border tiles in a public bucket and repo.
-7. **The Tambora beat list** for milestone 1.
+2. **Deep-time geology** in the "all eras" index (Ries impact −15 Myr, Messinian crisis). Default until
+   decided: include only well-known deep-time events, shown in a compressed deep-time segment of the
+   ruler.

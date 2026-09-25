@@ -223,10 +223,12 @@ ongoing work that starts in v1.
 ## Done for v1
 
 - All five stories live at `wander.traviscole.xyz` in current desktop Chrome, Safari, and Firefox.
-- First meaningful frame in under 3 seconds on normal broadband.
-- At least 45 fps at 1440x900 on an M1 MacBook Air and on an Intel Iris Xe Windows laptop, measured
-  as a 95th-percentile frame time of 22 ms or less, with quality stepping down automatically on
-  weaker GPUs.
+- First meaningful frame in under 3 seconds on normal broadband (25 Mbps with a cold cache), and
+  beats still land smoothly at 5 Mbps.
+- At least 45 fps at 1440x900, measured as a 95th-percentile frame time of 22 ms or less, with
+  quality stepping down automatically on weaker GPUs. During development this is measured on the
+  owner's MacBook Pro (Apple M5); lower-end machines (an M1-class Mac and an Intel Iris Xe laptop)
+  get checked before launch.
 - Arrow keys step through beats and space plays or pauses.
 - The reduced-motion setting is respected.
 - Every story works as an article, which also serves visitors without WebGL.
