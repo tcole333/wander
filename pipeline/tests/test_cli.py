@@ -170,8 +170,8 @@ def test_other_profiles_write_no_sidecars(tmp_path):
     assert not (ctx.stages_dir / "expect").exists()
 
 
-def test_stages_that_have_not_landed_are_not_registered():
-    assert set(STAGES).isdisjoint({"fetch", "excerpts", "coverage", "surface", "media"})
+def test_the_stages_that_have_landed_are_registered_in_order():
+    assert list(STAGES) == ["fetch"]
 
 
 def test_main_prints_usage_for_help(capsys):
