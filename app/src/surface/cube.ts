@@ -30,6 +30,7 @@ export interface FaceFrame {
 type FaceEdge = readonly [face: number, edge: Edge, reversed: boolean];
 
 export const TILE: number = constants.cube.tile;
+export const BORDER: number = constants.cube.border;
 export const EDGES: readonly Edge[] = ['N', 'E', 'S', 'W'];
 
 /** Center C, U and V of each face in the globe frame G. */
