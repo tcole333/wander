@@ -80,9 +80,10 @@ Raw sources live outside the repo in the raw-data folder `~/projects/wander-data
 `README.md` and `manifest.json`); not to be confused with the R2 bucket of the same name. The
 prebuild reads that folder from `$WANDER_DATA`, defaulting to `~/projects/wander-data`, and
 `pipeline/sources.toml` is the registry that pins each input; the build does not read
-`manifest.json`. Raw data (about 13 GB, with GEBCO unzipped) is never committed. Tests (and, once
-the fixture build lands, `npm run dev:fixture`) run on small excerpts committed to the repo, and
-`npm run dev` reads production data, so a fresh clone works without the raw-data folder.
+`manifest.json`. Raw data (about 13 GB, with GEBCO unzipped) is never committed. Tests (and
+`npm run dev:fixture`, planned in `docs/design/streaming.md` 7.3) run on small excerpts committed
+to the repo, and `npm run dev` reads production data, so a fresh clone works without the raw-data
+folder.
 
 ## Working here
 
