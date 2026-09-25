@@ -3,7 +3,9 @@ import { useRef } from 'react';
 import { PMREMGenerator, type Group } from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-const BRASS = '#b58a4c';
+// PRD palette: brass-lit for the instrument, ground for the room.
+const BRASS = '#c09652';
+const GROUND = '#090c0d';
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Metals need something to reflect; a procedural room keeps this free of network fetches.
@@ -48,7 +50,7 @@ export function App() {
         frameloop={prefersReducedMotion ? 'demand' : 'always'}
         onCreated={lightMuseum}
       >
-        <color attach="background" args={['#0d0b09']} />
+        <color attach="background" args={[GROUND]} />
         <hemisphereLight args={['#fff4e0', '#1a120a', 0.6]} />
         <directionalLight position={[3, 4, 5]} intensity={2.4} color="#ffe2b0" />
         <Orrery />

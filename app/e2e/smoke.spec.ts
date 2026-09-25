@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-const BACKDROP = [0x0d, 0x0b, 0x09];
+// The PRD's ground token, #090c0d.
+const BACKDROP = [0x09, 0x0c, 0x0d];
 
 // Fraction of canvas pixels that differ visibly from the backdrop colour. The browser decodes
 // the screenshot, so the test needs no PNG library.
