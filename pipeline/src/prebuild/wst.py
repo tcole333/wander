@@ -46,7 +46,6 @@ PAYLOAD_BYTES = WATER_AT + SIZE * SIZE  # 280,866
 PLANE_SHAPE = (SIZE, SIZE)
 EDGES_SHAPE = (4, EDGE_ENTRIES)
 N, E, S, W = range(4)  # edge-profile order
-I16 = np.iinfo(np.int16)
 
 
 class WstError(ValueError):
@@ -304,10 +303,10 @@ def _check(t: WstTile) -> None:
         raise WstError(
             f"codeMin..codeMax {t.code_min}..{t.code_max}, planes and edges {lowest}..{highest}"
         )
-    if not I16.min <= t.code_mid <= I16.max:
-        raise WstError(f"codeMid {t.code_mid} does not fit an i16")
-    if max(highest - t.code_mid, t.code_mid - lowest) > MAX_OFFSET:
-        raise WstError(f"codes {lowest}..{highest} reach past codeMid {t.code_mid} ± {MAX_OFFSET}")
+    # Within a span of at most 4,096, this codeMid leaves every code within ±2,048.
+    mid = (lowest + highest) // 2
+    if t.code_mid != mid:
+        raise WstError(f"codeMid {t.code_mid} is not ⌊({lowest} + {highest})/2⌋ = {mid}")
     corners = (
         (t.edges[N, 0], t.edges[W, -1]),
         (t.edges[N, -1], t.edges[E, -1]),
