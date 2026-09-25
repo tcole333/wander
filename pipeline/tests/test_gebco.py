@@ -136,16 +136,17 @@ def test_crop_reads_a_global_raster_stored_from_any_column(degree_grid):
 
 
 def test_overviews_are_exact_block_means_cached_on_first_use(tmp_path):
-    # 3375" cells, so every overview divides the grid: 384x192 -> 96x48, 24x12, 6x3.
+    # 1125" cells, so every overview divides the grid: 1152x576 -> 288x144, 72x36, 18x9. At 576
+    # rows, the overviews are built from a full 320-row strip and a 256-row partial one.
     rng = np.random.default_rng(11)
-    elevation = rng.integers(-11000, 9000, (192, 384)).astype(np.int16)
+    elevation = rng.integers(-11000, 9000, (576, 1152)).astype(np.int16)
     nc = write_grid(tmp_path / "grid.nc", elevation)
     cache = tmp_path / "cache"
     built = overviews(nc, cache)
     for name, k in OVERVIEWS.items():
-        exact = elevation.astype(np.int64).reshape(192 // k, k, 384 // k, k).sum(axis=(1, 3))
+        exact = elevation.astype(np.int64).reshape(576 // k, k, 1152 // k, k).sum(axis=(1, 3))
         np.testing.assert_array_equal(built[name].data, (exact / (k * k)).astype(np.float32))
-        assert built[name].cell_arcsec == 3375 * k and built[name].is_global
+        assert built[name].cell_arcsec == 1125 * k and built[name].is_global
     assert sorted(p.name for p in cache.iterdir()) == ["16m.npy", "1m.npy", "4m.npy"]
 
 
