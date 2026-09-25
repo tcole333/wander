@@ -1,7 +1,7 @@
 // The surface layer's LOD bounds, surf/<ver8>/bounds.bin (streaming.md 3.8): the [min, max] meters
 // of every available node, in node order, as the decoder returns them for a loaded tile. The file is
 // a gzip stream; this reads the inflated bytes.
-import constants from '@shared/constants.json';
+import constants from '@shared/constants.json' with { type: 'json' };
 import { availGet, nodeCount } from './cube';
 
 export const BOUNDS_MAGIC: string = constants.formats.surfaceBounds.magic;

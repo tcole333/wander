@@ -1,7 +1,7 @@
 // Cube-sphere conventions (streaming.md 3.0), the same as pipeline/src/prebuild/cube.py.
 // Texel, sub-sample, corner and subpixel indices are face-global integers (G = 256x + i), so a
 // position is exact and depends only on where it is, never on which tile asks.
-import constants from '@shared/constants.json';
+import constants from '@shared/constants.json' with { type: 'json' };
 
 export type Vec3 = [number, number, number];
 export type Edge = 'N' | 'E' | 'S' | 'W';
