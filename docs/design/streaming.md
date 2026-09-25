@@ -928,7 +928,7 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
 |---|---|---|---|
 | `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs) and NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
-| `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16 of the .nc>/`), L5-L7 availability, qLand and c200 per level, tile counts | minutes [E] | local |
+| `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | minutes [E] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | ~15-20 min in one process, ~3-5 min with 8 [E], extrapolated from a 55 ms ETOPO proxy tile [M `work/critic-simplicity/tiletime.out`]; the first bake measures it | local |
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews | ~5-15 s per snapshot [E; an 8192×4096 id raster took 1.0 s, M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
@@ -946,8 +946,10 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
   warns when a beat is more than `borderWarnYears` from its snapshot, when a beat has
   `viewKm < l7WarnViewKm` with no L7 region covering its target, when a flight would exceed 4.5 s,
   and on an image under 1024 px or without a license.
-- **Sources:** stages check only the byte size of each source they read; `fetch` alone computes
-  sha256. GEBCO is credited with the citation its documentation gives.
+- **Sources:** stages check only the byte size of each source they read, which catches a missing or
+  truncated file; `fetch` alone computes sha256, because hashing the 7.47 GB `.nc` again in every
+  stage would only repeat the check `fetch` makes. GEBCO is credited with the citation its
+  documentation gives.
 - **Availability** (`coverage`): L0-L4 everywhere; L5-L6 on land or shelf, and for the region
   profile only inside its regions; L7 inside `l7.yaml` regions, also on land or shelf. The fixture
   profile takes the tiles `fixture.yaml` lists. Availability is built top down, so L6 and L7 need
