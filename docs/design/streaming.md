@@ -15,8 +15,8 @@ estimate that the first build or the named experiment replaces. Paths inside tag
 relative to `docs/design/measurements/`; every other path is relative to the repo root. Timing and feel constants
 are named in `code` and listed once in section 10; they live in `app/src/config/tunables.ts`, and tests
 read them from there. `app/src/config/tunables.test.ts` checks that file against section 10's table,
-and `pipeline/tests/test_constants.py` checks `shared/constants.json` against the magics in section 3
-and the layer order in 3.9, so renaming any of these means updating both.
+and `pipeline/tests/test_constants.py` checks `shared/constants.json` against the magics in section 3,
+the cube constants in 3.0 and the layer order in 3.9, so renaming any of these means updating both.
 
 Repo layout: `app/` is the npm project (the app); `pipeline/` is the uv project (the prebuild), with its
 config, queries and test excerpts; `shared/constants.json` is read by both; `stories/<story>/` holds
@@ -87,8 +87,8 @@ magic and a u8 format `version`. Key names are content hashes or layer versions:
   its `<ver8>` once every file is hashed.
 
 A format version is `version` in a binary header and `v` in JSON; `ver` is always a layer version.
-Magics, sentinels and the layer order (3.9) live in one `shared/constants.json`, read by Python and
-imported by TypeScript.
+Magics, sentinels, the layer order (3.9) and the cube constants (face table, tile size, border and
+Earth radius, 3.0) live in one `shared/constants.json`, read by Python and imported by TypeScript.
 
 ### 3.0 Conventions
 
