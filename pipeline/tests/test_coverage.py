@@ -9,7 +9,7 @@ import shapely
 
 from prebuild import coverage, workers
 from prebuild.codes import Q_STEP, c200, q_land_start
-from prebuild.config import Region, load_fixture, load_regions
+from prebuild.config import Region, load_fixture, load_regions, load_water
 from prebuild.cube import (
     TILE,
     Tile,
@@ -23,7 +23,7 @@ from prebuild.cube import (
 from prebuild.footprint import Window
 from prebuild.gebco import GEBCO, GEBCO_NC, Raster, crop
 from prebuild.hashing import CODE_PATHS, tree_sha
-from prebuild.natural_earth import ZIPS
+from prebuild.natural_earth import ZIPS, load_vectors
 from prebuild.paths import REPO_ROOT, config_dir
 from prebuild.profiles import Profile, make_context
 from prebuild.records import record_path
@@ -265,6 +265,23 @@ def test_the_exact_bound_is_asked_only_where_the_cheap_one_fails():
     exact, calls = exact_as_given(exact_bounds)
     assert coverage.choose_q_land(6, cheap, exact) == q_land_start(6)
     assert calls == [[1]]
+
+
+def test_a_level_asks_its_workers_for_the_exact_bound_where_the_cheap_one_fails(tmp_path):
+    ctx = dataclasses.replace(
+        make_context(Profile.FIXTURE, 1),
+        out=tmp_path / "out",
+        stages_dir=tmp_path / "stages",
+        cache=tmp_path / "cache",
+    )
+    vectors = load_vectors(ctx, load_water(config_dir(ctx.repo) / "water.yaml"))
+    tiles = [t for t in sorted(load_fixture().tiles, key=node_index) if t.level == 7]
+    cheap = {t: (-50.0, 50.0) for t in tiles}
+    # 4,500 codes at 2 m, so only the tile's exact bound keeps qLand at 2 m (else 2.203125). It
+    # is not the level's first tile, so the index the workers get must map back to it.
+    cheap[SUMBAWA_L7] = (0.0, 9000.0)
+    with workers.tile_pool(ctx, vectors) as pool:
+        assert coverage._level_q_land(pool, 7, tiles, cheap) == q_land_start(7)
 
 
 def test_a_level_with_no_tiles_keeps_its_first_candidate():
