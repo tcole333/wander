@@ -150,6 +150,23 @@ def test_the_extremes_tile_reaches_both_offset_limits():
     assert (residual[1:, 1:].min(), residual[1:, 1:].max()) == (-8192, 8192)
 
 
+# -1.5 and 1.5 set floor apart from ceiling, truncation and rounding half away from zero.
+@pytest.mark.parametrize(("low", "high", "mid"), [(-3, 0, -2), (0, 3, 1)])
+def test_code_mid_is_the_floor_of_the_mean_of_the_code_bounds(low, high, mid):
+    codes = np.full(PLANE_SHAPE, low)
+    codes[5, 5] = high
+    t = WstTile.from_planes(
+        Tile(1, 7, 103, 50),
+        flags=0,
+        q_land=2.0,
+        codes=codes,
+        shore=np.zeros(PLANE_SHAPE),
+        water=np.zeros(PLANE_SHAPE),
+        edges=np.full((4, 257), low),
+    )
+    assert t.code_mid == mid
+
+
 def test_the_synthetic_flags_follow_their_fields():
     assert SYNTHETIC["trench"].flags == FLAG_ALL_SEA
     assert SYNTHETIC["random"].flags == FLAG_INLAND_WATER
