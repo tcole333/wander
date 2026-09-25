@@ -1,0 +1,87 @@
+{
+ "what": "uniform-branches",
+ "browser": "safari",
+ "date": "2026-09-25T21:36:58.352Z",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15",
+ "report": {
+  "renderer": "Apple GPU",
+  "timerQuery": false,
+  "options": {
+   "size": 2048,
+   "draws": 20,
+   "trials": 9,
+   "iterations": 48
+  },
+  "results": [
+   {
+    "family": "texture",
+    "variant": "on",
+    "linkMs": 58,
+    "wallMsPerDraw": 5.1,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "texture",
+    "variant": "off",
+    "linkMs": 58,
+    "wallMsPerDraw": 0.1,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "texture",
+    "variant": "out",
+    "linkMs": 37,
+    "wallMsPerDraw": 0.1,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "textureLod",
+    "variant": "on",
+    "linkMs": 40,
+    "wallMsPerDraw": 5.1,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "textureLod",
+    "variant": "off",
+    "linkMs": 40,
+    "wallMsPerDraw": 0.1,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "textureLod",
+    "variant": "out",
+    "linkMs": 0,
+    "wallMsPerDraw": 0.1,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "layers",
+    "variant": "on",
+    "linkMs": 41,
+    "wallMsPerDraw": 5.45,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "layers",
+    "variant": "off",
+    "linkMs": 41,
+    "wallMsPerDraw": 0.15,
+    "gpuMsPerDraw": null
+   },
+   {
+    "family": "layers",
+    "variant": "out",
+    "linkMs": 1,
+    "wallMsPerDraw": 0.1,
+    "gpuMsPerDraw": null
+   }
+  ],
+  "paidWhenOff": {
+   "texture": 0,
+   "textureLod": 0,
+   "layers": 0.009
+  },
+  "glError": 0
+ }
+}

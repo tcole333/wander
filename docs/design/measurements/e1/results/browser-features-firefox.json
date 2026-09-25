@@ -1,0 +1,53 @@
+{
+ "what": "browser-features",
+ "browser": "firefox",
+ "date": "2026-09-25T21:38:39.547Z",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0",
+ "report": {
+  "requestIdleCallback": true,
+  "schedulerPostTask": true,
+  "decompression": {
+   "gzip": true,
+   "zstd": false
+  },
+  "crossOriginIsolated": false,
+  "timerResolutionMs": 1,
+  "hardwareConcurrency": 10,
+  "devicePixelRatio": 2,
+  "webgl2": {
+   "renderer": "Apple M1, or similar",
+   "vendor": "Apple",
+   "version": "WebGL 2.0",
+   "limits": {
+    "MAX_TEXTURE_SIZE": 8192,
+    "MAX_3D_TEXTURE_SIZE": 2048,
+    "MAX_ARRAY_TEXTURE_LAYERS": 2048,
+    "MAX_TEXTURE_IMAGE_UNITS": 16,
+    "MAX_VERTEX_TEXTURE_IMAGE_UNITS": 16,
+    "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 80,
+    "MAX_FRAGMENT_UNIFORM_VECTORS": 1024,
+    "MAX_VERTEX_UNIFORM_VECTORS": 1024,
+    "MAX_VARYING_VECTORS": 32,
+    "MAX_SAMPLES": 8,
+    "MAX_DRAW_BUFFERS": 8,
+    "MAX_RENDERBUFFER_SIZE": 8192
+   },
+   "timerBits": null,
+   "extensions": [
+    "EXT_color_buffer_float",
+    "EXT_depth_clamp",
+    "EXT_float_blend",
+    "EXT_texture_compression_rgtc",
+    "EXT_texture_filter_anisotropic",
+    "OES_draw_buffers_indexed",
+    "OES_texture_float_linear",
+    "WEBGL_compressed_texture_s3tc",
+    "WEBGL_compressed_texture_s3tc_srgb",
+    "WEBGL_debug_renderer_info",
+    "WEBGL_debug_shaders",
+    "WEBGL_lose_context",
+    "WEBGL_provoking_vertex"
+   ]
+  }
+ }
+}
