@@ -171,7 +171,7 @@ def test_other_profiles_write_no_sidecars(tmp_path):
 
 
 def test_the_stages_that_have_landed_are_registered_in_order():
-    assert list(STAGES) == ["fetch"]
+    assert list(STAGES) == ["fetch", "excerpts"]
 
 
 def test_main_prints_usage_for_help(capsys):
