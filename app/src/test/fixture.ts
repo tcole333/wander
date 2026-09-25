@@ -28,8 +28,23 @@ export function assertFixtureFresh(repo: string = REPO_ROOT): void {
 
 /** A sidecar from build/stages/fixture/expect/, once the fixture is known to be fresh. */
 export function readExpectation<T>(name: string): T {
-  assertFixtureFresh();
+  checkFreshOnce();
   return JSON.parse(readFileSync(join(FIXTURE_STAGES, 'expect', name), 'utf8')) as T;
+}
+
+/** A binary sidecar from build/stages/fixture/expect/, in a buffer of its own. */
+export function readExpectationBytes(name: string): Uint8Array<ArrayBuffer> {
+  checkFreshOnce();
+  return new Uint8Array(readFileSync(join(FIXTURE_STAGES, 'expect', name)));
+}
+
+let freshChecked = false;
+
+// The inputs cannot change while a test file runs, so one check per file is enough.
+function checkFreshOnce(): void {
+  if (freshChecked) return;
+  assertFixtureFresh();
+  freshChecked = true;
 }
 
 function readStamp(path: string): Stamp | null {
