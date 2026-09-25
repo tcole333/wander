@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { assertFixtureFresh, REPO_ROOT } from '../src/test/fixture';
 import { startDataServer, type DataServer } from './dataServer';
-import type { Release } from './release';
+import type { Release } from '../src/data/release';
 
 const TAMBORA = '7/1/103/50';
 
