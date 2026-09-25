@@ -160,6 +160,18 @@ describe('the decoder refuses', () => {
     expect(() => decodePlanes(raw, neighbor)).toThrow(/tile is 7\/4\/127\/0, not 7\/4\/127\/1/);
   });
 
+  it('the same x and y on another face', async () => {
+    const raw = await payload(tile);
+    const across = { ...expected, face: 3 };
+    expect(() => decodePlanes(raw, across)).toThrow(/tile is 7\/4\/127\/0, not 7\/3\/127\/0/);
+  });
+
+  it('the same x and y on another level', async () => {
+    const raw = await payload(tile);
+    const finer = { ...expected, level: 8 };
+    expect(() => decodePlanes(raw, finer)).toThrow(/tile is 7\/4\/127\/0, not 8\/4\/127\/0/);
+  });
+
   it('a qDeep other than 4·qLand', async () => {
     expect(await refusal((_, view) => view.setFloat32(16, 7, true))).toThrow(/qDeep/);
   });
