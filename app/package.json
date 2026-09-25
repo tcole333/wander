@@ -18,7 +18,7 @@
     "fixture": "uv run --directory ../pipeline --locked prebuild --profile fixture",
     "e2e": "playwright test --project=swiftshader",
     "e2e:gpu": "playwright test --project=gpu-chromium",
-    "lab": "playwright test --project=lab --workers=1"
+    "lab": "WANDER_LAB=1 playwright test --project=lab"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.1",
