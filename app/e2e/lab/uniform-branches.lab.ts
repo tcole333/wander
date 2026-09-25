@@ -1,7 +1,7 @@
 // E1's uniform-branch check (streaming.md 8.2): with a layer's uniform off, the driver skips its
 // block instead of flattening the branch. It runs in Chromium on Metal (the lab project's browser)
-// and in the installed Safari and Firefox. The ANGLE D3D11 check waits for the Windows laptop in the
-// pre-launch rerun. Each run leaves build/lab/uniform-branches-<browser>.json.
+// and in the installed Safari and Firefox. The ANGLE D3D11 check waits for the Windows laptop in
+// the pre-launch rerun. Each run leaves build/lab/uniform-branches-<browser>.json.
 import { expect, test } from '@playwright/test';
 import { FAMILIES, type UniformBranchReport } from '../../src/lab/uniformBranches';
 import { DEV_URL } from '../servers';

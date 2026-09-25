@@ -1,7 +1,7 @@
-// What Chromium on Metal and the installed Safari and Firefox offer (streaming.md 5.1, 5.8, 8.2 E1),
-// recorded in build/lab/browser-features-<browser>.json. It asserts only what the surface path
-// cannot run without: gzip DecompressionStream for tiles (3.1) and the texture limits the pools and
-// the surface program assume (5.5, 5.8). The rest is recorded for the E1 decisions.
+// What Chromium on Metal and the installed Safari and Firefox offer (streaming.md 5.1, 5.8,
+// 8.2 E1), recorded in build/lab/browser-features-<browser>.json. It asserts only what the
+// surface path cannot run without: gzip DecompressionStream for tiles (3.1) and the texture limits
+// the pools and the surface program assume (5.5, 5.8). The rest is recorded for the E1 decisions.
 import { expect, test } from '@playwright/test';
 import type { BrowserFeatures } from '../../src/lab/browserFeatures';
 import { DEV_URL } from '../servers';
