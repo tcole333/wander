@@ -2,15 +2,12 @@
 // data server, fetch every available surface tile as the runtime fetches, decode it in the two
 // real decode workers, and report a digest of each decoded tile, its decode time in the worker and
 // whether its bounds match bounds.bin. The specs compare the digests with Node's decodeWst.
-import { tunables } from '../config/tunables';
-import { fetchData, loadSurfaceLayer } from '../data/surfaceLayer';
+import { loadSurfaceLayer } from '../data/surfaceLayer';
 import type { Release } from '../data/release';
-import { nodeIndex, parseTileKey, tileKey } from '../surface/cube';
+import { nodeIndex, parseTileKey } from '../surface/cube';
 import type { DecodedWst } from '../surface/wst';
-import { DecodePool, DECODE_WORKERS } from './decodePool';
-
-/** Fetches in flight at once: the runtime's cap (5.2, `inFlight`). */
-const IN_FLIGHT = tunables.inFlight.total;
+import { DECODE_WORKERS } from './decodePool';
+import { decodeTiles } from './decodeTiles';
 
 export interface DecodedTileReport {
   key: string;
@@ -56,67 +53,31 @@ export async function runDecodeProbe(
 ): Promise<DecodeProbeReport> {
   const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
   const layer = await loadSurfaceLayer(release);
-  const queue = layer.tiles().filter((t) => t.level >= levels[0] && t.level <= levels[1]);
-  const available = queue.length;
-  const pool = DecodePool.create();
+  const wanted = layer.tiles().filter((t) => t.level >= levels[0] && t.level <= levels[1]);
   const tiles: DecodedTileReport[] = [];
-  const errors: DecodeProbeReport['errors'] = [];
-  const bytes = new Map<string, number>();
   let finished = 0;
   const start = performance.now();
-
-  await new Promise<void>((done) => {
-    let fetching = 0;
-    const settled = () => tiles.length + errors.length;
-    const pump = () => {
-      while (fetching < IN_FLIGHT && queue.length > 0) {
-        const t = queue.shift();
-        if (!t) break;
-        const key = tileKey(t);
-        fetching += 1;
-        fetchData(layer.url(t))
-          .then((buf) => {
-            bytes.set(key, buf.byteLength);
-            pool.submit(key, buf);
-          })
-          .catch((error: unknown) => errors.push({ key, error: String(error) }))
-          .finally(() => {
-            fetching -= 1;
-            pump();
-          });
-      }
-      if (settled() === available) done();
-    };
-    pool.onready = () => {
-      void Promise.all(
-        pool.drain().map(async (result) => {
-          if ('error' in result) return errors.push(result);
-          const order = finished++;
-          const expected = layer.bounds.get(nodeIndex(parseTileKey(result.key)));
-          tiles.push({
-            key: result.key,
-            order,
-            digest: await digest(result.tile),
-            ms: result.ms,
-            bytes: bytes.get(result.key) ?? 0,
-            boundsMatch:
-              expected !== undefined &&
-              expected[0] === result.tile.boundsM[0] &&
-              expected[1] === result.tile.boundsM[1],
-          });
-        }),
-      ).then(pump);
-    };
-    pump();
+  const errors = await decodeTiles(layer, wanted, async ({ key, tile, ms, bytes }) => {
+    const order = finished++;
+    const expected = layer.bounds.get(nodeIndex(parseTileKey(key)));
+    tiles.push({
+      key,
+      order,
+      digest: await digest(tile),
+      ms,
+      bytes,
+      boundsMatch:
+        expected !== undefined &&
+        expected[0] === tile.boundsM[0] &&
+        expected[1] === tile.boundsM[1],
+    });
   });
-
   const wallMs = performance.now() - start;
-  pool.dispose();
   tiles.sort((a, b) => a.key.localeCompare(b.key));
   return {
     release: { id: release.id, ver: release.surface.ver, maxLevel: release.surface.maxLevel },
     workers: DECODE_WORKERS,
-    available,
+    available: wanted.length,
     tiles,
     errors,
     wallMs,
