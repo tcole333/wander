@@ -76,7 +76,7 @@ export interface GpuPool<A extends PoolArray> {
 /** ES 3.0's minimum MAX_ARRAY_TEXTURE_LAYERS; no pool may exceed it (streaming.md 5.5). */
 export const MAX_SLOTS = 256;
 /** ES 3.0's minimum MAX_TEXTURE_SIZE. */
-export const MAX_SIZE = 2048;
+const MAX_SIZE = 2048;
 
 const SURFACE_SIZE = TILE + 2 * constants.cube.border;
 
