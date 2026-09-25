@@ -1040,7 +1040,8 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        further where the relief is steeper. In the fixture, the range ±2 codes misses 39 of 110,592
        border texels (1 at L0, 38 at the Kirkuk corner at L2-L7), by up to 14 codes where it spans
        153; the largest miss past ±2 codes is 10.3% of the range's width, so an eighth passes every
-       texel and a tenth does not [M, fixture bake].
+       texel and a tenth does not [M, fixture bake]. The bound guards against mapping bugs; whether a
+       shading seam shows at a face edge is E2's call, on the real bake (normals within ~2°).
      - pure logic: `lod.ts` (balancing, edge flags), the scheduler (fake clock, network shim), the flight
        time-warp, the event query and page residency, date conversion including the −15 Myr row, and the
        snapshot rule (on 50-07-01 CE the tie goes to `bc1`)
