@@ -130,6 +130,32 @@ describe('a worker that fails', () => {
     ]);
     expect(decode.pending).toBe(1);
   });
+
+  test('is terminated and gets no more requests', () => {
+    const { pool: decode, workers } = pool(2);
+    const [a, b] = workers as [StandIn, StandIn];
+    decode.submit('0/0/0/0', bytes());
+    decode.submit('0/1/0/0', bytes());
+    a.crash('script failed to load');
+    decode.submit('0/2/0/0', bytes());
+    decode.submit('0/3/0/0', bytes());
+    expect(a.terminated).toBe(true);
+    expect(a.received).toHaveLength(1);
+    expect(b.received.map(({ message }) => message.key)).toEqual(['0/1/0/0', '0/2/0/0', '0/3/0/0']);
+  });
+
+  test('when it was the last, a submit comes straight back with its error', () => {
+    const { pool: decode, workers } = pool(1);
+    decode.drain();
+    workers[0]?.crash('script failed to load');
+    let ready = 0;
+    decode.onready = () => (ready += 1);
+    decode.submit('0/0/0/0', bytes());
+    expect(decode.drain()).toEqual([{ key: '0/0/0/0', error: 'script failed to load' }]);
+    expect(decode.pending).toBe(0);
+    expect(ready).toBe(1);
+    expect(workers[0]?.received).toEqual([]);
+  });
 });
 
 test('dispose terminates every worker', () => {
