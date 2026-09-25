@@ -915,10 +915,10 @@ story above them.
 
 `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or
 every prebuild stage in the order below when none is named. A bare run builds the global profile
-(owner decision 17). Each profile has its own output root: `build/out/` for global (the tree
-`publish-data` uploads), `build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for the
-fixture (7.3). `excerpts` runs only when named, because it rewrites committed files, and the
-fixture profile skips `fetch` and `excerpts`, so it needs no raw data. `--jobs` defaults to
+(owner decision 17). Each profile has its own output root: `build/out/` for global, `build/region/`
+for the milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the
+same `--profile` (4.3). `excerpts` runs only when named, because it rewrites committed files, and
+the fixture profile skips `fetch` and `excerpts`, so it needs no raw data. `--jobs` defaults to
 min(8, CPUs), with spawn-context worker processes. `media` takes `--story <id>` and `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
