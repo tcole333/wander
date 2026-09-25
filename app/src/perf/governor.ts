@@ -1,32 +1,45 @@
 // The render-scale governor (streaming.md 5.8; `governor` and `renderScale` in section 10). It
 // steps render scale down when animated frames miss vsyncs and up after sustained headroom: GPU p90
 // under `upGpuP90Frac` of the interval for `upAfter` where timer queries exist, or `upProbe` with no
-// missed vsync where they do not. A step up that misses within `revertWindow` goes back, and step-ups
-// then rest for `backoff`. It changes nothing while a flight or gesture runs, and never leaves the
-// tier's range or passes `maxScale` (the GPU cap). Only animated frames count; frames drawn on
-// demand say nothing about load.
+// missed vsync where they do not. A step up that misses more than `revertMissFrac` of the vsyncs in
+// its `revertWindow` goes back, and step-ups then rest for `backoff`. It changes nothing while a
+// flight or gesture runs, and never leaves the tier's range or passes `maxScale` (the GPU cap).
+//
+// Only animated frames count, and the windows run on animated time (the vsyncs those frames
+// spanned), so a stretch drawn on demand is neither load nor headroom. The first frame of an
+// animated run is marked `resumed`: its delta covers the idle time before it, not a frame's work.
 import { tunables, type Tier } from '../config/tunables';
 import { missedVsyncs, nearestRank } from './frameStats';
 
 export interface GovernorFrame {
-  /** Milliseconds, a monotonic clock. */
+  /** Milliseconds on a monotonic clock. */
   now: number;
-  /** Time since the previous animated frame. */
+  /** Time since the previous frame of the same animated run. */
   deltaMs: number;
   intervalMs: number;
   /** GPU time of the frame from a timer query, or null without one. */
   gpuMs: number | null;
   /** A flight or gesture is running: scale changes wait (5.8). */
   moving: boolean;
+  /** The first frame of an animated run, after drawing on demand or a hidden tab. */
+  resumed?: boolean;
 }
 
 type Rules = typeof tunables.governor;
 
 interface Sample {
-  now: number;
+  /** Animated milliseconds since the scale last changed, at the end of this frame. */
+  at: number;
   missed: number;
   vsyncs: number;
   gpuMs: number | null;
+}
+
+interface Watch {
+  /** The scale before the step up. */
+  back: number;
+  missed: number;
+  vsyncs: number;
 }
 
 export class Governor {
@@ -36,13 +49,14 @@ export class Governor {
   readonly #max: number;
   readonly #step: number;
   #scale: number;
-  /** The last `downWindowFrames` animated frames since the scale last changed. */
+  /** Animated milliseconds since the scale last changed. */
+  #animated = 0;
+  /** The last `downWindowFrames` frames since the scale last changed. */
   #window: Sample[] = [];
-  /** Frames since the scale last changed, no older than the longer of the two up rules. */
+  /** Frames since the scale last changed, within the longer up rule's span of animated time. */
   #recent: Sample[] = [];
-  #changedAt: number | null = null;
-  /** After a step up: the scale to return to, and when the watch started. */
-  #watch: { back: number; from: number } | null = null;
+  /** Misses counted since a step up, until `revertWindow` of animated time has passed. */
+  #watch: Watch | null = null;
   #noUpBefore = -Infinity;
 
   constructor(
@@ -62,70 +76,78 @@ export class Governor {
     return this.#scale;
   }
 
-  /** Records an animated frame; returns the render scale to use from now on. */
+  /** Records a frame; returns the render scale to use from now on. */
   frame(input: GovernorFrame): number {
+    if (input.resumed) return this.#scale;
     const rules = this.#rules;
-    const { now } = input;
-    const missed = missedVsyncs(input.deltaMs, input.intervalMs);
-    const sample = { now, missed, vsyncs: missed + 1, gpuMs: input.gpuMs };
-    this.#changedAt ??= now;
+    const interval = input.intervalMs;
+    const missed = missedVsyncs(input.deltaMs, interval);
+    const vsyncs = missed + 1;
+    // Windows end within half a vsync of their length, so rounding in the sum never costs a frame.
+    const reached = (span: number) => this.#animated >= span - interval / 2;
+    const inWatch = !reached(rules.revertWindow);
+    this.#animated += vsyncs * interval;
+    const sample = { at: this.#animated, missed, vsyncs, gpuMs: input.gpuMs };
     this.#window.push(sample);
     if (this.#window.length > rules.downWindowFrames) this.#window.shift();
     this.#recent.push(sample);
     const keep = Math.max(rules.upAfter, rules.upProbe);
-    while ((this.#recent[0]?.now ?? now) < now - keep) this.#recent.shift();
+    while ((this.#recent[0]?.at ?? Infinity) < this.#animated - keep) this.#recent.shift();
+    if (this.#watch && inWatch) {
+      this.#watch.missed += missed;
+      this.#watch.vsyncs += vsyncs;
+    }
 
     if (input.moving) return this.#scale;
 
-    // A step up that misses within the watch goes back, and step-ups rest for the backoff.
+    // A step up goes back once its misses pass the share of the whole window's vsyncs, so an
+    // early hitch (the resize itself) does not decide it; then step-ups rest for the backoff.
     if (this.#watch) {
-      const { back, from } = this.#watch;
-      if (missFraction(this.#recent.filter((s) => s.now >= from)) > rules.revertMissFrac) {
-        this.#watch = null;
-        this.#noUpBefore = now + rules.backoff;
-        return this.#set(back, now);
+      const { back, missed: misses, vsyncs: seen } = this.#watch;
+      const budget = rules.revertMissFrac * Math.max(seen, rules.revertWindow / interval);
+      if (misses > budget) {
+        this.#noUpBefore = input.now + rules.backoff;
+        return this.#set(back);
       }
-      if (now - from >= rules.revertWindow) this.#watch = null;
+      if (reached(rules.revertWindow)) this.#watch = null;
     }
 
     if (
       this.#window.length >= rules.downWindowFrames &&
       missFraction(this.#window) > rules.downMissFrac
     ) {
-      this.#watch = null;
-      return this.#set(this.#scale - this.#step, now);
+      return this.#set(this.#scale - this.#step);
     }
 
-    if (now < this.#noUpBefore || this.#scale >= this.#max) return this.#scale;
-    const elapsed = now - (this.#changedAt ?? now);
+    if (input.now < this.#noUpBefore || this.#scale >= this.#max) return this.#scale;
+    const since = (span: number) => this.#recent.filter((s) => s.at > this.#animated - span);
     let up: boolean;
     if (this.#timerQueries) {
-      const gpu = this.#recent
-        .filter((s) => s.now >= now - rules.upAfter && s.gpuMs !== null)
-        .map((s) => s.gpuMs ?? 0);
+      const gpu = since(rules.upAfter)
+        .map((s) => s.gpuMs)
+        .filter((ms): ms is number => ms !== null);
       up =
-        elapsed >= rules.upAfter &&
+        reached(rules.upAfter) &&
         gpu.length > 0 &&
-        nearestRank(gpu, 0.9) < rules.upGpuP90Frac * input.intervalMs;
+        nearestRank(gpu, 0.9) < rules.upGpuP90Frac * interval;
     } else {
-      up =
-        elapsed >= rules.upProbe &&
-        this.#recent.every((s) => s.now < now - rules.upProbe || s.missed === 0);
+      up = reached(rules.upProbe) && since(rules.upProbe).every((s) => s.missed === 0);
     }
     if (!up) return this.#scale;
     const back = this.#scale;
-    this.#set(this.#scale + this.#step, now);
-    this.#watch = { back, from: now };
+    this.#set(this.#scale + this.#step);
+    this.#watch = { back, missed: 0, vsyncs: 0 };
     return this.#scale;
   }
 
-  #set(scale: number, now: number): number {
+  #set(scale: number): number {
     const next = clamp(scale, this.#min, this.#max);
     if (next !== this.#scale) {
       this.#scale = next;
+      this.#animated = 0;
       this.#window = [];
       this.#recent = [];
-      this.#changedAt = now;
+      this.#watch = null;
     }
     return this.#scale;
   }
