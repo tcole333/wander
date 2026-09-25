@@ -106,7 +106,7 @@ describe('the fixture surface layer', () => {
 });
 
 describe('decoding the fixture tiles', () => {
-  it('restores the planes, edges and grid the encoder wrote', () => {
+  it('decodes each tile to the planes, edges and grid the pipeline decodes', () => {
     const off = keys.flatMap((key) => {
       const { decoded, planes } = tile(key);
       const got: Record<Plane, string> = {
