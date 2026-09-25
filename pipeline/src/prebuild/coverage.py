@@ -92,14 +92,10 @@ def run(ctx: Context) -> None:
         tiles = available_tiles(ctx, pool)
         cheap = dict(zip(tiles, pool.map(_cheap_bound, tiles), strict=True))
         levels = range(max(t.level for t in tiles) + 1)
-        q_land = []
-        for level in levels:
-            at_level = [t for t in tiles if t.level == level]
-
-            def exact(indices: list[int], at_level: list[Tile] = at_level) -> list[Bound]:
-                return list(pool.map(_exact_bound, [at_level[k] for k in indices]))
-
-            q_land.append(choose_q_land(level, [cheap[t] for t in at_level], exact))
+        q_land = [
+            _level_q_land(pool, level, [t for t in tiles if t.level == level], cheap)
+            for level in levels
+        ]
     counts = [sum(t.level == level for t in tiles) for level in levels]
     record = {
         "qLand": q_land,
@@ -198,9 +194,17 @@ def in_regions(tiles: Sequence[Tile], regions: Sequence[Region]) -> list[bool]:
             reach_m = 1000 * region.radius_km[level]
             near = great_circle_m(lon, lat, region.lon, region.lat) <= reach_m
             inside[start : start + len(chunk)] |= near.any(axis=(1, 2))
-    centers = {_tile_at(r.lon, r.lat, level) for r in at_level}
+    centers = {tile_at(r.lon, r.lat, level) for r in at_level}
     inside |= np.array([t in centers for t in tiles])
     return inside.tolist()
+
+
+def tile_at(lon: float, lat: float, level: int) -> Tile:
+    """The tile at a level that holds a point."""
+    p = lonlat_to_dir(lon, lat)
+    face = int(face_of(p))
+    s, t = face_st(face, p)
+    return Tile(face, level, int(tile_of(s, level)), int(tile_of(t, level)))
 
 
 def great_circle_m(lon: np.ndarray, lat: np.ndarray, lon0: float, lat0: float) -> np.ndarray:
@@ -346,11 +350,13 @@ def fresh_record(ctx: Context) -> dict[str, Any]:
     return record
 
 
-def _tile_at(lon: float, lat: float, level: int) -> Tile:
-    p = lonlat_to_dir(lon, lat)
-    face = int(face_of(p))
-    s, t = face_st(face, p)
-    return Tile(face, level, int(tile_of(s, level)), int(tile_of(t, level)))
+def _level_q_land(
+    pool: Executor, level: int, tiles: list[Tile], cheap: Mapping[Tile, Bound]
+) -> float:
+    def exact(indices: list[int]) -> list[Bound]:
+        return list(pool.map(_exact_bound, [tiles[k] for k in indices]))
+
+    return choose_q_land(level, [cheap[t] for t in tiles], exact)
 
 
 def _land_or_shelf(tile: Tile) -> bool:
