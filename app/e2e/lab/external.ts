@@ -1,8 +1,9 @@
 // Runs a lab page in a browser Playwright does not drive here: the installed Safari and Firefox,
 // opened with `open -a` (macOS). The page posts its report to the dev server (src/lab/labReport.ts),
-// and this waits for build/lab/<what>-<browser>.json. Playwright's own WebKit and Firefox builds are
-// not the shipping browsers and are not installed.
+// and this waits for build/lab/<what>-<browser>.json from the same run. Playwright's own WebKit and
+// Firefox builds are not the shipping browsers and are not installed.
 import { execFile } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { promisify } from 'node:util';
 import type { LabReport } from '../../src/lab/labReport';
@@ -33,26 +34,28 @@ export async function runInBrowser<T>(
   page: string,
   what: string,
   timeoutMs: number,
-  query: Record<string, string> = {},
 ): Promise<T> {
   if (process.platform !== 'darwin') throw new Error('lab runs in external browsers need macOS');
-  const params = new URLSearchParams({ ...query, report: browser.name });
-  const url = `${DEV_URL}/${page}?${params}`;
+  // The page echoes the run, so a report from any other tab is never taken for this one.
+  const run = randomUUID();
+  const url = `${DEV_URL}/${page}?${new URLSearchParams({ report: browser.name, run })}`;
   const file = labReportPath(`${what}-${browser.name}`);
   rmSync(file, { force: true });
   await promisify(execFile)('open', ['-a', browser.app, url]);
-  return waitForReport<T>(file, `${browser.app} at ${url}`, timeoutMs);
-}
 
-/** Resolves with the report in `file` once the page has posted it. */
-export async function waitForReport<T>(file: string, source: string, timeoutMs: number) {
   const deadline = Date.now() + timeoutMs;
-  while (!existsSync(file)) {
-    if (Date.now() > deadline) throw new Error(`no report from ${source} after ${timeoutMs} ms`);
+  for (;;) {
+    const posted = existsSync(file)
+      ? (JSON.parse(readFileSync(file, 'utf8')) as LabReport<T>)
+      : null;
+    if (posted?.run === run) {
+      if (posted.error !== undefined) throw new Error(`${browser.app} failed: ${posted.error}`);
+      if (posted.report === undefined) throw new Error(`${browser.app} posted no report`);
+      return posted.report;
+    }
+    if (Date.now() > deadline) {
+      throw new Error(`no report from ${browser.app} at ${url} after ${timeoutMs} ms`);
+    }
     await new Promise((resolve) => setTimeout(resolve, POLL_MS));
   }
-  const posted = JSON.parse(readFileSync(file, 'utf8')) as LabReport<T>;
-  if (posted.error !== undefined) throw new Error(`${source} failed: ${posted.error}`);
-  if (posted.report === undefined) throw new Error(`${source} posted no report`);
-  return posted.report;
 }
