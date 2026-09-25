@@ -233,8 +233,6 @@ def clip_rivers(
         kept = (shapely.get_dimensions(parts) == 1) & ~shapely.is_empty(parts)
         lines.append(parts[kept])
         ranks.append(vectors.river_ranks[found][owner[kept]])
-    if not lines:
-        return np.array([]), np.array([], dtype=np.int64)
     return shapely.segmentize(np.concatenate(lines), SEGMENT_DEG), np.concatenate(ranks)
 
 
