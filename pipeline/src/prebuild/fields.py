@@ -47,8 +47,9 @@ SUBPIXELS = 4  # per texel, along s and along t
 MARGIN_TEXELS = 12  # rasterized around the rect on every side
 MIN_RIVER_TEXELS = 0.35  # a river never draws thinner than this half-width
 KM_PER_DEG = math.pi * EARTH_RADIUS_M / 180 / 1000
-# A river's half-width is a fixed count of subpixels, and a subpixel past a face edge can be a few
-# percent wider than the nominal texel, so the clip pad takes half again the widest river.
+# A river's half-width is a fixed count of subpixels, and the equiangular projection stretches a
+# subpixel diagonally to up to 1.15x its nominal size at a face corner and 1.25x at the L0 raster's
+# margin corners (s = t = ±1.125), so the clip pad takes half again the widest river.
 RIVER_PAD_FACTOR = 1.5
 # Past the longest prepared segment: a straight segment between projected vertices strays a few
 # meters from the lon/lat segment it stands for.
