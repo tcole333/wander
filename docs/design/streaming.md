@@ -20,9 +20,11 @@ and the layer order in 3.9, so renaming any of these means updating both.
 
 Repo layout: `app/` is the npm project (the app); `pipeline/` is the uv project (the prebuild), with its
 config, queries and test excerpts; `shared/constants.json` is read by both; `stories/<story>/` holds
-each story's source; `build/` (git-ignored) holds prebuild output, `build/out/` in the R2 key layout and
-`build/fixture/`. `uv run prebuild <stage>` runs in `pipeline/`, and `npm run <script>` in `app/`; both
-resolve `build/` from the repo root, whatever their working directory.
+each story's source; `build/` (git-ignored) holds prebuild output: one root per profile in the R2 key
+layout (`build/out/` for global, `build/region/`, `build/fixture/`), stage records in
+`build/stages/<profile>/` (7.2) and caches in `build/cache/`. `uv run prebuild` runs in `pipeline/`,
+and `npm run <script>` in `app/`; both resolve `build/` from the repo root, whatever their working
+directory.
 
 ---
 
@@ -55,7 +57,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; ~105-112 KB per year [M]. ES3 guarantees only 256 array layers [S]. |
 | **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, noted as illustrative in Credits. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
-| **Story compile and media** | `uv run prebuild media <story>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
+| **Story compile and media** | `uv run prebuild media --story <id>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
 | **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then desired set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on the full tier; also keeping N+1's desired set and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
 | **Transitions** | van Wijk-Nuij flights with a readiness gate: a late beat slows into a short hold, then lands on ancestors (5.7). Optional refinement never blocks. | Flight + hold covers the largest critical set down to ~5.5 Mbps and the median down to ~2 Mbps [D from the model]. |
 | **Audio** | Web Audio. The AudioContext resumes in the Enter click handler. Buses ui, bed and cue. UI sounds are synthesized on the audio clock (`detents`; the flight whir via `setTargetAtTime`); beds are synthesis plus short CC0 mono AAC loops joined with `loopCrossfade` at loop points from the lock, and beds change over `bedCrossfade` (3.9). Sample sizes start at `audioEncodedMax` / `audioDecodedMax`. | The PRD puts synthesis first; AAC decodes in every target browser. The allowance is a starting value, raised after the Tambora bed is heard. |
@@ -551,13 +553,15 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 ### 4.3 Publish order and retention
 
-1. `uv run prebuild fetch`, then `uv run prebuild <stage>` on the owner's machine (GEBCO is 7.47 GB
-   inflated [M]). Each stage writes `build/out/` in the R2 layout plus a stage record (7.2).
-2. `uv run prebuild media <story>` when images, audio or event references change, or the events
+1. `uv run prebuild` on the owner's machine (GEBCO is 7.47 GB inflated [M]) runs every stage for the
+   global profile (owner decision 17). Each stage writes that profile's output root, `build/out/`, in
+   the R2 layout, plus a stage record in `build/stages/global/` (7.2).
+2. `uv run prebuild media --story <id>` when images, audio or event references change, or the events
    version changes. It writes `img/` and `aud/` into `build/out/` and the committed lock.
-3. `npm run publish-data`:
-   - uploads the keys in `build/out/` that R2 lacks (`rclone --immutable --ignore-existing`, with
-     headers)
+3. `npm run publish-data`, which takes the same `--profile` as the prebuild (default global), so a
+   region bake and a global bake never mix in one upload:
+   - uploads the keys in the profile's output root that R2 lacks (`rclone --immutable
+     --ignore-existing`, with headers)
    - runs the publish check: GET 20 random new objects twice; expect `HIT` on the second (from this
      machine), a byte-exact sha, CORS and the right Content-Type
    - warms the cache (4.4)
@@ -903,11 +907,19 @@ story above them.
 
 ### 7.1 Stages, in order
 
+`uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or
+every prebuild stage in the order below when none is named. A bare run builds the global profile
+(owner decision 17). Each profile has its own output root: `build/out/` for global (the tree
+`publish-data` uploads), `build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for the
+fixture (7.3). `excerpts` runs only when named, because it rewrites committed files, and the
+fixture profile skips `fetch` and `excerpts`, so it needs no raw data. `--jobs` defaults to
+min(8, CPUs), with spawn-context worker processes. `media` takes `--story <id>` and `--offline`.
+
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
-| `uv run prebuild fetch` | `pipeline/sources.toml` (`{url, version or commit, sha256, license}` per input: GEBCO_2026; NE 10m land, coastline, lakes, rivers and minor islands; NE bathymetry; historical-basemaps at a pinned commit; RESOLVE 2017; USGS petroleum and minerals; the legacy-derived 42-range GMBA v2.0 selection `world-major-ranges-v1.json`; ModE-RA mean and spread; the QLever exports) → downloads what is missing and verifies every sha256 | minutes (network) | local |
+| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs) and NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
-| `coverage` | GEBCO + NE + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm}]`) → the 1', 4' and 16' overviews, L5-L7 availability, qLand and c200 per level, tile counts | minutes [E] | local |
+| `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16 of the .nc>/`), L5-L7 availability, qLand and c200 per level, tile counts | minutes [E] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | ~15-20 min in one process, ~3-5 min with 8 [E], extrapolated from a 55 ms ETOPO proxy tile [M `work/critic-simplicity/tiletime.out`]; the first bake measures it | local |
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews | ~5-15 s per snapshot [E; an 8192×4096 id raster took 1.0 s, M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
@@ -915,27 +927,39 @@ story above them.
 | `events` | pinned exports in `pipeline/queries/` → `.wev` + details | build < 1 min [E] | local |
 | `modera` | two ~520 MB NetCDFs → 1,176 year files + annual; reports the largest step | ~2-5 min [E] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
-| `media <story>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `build/out/img`, `aud` + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
+| `media --story <id>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
 | `npm run poster` | Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
 | `npm run publish-data` | stage records → `release.json`; uploads, publish check, warm (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
 
-- **`npm run stories` fails** with "run `uv run prebuild media <story>`" when the Markdown references
-  something the lock lacks, or when `lock.eventsVer` differs from `release.events.ver`. It warns when a
-  beat is more than `borderWarnYears` from its snapshot, when a beat has `viewKm < l7WarnViewKm` with no
-  L7 region covering its target, when a flight would exceed 4.5 s, and on an image under 1024 px or
-  without a license.
-- **Incremental builds:** each stage is deterministic: sorted iteration, gzip mtime 0, a fixed
-  compression level, and libraries pinned in `uv.lock`. A layer's version is a hash of its output bytes,
-  so an unchanged layer reproduces its version and uploads nothing. A story text edit needs only CI.
+- **`npm run stories` fails** with "run `uv run prebuild media --story <id>`" when the Markdown
+  references something the lock lacks, or when `lock.eventsVer` differs from `release.events.ver`. It
+  warns when a beat is more than `borderWarnYears` from its snapshot, when a beat has
+  `viewKm < l7WarnViewKm` with no L7 region covering its target, when a flight would exceed 4.5 s,
+  and on an image under 1024 px or without a license.
+- **Sources:** stages check only the byte size of each source they read; `fetch` alone computes
+  sha256. GEBCO is credited with the citation its documentation gives.
+- **Availability** (`coverage`): L0-L4 everywhere; L5-L6 on land or shelf, and for the region
+  profile only inside its regions; L7 inside `l7.yaml` regions, also on land or shelf. The fixture
+  profile takes the tiles `fixture.yaml` lists. Availability is built top down, so L6 and L7 need
+  their parent, and asserted closed upward. A tile is in a region when one of its 33² mesh corners
+  lies within the region's radius for that level, or the region's center lies in the tile.
+- **Python stack:** Python 3.14.6 with numpy, netCDF4, PyYAML, shapely, pyogrio and scipy, pinned
+  exactly in `uv.lock` (owner decision 14).
+- **Incremental builds:** each stage is deterministic: sorted iteration, gzip level 9 with mtime 0,
+  and libraries pinned in `uv.lock`. A layer's version is a hash of its output bytes (`<ver8>`,
+  section 3), so an unchanged layer reproduces its version and uploads nothing. A story text edit
+  needs only CI.
 
 ### 7.2 Stage records
 
-Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stages/<stage>.json`:
+Every stage writes its profile's output root in the exact R2 key layout, plus a record at
+`build/stages/<profile>/<stage>.json`, outside the tree `publish-data` uploads, so records never
+become R2 keys. `fetch` and `excerpts` write no record.
 
 | Stage | Record |
 |---|---|
-| coverage | `{qLand[L], c200[L], counts[L]}` |
+| coverage | `{qLand[L], c200[L], counts[L], inputs}` |
 | surface | `{ver, maxLevel, avail, bounds}` |
 | borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}` |
 | thematic | `{layer: {ver, maxLevel}}` |
@@ -944,6 +968,12 @@ Every stage writes `build/out/` in the exact R2 key layout, plus `build/out/stag
 | modera | `{ver, years, lat[96], lon0, dlon, bytes{variable: {year}}}` |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |
+
+- **Freshness:** the coverage record's `inputs` hold the pinned source hashes and `code`, a tree hash
+  of `pipeline/src`, `pipeline/config`, `pyproject.toml`, `uv.lock` and `shared/constants.json`.
+  `surface` refuses to run when those inputs have changed since coverage ran. The fixture build also
+  writes `build/stages/fixture/stamp.json`, a hash over the same paths plus `pipeline/tests/data`,
+  which the Vitest fixture loader checks (7.3).
 
 ### 7.3 Fixture, dev and CI
 
@@ -1219,8 +1249,8 @@ Review items not taken as written, one line each:
 - **Per-mip `DataArrayTexture` + `addLayerUpdate` fallback (prior merge, from Fable):** removed. It needs
   a full CPU copy of each array (~89 MiB for the surface pool) and takes the samplers to 17 of 16.
 - **Media step as `npm run media --offline` (buildability):** applied as `uv run prebuild media
-  --offline`, because the stated stack puts asset prep in the Python prebuild and media needs the events
-  build; full schema validation stays in `npm run stories`.
+  --story <id> --offline`, because the stated stack puts asset prep in the Python prebuild and media
+  needs the events build; full schema validation stays in `npm run stories`.
 - **Cut the doc 30-40% (audit):** partly taken. Lineage, the Populations bullet, the KTX2 note,
   restated rules and the Known-unknowns table are gone, but the critical and high buildability fixes
   (cube conventions, seam rules, build contract, fixture, story source, milestone order) and the
