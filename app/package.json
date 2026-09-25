@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "fixture": "uv run --directory ../pipeline --locked prebuild --profile fixture",
-    "e2e": "playwright test"
+    "e2e": "playwright test --project=swiftshader",
+    "e2e:gpu": "playwright test --project=gpu-chromium"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.1",

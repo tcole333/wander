@@ -12,6 +12,17 @@ const swiftshader: Project = {
   },
 };
 
+// This Mac's GPU (`npm run e2e:gpu`), the first project of the GPU matrix in streaming.md 7.3.
+// CI runners have no GPU, so CI never lists it.
+const gpuChromium: Project = {
+  name: 'gpu-chromium',
+  use: {
+    ...devices['Desktop Chrome'],
+    viewport: { width: 1440, height: 900 },
+    launchOptions: { args: ['--use-angle=metal'] },
+  },
+};
+
 export default defineConfig({
   testDir: 'e2e',
   forbidOnly: !!process.env.CI,
@@ -21,7 +32,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  projects: [swiftshader],
+  projects: process.env.CI ? [swiftshader] : [swiftshader, gpuChromium],
   webServer: [
     {
       command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
