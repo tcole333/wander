@@ -216,6 +216,16 @@ def test_a_published_layer_is_kept_only_when_it_holds_the_same_bytes(tmp_path, f
     assert (target / "a.wst").read_bytes() == b"tile"
 
 
+def test_a_run_clears_what_an_interrupted_run_left_in_the_layer(baked, tmp_path):
+    ctx = fixture_context(tmp_path, 4)
+    write_record(ctx, "coverage", read_record(baked, "coverage"))
+    partial = ctx.out / "surf" / ".tmp-999999" / "0/0/0/0.wst"
+    partial.parent.mkdir(parents=True)
+    partial.write_bytes(b"partial")
+    surface.run(ctx)
+    assert [p.name for p in (ctx.out / "surf").iterdir()] == [read_record(ctx, "surface")["ver"]]
+
+
 # The fixture's sidecars
 
 

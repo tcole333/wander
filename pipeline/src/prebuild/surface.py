@@ -3,9 +3,10 @@ available, as a `.wst`, and `bounds.bin`, published as the layer `surf/<ver8>/` 
 output root, with the record `build/stages/<profile>/surface.json`.
 
 The stage refuses a coverage record whose inputs (the sources, the configs and the prebuild code)
-differ from the current ones. Workers build the tiles into `surf/.tmp-<pid>/`; once every file is
-hashed, that folder is renamed to `surf/<ver8>/`. A layer that already exists is kept, after a
-byte-for-byte comparison, since its version names its bytes.
+differ from the current ones. It first clears the staging folders an interrupted earlier run left
+in `surf/`, then workers build the tiles into `surf/.tmp-<pid>/`; once every file is hashed, that
+folder is renamed to `surf/<ver8>/`. A layer that already exists is kept, after a byte-for-byte
+comparison, since its version names its bytes.
 
 `bounds.bin` (gzip) holds each available node's LOD bounds in meters, [floor(h(codeMin)),
 ceil(h(codeMax))], in node order:
@@ -63,8 +64,9 @@ def run(ctx: Context) -> None:
     height_source(ctx)  # the GEBCO overviews, before the workers map them
     vectors = load_vectors(ctx, load_water(config_dir(ctx.repo) / "water.yaml"))
     layer = ctx.out / LAYER
+    for leftover in layer.glob(".tmp-*"):
+        shutil.rmtree(leftover, ignore_errors=True)
     staging = layer / f".tmp-{os.getpid()}"
-    shutil.rmtree(staging, ignore_errors=True)
     staging.mkdir(parents=True)
     try:
         with workers.tile_pool(ctx, vectors) as pool:
