@@ -1,0 +1,26 @@
+:root {
+  color-scheme: dark;
+  --ink: #e9dcc0;
+  --backdrop: #0d0b09;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--backdrop);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+}
+
+.wordmark {
+  position: fixed;
+  inset: auto 0 8vh;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  pointer-events: none;
+}
