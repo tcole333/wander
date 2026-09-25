@@ -237,7 +237,8 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
   raster is the same whichever tile clipped it.
 - **Shore and water fields:** each tile rasterizes 1152² subpixels, 4× over the 264² tile plus a
   12-texel margin (texels −16..271), at the face-global subpixel centers (3.0 item 5).
-  - Vertices project to U = (s + 1)·512n − 0.5 (V likewise from t), in subpixels, with straight
+  - Vertices project to subpixel coordinates A_s = (s + 1)·512n − 0.5 and A_t = (t + 1)·512n − 0.5,
+    the continuous form of 3.0 item 5's A (the center of subpixel A sits at A_s = A), with straight
     segments between them. Polygons fill by the even-odd rule. A subpixel is river when its center
     lies within the river's half-width of a segment, by an exact point-to-segment distance.
   - An exact Euclidean distance transform between subpixel centers gives D = +(E_in − 0.5) inside
