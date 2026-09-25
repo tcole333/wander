@@ -34,8 +34,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `wander-data.traviscole.xyz`.
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
-- `npm run e2e`: Playwright against the production build, on SwiftShader (as in CI). Run
-  `npx playwright install chromium` once first.
+- `npm run build`, then `npm run e2e`: Playwright against that build in `app/dist/` (it does not
+  rebuild), on SwiftShader as in CI. Run `npx playwright install chromium` once first.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 
 ## Hosting

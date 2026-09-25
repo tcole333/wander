@@ -659,7 +659,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 - **`lod.ts` is a pure function** of camera, viewport (CSS px), tier, exaggeration, availability and
   per-node code bounds, with frustum and horizon culling.
   - **Refine** while a texel covers more than `refinePx` (1.5 CSS px lite, 0.83 full); **merge** below
-    0.7× that. These are the beat model's Medium and Low profiles, so changing them invalidates the
+    0.7× that. These are the beat model's Low and Medium profiles, so changing them invalidates the
     budgets in section 6 and the pool sizes.
   - Viewports over 1440×900 CSS scale the threshold by √(area ratio), so tile counts stay inside the
     pools.
@@ -768,7 +768,7 @@ story above them.
 
 | Budget | Number | Basis |
 |---|---|---|
-| **Before the first live frame** | **~0.95 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M on EB Garamond, the earlier choice; re-measured for Source Serif 4]; L0 surface 6 × ~50 KB [E]. The instrument and environment are procedural; there is no transcoder. |
+| **Before the first live frame** | **~0.95 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 6 × ~50 KB [E]. The instrument and environment are procedural; there is no transcoder. |
 | **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.95 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
 | **Lobby settle** (background) | ≤ 3 MB before L2 | L1 ~1.1-1.4 MB [D from the planning mean]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
