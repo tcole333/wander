@@ -12,6 +12,7 @@ import {
   surfaceAvailability,
   type FixtureTile,
 } from '../test/fixture';
+import { TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
 import { parseSurfaceBounds } from './bounds';
 import { codeToMeters } from './codes';
 import {
@@ -53,8 +54,6 @@ interface ExpectedPoint {
 }
 
 const FIXTURE_TILES = 55;
-const TAMBORA_TEXEL_M = 2586.3; // the highest L7 texel mean on the rim
-const TAMBORA_CEILING_M = 2605;
 const SHELF_M = -200;
 
 const record = readSurfaceRecord();
@@ -191,7 +190,7 @@ describe('known places', () => {
       q,
     );
     expect(highest).toBeGreaterThanOrEqual(TAMBORA_TEXEL_M - q / 2);
-    expect(highest).toBeLessThanOrEqual(TAMBORA_CEILING_M);
+    expect(highest).toBeLessThanOrEqual(TAMBORA_GEBCO_MAX.meters);
   });
 
   it('marks the land points as land and the Flores Sea as sea', () => {
