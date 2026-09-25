@@ -4,6 +4,7 @@
 // E1's `.wst` decode time on this Mac (streaming.md 8.2) in build/lab/decode-summary-<browser>.json.
 import { writeFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { startDataServer, type DataServer } from '../../scripts/dataServer';
 import { layerFiles, readRegionBake } from '../../src/test/region';
 import type { DecodeProbeReport } from '../../src/workers/decodeProbe';
 import { mismatches, nodeDigests } from '../decodeChecks';
@@ -15,13 +16,17 @@ const TIMEOUT = 5 * 60_000;
 const PAGE = `e2e/decode.html?data=${encodeURIComponent(DATA_URL.region)}`;
 
 let node: Map<string, string>;
+let server: DataServer | undefined;
 
 test.beforeAll(async () => {
   test.setTimeout(TIMEOUT);
   // Fails, naming the command, when the bake is missing or stale.
   const bake = readRegionBake();
+  server = await startDataServer({ profile: 'region' });
   node = await nodeDigests(bake.layer, layerFiles(bake).tiles);
 });
+
+test.afterAll(() => server?.close());
 
 function check(browser: string, report: DecodeProbeReport): void {
   writeFileSync(
@@ -65,12 +70,21 @@ function summary(report: DecodeProbeReport) {
     return Math.round((sorted[Math.ceil(p * sorted.length) - 1] ?? NaN) * 100) / 100;
   };
   const all = report.tiles.map((tile) => tile.ms);
+  // Tiles decode coarsest first, so level and position in the run go together; by decile of the
+  // order they finished in, a slowdown partway through shows apart from one by level.
+  const byDecile = Array.from({ length: 10 }, (_, decile) => {
+    const ms = report.tiles
+      .filter((tile) => Math.floor((10 * tile.order) / report.tiles.length) === decile)
+      .map((tile) => tile.ms);
+    return { decile, tiles: ms.length, p50: rank(ms, 0.5), p90: rank(ms, 0.9) };
+  });
   return {
     release: report.release,
     workers: report.workers,
     tiles: report.tiles.length,
     wallMs: Math.round(report.wallMs),
     decodeMs: { p50: rank(all, 0.5), p90: rank(all, 0.9), max: rank(all, 1) },
+    byDecile,
     byLevel: Object.fromEntries(
       Object.entries(byLevel).map(([level, { tiles, ms, kb }]) => [
         level,
