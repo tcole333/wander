@@ -279,6 +279,7 @@ KEY = SYNTHETIC["extremes"].tile
         (poke(RAW, 12, "<ff", -2.0, -8.0), "positive"),
         (poke(RAW, 12, "<ff", math.inf, math.inf), "positive"),
         (poke(RAW, 20, "<h", SYNTHETIC["extremes"].code_mid + 1), "codeMid"),
+        (poke(RAW, 20, "<h", SYNTHETIC["extremes"].code_mid - 1), "codeMid"),
         (poke(RAW, 22, "<h", SYNTHETIC["extremes"].code_min - 1), "header codes"),
         (poke(RAW, 24, "<h", SYNTHETIC["extremes"].code_max + 1), "header codes"),
         (poke(RAW, 5, "<B", 6), "no tile"),
