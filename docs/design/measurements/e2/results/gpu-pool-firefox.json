@@ -1,0 +1,287 @@
+{
+ "what": "gpu-pool",
+ "browser": "firefox",
+ "date": "2026-09-25T21:36:48.691Z",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0",
+ "report": {
+  "renderer": "Apple M1, or similar",
+  "calls": {
+   "alloc": [
+    {
+     "fn": "texStorage3D",
+     "args": [
+      35866,
+      3,
+      33325,
+      264,
+      264,
+      8
+     ]
+    },
+    {
+     "fn": "texStorage3D",
+     "args": [
+      35866,
+      3,
+      33323,
+      264,
+      264,
+      8
+     ]
+    },
+    {
+     "fn": "texStorage3D",
+     "args": [
+      35866,
+      1,
+      33325,
+      257,
+      4,
+      8
+     ]
+    }
+   ],
+   "warm": [
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    }
+   ],
+   "write": [
+    {
+     "fn": "texSubImage3D",
+     "args": [
+      35866,
+      2,
+      0,
+      0,
+      5,
+      66,
+      66,
+      1,
+      6403,
+      5131,
+      "Uint16Array(4356)"
+     ]
+    },
+    {
+     "fn": "texSubImage3D",
+     "args": [
+      35866,
+      2,
+      0,
+      0,
+      5,
+      66,
+      66,
+      1,
+      33319,
+      5121,
+      "Uint8Array(8712)"
+     ]
+    },
+    {
+     "fn": "texSubImage3D",
+     "args": [
+      35866,
+      1,
+      0,
+      0,
+      6,
+      132,
+      132,
+      1,
+      6403,
+      5131,
+      "Uint16Array(17424)"
+     ]
+    },
+    {
+     "fn": "texSubImage3D",
+     "args": [
+      35866,
+      2,
+      0,
+      0,
+      6,
+      66,
+      66,
+      1,
+      6403,
+      5131,
+      "Uint16Array(4356)"
+     ]
+    },
+    {
+     "fn": "texSubImage3D",
+     "args": [
+      35866,
+      0,
+      0,
+      0,
+      7,
+      264,
+      264,
+      1,
+      6403,
+      5131,
+      "Uint16Array(69696)"
+     ]
+    },
+    {
+     "fn": "texSubImage3D",
+     "args": [
+      35866,
+      0,
+      0,
+      0,
+      3,
+      257,
+      4,
+      1,
+      6403,
+      5131,
+      "Uint16Array(1028)"
+     ]
+    }
+   ],
+   "readback": [
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    },
+    {
+     "fn": "drawArrays",
+     "args": [
+      4,
+      0,
+      3
+     ]
+    }
+   ]
+  },
+  "glError": {
+   "alloc": 0,
+   "warm": 0,
+   "write": 0,
+   "readback": 0
+  },
+  "worst": {
+   "centers": {
+    "heightMip2": 0,
+    "shoreWaterMip2": 0
+   },
+   "filtered": {
+    "heightMip2Corners": 0.25,
+    "heightMip0Corners": 0.25,
+    "heightLod1_5": 0.5
+   },
+   "unwritten": {
+    "heightMip0": 0,
+    "heightMip1": 0,
+    "heightSlot4": 0,
+    "shoreWaterMip0": 0
+   },
+   "edges": {
+    "written": 0,
+    "unwritten": 0
+   }
+  }
+ }
+}
