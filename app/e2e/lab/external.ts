@@ -1,7 +1,7 @@
 // Runs a lab page in a browser Playwright does not drive here: the installed Safari and Firefox,
-// opened with `open -a` (macOS). The page posts its report to the dev server (src/lab/labReport.ts),
-// and this waits for build/lab/<what>-<browser>.json from the same run. Playwright's own WebKit and
-// Firefox builds are not the shipping browsers and are not installed.
+// opened with `open -a` (macOS). The page posts its report to the dev server
+// (src/lab/labReport.ts), and this waits for build/lab/<what>-<browser>.json from the same run.
+// Playwright's own WebKit and Firefox builds are not the shipping browsers and are not installed.
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, rmSync } from 'node:fs';

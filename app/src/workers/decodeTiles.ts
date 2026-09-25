@@ -1,6 +1,6 @@
 // Fetches tiles of a surface layer as the runtime does (`inFlight` at once, cross-origin) and
-// decodes them in the two decode workers, handing each decoded tile to `visit` as it lands. The test pages
-// use it; the runtime's scheduler (5.2) does its own ordering and cancellation.
+// decodes them in the two decode workers, handing each decoded tile to `visit` as it lands. The
+// test pages use it; the runtime's scheduler (5.2) does its own ordering and cancellation.
 import { tunables } from '../config/tunables';
 import { fetchData, type SurfaceLayer } from '../data/surfaceLayer';
 import { tileKey, type Tile } from '../surface/cube';

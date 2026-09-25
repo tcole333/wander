@@ -5,8 +5,8 @@
 //   on   compiled in, its uniform on
 //   off  compiled in, its uniform off
 //   out  compiled out
-// and reports paidWhenOff = (off − out) / (on − out): 0 when the branch is skipped, 1 when flattened.
-// Raw WebGL 2, so the answer is the driver's and not three's.
+// and reports paidWhenOff = (off − out) / (on − out): 0 when the branch is skipped, 1 when
+// flattened. Raw WebGL 2, so the answer is the driver's and not three's.
 
 /**
  * `texture` samples with implicit derivatives inside the branch, `textureLod` with an explicit

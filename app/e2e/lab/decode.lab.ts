@@ -1,7 +1,8 @@
 // The decode path on the region bake in Chromium on Metal and the installed Safari and Firefox
 // (`npm run lab`): every available tile, fetched cross-origin from the region's data server and
 // decoded in the two decode workers, must match Node's decodeWst and bounds.bin. It also records
-// E1's `.wst` decode time on this Mac (streaming.md 8.2) in build/lab/decode-summary-<browser>.json.
+// E1's `.wst` decode time on this Mac (streaming.md 8.2) in
+// build/lab/decode-summary-<browser>.json.
 import { writeFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { startDataServer, type DataServer } from '../../scripts/dataServer';
