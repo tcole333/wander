@@ -9,8 +9,9 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 ## Status
 
 Milestone 1 (the Tambora slice) is under way. The app is a placeholder; the prebuild has its
-profiles, the cube conventions, the `.wst` codec, the `fetch` and `excerpts` stages and the
-committed excerpts, but no surface bake yet; hosting and CI are live.
+profiles, the cube conventions, the `.wst` codec, the `fetch` and `excerpts` stages, the
+committed excerpts and the per-tile surface functions (`height.py`, `fields.py`, `tiles.py`), but
+no `coverage` or `surface` stage yet; hosting and CI are live.
 
 ## Layout
 
