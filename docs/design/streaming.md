@@ -628,8 +628,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 - **React:** holds discrete state only. The camera, date and ruler update through transient Zustand
   subscriptions that write straight to uniforms and the DOM.
 - **Idle work:** budgeted queues run inside rAF and yield through `MessageChannel`, because Safari
-  lacks `requestIdleCallback` and `scheduler.postTask` [M proxy: Playwright WebKit 26.6; E1 checks
-  shipping Safari].
+  lacks `requestIdleCallback` and `scheduler.postTask` [M e1/results/browser-features-safari.json:
+  Safari 26.5].
 
 ### 5.2 Requests: classes, cancellation, stalls
 
@@ -852,7 +852,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - **Scene state:** include the real lights and shadows, an off-screen label, the depth pass, and every
     effect program for the tier.
   - **API:** use `compileAsync` where `KHR_parallel_shader_compile` exists. Firefox on macOS lacks it
-    [M proxy; the pre-launch rerun checks Windows], so there one material compiles per frame.
+    [M e1/results/browser-features-firefox.json: Firefox 156; the pre-launch rerun checks Windows], so
+    there one material compiles per frame.
 - **Fragment samplers:** the surface program uses about 13 of the 16 guaranteed: height, channels,
   overlay pool, indirection, palette/scale LUT, previews, noise, climate ring, annual chunk, spread,
   shadow, environment and ramp. Adding one needs a check against that limit.
@@ -1103,6 +1104,11 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   corner and a pole; and throttled walks at 10 Mbps / 60 ms and 5 Mbps / 150 ms through the app's
   fetch shim (`?net=…`, dev and test builds only). The 30-minute soak runs in E1, and again only if
   the governor changes.
+- **Lab (local):** `npm run lab` runs the `*.lab.ts` files: the experiments' measurements and
+  cross-browser checks. Chromium runs on Metal through Playwright. The installed Safari and Firefox,
+  which Playwright does not drive, open lab pages with `open -a`, and the pages post their reports to
+  the Vite dev server, which writes them to `build/lab/`. Results the design cites are copied to
+  `docs/design/measurements/`.
 
 ---
 
