@@ -16,7 +16,7 @@ import {
   readRegionBake,
 } from '../test/region';
 import {
-  FIXTURE_CROSS_FACE,
+  REGION_CROSS_FACE,
   codeAt,
   crossFaceMisses,
   edgeCodes,
@@ -150,7 +150,7 @@ async function sweep(): Promise<Findings> {
         found.withinFace.push(...off.map((what) => `${pair}: ${what}`));
       } else {
         found.faceEdges[t.level] = (found.faceEdges[t.level] ?? 0) + 1;
-        found.crossFace.push(...crossFaceMisses(t, edge, mine, theirs, FIXTURE_CROSS_FACE));
+        found.crossFace.push(...crossFaceMisses(t, edge, mine, theirs, REGION_CROSS_FACE));
       }
     }
   }
