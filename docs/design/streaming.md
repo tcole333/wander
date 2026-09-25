@@ -1107,10 +1107,9 @@ Decided 2026-09-24 (starting values, tunable):
   and build script linked.
 - **Tambora beat list:** start from the 8 drafted beats in `work/story-first/beats.py` (issue #10).
 - **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
+- **Deep-time geology:** include only well-known deep-time events (such as the Ries impact at
+  −15 Myr), shown in a compressed deep-time segment of the time ruler.
 
 Still open:
 
 1. **Zoom floor** for stories and explore (start ~100 km; compare 100/50/30 km in E1/E2).
-2. **Deep-time geology** in the "all eras" index (Ries impact −15 Myr, Messinian crisis). Default until
-   decided: include only well-known deep-time events, shown in a compressed deep-time segment of the
-   ruler.
