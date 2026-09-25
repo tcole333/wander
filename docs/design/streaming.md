@@ -558,9 +558,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 ### 4.3 Publish order and retention
 
-1. `uv run prebuild` on the owner's machine (GEBCO is 7.47 GB inflated [M]) runs every stage for the
-   global profile (owner decision 17). Each stage writes that profile's output root, `build/out/`, in
-   the R2 layout, plus a stage record in `build/stages/global/` (7.2).
+1. `uv run prebuild` on the owner's machine (GEBCO is 7.47 GB inflated [M]) builds the global
+   profile (owner decision 17), running every stage except `excerpts` and `media` (7.1): `fetch`
+   fills `$WANDER_DATA/sources/`, and the build stages write `build/out/` in the R2 layout and their
+   records in `build/stages/global/` (7.2).
 2. `uv run prebuild media --story <id>` when images, audio or event references change, or the events
    version changes. It writes `img/` and `aud/` into `build/out/` and the committed lock.
 3. `npm run publish-data`, which takes the same `--profile` as the prebuild (default global), so a
@@ -913,13 +914,15 @@ story above them.
 
 ### 7.1 Stages, in order
 
-`uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or
-every prebuild stage in the order below when none is named. A bare run builds the global profile
-(owner decision 17). Each profile has its own output root: `build/out/` for global, `build/region/`
-for the milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the
-same `--profile` (4.3). `excerpts` runs only when named, because it rewrites committed files, and
-the fixture profile skips `fetch` and `excerpts`, so it needs no raw data. `--jobs` defaults to
-min(8, CPUs), with spawn-context worker processes. `media` takes `--story <id>` and `--offline`.
+`uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or,
+when none is named, every prebuild stage from `fetch` to `minerals` in the order below except
+`excerpts`. `excerpts` and `media` run only when named: `excerpts` because it rewrites committed
+files, and `media` because it builds one story, named with `--story <id>`. A bare run builds the
+global profile (owner decision 17). Each profile has its own output root: `build/out/` for global,
+`build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3);
+`publish-data` takes the same `--profile` (4.3). The fixture profile skips `fetch` and `excerpts`,
+so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context worker processes.
+`media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
