@@ -24,6 +24,8 @@ EDGES: tuple[Edge, ...] = ("N", "E", "S", "W")
 OPPOSITE: dict[Edge, Edge] = {"N": "S", "E": "W", "S": "N", "W": "E"}
 
 TILE: int = CUBE["tile"]
+BORDER: int = CUBE["border"]
+EARTH_RADIUS_M: float = CUBE["earthRadiusM"]
 
 # (6, 3, 3): center C, U and V of each face in the globe frame G.
 FACES: FloatArray = np.array(

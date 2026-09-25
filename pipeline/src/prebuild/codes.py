@@ -11,12 +11,11 @@ import math
 import numpy as np
 import numpy.typing as npt
 
-from prebuild.constants import CUBE
+from prebuild.cube import EARTH_RADIUS_M, TILE
 
 type FloatArray = npt.NDArray[np.float64]
 type IntArray = npt.NDArray[np.int64]
 
-EARTH_RADIUS_M: float = CUBE["earthRadiusM"]
 Q_STEP = 1 / 64  # qLand is a multiple of 1/64 m, so f32 holds it exactly
 Q_FLOOR_M = 2.0
 SHELF_M = -200.0  # qDeep takes over below this height
@@ -34,7 +33,7 @@ def round_half_away(x: npt.ArrayLike) -> IntArray:
 
 def texel_m(level: int) -> float:
     """Nominal texel size in meters at a face center: (π/2)·R/(256·2^L)."""
-    return (math.pi / 2) * EARTH_RADIUS_M / (CUBE["tile"] << level)
+    return (math.pi / 2) * EARTH_RADIUS_M / (TILE << level)
 
 
 def q_land_start(level: int) -> float:

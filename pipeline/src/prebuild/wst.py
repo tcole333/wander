@@ -16,19 +16,19 @@ import numpy as np
 import numpy.typing as npt
 
 from prebuild.codes import codes_to_meters
-from prebuild.constants import CUBE, FORMATS
-from prebuild.cube import Tile
+from prebuild.constants import FORMATS
+from prebuild.cube import BORDER, TILE, Tile
 
 type IntArray = npt.NDArray[np.int64]
 
 MAGIC = str(FORMATS["surfaceTile"]["magic"]).encode("ascii")
 VERSION = int(FORMATS["surfaceTile"]["version"])
 
-SIZE = CUBE["tile"] + 2 * CUBE["border"]  # 264 texels a side, border included
-EDGE_ENTRIES = CUBE["tile"] + 1  # texel corners 0..256
+SIZE = TILE + 2 * BORDER  # 264 texels a side, border included
+EDGE_ENTRIES = TILE + 1  # texel corners 0..256
 MIP_SIZES = (SIZE, SIZE // 2, SIZE // 4)  # 264, 132, 66
 GRID = 33  # mesh vertices a side; vertex k sits at texel corner 8k
-GRID_STEP = CUBE["tile"] // (GRID - 1)
+GRID_STEP = TILE // (GRID - 1)
 
 MAX_OFFSET = 2048  # |code - codeMid|, which half-float holds exactly
 MAX_RANGE = 2 * MAX_OFFSET
