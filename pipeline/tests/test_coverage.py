@@ -55,10 +55,6 @@ def some_land(tiles: list[Tile]) -> list[bool]:
     return [node_index(t) % 3 != 0 for t in tiles]
 
 
-def tile_at(lon: float, lat: float, level: int) -> Tile:
-    return coverage._tile_at(lon, lat, level)
-
-
 def texel_lonlat(tile: Tile, i: int, j: int) -> tuple[float, float]:
     """Lon/lat of the center of tile-local texel (i, j)."""
     s = texel_center(tile.level, TILE * tile.x + i)
@@ -122,8 +118,8 @@ def test_each_profile_bounds_its_deep_levels(profile, levels):
 
 def test_a_per_level_radius_admits_a_tile_at_l5_and_rejects_its_child_at_l6():
     region = Region("near", *SUMBAWA, {5: 300.0, 6: 50.0})
-    east = tile_at(120.0, -8.25, 5)  # its west edge runs about 14 km east of the center
-    assert east != tile_at(*SUMBAWA, 5)
+    east = coverage.tile_at(120.0, -8.25, 5)  # its west edge runs about 14 km east of the center
+    assert east != coverage.tile_at(*SUMBAWA, 5)
     assert coverage.in_regions([east], [region]) == [True]
     # Its children in the center's row: the west one along the same edge, the east one about
     # 170 km out.
@@ -133,14 +129,14 @@ def test_a_per_level_radius_admits_a_tile_at_l5_and_rejects_its_child_at_l6():
 
 def test_a_region_takes_the_tile_that_holds_its_center():
     region = Region("dot", *SUMBAWA, {7: 0.001})  # no mesh corner lies within a meter
-    assert tile_at(*SUMBAWA, 7) == SUMBAWA_L7
+    assert coverage.tile_at(*SUMBAWA, 7) == SUMBAWA_L7
     two_east = Tile(1, 7, SUMBAWA_L7.x + 2, SUMBAWA_L7.y)
     assert coverage.in_regions([SUMBAWA_L7, two_east], [region]) == [True, False]
 
 
 def test_a_region_without_a_radius_at_the_level_admits_nothing():
     region = Region("l5-only", *SUMBAWA, {5: 5000.0})
-    assert coverage.in_regions([tile_at(*SUMBAWA, 6)], [region]) == [False]
+    assert coverage.in_regions([coverage.tile_at(*SUMBAWA, 6)], [region]) == [False]
 
 
 def test_distances_are_great_circle_meters():
