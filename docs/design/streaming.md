@@ -1031,11 +1031,15 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
      - fixture decode: the Tambora summit is within qLand; the shore sign is right at known points; cube
        keys round-trip; `cube.ts` matches the Python samples (3.0 item 9)
      - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit; across face
-       edges (the cube-corner fixture), edge profiles are bit-identical, the border texel k columns
-       past a face edge maps into the neighbor's texel column k (the perpendicular coordinate is
-       continuous), and each border code lies within the neighbor face's 3×3 code range around the
-       mapped point, ±2 codes. A 1-code bound fails at the Kirkuk corner, where the difference
-       reaches 5 codes [M, GEBCO at L4].
+       edges (all of L0-L1 and the cube-corner fixture), edge profiles are bit-identical, the border
+       texel k columns past a face edge maps into the neighbor's texel column k (the perpendicular
+       coordinate is continuous), and each border code lies within the neighbor face's 3×3 code
+       range around the mapped point, widened by 2 codes plus half its width, and to 0 where the
+       coastal clamp reaches the border texel. The grids meet at an angle, so their texels cover
+       different ground, and a high or low inside one texel can fall outside the 3×3 range. In the
+       fixture, whose Kirkuk sources are coarser than the texels at L3 and L5-L6, 39 of 110,592
+       border texels miss the range ±2 codes, by up to 14 codes where it spans 153 [M, fixture
+       bake].
      - pure logic: `lod.ts` (balancing, edge flags), the scheduler (fake clock, network shim), the flight
        time-warp, the event query and page residency, date conversion including the −15 Myr row, and the
        snapshot rule (on 50-07-01 CE the tie goes to `bc1`)
