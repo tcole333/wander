@@ -1,6 +1,7 @@
 // A decoded surface tile as upload parts (streaming.md 5.4, 5.5): one pool write per mip of the
-// heights, then per mip of shore and water, then the edge profiles. At `uploadAnimated` (256 KiB on
-// lite) the three height mips (183 KB) fit one frame and the rest the next: two frames, height first.
+// heights, then per mip of shore and water, then the edge profiles. At lite's `uploadAnimated`
+// (256 KiB) the three height mips (183 KB) fit one frame and the rest the next: two frames, height
+// first. At full's 512 KiB the budget runs across tiles, so a tile may land in one frame.
 import type { WebGLRenderer } from 'three';
 import type { DecodedWst } from '../surface/wst';
 import { createGpuPool, surfacePoolSpecs, type GpuPool } from './gpuPool';

@@ -1,7 +1,8 @@
 // Surface uploads on the region bake in Chromium on Metal and the installed Safari and Firefox
-// (`npm run lab`): 226 L5-L7 tiles (with L0-L1's 30 fixed slots, a full-tier pool of 256) go
-// through the upload queue at each tier's animated budget and read back exactly. It records E2's
-// per-slot upload time on this Mac (streaming.md 8.2) in build/lab/surface-upload-summary-*.json.
+// (`npm run lab`): 226 tiles spread through L5-L7 (with L0-L1's 30 fixed slots, a full-tier pool
+// of 256) go through the upload queue at each tier's animated budget and read back exactly. It
+// records E2's per-slot upload time on this Mac (streaming.md 8.2) in
+// build/lab/surface-upload-summary-*.json.
 import { writeFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { startDataServer, type DataServer } from '../../scripts/dataServer';
