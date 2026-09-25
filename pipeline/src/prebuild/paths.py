@@ -12,3 +12,13 @@ def data_root() -> Path:
     if configured:
         return Path(configured).expanduser()
     return Path.home() / "projects" / "wander-data"
+
+
+def excerpts_dir(repo: Path = REPO_ROOT) -> Path:
+    """The committed excerpts the fixture reads in place of raw data (streaming.md 7.3)."""
+    return repo / "pipeline" / "tests" / "data"
+
+
+def config_dir(repo: Path = REPO_ROOT) -> Path:
+    """The prebuild's YAML configs."""
+    return repo / "pipeline" / "config"

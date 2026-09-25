@@ -9,9 +9,9 @@ from typing import Any
 import yaml
 
 from prebuild.cube import Tile, parse_tile_key
-from prebuild.paths import REPO_ROOT
+from prebuild.paths import config_dir
 
-CONFIG_DIR = REPO_ROOT / "pipeline" / "config"
+CONFIG_DIR = config_dir()
 SCALERANKS = range(13)  # NE river scalerank runs 0-12
 _WATER_KEYS = (
     "halfWidthKm",
