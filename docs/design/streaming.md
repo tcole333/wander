@@ -108,7 +108,8 @@ imported by TypeScript.
    | 5 (−Z) | (0,0,−1) | (0,1,0) | (1,0,0) |
 
    U × V = C on every face. Faces 0, 1 and 4 meet at the Kirkuk corner (45°E, 35.26°N), so each
-   level has three corner tiles there: face 0 (n−1, n−1), face 1 (0, n−1) and face 4 (n−1, 0).
+   level L has three corner tiles (x, y) there, with n = 2^L (item 4): face 0 (n−1, n−1), face 1
+   (0, n−1) and face 4 (n−1, 0).
 3. `p = normalize(C + tan(πs/4)·U + tan(πt/4)·V)`, with s, t in [−1, 1]. The inverse is
    `s = (4/π)·atan((p·U)/(p·C))`, and likewise t with V. A point belongs to the face of its largest
    |component| (the sign picks + or −); ties go to the lowest face index.
