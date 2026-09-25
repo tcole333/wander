@@ -273,8 +273,8 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
     and posts its results with `{ transfer }`.
   - The meter bounds are [floor(h(codeMin)), ceil(h(codeMax))] (3.8). In the 33² grid, interior
     vertex k (at corner 8k) is h of the mean of the four mip-2 codes around it, and boundary vertices
-    take the edge-profile codes. Both are exact dyadic values, so Python and TypeScript agree bit for
-    bit.
+    are h of the edge-profile code at their corner. Both are exact dyadic values, so Python and
+    TypeScript agree bit for bit.
   - It rejects a wrong key, magic, version or length, any |code − codeMid| > 2048, and a codeMin or
     codeMax that does not match the planes and edges.
 - **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 2 KiB = **359 KiB** [D].
