@@ -685,7 +685,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 - **Stopping early:** admission stops after `uploadStopMs` of measured time, or after any single call
   over `uploadSlowCall`, because a timer cannot bound one synchronous driver call.
 - **Staging:** a surface slot (359 KiB) may take two frames, height first. A tile becomes drawable only
-  when every part is uploaded.
+  when every part is uploaded. On the M5 a tile publishes in two frames at the median and three at
+  most, in all three browsers and at both tiers [M `e2/results/surface-upload-*.json`].
 - **Order:** roots, the current view coarsest first, a toggled layer, N+1 critical, then the rest.
 - **Tuning:** the caps rise only from E1/E2 measurements on the target machines (see the hardware
   note in 8.2).

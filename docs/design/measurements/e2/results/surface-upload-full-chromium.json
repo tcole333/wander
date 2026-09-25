@@ -1,0 +1,63 @@
+{
+ "what": "226 L5-L7 tiles of the region bake (layer 085efb54), decoded in the decode workers and uploaded through the upload queue into surface pools of 256 slots (L0-L1 fixed at 0-29) at the full animated budget, one queue run per frame with nothing drawn between, by e2e/lab/surface-upload.lab.ts. Times are each write call on the main thread, at the browser's performance.now() resolution (0.1 ms in Chromium, 1 ms in Safari and Firefox). Every slot read back exactly and no GL error was raised.",
+ "browser": "chromium",
+ "machine": "MacBook Pro, Apple M5, macOS 26.5",
+ "pageHidden": {
+  "atStart": false,
+  "atPost": false
+ },
+ "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)",
+ "tier": "full",
+ "budgetBytes": 524288,
+ "tiles": 226,
+ "frames": 183,
+ "writeMsByBytes": {
+  "2056": {
+   "n": 226,
+   "p50": 0,
+   "p90": 0,
+   "max": 0.8
+  },
+  "8712": {
+   "n": 452,
+   "p50": 0,
+   "p90": 0,
+   "max": 0.2
+  },
+  "34848": {
+   "n": 452,
+   "p50": 0,
+   "p90": 0,
+   "max": 0.9
+  },
+  "139392": {
+   "n": 452,
+   "p50": 0,
+   "p90": 0.1,
+   "max": 1.1
+  }
+ },
+ "slotMs": {
+  "n": 226,
+  "p50": 0,
+  "p90": 0.1,
+  "max": 1.1
+ },
+ "framesPerTile": {
+  "n": 226,
+  "p50": 2,
+  "p90": 2,
+  "max": 2
+ },
+ "frameMs": {
+  "n": 183,
+  "p50": 0.1,
+  "p90": 0.2,
+  "max": 1.1
+ },
+ "stoppedBy": {
+  "budget": 176,
+  "slow": 6,
+  "empty": 1
+ }
+}

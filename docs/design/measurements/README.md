@@ -37,3 +37,11 @@ Metal through Playwright, Safari 26.5 and Firefox 156:
   at 1 ms steps. Safari's decodes took 1-2 ms for the first 60% of the tiles in finishing order and
   about 8 ms after that, at every level, which fits its throttling of hidden pages; Firefox stayed
   at 2 ms throughout.
+- `e2/results/surface-upload-*.json`: 226 L5-L7 region tiles go through the upload queue into
+  256-slot surface pools at each tier's animated budget and read back exactly in all three browsers,
+  with no GL error. A tile publishes in two frames (heights, then the rest) at the median and three
+  at most. The write calls are cheap on the main thread: one slot's seven writes take at most 1.3 ms
+  in Chromium, 4 ms in Safari and 2 ms in Firefox. Safari and Firefox time at 1 ms steps, so the
+  0.5 ms `uploadSlowCall` rule reads any write that crosses a tick as slow and ends the frame early:
+  65 of 452 lite frames and 68 of 213 full frames in Firefox, and 16 of 452 and 18 of 187 in Safari.
+  Safari and Firefox ran hidden (`pageHidden`).
