@@ -51,7 +51,12 @@ def tree_sha(paths: Sequence[str], root: Path) -> str:
 def ver8(files: Mapping[str, bytes]) -> str:
     """A layer version: the first 8 hex characters of `lines_sha` over the stored bytes of the
     layer's files, keyed by path relative to the layer root (`7/1/103/50.wst`, `bounds.bin`)."""
-    return lines_sha({path: sha256_bytes(data) for path, data in files.items()})[:8]
+    return layer_version({path: sha256_bytes(data) for path, data in files.items()})
+
+
+def layer_version(digests: Mapping[str, str]) -> str:
+    """`ver8` from the sha256 of each file's stored bytes, keyed by layer-relative path."""
+    return lines_sha(digests)[:8]
 
 
 def _collect(path: Path, root: Path, found: set[str]) -> None:

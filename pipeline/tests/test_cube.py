@@ -14,6 +14,7 @@ from prebuild.cube import (
     Tile,
     avail_get,
     avail_set,
+    available_nodes,
     corner,
     dir_to_lonlat,
     face_of,
@@ -229,12 +230,28 @@ def test_parent_halves_the_tile_indices():
         Tile(0, 0, 0, 0).parent()
 
 
+def test_children_are_the_four_tiles_below_in_node_order():
+    tile = Tile(3, 4, 5, 9)
+    children = tile.children()
+    assert {child.parent() for child in children} == {tile}
+    assert [node_index(child) for child in children] == sorted(node_index(c) for c in children)
+    assert len(set(children)) == 4
+
+
 def test_availability_bits_are_least_significant_first():
     bitmap = bytearray(2)
     avail_set(bitmap, 0)
     avail_set(bitmap, 9)
     assert bitmap == b"\x01\x02"
     assert [avail_get(bitmap, k) for k in range(16)] == [k in (0, 9) for k in range(16)]
+
+
+def test_available_nodes_are_the_set_bits_in_order():
+    bitmap = bytearray(3)
+    for k in (17, 0, 9, 23):
+        avail_set(bitmap, k)
+    assert available_nodes(bitmap) == [0, 9, 17, 23]
+    assert available_nodes(bytes(3)) == []
 
 
 # The face-edge table

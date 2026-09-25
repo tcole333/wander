@@ -87,6 +87,11 @@ class Tile:
             raise ValueError(f"tile {self.key()} has no parent")
         return Tile(self.face, self.level - 1, self.x >> 1, self.y >> 1)
 
+    def children(self) -> list[Tile]:
+        """The four tiles one level down, in node order."""
+        x, y = 2 * self.x, 2 * self.y
+        return [Tile(self.face, self.level + 1, x + dx, y + dy) for dy in (0, 1) for dx in (0, 1)]
+
 
 @dataclass(frozen=True, slots=True)
 class Neighbor:
@@ -262,6 +267,12 @@ def avail_get(bitmap: bytes | bytearray, k: int) -> bool:
 
 def avail_set(bitmap: bytearray, k: int) -> None:
     bitmap[k >> 3] |= 1 << (k & 7)
+
+
+def available_nodes(bitmap: bytes | bytearray) -> list[int]:
+    """The node indices whose bits are set, in increasing order."""
+    bits = np.unpackbits(np.frombuffer(bytes(bitmap), dtype=np.uint8), bitorder="little")
+    return np.flatnonzero(bits).tolist()
 
 
 def _dot(p: FloatArray, axis: FloatArray) -> FloatArray:
