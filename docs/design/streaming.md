@@ -1036,8 +1036,9 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
      suite that needs `build/fixture` fails, naming `npm run fixture`, when the fixture is missing
      or its stamp (7.2) is stale; none is skipped.
   4. **Vitest:**
-     - fixture decode: the Tambora summit is within qLand; the shore sign is right at known points; cube
-       keys round-trip; `cube.ts` matches the Python samples (3.0 item 9)
+     - fixture decode: the Tambora summit decodes between its texel mean less qLand/2 and GEBCO's
+       highest cell; the shore sign is right at known points; cube keys round-trip; `cube.ts`
+       matches the Python samples (3.0 item 9)
      - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit; across face
        edges (all of L0-L1 and the cube-corner fixture), edge profiles are bit-identical, the border
        texel k columns past a face edge maps into the neighbor's texel column k (the perpendicular
@@ -1076,8 +1077,10 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
     against the decoded meter bounds
   - availability against the files present, which hash to the layer's version
   - known places: Georgian Bay and Lake Huron's main body are water; the texel on the dateline on
-    faces 2, 4 and 5 at L0-L4 decodes within its bounds; Tambora's summit texel at L7 lies within
-    qLand/2 of its texel mean (2,586.3 m) and no higher than GEBCO's 2,605 m there
+    faces 2, 4 and 5 at L0-L4, and its neighbors on either side of it, decode within half a code
+    step of GEBCO's lowest and highest cells around them, read on both sides of ±180°; Tambora's
+    summit texel at L7 decodes no lower than its texel mean (2,586.3 m) less qLand/2 and no higher
+    than GEBCO's 2,605 m there, since a texel mean cannot reach the highest single cell
 
   It fails, naming the command, when the bake is missing or was built from other prebuild code,
   configs or pinned sources. It covers what the fixture never exercises: the overviews, global reads
