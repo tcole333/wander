@@ -19,8 +19,8 @@ Paths in the docs are relative to the repo root, except the measurement citation
 - `app/`: the npm project. TypeScript, Vite, React, react-three-fiber, three.js pinned to an exact
   version (the renderer relies on version-specific three.js APIs). drei and Zustand join with the
   globe runtime. Tunables live in `app/src/config/tunables.ts`.
-- `pipeline/`: the uv project for the Python prebuild (`uv run prebuild <stage>`), which turns raw
-  sources into web assets. Its config, queries and test excerpts live under it.
+- `pipeline/`: the uv project for the Python prebuild (`uv run prebuild`, under Commands), which
+  turns raw sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
   both projects.
 - `stories/<story>/`: one folder per story: `story.md`, its datasets, audio and `story.lock.json`.
