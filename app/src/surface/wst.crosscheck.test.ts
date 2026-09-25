@@ -176,6 +176,16 @@ describe('the decoder refuses', () => {
     expect(await refusal((_, view) => view.setFloat32(16, 7, true))).toThrow(/qDeep/);
   });
 
+  // qDeep stays 4·qLand, so only the positive and finite terms can refuse these.
+  it.each([0, -2, Infinity])('a qLand of %s', async (q) => {
+    expect(
+      await refusal((_, view) => {
+        view.setFloat32(12, q, true);
+        view.setFloat32(16, 4 * q, true);
+      }),
+    ).toThrow(/positive/);
+  });
+
   it('a codeMid that leaves a code more than 2048 away', async () => {
     expect(await refusal((_, view) => view.setInt16(20, codeMid + 1, true))).toThrow(/codeMid/);
   });
