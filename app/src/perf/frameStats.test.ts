@@ -52,6 +52,11 @@ describe('summarizeFrames', () => {
     expect(summary.gaps).toBe(5);
   });
 
+  test('does not count a single miss with jitter as a gap', () => {
+    const jittered = [...Array<number>(90).fill(16.6), ...Array<number>(10).fill(33.4)];
+    expect(summarizeFrames(jittered).gaps).toBe(0);
+  });
+
   test('puts a frame just over the gate in p95', () => {
     const deltas = [...Array<number>(94).fill(HZ60), ...Array<number>(6).fill(23)];
     expect(summarizeFrames(deltas, HZ60).p95).toBe(23);

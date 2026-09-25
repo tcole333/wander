@@ -35,7 +35,10 @@ export interface FrameSummary {
   max: number;
   /** Missed vsyncs over the vsyncs the frames spanned. */
   missedFraction: number;
-  /** Frames longer than twice the interval (a gate during flights). */
+  /**
+   * Frames over twice the interval (a gate during flights), counted in whole vsyncs: a frame that
+   * spanned three or more, so timestamp jitter on a single miss never counts.
+   */
   gaps: number;
 }
 
@@ -48,7 +51,7 @@ export function summarizeFrames(deltas: readonly number[], intervalMs?: number):
     const miss = missedVsyncs(delta, interval);
     missed += miss;
     vsyncs += miss + 1;
-    if (delta > 2 * interval) gaps += 1;
+    if (miss >= 2) gaps += 1;
   }
   return {
     frames: deltas.length,
