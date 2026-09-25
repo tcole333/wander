@@ -27,7 +27,8 @@ uv run prebuild fetch               # downloads what is missing (GEBCO_2026 alon
 uv run prebuild --profile region    # the milestone-1 bake into build/region/, about 2.5 min
 ```
 
-Then `npm run verify:bake` in `app/` checks the bake. `CLAUDE.md` lists the other commands.
+Then, in `app/`, `npm ci` and `npm run verify:bake` check the bake. `CLAUDE.md` lists the other
+commands.
 
 ## License
 
