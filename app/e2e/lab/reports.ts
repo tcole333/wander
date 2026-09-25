@@ -12,6 +12,8 @@ export const LAB_DIR = fileURLToPath(new URL('../../../build/lab/', import.meta.
 
 /** Larger than any report a lab page writes, including per-frame timings. */
 const MAX_BYTES = 64 * 1024 * 1024;
+/** Longer than any lab page's name and browser, and far inside a file name's limit. */
+const MAX_NAME = 64;
 
 export function labReportPath(name: string): string {
   return join(LAB_DIR, `${name}.json`);
@@ -27,7 +29,9 @@ export function labReports(): Plugin {
   };
 }
 
-// Mounted at LAB_REPORT_PATH, so req.url is `/<name>`.
+// Mounted at LAB_REPORT_PATH, so req.url is `/<name>`. Only the dev server's own pages may post:
+// the JSON content type makes another origin's request need a preflight, which Vite refuses for
+// other sites, and a post from another origin on this machine is refused by its Origin header.
 const receive: Connect.NextHandleFunction = (req, res) => {
   const name = (req.url ?? '').slice(1).split('?')[0] ?? '';
   const reply = (status: number, message = '') => {
@@ -35,7 +39,16 @@ const receive: Connect.NextHandleFunction = (req, res) => {
     res.end(message);
   };
   if (req.method !== 'POST') return reply(405, 'POST a JSON report');
-  if (!LAB_REPORT_NAME.test(name)) return reply(400, `bad report name ${name}`);
+  if (!req.headers['content-type']?.startsWith('application/json')) {
+    return reply(415, 'POST application/json');
+  }
+  const origin = req.headers.origin;
+  if (origin !== undefined && origin !== `http://${req.headers.host}`) {
+    return reply(403, 'lab reports come only from pages on this dev server');
+  }
+  if (name.length > MAX_NAME || !LAB_REPORT_NAME.test(name)) {
+    return reply(400, `bad report name ${name}`);
+  }
 
   const chunks: Buffer[] = [];
   let bytes = 0;
@@ -56,11 +69,16 @@ const receive: Connect.NextHandleFunction = (req, res) => {
     } catch {
       return reply(400, 'report is not JSON');
     }
-    // Written whole, then renamed, so a spec polling for the file never reads half of it.
-    mkdirSync(LAB_DIR, { recursive: true });
-    const partial = labReportPath(`${name}.partial`);
-    writeFileSync(partial, text);
-    renameSync(partial, labReportPath(name));
+    // Written whole, then renamed, so a spec polling for the file never reads half of it. This
+    // runs outside connect's error handling, so a failed write answers 500 instead of throwing.
+    try {
+      mkdirSync(LAB_DIR, { recursive: true });
+      const partial = labReportPath(`${name}.partial`);
+      writeFileSync(partial, text);
+      renameSync(partial, labReportPath(name));
+    } catch (error) {
+      return reply(500, String(error));
+    }
     reply(204);
   });
 };
