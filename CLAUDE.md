@@ -26,9 +26,9 @@ Paths in the docs are relative to the repo root, except the measurement citation
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
   both projects.
 - `stories/<story>/`: one folder per story: `story.md`, its datasets, audio and `story.lock.json`.
-- `build/`: prebuild output (git-ignored): one root per profile in the R2 key layout (`build/out/`
-  for global, `build/region/`, `build/fixture/`), stage records in `build/stages/<profile>/` and
-  caches in `build/cache/`.
+- `build/`: generated output (git-ignored): the prebuild's roots, one per profile in the R2 key
+  layout (`build/out/` for global, `build/region/`, `build/fixture/`), stage records in
+  `build/stages/<profile>/` and caches in `build/cache/`; and lab reports in `build/lab/`.
 - `docs/`: PRD, design docs, reference images.
 
 ## Commands
@@ -53,7 +53,7 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   put the result in the PR description.
 - `npm run lab`: the experiments' lab runs on this Mac: Chromium on Metal through Playwright, and
   the installed Safari and Firefox through lab pages that post their reports to the dev server
-  (`build/lab/`). Local only; it opens windows in both browsers.
+  (`build/lab/`). It needs no build. Local only; it opens a tab in both browsers.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking

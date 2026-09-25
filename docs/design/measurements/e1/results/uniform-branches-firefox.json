@@ -1,7 +1,8 @@
 {
  "what": "uniform-branches",
  "browser": "firefox",
- "date": "2026-09-25T21:37:02.507Z",
+ "run": "f224684f-43c6-4aa9-8012-48ae9261b9e2",
+ "date": "2026-09-25T22:02:21.580Z",
  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0",
  "report": {
   "renderer": "Apple M1, or similar",
@@ -16,14 +17,14 @@
    {
     "family": "texture",
     "variant": "on",
-    "linkMs": 4,
+    "linkMs": 5,
     "wallMsPerDraw": 5.35,
     "gpuMsPerDraw": null
    },
    {
     "family": "texture",
     "variant": "off",
-    "linkMs": 4,
+    "linkMs": 5,
     "wallMsPerDraw": 0.1,
     "gpuMsPerDraw": null
    },
@@ -31,7 +32,7 @@
     "family": "texture",
     "variant": "out",
     "linkMs": 1,
-    "wallMsPerDraw": 0.1,
+    "wallMsPerDraw": 0.05,
     "gpuMsPerDraw": null
    },
    {
@@ -45,14 +46,14 @@
     "family": "textureLod",
     "variant": "off",
     "linkMs": 2,
-    "wallMsPerDraw": 0.1,
+    "wallMsPerDraw": 0.05,
     "gpuMsPerDraw": null
    },
    {
     "family": "textureLod",
     "variant": "out",
     "linkMs": 1,
-    "wallMsPerDraw": 0.05,
+    "wallMsPerDraw": 0.1,
     "gpuMsPerDraw": null
    },
    {
@@ -73,14 +74,24 @@
     "family": "layers",
     "variant": "out",
     "linkMs": 1,
-    "wallMsPerDraw": 0.05,
+    "wallMsPerDraw": 0.1,
     "gpuMsPerDraw": null
    }
   ],
+  "timeBase": {
+   "texture": "wall",
+   "textureLod": "wall",
+   "layers": "wall"
+  },
+  "blockMsPerDraw": {
+   "texture": 5.3,
+   "textureLod": 5.25,
+   "layers": 5.6
+  },
   "paidWhenOff": {
-   "texture": 0,
-   "textureLod": 0.009,
-   "layers": 0.018
+   "texture": 0.009,
+   "textureLod": -0.01,
+   "layers": 0.009
   },
   "glError": 0
  }

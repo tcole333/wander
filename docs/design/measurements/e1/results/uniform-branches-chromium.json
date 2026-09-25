@@ -1,8 +1,9 @@
 {
  "what": "uniform-branches",
  "browser": "chromium",
- "date": "2026-09-25T21:36:53.521Z",
- "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+ "run": null,
+ "date": "2026-09-25T22:02:12.854Z",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
  "report": {
   "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)",
   "timerQuery": true,
@@ -16,71 +17,81 @@
    {
     "family": "texture",
     "variant": "on",
-    "linkMs": 77.8,
-    "wallMsPerDraw": 5.08,
-    "gpuMsPerDraw": 5.047
+    "linkMs": 7.7,
+    "wallMsPerDraw": 5.06,
+    "gpuMsPerDraw": 5.032
    },
    {
     "family": "texture",
     "variant": "off",
-    "linkMs": 77.8,
-    "wallMsPerDraw": 0.12,
+    "linkMs": 7.7,
+    "wallMsPerDraw": 0.125,
     "gpuMsPerDraw": 0.088
    },
    {
     "family": "texture",
     "variant": "out",
-    "linkMs": 34.8,
-    "wallMsPerDraw": 0.105,
-    "gpuMsPerDraw": 0.076
+    "linkMs": 0.7,
+    "wallMsPerDraw": 0.11,
+    "gpuMsPerDraw": 0.079
    },
    {
     "family": "textureLod",
     "variant": "on",
-    "linkMs": 37.7,
+    "linkMs": 0.9,
     "wallMsPerDraw": 5.065,
-    "gpuMsPerDraw": 5.035
+    "gpuMsPerDraw": 5.028
    },
    {
     "family": "textureLod",
     "variant": "off",
-    "linkMs": 37.7,
-    "wallMsPerDraw": 0.125,
-    "gpuMsPerDraw": 0.089
+    "linkMs": 0.9,
+    "wallMsPerDraw": 0.12,
+    "gpuMsPerDraw": 0.087
    },
    {
     "family": "textureLod",
     "variant": "out",
-    "linkMs": 0.9,
+    "linkMs": 0.6,
     "wallMsPerDraw": 0.105,
     "gpuMsPerDraw": 0.076
    },
    {
     "family": "layers",
     "variant": "on",
-    "linkMs": 38.7,
+    "linkMs": 0.9,
     "wallMsPerDraw": 5.26,
-    "gpuMsPerDraw": 5.226
+    "gpuMsPerDraw": 5.23
    },
    {
     "family": "layers",
     "variant": "off",
-    "linkMs": 38.7,
+    "linkMs": 0.9,
     "wallMsPerDraw": 0.195,
     "gpuMsPerDraw": 0.16
    },
    {
     "family": "layers",
     "variant": "out",
-    "linkMs": 0.7,
+    "linkMs": 0.5,
     "wallMsPerDraw": 0.105,
-    "gpuMsPerDraw": 0.075
+    "gpuMsPerDraw": 0.077
    }
   ],
+  "timeBase": {
+   "texture": "gpu",
+   "textureLod": "gpu",
+   "layers": "gpu"
+  },
+  "blockMsPerDraw": {
+   "texture": 4.953,
+   "textureLod": 4.952,
+   "layers": 5.153
+  },
   "paidWhenOff": {
    "texture": 0.002,
-   "textureLod": 0.003,
-   "layers": 0.017
+   "textureLod": 0.002,
+   "layers": 0.016
   },
   "glError": 0
  }

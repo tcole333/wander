@@ -1,7 +1,8 @@
 {
  "what": "browser-features",
  "browser": "safari",
- "date": "2026-09-25T21:38:39.139Z",
+ "run": "5aa15573-f226-49af-a986-a135003ece56",
+ "date": "2026-09-25T22:02:05.212Z",
  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15",
  "report": {
   "requestIdleCallback": false,
