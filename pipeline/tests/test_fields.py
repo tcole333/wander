@@ -159,6 +159,15 @@ def test_one_class_gives_infinite_distances_and_extreme_bytes():
     assert (open_sea.water_d == -np.inf).all() and (field_bytes(open_sea.water_d) == 0).all()
 
 
+@pytest.mark.parametrize("tile", [Tile(4, 1, 1, 0), Tile(4, 2, 3, 0)])
+def test_land_covering_a_long_clip_edge_is_land_everywhere(tile):
+    # The clip box's south edge spans up to 360° of longitude; unless it is segmentized again it
+    # reaches the raster as one chord and the land collapses.
+    band = shapely.box(-180.0, 10.0, 180.0, 90.0)
+    shore = fields(*tile_texels(tile), prepared(land_polygons=[band])).shore_d
+    assert (shore == np.inf).all() and (field_bytes(shore) == 255).all()
+
+
 def test_long_segments_give_neighbors_the_same_border_texels():
     # A coast whose source edges are 0.5° long zigzags across the shared edge of two L5 tiles
     # and closes far to the south, so each tile clips it differently.
