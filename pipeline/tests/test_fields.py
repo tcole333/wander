@@ -9,6 +9,7 @@ from prebuild.config import WaterConfig, load_fixture, load_water
 from prebuild.cube import TILE, Tile, dir_to_lonlat, st_to_dir
 from prebuild.excerpts import NEAR_LEVEL, boxes
 from prebuild.fields import (
+    RIVER_PAD_FACTOR,
     SUBPIXELS,
     FieldVectors,
     Grid,
@@ -305,6 +306,19 @@ def test_a_clip_box_pads_the_raster_by_a_tenth_of_a_degree_and_the_widest_river(
     lon, lat = dir_to_lonlat(st_to_dir(1, s[None, :], t[:, None]))
     assert west < lon.min() - 0.1 - 2.0 / 111.2 and east > lon.max() + 0.1 + 2.0 / 111.2
     assert south < lat.min() - 0.1 - 2.0 / 111.2 and north > lat.max() + 0.1 + 2.0 / 111.2
+
+
+def test_the_river_pad_covers_the_widest_ground_stretch_of_a_subpixel():
+    # The clip pad holds every river that reaches a raster while no subpixel spans more than
+    # RIVER_PAD_FACTOR nominal subpixels on the ground; the L0 raster reaches farthest off its face.
+    grid = Grid.around(*tile_texels(Tile(1, 0, 0, 0)))
+    scale = (SUBPIXELS * TILE // 2) << grid.level
+    s, t = np.meshgrid(*[np.linspace(grid.a0, grid.a0 + grid.width, 91) / scale - 1] * 2)
+    h = 1e-6
+    ds = (st_to_dir(1, s + h, t) - st_to_dir(1, s - h, t)) / (2 * h)
+    dt = (st_to_dir(1, s, t + h) - st_to_dir(1, s, t - h)) / (2 * h)
+    widest = np.linalg.svd(np.stack([ds, dt], axis=-1), compute_uv=False)[..., 0].max()
+    assert widest / (math.pi / 4) < RIVER_PAD_FACTOR
 
 
 def test_the_ne_excerpts_hold_what_each_fixture_tile_clips():
