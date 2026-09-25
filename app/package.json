@@ -14,7 +14,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:smoke": "playwright test"
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.1",
