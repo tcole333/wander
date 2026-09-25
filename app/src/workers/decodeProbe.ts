@@ -2,6 +2,7 @@
 // data server, fetch every available surface tile as the runtime fetches, decode it in the two
 // real decode workers, and report a digest of each decoded tile, its decode time in the worker and
 // whether its bounds match bounds.bin. The specs compare the digests with Node's decodeWst.
+import { tunables } from '../config/tunables';
 import { fetchData, loadSurfaceLayer } from '../data/surfaceLayer';
 import type { Release } from '../data/release';
 import { nodeIndex, parseTileKey, tileKey } from '../surface/cube';
@@ -9,10 +10,12 @@ import type { DecodedWst } from '../surface/wst';
 import { DecodePool, DECODE_WORKERS } from './decodePool';
 
 /** Fetches in flight at once: the runtime's cap (5.2, `inFlight`). */
-const IN_FLIGHT = 12;
+const IN_FLIGHT = tunables.inFlight.total;
 
 export interface DecodedTileReport {
   key: string;
+  /** The order the tile's decode finished in, from 0. */
+  order: number;
   /** SHA-256 of the decoded planes, in the order decodedPlanes() gives them. */
   digest: string;
   /** Decode time in the worker, in milliseconds. */
@@ -59,6 +62,7 @@ export async function runDecodeProbe(
   const tiles: DecodedTileReport[] = [];
   const errors: DecodeProbeReport['errors'] = [];
   const bytes = new Map<string, number>();
+  let finished = 0;
   const start = performance.now();
 
   await new Promise<void>((done) => {
@@ -87,9 +91,11 @@ export async function runDecodeProbe(
       void Promise.all(
         pool.drain().map(async (result) => {
           if ('error' in result) return errors.push(result);
+          const order = finished++;
           const expected = layer.bounds.get(nodeIndex(parseTileKey(result.key)));
           tiles.push({
             key: result.key,
+            order,
             digest: await digest(result.tile),
             ms: result.ms,
             bytes: bytes.get(result.key) ?? 0,

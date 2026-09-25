@@ -18,6 +18,11 @@ export interface LabReport<T> {
   run: string | null;
   date: string;
   userAgent: string;
+  /**
+   * Whether the page was hidden when it asked to report and when it posted. Browsers throttle
+   * hidden pages, so timings from one are not foreground timings.
+   */
+  hidden: { atStart: boolean; atPost: boolean };
   report?: T;
   error?: string;
 }
@@ -27,6 +32,7 @@ export interface LabTarget {
   what: string;
   browser: string;
   run: string | null;
+  hiddenAtStart: boolean;
 }
 
 /** The page's report target, or null when its URL does not ask it to report. */
@@ -36,7 +42,7 @@ export function labTarget(what: string): LabTarget | null {
   if (browser === null) return null;
   const name = `${what}-${browser}`;
   if (!LAB_REPORT_NAME.test(name)) throw new Error(`bad lab report name ${name}`);
-  return { what, browser, run: params.get('run') };
+  return { what, browser, run: params.get('run'), hiddenAtStart: document.hidden };
 }
 
 /** Posts the page's report as build/lab/<what>-<browser>.json. */
@@ -68,10 +74,14 @@ export function reportFailures(target: LabTarget): void {
 }
 
 async function post<T>(target: LabTarget, body: Pick<LabReport<T>, 'report' | 'error'>) {
+  const { what, browser, run, hiddenAtStart } = target;
   const report: LabReport<T> = {
-    ...target,
+    what,
+    browser,
+    run,
     date: new Date().toISOString(),
     userAgent: navigator.userAgent,
+    hidden: { atStart: hiddenAtStart, atPost: document.hidden },
     ...body,
   };
   const response = await fetch(`${LAB_REPORT_PATH}${target.what}-${target.browser}`, {
