@@ -29,6 +29,8 @@ interface Pending {
 interface Slot {
   worker: DecodeWorker;
   outstanding: number;
+  /** Set when the worker fails outright; it is terminated and gets no more requests. */
+  failed: string | null;
 }
 
 export class DecodePool {
@@ -47,7 +49,7 @@ export class DecodePool {
 
   constructor(workers: DecodeWorker[]) {
     if (workers.length === 0) throw new Error('a decode pool needs a worker');
-    this.#slots = workers.map((worker) => ({ worker, outstanding: 0 }));
+    this.#slots = workers.map((worker) => ({ worker, outstanding: 0, failed: null }));
     for (const slot of this.#slots) {
       slot.worker.onmessage = (event) => this.#receive(event.data);
       slot.worker.onerror = (event) => this.#fail(slot, event.message || 'decode worker failed');
@@ -71,11 +73,22 @@ export class DecodePool {
     return this.#pending.size;
   }
 
-  /** Transfers `buf` (so it is detached here) to the least busy worker. */
+  /**
+   * Transfers `buf` (so it is detached here) to the least busy working worker. With none left,
+   * the tile comes straight back through the ready queue with the last worker's error.
+   */
   submit(key: string, buf: ArrayBuffer): void {
-    const slot = this.#slots.reduce((best, next) =>
-      next.outstanding < best.outstanding ? next : best,
+    const working = this.#slots.filter((slot) => slot.failed === null);
+    const slot = working.reduce<Slot | undefined>(
+      (best, next) => (!best || next.outstanding < best.outstanding ? next : best),
+      undefined,
     );
+    if (!slot) {
+      const failed = this.#slots.find((each) => each.failed !== null)?.failed;
+      this.#ready.push({ key, error: failed ?? 'no decode worker' });
+      this.onready?.();
+      return;
+    }
     const id = this.#nextId++;
     this.#pending.set(id, { key, generation: this.#generation, worker: slot });
     slot.outstanding += 1;
@@ -115,8 +128,13 @@ export class DecodePool {
     this.onready?.();
   }
 
-  /** A worker that fails outright answers everything it holds with the error. */
+  /**
+   * A worker that fails outright is terminated and gets no more requests; everything it held comes
+   * back with the error.
+   */
   #fail(slot: Slot, message: string): void {
+    slot.failed = message;
+    slot.worker.terminate();
     let landed = false;
     for (const [id, pending] of this.#pending) {
       if (pending.worker !== slot) continue;
