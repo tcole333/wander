@@ -48,12 +48,12 @@ def plan(
 
 
 def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGES) -> None:
-    """Run the stages in order. A full fixture build then writes the test sidecars and, last, the
-    stamp; it clears the stamp first, so a failed or partial build never looks fresh."""
-    full_fixture = ctx.profile is Profile.FIXTURE and list(names) == default_stages(
-        ctx.profile, stages
-    )
-    if full_fixture:
+    """Run the stages in order. Every fixture run clears the stamp first, and only a full fixture
+    build then writes the test sidecars and, last, the stamp, so a failed or partial build never
+    looks fresh."""
+    fixture = ctx.profile is Profile.FIXTURE
+    full_fixture = fixture and list(names) == default_stages(ctx.profile, stages)
+    if fixture:
         clear_stamp(ctx)
     if not names and not full_fixture:
         print(f"prebuild --profile {ctx.profile}: no stages to run", flush=True)

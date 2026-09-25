@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 from pathlib import Path
@@ -122,10 +123,15 @@ def test_a_full_fixture_build_writes_the_sidecars_and_stamp(tmp_path):
     assert "inputs" in json.loads((ctx.stages_dir / "stamp.json").read_text())
 
 
-def test_a_partial_fixture_build_writes_no_stamp(tmp_path):
-    stages = recording_stages([])
-    ctx, names = plan(["--profile", "fixture", "surface"], stages=stages, repo=tmp_path)
-    run(ctx, names, stages)
+@pytest.mark.parametrize("fail", [None, "surface"], ids=["finished", "failed"])
+def test_a_partial_fixture_build_clears_the_stamp(tmp_path, fail):
+    full = recording_stages([])
+    ctx, names = plan(["--profile", "fixture"], stages=full, repo=tmp_path)
+    run(ctx, names, full)
+    partial = recording_stages([], fail=fail)
+    ctx, names = plan(["--profile", "fixture", "surface"], stages=partial, repo=tmp_path)
+    with pytest.raises(RuntimeError) if fail else contextlib.nullcontext():
+        run(ctx, names, partial)
     assert not (ctx.stages_dir / "stamp.json").exists()
 
 
