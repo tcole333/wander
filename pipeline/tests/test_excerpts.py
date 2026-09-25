@@ -10,6 +10,7 @@ from prebuild.cube import TILE, Tile, corner, dir_to_lonlat, st_to_dir
 from prebuild.excerpts import (
     CAP_BYTES,
     DETAIL_LEVEL,
+    KEPT_FIELDS,
     NEAR_LEVEL,
     WORLD_MIN_PART_DEG2,
     boxes,
@@ -18,6 +19,7 @@ from prebuild.excerpts import (
     excerpt_window,
     field_box,
     land_tiers,
+    ne_tiers,
     run,
 )
 from prebuild.gebco import Raster, bilinear, read_excerpt, read_sidecar
@@ -117,18 +119,26 @@ def test_boxes_leave_out_boxes_inside_another():
     assert len(boxes(fixture, DETAIL_LEVEL)) == 4
 
 
-def test_the_ne_excerpts_name_their_pinned_zips_and_tiers():
-    fixture = load_fixture()
-    near = [list(b) for b in boxes(fixture, NEAR_LEVEL)]
-    detail = [list(b) for b in boxes(fixture, DETAIL_LEVEL)]
-    for name in ZIPS:
-        sidecar = json.loads((NE_DIR / f"{name}.json").read_text(encoding="utf-8"))
-        tiers = {tier["name"]: tier for tier in sidecar["tiers"]}
-        assert tiers["near"]["boxes"] == near
-        if "detail" in tiers:
-            assert tiers["detail"]["boxes"] == detail
-        layer = read_excerpt_layer(NE_DIR, name)
-        assert set(layer.attrs["tier"]) <= set(tiers)
+def ne_sidecar(name):
+    return json.loads((NE_DIR / f"{name}.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("name", list(ZIPS))
+def test_each_ne_sidecar_records_the_tiers_the_code_cuts(name):
+    # A JSON round trip turns the boxes' tuples into the lists the sidecar holds.
+    assert ne_sidecar(name)["tiers"] == json.loads(json.dumps(ne_tiers(load_fixture())[name]))
+
+
+@pytest.mark.parametrize("name", list(ZIPS))
+def test_each_ne_row_belongs_to_a_recorded_tier(name):
+    recorded = {tier["name"] for tier in ne_sidecar(name)["tiers"]}
+    assert set(read_excerpt_layer(NE_DIR, name).attrs["tier"]) <= recorded
+
+
+@pytest.mark.parametrize("name", list(ZIPS))
+def test_each_ne_excerpt_keeps_the_columns_the_code_keeps(name):
+    kept = ("featurecla",) if name == "land" else KEPT_FIELDS[name]
+    assert list(ne_sidecar(name)["fields"]) == [*kept, "tier"]
 
 
 def test_land_is_dissolved_into_one_row_per_tier():
