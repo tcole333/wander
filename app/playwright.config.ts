@@ -5,8 +5,12 @@ const port = 4173;
 export default defineConfig({
   testDir: 'e2e',
   forbidOnly: !!process.env.CI,
-  reporter: process.env.CI ? [['github'], ['list']] : 'list',
-  use: { baseURL: `http://127.0.0.1:${port}` },
+  reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : 'list',
+  use: {
+    baseURL: `http://127.0.0.1:${port}`,
+    screenshot: 'only-on-failure',
+    trace: 'retain-on-failure',
+  },
   projects: [
     {
       // CI's software renderer. SwiftShader screenshots misrepresent the look and timing, so
