@@ -5,28 +5,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-
-/** release.json's `surface`: what the runtime needs to find, place and bound the surface tiles. */
-export interface SurfaceRelease {
-  ver: string;
-  maxLevel: number;
-  /** Meters per height code, by level. */
-  qLand: number[];
-  /** The code for −200 m, by level. */
-  c200: number[];
-  /** Base64 availability bitmap, one bit per node in node order (3.0 item 8). */
-  avail: string;
-  /** The key of the layer's bounds.bin. */
-  bounds: string;
-}
-
-/** The part of release.json this far along: every stage adds its section. */
-export interface Release {
-  id: string;
-  built: string;
-  dataHost: string;
-  surface: SurfaceRelease;
-}
+import type { Release, SurfaceRelease } from '../src/data/release.ts';
 
 interface CoverageRecord {
   qLand: number[];
