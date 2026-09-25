@@ -1072,7 +1072,16 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   every tile in `build/region/` and checks, with the fixture's seam code:
   - within a face, mip 0-2 border identity for every pair of available neighbors, and edge-profile
     identity for every such pair and every pair across a face edge
-  - the cross-face border bound above on every face edge
+  - the cross-face border bound above on every face edge, widened for real terrain: 2 codes plus a
+    third of the range's width, and a border texel the coastal clamp reaches is not compared when
+    none of the neighbor's 3×3 lies on its side of the shore (the two grids then disagree about a
+    feature narrower than a texel). The region's 15″, 1′ and 4′ sources are rougher than the
+    fixture's excerpts: away from the shore the largest miss past ±2 codes is 30.8% of the range's
+    width, so a third passes all 849,920 border texels, a quarter misses 11 and an eighth 122, and
+    the shore rule excuses one 44 m islet in Korea Bay [M `work/surface-bake/region-bake.json`].
+    A one-texel slip along an edge still misses hundreds of texels, and a reversed edge far more.
+    Whether a shading seam shows stays E2's call; if it does, face-edge border texels can be
+    resampled from the neighbor's grid.
   - each header's codeMin and codeMax against its planes and edge profiles, and `bounds.bin`
     against the decoded meter bounds
   - availability against the files present, which hash to the layer's version
