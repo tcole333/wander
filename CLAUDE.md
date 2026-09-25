@@ -51,6 +51,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `--use-angle=metal`), local only. It is the start of the GPU matrix
   (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
   put the result in the PR description.
+- `npm run lab`: the experiments' lab runs on this Mac: Chromium on Metal through Playwright, and
+  the installed Safari and Firefox through lab pages that post their reports to the dev server
+  (`build/lab/`). Local only; it opens windows in both browsers.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
