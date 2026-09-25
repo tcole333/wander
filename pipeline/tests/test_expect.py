@@ -4,10 +4,11 @@ import math
 import numpy as np
 import pytest
 
-from prebuild.cube import TILE, face_st, lonlat_to_dir, st_to_dir, texel_center
-from prebuild.expect import KIRKUK_VERTEX, sample_points, write_expectations
+from prebuild.cube import TILE, face_st, lonlat_to_dir, parse_tile_key, st_to_dir, texel_center
+from prebuild.expect import KIRKUK_VERTEX, sample_points, synthetic_tiles, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.profiles import Profile, make_context
+from prebuild.wst import bounds_m, decoder_outputs, from_file
 
 FIELDS = ["lon", "lat", "L", "f", "x", "y", "node", "s", "t", "i", "j", "center"]
 
@@ -80,3 +81,66 @@ def test_sample_floats_survive_json_exactly(built):
     _, samples = built
     values = np.array([[s["s"], s["t"], *s["center"]] for s in samples])
     assert np.array_equal(np.array(json.loads(json.dumps(values.tolist()))), values)
+
+
+# Synthetic .wst tiles and what they decode to (streaming.md 3.1)
+
+OUTPUT_BYTES = {
+    "codes": 264 * 264 * 2,
+    "shore": 264 * 264,
+    "water": 264 * 264,
+    "height0": 264 * 264 * 2,
+    "height1": 132 * 132 * 2,
+    "height2": 66 * 66 * 2,
+    "channel0": 264 * 264 * 2,
+    "channel1": 132 * 132 * 2,
+    "channel2": 66 * 66 * 2,
+    "edges": 4 * 257 * 2,
+    "grid": 33 * 33 * 4,
+}
+
+
+@pytest.fixture(scope="module")
+def synthetic(built):
+    ctx, _ = built
+    expect = ctx.stages_dir / "expect"
+    return expect, json.loads((expect / "synthetic.json").read_text())
+
+
+def test_the_synthetic_sidecar_lists_every_synthetic_tile(synthetic):
+    _, rows = synthetic
+    tiles = synthetic_tiles()
+    assert [row["name"] for row in rows] == list(tiles)
+    assert [row["key"] for row in rows] == [t.tile.key() for t in tiles.values()]
+
+
+def test_each_synthetic_file_decodes_to_its_tile(synthetic):
+    expect, rows = synthetic
+    for row, t in zip(rows, synthetic_tiles().values(), strict=True):
+        decoded = from_file((expect / row["wst"]).read_bytes(), parse_tile_key(row["key"]))
+        assert np.array_equal(decoded.codes, t.codes), row["name"]
+        assert row["header"] == {
+            "face": t.tile.face,
+            "level": t.tile.level,
+            "x": t.tile.x,
+            "y": t.tile.y,
+            "flags": t.flags,
+            "qLand": t.q_land,
+            "qDeep": 4 * t.q_land,
+            "codeMid": t.code_mid,
+            "codeMin": t.code_min,
+            "codeMax": t.code_max,
+        }
+        assert row["boundsM"] == list(bounds_m(t))
+
+
+def test_each_synthetic_output_is_a_little_endian_array_of_its_size(synthetic):
+    expect, rows = synthetic
+    for row, t in zip(rows, synthetic_tiles().values(), strict=True):
+        assert {name: (expect / path).stat().st_size for name, path in row["outputs"].items()} == (
+            OUTPUT_BYTES
+        )
+        grid = np.frombuffer((expect / row["outputs"]["grid"]).read_bytes(), "<f4")
+        assert np.array_equal(grid, decoder_outputs(t)["grid"].ravel()), row["name"]
+        codes = np.frombuffer((expect / row["outputs"]["codes"]).read_bytes(), "<i2")
+        assert np.array_equal(codes, t.codes.ravel()), row["name"]
