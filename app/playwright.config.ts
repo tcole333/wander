@@ -45,8 +45,8 @@ const lab: Project = {
 
 const LAB = !!process.env.WANDER_LAB;
 
-// vite preview serves the production build for the smoke test; the lab needs only the dev server
-// and the region bake.
+// vite preview serves the production build for the smoke test; the lab needs only the dev server.
+// Lab specs that read the region bake start its data server themselves.
 const preview = {
   command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
   url: PREVIEW_URL,
@@ -57,8 +57,7 @@ const dev = {
   url: DEV_URL,
   reuseExistingServer: !process.env.CI,
 };
-// A build served as R2 serves it: the fixture for every run (CI builds it first), the region bake
-// for lab runs.
+// The fixture served as R2 serves it, for every run but the lab's (CI builds it first).
 const data = (profile: Profile) => ({
   command: `node scripts/dataServer.ts --profile ${profile}`,
   url: `${DATA_URL[profile]}/release.json`,
@@ -75,5 +74,5 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: process.env.CI ? [swiftshader] : LAB ? [lab] : [swiftshader, gpuChromium],
-  webServer: LAB ? [dev, data('region')] : [preview, dev, data('fixture')],
+  webServer: LAB ? [dev] : [preview, dev, data('fixture')],
 });
