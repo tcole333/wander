@@ -8,8 +8,8 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 
 ## Status
 
-Milestone 1 (the Tambora slice) is under way. The app is a placeholder, the prebuild has no
-stages yet, and hosting and CI are live.
+Milestone 1 (the Tambora slice) is under way. The app is a placeholder, the prebuild has its
+profiles and the cube conventions but no data stages yet, and hosting and CI are live.
 
 ## Layout
 
@@ -35,10 +35,17 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `npm ci`, then `npm run dev`: the app on Vite's dev server, reading production data from
   `wander-data.traviscole.xyz`.
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
+- `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
+  uv) into `build/fixture/` and `build/stages/fixture/`. Vitest checks against it and fails,
+  naming this command, when it is missing or was built from other pipeline code, shared constants
+  or excerpts than the working tree holds.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run build`, then `npm run e2e`: Playwright against that build in `app/dist/` (it does not
   rebuild), on SwiftShader as in CI. Run `npx playwright install chromium` once first.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
+- `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
+  (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
+  every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`.
 
 ## Hosting
 
