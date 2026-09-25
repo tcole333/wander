@@ -674,26 +674,39 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 ### 5.5 Pools, residency, eviction
 
 - **Pool recipe (`app/src/gpu/gpuPool.ts`):**
-  1. `new DataArrayTexture(null, 264, 264, slots)` with the channel's format and type (132² for
-     overlays). Set `generateMipmaps = false`, `mipmaps = [{}, {}, {}]` (two entries for overlays) so
-     three allocates that many levels in `texStorage3D`, `minFilter = LinearMipmapLinearFilter`,
-     `source.dataReady = false` so no full-array upload runs, then `needsUpdate = true` and
-     `renderer.initTexture(pool)` at boot.
-  2. Uploads go through per-size staging `DataTexture`s (264, 132, 66) that are never given to a
-     material or `initTexture`. `copyTextureToTexture(staging, pool, null, (0, 0, slot), 0, mip)` then
-     takes its `texSubImage3D` path, not the framebuffer path (which R16F cannot use without
-     `EXT_color_buffer_float`), and does not regenerate mips [S three 0.186.1 `WebGLTextures.js`
-     L296-320 and ~L1168; `WebGLRenderer.js` L3336, L3460, L3562].
+  1. `new DataArrayTexture(null, 264, 264, slots)` (132² for overlays). The constructor takes no
+     format or type, so set the channel's `format` and `type` after construction.
+     - Set `generateMipmaps = false` and `mipmaps` to real level descriptors,
+       `{data, width: 264 >> l, height: 264 >> l}` with an empty `data` array of the channel's type,
+       one per level (three; two for overlays). Three reads only their count and allocates that many
+       levels in `texStorage3D`.
+     - Set `magFilter = LinearFilter` and `minFilter = LinearMipmapLinearFilter`. The default
+       Nearest magnification returns one texel at lod 0 instead of the mean at a texel corner, where
+       mesh vertices sit, which breaks seams.
+     - `source.dataReady = false` (no full-array upload), `needsUpdate = true` (otherwise three
+       binds its placeholder texture) and `flipY = false` (3D uploads reject it) are all required.
+     - Call `renderer.initTexture(pool)` at boot. Filters, wrap, format, type, internal format,
+       `generateMipmaps`, `flipY`, unpack alignment, color space and premultiply are fixed from then
+       on: a later change is either ignored or reallocates the array and empties every slot.
+  2. Uploads go through per-size staging `DataTexture`s (264, 132, 66), each the size of its level,
+     that stay unknown to the renderer: never given to a material, a uniform or `initTexture`.
+     `copyTextureToTexture(staging, pool, null, (0, 0, slot), 0, mip)`, with `srcLevel` 0, then
+     takes its `texSubImage3D` path and does not regenerate mips. The framebuffer path would also
+     work, since three enables `EXT_color_buffer_float`, but it adds a GPU copy and framebuffer
+     attach calls to every write [S three 0.186.1 `WebGLTextures.js` L296-318, L1168, L1174, L1178;
+     `WebGLRenderer.js` L3336, L3460, L3521, L3562, L3605-3607].
   3. The level count relies on `getMipLevels` returning `mipmaps.length` in the pinned three version.
-     The CI pool smoke test writes mip 2 of one slot, samples it back with `textureLod`, and asserts
-     `gl.getError() === 0`.
+     The pool smoke test (7.3) writes mip 2 of one slot, samples it back with `textureLod`, checks
+     the exact GL calls three makes, and asserts `gl.getError() === 0`.
 - **Allocation:** every pool, the climate ring and annual arrays, the previews, and the indirection and
-  draw-index textures are allocated at boot. Each is touched once behind the poster, because ANGLE may
-  zero-fill lazily on first use [E]. None is ever reallocated.
-- **Sizes:** surface 160 / 256 slots (lite / full). Overlay `overlaySlots` to start; E3 counts the peak
-  with every layer on and resizes to the peak plus 25%. No array may exceed 256 layers, the ES3 minimum
-  [S]; a peak above that is absorbed by the coarser-ancestor rule below, not by a second array (which
-  would cost a sampler).
+  draw-index textures are allocated at boot. Each is touched once behind the poster (a pool's
+  `warm()` step, one draw), because ANGLE may zero-fill lazily on first use [E]. None is ever
+  reallocated.
+- **Sizes:** surface 160 / 256 slots (lite / full), with the edge profiles in a 257 × 4 R16F array
+  (Nearest, one level). Overlay `overlaySlots` to start; E3 counts the peak with every layer on and
+  resizes to the peak plus 25%. No array may exceed 256 layers, the ES3 minimum [S]; a peak above
+  that is absorbed by the coarser-ancestor rule below, not by a second array (which would cost a
+  sampler).
 - **Fixed slots:** L0-L1 (30 tiles) sit at slots 0-29. The shader reads the L1 ancestor's shoreline for
   the broad coastal bevel, whose weight fades in over `bevelFade` once all 24 L1 tiles are resident.
 - **Slot safety:** to publish a tile, upload all its parts, write its residency or indirection entry,
