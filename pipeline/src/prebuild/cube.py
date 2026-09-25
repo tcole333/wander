@@ -235,12 +235,24 @@ def profile_owner(t: Tile, edge: Edge, k: int) -> tuple[Tile, Edge, int]:
     if not 0 <= k <= TILE:
         raise ValueError(f"edge entry {k} is outside 0..{TILE}")
     full = TILE << t.level
-    cs, ct = _edge_corner(t, edge, k)
+    cs, ct = edge_corner(t, edge, k)
     candidates = [(t.face, cs, ct)]
     for face_edge in _face_edges_at(cs, ct, full):
         candidates.append(_across_face_edge(t.face, face_edge, cs, ct, full))
     face, cs, ct = min(candidates)
     return _address(face, t.level, cs, ct)
+
+
+def edge_corner(t: Tile, edge: Edge, k: int) -> tuple[int, int]:
+    """Face-global texel corner of entry k of the tile's edge."""
+    x0, y0 = TILE * t.x, TILE * t.y
+    corners = {
+        "N": (x0 + k, y0 + TILE),
+        "E": (x0 + TILE, y0 + k),
+        "S": (x0 + k, y0),
+        "W": (x0, y0 + k),
+    }
+    return corners[edge]
 
 
 def avail_get(bitmap: bytes | bytearray, k: int) -> bool:
@@ -262,18 +274,6 @@ def _integers(values: npt.ArrayLike) -> IntArray:
     if not np.issubdtype(array.dtype, np.integer):
         raise TypeError(f"face-global indices must be integers, not {array.dtype}")
     return array.astype(np.int64)
-
-
-def _edge_corner(t: Tile, edge: Edge, k: int) -> tuple[int, int]:
-    """Face-global texel corner of entry k of the tile's edge."""
-    x0, y0 = TILE * t.x, TILE * t.y
-    corners = {
-        "N": (x0 + k, y0 + TILE),
-        "E": (x0 + TILE, y0 + k),
-        "S": (x0 + k, y0),
-        "W": (x0, y0 + k),
-    }
-    return corners[edge]
 
 
 def _face_edges_at(cs: int, ct: int, full: int) -> list[Edge]:
