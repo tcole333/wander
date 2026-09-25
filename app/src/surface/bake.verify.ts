@@ -51,7 +51,7 @@ const BOUNDS_BYTES = 1 << 20;
 const SHOWN = 20; // failures listed per check; the count covers the rest
 // Georgian Bay lies inside NE's Lake Huron polygon, so it stays water only because the lakes are
 // unioned before the even-odd fill (streaming.md 3.1). This point is about 40 km from its shore,
-// and about 720 km from the New England region's center, so its tiles are baked at L0-L6.
+// and about 780 km from the New England region's center, so its tiles are baked at L0-L6.
 const GEORGIAN_BAY = { lon: -81.1, lat: 45.58, deepestLevel: 6 };
 // Lake Huron's main body: every point within 30 km of this one, about 73 km from the shore.
 const LAKE_HURON = { lon: -82.35, lat: 44.73, radiusKm: 30 };
