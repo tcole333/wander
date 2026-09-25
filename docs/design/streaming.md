@@ -953,8 +953,9 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
   profile takes the tiles `fixture.yaml` lists. Availability is built top down, so L6 and L7 need
   their parent, and asserted closed upward. A tile is in a region when one of its 33² mesh corners
   lies within the region's radius for that level, or the region's center lies in the tile.
-- **Python stack:** Python 3.14.6 with numpy, netCDF4, PyYAML, shapely, pyogrio and scipy, pinned
-  exactly in `uv.lock` (owner decision 14).
+- **Python stack:** the surface core runs on Python 3.14.6 with numpy, netCDF4, PyYAML, shapely,
+  pyogrio and scipy, pinned exactly in `uv.lock` (owner decision 14). xarray arrives with `modera`,
+  and each later stage pins what it adds, such as fontTools for `labels`.
 - **Incremental builds:** each stage is deterministic: sorted iteration, gzip level 9 with mtime 0,
   and libraries pinned in `uv.lock`. A layer's version is a hash of its output bytes (`<ver8>`,
   section 3), so an unchanged layer reproduces its version and uploads nothing. A story text edit
