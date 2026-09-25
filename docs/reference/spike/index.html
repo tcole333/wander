@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wander Orrery Spike</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./node_modules/three/build/three.module.js",
+    "three/addons/": "./node_modules/three/examples/jsm/",
+    "pmtiles": "./node_modules/pmtiles/dist/esm/index.js",
+    "fflate": "./node_modules/fflate/esm/browser.js",
+    "@mapbox/vector-tile": "./node_modules/@mapbox/vector-tile/index.js",
+    "@mapbox/point-geometry": "./node_modules/@mapbox/point-geometry/index.js",
+    "pbf": "./node_modules/pbf/index.js"
+  }
+}
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-state="loading">
+  <div id="stage" aria-label="Orrery globe" role="img"></div>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header class="mark">
+    <div class="word">WANDER</div>
+    <div class="rule"><span></span><i>✦</i><span></span></div>
+    <div class="sub">AN INTERACTIVE HISTORY</div>
+  </header>
+
+  <article id="account" class="parchment">
+    <div class="date"></div>
+    <h1></h1>
+    <p class="body"></p>
+    <p class="detail"></p>
+    <button id="close-btn" class="cta">Zoom closer for the full account <span aria-hidden="true">☞</span></button>
+  </article>
+
+  <aside id="meanwhile" class="brass-panel">
+    <h2>Meanwhile, elsewhere —</h2>
+    <ul id="meanwhile-list"></ul>
+  </aside>
+
+  <nav id="scenes" class="brass-panel" aria-label="Camera">
+    <button data-scene="world">World</button>
+    <button data-scene="region">Region</button>
+    <button data-scene="close">Close</button>
+  </nav>
+
+  <div id="baking">Casting the globe from the pinned release…</div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
