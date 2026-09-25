@@ -1,0 +1,35 @@
+{
+  "formats": {
+    "surfaceTile": { "magic": "WST1", "version": 1 },
+    "overlayTile": { "magic": "WOT1", "version": 1 },
+    "borderPreviews": { "magic": "WBP1", "version": 1 },
+    "climate": { "magic": "WCY1", "version": 1 },
+    "effect": { "magic": "WFX1", "version": 1 }
+  },
+  "sentinels": {
+    "empty": 65535,
+    "hasFileOrConstant": 65534,
+    "featureNone": 0,
+    "featureMax": 65533,
+    "spreadNever": 65535,
+    "spreadNeverHalf": 65504,
+    "climateMissing": 255,
+    "eventParentNone": -1
+  },
+  "layers": [
+    "relief",
+    "bathymetry",
+    "coastline",
+    "landSea",
+    "water",
+    "graticule",
+    "labels",
+    "borders",
+    "ecoregions",
+    "petroleum",
+    "mountains",
+    "minerals",
+    "climate",
+    "events"
+  ]
+}
