@@ -91,7 +91,8 @@ imported by TypeScript.
 
 **Cube sphere** (`cube.py` and `cube.ts` implement exactly this):
 1. Globe frame G, right-handed: +X = (0°N, 0°E), +Y = (0°N, 90°E), +Z = north pole. three.js space is
-   (G.y, G.z, G.x): north is +Y and longitude 0 faces +Z.
+   (G.y, G.z, G.x): north is +Y and longitude 0 faces +Z. Distances use the mean Earth radius
+   R = 6,371,008.8 m.
 2. Faces as (center C, U, V):
 
    | Face | C | U | V |
@@ -103,25 +104,55 @@ imported by TypeScript.
    | 4 (+Z) | (0,0,1) | (0,1,0) | (−1,0,0) |
    | 5 (−Z) | (0,0,−1) | (0,1,0) | (1,0,0) |
 
-   U × V = C on every face. Faces 0, 1 and 4 meet at the Kirkuk corner (45°E, 35.26°N).
+   U × V = C on every face. Faces 0, 1 and 4 meet at the Kirkuk corner (45°E, 35.26°N), so each
+   level has three corner tiles there: face 0 (n−1, n−1), face 1 (0, n−1) and face 4 (n−1, 0).
 3. `p = normalize(C + tan(πs/4)·U + tan(πt/4)·V)`, with s, t in [−1, 1]. The inverse is
    `s = (4/π)·atan((p·U)/(p·C))`, and likewise t with V. A point belongs to the face of its largest
    |component| (the sign picks + or −); ties go to the lowest face index.
 4. Tile (f, L, x, y): n = 2^L; x runs along U and y along V; y = 0 at t = −1; s spans
    [−1 + 2x/n, −1 + 2(x+1)/n], and t likewise.
-5. Texel (i, j), with i, j in −4..259, is centered at `s0 + (i + 0.5)·(2/n)/256` (and likewise t). Border
-   texels beyond a face edge use the same formula (tan stays finite) and sample the source there. The
-   stored index is i + 4; row 0 is j = −4 (smallest t); textures upload with `flipY = false`.
+5. Positions are exact binary fractions of face-global integers, so a border texel and the
+   neighboring tile's interior texel at the same place get bit-identical coordinates (a per-tile form
+   such as `s0 + (i + 0.5)·(2/n)/256` can round differently in the two tiles). With G = 256x + i
+   (t likewise, from y and j):
+   - texel (i, j), with i, j in −4..259, is centered at s = −1 + (2G + 1)/(256n)
+   - height sub-sample a in 0..3 (4×4 per texel, 3.1): s = −1 + (8G + 2a + 1)/(1024n)
+   - texel corner c in 0..256: s = −1 + (256x + c)/(128n)
+   - shore and water subpixel A (3.1): s = −1 + (2A + 1)/(1024n). Sub-samples and subpixels are the
+     same points (A = 4G + a).
+
+   Border texels beyond a face edge use the same formulas (tan stays finite) and sample the source
+   there. The stored index is i + 4; row 0 is j = −4 (smallest t); textures upload with
+   `flipY = false`.
 6. Tile-local τ in [0, 1] maps to `uv = (4 + 256τ)/264`, which is the same uv at mips 1 and 2 (and
    `(2 + 128τ)/132` for overlays). Mesh vertex k of 33 sits at texel corner 8k (16k on the 17² grid).
 7. Edges: N is corner row 256 (t max), S is row 0, E is column 256, W is column 0. Entries run in
-   increasing s (N, S) or increasing t (E, W). On a face edge the build writes the shared values in each
-   tile's own order, reversed where the two faces' parameters run opposite.
+   increasing s (N, S) or increasing t (E, W). Across a face edge, each face meets this neighbor edge:
+
+   | Face | N | E | S | W |
+   |---|---|---|---|---|
+   | 0 | 4 S | 1 W | 5 N | 3 E |
+   | 1 | 4 E | 2 W | 5 E, rev | 0 E |
+   | 2 | 4 N, rev | 3 W | 5 S, rev | 1 E |
+   | 3 | 4 W, rev | 0 W | 5 W | 2 E |
+   | 4 | 2 N, rev | 1 N | 0 N | 3 N, rev |
+   | 5 | 0 S | 1 S, rev | 2 S, rev | 3 S |
+
+   Eight of the 12 face edges run the same way on both faces. On the four reversed ones (2N–4N,
+   3N–4W, 1S–5E, 2S–5S), entry k is the neighbor's entry 256 − k, and along-edge tile index a is the
+   neighbor's n − 1 − a. On a face edge the build writes the shared values in each tile's own order.
+   Each edge-profile entry has one owner: the lowest-numbered face among the faces that meet at its
+   corner point, read from this table, never from a float comparison (3.1, Edges).
 8. Node index (availability bitmap, `index.bin`, `bounds.bin`) = `2(4^L − 1) + f·4^L + y·2^L + x`. Bit
    k is byte k>>3, bit k&7, least significant bit first.
-9. Cross-check: the fixture build writes Python samples (lon, lat, L) → (f, x, y, s, t, texel-center
-   vector). Vitest requires 1e-9 on s and t, and equal keys only for points at least 1e-6 of a tile
-   width from an edge (numpy and V8 may differ in the last ulp of `atan`).
+9. Cross-check: the fixture build writes Python samples to
+   `build/stages/fixture/expect/cube-samples.json`, with fields lon, lat, L, f, x, y, node, s, t, i, j
+   and center (the texel-center vector in G). Vitest compares s and t in Python's face frame:
+   `cube.ts` evaluates `faceSt(py.f, p)` on its own direction vector p, within 1e-9. f, x, y and node
+   must be equal when the point is at least 1e-8 (in s and in t) from every tile edge, face edges
+   included; i, j and the center vector (at most 1e-12 per component) must be equal when it is at
+   least 1e-8 from every texel edge. Nearer an edge, numpy and V8 may differ in the last ulp of
+   `atan` and pick different tiles or texels.
 
 **Equirect rasters** (spread fields, border previews, ModE-RA): row 0 is the northmost. Texel (i, j) is
 centered at lon = west + (i + 0.5)·(east − west)/w and lat = north − (j + 0.5)·(north − south)/h. West is
@@ -963,8 +994,8 @@ Intel Iris Xe laptop before launch. "The target machines" below means these two 
   ready. Lite then drops bicubic, then plume particles, then shadow refresh.
 
 **E2. LOD seams and the pool path across a cube edge.**
-- **Setup:** four tiles meeting at the Kirkuk corner with three source levels, the pool recipe (5.5) and
-  the seam rules (5.6), plus an L7 cell at Sumbawa for the attachment check.
+- **Setup:** the three tiles meeting at the Kirkuk corner (3.0 item 2) with three source levels, the
+  pool recipe (5.5) and the seam rules (5.6), plus an L7 cell at Sumbawa for the attachment check.
 - **Script:** delayed children, mixed neighbor densities, reverse zoom, exaggeration ×8 and ×16, and
   layer toggles while moving, at 300 km and 30 km views (30 km may need a debug override of the zoom
   floor).
