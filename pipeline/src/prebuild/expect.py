@@ -5,6 +5,7 @@ build/stages/fixture/expect/ and the stamp that tells the Vitest fixture loader 
 import itertools
 import json
 import math
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -36,13 +37,17 @@ from prebuild.wst import (
     S,
     W,
     WstTile,
+    bounds_m,
+    decoder_outputs,
     tile_flags,
+    to_file,
 )
 
 SUMBAWA = (118.0, -8.25)
 TAMBORA_SUMMIT = (117.9604, -8.2479)  # the GEBCO maximum on the rim
 KIRKUK_VERTEX = (45.0, math.degrees(math.atan(math.sqrt(0.5))))  # where faces 0, 1 and 4 meet
 LEVELS = range(8)
+SYNTHETIC = "synthetic"  # the synthetic .wst tiles and what they decode to, under expect/
 
 
 def stamp_path(ctx: Context) -> Path:
@@ -63,6 +68,7 @@ def write_expectations(ctx: Context, inputs: str) -> None:
     expect.mkdir(parents=True, exist_ok=True)
     samples = [cube_sample(lon, lat, level) for lon, lat, level in sample_points()]
     (expect / "cube-samples.json").write_text(_json_rows(samples), encoding="utf-8")
+    write_synthetic(expect)
     stamp = {"inputs": inputs, "paths": list(FIXTURE_PATHS)}
     write_json(stamp_path(ctx), stamp)
 
@@ -110,6 +116,45 @@ def synthetic_tiles() -> dict[str, WstTile]:
     (streaming.md 3.1). The bake that makes real planes comes later; these are built to reach the
     corners of the format."""
     return {"extremes": _extremes(), "trench": _trench(), "random": _random()}
+
+
+def write_synthetic(expect: Path) -> None:
+    """Each synthetic tile as a stored file, the planes and decoder outputs it must decode to as
+    raw little-endian arrays, and `synthetic.json` listing the tiles with their header fields and
+    meter bounds."""
+    shutil.rmtree(expect / SYNTHETIC, ignore_errors=True)
+    rows = []
+    for name, t in synthetic_tiles().items():
+        stored = f"{SYNTHETIC}/{name}.wst"
+        _write_bytes(expect / stored, to_file(t))
+        planes = {"codes": t.codes, "shore": t.shore, "water": t.water}
+        outputs = {}
+        for output, values in {**planes, **decoder_outputs(t)}.items():
+            outputs[output] = f"{SYNTHETIC}/{name}/{output}.bin"
+            little = values.astype(values.dtype.newbyteorder("<"))
+            _write_bytes(expect / outputs[output], little.tobytes())
+        rows.append(
+            {
+                "name": name,
+                "key": t.tile.key(),
+                "wst": stored,
+                "header": {
+                    "face": t.tile.face,
+                    "level": t.tile.level,
+                    "x": t.tile.x,
+                    "y": t.tile.y,
+                    "flags": t.flags,
+                    "qLand": t.q_land,
+                    "qDeep": t.q_deep,
+                    "codeMid": t.code_mid,
+                    "codeMin": t.code_min,
+                    "codeMax": t.code_max,
+                },
+                "boundsM": list(bounds_m(t)),
+                "outputs": outputs,
+            }
+        )
+    write_json(expect / f"{SYNTHETIC}.json", rows)
 
 
 def edge_profiles(codes: npt.ArrayLike) -> npt.NDArray[np.int64]:
@@ -187,6 +232,11 @@ def _random() -> WstTile:
         water=field_bytes(water_d),
         edges=edge_profiles(codes),
     )
+
+
+def _write_bytes(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
 
 
 def _json_rows(rows: list[dict[str, Any]]) -> str:
