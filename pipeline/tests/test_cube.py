@@ -170,11 +170,12 @@ def test_subsamples_are_the_subpixel_centers():
 def test_border_texels_equal_the_next_tiles_interior(level):
     n = 1 << level
     for x in range(n - 1):
+        next_s0 = -1 + Fraction(2 * (x + 1), n)  # where tile x + 1 starts (streaming.md 3.0)
         border = texel_center(level, TILE * x + np.arange(256, 260))
-        interior = texel_center(level, TILE * (x + 1) + np.arange(0, 4))
-        assert np.array_equal(border, interior)
-        assert np.array_equal(st_to_dir(0, border, 0.25), st_to_dir(0, interior, 0.25))
-        assert corner(level, TILE * x + 256) == corner(level, TILE * (x + 1))
+        assert [Fraction(v) for v in border] == [
+            next_s0 + Fraction(2 * k + 1, 256 * n) for k in range(4)
+        ]
+        assert Fraction(corner(level, TILE * x + 256)) == next_s0
 
 
 def test_positions_reject_non_integer_indices():
