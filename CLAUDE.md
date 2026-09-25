@@ -23,7 +23,9 @@ Paths in the docs are relative to the repo root, except the measurement citation
   sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels and the layer order, read by both projects.
 - `stories/<story>/`: one folder per story: `story.md`, its datasets, audio and `story.lock.json`.
-- `build/`: prebuild output (git-ignored): `build/out/` in the R2 key layout, `build/fixture/`.
+- `build/`: prebuild output (git-ignored): one root per profile in the R2 key layout (`build/out/`
+  for global, `build/region/`, `build/fixture/`), stage records in `build/stages/<profile>/` and
+  caches in `build/cache/`.
 - `docs/`: PRD, design docs, reference images.
 
 ## Commands
@@ -51,10 +53,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 
 Raw sources live outside the repo in the raw-data folder `~/projects/wander-data` (see its
 `README.md` and `manifest.json`); not to be confused with the R2 bucket of the same name. The
-prebuild takes that folder's location as configuration (suggested: a `WANDER_DATA` environment
-variable). Raw data (about 6 GB) is never committed. Tests (and, once the fixture build lands,
-`npm run dev:fixture`) run on small excerpts committed to the repo, and `npm run dev` reads
-production data, so a fresh clone works without the raw-data folder.
+prebuild reads that folder from `$WANDER_DATA`, defaulting to `~/projects/wander-data`, and
+`pipeline/sources.toml` is the registry that pins each input; the build does not read
+`manifest.json`. Raw data (about 13 GB, with GEBCO unzipped) is never committed. Tests (and, once
+the fixture build lands, `npm run dev:fixture`) run on small excerpts committed to the repo, and
+`npm run dev` reads production data, so a fresh clone works without the raw-data folder.
 
 ## Working here
 
