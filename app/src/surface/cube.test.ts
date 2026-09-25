@@ -77,6 +77,21 @@ function edgePoint(edge: Edge, along: number, across: number): [number, number] 
   return edge === 'N' || edge === 'S' ? [along, across] : [across, along];
 }
 
+/** Direction of entry k (0..256) along a tile's edge: N and S run along s, E and W along t. */
+function edgeEntry(t: Tile, edge: Edge, k: number): Vec3 {
+  const gx = TILE * t.x;
+  const gy = TILE * t.y;
+  const [cs, ct] =
+    edge === 'N'
+      ? [gx + k, gy + TILE]
+      : edge === 'S'
+        ? [gx + k, gy]
+        : edge === 'E'
+          ? [gx + TILE, gy + k]
+          : [gx, gy + k];
+  return stToDir(t.face, corner(t.level, cs), corner(t.level, ct));
+}
+
 const faceEdgeEntries = FACE_EDGES.flatMap((edges, face) =>
   EDGES.map((edge) => ({ face, edge, to: edges[edge] })),
 );
@@ -326,6 +341,31 @@ describe('neighbors', () => {
         });
       }
     }
+  });
+
+  it('meet their neighbor entry for entry through level 3', () => {
+    const off: string[] = [];
+    for (const t of allTiles(3)) {
+      for (const edge of EDGES) {
+        const across = neighbor(t, edge);
+        for (let k = 0; k <= TILE; k += 1) {
+          const theirs = across.reversed ? TILE - k : k;
+          if (maxDiff(edgeEntry(t, edge, k), edgeEntry(across.tile, across.edge, theirs)) > 1e-12) {
+            off.push(`${tileKey(t)} ${edge} entry ${k}`);
+            break;
+          }
+        }
+      }
+    }
+    expect(off).toEqual([]);
+  });
+
+  it('meet across a reversed face edge', () => {
+    expect(neighbor({ face: 2, level: 2, x: 0, y: 3 }, 'N')).toEqual({
+      tile: { face: 4, level: 2, x: 3, y: 3 },
+      edge: 'N',
+      reversed: true,
+    });
   });
 
   it.each(LEVELS)('meet at the Kirkuk corner at level %i', (level) => {
