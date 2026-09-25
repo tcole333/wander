@@ -686,9 +686,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   1. `new DataArrayTexture(null, 264, 264, slots)` (132² for overlays). The constructor takes no
      format or type, so set the channel's `format` and `type` after construction.
      - Set `generateMipmaps = false` and `mipmaps` to real level descriptors,
-       `{data, width: 264 >> l, height: 264 >> l}` with an empty `data` array of the channel's type,
-       one per level (three; two for overlays). Three reads only their count and allocates that many
-       levels in `texStorage3D`.
+       `{data, width: size >> l, height: size >> l}` (size 264, or 132 for overlays) with an empty
+       `data` array of the channel's type, one per level (three; two for overlays). Three reads only
+       their count and allocates that many levels in `texStorage3D`. The descriptors must still be
+       real, because `@types/three` types `Texture.mipmaps` and `[{}, {}, {}]` fails `tsc`.
      - Set `magFilter = LinearFilter` and `minFilter = LinearMipmapLinearFilter`. The default
        Nearest magnification returns one texel at lod 0 instead of the mean at a texel corner, where
        mesh vertices sit, which breaks seams.
