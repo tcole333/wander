@@ -6,7 +6,7 @@ import shapely
 
 from prebuild.codes import field_bytes, texel_m
 from prebuild.config import WaterConfig, load_fixture, load_water
-from prebuild.cube import TILE, Tile, dir_to_lonlat, st_to_dir
+from prebuild.cube import TILE, Tile, dir_to_lonlat, st_to_dir, subpixel_center
 from prebuild.excerpts import NEAR_LEVEL, boxes
 from prebuild.fields import (
     RIVER_PAD_FACTOR,
@@ -115,6 +115,16 @@ def test_a_disc_matches_the_analytic_distance_within_a_quarter_texel():
     near = np.abs(analytic) < 8
     assert near.sum() > 3000
     assert np.abs(shore - analytic)[near].max() < 0.25
+
+
+@pytest.mark.parametrize("face", range(6))
+@pytest.mark.parametrize(
+    ("level", "a", "b"),
+    [(0, 0, 1023), (7, 0, (1024 << 7) - 1), (7, 70001, 60003), (5, -40, (1024 << 5) + 40)],
+)
+def test_a_subpixel_center_projects_to_its_own_index(face, level, a, b):
+    lon, lat = dir_to_lonlat(st_to_dir(face, subpixel_center(level, a), subpixel_center(level, b)))
+    assert project(lon, lat, face, level) == pytest.approx((a, b), abs=1e-6)
 
 
 def test_land_is_positive_and_water_inside_is_negative():
