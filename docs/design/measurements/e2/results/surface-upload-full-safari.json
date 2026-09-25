@@ -1,5 +1,5 @@
 {
- "what": "226 L5-L7 tiles of the region bake (layer 085efb54), decoded in the decode workers and uploaded through the upload queue into surface pools of 256 slots (L0-L1 fixed at 0-29) at the full animated budget, one queue run per frame with nothing drawn between, by e2e/lab/surface-upload.lab.ts. Times are each write call on the main thread, at the browser's performance.now() resolution (0.1 ms in Chromium, 1 ms in Safari and Firefox). Every slot read back exactly and no GL error was raised.",
+ "what": "226 tiles spread evenly through the region bake's L5-L7 tiles in node order (layer 085efb54), decoded in the decode workers and uploaded through the upload queue into surface pools of 256 slots (L0-L1 fixed at 0-29) at the full animated budget, one queue run per frame with nothing drawn between, by e2e/lab/surface-upload.lab.ts. Times are each write call on the main thread, at the browser's performance.now() resolution (0.1 ms in Chromium, 1 ms in Safari and Firefox). Every slot read back exactly and no GL error was raised.",
  "browser": "safari",
  "machine": "MacBook Pro, Apple M5, macOS 26.5",
  "pageHidden": {
@@ -10,7 +10,7 @@
  "tier": "full",
  "budgetBytes": 524288,
  "tiles": 226,
- "frames": 187,
+ "frames": 189,
  "writeMsByBytes": {
   "2056": {
    "n": 226,
@@ -22,7 +22,7 @@
    "n": 452,
    "p50": 0,
    "p90": 0,
-   "max": 0
+   "max": 1
   },
   "34848": {
    "n": 452,
@@ -50,14 +50,14 @@
   "max": 3
  },
  "frameMs": {
-  "n": 187,
+  "n": 189,
   "p50": 0,
   "p90": 1,
   "max": 4
  },
  "stoppedBy": {
-  "slow": 18,
-  "budget": 168,
+  "slow": 19,
+  "budget": 169,
   "empty": 1
  }
 }
