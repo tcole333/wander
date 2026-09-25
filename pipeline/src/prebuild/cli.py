@@ -6,6 +6,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from prebuild.expect import clear_stamp, write_expectations
+from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
 from prebuild.profiles import DEFAULT_PROFILE, Context, Profile, default_jobs, make_context
 
@@ -50,18 +51,20 @@ def plan(
 def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGES) -> None:
     """Run the stages in order. Every fixture run clears the stamp first, and only a full fixture
     build then writes the test sidecars and, last, the stamp, so a failed or partial build never
-    looks fresh."""
+    looks fresh. The stamp hashes the inputs as they stood before the stages ran, so a file saved
+    during the build leaves the fixture stale."""
     fixture = ctx.profile is Profile.FIXTURE
     full_fixture = fixture and list(names) == default_stages(ctx.profile, stages)
     if fixture:
         clear_stamp(ctx)
+    inputs = tree_sha(FIXTURE_PATHS, ctx.repo) if full_fixture else None
     if not names and not full_fixture:
         print(f"prebuild --profile {ctx.profile}: no stages to run", flush=True)
     for name in names:
         print(f"prebuild --profile {ctx.profile}: {name}", flush=True)
         stages[name](ctx)
-    if full_fixture:
-        write_expectations(ctx)
+    if inputs is not None:
+        write_expectations(ctx, inputs)
         print(f"prebuild --profile {ctx.profile}: wrote the test sidecars and stamp", flush=True)
 
 

@@ -20,7 +20,7 @@ from prebuild.cube import (
     texel_of,
     tile_of,
 )
-from prebuild.hashing import FIXTURE_PATHS, tree_sha
+from prebuild.hashing import FIXTURE_PATHS
 from prebuild.profiles import Context, Profile
 from prebuild.records import write_json
 
@@ -38,8 +38,9 @@ def clear_stamp(ctx: Context) -> None:
     stamp_path(ctx).unlink(missing_ok=True)
 
 
-def write_expectations(ctx: Context) -> None:
-    """Write the sidecars, then the stamp over FIXTURE_PATHS; runs last in a full fixture build."""
+def write_expectations(ctx: Context, inputs: str) -> None:
+    """Write the sidecars, then the stamp; runs last in a full fixture build. `inputs` is the
+    caller's tree hash of FIXTURE_PATHS, taken before the stages ran."""
     if ctx.profile is not Profile.FIXTURE:
         raise ValueError(f"test sidecars belong to the fixture build, not {ctx.profile}")
     ctx.out.mkdir(parents=True, exist_ok=True)
@@ -47,7 +48,7 @@ def write_expectations(ctx: Context) -> None:
     expect.mkdir(parents=True, exist_ok=True)
     samples = [cube_sample(lon, lat, level) for lon, lat, level in sample_points()]
     (expect / "cube-samples.json").write_text(_json_rows(samples), encoding="utf-8")
-    stamp = {"inputs": tree_sha(FIXTURE_PATHS, ctx.repo), "paths": list(FIXTURE_PATHS)}
+    stamp = {"inputs": inputs, "paths": list(FIXTURE_PATHS)}
     write_json(stamp_path(ctx), stamp)
 
 

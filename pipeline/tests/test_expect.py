@@ -18,7 +18,7 @@ def built(tmp_path_factory):
     (repo / "pipeline" / "src").mkdir(parents=True)
     (repo / "pipeline" / "src" / "stage.py").write_text("print('stage')\n")
     ctx = make_context(Profile.FIXTURE, jobs=1, repo=repo)
-    write_expectations(ctx)
+    write_expectations(ctx, tree_sha(FIXTURE_PATHS, repo))
     samples = json.loads((ctx.stages_dir / "expect" / "cube-samples.json").read_text())
     return ctx, samples
 
@@ -73,7 +73,7 @@ def test_the_fixture_output_root_exists(built):
 
 def test_expectations_belong_to_the_fixture_profile(tmp_path):
     with pytest.raises(ValueError):
-        write_expectations(make_context(Profile.GLOBAL, jobs=1, repo=tmp_path))
+        write_expectations(make_context(Profile.GLOBAL, jobs=1, repo=tmp_path), "0" * 64)
 
 
 def test_sample_floats_survive_json_exactly(built):
