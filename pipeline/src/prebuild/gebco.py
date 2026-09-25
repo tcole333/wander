@@ -22,6 +22,8 @@ import numpy.typing as npt
 
 type FloatArray = npt.NDArray[np.float64]
 
+GEBCO = "gebco-2026"  # the source id in sources.toml
+GEBCO_NC = "GEBCO_2026.nc"
 ARCSEC_PER_TURN = 360 * 3600
 VARIABLE = "elevation"
 # Overview name -> source cells per side of each block (streaming.md 3.1).
