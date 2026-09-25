@@ -46,7 +46,13 @@ export interface UniformBranchReport {
   timerQuery: boolean;
   options: BranchOptions;
   results: BranchResult[];
-  /** Per family, from GPU time where the timer query exists and wall time elsewhere. */
+  /**
+   * Per family: GPU time when every trial of all three variants has it, wall time otherwise, so a
+   * family never mixes the two.
+   */
+  timeBase: Record<Family, 'gpu' | 'wall'>;
+  /** What the block costs per draw, on − out, in milliseconds. */
+  blockMsPerDraw: Record<Family, number>;
   paidWhenOff: Record<Family, number>;
   glError: number;
 }
@@ -169,13 +175,19 @@ export async function runUniformBranches(options = DEFAULT_OPTIONS): Promise<Uni
     wallMsPerDraw: round(median(wall)),
     gpuMsPerDraw: gpu.length === options.trials ? round(median(gpu)) : null,
   }));
+  const timeBase = {} as Record<Family, 'gpu' | 'wall'>;
+  const blockMsPerDraw = {} as Record<Family, number>;
   const paidWhenOff = {} as Record<Family, number>;
   for (const family of FAMILIES) {
+    const variants = results.filter((result) => result.family === family);
+    const base = variants.every((result) => result.gpuMsPerDraw !== null) ? 'gpu' : 'wall';
     const cost = (variant: Variant) => {
-      const result = results.find((r) => r.family === family && r.variant === variant);
+      const result = variants.find((r) => r.variant === variant);
       if (!result) throw new Error(`no ${family} ${variant} result`);
-      return result.gpuMsPerDraw ?? result.wallMsPerDraw;
+      return base === 'gpu' ? (result.gpuMsPerDraw ?? NaN) : result.wallMsPerDraw;
     };
+    timeBase[family] = base;
+    blockMsPerDraw[family] = round(cost('on') - cost('out'));
     paidWhenOff[family] = round((cost('off') - cost('out')) / (cost('on') - cost('out')));
   }
   return {
@@ -183,14 +195,16 @@ export async function runUniformBranches(options = DEFAULT_OPTIONS): Promise<Uni
     timerQuery: timer !== null,
     options,
     results,
+    timeBase,
+    blockMsPerDraw,
     paidWhenOff,
     glError: gl.getError(),
   };
 }
 
 /**
- * A square RGBA8 target with additive blending, so every draw is shaded: without blending, Apple's
- * OpenGL driver (Firefox on macOS) shades only the last of a stack of full-target draws.
+ * A square RGBA8 target with additive blending, so every draw is shaded. Without blending, Firefox
+ * on macOS took as long for 40 stacked full-target draws as for 10, so only the last was shaded.
  */
 function setUpTarget(gl: WebGL2RenderingContext, size: number): void {
   const target = gl.createTexture();
