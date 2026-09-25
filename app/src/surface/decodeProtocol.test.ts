@@ -29,6 +29,12 @@ describe('handleDecodeMessage', () => {
     expect(reply.tile.compressed).toBe(msg.buf);
   });
 
+  it('says how long the decode took', async () => {
+    const { reply } = await handleDecodeMessage(request());
+    if (reply.type !== 'decoded') throw new Error(reply.message);
+    expect(reply.ms).toBeGreaterThan(0);
+  });
+
   it('transfers every plane and the stored bytes, each once', async () => {
     const { reply, transfer } = await handleDecodeMessage(request());
     if (reply.type !== 'decoded') throw new Error(reply.message);
