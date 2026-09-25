@@ -8,24 +8,52 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 
 ## Status
 
-Pre-scaffolding: the docs are written; the app and pipeline do not exist yet. Update this file
-with real commands as they land.
+Milestone 1 (the Tambora slice) is under way. The app is a placeholder, the prebuild has no
+stages yet, and hosting and CI are live.
 
-## Layout (planned)
+## Layout
 
-- `app/`: TypeScript, Vite, React, react-three-fiber + drei, Zustand, three.js (pinned to an exact
-  version, because the renderer relies on version-specific three.js APIs)
-- `pipeline/`: Python (uv) prebuild that turns raw sources into web assets
-- `stories/`: one Markdown file per story
-- `docs/`: PRD, design docs, reference images
+Paths in the docs are relative to the repo root.
+
+- `app/`: the npm project. TypeScript, Vite, React, react-three-fiber, three.js pinned to an exact
+  version (the renderer relies on version-specific three.js APIs). drei and Zustand join with the
+  globe runtime. Tunables live in `app/src/config/tunables.ts`.
+- `pipeline/`: the uv project for the Python prebuild (`uv run prebuild <stage>`), which turns raw
+  sources into web assets. Its config, queries and test excerpts live under it.
+- `shared/constants.json`: magics, sentinels and the layer order, read by both projects.
+- `stories/<story>/`: one folder per story: `story.md`, its datasets, audio and `story.lock.json`.
+- `build/`: prebuild output (git-ignored): `build/out/` in the R2 key layout, `build/fixture/`.
+- `docs/`: PRD, design docs, reference images.
+
+## Commands
+
+Run npm commands in `app/` and uv commands in `pipeline/`.
+
+- `npm ci`, then `npm run dev`: the app on Vite's dev server, reading production data from
+  `wander-data.traviscole.xyz`.
+- `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
+- `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
+- `npm run e2e`: Playwright against the production build, on SwiftShader (as in CI). Run
+  `npx playwright install chromium` once first.
+- `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
+
+## Hosting
+
+- App: Cloudflare Pages project `wander` on `wander.traviscole.xyz`. CI deploys `main` after the
+  tests pass, using the `CLOUDFLARE_API_TOKEN` repository secret.
+- Data: the R2 bucket `wander-data` on `wander-data.traviscole.xyz`. Keys are never overwritten or
+  deleted in v1. Objects under `_smoke/` are the hosting checks from issue #1.
+- `wrangler` covers the R2 bucket, objects and Pages. Zone rules and DNS are edited in the
+  dashboard.
 
 ## Data
 
-Raw sources live outside the repo in `~/projects/wander-data` (see its `README.md` and
-`manifest.json`). The pipeline takes that folder's location as configuration (suggested: a
-`WANDER_DATA` environment variable). Raw data (about 6 GB) is never committed;
-tests and local development run on small excerpts committed to the repo, so a fresh clone works
-without the data folder.
+Raw sources live outside the repo in the raw-data folder `~/projects/wander-data` (see its
+`README.md` and `manifest.json`); not to be confused with the R2 bucket of the same name. The
+prebuild takes that folder's location as configuration (suggested: a `WANDER_DATA` environment
+variable). Raw data (about 6 GB) is never committed. Tests (and, once the fixture build lands,
+`npm run dev:fixture`) run on small excerpts committed to the repo, and `npm run dev` reads
+production data, so a fresh clone works without the raw-data folder.
 
 ## Working here
 
