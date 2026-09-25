@@ -25,6 +25,8 @@ from prebuild.config import FixtureConfig, load_fixture
 from prebuild.cube import TILE, Tile, corner, dir_to_lonlat, st_to_dir
 from prebuild.footprint import Window, tile_window, union_windows
 from prebuild.gebco import (
+    GEBCO,
+    GEBCO_NC,
     Raster,
     block_means,
     crop,
@@ -44,8 +46,6 @@ from prebuild.paths import config_dir, excerpts_dir
 from prebuild.profiles import Context
 from prebuild.sources import Source, SourceUnavailable, load_sources, pinned_file, verified_path
 
-GEBCO = "gebco-2026"
-GEBCO_NC = "GEBCO_2026.nc"
 CAP_BYTES = 3_000_000  # the committed excerpts, all of pipeline/tests/data (streaming.md 7.3)
 FIELD_TEXELS = 16  # a tile's fields rasterize texels -16..271: the border and a 12-texel margin
 BOX_PAD_DEG = 0.25  # past the fields' clip pad: 0.1° plus the widest L2 river, at any latitude
