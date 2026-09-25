@@ -980,10 +980,10 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
 | minerals | `{key}` |
 
 - **Freshness:** the coverage record's `inputs` hold the pinned source hashes and `code`, a tree hash
-  of `pipeline/src`, `pipeline/config`, `pyproject.toml`, `uv.lock` and `shared/constants.json`.
-  `surface` refuses to run when those inputs have changed since coverage ran. The fixture build also
-  writes `build/stages/fixture/stamp.json`, a hash over the same paths plus `pipeline/tests/data`,
-  which the Vitest fixture loader checks (7.3).
+  of `pipeline/src`, `pipeline/config`, `pipeline/pyproject.toml`, `pipeline/uv.lock` and
+  `shared/constants.json`. `surface` refuses to run when those inputs have changed since coverage
+  ran. The fixture build also writes `build/stages/fixture/stamp.json`, a hash over the same paths
+  plus `pipeline/tests/data`, which the Vitest fixture loader checks (7.3).
 
 ### 7.3 Fixture, dev and CI
 
