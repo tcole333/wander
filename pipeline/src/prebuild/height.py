@@ -16,12 +16,13 @@ import numpy.typing as npt
 
 from prebuild.config import FixtureConfig, load_fixture
 from prebuild.cube import Tile
-from prebuild.footprint import SUBSAMPLES, subsample_lonlat, tile_window
+from prebuild.footprint import SUBSAMPLES, Window, subsample_lonlat, tile_window
 from prebuild.gebco import (
     GEBCO,
     GEBCO_NC,
     Raster,
     bilinear,
+    crop,
     grid_cell_arcsec,
     overviews,
     read_excerpt,
@@ -52,6 +53,15 @@ class HeightSource(Protocol):
     def raster(self, tile: Tile) -> Raster:
         """The raster every height of the tile reads: its texels -4..259 and the owner-frame
         texels its edge profiles take."""
+        ...
+
+    @property
+    def grid_cell(self) -> int:
+        """The cell size of GEBCO's own grid in arc-seconds."""
+        ...
+
+    def grid_cells(self, window: Window) -> Raster:
+        """GEBCO's own cells over a window of the grid (`footprint.cell_window`)."""
         ...
 
 
@@ -86,6 +96,9 @@ class GebcoHeights:
             return read_window(self.nc, *tile_window(tile, self.grid_cell))
         return self.views[name]
 
+    def grid_cells(self, window: Window) -> Raster:
+        return read_window(self.nc, *window)
+
 
 class ExcerptHeights:
     """The fixture's source: the committed excerpt fixture.yaml names for each tile."""
@@ -95,10 +108,28 @@ class ExcerptHeights:
         self.folder = folder
         self._read: dict[str, Raster] = {}
 
+    @property
+    def grid_cell(self) -> int:
+        """The finest excerpts hold GEBCO's own cells."""
+        return min(self.fixture.excerpts.values())
+
     def raster(self, tile: Tile) -> Raster:
         if tile not in self.fixture.rasters:
             raise ValueError(f"fixture.yaml lists no tile {tile.key()}")
-        name = self.fixture.rasters[tile]
+        return self._excerpt(self.fixture.rasters[tile])
+
+    def grid_cells(self, window: Window) -> Raster:
+        """The window, from the first excerpt of GEBCO cells that holds it."""
+        for name, cell in self.fixture.excerpts.items():
+            if cell != self.grid_cell:
+                continue
+            try:
+                return crop(self._excerpt(name), *window)
+            except ValueError:
+                continue
+        raise ValueError(f"no excerpt of {self.grid_cell}″ cells holds the window {window}")
+
+    def _excerpt(self, name: str) -> Raster:
         if name not in self._read:
             self._read[name] = read_excerpt(self.folder, name)
         return self._read[name]

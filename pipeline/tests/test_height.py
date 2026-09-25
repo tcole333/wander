@@ -112,6 +112,25 @@ def test_the_production_source_reads_the_grid_per_tile_and_overviews_above_l5(tm
             assert source.raster(Tile(0, level, 0, 0)).cell_arcsec == 2025 * OVERVIEWS[name]
 
 
+def test_the_production_source_reads_grid_cells_over_a_window(tmp_path, write_grid):
+    elevation = np.arange(320 * 640, dtype=np.int64).reshape(320, 640) % 30000
+    nc = write_grid(elevation.astype(np.int16))
+    source = GebcoHeights(nc, {})
+    cells = source.grid_cells((630, 40, 20, 3))
+    assert (source.grid_cell, cells.cell_arcsec, cells.i0, cells.j0) == (2025, 2025, 630, 40)
+    np.testing.assert_array_equal(cells.data, read_window(nc, 630, 40, 20, 3).data)
+
+
+def test_the_fixture_reads_grid_cells_from_the_excerpt_that_holds_them(excerpts):
+    sumbawa = read_excerpt(GEBCO_DIR, "sumbawa-15s")
+    window = (sumbawa.i0 + 10, sumbawa.j0 + 20, 30, 40)
+    cells = excerpts.grid_cells(window)
+    assert excerpts.grid_cell == 15
+    np.testing.assert_array_equal(cells.data, crop(sumbawa, *window).data)
+    with pytest.raises(ValueError, match="no excerpt"):
+        excerpts.grid_cells((0, 0, 10, 10))
+
+
 def test_the_production_source_has_no_grid_past_l7(write_grid):
     nc = write_grid(np.zeros((320, 640), dtype=np.int16))
     with pytest.raises(ValueError, match="level 8"):
