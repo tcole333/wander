@@ -186,9 +186,14 @@ describe('the decoder refuses', () => {
     ).toThrow(/positive/);
   });
 
-  it('a codeMid that leaves a code more than 2048 away', async () => {
-    expect(await refusal((_, view) => view.setInt16(20, codeMid + 1, true))).toThrow(/codeMid/);
-  });
+  it.each([1, -1])(
+    'a codeMid moved by %i, which leaves a code more than 2048 away',
+    async (shift) => {
+      expect(await refusal((_, view) => view.setInt16(20, codeMid + shift, true))).toThrow(
+        /codeMid/,
+      );
+    },
+  );
 
   it('a codeMin or codeMax that misses the planes', async () => {
     expect(await refusal((_, view) => view.setInt16(22, codeMin - 1, true))).toThrow(
