@@ -1,6 +1,7 @@
 import re
 
-from prebuild.constants import CUBE, FORMATS, LAYERS, REPO_ROOT, SENTINELS
+from prebuild.constants import CUBE, FORMATS, LAYERS, SENTINELS
+from prebuild.paths import REPO_ROOT
 
 DESIGN_DOC = (REPO_ROOT / "docs" / "design" / "streaming.md").read_text(encoding="utf-8")
 
