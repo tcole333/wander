@@ -9,13 +9,13 @@ dist/
 build/
 out/
 .vite/
+.wrangler/
 coverage/
 playwright-report/
 test-results/
 
-# pipeline output and local data (raw sources live in ~/projects/wander-data)
+# local data (raw sources live in ~/projects/wander-data; prebuild output goes to build/, above)
 /data/
-/pipeline/out/
 
 # local config and OS files
 .env
