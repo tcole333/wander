@@ -9,9 +9,8 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 ## Status
 
 Milestone 1 (the Tambora slice) is under way. The app is a placeholder; the prebuild has its
-profiles, the cube conventions, the `.wst` codec, the `fetch` and `excerpts` stages, the
-committed excerpts and the per-tile surface functions (`height.py`, `fields.py`, `tiles.py`), but
-no `coverage` or `surface` stage yet; hosting and CI are live.
+profiles, the cube conventions, the `.wst` codec, the committed excerpts and the `fetch`,
+`excerpts`, `coverage` and `surface` stages; hosting and CI are live.
 
 ## Layout
 
@@ -55,6 +54,7 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`.
+  `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/`.
 - `uv run prebuild fetch` downloads what is missing from `pipeline/sources.toml` into the raw-data
   folder and checks every sha256. `uv run prebuild excerpts` rewrites the committed excerpts in
   `pipeline/tests/data/` from it, reproducing them byte for byte; commit what it changes.
