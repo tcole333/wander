@@ -1,6 +1,7 @@
 import base64
 import dataclasses
 import json
+import shutil
 
 import numpy as np
 import pytest
@@ -338,6 +339,22 @@ def test_the_record_keeps_what_the_stage_read(fixture_record):
     assert inputs["code"] == tree_sha(CODE_PATHS, REPO_ROOT)
     assert set(inputs["ne"]) == {"land", "minor_islands", "lakes", "rivers"}
     assert set(inputs["configs"]) == {"fixture.yaml", "water.yaml"}
+
+
+def test_a_file_saved_during_the_run_leaves_the_record_stale(tmp_path, monkeypatch):
+    for part in ("pipeline/config", "pipeline/tests/data"):
+        shutil.copytree(REPO_ROOT / part, tmp_path / part)
+    ctx = make_context(Profile.FIXTURE, 1, tmp_path)
+    available_tiles = coverage.available_tiles
+
+    def saving_a_config_first(ctx, pool):
+        (config_dir(tmp_path) / "saved-mid-run.yaml").write_text("{}\n")
+        return available_tiles(ctx, pool)
+
+    monkeypatch.setattr(coverage, "available_tiles", saving_a_config_first)
+    coverage.run(ctx)
+    with pytest.raises(coverage.StaleCoverage, match=r"\(code changed\)"):
+        coverage.fresh_record(ctx)
 
 
 def test_the_production_inputs_are_the_pinned_hashes():

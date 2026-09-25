@@ -85,7 +85,10 @@ class StaleCoverage(RuntimeError):
 
 
 def run(ctx: Context) -> None:
+    """Build the coverage record. Its inputs are hashed before the stage reads them, so a file
+    saved during the run leaves the record stale and the surface stage refuses it."""
     started = time.perf_counter()
+    hashed = inputs(ctx)
     height_source(ctx)  # builds the GEBCO overviews once, before the workers map them
     vectors = load_vectors(ctx, load_water(config_dir(ctx.repo) / "water.yaml"))
     with workers.tile_pool(ctx, vectors) as pool:
@@ -102,7 +105,7 @@ def run(ctx: Context) -> None:
         "c200": [c200(q) for q in q_land],
         "counts": counts,
         "avail": base64.b64encode(bitmap(tiles)).decode("ascii"),
-        "inputs": inputs(ctx),
+        "inputs": hashed,
     }
     write_record(ctx, STAGE, record)
     seconds = time.perf_counter() - started
