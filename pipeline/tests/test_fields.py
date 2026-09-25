@@ -6,7 +6,15 @@ import shapely
 
 from prebuild.codes import field_bytes, texel_m
 from prebuild.config import WaterConfig, load_fixture, load_water
-from prebuild.cube import TILE, Tile, dir_to_lonlat, st_to_dir, subpixel_center
+from prebuild.cube import (
+    TILE,
+    Tile,
+    dir_to_lonlat,
+    face_st,
+    lonlat_to_dir,
+    st_to_dir,
+    subpixel_center,
+)
 from prebuild.excerpts import NEAR_LEVEL, boxes
 from prebuild.fields import (
     RIVER_PAD_FACTOR,
@@ -248,8 +256,8 @@ def test_a_river_draws_at_its_half_width():
         d = fields(*tile_texels(tile), vectors).water_d
         x, y = texel_centers(tile)
         coords = shapely.get_coordinates(shapely.segmentize(line, 0.1))
-        px, py = project(coords[:, 0], coords[:, 1], 1, level)
-        centerline = shapely.LineString(np.column_stack([(px + 0.5) / 4, (py + 0.5) / 4]))
+        s, t = face_st(1, lonlat_to_dir(coords[:, 0], coords[:, 1]))
+        centerline = shapely.LineString(np.column_stack([s + 1, t + 1]) * (128 << level))
         away = shapely.distance(shapely.points(x.ravel(), y.ravel()), centerline).reshape(x.shape)
         analytic = away - half
         near = np.abs(analytic) < 4
