@@ -38,6 +38,13 @@ interface SyntheticTile {
 }
 
 const tiles = readExpectation<SyntheticTile[]>('synthetic.json');
+const EDGE_N100 = 26 + 2 * 100; // payload offset of edge profile N, entry 100
+
+function syntheticTile(name: string): SyntheticTile {
+  const tile = tiles.find((t) => t.name === name);
+  if (!tile) throw new Error(`synthetic.json has no ${name} tile`);
+  return tile;
+}
 
 function stored(tile: SyntheticTile): ArrayBuffer {
   return readExpectationBytes(tile.wst).buffer;
@@ -123,9 +130,7 @@ describe.each(tiles)('decoding the synthetic tile $name', (tile) => {
 });
 
 describe('the decoder refuses', () => {
-  const extremes = tiles.find((t) => t.name === 'extremes');
-  if (!extremes) throw new Error('synthetic.json has no extremes tile');
-  const tile: SyntheticTile = extremes;
+  const tile = syntheticTile('extremes');
   const expected = parseTileKey(tile.key);
   const { codeMid, codeMin, codeMax } = tile.header;
 
@@ -195,6 +200,12 @@ describe('the decoder refuses', () => {
     },
   );
 
+  it('an edge code more than 2048 above codeMid', async () => {
+    expect(await refusal((_, view) => view.setInt16(EDGE_N100, codeMid + 2049, true))).toThrow(
+      /reach past codeMid/,
+    );
+  });
+
   it('a codeMin or codeMax that misses the planes', async () => {
     expect(await refusal((_, view) => view.setInt16(22, codeMin - 1, true))).toThrow(
       /header codes/,
@@ -207,5 +218,29 @@ describe('the decoder refuses', () => {
   it('bytes that are not gzip', async () => {
     const raw = await payload(tile);
     await expect(decodeWst(raw.slice().buffer, expected)).rejects.toThrow();
+  });
+});
+
+describe('the decoder counts the edge profiles in the code bounds', () => {
+  const tile = syntheticTile('random');
+  const expected = parseTileKey(tile.key);
+  const below = tile.header.codeMin - 1;
+
+  async function withLowEdge(): Promise<{ raw: Uint8Array; view: DataView }> {
+    const raw = await payload(tile);
+    const view = new DataView(raw.buffer);
+    view.setInt16(EDGE_N100, below, true);
+    return { raw, view };
+  }
+
+  it('so it takes a codeMin that only an edge code reaches', async () => {
+    const { raw, view } = await withLowEdge();
+    view.setInt16(22, below, true);
+    expect(decodePlanes(raw, expected).header.codeMin).toBe(below);
+  });
+
+  it('so it refuses a codeMin above an edge code', async () => {
+    const { raw } = await withLowEdge();
+    expect(() => decodePlanes(raw, expected)).toThrow(/header codes/);
   });
 });
