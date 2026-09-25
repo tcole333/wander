@@ -2,10 +2,13 @@
 build/stages/fixture/expect/ and the stamp that tells the Vitest fixture loader the build is fresh.
 """
 
+import base64
+import hashlib
 import itertools
 import json
 import math
 import shutil
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -14,11 +17,14 @@ import numpy.typing as npt
 
 from prebuild.codes import field_bytes, meters_to_codes, q_land_start, round_half_away
 from prebuild.cube import (
+    BORDER,
     TILE,
     Tile,
+    available_nodes,
     face_of,
     face_st,
     lonlat_to_dir,
+    node_from_index,
     node_index,
     st_to_dir,
     texel_center,
@@ -28,6 +34,7 @@ from prebuild.cube import (
 from prebuild.hashing import FIXTURE_PATHS
 from prebuild.profiles import Context, Profile
 from prebuild.records import write_json
+from prebuild.tiles import open_sources, surface
 from prebuild.wst import (
     EDGE_ENTRIES,
     PLANE_SHAPE,
@@ -39,6 +46,8 @@ from prebuild.wst import (
     WstTile,
     bounds_m,
     decoder_outputs,
+    from_file,
+    grid33,
     tile_flags,
     to_file,
 )
@@ -48,6 +57,15 @@ TAMBORA_SUMMIT = (117.9604, -8.2479)  # the GEBCO maximum on the rim
 KIRKUK_VERTEX = (45.0, math.degrees(math.atan(math.sqrt(0.5))))  # where faces 0, 1 and 4 meet
 LEVELS = range(8)
 SYNTHETIC = "synthetic"  # the synthetic .wst tiles and what they decode to, under expect/
+# Known places in the fixture's tiles, as (name, lon, lat, level), for points.json.
+POINTS: list[tuple[str, float, float, int]] = [
+    ("tambora-summit", *TAMBORA_SUMMIT, 7),
+    ("tambora-caldera", 118.0, -8.25, 7),
+    ("sanggar", 118.1, -8.3, 7),  # the Sanggar peninsula, east of the caldera
+    ("flores-sea", 117.7, -8.0, 5),
+    ("lake-urmia", 45.4631, 37.622, 5),  # more than 8 texels from its shore
+    ("tigris", 43.6959, 34.6549, 6),  # on the river line above Samarra
+]
 
 
 def stamp_path(ctx: Context) -> Path:
@@ -131,30 +149,71 @@ def write_synthetic(expect: Path) -> None:
         outputs = {}
         for output, values in {**planes, **decoder_outputs(t)}.items():
             outputs[output] = f"{SYNTHETIC}/{name}/{output}.bin"
-            little = values.astype(values.dtype.newbyteorder("<"))
-            _write_bytes(expect / outputs[output], little.tobytes())
+            _write_bytes(expect / outputs[output], _little(values))
         rows.append(
             {
                 "name": name,
                 "key": t.tile.key(),
                 "wst": stored,
-                "header": {
-                    "face": t.tile.face,
-                    "level": t.tile.level,
-                    "x": t.tile.x,
-                    "y": t.tile.y,
-                    "flags": t.flags,
-                    "qLand": t.q_land,
-                    "qDeep": t.q_deep,
-                    "codeMid": t.code_mid,
-                    "codeMin": t.code_min,
-                    "codeMax": t.code_max,
-                },
+                "header": _header(t),
                 "boundsM": list(bounds_m(t)),
                 "outputs": outputs,
             }
         )
     write_json(expect / f"{SYNTHETIC}.json", rows)
+
+
+def write_surface_expectations(ctx: Context, record: Mapping[str, Any]) -> None:
+    """What the fixture's surface layer decodes to, for the app's decoder: `tiles.json` maps each
+    available tile's key, in node order, to its node, header, meter bounds and the sha256 of its
+    decoded planes as little-endian arrays (codes, shore, water, edges and the 33² f32 grid).
+    `points.json` locates each of POINTS and gives the clamped height there before quantization
+    and the signs of the shore and water distances."""
+    if ctx.profile is not Profile.FIXTURE:
+        raise ValueError(f"test sidecars belong to the fixture build, not {ctx.profile}")
+    expect = ctx.stages_dir / "expect"
+    layer = ctx.out / Path(record["bounds"]).parent
+    tiles: dict[str, dict[str, Any]] = {}
+    for k in available_nodes(base64.b64decode(record["avail"])):
+        tile = node_from_index(k)
+        t = from_file((layer / f"{tile.key()}.wst").read_bytes(), tile)
+        planes = {
+            "codes": t.codes,
+            "shore": t.shore,
+            "water": t.water,
+            "edges": t.edges,
+            "grid": grid33(t),
+        }
+        tiles[tile.key()] = {
+            "node": k,
+            "header": _header(t),
+            "boundsM": list(bounds_m(t)),
+            "sha256": {name: _sha256(values) for name, values in planes.items()},
+        }
+    write_json(expect / "tiles.json", tiles)
+    sources = open_sources(ctx)
+    rows = []
+    for name, lon, lat, level in POINTS:
+        sample = cube_sample(lon, lat, level)
+        tile = Tile(sample["f"], level, sample["x"], sample["y"])
+        if tile.key() not in tiles:
+            raise ValueError(f"{name} lies in {tile.key()}, which the fixture does not bake")
+        s = surface(tile, sources)
+        at = (sample["j"] + BORDER, sample["i"] + BORDER)
+        rows.append(
+            {
+                "name": name,
+                "lon": lon,
+                "lat": lat,
+                "key": tile.key(),
+                "i": sample["i"],
+                "j": sample["j"],
+                "meters": float(s.heights[at]),
+                "shoreSign": int(np.sign(s.fields.shore_d[at])),
+                "waterSign": int(np.sign(s.fields.water_d[at])),
+            }
+        )
+    (expect / "points.json").write_text(_json_rows(rows), encoding="utf-8")
 
 
 def edge_profiles(codes: npt.ArrayLike) -> npt.NDArray[np.int64]:
@@ -232,6 +291,30 @@ def _random() -> WstTile:
         water=field_bytes(water_d),
         edges=edge_profiles(codes),
     )
+
+
+def _header(t: WstTile) -> dict[str, Any]:
+    return {
+        "face": t.tile.face,
+        "level": t.tile.level,
+        "x": t.tile.x,
+        "y": t.tile.y,
+        "flags": t.flags,
+        "qLand": t.q_land,
+        "qDeep": t.q_deep,
+        "codeMid": t.code_mid,
+        "codeMin": t.code_min,
+        "codeMax": t.code_max,
+    }
+
+
+def _sha256(values: np.ndarray) -> str:
+    """The sha256 of an array's values as little-endian bytes."""
+    return hashlib.sha256(_little(values)).hexdigest()
+
+
+def _little(values: np.ndarray) -> bytes:
+    return values.astype(values.dtype.newbyteorder("<")).tobytes()
 
 
 def _write_bytes(path: Path, data: bytes) -> None:
