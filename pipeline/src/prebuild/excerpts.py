@@ -7,8 +7,9 @@ named, never under the fixture profile, and writes no stage record.
   the overviews, rounded half away from zero to int16 (a simplification for the fixture only).
 - Natural Earth, in tiers around the fixture's tiles: land dissolved and simplified at 0.2° away
   from the L2 tiles (keeping parts of at least 0.1 deg²), at 0.01° around them, and in full around
-  the L5-L7 tiles; minor islands, lakes and rivers only around the L2 tiles, at 0.01° there and in
-  full around the L5-L7 tiles. The loader prepares the excerpts exactly as it prepares the zips.
+  the L5-L7 tiles; minor islands only around the L2 tiles, in full; lakes and rivers only around
+  the L2 tiles, at 0.01° there and in full around the L5-L7 tiles. Each keeps only the columns the
+  loader reads, and the loader prepares the excerpts exactly as it prepares the zips.
 """
 
 import math
