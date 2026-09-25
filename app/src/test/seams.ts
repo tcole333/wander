@@ -30,18 +30,31 @@ const EDGE_INDEX: Readonly<Record<Edge, number>> = { N: 0, E: 1, S: 2, W: 3 };
 // and to 0 where the clamp reaches the border texel.
 const CROSS_FACE_CODES = 2;
 const CLAMP_REACH_BYTES = 32; // 2 texels of shore distance, 16 bytes per texel around 128
+const SHORE_LINE = 128; // shore bytes above it are land, below it sea
 
 /** How far past the neighbor's 3×3 range a border code across a face edge may fall. */
 export interface CrossFaceBound {
   /** The fraction of the range's width added to its 2 codes. */
   relief: number;
+  /**
+   * Skip a border texel the coastal clamp reaches when none of the neighbor's 3×3 lies on its side
+   * of the shore: the two grids then disagree about a feature narrower than a texel, one keeping
+   * its height and the other clamping it to 0.
+   */
+  shoreSplit: boolean;
 }
 
 // In the fixture, the range ± 2 codes alone misses 39 of the 110,592 border texels checked (1 at
 // L0, 38 at the Kirkuk corner at L2-L7), by up to 14 codes where the range spans 153. The largest
 // miss past ± 2 codes is 10.3% of the range's width (7 codes past a 68-code range), so an eighth
 // passes every texel and a tenth does not.
-export const FIXTURE_CROSS_FACE: CrossFaceBound = { relief: 1 / 8 };
+export const FIXTURE_CROSS_FACE: CrossFaceBound = { relief: 1 / 8, shoreSplit: false };
+
+// The region bake's 15", 1' and 4' sources are rougher than the fixture's excerpts. Away from the
+// shore its largest miss past ± 2 codes is 30.8% of the range's width, so a third passes every
+// texel, a quarter misses 11 and an eighth 122; one more miss is a 44 m islet in Korea Bay that one
+// grid keeps and the other clamps (docs/design/measurements/work/surface-bake/region-bake.json).
+export const REGION_CROSS_FACE: CrossFaceBound = { relief: 1 / 3, shoreSplit: true };
 
 /** The integer an IEEE half-float holds, for the whole numbers within ±2048 the decoder writes. */
 export function halfToInt(bits: number): number {
@@ -145,10 +158,15 @@ export function crossFaceMisses(
       const column = { W: si, E: TILE - 1 - si, S: sj, N: TILE - 1 - sj }[other.edge];
       const at = (j + BORDER) * SIZE + (i + BORDER);
       const code = codeAt(mine, 0, at);
-      const nearShore = Math.abs((shore[2 * at] ?? NaN) - 128) <= CLAMP_REACH_BYTES;
-      const [low, high] = range3x3(theirs, si, sj, nearShore);
+      const side = Math.sign((shore[2 * at] ?? NaN) - SHORE_LINE);
+      const nearShore = Math.abs((shore[2 * at] ?? NaN) - SHORE_LINE) <= CLAMP_REACH_BYTES;
+      const around = around3x3(theirs, si, sj);
+      const low = nearShore ? Math.min(around.low, 0) : around.low;
+      const high = nearShore ? Math.max(around.high, 0) : around.high;
       const slack = CROSS_FACE_CODES + (high - low) * bound.relief;
-      if (column !== k || code < low - slack || code > high + slack) {
+      const split = bound.shoreSplit && nearShore && side !== 0 && !around.sides.has(side);
+      const outside = code < low - slack || code > high + slack;
+      if (column !== k || (outside && !split)) {
         off.push(`${tileKey(t)} ${edge} k=${k} along=${along}: ${code} vs ${low}..${high}`);
       }
     }
@@ -185,11 +203,18 @@ function mappedTexel(t: Tile, i: number, j: number, other: Tile): [number, numbe
   ];
 }
 
-/** The lowest and highest of the 3×3 stored codes around tile-local texel (i, j), taking in 0 when
- * the coastal clamp may have set the border texel there. */
-function range3x3(tile: DecodedWst, i: number, j: number, withZero: boolean): [number, number] {
-  let low = withZero ? 0 : Infinity;
-  let high = withZero ? 0 : -Infinity;
+/**
+ * The lowest and highest of the 3×3 stored codes around tile-local texel (i, j), and the sides of
+ * the shore their texels lie on: 1 for land, -1 for sea (a texel on the line counts for neither).
+ */
+function around3x3(
+  tile: DecodedWst,
+  i: number,
+  j: number,
+): { low: number; high: number; sides: Set<number> } {
+  let low = Infinity;
+  let high = -Infinity;
+  const sides = new Set<number>();
   for (let dj = -1; dj <= 1; dj += 1) {
     for (let di = -1; di <= 1; di += 1) {
       const ci = i + di + BORDER;
@@ -197,10 +222,12 @@ function range3x3(tile: DecodedWst, i: number, j: number, withZero: boolean): [n
       if (ci < 0 || ci >= SIZE || cj < 0 || cj >= SIZE) {
         throw new RangeError(`texel (${i + di}, ${j + dj}) is not stored`);
       }
-      const code = codeAt(tile, 0, cj * SIZE + ci);
+      const at = cj * SIZE + ci;
+      const code = codeAt(tile, 0, at);
       low = Math.min(low, code);
       high = Math.max(high, code);
+      sides.add(Math.sign((tile.channelMips[0][2 * at] ?? NaN) - SHORE_LINE));
     }
   }
-  return [low, high];
+  return { low, high, sides };
 }
