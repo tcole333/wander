@@ -41,8 +41,14 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   naming this command, when it is missing or was built from other pipeline code, shared constants
   or excerpts than the working tree holds.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
-- `npm run build`, then `npm run e2e`: Playwright against that build in `app/dist/` (it does not
-  rebuild), on SwiftShader as in CI. Run `npx playwright install chromium` once first.
+- `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI. The smoke test runs
+  against that build in `app/dist/` (it does not rebuild); the GPU pool test runs a test-only page
+  on the Vite dev server, so none of it reaches the build. Run `npx playwright install chromium`
+  once first.
+- `npm run build`, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
+  `--use-angle=metal`), local only. It is the start of the GPU matrix
+  (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
+  put the result in the PR description.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
