@@ -13,7 +13,12 @@ export interface DecodeRequest {
 }
 
 export type DecodeReply =
-  | { type: 'decoded'; id: number; tile: DecodedWst }
+  | {
+      type: 'decoded';
+      id: number;
+      tile: DecodedWst;
+      /** Milliseconds spent decoding. */ ms: number;
+    }
   | { type: 'error'; id: number; message: string };
 
 /** The reply to a request and the buffers to transfer with it: every plane and the stored bytes. */
@@ -22,10 +27,12 @@ export async function handleDecodeMessage(
 ): Promise<{ reply: DecodeReply; transfer: Transferable[] }> {
   try {
     if (msg.type !== 'decode') throw new Error(`unknown message type ${String(msg.type)}`);
+    const start = performance.now();
     const tile = await decodeWst(msg.buf, parseTileKey(msg.key));
+    const ms = performance.now() - start;
     const planes = [...tile.heightMips, ...tile.channelMips, tile.edges, tile.grid];
     return {
-      reply: { type: 'decoded', id: msg.id, tile },
+      reply: { type: 'decoded', id: msg.id, tile, ms },
       transfer: [...planes.map((plane) => plane.buffer), tile.compressed],
     };
   } catch (error) {
