@@ -32,6 +32,8 @@ Metal through Playwright, Safari 26.5 and Firefox 156:
   on WebKit; E2 still times the uploads.
 - `e1/results/decode-*.json`: every tile of the region bake, fetched from `npm run data` and decoded
   in the two decode workers, matches Node's decode and `bounds.bin` in all three browsers. Decode
-  time per tile, in the worker: 1.5 ms at the median (2.7 ms p90) in Chromium, 2 ms (2 ms) in
-  Firefox, and 2 ms (8 ms) in Safari, where L5-L7 tiles take 8 ms and the slowest 70 ms. Safari and
-  Firefox time at 1 ms steps.
+  time per tile, in the worker: 1.7 ms at the median (2.3 ms p90) in Chromium, 2 ms (3 ms) in
+  Firefox and 2 ms (8 ms) in Safari. Safari and Firefox ran in hidden tabs (`pageHidden`) and time
+  at 1 ms steps. Safari's decodes took 1-2 ms for the first 60% of the tiles in finishing order and
+  about 8 ms after that, at every level, which fits its throttling of hidden pages; Firefox stayed
+  at 2 ms throughout.

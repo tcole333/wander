@@ -46,17 +46,19 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
   7.3).
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
-- `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI. The smoke test runs
-  against that build in `app/dist/` (it does not rebuild); the GPU pool test runs a test-only page
-  on the Vite dev server, so none of it reaches the build. Run `npx playwright install chromium`
-  once first.
-- `npm run build`, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
+- `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
+  The smoke test runs against that build in `app/dist/` (it does not rebuild); the other tests run
+  test-only pages on the Vite dev server, reading the fixture from its data server, so none of it
+  reaches the build. Run `npx playwright install chromium` once first.
+- The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only. It is the start of the GPU matrix
   (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
   put the result in the PR description.
 - `npm run lab`: the experiments' lab runs on this Mac: Chromium on Metal through Playwright, and
   the installed Safari and Firefox through lab pages that post their reports to the dev server
-  (`build/lab/`). It needs no build. Local only; it opens a tab in both browsers.
+  (`build/lab/`). It needs no build; the lab specs that read the region bake start its data server
+  and fail, naming the command, when the bake is missing. Local only; it opens a tab in both
+  browsers.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking

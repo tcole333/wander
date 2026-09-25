@@ -1,7 +1,11 @@
 {
- "what": "The region bake (every available tile, layer 085efb54) fetched cross-origin from npm run data and decoded in the two decode workers by e2e/lab/decode.lab.ts; decode time is measured in the worker around decodeWst, one tile at a time; stored sizes are the .wst files. Every tile decoded to the same planes as Node and to its bounds in bounds.bin.",
+ "what": "The region bake (every available tile, layer 085efb54) fetched cross-origin from npm run data and decoded in the two decode workers by e2e/lab/decode.lab.ts; decode time is measured in the worker around decodeWst, one tile at a time, and byDecile groups tiles by the order they finished in. Stored sizes are the .wst files. Every tile decoded to the same planes as Node and to its bounds in bounds.bin.",
  "browser": "firefox",
  "machine": "MacBook Pro, Apple M5, macOS 26.5",
+ "pageHidden": {
+  "atStart": true,
+  "atPost": true
+ },
  "release": {
   "id": "a67159a5a1fd99f1",
   "ver": "085efb54",
@@ -9,12 +13,74 @@
  },
  "workers": 2,
  "tiles": 2649,
- "wallMs": 2456,
+ "wallMs": 2532,
  "decodeMs": {
   "p50": 2,
-  "p90": 2,
-  "max": 13
+  "p90": 3,
+  "max": 14
  },
+ "byDecile": [
+  {
+   "decile": 0,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 3
+  },
+  {
+   "decile": 1,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 3
+  },
+  {
+   "decile": 2,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 3
+  },
+  {
+   "decile": 3,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 3
+  },
+  {
+   "decile": 4,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 3
+  },
+  {
+   "decile": 5,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 2
+  },
+  {
+   "decile": 6,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 2
+  },
+  {
+   "decile": 7,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 2
+  },
+  {
+   "decile": 8,
+   "tiles": 265,
+   "p50": 2,
+   "p90": 2
+  },
+  {
+   "decile": 9,
+   "tiles": 264,
+   "p50": 2,
+   "p90": 2
+  }
+ ],
  "byLevel": {
   "0": {
    "tiles": 6,
@@ -57,7 +123,7 @@
    "decodeMs": {
     "p50": 2,
     "p90": 3,
-    "max": 9
+    "max": 8
    },
    "storedKB": {
     "p50": 50.42,
@@ -68,8 +134,8 @@
    "tiles": 1536,
    "decodeMs": {
     "p50": 2,
-    "p90": 2,
-    "max": 13
+    "p90": 3,
+    "max": 14
    },
    "storedKB": {
     "p50": 45.13,
@@ -81,7 +147,7 @@
    "decodeMs": {
     "p50": 2,
     "p90": 2,
-    "max": 11
+    "max": 3
    },
    "storedKB": {
     "p50": 51.27,
@@ -93,7 +159,7 @@
    "decodeMs": {
     "p50": 2,
     "p90": 2,
-    "max": 12
+    "max": 10
    },
    "storedKB": {
     "p50": 44.12,
@@ -105,7 +171,7 @@
    "decodeMs": {
     "p50": 1,
     "p90": 2,
-    "max": 2
+    "max": 3
    },
    "storedKB": {
     "p50": 32.01,

@@ -268,9 +268,11 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
   arithmetic, `m = (a + b + c + d + 2) >> 2`, for codes, shore and water alike. Mips are built only
   here. Output: R16F offsets (code − codeMid) and RG8 (shore, water) for 3 mips, the R16F edge
   profiles, the meter bounds, a 33² Float32 meter grid, and the compressed buffer handed back (5.2).
-  In a decode worker on the M5 a tile takes 1.5 ms at the median in Chromium and 2 ms in Firefox
-  and Safari, with Safari at 8 ms for L5-L7 tiles [M `e1/results/decode-*.json`]. A worker decodes
-  one request at a time in arrival order, so tiles submitted coarsest first finish first.
+  In a decode worker on the M5 a tile takes 1.7 ms at the median in Chromium and 2 ms in Firefox
+  and Safari [M `e1/results/decode-*.json`]. Safari ran the test in a hidden tab, and after the first
+  60% of the tiles its decodes slowed from 1-2 ms to about 8 ms, while hidden Firefox did not; a
+  foreground Safari run is still to come. A worker decodes one request at a time in arrival order,
+  so tiles submitted coarsest first finish first.
   - R16F values are f16 bits from an exact integer-to-half conversion (|v| ≤ 2048; Node 22 has no
     `Float16Array`). The decoder is a pure function that does not import three; the worker wraps it
     and posts its results with `{ transfer }`.
