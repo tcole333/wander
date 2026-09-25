@@ -59,7 +59,9 @@ toning keep images consistent with the brass look.
 Two controls, two axes:
 
 - **Time** is a brass ruler along the bottom of the instrument. It zooms from centuries down to
-  days and always labels in calendar terms (years, months, days), never decimal years. Story beats
+  days and always labels in calendar terms (years, months, days), never decimal years. A compressed
+  deep-time segment holds the few well-known events from before human history, such as the Ries
+  impact. Story beats
   appear as pips on it. In a story the ruler animates between beats; dragging it breaks out into
   exploration. The span of time that counts as "now" follows the ruler's zoom, so there is no
   separate window-width control.
@@ -89,14 +91,19 @@ idea from the first prototype that worked well), and selecting it flies the glob
 Every layer toggles independently:
 
 - relief (land and sea floor, exaggerated)
-- coastlines, land, lakes, and rivers
-- bathymetry
-- the 42 major mountain ranges
-- historical climate: monthly temperature anomalies, 1421-2008
+- bathymetry (depth bands)
+- coastlines
+- land and sea tint
+- rivers and lakes
+- graticule
+- ocean and sea names
+- historical borders
 - ecoregions and biomes
 - petroleum provinces
+- the 42 major mountain ranges
 - critical-mineral deposits
-- historical borders
+- historical climate: monthly temperature anomalies, 1421-2008
+- events
 
 Borders come from the historical snapshot nearest the current date, and the snapshot's year is
 always shown.
@@ -178,7 +185,8 @@ areas, climate data, and the thematic layers.
 
 ## Content and sourcing
 
-- A story is one Markdown file: a small data block per beat (date, camera, focal event, layers,
+- A story is one Markdown file (`stories/<story>/story.md`, beside its datasets, audio and media
+  lock): a small data block per beat (date, camera, focal event, layers,
   effects, image, sources) and the beat's prose. One schema validates every story at build time.
 - Claude drafts stories from real sources; the owner edits the voice and approves.
 - Every beat cites at least one source (title, author or publisher, link). Dates, numbers, and
@@ -188,18 +196,20 @@ areas, climate data, and the thematic layers.
 
 ## Data
 
-Raw sources live outside the repo in `~/projects/wander-data`, described by its `manifest.json`
-(source, license, attribution, checksum per file):
+Raw sources live outside the repo in the raw-data folder `~/projects/wander-data`, described by its
+`manifest.json` (source, license, attribution, checksum per file). The prebuild pins every input,
+including those the folder lacks, in `pipeline/sources.toml`:
 
-- GEBCO_2026: global land and sea-floor elevation at 15 arc-seconds (relief)
-- Natural Earth: coastlines, land, lakes, rivers, bathymetry
+- GEBCO_2026: global land and sea-floor elevation at 15 arc-seconds (relief, and the contours of
+  the bathymetry bands)
+- Natural Earth: coastlines, land, lakes, rivers, and the bathymetry bands' depth intervals
 - ModE-RA: monthly temperature anomaly reanalysis, 1421-2008
 - RESOLVE Ecoregions 2017
 - USGS World Petroleum Provinces (2000) and critical-mineral deposits (2017)
 - GMBA mountain inventory (42 selected ranges)
 - historical-basemaps: border snapshots from prehistory to 2010 (GPL-3.0; derived border files keep
   that license)
-- Wikidata: events, queried directly over SPARQL (WDQS or QLever)
+- Wikidata: events, from pinned QLever SPARQL exports
 
 **Global event index.** v1 builds an index of dated, located Wikidata events across all eras,
 ranked by notability (how many Wikipedia language editions cover each event) and linked through
@@ -223,9 +233,9 @@ ongoing work that starts in v1.
 ## Done for v1
 
 - All five stories live at `wander.traviscole.xyz` in current desktop Chrome, Safari, and Firefox.
-- First meaningful frame in under 3 seconds on normal broadband (25 Mbps with a cold cache), and
-  beats still land smoothly at 5 Mbps.
-- At least 45 fps at 1440x900, measured as a 95th-percentile frame time of 22 ms or less, with
+- First live frame in under 3 seconds on normal broadband (25 Mbps and 50 ms round trips, with a
+  cold cache), and beats still land smoothly at 5 Mbps.
+- At least 45 fps at 1440x900, measured as a 95th-percentile frame time of 22.2 ms or less, with
   quality stepping down automatically on weaker GPUs. During development this is measured on the
   owner's MacBook Pro (Apple M5); lower-end machines (an M1-class Mac and an Intel Iris Xe laptop)
   get checked before launch.
@@ -246,8 +256,9 @@ ongoing work that starts in v1.
 
 1. **Tambora slice, deployed.** Starts with the de-risk experiments listed in the streaming design,
    then the lobby, the Tambora story, the globe around it, its climate and 1815 border layers,
-   Meanwhile drawn from events worldwide during Tambora's years, basic audio, and deployment.
-2. **Magellan, and the global event index across all eras.**
+   Meanwhile drawn from events worldwide during Tambora's years (out of the all-eras event index,
+   which this milestone builds), basic audio, and deployment.
+2. **Magellan.**
 3. **The Century of Oil, the Black Death, and the Gold Rush.**
 4. **Polish to the v1 bar.**
 5. **v1.1: open-world exploration.**
@@ -255,7 +266,5 @@ ongoing work that starts in v1.
 ## Open questions
 
 - Music score and narration, after hearing v1's audio.
-- Whether close story views need the finest terrain level, decided by looking at the Tambora close
-  view on real GEBCO data.
-- How to balance the event index's notability ranking across eras and regions (Wikidata skews
-  heavily toward Europe and recent centuries).
+- The zoom floor, the closest view in stories and explore, decided by looking at the Tambora close
+  view on real GEBCO data (streaming design, owner decision 1).
