@@ -177,14 +177,15 @@ describe('exact positions', () => {
   it.each(LEVELS)(
     'make border texels of tile x equal texels 0..3 of x + 1 at level %i',
     (level) => {
-      for (let x = 0; x < 2 ** level - 1; x += 1) {
+      // Tile x + 1 starts at −1 + 2(x + 1)/n (streaming.md 3.0). Every term is a small dyadic
+      // rational, so the expected value is exact.
+      const n = 2 ** level;
+      for (let x = 0; x < n - 1; x += 1) {
+        const nextS0 = -1 + (2 * (x + 1)) / n;
         for (let k = 0; k < 4; k += 1) {
-          const border = texelCenter(level, TILE * x + 256 + k);
-          const interior = texelCenter(level, TILE * (x + 1) + k);
-          expect(border).toBe(interior);
-          expect(stToDir(0, border, 0.25)).toEqual(stToDir(0, interior, 0.25));
+          expect(texelCenter(level, TILE * x + 256 + k)).toBe(nextS0 + (2 * k + 1) / (256 * n));
         }
-        expect(corner(level, TILE * x + 256)).toBe(corner(level, TILE * (x + 1)));
+        expect(corner(level, TILE * x + 256)).toBe(nextS0);
       }
     },
   );
