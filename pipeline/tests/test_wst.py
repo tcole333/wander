@@ -192,13 +192,18 @@ def test_the_code_bounds_cover_the_edges():
     t = dataclasses.replace(flat_tile(), edges=edges)
     with pytest.raises(WstError, match=r"codeMin\.\.codeMax"):
         encode_payload(t)
-    assert decode_payload(encode_payload(dataclasses.replace(t, code_min=-7))).code_min == -7
+    widened = dataclasses.replace(t, code_min=-7, code_mid=-4)
+    assert decode_payload(encode_payload(widened)).code_min == -7
 
 
-def test_the_encoder_refuses_a_code_mid_out_of_reach():
-    t = SYNTHETIC["extremes"]
+@pytest.mark.parametrize(
+    ("name", "shift"),
+    [("flat", 37), ("random", -1), ("random", 1), ("extremes", -1), ("extremes", 1)],
+)
+def test_the_encoder_refuses_any_code_mid_but_the_floor_of_the_mean(name, shift):
+    t = flat_tile() if name == "flat" else SYNTHETIC[name]
     with pytest.raises(WstError, match="codeMid"):
-        encode_payload(dataclasses.replace(t, code_mid=t.code_mid + 1))
+        encode_payload(dataclasses.replace(t, code_mid=t.code_mid + shift))
 
 
 def test_the_encoder_refuses_edges_that_disagree_at_a_corner():
