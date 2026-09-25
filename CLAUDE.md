@@ -21,7 +21,8 @@ Paths in the docs are relative to the repo root, except the measurement citation
   globe runtime. Tunables live in `app/src/config/tunables.ts`.
 - `pipeline/`: the uv project for the Python prebuild (`uv run prebuild <stage>`), which turns raw
   sources into web assets. Its config, queries and test excerpts live under it.
-- `shared/constants.json`: magics, sentinels and the layer order, read by both projects.
+- `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
+  both projects.
 - `stories/<story>/`: one folder per story: `story.md`, its datasets, audio and `story.lock.json`.
 - `build/`: prebuild output (git-ignored): one root per profile in the R2 key layout (`build/out/`
   for global, `build/region/`, `build/fixture/`), stage records in `build/stages/<profile>/` and
