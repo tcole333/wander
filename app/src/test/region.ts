@@ -4,6 +4,7 @@
 // tree holds. A missing or stale bake fails loudly, naming the command that rebuilds it.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { tileKey, type Tile } from '../surface/cube';
 import { decodeWst, type DecodedWst } from '../surface/wst';
 import { REPO_ROOT, type SurfaceRecord } from './fixture';
@@ -20,24 +21,33 @@ const CODE_PATHS = [
 ];
 const REBUILD = 'run `uv run prebuild --profile region` in pipeline/';
 
+/** What the coverage stage read, as sha256s (streaming.md 7.2). */
+export interface StageInputs {
+  gebco: string;
+  ne: Record<string, string>;
+  configs: Record<string, string>;
+  code: string;
+}
+
 /** The coverage stage's record (streaming.md 7.2). */
 export interface CoverageRecord {
   qLand: number[];
   c200: number[];
   counts: number[];
   avail: string;
-  /** What the stage read, as sha256s; the records of older prebuilds lack it. */
-  inputs?: {
-    gebco: string;
-    ne: Record<string, string>;
-    configs: Record<string, string>;
-    code: string;
-  };
+  /** The records of older prebuilds lack it. */
+  inputs?: StageInputs;
+}
+
+/** The surface stage's record (streaming.md 7.2). */
+export interface RegionSurfaceRecord extends SurfaceRecord {
+  /** The coverage inputs its layer was built from; the records of older prebuilds lack them. */
+  inputs?: StageInputs;
 }
 
 export interface RegionBake {
   coverage: CoverageRecord;
-  surface: SurfaceRecord;
+  surface: RegionSurfaceRecord;
   /** The surface layer's folder, build/region/surf/<ver8>/. */
   layer: string;
 }
@@ -47,19 +57,22 @@ export class StaleRegionBake extends Error {
 }
 
 /**
- * The region bake's records, once its surface layer exists, its surface record comes from its
- * coverage record, and that record's code hash and source hashes match the working tree. Throws a
- * StaleRegionBake naming the command to run otherwise.
+ * The region bake's records, once its surface layer exists, its surface record was built from the
+ * inputs its coverage record holds, and those inputs' code hash and source hashes match the working
+ * tree. Throws a StaleRegionBake naming the command to run otherwise.
  */
 export function readRegionBake(repo: string = REPO_ROOT): RegionBake {
   const stages = join(repo, 'build', 'stages', 'region');
   const coverage = readJson<CoverageRecord>(join(stages, 'coverage.json'));
-  const surface = readJson<SurfaceRecord>(join(stages, 'surface.json'));
+  const surface = readJson<RegionSurfaceRecord>(join(stages, 'surface.json'));
   if (coverage === null || surface === null) throw stale('it has no coverage or surface record');
   const layer = join(repo, 'build', 'region', 'surf', surface.ver);
   if (!existsSync(layer)) throw stale(`build/region/surf/${surface.ver}/ is missing`);
   if (surface.avail !== coverage.avail) {
     throw stale('the surface record was built from another coverage record');
+  }
+  if (!isDeepStrictEqual(surface.inputs, coverage.inputs)) {
+    throw stale('the surface layer was built from other inputs than the coverage record holds');
   }
   const { inputs } = coverage;
   if (inputs?.code !== treeSha(CODE_PATHS, repo)) {
