@@ -3,7 +3,7 @@
 // three, so the decode worker stays small; the worker only wraps it.
 import constants from '@shared/constants.json';
 import { codeToMeters } from './codes';
-import { TILE, tileKey, type Tile } from './cube';
+import { BORDER, TILE, tileKey, type Tile } from './cube';
 import { HALF_EXACT, halfBitsOf } from './half';
 
 export interface WstHeader {
@@ -56,7 +56,7 @@ export const WST_VERSION: number = constants.formats.surfaceTile.version;
 export const FLAG_INLAND_WATER = 1;
 export const FLAG_ALL_SEA = 2;
 
-export const SIZE = TILE + 2 * constants.cube.border; // 264
+export const SIZE = TILE + 2 * BORDER; // 264
 export const MIP_SIZES = [SIZE, SIZE / 2, SIZE / 4] as const;
 export const EDGE_ENTRIES = TILE + 1;
 export const GRID = 33;
