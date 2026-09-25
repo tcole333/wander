@@ -3,10 +3,11 @@ available, as a `.wst`, and `bounds.bin`, published as the layer `surf/<ver8>/` 
 output root, with the record `build/stages/<profile>/surface.json`.
 
 The stage refuses a coverage record whose inputs (the sources, the configs and the prebuild code)
-differ from the current ones. It first clears the staging folders an interrupted earlier run left
-in `surf/`, then workers build the tiles into `surf/.tmp-<pid>/`; once every file is hashed, that
-folder is renamed to `surf/<ver8>/`. A layer that already exists is kept, after a byte-for-byte
-comparison, since its version names its bytes.
+differ from the current ones, and its own record keeps those inputs, so a surface record that a
+later coverage run on other inputs outdated can be told apart. It first clears the staging folders
+an interrupted earlier run left in `surf/`, then workers build the tiles into `surf/.tmp-<pid>/`;
+once every file is hashed, that folder is renamed to `surf/<ver8>/`. A layer that already exists
+is kept, after a byte-for-byte comparison, since its version names its bytes.
 
 `bounds.bin` (gzip) holds each available node's LOD bounds in meters, [floor(h(codeMin)),
 ceil(h(codeMax))], in node order:
@@ -86,6 +87,7 @@ def run(ctx: Context) -> None:
         "maxLevel": max_level,
         "avail": cover["avail"],
         "bounds": f"{LAYER}/{ver}/{BOUNDS}",
+        "inputs": cover["inputs"],
     }
     write_record(ctx, STAGE, record)
     if ctx.profile is Profile.FIXTURE:

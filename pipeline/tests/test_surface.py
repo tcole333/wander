@@ -83,6 +83,7 @@ def test_the_surface_record(baked, record):
         "maxLevel": 7,
         "avail": cover["avail"],
         "bounds": f"surf/{record['ver']}/bounds.bin",
+        "inputs": cover["inputs"],
     }
 
 
