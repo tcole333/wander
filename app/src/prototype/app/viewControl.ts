@@ -32,8 +32,8 @@ export class ViewControl {
   /** Where input has sent the view; `current` follows it. */
   goal: ViewState;
   #flight: Flight | null = null;
-  /** The zoom's limits in km, set by the page. */
-  minKm = 30;
+  /** The zoom's limits in km, set by the page: the closest a view may come, by where it is. */
+  minKmAt: (view: ViewState) => number = () => 30;
   maxKm = Infinity;
 
   constructor(initial: ViewState) {
@@ -125,14 +125,15 @@ export class ViewControl {
         const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
         // A trackpad pinch arrives as ctrl+wheel with small deltas, so it zooms faster per pixel.
         const rate = event.ctrlKey ? PINCH_RATE : WHEEL_RATE;
-        this.goal = zoomView(this.goal, event.deltaY * lines, this.minKm, this.maxKm, rate);
+        const minKm = this.minKmAt(this.goal);
+        this.goal = zoomView(this.goal, event.deltaY * lines, minKm, this.maxKm, rate);
       },
       { passive: false },
     );
   }
 
   #clamp(view: ViewState): ViewState {
-    const viewKm = Math.min(this.maxKm, Math.max(this.minKm, view.viewKm));
+    const viewKm = Math.min(this.maxKm, Math.max(this.minKmAt(view), view.viewKm));
     const tilt = Math.min(MAX_TILT, Math.max(0, view.tilt));
     return { ...view, viewKm, tilt };
   }
