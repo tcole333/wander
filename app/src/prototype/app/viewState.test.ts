@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dragView, mixViews, reliefForWidth, type ViewState } from './viewState';
+import { dragView, flightAt, mixViews, reliefForWidth, type ViewState } from './viewState';
 
 const view = (lon: number, lat: number, viewKm: number): ViewState => ({
   lon,
@@ -16,6 +16,18 @@ describe('mixViews', () => {
 
   it('zooms in log space', () => {
     expect(mixViews(view(0, 0, 100), view(0, 0, 10000), 0.5).viewKm).toBeCloseTo(1000, 6);
+  });
+});
+
+describe('flightAt', () => {
+  it('moves the center early on a flight that zooms in', () => {
+    const at = flightAt(view(0, 0, 10000), view(20, 0, 30), 0.5, 0);
+    expect(at.lon).toBeGreaterThan(15);
+  });
+
+  it('ends at the destination', () => {
+    const at = flightAt(view(0, 0, 10000), view(20, 10, 30), 1, 2);
+    expect([at.lon, at.lat, at.viewKm]).toEqual([20, 10, expect.closeTo(30, 6) as number]);
   });
 });
 

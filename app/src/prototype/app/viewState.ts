@@ -36,24 +36,45 @@ export function arcKm(a: ViewState, b: ViewState): number {
   return Math.acos(Math.min(1, Math.max(-1, cos))) * EARTH_RADIUS_KM;
 }
 
-/**
- * The view `t` of the way from `a` to `b`: longitude the short way round, zoom in log space, and
- * `rise` (natural log of a zoom factor) added at the middle so a long flight passes higher.
- */
-export function mixViews(a: ViewState, b: ViewState, t: number, rise = 0): ViewState {
-  const logKm = Math.log(a.viewKm) + (Math.log(b.viewKm) - Math.log(a.viewKm)) * t;
+/** The view `t` of the way from `a` to `b`: longitude the short way round, zoom in log space. */
+export function mixViews(a: ViewState, b: ViewState, t: number): ViewState {
   return {
     lon: wrap180(a.lon + wrap180(b.lon - a.lon) * t),
     lat: a.lat + (b.lat - a.lat) * t,
-    viewKm: Math.exp(logKm + rise * Math.sin(Math.PI * t)),
+    viewKm: Math.exp(Math.log(a.viewKm) + (Math.log(b.viewKm) - Math.log(a.viewKm)) * t),
     tilt: a.tilt + (b.tilt - a.tilt) * t,
     heading: wrap180(a.heading + wrap180(b.heading - a.heading) * t),
   };
 }
 
-/** How much higher a flight from `a` to `b` passes: enough to see both ends at once. */
+/**
+ * How much higher a flight from `a` to `b` passes, as the natural log of a zoom factor at its
+ * middle: enough that the view there is a little wider than the distance between the two ends.
+ */
 export function flightRise(a: ViewState, b: ViewState): number {
-  return Math.max(0, Math.log((1.2 * arcKm(a, b)) / Math.max(a.viewKm, b.viewKm)));
+  return Math.max(0, Math.log((1.2 * arcKm(a, b)) / Math.sqrt(a.viewKm * b.viewKm)));
+}
+
+const FLIGHT_STEPS = 64;
+
+/**
+ * The view at eased time `e` of a flight from `a` to `b`: the zoom in log space, `rise` higher at
+ * the middle, and the center moving in step with the view's width, so the ground crosses the
+ * screen at an even pace instead of racing past while the view is narrow.
+ */
+export function flightAt(a: ViewState, b: ViewState, e: number, rise: number): ViewState {
+  const logA = Math.log(a.viewKm);
+  const logB = Math.log(b.viewKm);
+  const width = (t: number) => Math.exp(logA + (logB - logA) * t + rise * Math.sin(Math.PI * t));
+  let total = 0;
+  let done = 0;
+  for (let i = 0; i < FLIGHT_STEPS; i += 1) {
+    const w = width((i + 0.5) / FLIGHT_STEPS);
+    total += w;
+    done += w * Math.min(1, Math.max(0, e * FLIGHT_STEPS - i));
+  }
+  const moved = mixViews(a, b, done / total);
+  return { ...mixViews(a, b, e), lon: moved.lon, lat: moved.lat, viewKm: width(e) };
 }
 
 /** A step of `dtS` seconds from `current` toward `goal`, closing it with time constant `tauS`. */

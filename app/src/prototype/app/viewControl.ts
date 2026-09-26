@@ -3,11 +3,11 @@
 // an eased flight. Input moves a goal; the drawn view follows it, damped.
 import {
   damp,
-  easeInOut,
-  flightRise,
-  mixViews,
-  viewGap,
   dragView,
+  easeInOut,
+  flightAt,
+  flightRise,
+  viewGap,
   zoomView,
   type ViewState,
 } from './viewState';
@@ -78,7 +78,8 @@ export class ViewControl {
     const flight = this.#flight;
     if (flight) {
       const t = Math.min(1, (nowMs - flight.startMs) / flight.durationMs);
-      this.current = mixViews(flight.from, flight.to, easeInOut(t), flight.rise);
+      const view = flightAt(flight.from, flight.to, easeInOut(t), flight.rise);
+      this.current = { ...view, viewKm: Math.min(this.maxKm, view.viewKm) };
       this.goal = { ...this.current };
       if (t >= 1) this.#flight = null;
       return;
