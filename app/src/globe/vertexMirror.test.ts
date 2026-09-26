@@ -10,17 +10,40 @@ import { EDGES, tileKey, type Vec3 } from '../surface/cube';
 import { GRID, MIP_SIZES } from '../surface/wst';
 import { mipCodes, sideProfile, type Mip } from '../test/seams';
 import {
+  chordOffsets,
   fixtureTile,
   fixtureTiles,
   gridVertex,
   mirrorScenario,
   sharedGroups,
   sharedMismatches,
+  withFlags,
+  type ChordOffset,
   type MirroredScenario,
   type VertexRef,
 } from '../test/meshMirror';
-import { l1Globe, loneNode } from './meshScenarios';
-import { ancestorAt, vertexMip } from './seamFlags';
+import { flagsNeedUp } from './instances';
+import {
+  combinationKey,
+  combinationsOf,
+  EXCLUDED,
+  fixtureBakes,
+  fixtureFamilies,
+  l1Globe,
+  loneNode,
+  matches,
+  REQUIRED_COMBINATIONS,
+  TIERS as TIER_NAMES,
+  type Combination,
+} from './meshScenarios';
+import {
+  ancestorAt,
+  checkCover,
+  isTJunction,
+  seamFlags,
+  sharedPoint,
+  vertexMip,
+} from './seamFlags';
 import { GRID_SEGMENTS, SKIRT } from './tileGrid';
 import { wanderDisplace, wanderPow2, wanderTanQ } from './vertexMirror';
 
@@ -233,6 +256,216 @@ describe('a node deep under its source', () => {
       if (G === GRID_SEGMENTS.full) expect(lerps).toBeGreaterThan(0);
     },
   );
+});
+
+const FAMILIES = fixtureFamilies();
+// Every scenario on one tier: about 4 s on the M5.
+const SWEEP_TIMEOUT = 120_000;
+
+type ControlKind = 'cS' | 'cN' | 'dN';
+
+interface Control {
+  family: string;
+  kind: ControlKind;
+  flip: string;
+  /** Flips of this kind tried in the scenario, up to the first the mirror shows. */
+  tried: number;
+  /** Shared points the flipped instance then disagrees on. */
+  mismatches: number;
+}
+
+/**
+ * Candidate single-bit flips of `flags`: a half-edge or corner cS bit, an edge's cN bit, or a
+ * corner dN bit that leaves dN at 2 or less.
+ */
+function flips(flags: number, kind: ControlKind): number[] {
+  switch (kind) {
+    case 'cS':
+      return [4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 18, 21];
+    case 'cN':
+      return [0, 1, 2, 3];
+    case 'dN':
+      return [0, 1, 2, 3].flatMap((c) =>
+        [13 + 3 * c, 14 + 3 * c].filter((bit) => (((flags ^ (1 << bit)) >>> (13 + 3 * c)) & 3) < 3),
+      );
+  }
+}
+
+/**
+ * Per kind, the scenario's flips that change what an instance derives at a point it shares (the
+ * level or mip it samples, or whether the point is a T-junction), in instance and bit order, up to
+ * the first after which the mirror gets a shared point wrong.
+ */
+async function negativeControls(
+  family: string,
+  mirrored: MirroredScenario,
+  groups: Map<string, VertexRef[]>,
+): Promise<Control[]> {
+  const { grid, packed } = mirrored;
+  const G = grid.segments;
+  const holds = packed.instances.map(() => new Set<number>());
+  for (const members of groups.values()) {
+    for (const { instance, vertex } of members) holds[instance]?.add(vertex);
+  }
+  const controls: Control[] = [];
+  for (const kind of ['cS', 'cN', 'dN'] as const) {
+    let tried = 0;
+    let found: Control | undefined;
+    search: for (const [instance, { node, state }] of packed.instances.entries()) {
+      for (const bit of flips(state.flags, kind)) {
+        const flags = (state.flags ^ (1 << bit)) >>> 0;
+        if (flagsNeedUp(flags) && node.source === 0) continue;
+        const changes = [...(holds[instance] ?? [])].some((vertex) => {
+          const [k, l] = gridVertex(grid, vertex);
+          const was = sharedPoint(node, state.flags, k, l, G);
+          const now = sharedPoint(node, flags, k, l, G);
+          return (
+            was.lv !== now.lv ||
+            was.m !== now.m ||
+            isTJunction(state.flags, k, l, G) !== isTJunction(flags, k, l, G)
+          );
+        });
+        if (!changes) continue;
+        tried += 1;
+        const flipped = await withFlags(mirrored, instance, flags);
+        const touched = new Map(
+          [...groups].filter(([, members]) => members.some((m) => m.instance === instance)),
+        );
+        const mismatches = sharedMismatches(flipped, touched).length;
+        if (mismatches === 0) continue;
+        const flip = `${packed.scenario.name}: ${tileKey(node.tile)} bit ${bit}`;
+        found = { family, kind, flip, tried, mismatches };
+        break search;
+      }
+    }
+    if (tried === 0) continue;
+    const none = `${packed.scenario.name}: none of ${tried}`;
+    controls.push(found ?? { family, kind, flip: none, tried, mismatches: 0 });
+  }
+  return controls;
+}
+
+describe.each(TIER_NAMES)('the fixture families (%s)', (tier) => {
+  const shared: string[] = [];
+  const chords: ChordOffset[] = [];
+  const controls: Control[] = [];
+  beforeAll(async () => {
+    for (const { name: family, scenarios } of FAMILIES) {
+      for (const scenario of scenarios) {
+        const mirrored = await mirrorScenario(scenario, GRID_SEGMENTS[tier], { boundary: true });
+        const groups = sharedGroups(mirrored);
+        const named = (at: string) => `${scenario.name}: ${at}`;
+        shared.push(...sharedMismatches(mirrored, groups).map(named));
+        chords.push(...chordOffsets(mirrored, groups).map((c) => ({ ...c, at: named(c.at) })));
+        controls.push(...(await negativeControls(family, mirrored, groups)));
+      }
+    }
+  }, SWEEP_TIMEOUT);
+
+  test('every instance holding a shared point gets its code, shore, land, h, direction and position bit for bit', () => {
+    expect(shared).toEqual([]);
+  });
+
+  test('every T-junction lies within 1e-7 R of the coarse chord it splits', () => {
+    // The midpoint is fround(P0 + P1)·0.5 of the coarse vertices, within half a float32 step of
+    // the chord per component.
+    expect(chords.length).toBeGreaterThan(0);
+    expect(chords.filter(({ offset }) => !(offset <= 1e-7))).toEqual([]);
+  });
+
+  test('flipping one cS bit, one cN bit or one corner dN makes a shared point differ', () => {
+    // A flip can change the rule and not the value: where the field is linear, as on the L1
+    // tiles the 0.5° grid fills at 0°N 0°E, every mip's mean around a point is the same code. So
+    // each family shows every kind it can flip in some scenario, not in each one.
+    const flipped = new Set(controls.map((c) => `${c.family} ${c.kind}`));
+    const shown = new Set(
+      controls.filter((c) => c.mismatches > 0).map((c) => `${c.family} ${c.kind}`),
+    );
+    expect([...flipped].filter((key) => !shown.has(key))).toEqual([]);
+    const everywhere = FAMILIES.flatMap(({ name }) => [`${name} cS`, `${name} cN`]);
+    expect(everywhere.filter((key) => !shown.has(key))).toEqual([]);
+    expect(new Set(controls.filter((c) => c.mismatches > 0).map((c) => c.kind))).toEqual(
+      new Set(['cS', 'cN', 'dN']),
+    );
+  });
+});
+
+describe('the fixture families', () => {
+  const scenarios = FAMILIES.flatMap((family) => family.scenarios);
+
+  test('every scenario is a cover checkCover accepts, with a name of its own', () => {
+    const refused = scenarios.flatMap(({ name, nodes, partial }) => {
+      try {
+        checkCover(nodes, { partial });
+        return [];
+      } catch (error) {
+        return [`${name}: ${String(error)}`];
+      }
+    });
+    expect(refused).toEqual([]);
+    expect(new Set(scenarios.map((s) => s.name)).size).toBe(scenarios.length);
+  });
+
+  test('every scenario reads only tiles the fixture bakes, sources and up tiles alike', () => {
+    const baked = new Set(fixtureTiles().map(tileKey));
+    const missing = scenarios.flatMap(({ name, nodes, partial }) => {
+      const flags = seamFlags(nodes, { partial });
+      return nodes.flatMap(({ tile, source }) => {
+        const reads = [ancestorAt(tile, source)];
+        if (flagsNeedUp(flags.get(tileKey(tile)) ?? 0)) reads.push(ancestorAt(tile, source - 1));
+        return reads.filter((t) => !baked.has(tileKey(t))).map((t) => `${name}: ${tileKey(t)}`);
+      });
+    });
+    expect(missing).toEqual([]);
+  });
+
+  test('fixtureBakes names exactly the tiles the fixture holds', () => {
+    const named: string[] = [];
+    for (let level = 0; level <= 7; level += 1) {
+      for (let face = 0; face < 6; face += 1) {
+        for (let y = 0; y < 2 ** level; y += 1) {
+          for (let x = 0; x < 2 ** level; x += 1) {
+            const tile = { face, level, x, y };
+            if (fixtureBakes(tile)) named.push(tileKey(tile));
+          }
+        }
+      }
+    }
+    expect(named.sort()).toEqual(fixtureTiles().map(tileKey).sort());
+  });
+});
+
+describe('coverage', () => {
+  let reached: Set<string>;
+  beforeAll(() => {
+    reached = new Set(
+      FAMILIES.flatMap(({ scenarios }) =>
+        scenarios.flatMap((s) => TIER_NAMES.flatMap((tier) => [...combinationsOf(s, tier)])),
+      ),
+    );
+  }, SWEEP_TIMEOUT);
+  const excluded = (c: Combination) => EXCLUDED.some(({ where }) => matches(c, where));
+
+  test('the families reach every required combination but the excluded ones', () => {
+    const missing = REQUIRED_COMBINATIONS.filter((c) => !excluded(c))
+      .map(combinationKey)
+      .filter((key) => !reached.has(key));
+    expect(missing).toEqual([]);
+  });
+
+  test('they reach no excluded combination, and nothing the rules do not name', () => {
+    const required = new Set(REQUIRED_COMBINATIONS.map(combinationKey));
+    const excludedKeys = new Set(REQUIRED_COMBINATIONS.filter(excluded).map(combinationKey));
+    expect([...reached].filter((key) => excludedKeys.has(key) || !required.has(key))).toEqual([]);
+  });
+
+  test('every exclusion gives its reason and rules out a required combination', () => {
+    const idle = EXCLUDED.filter(
+      ({ where, reason }) =>
+        reason.trim() === '' || !REQUIRED_COMBINATIONS.some((c) => matches(c, where)),
+    );
+    expect(idle).toEqual([]);
+  });
 });
 
 function unit(p: Vec3): Vec3 {
