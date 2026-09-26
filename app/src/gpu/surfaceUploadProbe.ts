@@ -9,14 +9,14 @@ import { tunables, type Tier } from '../config/tunables';
 import { loadSurfaceLayer } from '../data/surfaceLayer';
 import type { Release } from '../data/release';
 import { tileKey } from '../surface/cube';
-import { MIP_SIZES, EDGE_ENTRIES, type DecodedWst } from '../surface/wst';
+import { EDGE_ENTRIES, EDGE_ROWS, MIP_SIZES, type DecodedWst } from '../surface/wst';
 import { decodeTiles } from '../workers/decodeTiles';
 import { centers, createSampler, rendererName } from './poolReadback';
 import { FIXED_SLOTS, SlotTable } from './slotTable';
 import { createSurfacePools, surfaceParts, type SurfacePools } from './surfaceUploads';
 import { UploadQueue, type StopReason } from './uploadQueue';
 
-/** Height mips, shore and water mips, edge profiles (surfaceUploads.ts). */
+/** Height mips, shore and water mips, the edge texture (surfaceUploads.ts). */
 const SURFACE_PARTS = 7;
 
 export interface SurfaceUploadOptions {
@@ -197,11 +197,13 @@ function readBack(
         ),
       );
     });
+    // Both channels of every row: codes and shore bytes of each side at each mip.
     note(
       'edges',
       0,
-      sampler.worst(pools.edges.texture, centers(slot, 0, EDGE_ENTRIES, 4), (x, y) => [
-        DataUtils.fromHalfFloat(tile.edges[y * EDGE_ENTRIES + x] ?? 0),
+      sampler.worst(pools.edges.texture, centers(slot, 0, EDGE_ENTRIES, EDGE_ROWS), (x, y) => [
+        DataUtils.fromHalfFloat(tile.edges[2 * (y * EDGE_ENTRIES + x)] ?? 0),
+        DataUtils.fromHalfFloat(tile.edges[2 * (y * EDGE_ENTRIES + x) + 1] ?? 0),
       ]),
     );
   }

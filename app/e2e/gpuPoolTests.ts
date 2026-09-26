@@ -16,6 +16,7 @@ export interface PoolRun {
 // WebGL 2 enums in the recorded calls.
 const TEXTURE_2D_ARRAY = 0x8c1a;
 const R16F = 0x822d;
+const RG16F = 0x822f;
 const RG8 = 0x822b;
 const RED = 0x1903;
 const RG = 0x8227;
@@ -55,7 +56,7 @@ export function definePoolTests(get: () => PoolRun): void {
     expect(get().report.calls.alloc).toEqual([
       storage(3, R16F, 264, 264),
       storage(3, RG8, 264, 264),
-      storage(1, R16F, 257, 4),
+      storage(1, RG16F, 257, 12),
     ]);
   });
 
@@ -75,7 +76,7 @@ export function definePoolTests(get: () => PoolRun): void {
       subImage(1, 6, 132, 132, RED, HALF_FLOAT, 'Uint16Array(17424)'),
       subImage(2, 6, 66, 66, RED, HALF_FLOAT, 'Uint16Array(4356)'),
       subImage(0, 7, 264, 264, RED, HALF_FLOAT, 'Uint16Array(69696)'),
-      subImage(0, 3, 257, 4, RED, HALF_FLOAT, 'Uint16Array(1028)'),
+      subImage(0, 3, 257, 12, RG, HALF_FLOAT, 'Uint16Array(6168)'),
     ]);
   });
 
@@ -109,7 +110,7 @@ export function definePoolTests(get: () => PoolRun): void {
     });
   });
 
-  test('reads the edge profiles back exactly', () => {
+  test('reads both channels of the edge texture back exactly', () => {
     expect(get().report.worst.edges).toEqual({ written: 0, unwritten: 0 });
   });
 

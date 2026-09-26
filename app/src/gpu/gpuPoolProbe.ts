@@ -63,7 +63,7 @@ declare global {
 }
 
 // Written: heights mip 2 of slot 5 (the smoke test's headline), mips 1-2 of slot 6 and mip 0 of
-// slot 7; shore and water mip 2 of slot 5; the edge profiles of slot 3.
+// slot 7; shore and water mip 2 of slot 5; the edge texture of slot 3, both channels.
 const SLOT = 5;
 
 export function runGpuPoolProbe(): ProbeReport {
@@ -92,7 +92,7 @@ export function runGpuPoolProbe(): ProbeReport {
     heightSlot6Mip1: heightTexels(6, 1, 132, 132),
     heightSlot6Mip2: heightTexels(6, 2, 66, 66),
     heightSlot7Mip0: heightTexels(7, 0, 264, 264),
-    edges: heightTexels(3, 0, 257, 4),
+    edges: edgeTexels(3, 257, 12),
   };
   phase = 'write';
   height.write(SLOT, 2, writes.heightMip2);
@@ -138,10 +138,8 @@ export function runGpuPoolProbe(): ProbeReport {
       shoreWaterMip0: sampler.worst(shoreWater.texture, centers(SLOT, 0, 264), () => [0, 0], bytes),
     },
     edges: {
-      written: sampler.worst(edges.texture, centers(3, 0, 257, 4), (x, y) => [
-        heightCode(3, 0, x, y),
-      ]),
-      unwritten: sampler.worst(edges.texture, centers(4, 0, 257, 4), zero),
+      written: sampler.worst(edges.texture, centers(3, 0, 257, 12), (x, y) => edgeValues(3, x, y)),
+      unwritten: sampler.worst(edges.texture, centers(4, 0, 257, 12), () => [0, 0]),
     },
   };
   glError.readback = gl.getError();
@@ -181,6 +179,11 @@ function heightCode(slot: number, level: number, x: number, y: number): number {
   return ((x * 131 + y * 71 + slot * 29 + level * 17) % 4001) - 2000;
 }
 
+/** An edge texel: a code offset in R, and in G a shore byte, which the texture holds as a half. */
+function edgeValues(slot: number, x: number, y: number): number[] {
+  return [heightCode(slot, 0, x, y), (x * 3 + y * 37 + slot) & 255];
+}
+
 function shoreWaterBytes(slot: number, level: number, x: number, y: number): number[] {
   return [(x * 7 + y * 3 + slot + level * 5) & 255, (x * 5 + y * 11 + slot * 3 + level) & 255];
 }
@@ -200,6 +203,17 @@ function heightTexels(slot: number, level: number, width: number, rows: number):
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < width; x++) {
       texels[y * width + x] = DataUtils.toHalfFloat(heightCode(slot, level, x, y));
+    }
+  }
+  return texels;
+}
+
+function edgeTexels(slot: number, width: number, rows: number): Uint16Array {
+  const texels = new Uint16Array(width * rows * 2);
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < width; x++) {
+      const halves = edgeValues(slot, x, y).map((value) => DataUtils.toHalfFloat(value));
+      texels.set(halves, (y * width + x) * 2);
     }
   }
   return texels;
