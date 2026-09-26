@@ -452,7 +452,12 @@ vec3 lookPerturb(vec3 n, LookSurface s) {
   vec3 grad = (s.dh.x * c1 + s.dh.y * c2) / det;
   vec3 g = grad * (0.9 * lookNormalStrength * s.zoom * 0.017453292519943295);
   float m = length(g) / lookMaxSlope;
-  return normalize(n - g / sqrt(1.0 + m * m));
+  vec3 p = normalize(n - g / sqrt(1.0 + m * m));
+  // Steeply tilted, relief can turn the normal from the camera, which three lights black: keep it
+  // facing the viewer (vViewPosition is three's, from the fragment toward the camera).
+  vec3 v = normalize(vViewPosition);
+  float nv = dot(p, v);
+  return nv < 0.1 ? normalize(p + v * (0.1 - nv)) : p;
 }
 `;
 
