@@ -9,6 +9,7 @@ import {
   availGet,
   corner,
   dirToLonLat,
+  faceEdgeSides,
   faceOf,
   faceSt,
   lonLatToDir,
@@ -385,5 +386,35 @@ describe('neighbors', () => {
       edge: 'E',
       reversed: false,
     });
+  });
+});
+
+describe('the sides that store edge profiles', () => {
+  it('are all four on an L0 tile', () => {
+    for (let face = 0; face < 6; face += 1) {
+      expect(faceEdgeSides({ face, level: 0, x: 0, y: 0 })).toEqual([0, 1, 2, 3]);
+    }
+  });
+
+  it.each(LEVELS.slice(1))('are two on each Kirkuk corner tile at level %i', (level) => {
+    const last = 2 ** level - 1;
+    expect(faceEdgeSides({ face: 0, level, x: last, y: last })).toEqual([0, 1]); // N, E
+    expect(faceEdgeSides({ face: 1, level, x: 0, y: last })).toEqual([0, 3]); // N, W
+    expect(faceEdgeSides({ face: 4, level, x: last, y: 0 })).toEqual([1, 2]); // E, S
+  });
+
+  it('are none inside a face and one along a single face edge', () => {
+    expect(faceEdgeSides({ face: 1, level: 7, x: 103, y: 50 })).toEqual([]);
+    expect(faceEdgeSides({ face: 5, level: 9, x: 300, y: 511 })).toEqual([0]); // N
+    expect(faceEdgeSides({ face: 4, level: 2, x: 1, y: 0 })).toEqual([2]); // S
+  });
+
+  it('are the sides whose neighbor lies on another face, through level 3', () => {
+    for (const t of allTiles(3)) {
+      const across = EDGES.flatMap((edge, e) =>
+        neighbor(t, edge).tile.face !== t.face ? [e] : [],
+      );
+      expect(faceEdgeSides(t), tileKey(t)).toEqual(across);
+    }
   });
 });
