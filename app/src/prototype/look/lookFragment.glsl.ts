@@ -125,80 +125,96 @@ float lookShoreExact(vec2 uv, int slot) {
   return sum * 255.0;
 }
 
-// The spike's integer hash.
-float lookHash(int x, int y) {
-  uint h = (uint(x) * 374761393u) ^ (uint(y) * 668265263u);
-  h = (h ^ (h >> 13u)) * 1274126177u;
-  return float(h ^ (h >> 16u)) * (1.0 / 4294967295.0);
+uint lookHashU(uint x) {
+  x ^= x >> 16u;
+  x *= 0x7feb352du;
+  x ^= x >> 15u;
+  x *= 0x846ca68bu;
+  return x ^ (x >> 16u);
 }
 
-// Gradient noise and its gradient in lattice units, (n, dn/dx, dn/dy), with the lattice wrapped in
-// x every period cells. n spreads as the spike's value noise less 0.5 did, but its slope is not
-// zero along the lattice lines, where value noise's is: that showed the lattice as a grid of
-// squares in the shading.
-vec3 lookGradientNoise(vec2 p, int period) {
-  vec2 i = floor(p);
-  vec2 f = p - i;
-  vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-  vec2 du = 30.0 * f * f * (f * (f - 2.0) + 1.0);
-  int x0 = int(i.x) % period;
-  int x1 = (x0 + 1) % period;
-  int y0 = int(i.y);
-  float a0 = 6.283185307179586 * lookHash(x0, y0);
-  float a1 = 6.283185307179586 * lookHash(x1, y0);
-  float a2 = 6.283185307179586 * lookHash(x0, y0 + 1);
-  float a3 = 6.283185307179586 * lookHash(x1, y0 + 1);
-  vec2 ga = vec2(cos(a0), sin(a0));
-  vec2 gb = vec2(cos(a1), sin(a1));
-  vec2 gc = vec2(cos(a2), sin(a2));
-  vec2 gd = vec2(cos(a3), sin(a3));
-  float va = dot(ga, f);
-  float vb = dot(gb, f - vec2(1.0, 0.0));
-  float vc = dot(gc, f - vec2(0.0, 1.0));
-  float vd = dot(gd, f - vec2(1.0, 1.0));
-  float k = va - vb - vc + vd;
-  float n = va + u.x * (vb - va) + u.y * (vc - va) + u.x * u.y * k;
-  vec2 g = ga + u.x * (gb - ga) + u.y * (gc - ga) + u.x * u.y * (ga - gb - gc + gd) +
-    du * (u.yx * k + vec2(vb - va, vc - va));
-  return vec3(n, g);
+// A lattice point's gradient, each component in [-1, 1].
+vec3 lookGradientAt(vec3 c) {
+  ivec3 i = ivec3(c);
+  uint h = lookHashU(uint(i.x) + lookHashU(uint(i.y) + lookHashU(uint(i.z))));
+  return vec3(uvec3(h, h >> 10u, h >> 20u) & 1023u) * (2.0 / 1023.0) - 1.0;
 }
 
-// The spike's octaves, in cycles per degree; 360 f cells wrap around the globe.
-const float LOOK_OCTAVES[5] = float[5](0.35, 1.3, 4.5, 14.0, 42.0);
-const int LOOK_PERIODS[5] = int[5](126, 468, 1620, 5040, 15120);
+// 3D gradient noise and its gradient in lattice units, (n, dn/dp). Sampled on the globe's
+// directions, so its cells are the same shape everywhere, poles included. n spreads as the spike's
+// value noise less 0.5 did (the 1.13), but its slope is not zero along the lattice lines, where
+// value noise's is: that showed the lattice as a grid of squares in the shading.
+vec4 lookGradientNoise(vec3 p) {
+  vec3 i = floor(p);
+  vec3 w = p - i;
+  vec3 u = w * w * w * (w * (w * 6.0 - 15.0) + 10.0);
+  vec3 du = 30.0 * w * w * (w * (w - 2.0) + 1.0);
+  vec3 ga = lookGradientAt(i);
+  vec3 gb = lookGradientAt(i + vec3(1.0, 0.0, 0.0));
+  vec3 gc = lookGradientAt(i + vec3(0.0, 1.0, 0.0));
+  vec3 gd = lookGradientAt(i + vec3(1.0, 1.0, 0.0));
+  vec3 ge = lookGradientAt(i + vec3(0.0, 0.0, 1.0));
+  vec3 gf = lookGradientAt(i + vec3(1.0, 0.0, 1.0));
+  vec3 gg = lookGradientAt(i + vec3(0.0, 1.0, 1.0));
+  vec3 gh = lookGradientAt(i + vec3(1.0, 1.0, 1.0));
+  float va = dot(ga, w);
+  float vb = dot(gb, w - vec3(1.0, 0.0, 0.0));
+  float vc = dot(gc, w - vec3(0.0, 1.0, 0.0));
+  float vd = dot(gd, w - vec3(1.0, 1.0, 0.0));
+  float ve = dot(ge, w - vec3(0.0, 0.0, 1.0));
+  float vf = dot(gf, w - vec3(1.0, 0.0, 1.0));
+  float vg = dot(gg, w - vec3(0.0, 1.0, 1.0));
+  float vh = dot(gh, w - vec3(1.0, 1.0, 1.0));
+  vec3 k1 = vec3(va - vb - vc + vd, va - vc - ve + vg, va - vb - ve + vf);
+  float k2 = -va + vb + vc - vd + ve - vf - vg + vh;
+  float n = va + u.x * (vb - va) + u.y * (vc - va) + u.z * (ve - va) + u.x * u.y * k1.x +
+    u.y * u.z * k1.y + u.z * u.x * k1.z + u.x * u.y * u.z * k2;
+  vec3 g = ga + u.x * (gb - ga) + u.y * (gc - ga) + u.z * (ge - ga) +
+    u.x * u.y * (ga - gb - gc + gd) + u.y * u.z * (ga - gc - ge + gg) +
+    u.z * u.x * (ga - gb - ge + gf) + u.x * u.y * u.z * (-ga + gb + gc - gd + ge - gf - gg + gh) +
+    du * (vec3(vb, vc, ve) - va + u.yzx * k1 + u.zxy * k1.zxy + u.yzx * u.zxy * k2);
+  return 1.13 * vec4(n, g);
+}
+
+// The spike's octaves, in cycles per degree.
+#define LOOK_OCTAVE_COUNT 5
+const float LOOK_OCTAVES[LOOK_OCTAVE_COUNT] = float[LOOK_OCTAVE_COUNT](0.35, 1.3, 4.5, 14.0, 42.0);
 
 struct LookNoise {
   float mottle;
   float fine;
-  // d fine / d(lon, lat), per degree.
-  vec2 fineGrad;
+  // d fine / d(direction), per radian.
+  vec3 fineGrad;
 };
 
-// The spike's noise at lon/lat, each octave fading out as its cells near 4 pixels (gradient
-// noise's bumps are half a cell), so it never shimmers. As in the spike, mottle sums the two lowest
-// octaves and fine is the highest one shown; fine's gradient comes with it, for the relief's
-// normal.
-LookNoise lookNoiseAt(vec2 lonlat, float degPx) {
+// The octave's cells per pixel where it starts and finishes fading out: from 10 pixels a cell to 4
+// (gradient noise's bumps are half a cell), so it never shimmers.
+#define LOOK_FADE vec2(0.1, 0.25)
+
+// The spike's noise at a direction, each octave fading out as its cells near 4 pixels. As in the
+// spike, mottle sums the two lowest octaves and fine is the highest one shown; fine's gradient
+// comes with it, for the relief's normal. Octaves that a finer one hides entirely are skipped.
+LookNoise lookNoiseAt(vec3 dir, float degPx) {
   LookNoise o;
   o.mottle = 0.0;
-  vec3 fine = vec3(0.5, 0.0, 0.0);
-  float lonPx = degPx / max(cos(radians(lonlat.y)), 0.05);
-  float footprint = max(lonPx, 1.1 * degPx);
-  for (int k = 0; k < 5; k++) {
+  vec4 fine = vec4(0.5, 0.0, 0.0, 0.0);
+  for (int k = 0; k < LOOK_OCTAVE_COUNT; k++) {
     float f = LOOK_OCTAVES[k];
-    float shown = 1.0 - smoothstep(0.1, 0.25, f * footprint);
+    float shown = 1.0 - smoothstep(LOOK_FADE.x, LOOK_FADE.y, f * degPx);
     if (shown <= 0.0) break;
-    vec2 p = vec2((lonlat.x + 180.0) * f + float(k) * 17.3, lonlat.y * f * 1.1 - float(k) * 9.1);
-    vec3 n = lookGradientNoise(p, LOOK_PERIODS[k]);
+    bool hidden = k + 1 < LOOK_OCTAVE_COUNT && LOOK_OCTAVES[k + 1] * degPx <= LOOK_FADE.x;
+    if (k >= 2 && hidden) continue;
+    float perRad = 57.29577951308232 * f;
+    vec4 n = lookGradientNoise(dir * perRad + vec3(17.3, -9.1, 5.7) * float(k));
     if (k < 2) {
       o.mottle += n.x * (k == 0 ? 0.7 : 0.45) * shown;
     } else {
       float a = min(1.0, 4.5 / f);
-      fine = mix(fine, vec3(0.5 + n.x * a, n.yz * a * f * vec2(1.0, 1.1)), shown);
+      fine = mix(fine, vec4(0.5 + n.x * a, n.yzw * a * perRad), shown);
     }
   }
   o.fine = fine.x;
-  o.fineGrad = fine.yz;
+  o.fineGrad = fine.yzw;
   return o;
 }
 
@@ -255,7 +271,8 @@ struct LookFields {
   float w;
   // The L1 ancestor's shore distance in L1 texels, B-spline smooth.
   float d1;
-  vec2 lonlat;
+  // The direction in the globe frame.
+  vec3 dir;
 };
 
 struct LookFootprint {
@@ -281,7 +298,7 @@ LookFields lookFields(vec2 uv, vec2 st, bool exactL1) {
   int slot1 = 6 + 4 * vLookFace + 2 * t1.y + t1.x;
   float shore1 = exactL1 ? lookShoreExact(uv1, slot1) : lookShoreSmooth(uv1, float(slot1));
   f.d1 = (shore1 - 128.0) / 16.0;
-  f.lonlat = lookLonLat(lookDirAt(st));
+  f.dir = lookDirAt(st);
   return f;
 }
 
@@ -321,11 +338,6 @@ float lookReliefAt(LookFields f, LookFootprint fp) {
   return mix(atSea, onLand, land);
 }
 
-// A longitude difference in (-180, 180], across the antimeridian too.
-float lookLonDelta(float a, float b) {
-  return mod(a - b + 180.0, 360.0) - 180.0;
-}
-
 struct LookSurface {
   vec3 albedo;
   float roughness;
@@ -349,14 +361,14 @@ LookSurface lookSurface() {
   bool exactL1 = fp.stPx * 256.0 < 1.0 / 32.0;
   LookFields c = lookFields(vLookUv, vLookSt, exactL1);
   fp.bandW = clamp(fwidth(c.h), 1.0, 400.0);
-  LookNoise nz = lookNoiseAt(c.lonlat, fp.degPx);
+  LookNoise nz = lookNoiseAt(c.dir, fp.degPx);
   float mottle = nz.mottle * lookNoise;
   float fine = 0.5 + (nz.fine - 0.5) * lookNoise;
   float land = clamp(0.5 + c.d / fp.texPx, 0.0, 1.0);
 
   // Four taps a pixel or at least 2 texels away (within the tile's 4-texel border): the relief's
-  // central differences, plus the fine noise's own gradient carried from lon/lat to s and t by the
-  // taps' lon/lat. Nearer taps turn each texel's small ridges into glints.
+  // central differences, plus the fine noise's own gradient carried to s and t by the taps'
+  // directions. Nearer taps turn each texel's small ridges into glints.
   float delta = max(2.0, fp.texPx);
   vec2 du = vec2(delta / LOOK_TEXELS, 0.0);
   vec2 ds = vec2(delta / perSt, 0.0);
@@ -365,14 +377,14 @@ LookSurface lookSurface() {
   LookFields n = lookFields(vLookUv + du.yx, vLookSt + ds.yx, exactL1);
   LookFields s = lookFields(vLookUv - du.yx, vLookSt - ds.yx, exactL1);
   vec2 dh = vec2(lookReliefAt(e, fp) - lookReliefAt(w, fp), lookReliefAt(n, fp) - lookReliefAt(s, fp));
-  vec2 dLonLatS = vec2(lookLonDelta(e.lonlat.x, w.lonlat.x), e.lonlat.y - w.lonlat.y);
-  vec2 dLonLatT = vec2(lookLonDelta(n.lonlat.x, s.lonlat.x), n.lonlat.y - s.lonlat.y);
-  float noiseRelief = 0.035 * land * lookNoise;
-  dh += noiseRelief * vec2(dot(nz.fineGrad, dLonLatS), dot(nz.fineGrad, dLonLatT));
-  o.dh = dh / (2.0 * ds.x);
   // The spike baked its close patch with normals at 0.45 of the globe's: relief softens as the
   // view closes.
   o.zoom = clamp(pow(fp.degPx / LOOK_REF_DEG_PX, lookNormalZoom), 0.15, 1.0);
+  // The fine noise's relief, at 0.035 where the spike had 0.06, as gradient noise's slopes are 1.6
+  // times value noise's.
+  float noiseRelief = 0.035 * land * lookNoise;
+  dh += noiseRelief * vec2(dot(nz.fineGrad, e.dir - w.dir), dot(nz.fineGrad, n.dir - s.dir));
+  o.dh = dh / (2.0 * ds.x);
 
   float coast = lookLine(abs(c.d) / fp.texPx, lookCoastPx);
   float water = lookWater(c.w, fp.texPx);
