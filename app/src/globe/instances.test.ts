@@ -19,7 +19,7 @@ function random(seed: number) {
   let state = seed >>> 0;
   return (below: number) => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state % below;
+    return Math.floor((state / 2 ** 32) * below);
   };
 }
 

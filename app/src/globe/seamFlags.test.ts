@@ -9,11 +9,10 @@ import {
   ancestorAt,
   checkCover,
   CoverError,
-  indexNodes,
+  DrawnGroups,
   isTJunction,
   LATTICE,
   latticePoint,
-  pointGroup,
   seamFlags,
   sharedPoint,
   vertexMip,
@@ -221,6 +220,31 @@ describe('checkCover refuses', () => {
   });
 });
 
+describe.each(Object.entries(GRID_SEGMENTS))('isTJunction (%s)', (_tier, G) => {
+  const segments = G;
+  const fine = t(0, 2, 1, 1);
+  const coarse = t(0, 1, 1, 0);
+  const flags = seamFlags([node(fine), node(coarse)], { partial: true });
+  const fineFlags = flags.get(tileKey(fine)) ?? NaN;
+  const coarseFlags = flags.get(tileKey(coarse)) ?? NaN;
+
+  test('holds for the odd vertices of the fine side of a 2:1 edge, not its corners', () => {
+    for (let a = 0; a <= G; a += 1) {
+      expect(isTJunction(fineFlags, G, a, segments), `a = ${a}`).toBe(
+        a > 0 && a < G && a % 2 === 1,
+      );
+    }
+  });
+
+  test('holds nowhere else', () => {
+    for (let a = 0; a <= G; a += 1) {
+      expect(isTJunction(fineFlags, 0, a, segments)).toBe(false);
+      expect(isTJunction(fineFlags, a, G, segments)).toBe(false);
+      expect(isTJunction(coarseFlags, 0, a, segments)).toBe(false);
+    }
+  });
+});
+
 test('vertexMip is clamp(7 − log2 G − (coarse − sample), 0, 2)', () => {
   expect(vertexMip(32, 5, 5)).toBe(2);
   expect(vertexMip(32, 5, 4)).toBe(1);
@@ -238,7 +262,7 @@ function random(seed: number) {
   let state = seed >>> 0;
   return (below: number) => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state % below;
+    return Math.floor((state / 2 ** 32) * below);
   };
 }
 
@@ -249,10 +273,7 @@ function children(tile: Tile): Tile[] {
 }
 
 /** Every drawn node touching `tile` at an edge (quarter points) or a corner. */
-function touching(
-  tile: Tile,
-  index: ReturnType<typeof indexNodes>,
-): { other: DrawnNode; edge: boolean }[] {
+function touching(tile: Tile, groups: DrawnGroups): { other: DrawnNode; edge: boolean }[] {
   const span = LATTICE >> tile.level;
   const x0 = tile.x * span;
   const y0 = tile.y * span;
@@ -274,7 +295,7 @@ function touching(
     points.push([x0 + cx, y0 + cy, false]);
   }
   return points.flatMap(([X, Y, edge]) =>
-    pointGroup(tile.face, X, Y, index).map((other) => ({ other, edge })),
+    groups.at(tile.face, X, Y).map((other) => ({ other, edge })),
   );
 }
 
@@ -283,7 +304,7 @@ function randomCover(
   maxLevel: number,
   splits: number,
 ): DrawnNode[] {
-  let tiles = new Map<string, Tile>(
+  const tiles = new Map<string, Tile>(
     [0, 1, 2, 3, 4, 5].map((face) => [tileKey(t(face, 0, 0, 0)), t(face, 0, 0, 0)]),
   );
   const split = (key: string) => {
@@ -299,23 +320,22 @@ function randomCover(
   }
   for (let changed = true; changed;) {
     changed = false;
-    const index = indexNodes([...tiles.values()].map((tile) => node(tile)));
+    const groups = new DrawnGroups([...tiles.values()].map((tile) => node(tile)));
     for (const tile of [...tiles.values()]) {
-      for (const { other, edge } of touching(tile, index)) {
+      for (const { other, edge } of touching(tile, groups)) {
         if (edge && other.tile.level < tile.level - 1 && tiles.has(tileKey(other.tile))) {
           split(tileKey(other.tile));
           changed = true;
         }
       }
     }
-    tiles = new Map(tiles);
   }
   const nodes = [...tiles.values()].map((tile) => node(tile, Math.max(0, tile.level - next(3))));
   for (let changed = true; changed;) {
     changed = false;
-    const index = indexNodes(nodes);
+    const groups = new DrawnGroups(nodes);
     for (const n of nodes) {
-      for (const { other } of touching(n.tile, index)) {
+      for (const { other } of touching(n.tile, groups)) {
         if (n.source > other.source + 1) {
           n.source = other.source + 1;
           changed = true;
@@ -334,7 +354,7 @@ describe.each(Object.entries(GRID_SEGMENTS))('random balanced covers (%s)', (tie
     for (let cover = 0; cover < 60; cover += 1) {
       const nodes = randomCover(next, 4, 6 + next(20));
       const flags = seamFlags(nodes);
-      const index = indexNodes(nodes);
+      const groups = new DrawnGroups(nodes);
       const truth = new Map<string, { coarse: number; lv: number }>();
       for (const n of nodes) {
         const bits = flags.get(tileKey(n.tile)) ?? NaN;
@@ -348,7 +368,7 @@ describe.each(Object.entries(GRID_SEGMENTS))('random balanced covers (%s)', (tie
             if (!expected) {
               const X = n.tile.x * span + (k * span) / segments;
               const Y = n.tile.y * span + (l * span) / segments;
-              const group = pointGroup(n.tile.face, X, Y, index);
+              const group = groups.at(n.tile.face, X, Y);
               expected = {
                 coarse: Math.min(...group.map((g) => g.tile.level)),
                 lv: Math.min(...group.map((g) => g.source)),
