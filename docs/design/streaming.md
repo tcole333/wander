@@ -876,15 +876,20 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - Meters take one correctly rounded multiply of an exact bracket (3.1, Codes to meters).
   - Each component of the unnormalized direction is ±tanQ(s), ±tanQ(t) or ±1, since the face frames
     are signed permutations. tanQ(s) = sign(s)·tan(π|s|/4) is odd and exactly ±1 at |s| = 1, where
-    GLSL leaves `tan`'s precision open and a GPU's tan at float32 π/4 may land an ulp off 1, so
-    every face writes the same vector at a face edge or cube corner.
+    a tan of float32 π/4 may land an ulp off 1, so every face writes the same vector at a face edge
+    or cube corner. Its tan is Cephes' float32 `tanf` polynomial, which the shader and the mirror
+    evaluate alike and which lands within a float32 step of tan at every s a node takes: GLSL
+    leaves `tan`'s precision open, and SwiftShader's misses by 6e-5 of the value, which put its
+    positions 1.7e-5 R (100 m) off the mirror's in the GPU readback (7.3).
   - The inexact tail (displacement, `normalize`, the radius) then runs on equal inputs, through the
     one call site that also evaluates both T-junction neighbors, and `invariant gl_Position` keeps
     the main and depth programs in step.
 
-  So a GPU's code, shore, land and h equal the mirror's bit for bit at every point, shared or not.
-  On the mirror, Vitest proves the seams of the fixture's scenarios and `npm run verify:bake` those
-  of every same-level pair of the region bake (7.3).
+  So a GPU's code, shore, land and h equal the mirror's bit for bit at every point, shared or not,
+  and its positions lie within 1e-6 R of the mirror's (the readback measures 1.2e-7 R, a float32
+  step, on SwiftShader and on Metal). On the mirror, Vitest proves the seams of the fixture's
+  scenarios and `npm run verify:bake` those of every same-level pair of the region bake (7.3); the
+  GPU readback proves them on the GPU.
 - **Reveals:** on a still camera (no flight or gesture; a slow drift counts as still), new tiles wait
   until every visible desired tile of that level is ready, or `revealHold`, then morph together over
   `revealMorph`. While moving, each tile crossfades on its own over `tileFade`.
@@ -1215,12 +1220,13 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        corner dN makes a shared point differ in every family that can flip it (where the field is
        linear, as on the L1 tiles at 0°N 0°E, every mip holds the same code, so not in every
        scenario); the scenarios reach every combination but the excluded ones, and none of those;
-       with `Math.tan` in place of the exact `wanderTanQ`, every face-edge point of `l1-globe`
-       splits across faces; a node drawing its own tile with no seam flags samples every fixture
-       tile's 33² grid bit for bit; each L7 tile drawn 1, 3 and 5 levels under its source samples
-       the source's mip-m codes and shore bytes bilinearly at its corner coordinates, and lerps the
-       profile on a face edge; and skirt bottoms sit `skirtTexels` node texels radially below their
-       tops
+       with a tanQ an ulp off ±1 at |s| = 1, as a GPU's tan may give, every face-edge point of
+       `l1-globe` splits across faces; `wanderTan` lands within a float32 step of `Math.tan` at
+       every argument tanQ takes; a node drawing its own tile with no seam flags samples every
+       fixture tile's 33² grid bit for bit; each L7 tile drawn 1, 3 and 5 levels under its source
+       samples the source's mip-m codes and shore bytes bilinearly at its corner coordinates, and
+       lerps the profile on a face edge; and skirt bottoms sit `skirtTexels` node texels radially
+       below their tops
   5. Compile the stories, then build the app.
   6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
      ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
@@ -1230,10 +1236,28 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
      reported); an injected 3 s stall still lands; a seam depth scan; in-place context-loss restore
      decoding from the byte cache with the network blocked, and a reload with `?s&b` landing on the
      Continue plate; no request to the Pages origin after boot; each L0 URL fetched once (the preload is
-     used); every label renders; reduced motion, the article page and the no-WebGL2 redirect; and the
-     pool smoke test (5.5). The pool test runs a test-only page on the Vite dev server (with
-     `optimizeDeps.include: ['three']`), not the production build, so nothing of it reaches the
-     bundle.
+     used); every label renders; reduced motion, the article page and the no-WebGL2 redirect; the
+     pool smoke test (5.5); and the surface vertex readback (5.6). The pool and readback tests run
+     test-only pages on the Vite dev server (with `optimizeDeps.include: ['three']`), not the
+     production build, so nothing of them reaches the bundle.
+     - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
+       in the decode workers, uploads it through the upload queue into the real pools, packs every
+       mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
+       tiers (`meshReadback.ts`): points drawn over the grid and the instance words, each vertex
+       writing its results flat to pixel (gl_VertexID, gl_InstanceID) of an RGBA32F target, one
+       pass per group of outputs. Against the other instances and the mirror run on the same
+       decoded tiles, it checks that every vertex is drawn once; every instance holding a shared
+       point writes its position, code, shore, land and h bit for bit; every T-junction is
+       fround(fround(P0 + P1)·0.5) of the coarse instance's read-back chord within a float32 step;
+       code, shore, land, h, m and class equal the mirror's bit for bit at every vertex, and
+       positions and uv lie within 1e-6 of it; skirt bottoms hang `skirtTexels` node texels
+       radially below their tops; one flipped cS, cN and dN bit, with the up slot filled, splits
+       exactly the shared points it splits on the mirror; the scenarios that matched reach every
+       required combination but the excluded ones; and the programs link, with at most four
+       active attributes, all of position, normal, wanderNode and wanderPrev (WebGL 2 also lists
+       the built-in gl_VertexID and gl_InstanceID the readback reads, which take no slot), and no
+       GL error. All 419 scenarios on both tiers take about 16 s on SwiftShader and 13 s on Metal
+       on the M5.
   7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
 - **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
   every tile in `build/region/` and checks, with the fixture's seam code:
