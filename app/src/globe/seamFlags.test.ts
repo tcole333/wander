@@ -346,45 +346,52 @@ function randomCover(
   return nodes;
 }
 
+// About 1.5 s on the M5 and 3.5 times that on a CI runner, past Vitest's default 5 s.
+const PROPERTY_TIMEOUT = 30_000;
+
 describe.each(Object.entries(GRID_SEGMENTS))('random balanced covers (%s)', (tier, G) => {
   const segments = G;
 
-  test('every node derives each shared point’s coarsest node and source from its own bits', () => {
-    const next = random(tier === 'full' ? 1 : 2);
-    for (let cover = 0; cover < 60; cover += 1) {
-      const nodes = randomCover(next, 4, 6 + next(20));
-      const flags = seamFlags(nodes);
-      const groups = new DrawnGroups(nodes);
-      const truth = new Map<string, { coarse: number; lv: number }>();
-      for (const n of nodes) {
-        const bits = flags.get(tileKey(n.tile)) ?? NaN;
-        const span = LATTICE >> n.tile.level;
-        for (let a = 0; a <= segments; a += 1) {
-          for (const edge of EDGES) {
-            const [k, l] = onEdge(edge, a, segments);
-            if (isTJunction(bits, k, l, segments)) continue;
-            const key = latticePoint(n.tile, k, l, segments);
-            let expected = truth.get(key);
-            if (!expected) {
-              const X = n.tile.x * span + (k * span) / segments;
-              const Y = n.tile.y * span + (l * span) / segments;
-              const group = groups.at(n.tile.face, X, Y);
-              expected = {
-                coarse: Math.min(...group.map((g) => g.tile.level)),
-                lv: Math.min(...group.map((g) => g.source)),
-              };
-              truth.set(key, expected);
+  test(
+    'every node derives each shared point’s coarsest node and source from its own bits',
+    () => {
+      const next = random(tier === 'full' ? 1 : 2);
+      for (let cover = 0; cover < 60; cover += 1) {
+        const nodes = randomCover(next, 4, 6 + next(20));
+        const flags = seamFlags(nodes);
+        const groups = new DrawnGroups(nodes);
+        const truth = new Map<string, { coarse: number; lv: number }>();
+        for (const n of nodes) {
+          const bits = flags.get(tileKey(n.tile)) ?? NaN;
+          const span = LATTICE >> n.tile.level;
+          for (let a = 0; a <= segments; a += 1) {
+            for (const edge of EDGES) {
+              const [k, l] = onEdge(edge, a, segments);
+              if (isTJunction(bits, k, l, segments)) continue;
+              const key = latticePoint(n.tile, k, l, segments);
+              let expected = truth.get(key);
+              if (!expected) {
+                const X = n.tile.x * span + (k * span) / segments;
+                const Y = n.tile.y * span + (l * span) / segments;
+                const group = groups.at(n.tile.face, X, Y);
+                expected = {
+                  coarse: Math.min(...group.map((g) => g.tile.level)),
+                  lv: Math.min(...group.map((g) => g.source)),
+                };
+                truth.set(key, expected);
+              }
+              const derived = sharedPoint(n, bits, k, l, segments);
+              expect(
+                { coarse: derived.coarse, lv: derived.lv },
+                `${tileKey(n.tile)} at ${k},${l}`,
+              ).toEqual(expected);
             }
-            const derived = sharedPoint(n, bits, k, l, segments);
-            expect(
-              { coarse: derived.coarse, lv: derived.lv },
-              `${tileKey(n.tile)} at ${k},${l}`,
-            ).toEqual(expected);
           }
         }
       }
-    }
-  });
+    },
+    PROPERTY_TIMEOUT,
+  );
 });
 
 test('ancestorAt shifts x and y by the level difference', () => {
