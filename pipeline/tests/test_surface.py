@@ -17,7 +17,7 @@ from prebuild.profiles import Profile, make_context
 from prebuild.records import MissingStageRecord, read_record, write_record
 from prebuild.tiles import build_tile
 from prebuild.tiles import surface as tile_surface
-from prebuild.wst import bounds_m, from_file, grid33, to_file
+from prebuild.wst import bounds_m, edge_texels, from_file, grid33, to_file
 
 SUMBAWA_EAST = Tile(1, 7, 103, 50)
 
@@ -241,7 +241,7 @@ def test_tiles_json_describes_every_tile_in_node_order(baked, record):
             "codes": t.codes,
             "shore": t.shore,
             "water": t.water,
-            "edges": t.edges,
+            "edges": edge_texels(t),
             "grid": grid33(t),
         }
         digests = {

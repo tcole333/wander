@@ -12,8 +12,9 @@ from prebuild.expect import edge_profiles, synthetic_tiles
 from prebuild.wst import (
     FLAG_ALL_SEA,
     FLAG_INLAND_WATER,
-    PAYLOAD_BYTES,
+    MIP_ENTRIES,
     PLANE_SHAPE,
+    PROFILES_SHAPE,
     WstError,
     WstTile,
     bounds_m,
@@ -23,7 +24,9 @@ from prebuild.wst import (
     from_file,
     grid33,
     half_bits,
+    mip_entries,
     mips,
+    payload_bytes,
     predictor,
     tile_flags,
     to_file,
@@ -33,12 +36,14 @@ from prebuild.wst import (
 )
 
 SYNTHETIC = synthetic_tiles()
-PLANES = ("codes", "shore", "water", "edges")
+PLANES = ("codes", "shore", "water", "profiles", "profile_shore")
 N, E, S, W = range(4)
+KIRKUK_TOP = Tile(4, 7, 127, 0)  # its S and E sides lie on face edges
 
 
 def flat_tile(code: int = 0, **changes) -> WstTile:
-    """A tile of one code everywhere, shore 200 and water 60, with `changes` applied."""
+    """A tile inside a face, of one code everywhere, shore 200 and water 60, with `changes`
+    applied."""
     tile = WstTile.from_planes(
         Tile(1, 7, 103, 50),
         flags=0,
@@ -46,9 +51,23 @@ def flat_tile(code: int = 0, **changes) -> WstTile:
         codes=np.full(PLANE_SHAPE, code),
         shore=np.full(PLANE_SHAPE, 200),
         water=np.full(PLANE_SHAPE, 60),
-        edges=np.full((4, 257), code),
     )
     return dataclasses.replace(tile, **changes)
+
+
+def corner_tile(code: int = 0) -> WstTile:
+    """The face-4 Kirkuk tile, of one code everywhere, its S and E profiles included."""
+    profiles = np.zeros(PROFILES_SHAPE, dtype=np.int64)
+    profiles[[S, E]] = code
+    return WstTile.from_planes(
+        KIRKUK_TOP,
+        flags=0,
+        q_land=2.0,
+        codes=np.full(PLANE_SHAPE, code),
+        shore=np.full(PLANE_SHAPE, 200),
+        water=np.full(PLANE_SHAPE, 60),
+        profiles=profiles,
+    )
 
 
 def same_tile(a: WstTile, b: WstTile) -> bool:
@@ -100,26 +119,58 @@ def test_byte_residuals_wrap_both_ways():
 # Layout
 
 
+def test_the_payload_grows_by_a_side_and_keeps_the_height_plane_even():
+    assert [payload_bytes(n) for n in range(5)] == [278_810, 280_164, 281_516, 282_870, 284_222]
+    assert all((payload_bytes(n) - 278_784) % 2 == 0 for n in range(5))
+
+
+@pytest.mark.parametrize(
+    ("name", "sides"), [("trench", 0), ("random", 1), ("extremes", 2), ("root", 4)]
+)
+def test_each_synthetic_payload_holds_its_face_edge_sides(name, sides):
+    assert len(encode_payload(SYNTHETIC[name])) == payload_bytes(sides)
+
+
 def test_every_field_sits_at_its_offset():
+    # One side, N: its codes, its shore bytes, the pad byte, then the planes.
     t = dataclasses.replace(
         SYNTHETIC["random"], flags=FLAG_INLAND_WATER | FLAG_ALL_SEA, q_land=2.453125
     )
     raw = encode_payload(t)
-    assert len(raw) == PAYLOAD_BYTES == 280_866
+    assert len(raw) == 280_164
     assert raw[0:4] == b"WST1"
-    assert struct.unpack_from("<BBBBHH", raw, 4) == (1, 5, 9, 3, 300, 257)
+    assert struct.unpack_from("<BBBBHH", raw, 4) == (2, 5, 9, 3, 300, 511)
     assert struct.unpack_from("<ff", raw, 12) == (2.453125, 4 * 2.453125)
     assert struct.unpack_from("<hhh", raw, 20) == (t.code_mid, t.code_min, t.code_max)
-    assert struct.unpack_from("<h", raw, 26) == (t.edges[N, 0],)
-    assert struct.unpack_from("<h", raw, 26 + 2 * 257) == (t.edges[E, 0],)
-    assert struct.unpack_from("<h", raw, 2080) == (t.edges[W, 256],)
-    assert struct.unpack_from("<H", raw, 2082) == (zigzag(t.codes[0, 0]),)
-    assert struct.unpack_from("<H", raw, 141_472) == (
+    assert struct.unpack_from("<h", raw, 26) == (t.profiles[N, 0],)
+    assert struct.unpack_from("<h", raw, 26 + 2 * 257) == (mip_entries(t.profiles, 1)[N, 0],)
+    assert struct.unpack_from("<h", raw, 26 + 2 * 386) == (mip_entries(t.profiles, 2)[N, 0],)
+    assert struct.unpack_from("<h", raw, 926) == (mip_entries(t.profiles, 2)[N, 64],)
+    assert raw[928] == t.profile_shore[N, 0]
+    assert raw[928 + 450] == mip_entries(t.profile_shore, 2)[N, 64]
+    assert raw[1379] == 0  # the pad byte
+    assert struct.unpack_from("<H", raw, 1380) == (zigzag(t.codes[0, 0]),)
+    assert struct.unpack_from("<H", raw, 140_770) == (
         zigzag(t.codes[-1, -1] - predictor(t.codes)[-1, -1]),
     )
-    assert raw[141_474] == t.shore[0, 0]
-    assert raw[211_170] == t.water[0, 0]
+    assert raw[140_772] == t.shore[0, 0]
+    assert raw[210_468] == t.water[0, 0]
     assert raw[-1] == (int(t.water[-1, -1]) - predictor(t.water)[-1, -1]) & 0xFF
+
+
+def test_sides_are_stored_in_n_e_s_w_order_codes_first():
+    t = SYNTHETIC["root"]  # all four sides
+    raw = encode_payload(t)
+    for position, e in enumerate((N, E, S, W)):
+        assert struct.unpack_from("<h", raw, 26 + 902 * position) == (t.profiles[e, 0],)
+        assert raw[26 + 3608 + 451 * position + 450] == t.profile_shore[e, 450]
+    assert struct.unpack_from("<H", raw, 26 + 4 * 1353) == (zigzag(t.codes[0, 0]),)
+
+
+def test_a_tile_inside_a_face_goes_straight_from_the_header_to_the_planes():
+    t = SYNTHETIC["trench"]
+    raw = encode_payload(t)
+    assert struct.unpack_from("<H", raw, 26) == (zigzag(t.codes[0, 0]),)
 
 
 def test_the_stored_file_is_gzip_level_9_with_mtime_0_and_no_name():
@@ -163,7 +214,6 @@ def test_code_mid_is_the_floor_of_the_mean_of_the_code_bounds(low, high, mid):
         codes=codes,
         shore=np.zeros(PLANE_SHAPE),
         water=np.zeros(PLANE_SHAPE),
-        edges=np.full((4, 257), low),
     )
     assert t.code_mid == mid
 
@@ -187,6 +237,25 @@ def test_flags_mark_inland_water_and_all_sea():
     assert tile_flags(np.where(one_lake < 0, 0.0, -1.0), land) == 0
 
 
+# Code bounds
+
+
+def test_the_code_bounds_cover_the_profiles_at_every_mip():
+    profiles = corner_tile(500).profiles.copy()
+    mip_entries(profiles, 1)[S, 100] = 493
+    t = dataclasses.replace(corner_tile(500), profiles=profiles)
+    with pytest.raises(WstError, match=r"codeMin\.\.codeMax"):
+        encode_payload(t)
+    widened = dataclasses.replace(t, code_min=493, code_mid=496)
+    assert decode_payload(encode_payload(widened)).code_min == 493
+
+
+def test_the_code_bounds_skip_the_empty_rows_of_in_face_sides():
+    # N and W hold zeros, which are not entries.
+    assert (corner_tile(500).code_min, corner_tile(500).code_max) == (500, 500)
+    assert (flat_tile(500).code_min, flat_tile(500).code_max) == (500, 500)
+
+
 # The encoder refuses tiles the format does not allow
 
 
@@ -204,16 +273,6 @@ def test_the_encoder_refuses_code_bounds_that_miss_the_planes(field, shift):
         encode_payload(dataclasses.replace(t, **{field: getattr(t, field) + shift}))
 
 
-def test_the_code_bounds_cover_the_edges():
-    edges = np.zeros((4, 257), dtype=np.int16)
-    edges[N, 100] = -7
-    t = dataclasses.replace(flat_tile(), edges=edges)
-    with pytest.raises(WstError, match=r"codeMin\.\.codeMax"):
-        encode_payload(t)
-    widened = dataclasses.replace(t, code_min=-7, code_mid=-4)
-    assert decode_payload(encode_payload(widened)).code_min == -7
-
-
 @pytest.mark.parametrize(
     ("name", "shift"),
     [("flat", 37), ("random", -1), ("random", 1), ("extremes", -1), ("extremes", 1)],
@@ -224,11 +283,25 @@ def test_the_encoder_refuses_any_code_mid_but_the_floor_of_the_mean(name, shift)
         encode_payload(dataclasses.replace(t, code_mid=t.code_mid + shift))
 
 
-def test_the_encoder_refuses_edges_that_disagree_at_a_corner():
-    edges = np.zeros((4, 257), dtype=np.int16)
-    edges[S, 256] = 1  # E[0] stays 0
-    with pytest.raises(WstError, match="corner"):
-        encode_payload(dataclasses.replace(flat_tile(), edges=edges, code_max=1))
+@pytest.mark.parametrize("m", range(3))
+@pytest.mark.parametrize("field", ["profiles", "profile_shore"])
+def test_the_encoder_refuses_profiles_that_disagree_at_a_corner(field, m):
+    t = SYNTHETIC["extremes"]
+    changed = getattr(t, field).copy()
+    # E's first entry takes the other extreme from S's last, so the code bounds stay.
+    extremes = {"profiles": t.code_min + t.code_max, "profile_shore": 255}[field]
+    mip_entries(changed, m)[E, 0] = extremes - mip_entries(changed, m)[S, -1]
+    with pytest.raises(WstError, match=f"corner at mip {m}"):
+        encode_payload(dataclasses.replace(t, **{field: changed}))
+
+
+@pytest.mark.parametrize("field", ["profiles", "profile_shore"])
+def test_the_encoder_refuses_data_on_an_in_face_side(field):
+    t = corner_tile(0)
+    changed = getattr(t, field).copy()
+    changed[W, 7] = 1  # W of 7/4/127/0 lies inside face 4
+    with pytest.raises(WstError, match="inside its face"):
+        encode_payload(dataclasses.replace(t, **{field: changed}))
 
 
 @pytest.mark.parametrize(
@@ -239,7 +312,8 @@ def test_the_encoder_refuses_edges_that_disagree_at_a_corner():
         {"q_land": 0.1},
         {"codes": np.zeros((264, 263), dtype=np.int16)},
         {"shore": np.zeros(PLANE_SHAPE, dtype=np.int16)},
-        {"edges": np.zeros((4, 256), dtype=np.int16)},
+        {"profiles": np.zeros((4, 450), dtype=np.int16)},
+        {"profile_shore": np.zeros(PROFILES_SHAPE, dtype=np.int16)},
     ],
 )
 def test_the_encoder_refuses_malformed_fields(changes):
@@ -256,7 +330,6 @@ def test_planes_must_fit_their_types():
             codes=np.full(PLANE_SHAPE, 40_000),
             shore=np.zeros(PLANE_SHAPE),
             water=np.zeros(PLANE_SHAPE),
-            edges=np.zeros((4, 257)),
         )
 
 
@@ -265,6 +338,9 @@ def test_planes_must_fit_their_types():
 
 RAW = encode_payload(SYNTHETIC["extremes"])
 KEY = SYNTHETIC["extremes"].tile
+# S's mip-2 entry 64, at the corner it shares with E. E is stored first, then S.
+S_MIP2_LAST = 26 + 902 + 2 * 450
+S_SHORE_MIP2_LAST = 26 + 2 * 902 + 451 + 450
 
 
 @pytest.mark.parametrize(
@@ -272,8 +348,9 @@ KEY = SYNTHETIC["extremes"].tile
     [
         (RAW[:-1], "bytes"),
         (RAW + b"\0", "bytes"),
+        (RAW[:25], "header"),
         (b"WST2" + RAW[4:], "magic"),
-        (poke(RAW, 4, "<B", 2), "version"),
+        (poke(RAW, 4, "<B", 1), "version"),
         (poke(RAW, 16, "<f", 7.0), "qDeep"),
         (poke(RAW, 12, "<ff", 0.0, 0.0), "positive"),
         (poke(RAW, 12, "<ff", -2.0, -8.0), "positive"),
@@ -290,9 +367,27 @@ def test_the_decoder_refuses_a_malformed_payload(raw, message):
         decode_payload(raw, KEY)
 
 
+def test_the_decoder_refuses_a_length_that_does_not_fit_the_keys_sides():
+    # 7/4/127/1 stores only E, so two sides' profiles are one side too many.
+    with pytest.raises(WstError, match="bytes, not 280164 for 1 stored sides"):
+        decode_payload(poke(RAW, 10, "<H", 1))
+
+
 def test_the_decoder_refuses_another_tile():
     with pytest.raises(WstError, match="not 7/4/127/1"):
         decode_payload(RAW, Tile(4, 7, 127, 1))
+
+
+@pytest.mark.parametrize(
+    ("offset", "fmt"), [(S_MIP2_LAST, "<h"), (S_SHORE_MIP2_LAST, "<B")], ids=["code", "shore"]
+)
+def test_the_decoder_refuses_profiles_that_disagree_at_a_corner(offset, fmt):
+    t = SYNTHETIC["extremes"]
+    code, shore = mip_entries(t.profiles, 2)[S, -1], mip_entries(t.profile_shore, 2)[S, -1]
+    # The other extreme: the code bounds stay, and only the corner disagrees.
+    other = {"<h": t.code_min + t.code_max - code, "<B": 255 - shore}[fmt]
+    with pytest.raises(WstError, match="corner at mip 2"):
+        decode_payload(poke(RAW, offset, fmt, other), KEY)
 
 
 # Meter bounds, mips, the grid and the decoder's outputs
@@ -317,9 +412,10 @@ def test_mips_round_the_mean_half_up():
 
 def test_mips_halve_twice():
     assert [m.shape for m in mips(SYNTHETIC["random"].codes)] == [(264, 264), (132, 132), (66, 66)]
+    assert [m.shape for m in mips(np.zeros((8, 264)))] == [(8, 264), (4, 132), (2, 66)]
 
 
-def test_grid_interior_vertices_take_h_of_the_mean_of_four_mip2_codes():
+def test_grid_vertices_off_the_stored_sides_take_h_of_the_mean_of_four_mip2_codes():
     codes = np.zeros(PLANE_SHAPE, dtype=np.int64)
     # Vertex (k, l) = (1, 2) sits at texel corner (8, 16), between mip-2 columns 2 and 3 and rows
     # 4 and 5: stored texels 8..15 across and 16..23 up. No other vertex sees those texels.
@@ -330,6 +426,9 @@ def test_grid_interior_vertices_take_h_of_the_mean_of_four_mip2_codes():
     # Vertex (3, 3) sits between mip-2 columns and rows 6 and 7: a mean of -300.25, below c200.
     codes[24:32, 24:32] = -300
     codes[28:32, 28:32] = -301
+    # Vertex (0, 0), a corner of two in-face sides, sits between mip-2 columns and rows 0 and 1:
+    # stored texels 0..7, border included.
+    codes[0:4, 0:8] = 9
     t = WstTile.from_planes(
         Tile(1, 7, 103, 50),
         flags=0,
@@ -337,22 +436,35 @@ def test_grid_interior_vertices_take_h_of_the_mean_of_four_mip2_codes():
         codes=codes,
         shore=np.zeros(PLANE_SHAPE),
         water=np.zeros(PLANE_SHAPE),
-        edges=np.zeros((4, 257)),
     )
     grid = grid33(t)
     assert grid[2, 1] == np.float32((5 + 6 - 300 + 7) / 4 * 2)  # -70.5 codes, above c200
     assert grid[3, 3] == np.float32(-200 + (-300.25 + 100) * 8)
-    assert grid[1, 1] == grid[3, 1] == grid[2, 2] == grid[2, 0] == 0
+    assert grid[0, 0] == np.float32(9 / 2 * 2)
+    assert grid[1, 1] == grid[3, 1] == grid[2, 2] == grid[2, 0] == grid[0, 1] == 0
 
 
-def test_grid_boundary_vertices_take_the_edge_profiles():
-    t = SYNTHETIC["trench"]
+def test_grid_vertices_on_stored_sides_take_their_mip2_entries():
+    t = SYNTHETIC["root"]  # all four sides stored
     grid = grid33(t)
-    meters = codes_to_meters(t.edges, t.q_land).astype(np.float32)
-    assert np.array_equal(grid[0, :], meters[S, ::8])
-    assert np.array_equal(grid[-1, :], meters[N, ::8])
-    assert np.array_equal(grid[:, 0], meters[W, ::8])
-    assert np.array_equal(grid[:, -1], meters[E, ::8])
+    meters = codes_to_meters(mip_entries(t.profiles, 2), t.q_land).astype(np.float32)
+    assert np.array_equal(grid[0, :], meters[S, ::2])
+    assert np.array_equal(grid[-1, :], meters[N, ::2])
+    assert np.array_equal(grid[:, 0], meters[W, ::2])
+    assert np.array_equal(grid[:, -1], meters[E, ::2])
+
+
+def test_grid_takes_profiles_only_on_the_stored_sides():
+    t = SYNTHETIC["extremes"]  # S and E stored; N and W inside face 4
+    grid = grid33(t)
+    meters = codes_to_meters(mip_entries(t.profiles, 2), t.q_land).astype(np.float32)
+    assert np.array_equal(grid[0, :], meters[S, ::2])
+    assert np.array_equal(grid[:, -1], meters[E, ::2])
+    mip2 = mips(t.codes)[2]
+    around = (mip2[:-1, :-1] + mip2[:-1, 1:] + mip2[1:, :-1] + mip2[1:, 1:]) / 4
+    means = codes_to_meters(around[::2, ::2], t.q_land).astype(np.float32)
+    assert np.array_equal(grid[-1, :-1], means[-1, :-1])
+    assert np.array_equal(grid[1:, 0], means[1:, 0])
 
 
 def test_grid_uses_the_deep_step_below_c200():
@@ -360,14 +472,20 @@ def test_grid_uses_the_deep_step_below_c200():
     assert np.all(grid33(t) == np.float32(-200 + (-300 + 100) * 8))
 
 
-def test_edge_profiles_of_a_tile_meet_at_its_corners():
-    edges = edge_profiles(SYNTHETIC["random"].codes)
-    assert (edges[N, 0], edges[N, -1], edges[S, 0], edges[S, -1]) == (
-        edges[W, -1],
-        edges[E, -1],
-        edges[W, 0],
-        edges[E, 0],
-    )
+def test_profiles_of_a_tiles_own_planes_fill_only_its_face_edge_sides():
+    t = SYNTHETIC["random"]  # N only
+    profiles, shore = edge_profiles(t.tile, t.codes, t.shore)
+    assert profiles[N].any() and shore[N].any()
+    assert not profiles[[E, S, W]].any() and not shore[[E, S, W]].any()
+
+
+def test_profiles_of_a_tiles_own_planes_meet_at_its_corners_at_every_mip():
+    t = SYNTHETIC["root"]
+    profiles, shore = edge_profiles(t.tile, t.codes, t.shore)
+    for m in range(3):
+        for values in (mip_entries(profiles, m), mip_entries(shore, m)):
+            corners = (values[N, 0], values[N, -1], values[S, 0], values[S, -1])
+            assert corners == (values[W, -1], values[E, -1], values[W, 0], values[E, 0])
 
 
 def test_half_bits_are_exact_to_2048():
@@ -383,7 +501,24 @@ def test_decoder_outputs_offset_codes_by_code_mid():
     outputs = decoder_outputs(t)
     offsets = outputs["height0"].view(np.float16).astype(np.int64)
     assert np.array_equal(offsets, t.codes - t.code_mid)
-    assert np.array_equal(outputs["edges"].view(np.float16).astype(np.int64), t.edges - t.code_mid)
     assert np.array_equal(outputs["channel0"][..., 0], t.shore)
     assert np.array_equal(outputs["channel0"][..., 1], t.water)
     assert outputs["grid"].shape == (33, 33)
+
+
+def test_the_edge_texture_holds_each_stored_side_at_each_mip():
+    t = SYNTHETIC["extremes"]
+    edges = decoder_outputs(t)["edges"]
+    assert edges.shape == (12, 257, 2) and edges.dtype == np.uint16
+    values = edges.view(np.float16).astype(np.int64)
+    for m, count in enumerate(MIP_ENTRIES):
+        for e in (S, E):
+            row = values[4 * m + e]
+            assert np.array_equal(row[:count, 0], mip_entries(t.profiles[e], m) - t.code_mid)
+            assert np.array_equal(row[:count, 1], mip_entries(t.profile_shore[e], m))
+            assert not edges[4 * m + e, count:].any()
+        assert not edges[4 * m + N].any() and not edges[4 * m + W].any()
+
+
+def test_a_tile_inside_a_face_has_an_empty_edge_texture():
+    assert not decoder_outputs(SYNTHETIC["trench"])["edges"].any()

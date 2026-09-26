@@ -1,6 +1,6 @@
 {
   "formats": {
-    "surfaceTile": { "magic": "WST1", "version": 1 },
+    "surfaceTile": { "magic": "WST1", "version": 2 },
     "surfaceBounds": { "magic": "WSB1", "version": 1 },
     "overlayTile": { "magic": "WOT1", "version": 1 },
     "overlayIndex": { "magic": "WOI1", "version": 1 },
