@@ -340,6 +340,8 @@ struct LookSurface {
   // The relief's gradient per unit s and t, and the normal's zoom factor.
   vec2 dh;
   float zoom;
+  // 1 on land, 0 at sea and on lakes.
+  float land;
 };
 
 LookSurface lookSurface() {
@@ -421,6 +423,7 @@ LookSurface lookSurface() {
   landRough = mix(landRough, 0.75 + mottle * 0.3, lake);
   landMetal = mix(landMetal, 0.08, lake);
 
+  o.land = land * (1.0 - lake);
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
   o.roughness = clamp(mix(seaRough, landRough, land), 0.05, 1.0);
   o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);
@@ -473,6 +476,17 @@ export const LOOK_FRAGMENT_ROUGHNESS = /* glsl */ `
 
 export const LOOK_FRAGMENT_METALNESS = /* glsl */ `
   float metalnessFactor = lookS.metalness;
+`;
+
+/**
+ * After three's `#include <lights_fragment_end>`: the sea's lacquer reflects the lamp less in
+ * regional and close views, where its broad lobe lies mid-screen and veils the sea in warm grey;
+ * the world view keeps the spike's.
+ */
+export const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
+  float lookSeaSpec = mix(mix(0.3, 1.0, smoothstep(0.45, 1.0, lookS.zoom)), 1.0, lookS.land);
+  reflectedLight.directSpecular *= lookSeaSpec;
+  reflectedLight.indirectSpecular *= lookSeaSpec;
 `;
 
 /** Replaces three's `#include <normal_fragment_maps>`, after `normal` is set. */

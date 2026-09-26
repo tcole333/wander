@@ -16,6 +16,7 @@ import {
   LOOK_FRAGMENT_NORMAL,
   LOOK_FRAGMENT_PARS,
   LOOK_FRAGMENT_ROUGHNESS,
+  LOOK_FRAGMENT_SPECULAR,
 } from './lookFragment.glsl';
 import { LOOK_VERTEX_MAIN, LOOK_VERTEX_PARS } from './lookVertex.glsl';
 
@@ -139,6 +140,10 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       ['#include <roughnessmap_fragment>', LOOK_FRAGMENT_ROUGHNESS],
       ['#include <metalnessmap_fragment>', LOOK_FRAGMENT_METALNESS],
       ['#include <normal_fragment_maps>', LOOK_FRAGMENT_NORMAL],
+      [
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>\n${LOOK_FRAGMENT_SPECULAR}`,
+      ],
     ]);
   };
 
