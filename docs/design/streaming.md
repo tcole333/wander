@@ -723,7 +723,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   when every part is uploaded. On the M5, with nothing drawn between frames, a tile publishes in two
   frames at the median in all three browsers and at both tiers. Slow-call stops push some tiles to
   three: rarely in Chromium, and often in Safari and Firefox, whose 1 ms clocks read any write that
-  crosses a tick as slow [M `e2/results/surface-upload-*.json`].
+  crosses a tick as slow [M `e2/results/surface-upload-*.json`, with format v1's 359 KiB slot]. v2's
+  slot adds 10 KiB of edges; the second frame still carries 195,288 B, under lite's 256 KiB [D].
 - **Order:** roots, the current view coarsest first, a toggled layer, N+1 critical, then the rest.
 - **Tuning:** the caps rise only from E1/E2 measurements on the target machines (see the hardware
   note in 8.2).
@@ -1014,7 +1015,7 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
 | `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs) and NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
-| `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 101-104 s for the region profile's 2,649 tiles with 8 workers [M `work/surface-bake/region-bake.json`]; at that rate the global profile's ~15.5K tiles take ~10 min [D] | local |
+| `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews | ~5-15 s per snapshot [E; an 8192×4096 id raster took 1.0 s, M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | curated names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
