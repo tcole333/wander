@@ -99,6 +99,28 @@ float lookShoreSmooth(vec2 uv, float slot) {
   return mix(mix(s3, s2, sx), mix(s1, s0, sx), sy) * 255.0;
 }
 
+// The same B-spline from the 4x4 texels themselves, weighted in float: exact at any magnification,
+// where the hardware's bilinear taps above step in 1/256 of a texel, which close up shades the
+// broad bevel in a grid of small squares.
+float lookShoreExact(vec2 uv, int slot) {
+  vec2 t = uv * LOOK_TEXELS - 0.5;
+  vec2 f = fract(t);
+  ivec2 b = ivec2(t - f) - 1;
+  vec4 xc = lookCubic(f.x);
+  vec4 yc = lookCubic(f.y);
+  float sum = 0.0;
+  for (int j = 0; j < 4; j++) {
+    vec4 row = vec4(
+      texelFetch(wanderShore, ivec3(b + ivec2(0, j), slot), 0).r,
+      texelFetch(wanderShore, ivec3(b + ivec2(1, j), slot), 0).r,
+      texelFetch(wanderShore, ivec3(b + ivec2(2, j), slot), 0).r,
+      texelFetch(wanderShore, ivec3(b + ivec2(3, j), slot), 0).r
+    );
+    sum += yc[j] * dot(xc, row);
+  }
+  return sum * 255.0;
+}
+
 // The spike's integer hash and value noise, with the lattice wrapped in x every period cells.
 float lookHash(int x, int y) {
   uint h = (uint(x) * 374761393u) ^ (uint(y) * 668265263u);
@@ -220,7 +242,8 @@ struct LookFootprint {
   float bandW;
 };
 
-LookFields lookFields(vec2 uv, vec2 st) {
+// exactL1: the L1 field is magnified past 32 pixels a texel, so it is filtered exactly.
+LookFields lookFields(vec2 uv, vec2 st, bool exactL1) {
   LookFields f;
   vec3 at = vec3(uv, float(vLookSlot));
   f.h = lookMeters(texture(wanderHeight, at, lookHeightBlur).r + vLookMid, vLookSrc);
@@ -230,7 +253,9 @@ LookFields lookFields(vec2 uv, vec2 st) {
   // L1 tiles sit in the fixed slots 6 + 4 face + 2 y + x.
   ivec2 t1 = clamp(ivec2(floor(st + 1.0)), 0, 1);
   vec2 uv1 = (4.0 + (st + 1.0 - vec2(t1)) * 256.0) / LOOK_TEXELS;
-  f.d1 = (lookShoreSmooth(uv1, float(6 + 4 * vLookFace + 2 * t1.y + t1.x)) - 128.0) / 16.0;
+  int slot1 = 6 + 4 * vLookFace + 2 * t1.y + t1.x;
+  float shore1 = exactL1 ? lookShoreExact(uv1, slot1) : lookShoreSmooth(uv1, float(slot1));
+  f.d1 = (shore1 - 128.0) / 16.0;
   f.lonlat = lookLonLat(lookDirAt(st));
   return f;
 }
@@ -291,7 +316,9 @@ LookSurface lookSurface() {
   fp.texPx = max(fp.stPx * perSt, 1e-4);
   fp.degPx = max(degrees(max(length(dFdx(vLookDir)), length(dFdy(vLookDir)))), 1e-7);
 
-  LookFields c = lookFields(vLookUv, vLookSt);
+  // An L1 tile spans one unit of s and t in 256 texels.
+  bool exactL1 = fp.stPx * 256.0 < 1.0 / 32.0;
+  LookFields c = lookFields(vLookUv, vLookSt, exactL1);
   fp.bandW = clamp(fwidth(c.h), 1.0, 400.0);
   LookNoise nz = lookNoiseAt(c.lonlat, fp.degPx);
   float mottle = nz.mottle * lookNoise;
@@ -303,10 +330,10 @@ LookSurface lookSurface() {
   float delta = max(0.75, fp.texPx);
   vec2 du = vec2(delta / LOOK_TEXELS, 0.0);
   vec2 ds = vec2(delta / perSt, 0.0);
-  LookFields e = lookFields(vLookUv + du.xy, vLookSt + ds.xy);
-  LookFields w = lookFields(vLookUv - du.xy, vLookSt - ds.xy);
-  LookFields n = lookFields(vLookUv + du.yx, vLookSt + ds.yx);
-  LookFields s = lookFields(vLookUv - du.yx, vLookSt - ds.yx);
+  LookFields e = lookFields(vLookUv + du.xy, vLookSt + ds.xy, exactL1);
+  LookFields w = lookFields(vLookUv - du.xy, vLookSt - ds.xy, exactL1);
+  LookFields n = lookFields(vLookUv + du.yx, vLookSt + ds.yx, exactL1);
+  LookFields s = lookFields(vLookUv - du.yx, vLookSt - ds.yx, exactL1);
   vec2 dh = vec2(lookReliefAt(e, fp) - lookReliefAt(w, fp), lookReliefAt(n, fp) - lookReliefAt(s, fp));
   vec2 dLonLatS = vec2(lookLonDelta(e.lonlat.x, w.lonlat.x), e.lonlat.y - w.lonlat.y);
   vec2 dLonLatT = vec2(lookLonDelta(n.lonlat.x, s.lonlat.x), n.lonlat.y - s.lonlat.y);
