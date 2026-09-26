@@ -97,7 +97,7 @@ class Tile:
 class Neighbor:
     tile: Tile
     edge: Edge  # the neighbor's edge that meets the asking tile's edge
-    reversed: bool  # entry k is the neighbor's entry 256 - k
+    reversed: bool  # at mip m, entry k is the neighbor's entry (256 >> m) - k
 
 
 def lonlat_to_dir(lon: npt.ArrayLike, lat: npt.ArrayLike) -> FloatArray:
