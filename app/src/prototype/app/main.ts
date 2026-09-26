@@ -103,6 +103,9 @@ async function main(): Promise<void> {
     reliefByZoom: true,
     reliefNear: 2,
     reliefFar: 8,
+    // The gimbal tilts the globe toward the camera, so a tilted view keeps the lamp behind the
+    // camera; off, it turns the view center to the front and the camera tilts instead.
+    faceCamera: true,
   };
   for (const params of [look.params, museum.params, streamer.params, cameraParams]) {
     applyQuery(params, query);
@@ -196,18 +199,17 @@ async function main(): Promise<void> {
       look.params.kSea = k;
     }
 
-    // The gimbal turns the view center to face the camera and the lamp, then the camera goes
-    // where the view puts it in the turned globe frame.
-    museum.params.lat = view.lat;
-    museum.params.lon = view.lon;
+    // The gimbal turns the globe so the camera looks into the front of the instrument, where the
+    // lamp lights it (or, with faceCamera off, turns the view center to the front); then the
+    // camera goes where the view puts it in the turned globe frame.
+    const surfaceRelief = relief(look.params);
+    const [lon, lat] = cameraParams.faceCamera
+      ? rig.gimbalFacing(camera, view, surfaceRelief)
+      : [view.lon, view.lat];
+    museum.params.lat = lat;
+    museum.params.lon = lon;
     museum.update(camera, now / 1000);
-    rig.place(
-      camera,
-      view,
-      relief(look.params),
-      museum.globeMount,
-      Number(museum.params.hideAltitude),
-    );
+    rig.place(camera, view, surfaceRelief, museum.globeMount, Number(museum.params.hideAltitude));
     streamer.update(camera, { width: innerWidth, height: innerHeight }, museum.globeMount);
     look.update(now / 1000);
     museum.render(camera);
@@ -307,7 +309,7 @@ function buildUi({ museum, look, streamer, cameraParams, control, go, settings }
   cameraFolder.add(tilt, 'tilt', 0, 80, 1).listen();
   addParams(gui.addFolder('Scene'), museum.params, { skip: ['lat', 'lon'] });
   addParams(gui.addFolder('Surface look'), look.params, { listen: ['kLand', 'kSea'] });
-  addParams(gui.addFolder('Streamer'), streamer.params);
+  addParams(gui.addFolder('Streamer').close(), streamer.params);
   const copy = {
     'Copy settings': () => {
       const text = settings();

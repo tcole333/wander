@@ -46,6 +46,20 @@ export class CameraRig {
   }
 
   /**
+   * The gimbal's [lon, lat] in degrees that puts the camera square in front of the instrument,
+   * the lamp behind it and the globe tilted toward it: the globe point the camera looks from, the
+   * view's (capped) tilt back from the view center against the heading. The latitude runs past the
+   * poles rather than wrapping, so the gimbal turns on continuously with north kept up; exact for
+   * heading 0, near enough otherwise.
+   */
+  gimbalFacing(camera: PerspectiveCamera, view: ViewState, relief: Relief): [number, number] {
+    const tilt = this.#poseFor(camera, view, relief).tiltDeg;
+    const heading = (view.heading * Math.PI) / 180;
+    const cosLat = Math.max(0.1, Math.cos((view.lat * Math.PI) / 180));
+    return [view.lon - (tilt * Math.sin(heading)) / cosLat, view.lat - tilt * Math.cos(heading)];
+  }
+
+  /**
    * Puts `camera` where `view` puts it, with `globe` (globeMount, its matrixWorld current) as the
    * globe frame. `instrumentAbove` is the altitude in radii above which the instrument shows, and
    * the depth range then reaches past it.
