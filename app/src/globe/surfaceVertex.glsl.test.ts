@@ -64,6 +64,12 @@ describe('surfaceVertexChunk', () => {
     expect(() => glslFaceTable([[[0.5, 0, 0], V, C]])).toThrow(RangeError);
   });
 
+  test('is ASCII throughout, comments included', () => {
+    const chunk = surfaceVertexChunk({ segments: GRID_SEGMENTS.lite, debugChecks: true });
+    const glsl = Object.values(chunk).filter((piece) => typeof piece === 'string');
+    expect([...glsl.join('')].filter((c) => (c.codePointAt(0) ?? 0) > 0x7f)).toEqual([]);
+  });
+
   test('reads position but leaves its declaration to three or the readback program', () => {
     expect(pars).toMatch(/\bposition\.xy\b/);
     expect(pars).not.toMatch(/\bin\s+\w+\s+position\s*;/);

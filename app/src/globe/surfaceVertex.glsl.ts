@@ -4,8 +4,8 @@
 // of its own. It ports vertexMirror.ts line by line, steps 0-3 in the mirror's order, so every
 // value up to a point's code, shore and direction is exact and equals the mirror's bit for bit.
 // Float constants are emitted as their float32 bits, so the GPU holds the mirror's values rather
-// than its own rounding of a decimal. It never declares `position`: three, or the readback program,
-// declares it before the pars.
+// than its own rounding of a decimal, and the source is ASCII, comments too, for every validator.
+// It never declares `position`: three, or the readback program, declares it before the pars.
 import type { DataArrayTexture } from 'three';
 import type { SurfaceRelease } from '../data/release';
 import type { SurfacePools } from '../gpu/surfaceUploads';
@@ -164,14 +164,14 @@ out float vWanderSkirt;
 // 2^e from its bits: ES 3.00 has no ldexp, and exp2 need not be exact.
 float wanderPow2(int e) { return uintBitsToFloat(uint(e + 127) << 23); }
 
-// tan(x) for 0 <= x <= π/4: Cephes' tanf polynomial, since GLSL leaves tan's precision open.
+// tan(x) for 0 <= x <= pi/4: Cephes' tanf polynomial, since GLSL leaves tan's precision open.
 float wanderTan(float x) {
   float z = x * x;
   float p = ${poly};
   return p * z * x + x;
 }
 
-// tan(πs/4), odd and exactly ±1 at |s| = 1, where a tan of float32 π/4 may land an ulp off 1.
+// tan(pi s/4), odd and exactly +-1 at |s| = 1, where a tan of float32 pi/4 may land an ulp off 1.
 float wanderTanQ(float s) {
   float a = abs(s);
   float r = a == 1.0 ? 1.0 : wanderTan(a * WANDER_QUARTER_PI);
@@ -203,13 +203,13 @@ WanderNode wanderDecode(uvec4 w) {
   return n;
 }
 
-// Rule 7 in one function: land kLand·max(h, 0) (owner decision 18), sea kSeaEff·min(h, 0).
+// Rule 7 in one function: land kLand*max(h, 0) (owner decision 18), sea kSeaEff*min(h, 0).
 float wanderDisplace(float h, bool land) {
   return land ? wanderKLand * max(h, 0.0) : wanderKSeaEff * min(h, 0.0);
 }
 
 // 1. Face-edge profile (rule 3 on a face edge): side e at mip m, along in corners 0..256 of the lv
-// tile, as (code − codeMid, shore byte).
+// tile, as (code - codeMid, shore byte).
 vec2 wanderProfile(int slot, int e, int m, float along) {
   float x = along * wanderPow2(-m);
   float x0 = floor(x);
@@ -228,7 +228,7 @@ vec2 wanderProfile(int slot, int e, int m, float along) {
 
 struct WanderPoint {
   vec3 position;
-  // WANDER_FACE[face]·(tanQ(s), tanQ(t), 1), before normalize.
+  // WANDER_FACE[face] * (tanQ(s), tanQ(t), 1), before normalize.
   vec3 dir;
   float code, shore, h, disp;
   int m, lv;
@@ -302,7 +302,7 @@ WanderPoint wanderPoint(WanderNode n, ivec2 kl) {
   p.h = (p.code >= c2 ? p.code : c2 + 4.0 * (p.code - c2)) * q;
   p.land = p.shore >= 128.0;
   p.disp = wanderDisplace(p.h, p.land);
-  // s and t are exact, exactly ±1 on face edges.
+  // s and t are exact, exactly +-1 on face edges.
   vec2 st = vec2(g * 2) * wanderPow2(-(WANDER_LOG2G + n.level)) - 1.0;
   p.dir = WANDER_FACE[n.face] * vec3(wanderTanQ(st.x), wanderTanQ(st.y), 1.0);
   p.position = normalize(p.dir) * (1.0 + p.disp * WANDER_INV_R);
