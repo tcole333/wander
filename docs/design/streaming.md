@@ -804,8 +804,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      carries the parent's slot, sub-rect, codeMid and edge flags. (Parent heights alone miss the
      parent's chords, by ~1.9 km on a coarse root grid.)
   7. **Land or sea:** the shore channel, sampled at the same source, uv and mip as the height, selects
-     the factor. Land displaces by `kLand·h`; sea displaces by `kSea·min(h, 0)` when Bathymetry is on,
-     and by 0 otherwise. Turning Relief off animates `kLand` to 0. Depth bands use the same sea mask.
+     the factor. Land displaces by `kLand·max(h, 0)`, so lake beds, depressions such as the Dead Sea and
+     coastal dips sit flat at sea level (owner decision 18); sea displaces by `kSea·min(h, 0)` when
+     Bathymetry is on, and by 0 otherwise. Turning Relief off animates `kLand` to 0. Depth bands use the
+     same sea mask.
   8. **Skirts** stay as insurance against sub-pixel float gaps.
 - **Reveals:** on a still camera (no flight or gesture; a slow drift counts as still), new tiles wait
   until every visible desired tile of that level is ready, or `revealHold`, then morph together over
@@ -1414,6 +1416,12 @@ Decided for the surface core (issue #3), 2026-09-24 and 2026-09-25:
 16. **Milestone-1 region:** L5-L6 only where the Tambora beats refine at the full tier and at the
     Kirkuk corner, with separate L5 and L6 radii, rather than across the beats' whole views.
 17. **Default profile:** a bare `uv run prebuild` builds the global profile into `build/out/`.
+
+Decided for the tile mesh (issue #4), 2026-09-25:
+
+18. **Land below sea level:** land relief never sinks below 0 m (the spike's rule). Exaggerated, lake
+    beds would become trenches (Baikal's −1,168 m bed about 19 km deep at ×16) and the Dead Sea a 4 km
+    pit; flat at sea level they read as water and lowland.
 
 Still open:
 
