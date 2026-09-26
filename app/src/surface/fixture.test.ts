@@ -105,14 +105,14 @@ describe('the fixture surface layer', () => {
 });
 
 describe('decoding the fixture tiles', () => {
-  it('decodes each tile to the planes, edges and grid the pipeline decodes', () => {
+  it('decodes each tile to the planes, edge texture and grid the pipeline decodes', () => {
     const off = keys.flatMap((key) => {
       const { decoded, planes } = tile(key);
       const got: Record<Plane, string> = {
         codes: sha256(planes.codes),
         shore: sha256(planes.shore),
         water: sha256(planes.water),
-        edges: sha256(planes.edges),
+        edges: sha256(decoded.edges),
         grid: sha256(decoded.grid),
       };
       const want = expected[key]?.sha256;

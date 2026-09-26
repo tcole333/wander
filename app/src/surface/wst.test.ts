@@ -5,16 +5,25 @@ import { describe, expect, it } from 'vitest';
 import { intToHalfBits } from './half';
 import {
   EDGE_ENTRIES,
+  EDGE_ROWS,
   GRID,
-  PAYLOAD_BYTES,
+  MAX_PAYLOAD_BYTES,
+  MIP_ENTRIES,
+  MIP_START,
+  PROFILE_ENTRIES,
   SIZE,
   buildMips,
   inflate,
+  payloadBytes,
   type WstHeader,
   type WstPlanes,
 } from './wst';
 
 const [N, E, S, W] = [0, 1, 2, 3] as const;
+/** An L0 tile, whose four sides all lie on face edges and store profiles. */
+const ROOT = { face: 2, level: 0, x: 0, y: 0 };
+/** A tile along its face's N edge, which stores N alone. */
+const NORTH_ONLY = { face: 4, level: 2, x: 1, y: 3 };
 
 function header(changes: Partial<WstHeader> = {}): WstHeader {
   return {
@@ -37,8 +46,20 @@ function planes(): WstPlanes {
     codes: new Int16Array(SIZE * SIZE),
     shore: new Uint8Array(SIZE * SIZE),
     water: new Uint8Array(SIZE * SIZE),
-    edges: new Int16Array(4 * EDGE_ENTRIES),
+    profiles: new Int16Array(4 * PROFILE_ENTRIES),
+    profileShore: new Uint8Array(4 * PROFILE_ENTRIES),
   };
+}
+
+/** The index of entry k of side e at mip m in a profile layout. */
+function entry(e: number, m: number, k: number): number {
+  return e * PROFILE_ENTRIES + (MIP_START[m] ?? NaN) + k;
+}
+
+/** The (R, G) half-float bits of texel k in row 4m + e of the edge texture. */
+function edgeTexel(edges: Uint16Array, e: number, m: number, k: number): [number, number] {
+  const at = 2 * ((4 * m + e) * EDGE_ENTRIES + k);
+  return [edges[at] ?? NaN, edges[at + 1] ?? NaN];
 }
 
 /** Fill texels [i0, i1) × [j0, j1) of a 264² plane; j is the row. */
@@ -95,17 +116,74 @@ describe('buildMips', () => {
     expect(halfOf(heightMips[2][0])).toBe(1);
   });
 
-  it('stores heights and edges as half-float offsets from codeMid', () => {
+  it('stores heights and profile codes as half-float offsets from codeMid', () => {
     const p = planes();
     p.codes.fill(1000);
     p.codes[5] = 3048;
-    p.edges.fill(1000);
-    p.edges[N * EDGE_ENTRIES + 100] = -1048;
-    const decoded = buildMips(p, header({ codeMid: 1000, codeMin: -1048, codeMax: 3048 }));
+    p.profiles.fill(1000);
+    p.profiles[entry(N, 0, 100)] = -1048;
+    const at = { ...ROOT, codeMid: 1000, codeMin: -1048, codeMax: 3048 };
+    const decoded = buildMips(p, header(at));
     expect(decoded.heightMips[0][5]).toBe(intToHalfBits(2048));
     expect(decoded.heightMips[0][6]).toBe(0);
-    expect(decoded.edges[N * EDGE_ENTRIES + 100]).toBe(intToHalfBits(-2048));
+    expect(edgeTexel(decoded.edges, N, 0, 100)[0]).toBe(intToHalfBits(-2048));
+    expect(edgeTexel(decoded.edges, N, 0, 101)[0]).toBe(0);
     expect(decoded.heightMips.map((mip) => mip.length)).toEqual([264 * 264, 132 * 132, 66 * 66]);
+  });
+
+  it('lays each stored side at mip m in edge row 4m + e, texel k holding its entry k', () => {
+    const p = planes();
+    for (const e of [N, E, S, W]) {
+      MIP_ENTRIES.forEach((count, m) => {
+        for (let k = 0; k < count; k += 1) {
+          p.profiles[entry(e, m, k)] = 1000 * e + 300 * m + k;
+          p.profileShore[entry(e, m, k)] = (e * 60 + m * 20 + k) % 256;
+        }
+      });
+    }
+    const { edges } = buildMips(p, header({ ...ROOT, codeMid: 1800, codeMax: 3664 }));
+    expect(edges).toHaveLength(2 * EDGE_ROWS * EDGE_ENTRIES);
+    const texels = [
+      [N, 0, 0],
+      [E, 0, 256],
+      [S, 1, 128],
+      [W, 1, 7],
+      [E, 2, 64],
+      [W, 2, 0],
+    ] as const;
+    for (const [e, m, k] of texels) {
+      expect(edgeTexel(edges, e, m, k), `side ${e} mip ${m} entry ${k}`).toEqual([
+        intToHalfBits(1000 * e + 300 * m + k - 1800),
+        intToHalfBits((e * 60 + m * 20 + k) % 256),
+      ]);
+    }
+  });
+
+  it('leaves the edge texels past the last entry of mips 1 and 2 at 0', () => {
+    const p = planes();
+    p.profiles.fill(7);
+    p.profileShore.fill(9);
+    const { edges } = buildMips(p, header({ ...ROOT, codeMin: 7, codeMax: 7 }));
+    for (const e of [N, E, S, W]) {
+      expect(edgeTexel(edges, e, 1, 128)).toEqual([intToHalfBits(7), intToHalfBits(9)]);
+      expect(edgeTexel(edges, e, 1, 129)).toEqual([0, 0]);
+      expect(edgeTexel(edges, e, 2, 64)).toEqual([intToHalfBits(7), intToHalfBits(9)]);
+      expect(edgeTexel(edges, e, 2, 65)).toEqual([0, 0]);
+    }
+  });
+
+  it('writes only the rows of the sides its key stores', () => {
+    const p = planes();
+    p.profiles.fill(7);
+    p.profileShore.fill(9);
+    const north = buildMips(p, header({ ...NORTH_ONLY, codeMin: 7, codeMax: 7 })).edges;
+    const rows = Array.from({ length: EDGE_ROWS }, (_, row) =>
+      north.subarray(2 * row * EDGE_ENTRIES, 2 * (row + 1) * EDGE_ENTRIES).some((bits) => bits),
+    );
+    // Rows 0, 4 and 8 hold N at mips 0, 1 and 2.
+    expect(rows.flatMap((written, row) => (written ? [row] : []))).toEqual([0, 4, 8]);
+    const inFace = buildMips(p, header({ codeMin: 7, codeMax: 7 })).edges;
+    expect(inFace.every((bits) => bits === 0)).toBe(true);
   });
 
   it('interleaves shore and water as RG8 at every mip', () => {
@@ -141,22 +219,38 @@ describe('buildMips', () => {
     expect([grid[GRID + 1], grid[3 * GRID + 1], grid[2 * GRID + 2]]).toEqual([0, 0, 0]);
   });
 
-  it('gives boundary grid vertices h of the edge profile at their corner', () => {
+  it('gives grid vertices on a stored side h of its mip-2 entry at their corner', () => {
+    // Vertex i along a side sits at corner 8i, mip-2 entry 2i. The sides share their corners.
     const p = planes();
-    for (let k = 0; k < EDGE_ENTRIES; k += 1) {
-      p.edges[N * EDGE_ENTRIES + k] = 500 + k;
-      p.edges[E * EDGE_ENTRIES + k] = 1000 + k;
-      p.edges[S * EDGE_ENTRIES + k] = -500 - k;
-      p.edges[W * EDGE_ENTRIES + k] = -1000 - k;
+    for (let k = 0; k < MIP_ENTRIES[2]; k += 1) {
+      p.profiles[entry(N, 2, k)] = 500 + k;
+      p.profiles[entry(E, 2, k)] = 1000 + k;
+      p.profiles[entry(S, 2, k)] = -500 - k;
+      p.profiles[entry(W, 2, k)] = -1000 - k;
     }
-    const { grid } = buildMips(p, header({ codeMin: -1256, codeMax: 1256, qLand: 0.5, qDeep: 2 }));
+    const at = { ...ROOT, codeMin: -1064, codeMax: 1064, qLand: 0.5, qDeep: 2 };
+    const { grid } = buildMips(p, header(at));
     const h = (c: number) => (c >= -400 ? c * 0.5 : -200 + (c + 400) * 2); // c200 = −400
-    expect(grid[0]).toBe(h(-500)); // S[0]
-    expect(grid[GRID - 1]).toBe(h(-756)); // S[256]
-    expect(grid[4]).toBe(h(-532)); // S[32]
-    expect(grid[(GRID - 1) * GRID + 4]).toBe(h(532)); // N[32]
-    expect(grid[4 * GRID]).toBe(h(-1032)); // W[32]
-    expect(grid[4 * GRID + GRID - 1]).toBe(h(1032)); // E[32]
+    expect(grid[1]).toBe(h(-502)); // S entry 2
+    expect(grid[GRID - 2]).toBe(h(-562)); // S entry 62
+    expect(grid[4]).toBe(h(-508)); // S entry 8
+    expect(grid[(GRID - 1) * GRID + 4]).toBe(h(508)); // N entry 8
+    expect(grid[4 * GRID]).toBe(h(-1008)); // W entry 8
+    expect(grid[4 * GRID + GRID - 1]).toBe(h(1008)); // E entry 8
+  });
+
+  it('gives grid vertices on a side inside the face h of the mean of the mip-2 codes there', () => {
+    // NORTH_ONLY stores N alone. Vertex (5, 0) on S sits between mip-2 columns 10 and 11 and rows
+    // 0 and 1: stored texels 40..47 across and 0..7 up. Vertex (0, 5) on W: 0..7 and 40..47.
+    const p = planes();
+    fill(p.codes, 40, 48, 0, 8, 12);
+    fill(p.codes, 0, 8, 40, 48, -8);
+    for (let k = 0; k < MIP_ENTRIES[2]; k += 1) p.profiles[entry(N, 2, k)] = 300 + k;
+    const { grid } = buildMips(p, header({ ...NORTH_ONLY, codeMin: -8, codeMax: 364 }));
+    expect(grid[5]).toBe(24);
+    expect(grid[5 * GRID]).toBe(-16);
+    expect(grid[(GRID - 1) * GRID + 5]).toBe(620); // N entry 10, 310 codes of 2 m
+    expect(grid[GRID - 1]).toBe(0); // E and S are inside the face, so the SE corner is a mean
   });
 
   it('rounds the meter bounds outward', () => {
@@ -167,21 +261,28 @@ describe('buildMips', () => {
   });
 });
 
+describe('payloadBytes', () => {
+  it('counts the header, 1,353 bytes a stored side, a pad for an odd count, and the planes', () => {
+    expect([0, 1, 2, 4].map(payloadBytes)).toEqual([278_810, 280_164, 281_516, 284_222]);
+    expect(MAX_PAYLOAD_BYTES).toBe(payloadBytes(4));
+  });
+});
+
 describe('inflate', () => {
   it('gunzips and leaves the stored bytes intact', async () => {
     const payload = Uint8Array.from({ length: 1000 }, (_, k) => k % 251);
     const stored = new Uint8Array(gzipSync(payload)).buffer;
-    const out = await inflate(stored, PAYLOAD_BYTES);
+    const out = await inflate(stored, MAX_PAYLOAD_BYTES);
     expect([...out]).toEqual([...payload]);
     expect(stored.byteLength).toBeGreaterThan(0);
   });
 
   it('refuses output past its limit', async () => {
-    const stored = new Uint8Array(gzipSync(new Uint8Array(PAYLOAD_BYTES + 1))).buffer;
-    await expect(inflate(stored, PAYLOAD_BYTES)).rejects.toThrow(/inflates past/);
+    const stored = new Uint8Array(gzipSync(new Uint8Array(MAX_PAYLOAD_BYTES + 1))).buffer;
+    await expect(inflate(stored, MAX_PAYLOAD_BYTES)).rejects.toThrow(/inflates past/);
   });
 
   it('refuses bytes that are not gzip', async () => {
-    await expect(inflate(new Uint8Array([1, 2, 3, 4]).buffer, PAYLOAD_BYTES)).rejects.toThrow();
+    await expect(inflate(new Uint8Array([1, 2, 3, 4]).buffer, MAX_PAYLOAD_BYTES)).rejects.toThrow();
   });
 });

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseTileKey } from '../surface/cube';
 import {
-  PAYLOAD_BYTES,
+  MAX_PAYLOAD_BYTES,
   decodePlanes,
   decodeWst,
   inflate,
@@ -96,7 +96,7 @@ export function hasSurfaceTile(record: SurfaceRecord, key: string): boolean {
 export async function loadSurfaceTile(record: SurfaceRecord, key: string): Promise<FixtureTile> {
   const stored = readFixtureFile(`surf/${record.ver}/${key}.wst`).buffer;
   const tile = parseTileKey(key);
-  const { planes } = decodePlanes(await inflate(stored, PAYLOAD_BYTES), tile);
+  const { planes } = decodePlanes(await inflate(stored, MAX_PAYLOAD_BYTES), tile);
   return { decoded: await decodeWst(stored, tile), planes };
 }
 
