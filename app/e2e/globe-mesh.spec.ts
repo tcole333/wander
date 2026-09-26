@@ -47,9 +47,15 @@ test('runs on the renderer its project names, over every fixture tile', () => {
   expect(report.tiles).toHaveLength(FIXTURE_TILES);
 });
 
-/** Scenarios failing `bad`, by name, with what they sampled. */
-function failing(tier: TierCheck, bad: (s: ScenarioCheck) => boolean) {
-  return tier.scenarios.filter(bad).map(({ name, samples }) => ({ name, samples }));
+/** Scenarios failing `bad`, by name, with what the check behind it sampled. */
+function failing(
+  tier: TierCheck,
+  bad: (s: ScenarioCheck) => boolean,
+  samples?: keyof ScenarioCheck['samples'],
+) {
+  return tier.scenarios
+    .filter(bad)
+    .map((s) => ({ name: s.name, ...(samples ? { samples: s.samples[samples] } : {}) }));
 }
 
 for (const tierName of TIERS) {
@@ -67,17 +73,18 @@ for (const tierName of TIERS) {
 
     test('1. every instance holding a shared point writes its position, code, shore, land and h bit for bit', () => {
       expect(tier().scenarios.every((s) => s.sharedPoints > 0)).toBe(true);
-      expect(failing(tier(), (s) => s.seamMismatches > 0)).toEqual([]);
+      expect(failing(tier(), (s) => s.seamMismatches > 0, 'seams')).toEqual([]);
     });
 
     test('2. every T-junction is fround(fround(P0 + P1)·0.5) of the coarse chord, within a float32 step', () => {
       expect(tier().scenarios.reduce((sum, s) => sum + s.tJunctions, 0)).toBeGreaterThan(0);
-      expect(failing(tier(), (s) => !(s.tJunctionWorstUlp <= 1))).toEqual([]);
+      expect(failing(tier(), (s) => !(s.tJunctionWorstUlp <= 1), 'tJunctions')).toEqual([]);
     });
 
     test('3. code, shore, land, h, m and class equal the mirror bit for bit at every vertex', () => {
       const exact = ['code', 'shore', 'land', 'h', 'disp', 'm', 'cls', 'info'] as const;
-      expect(failing(tier(), (s) => exact.some((field) => s.mirror[field] > 0))).toEqual([]);
+      const bad = (s: ScenarioCheck) => exact.some((field) => s.mirror[field] > 0);
+      expect(failing(tier(), bad, 'mirror')).toEqual([]);
     });
 
     test('3. positions and uv lie within 1e-6 of the mirror', () => {

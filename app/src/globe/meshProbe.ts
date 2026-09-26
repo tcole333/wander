@@ -87,7 +87,8 @@ export interface ScenarioCheck {
   skirts: { count: number; tjunctions: number; deep: number; worst: number };
   /** combinationsOf(scenario, tier): what the scenario exercises. */
   combinations: string[];
-  samples: string[];
+  /** The first few differences each check found, for a failure message. */
+  samples: { mirror: string[]; seams: string[]; tJunctions: string[] };
 }
 
 export type ControlKind = 'cS' | 'cN' | 'dN';
@@ -377,9 +378,9 @@ function checkScenario(entry: Entry, out: Readout, tier: Tier, run: TierRun): Sc
   const { packed, scenario, family } = entry;
   const { grid, ctx, ms } = run;
   const G = grid.segments;
-  const samples: string[] = [];
-  const sample = (text: string) => {
-    if (samples.length < SAMPLES) samples.push(text);
+  const samples: ScenarioCheck['samples'] = { mirror: [], seams: [], tJunctions: [] };
+  const sample = (kind: keyof typeof samples, text: string) => {
+    if (samples[kind].length < SAMPLES) samples[kind].push(text);
   };
   const name = ({ instance, vertex }: VertexRef) => {
     const tile = packed.instances[instance]?.node.tile;
@@ -430,7 +431,7 @@ function checkScenario(entry: Entry, out: Readout, tier: Tier, run: TierRun): Sc
       const diff = (field: keyof MirrorCheck, gpu: number | undefined, cpu: number) => {
         if (Object.is(gpu, cpu)) return;
         mirror[field] += 1;
-        sample(`${name(ref)} ${field}: GPU ${gpu} vs mirror ${cpu}`);
+        sample('mirror', `${name(ref)} ${field}: GPU ${gpu} vs mirror ${cpu}`);
       };
       diff('code', out.data[i], v.code);
       diff('h', out.data[i + 1], v.h);
@@ -445,7 +446,7 @@ function checkScenario(entry: Entry, out: Readout, tier: Tier, run: TierRun): Sc
       const expected = [v.lv, Number(v.faceEdge), Number(v.up), v.count - 1].join();
       if (rest !== expected) {
         mirror.info += 1;
-        sample(`${name(ref)} lv, faceEdge, up, T-junction: GPU ${rest} vs mirror ${expected}`);
+        sample('mirror', `${name(ref)} lv, faceEdge, up, T-junction: GPU ${rest} vs ${expected}`);
       }
       for (let c = 0; c < 3; c += 1) {
         const gap = Math.abs((out.position[i + c] ?? NaN) - (v.position[c] ?? NaN));
@@ -465,11 +466,12 @@ function checkScenario(entry: Entry, out: Readout, tier: Tier, run: TierRun): Sc
   const groups = sharedPointGroups(packed, grid);
   check.sharedPoints = groups.size;
   for (const [point, [first, ...rest]] of groups) {
-    for (const other of first ? rest : []) {
-      const fields = first ? out.seamFields(first, other) : [];
+    if (!first) continue;
+    for (const other of rest) {
+      const fields = out.seamFields(first, other);
       if (fields.length === 0) continue;
       check.seamMismatches += 1;
-      sample(`${point} ${fields.join()}: ${name(other)} vs the point's first`);
+      sample('seams', `${point} ${fields.join()}: ${name(other)} vs ${name(first)}`);
     }
   }
 
@@ -484,7 +486,7 @@ function checkScenario(entry: Entry, out: Readout, tier: Tier, run: TierRun): Sc
       const ulps = ulpDistance(p[c] ?? NaN, midpoint);
       if (ulps <= check.tJunctionWorstUlp) continue;
       check.tJunctionWorstUlp = ulps;
-      if (ulps > 1) sample(`${junction.at} T-junction component ${c}: ${ulps} steps off`);
+      if (ulps > 1) sample('tJunctions', `${junction.at} component ${c}: ${ulps} steps off`);
     }
   }
 
