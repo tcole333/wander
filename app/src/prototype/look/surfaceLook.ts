@@ -94,9 +94,10 @@ export function defaultLookParams(): Params {
     riverLine: 1,
     graticule: 1,
     noise: 1,
-    // How polished the high ground gets (the spike's was 1): lower dulls the lamp's glare on
-    // broad highlands such as Tibet.
-    polish: 0.55,
+    // How polished the high ground gets, the spike's 1: its contrast and glints at the world and
+    // region scales, and gold highlights on islands at 1,500-3,000 km. Lower dulls the lamp's
+    // glare on broad highlands such as Tibet, at the cost of a flatter, satin look.
+    polish: 1,
     // 0 the look, 1 height, 2 shore/water/L1 fields, 3 normals, 4 source level.
     debugView: 0,
     ...PALETTE,
