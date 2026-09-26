@@ -11,6 +11,13 @@ export const tunables = {
   refinePx: { lite: 1.5, full: 0.83, merge: 0.7 },
   // Visible width at the closest story and explore view (still open: owner decision 1).
   zoomFloorKm: 100,
+  // Relief exaggeration: land displaces by kLand·max(h, 0), sea by kSea·min(h, 0) with Bathymetry
+  // on (5.6 rule 7).
+  kLand: 8,
+  kSea: 8,
+  // The camera stays at least minKm, or ofView of its distance to the target, above the terrain
+  // ceiling, and the line from the target to it clears the terrain by lineDeg (5.7).
+  cameraClearance: { minKm: 2, ofView: 0.25, lineDeg: 2 },
   revealHold: 300,
   revealMorph: 700,
   tileFade: 250,
