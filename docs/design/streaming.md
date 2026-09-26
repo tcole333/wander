@@ -1251,6 +1251,21 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
     A one-texel slip along an edge still misses hundreds of texels, and a reversed edge far more.
     Whether a shading seam shows stays E2's call; if it does, face-edge border texels can be
     resampled from the neighbor's grid.
+  - the vertex mirror (5.6) on every same-level pair of available neighbors, both drawn as nodes of
+    their own level at d = 0 on the full tier: within faces and across all 12 face edges at L0-L4,
+    and every baked pair at L5-L7, 5,134 pairs in all. Both tiles give each of the shared edge's 33
+    vertices the same code, shore, land, h, direction and position, bit for bit (169,422 vertices),
+    so they choose land or sea alike at all 13,695 face-edge vertices, where each tile's own grid
+    would split 13 [M `work/surface-bake/face-edge-crease.json`]
+  - the non-owner crease: a face-edge vertex takes its owner's profile entry, while the non-owner
+    tile's vertices beside it follow that tile's own grid, so the edge creases by the gap between
+    the entry and the non-owner's own mip-m corner mean there. Its p95 and max per level go to
+    `build/lab/crease.json`, and a level fails when either grows more than 10% past the values
+    measured on the version 2 bake: p95 44.2 / 24.5 / 16.0 m and max 345.9 / 98.0 / 118.5 m at
+    L4 / L5 / L6, up to p95 156.4 m and max 469.1 m at L0, where the grids are coarsest. At ×16 the
+    L4-L6 p95 is 0.24 / 0.27 / 0.35 px where each level refines, but 34 / 19 / 12 px when a tile of
+    that level draws in a 30 km view at 1440 px, which happens only where nothing finer is baked or
+    resident; E2 judges it (8.2)
   - each header's codeMin and codeMax against its planes and stored profile entries, and
     `bounds.bin` against the decoded meter bounds
   - availability against the files present, which hash to the layer's version
@@ -1346,14 +1361,18 @@ Intel Iris Xe laptop before launch. "The target machines" below means these two 
   layer toggles while moving, at 300 km and 30 km views (30 km may need a debug override of the zoom
   floor).
 - **Measure:** key-check magenta; exposed skirt walls; the screen offset of child vertices at morph
-  start against the coarse mesh; depth and normal discontinuity along edges; attached geometry on the L7
-  cell; per-slot upload time and `gl.getError()` in Chrome, Safari and Firefox on the target machines.
+  start against the coarse mesh; depth and normal discontinuity along edges; the non-owner crease
+  along face edges in px at ×8 and ×16, seen grazing along a face edge (`npm run verify:bake`
+  measures it in meters, 7.3); attached geometry on the L7 cell; per-slot upload time and
+  `gl.getError()` in Chrome, Safari and Firefox on the target machines.
 - **Pass:** zero magenta and no skirt walls; morph-start offset < 0.1 px; depth discontinuity < 0.5 px;
   normals within ~2°; attached geometry on the drawn surface; uploads fit the admission caps.
-- **If it fails:** fix edge ownership and morphing before any bake. If per-mip `copyTextureToTexture`
-  fails or is slow on WebKit, use per-tile `DataTexture`s with precomputed mipmaps (three allocates
-  `texStorage2D` levels from `mipmaps.length`), one draw per tile, and the CPU `heightAt()` for attached
-  geometry.
+- **If it fails:** fix edge ownership and morphing before any bake. If the face-edge crease shows,
+  make each profile entry the mean of every meeting face's own corner mean, so that along an edge
+  each side creases by half the gap instead of the non-owner by all of it. If per-mip
+  `copyTextureToTexture` fails or is slow on WebKit, use per-tile `DataTexture`s with precomputed
+  mipmaps (three allocates `texStorage2D` levels from `mipmaps.length`), one draw per tile, and the
+  CPU `heightAt()` for attached geometry.
 
 **E3. Story readiness under hostile interaction, across a deploy, on the real hostname (milestone 1
 acceptance).**

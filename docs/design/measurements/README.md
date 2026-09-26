@@ -14,6 +14,11 @@ starting point for the first story.
 region profile (2026-09-25): runtimes, tile counts and sizes, qLand, and the cross-face border
 statistics behind the seam check's bound.
 
+`work/surface-bake/face-edge-crease.json` records what `npm run verify:bake` measures through the
+vertex mirror on the version 2 region bake (2026-09-25): the non-owner crease along face edges per
+level, in meters and in px at ×8 and ×16, the land choice on face edges, and the pairs and vertices
+of the mirror's seam proof.
+
 `e1/results/` and `e2/results/` hold the experiments' lab runs (`npm run lab`, streaming.md 7.3),
 copied from `build/lab/`. The first ones ran on 2026-09-25 on the M5 (macOS 26.5) in Chromium 153 on
 Metal through Playwright, Safari 26.5 and Firefox 156:

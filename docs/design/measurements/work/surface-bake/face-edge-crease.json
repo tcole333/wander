@@ -1,0 +1,279 @@
+{
+  "what": "The non-owner face-edge crease on the milestone-1 region bake in .wst version 2 (streaming.md 5.6 rule 3, 7.3 Bake check), from `npm run verify:bake` at commit a4224b0 (branch feat/4-mirror-bake), which writes it to build/lab/crease.json. A face-edge vertex takes its owner's profile entry at the vertex mip, while the non-owner tile's vertices beside it follow that tile's own grid; the crease is |h(the profile code the vertex takes) - h(the non-owner tile's own 2D mean of the four mip-m codes around the vertex)|, in meters before exaggeration. It is taken through the vertex mirror (app/src/globe/vertexMirror.ts) at every face-edge vertex of every available same-level pair drawn at d = 0 on the full tier (33 vertices a side, vertex mip 2), once per point and non-owner face (a cube corner has two). Percentiles are nearest-rank.",
+  "date": "2026-09-25",
+  "machine": {
+    "model": "MacBook Pro, Apple M5",
+    "cpus": 10,
+    "memoryGB": 24,
+    "os": "macOS 26.5",
+    "node": "22.23.2"
+  },
+  "ver8": "ee095df5",
+  "px30km": "meters * k * 1440 / 30000: a 30 km wide view at 1440 CSS px spans 20.8 m per px at its target, and the exaggerated offset is seen side-on there. A level draws that close only where no finer tile is baked or resident yet.",
+  "pxWhereItRefines": "meters * k * 0.83 / texelM(L), texelM = (pi/2) R / (256 * 2^L): where a finer level is baked, a level-L tile draws no closer than the view where its texel spans refinePx (0.83 CSS px, full tier).",
+  "levels": [
+    {
+      "level": 0,
+      "points": 388,
+      "p50": 39.1,
+      "p95": 156.4,
+      "max": 469.1,
+      "px30km": {
+        "x8": {
+          "p95": 60.05,
+          "max": 180.14
+        },
+        "x16": {
+          "p95": 120.1,
+          "max": 360.29
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.03,
+          "max": 0.08
+        },
+        "x16": {
+          "p95": 0.05,
+          "max": 0.16
+        }
+      },
+      "ownGridLandSplits": 5
+    },
+    {
+      "level": 1,
+      "points": 772,
+      "p50": 19.5,
+      "p95": 97.7,
+      "max": 410.5,
+      "px30km": {
+        "x8": {
+          "p95": 37.53,
+          "max": 157.63
+        },
+        "x16": {
+          "p95": 75.06,
+          "max": 315.25
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.03,
+          "max": 0.14
+        },
+        "x16": {
+          "p95": 0.07,
+          "max": 0.28
+        }
+      },
+      "ownGridLandSplits": 3
+    },
+    {
+      "level": 2,
+      "points": 1540,
+      "p50": 9.8,
+      "p95": 68.5,
+      "max": 352.1,
+      "px30km": {
+        "x8": {
+          "p95": 26.29,
+          "max": 135.22
+        },
+        "x16": {
+          "p95": 52.58,
+          "max": 270.43
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.05,
+          "max": 0.24
+        },
+        "x16": {
+          "p95": 0.09,
+          "max": 0.48
+        }
+      },
+      "ownGridLandSplits": 2
+    },
+    {
+      "level": 3,
+      "points": 3076,
+      "p50": 7.3,
+      "p95": 53.8,
+      "max": 337.5,
+      "px30km": {
+        "x8": {
+          "p95": 20.66,
+          "max": 129.58
+        },
+        "x16": {
+          "p95": 41.32,
+          "max": 259.16
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.07,
+          "max": 0.46
+        },
+        "x16": {
+          "p95": 0.15,
+          "max": 0.92
+        }
+      },
+      "ownGridLandSplits": 1
+    },
+    {
+      "level": 4,
+      "points": 6148,
+      "p50": 4.9,
+      "p95": 44.2,
+      "max": 345.9,
+      "px30km": {
+        "x8": {
+          "p95": 16.96,
+          "max": 132.82
+        },
+        "x16": {
+          "p95": 33.91,
+          "max": 265.64
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.12,
+          "max": 0.94
+        },
+        "x16": {
+          "p95": 0.24,
+          "max": 1.88
+        }
+      },
+      "ownGridLandSplits": 2
+    },
+    {
+      "level": 5,
+      "points": 547,
+      "p50": 1,
+      "p95": 24.5,
+      "max": 98,
+      "px30km": {
+        "x8": {
+          "p95": 9.41,
+          "max": 37.63
+        },
+        "x16": {
+          "p95": 18.82,
+          "max": 75.26
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.13,
+          "max": 0.53
+        },
+        "x16": {
+          "p95": 0.27,
+          "max": 1.07
+        }
+      },
+      "ownGridLandSplits": 0
+    },
+    {
+      "level": 6,
+      "points": 835,
+      "p50": 1.5,
+      "p95": 16,
+      "max": 118.5,
+      "px30km": {
+        "x8": {
+          "p95": 6.14,
+          "max": 45.5
+        },
+        "x16": {
+          "p95": 12.29,
+          "max": 91.01
+        }
+      },
+      "pxWhereItRefines": {
+        "x8": {
+          "p95": 0.17,
+          "max": 1.29
+        },
+        "x16": {
+          "p95": 0.35,
+          "max": 2.58
+        }
+      },
+      "ownGridLandSplits": 0
+    }
+  ],
+  "gate": "verify:bake holds these p95 and max values per level (bake.verify.ts CREASE_MEASURED) and fails when a level exceeds either by more than 10%.",
+  "againstV1Estimate": "The tile-mesh design estimated this floor on the version 1 bake (085efb54) as each face's own mip-2 corner mean against the neighbor face's: p95 44 / 24 / 15 m, max 341 / 98 / 118 m at L4 / L5 / L6. Version 2 gives 44.2 / 24.5 / 16.0 m and 345.9 / 98.0 / 118.5 m: the owner side now sits within half a code of its own corner mean, so the non-owner side carries the two grids' whole disagreement.",
+  "ifFaceEdgeVerticesReadMip0": {
+    "note": "The same measure with the mirror reading the mip-0 profile entry at every face-edge vertex instead of the vertex mip (one-line mutation of vertexMirror.ts, reverted): what per-mip profiles remove. The gate fails at every level.",
+    "p95": [
+      547.3,
+      425.1,
+      322.8,
+      269.0,
+      174.2,
+      68.5,
+      63.0
+    ],
+    "max": [
+      1485.6,
+      2619.3,
+      1760.6,
+      1110.2,
+      694.2,
+      242.5,
+      312.5
+    ]
+  },
+  "landChoice": {
+    "faceEdgeVertices": 13695,
+    "splits": 0,
+    "ownGridSplits": 13,
+    "note": "splits: vertices whose two sides choose land and sea differently, 0 because both read the profile's shore byte. ownGridSplits: points where the non-owner's own mip-2 corner mean of shore bytes would choose differently from the profile, what each side choosing from its own grid would split."
+  },
+  "mirrorSeams": {
+    "note": "Every same-level pair of available neighbors, each drawn at d = 0 on the full tier; the mirror compares the shared edge's 33 vertices from both sides in code, shore, land, h, direction and position, bit for bit.",
+    "pairsInFace": [
+      0,
+      24,
+      144,
+      672,
+      2880,
+      423,
+      551,
+      25
+    ],
+    "pairsFaceEdge": [
+      12,
+      24,
+      48,
+      96,
+      192,
+      17,
+      26,
+      0
+    ],
+    "pairs": 5134,
+    "points": 169422,
+    "mismatches": 0
+  },
+  "verifyBakeSeconds": {
+    "note": "npm run verify:bake's vitest Duration, two runs each without and with the mirror checks; the mirror's pairs and crease take 0.63 s of the sweep",
+    "before": [
+      21.17,
+      21.2
+    ],
+    "after": [
+      21.41,
+      21.19
+    ],
+    "mirrorAndCrease": 0.63
+  }
+}
