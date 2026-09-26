@@ -1,17 +1,24 @@
 // Seams in the fixture's surface layer (streaming.md 3.1 Edges, 7.3), checked on what the decoder
 // hands the GPU with the checks in ../test/seams.ts: within a face on the 24 L1 pairs and the
-// Sumbawa L7 pair, and across a face edge on every L0 and L1 face edge and at the Kirkuk corner.
+// Sumbawa L7 pair, and on every L0 and L1 face edge and at the Kirkuk corner, the edge profiles
+// at every mip, where they meet, what their owners hold and the border texels past the edge.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadSurfaceTile, readSurfaceRecord, type FixtureTile } from '../test/fixture';
 import {
   FIXTURE_CROSS_FACE,
-  LAST_ENTRY,
+  MIPS,
+  TILE_CORNERS,
+  cornerEntries,
   crossFaceMisses,
-  edgeCodes,
-  edgeProfileMatches,
+  cubeCornerOf,
+  edgeProfileMismatches,
+  ownerMeans,
+  storedEdges,
+  tileCornerMismatches,
   withinFaceMismatches,
 } from '../test/seams';
 import { EDGES, neighbor, tileKey, type Edge, type Tile } from './cube';
+import { EDGE_ENTRIES, PROFILE_ENTRIES } from './wst';
 
 const SUMBAWA_WEST: Tile = { face: 1, level: 7, x: 102, y: 50 };
 const SUMBAWA_EAST: Tile = { face: 1, level: 7, x: 103, y: 50 };
@@ -40,11 +47,6 @@ function tile(t: Tile): FixtureTile {
   const found = tiles.get(tileKey(t));
   if (!found) throw new Error(`the fixture has no tile ${tileKey(t)}`);
   return found;
-}
-
-/** Edge profile entries 0..256 as the GPU sees them. */
-function edges(t: Tile, edge: Edge): number[] {
-  return edgeCodes(tile(t).decoded, edge);
 }
 
 function kirkukTiles(level: number): Tile[] {
@@ -86,51 +88,78 @@ describe('within a face', () => {
     },
   );
 
-  it.each(WITHIN_FACE.map(([a, b, side]) => [tileKey(a), tileKey(b), side, a, b] as const))(
-    '%s and %s share their edge profile',
-    (_, __, side, a, b) => {
-      expect(edges(a, side)).toEqual(edges(b, side === 'E' ? 'W' : 'S'));
-    },
-  );
-
-  it.each([0, 1, 2, 3, 4, 5])('the four L1 tiles of face %i agree at its center', (face) => {
-    const sw = { face, level: 1, x: 0, y: 0 };
-    const se = { face, level: 1, x: 1, y: 0 };
-    const nw = { face, level: 1, x: 0, y: 1 };
-    const ne = { face, level: 1, x: 1, y: 1 };
-    const entries = [
-      edges(sw, 'N')[LAST_ENTRY],
-      edges(sw, 'E')[LAST_ENTRY],
-      edges(se, 'N')[0],
-      edges(se, 'W')[LAST_ENTRY],
-      edges(nw, 'S')[LAST_ENTRY],
-      edges(nw, 'E')[0],
-      edges(ne, 'S')[0],
-      edges(ne, 'W')[0],
-    ];
-    expect(new Set(entries).size).toBe(1);
+  it('a side stores no edge profile, so its rows of the edge texture are 0', () => {
+    const inFace = fixtureTiles().flatMap((t) =>
+      EDGES.filter((edge) => !storedEdges(t).includes(edge)).map((edge) => [t, edge] as const),
+    );
+    const written = inFace.filter(([t, edge]) =>
+      MIPS.some((mip) => {
+        const row = (EDGES.length * mip + EDGES.indexOf(edge)) * EDGE_ENTRIES;
+        return tile(t)
+          .decoded.edges.subarray(2 * row, 2 * (row + EDGE_ENTRIES))
+          .some(Boolean);
+      }),
+    );
+    expect(written.map(([t, edge]) => `${tileKey(t)} ${edge}`)).toEqual([]);
+    // Two sides of each L1 and Kirkuk tile, and all four of the Sumbawa pair.
+    expect(inFace).toHaveLength(24 * 2 + 18 * 2 + 2 * 4);
   });
 });
 
 describe('across a face edge', () => {
-  it('edge profiles match on every L0 and L1 face edge and at the Kirkuk corner', () => {
+  it('edge profiles match at every mip, codes and shore bytes, reversed edges included', () => {
     const checked = faceEdges();
-    const off = checked.filter(
-      ([t, edge]) =>
-        !edgeProfileMatches(t, edge, tile(t).decoded, tile(neighbor(t, edge).tile).decoded),
+    const off = checked.flatMap(([t, edge]) =>
+      edgeProfileMismatches(t, edge, tile(t).decoded, tile(neighbor(t, edge).tile).decoded).map(
+        (what) => `${tileKey(t)} ${edge}: ${what}`,
+      ),
     );
-    expect(off.map(([t, edge]) => `${tileKey(t)} ${edge}`)).toEqual([]);
-    // Each L0 tile has four face edges, each L1 tile two, and each Kirkuk tile two.
+    expect(off).toEqual([]);
+    // Each L0 tile has four face edges, each L1 tile two, and each Kirkuk tile two. The four
+    // reversed face edges are checked from both sides, once at L0 and twice at L1.
     expect(checked).toHaveLength(6 * 4 + 24 * 2 + 3 * 2 * KIRKUK_LEVELS.length);
+    expect(checked.filter(([t, edge]) => neighbor(t, edge).reversed)).toHaveLength(4 * 2 * 3);
   });
 
-  it.each(KIRKUK_LEVELS)('the three Kirkuk tiles at L%i share their edges and vertex', (level) => {
-    const [face0, face1, face4] = kirkukTiles(level) as [Tile, Tile, Tile];
-    expect(edges(face0, 'N')).toEqual(edges(face4, 'S'));
-    expect(edges(face0, 'E')).toEqual(edges(face1, 'W'));
-    expect(edges(face1, 'N')).toEqual(edges(face4, 'E'));
-    const vertex = [edges(face0, 'N')[LAST_ENTRY], edges(face1, 'N')[0], edges(face4, 'E')[0]];
-    expect(new Set(vertex).size).toBe(1);
+  it("each tile's stored sides hold the same entry where they meet, at every mip", () => {
+    expect(fixtureTiles().flatMap((t) => tileCornerMismatches(tile(t).decoded))).toEqual([]);
+  });
+
+  it('the three tiles at each cube corner hold the same entry there, at every mip', () => {
+    const corners = new Map<string, string[]>();
+    for (const t of fixtureTiles()) {
+      for (const at of TILE_CORNERS) {
+        const cube = cubeCornerOf(t, at);
+        if (cube === null) continue;
+        for (const mip of MIPS) {
+          const key = `L${t.level} ${cube} mip ${mip}`;
+          corners.set(key, [
+            ...(corners.get(key) ?? []),
+            ...cornerEntries(tile(t).decoded, at, mip),
+          ]);
+        }
+      }
+    }
+    const off = [...corners].filter(
+      ([, entries]) => entries.length !== 3 * 2 || new Set(entries).size !== 1,
+    );
+    expect(off.map(([key, entries]) => `${key}: ${entries.join(', ')}`)).toEqual([]);
+    // All eight at L0 and at L1, and the Kirkuk corner at L2-L7, where faces 0, 1 and 4 meet.
+    expect(corners.size).toBe((8 + 8 + KIRKUK_LEVELS.length) * MIPS.length);
+    expect(KIRKUK_LEVELS.every((level) => corners.has(`L${level} +++ mip 0`))).toBe(true);
+  });
+
+  it("each entry lies within 0.5 of the owner's mean of the four mip-m texels around it", () => {
+    let checked = 0;
+    const misses: string[] = [];
+    for (const t of fixtureTiles()) {
+      const found = ownerMeans(t, tile(t).decoded, (owner) => tiles.get(tileKey(owner))?.decoded);
+      checked += found.checked;
+      misses.push(...found.misses);
+    }
+    expect(misses).toEqual([]);
+    // The fixture holds a tile of the owner face for every entry of every stored side.
+    expect(checked).toBe((6 * 4 + 24 * 2 + 18 * 2) * PROFILE_ENTRIES);
   });
 
   it('border texels map into neighbor column k, near the codes around them', () => {

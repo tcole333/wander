@@ -1,11 +1,17 @@
 // Seams between decoded surface tiles (streaming.md 3.1 Edges, 7.3), checked on what the decoder
 // hands the GPU. The fixture's seams test and the region bake check (`npm run verify:bake`) both
-// apply them. Within a face, border texels equal the neighbor's interior at mips 0-2 and edge
-// profiles match, bit for bit. Across a face edge, edge profiles match bit for bit, and each border
-// texel maps into the neighbor's texel column k with a code close to the neighbor's around it.
+// apply them. Within a face, border texels equal the neighbor's interior at mips 0-2, bit for bit,
+// and sides store no profile. On a face edge, each side stores an edge profile at mips 0-2: across
+// the edge both tiles hold the same codes and shore bytes, a tile's stored sides and the tiles at a
+// cube corner agree where they meet, and each entry is the rha mean of the owner face's four mip-m
+// texels around its corner. Each border texel past a face edge maps into the neighbor's texel
+// column k with a code close to the neighbor's around it.
 import {
   BORDER,
+  EDGES,
+  FACE_EDGES,
   TILE,
+  faceEdgeSides,
   faceSt,
   neighbor,
   stToDir,
@@ -18,9 +24,30 @@ import { EDGE_ENTRIES, MIP_SIZES, SIZE, type DecodedWst } from '../surface/wst';
 
 export type Mip = 0 | 1 | 2;
 
-const MIPS: readonly Mip[] = [0, 1, 2];
-/** The last edge-profile entry, at texel corner 256. */
-export const LAST_ENTRY = EDGE_ENTRIES - 1;
+export const MIPS: readonly Mip[] = [0, 1, 2];
+
+/** A tile's corners, named by the sides that meet there. */
+export type TileCorner = 'SW' | 'SE' | 'NW' | 'NE';
+export const TILE_CORNERS: readonly TileCorner[] = ['SW', 'SE', 'NW', 'NE'];
+/** The sides that meet at each tile corner, and whether it is their first entry or their last. */
+const CORNER_SIDES: Readonly<Record<TileCorner, readonly (readonly [Edge, 'first' | 'last'])[]>> = {
+  SW: [
+    ['S', 'first'],
+    ['W', 'first'],
+  ],
+  SE: [
+    ['S', 'last'],
+    ['E', 'first'],
+  ],
+  NW: [
+    ['N', 'first'],
+    ['W', 'last'],
+  ],
+  NE: [
+    ['N', 'last'],
+    ['E', 'last'],
+  ],
+};
 
 const EDGE_INDEX: Readonly<Record<Edge, number>> = { N: 0, E: 1, S: 2, W: 3 };
 // Across a face edge a border code may miss the neighbor's 3×3 codes around the mapped point: the
@@ -80,13 +107,71 @@ export function mipCodes(decoded: DecodedWst, mip: Mip): Int32Array {
   );
 }
 
-/** Edge profile entries 0..256 as the GPU sees them, offset + codeMid. */
-export function edgeCodes(decoded: DecodedWst, edge: Edge): number[] {
-  const start = EDGE_INDEX[edge] * EDGE_ENTRIES;
-  return Array.from(
-    decoded.edges.subarray(start, start + EDGE_ENTRIES),
-    (bits) => halfToInt(bits) + decoded.header.codeMid,
-  );
+/** The sides of `t` that lie on a face edge and store a profile, in N, E, S, W order. */
+export function storedEdges(t: Tile): Edge[] {
+  return faceEdgeSides(t).map((e) => EDGES[e] as Edge);
+}
+
+/** A stored side's profile at one mip, entries 0..(256 >> m), as the GPU sees them. */
+export interface SideProfile {
+  /** Offset + codeMid. */
+  codes: number[];
+  shore: number[];
+}
+
+/** The profile of `edge` at `mip` in the edge texture; throws when the side stores none. */
+export function sideProfile(decoded: DecodedWst, edge: Edge, mip: Mip): SideProfile {
+  if (!storedEdges(decoded.header).includes(edge)) {
+    throw new Error(
+      `${tileKey(decoded.header)} ${edge} lies inside its face and stores no profile`,
+    );
+  }
+  const row = (EDGES.length * mip + EDGE_INDEX[edge]) * EDGE_ENTRIES;
+  const count = (TILE >> mip) + 1;
+  const texel = (k: number, channel: number) => decoded.edges[2 * (row + k) + channel] ?? NaN;
+  return {
+    codes: Array.from({ length: count }, (_, k) => halfToInt(texel(k, 0)) + decoded.header.codeMid),
+    shore: Array.from({ length: count }, (_, k) => halfToInt(texel(k, 1))),
+  };
+}
+
+/** What each stored side of the tile holds at its corner `at` at `mip`, as `code/shore`. */
+export function cornerEntries(decoded: DecodedWst, at: TileCorner, mip: Mip): string[] {
+  const stored = storedEdges(decoded.header);
+  return CORNER_SIDES[at]
+    .filter(([edge]) => stored.includes(edge))
+    .map(([edge, end]) => {
+      const { codes, shore } = sideProfile(decoded, edge, mip);
+      const k = end === 'first' ? 0 : TILE >> mip;
+      return `${codes[k]}/${shore[k]}`;
+    });
+}
+
+/** Where a tile's stored sides disagree at a corner they share, one line per corner and mip. */
+export function tileCornerMismatches(decoded: DecodedWst): string[] {
+  const off: string[] = [];
+  for (const at of TILE_CORNERS) {
+    for (const mip of MIPS) {
+      const entries = cornerEntries(decoded, at, mip);
+      if (new Set(entries).size > 1) {
+        off.push(`${tileKey(decoded.header)} ${at} mip ${mip}: ${entries.join(' vs ')}`);
+      }
+    }
+  }
+  return off;
+}
+
+/**
+ * The cube corner that corner `at` of `t` lies on, as the signs of its direction's G components
+ * (`+++` is the Kirkuk corner), or null when the tile corner is not a corner of its face.
+ */
+export function cubeCornerOf(t: Tile, at: TileCorner): string | null {
+  const full = TILE * 2 ** t.level;
+  const cs = TILE * (t.x + (at.endsWith('E') ? 1 : 0));
+  const ct = TILE * (t.y + (at.startsWith('N') ? 1 : 0));
+  if ((cs !== 0 && cs !== full) || (ct !== 0 && ct !== full)) return null;
+  const p = stToDir(t.face, cs === 0 ? -1 : 1, ct === 0 ? -1 : 1);
+  return p.map((v) => (v > 0 ? '+' : '-')).join('');
 }
 
 /**
@@ -122,17 +207,174 @@ export function withinFaceMismatches(a: DecodedWst, b: DecodedWst, edge: Edge): 
   return off;
 }
 
-/** Whether `t`'s edge profile along `edge` equals, entry for entry, its neighbor's across it. */
-export function edgeProfileMatches(
+/**
+ * What `t`'s edge profile along the face edge `edge` and its neighbor's across it disagree on, at
+ * each mip: the codes or the shore bytes, entry k against the neighbor's entry k, or its entry
+ * (256 >> m) − k where the edge runs reversed. Empty when they match bit for bit.
+ */
+export function edgeProfileMismatches(
   t: Tile,
   edge: Edge,
   mine: DecodedWst,
   theirs: DecodedWst,
-): boolean {
+): string[] {
   const other = neighbor(t, edge);
-  const own = edgeCodes(mine, edge);
-  const across = edgeCodes(theirs, other.edge);
-  return own.every((code, k) => code === across[other.reversed ? LAST_ENTRY - k : k]);
+  if (other.tile.face === t.face) throw new Error(`${tileKey(t)} ${edge} is not a face edge`);
+  const off: string[] = [];
+  for (const mip of MIPS) {
+    const own = sideProfile(mine, edge, mip);
+    const across = sideProfile(theirs, other.edge, mip);
+    const at = (k: number) => (other.reversed ? (TILE >> mip) - k : k);
+    if (!own.codes.every((code, k) => code === across.codes[at(k)])) off.push(`mip ${mip} codes`);
+    if (!own.shore.every((byte, k) => byte === across.shore[at(k)])) {
+      off.push(`mip ${mip} shore bytes`);
+    }
+  }
+  return off;
+}
+
+/** A texel corner on a face, in face-global texel corners at the tile's level. */
+interface FaceCorner {
+  face: number;
+  cs: number;
+  ct: number;
+}
+
+/**
+ * The owner of mip-0 corner c (0..256) of `t`'s edge: the lowest-numbered face among the faces
+ * that meet at its point (streaming.md 3.0 item 7), and the corner in that face's frame. The
+ * pipeline's `profile_owner` (pipeline/src/prebuild/cube.py) addresses the same corner, on one of
+ * the tiles `tilesAt` gives.
+ */
+export function ownerCorner(t: Tile, edge: Edge, c: number): FaceCorner {
+  const x0 = TILE * t.x;
+  const y0 = TILE * t.y;
+  const corners: Record<Edge, [number, number]> = {
+    N: [x0 + c, y0 + TILE],
+    E: [x0 + TILE, y0 + c],
+    S: [x0 + c, y0],
+    W: [x0, y0 + c],
+  };
+  const [cs, ct] = corners[edge];
+  const full = TILE * 2 ** t.level;
+  const onFaceEdges: Edge[] = [];
+  if (ct === full) onFaceEdges.push('N');
+  if (cs === full) onFaceEdges.push('E');
+  if (ct === 0) onFaceEdges.push('S');
+  if (cs === 0) onFaceEdges.push('W');
+  let owner: FaceCorner = { face: t.face, cs, ct };
+  for (const faceEdge of onFaceEdges) {
+    const across = acrossFaceEdge(t.face, faceEdge, cs, ct, full);
+    if (across.face < owner.face) owner = across;
+  }
+  return owner;
+}
+
+/** The tiles of `face` at `level` with face-global corner (cs, ct) on or inside their bounds. */
+export function tilesAt(face: number, level: number, cs: number, ct: number): Tile[] {
+  const last = 2 ** level - 1;
+  const spans = (c: number) =>
+    [...new Set([Math.floor(c / TILE), Math.ceil(c / TILE) - 1])].filter(
+      (i) => i >= 0 && i <= last,
+    );
+  return spans(cs).flatMap((x) => spans(ct).map((y) => ({ face, level, x, y })));
+}
+
+/** Every tile that could hold the owner-frame texels of `t`'s stored entries (see `ownerMeans`). */
+export function ownerTiles(t: Tile): Tile[] {
+  const found = new Map<string, Tile>();
+  for (const edge of storedEdges(t)) {
+    for (let c = 0; c <= TILE; c += 1) {
+      const { face, cs, ct } = ownerCorner(t, edge, c);
+      for (const tile of tilesAt(face, t.level, cs, ct)) found.set(tileKey(tile), tile);
+    }
+  }
+  return [...found.values()];
+}
+
+/**
+ * The entries of `t`'s stored sides that are not the owner's rha means: each entry of mip m must
+ * lie within 0.5, as a real, of the mean of the four mip-m codes around its corner in the owner
+ * face's own tile, and its shore byte must be (T + 2) >> 2 of their four shore bytes, whose sum is
+ * T. Within a face every tile holding the corner holds the same texels there, so any of them
+ * serves; `find` gives one decoded, or undefined when none is at hand, which leaves that entry
+ * unchecked. Returns how many entries it checked and a line for each miss.
+ */
+export function ownerMeans(
+  t: Tile,
+  mine: DecodedWst,
+  find: (tile: Tile) => DecodedWst | undefined,
+): { checked: number; misses: string[] } {
+  let checked = 0;
+  const misses: string[] = [];
+  for (const edge of storedEdges(t)) {
+    for (const mip of MIPS) {
+      const { codes, shore } = sideProfile(mine, edge, mip);
+      codes.forEach((code, k) => {
+        const { face, cs, ct } = ownerCorner(t, edge, k << mip);
+        const holders = tilesAt(face, t.level, cs, ct);
+        const owner = holders.map((tile) => ({ tile, decoded: find(tile) })).find((o) => o.decoded);
+        if (owner?.decoded === undefined) return;
+        checked += 1;
+        const around = aroundCorner(owner.tile, owner.decoded, mip, cs, ct);
+        const mean = around.codes / 4;
+        const byte = (around.shore + 2) >> 2;
+        if (Math.abs(code - mean) > 0.5 || shore[k] !== byte) {
+          misses.push(
+            `${tileKey(t)} ${edge} mip ${mip} entry ${k}: ${code}/${shore[k]}, ` +
+              `${tileKey(owner.tile)} has ${mean}/${byte}`,
+          );
+        }
+      });
+    }
+  }
+  return { checked, misses };
+}
+
+/** The sums of the four mip-m codes and shore bytes of `tile` around face-global corner cs, ct. */
+function aroundCorner(
+  tile: Tile,
+  decoded: DecodedWst,
+  mip: Mip,
+  cs: number,
+  ct: number,
+): { codes: number; shore: number } {
+  const size = MIP_SIZES[mip];
+  // Tile corner c comes after stored mip-m column (c >> m) + (4 >> m) − 1, and likewise rows.
+  const column = ((cs - TILE * tile.x) >> mip) + (BORDER >> mip) - 1;
+  const row = ((ct - TILE * tile.y) >> mip) + (BORDER >> mip) - 1;
+  let codes = 0;
+  let shore = 0;
+  for (const [dr, dc] of [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1],
+  ] as const) {
+    const at = (row + dr) * size + column + dc;
+    codes += codeAt(decoded, mip, at);
+    shore += decoded.channelMips[mip][2 * at] ?? NaN;
+  }
+  return { codes, shore };
+}
+
+/** A corner on the face edge `edge` of `face`, in the frame of the face across it. */
+function acrossFaceEdge(
+  face: number,
+  edge: Edge,
+  cs: number,
+  ct: number,
+  full: number,
+): FaceCorner {
+  const edges = FACE_EDGES[face];
+  if (!edges) throw new RangeError(`no face ${face}`);
+  const [other, facing, reversed] = edges[edge];
+  const along = edge === 'N' || edge === 'S' ? cs : ct;
+  const mapped = reversed ? full - along : along;
+  const across = facing === 'N' || facing === 'E' ? full : 0;
+  return facing === 'N' || facing === 'S'
+    ? { face: other, cs: mapped, ct: across }
+    : { face: other, cs: across, ct: mapped };
 }
 
 /**
