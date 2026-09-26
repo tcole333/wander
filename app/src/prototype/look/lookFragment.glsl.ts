@@ -325,9 +325,10 @@ LookSurface lookSurface() {
   float fine = 0.5 + (nz.fine - 0.5) * lookNoise;
   float land = clamp(0.5 + c.d / fp.texPx, 0.0, 1.0);
 
-  // Four taps a pixel or at least 3/4 texel away: the relief's central differences, plus the fine
-  // noise's own gradient carried from lon/lat to s and t by the taps' lon/lat.
-  float delta = max(0.75, fp.texPx);
+  // Four taps a pixel or at least 2 texels away (within the tile's 4-texel border): the relief's
+  // central differences, plus the fine noise's own gradient carried from lon/lat to s and t by the
+  // taps' lon/lat. Nearer taps turn each texel's small ridges into glints.
+  float delta = max(2.0, fp.texPx);
   vec2 du = vec2(delta / LOOK_TEXELS, 0.0);
   vec2 ds = vec2(delta / perSt, 0.0);
   LookFields e = lookFields(vLookUv + du.xy, vLookSt + ds.xy, exactL1);
