@@ -2,7 +2,7 @@
 // whose vertex stage is the merged surface vertex chunk and whose fragment stage computes the
 // spike's baked look from the surface pools, per fragment. A MeshDepthMaterial with the same vertex
 // stage lets the displaced globe cast its own shadows.
-import { Color, MeshDepthMaterial, MeshStandardMaterial } from 'three';
+import { Color, Matrix4, MeshDepthMaterial, MeshStandardMaterial, Vector3 } from 'three';
 import { tunables } from '../../config/tunables';
 import {
   createSurfaceVertexUniforms,
@@ -58,6 +58,7 @@ const SCALAR_UNIFORMS = {
   riverLine: 'lookRiverPx',
   graticule: 'lookGraticule',
   noise: 'lookNoise',
+  polish: 'lookPolish',
   debugView: 'lookDebug',
 } as const;
 
@@ -92,6 +93,9 @@ export function defaultLookParams(): Params {
     riverLine: 1,
     graticule: 1,
     noise: 1,
+    // How polished the high ground gets (the spike's was 1): lower dulls the lamp's glare on
+    // broad highlands such as Tibet.
+    polish: 0.55,
     // 0 the look, 1 height, 2 shore/water/L1 fields, 3 normals, 4 source level.
     debugView: 0,
     ...PALETTE,
@@ -113,11 +117,19 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     look[uniform] = { value: new Color(params[name as PaletteName] as string) };
   }
   for (const uniform of Object.values(SCALAR_UNIFORMS)) look[uniform] = { value: 0 };
+  const camLocal = new Vector3();
+  look.lookCamLocal = { value: camLocal };
   const uniforms: Uniforms = { ...vertex, ...look };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
   material.name = 'wander-surface-look';
   material.defines = { ...material.defines, ...chunk.defines };
+  // The graticule needs the camera in the globe frame: the mesh's local frame.
+  const toLocal = new Matrix4();
+  material.onBeforeRender = (_renderer, _scene, camera, _geometry, object) => {
+    toLocal.copy(object.matrixWorld).invert();
+    camLocal.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(toLocal);
+  };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = injectVertex(shader.vertexShader, chunk, true);

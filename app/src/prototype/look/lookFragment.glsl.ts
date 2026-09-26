@@ -31,6 +31,9 @@ uniform float lookCoastPx;
 uniform float lookRiverPx;
 uniform float lookGraticule;
 uniform float lookNoise;
+uniform float lookPolish;
+// The camera in the globe frame, set before each draw.
+uniform vec3 lookCamLocal;
 uniform int lookDebug;
 
 flat in int vLookSlot;
@@ -43,6 +46,7 @@ in vec3 vLookDir;
 in float vLookH;
 in vec3 vLookTs;
 in vec3 vLookTt;
+in vec3 vLookPos;
 
 ${glslFaceTable()}
 
@@ -204,6 +208,24 @@ float lookLine(float distPx, float widthPx) {
   return (1.0 - smoothstep(halfPx - 0.5, halfPx + 0.5, distPx)) * min(widthPx, 1.0);
 }
 
+// Where the view ray first crosses sea level (radius 1), as a direction: the sea's inlaid lines
+// lie there, as if in a glassy lacquer over the displaced sea floor, so relief never bends them.
+// Above sea level, or where the ray only grazes it, the fragment's own direction.
+vec3 lookSeaLevelDir() {
+  vec3 o = lookCamLocal;
+  vec3 d = vLookPos - o;
+  float len = length(d);
+  d /= len;
+  float b = dot(o, d);
+  float c = dot(o, o) - 1.0;
+  float disc = b * b - c;
+  if (c <= 0.0 || disc <= 0.0) return normalize(vLookPos);
+  // The near root in its stable form, as the camera may be only kilometers above the sea.
+  float t = c / (-b + sqrt(disc));
+  if (t <= 0.0 || t > len) return normalize(vLookPos);
+  return normalize(o + d * t);
+}
+
 // The spike's graticule: every 15 degrees, 0.07 degrees wide, the equator 0.13; parallels to 75.
 // Close up the lines stop widening at 2 px (the equator 3.5), as engraved lines do on screen.
 float lookGraticuleAt(vec2 lonlat, float degPx) {
@@ -302,8 +324,7 @@ float lookReliefAt(LookFields f, LookFootprint fp) {
   onLand -= lake * 0.8 * bevel;
   float depth = max(-f.h, 0.0);
   float terraces = lookTerraces(depth, fp.bandW);
-  float grat = lookGraticule * lookGraticuleAt(f.lonlat, fp.degPx);
-  float atSea = bevel - terraces * 0.022 * lookRelief - grat * 0.05;
+  float atSea = bevel - terraces * 0.022 * lookRelief;
   return mix(atSea, onLand, land);
 }
 
@@ -369,7 +390,8 @@ LookSurface lookSurface() {
   float t2 = smoothstep(0.55, 1.0, worn);
   // The high ground's polish is the world view's, and wears off as the view closes: there fine
   // relief on polished brass glitters, and a cone's flanks turn from the lamp so it reads as a pit.
-  float polish = o.zoom * o.zoom;
+  // lookPolish tames broad highs such as Tibet, which otherwise mirror the lamp as one hotspot.
+  float polish = o.zoom * o.zoom * lookPolish;
   vec3 landColor = mix(mix(lookPatina, lookBronze, t1), lookBrassHi, t2 * mix(0.45, 0.75, polish));
   landColor = mix(landColor, lookRiver, 0.55 * water) * (1.0 - 0.35 * coast);
   float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14 + water * 0.2;
@@ -383,7 +405,9 @@ LookSurface lookSurface() {
   float mottleScale = max(0.35, 1.0 + mottle * 1.4 + (fine - 0.5) * 0.35);
   vec3 seaColor = mix(lookShallow, lookDeep, sqrt(min(1.0, band / 6000.0)));
   seaColor = mix(seaColor, lookShelf, shelf * 0.55) * mottleScale;
-  float grat = lookGraticule * lookGraticuleAt(c.lonlat, fp.degPx);
+  vec3 gratDir = lookSeaLevelDir();
+  float gratDegPx = max(degrees(max(length(dFdx(gratDir)), length(dFdy(gratDir)))), 1e-7);
+  float grat = lookGraticule * lookGraticuleAt(lookLonLat(gratDir), gratDegPx);
   float inlay = max(grat * 0.5, coast * 0.55);
   seaColor = mix(seaColor, lookInlay, inlay);
   // Rougher than the spike's 0.62: at low tilts the lamp's reflection lies mid-screen, and a
