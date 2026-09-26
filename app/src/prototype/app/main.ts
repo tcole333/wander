@@ -24,14 +24,18 @@ type DataName = keyof typeof DATA_HOSTS;
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
 const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 };
-/** Keys 1-9 in this order. world's width is the widest the zoom allows. */
+/**
+ * Keys 1-9 in this order. world's width is the widest the zoom allows. The close views look down
+ * at 25 degrees: at 45 the near rim hides Tambora's caldera floor, and its lit far wall reads as a
+ * dome.
+ */
 const PRESETS: Record<string, ViewState> = {
   world: WORLD,
   sunda: { ...TAMBORA, viewKm: 1500, tilt: 20 },
   sumbawa: { ...TAMBORA, viewKm: 300, tilt: 45 },
-  close100: { ...TAMBORA, viewKm: 100, tilt: 45 },
-  close50: { ...TAMBORA, viewKm: 50, tilt: 45 },
-  close30: { ...TAMBORA, viewKm: 30, tilt: 45 },
+  close100: { ...TAMBORA, viewKm: 100, tilt: 25 },
+  close50: { ...TAMBORA, viewKm: 50, tilt: 25 },
+  close30: { ...TAMBORA, viewKm: 30, tilt: 25 },
   himalaya: { lon: 87.0, lat: 28.0, viewKm: 300, tilt: 45, heading: 0 },
   mediterranean: { lon: 15, lat: 38, viewKm: 3000, tilt: 15, heading: 0 },
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
