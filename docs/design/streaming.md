@@ -829,8 +829,11 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      16 lite): the vertex spacing in source texels, log2, less one. Inside a node, coarse is its level and
      lv its source; at a shared point they are the coarsest node and source of the group, so every node
      sharing the point takes the same m.
-  3. **Shared-edge heights:** an edge on the coarser source's tile boundary takes its heights from that
-     source's edge profile; any other shared edge samples the coarser source's 2D texture at its m.
+  3. **Shared-edge heights:** a shared point on a face edge takes its code and shore byte from the
+     group's level-lv tile's profile on that face-edge side at the vertex mip m (row 4m + e of the
+     RG16F edge texture), so the faces meeting there read the owner's one value (3.0 item 7). Any
+     other shared point, in-face tile boundaries included, samples the level-lv tile's 2D texture at
+     its m, which border identity makes the same from every tile that holds it.
   4. **T-junctions:** on the finer side of a 2:1 node edge, odd vertices sit at the midpoint of their two
      even neighbors' final displaced positions and take no height sample. The shader evaluates both
      neighbors through the same code as every other point.
@@ -842,8 +845,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      seam flags in the parent's own frame; the parent's sub-rects follow from its key (face, N − 1,
      x >> 1, y >> 1) and that source level, as for the current state. (Parent heights alone miss the
      parent's chords, by ~1.9 km on a coarse root grid.)
-  7. **Land or sea:** the shore channel, sampled at the same source, uv and mip as the height, selects
-     the factor. Land displaces by `kLand·max(h, 0)`, so lake beds, depressions such as the Dead Sea and
+  7. **Land or sea:** the shore channel, sampled at the same source, uv and mip as the height (on a
+     face edge, the profile's shore byte), selects the factor. Land displaces by `kLand·max(h, 0)`, so lake beds, depressions such as the Dead Sea and
      coastal dips sit flat at sea level (owner decision 18); sea displaces by `kSea·min(h, 0)` when
      Bathymetry is on, and by 0 otherwise. Turning Relief off animates `kLand` to 0. Depth bands use the
      same sea mask.
@@ -1426,7 +1429,7 @@ Review items not taken as written, one line each:
   the content question (deep-time geology) to the owner instead of the storage type; owner decision 2
   settled it.
 - **Per-mip `DataArrayTexture` + `addLayerUpdate` fallback (prior merge, from Fable):** removed. It needs
-  a full CPU copy of each array (~89 MiB for the surface pool) and takes the samplers to 17 of 16.
+  a full CPU copy of each array (~92 MiB for the surface pool) and takes the samplers to 17 of 16.
 - **Media step as `npm run media --offline` (buildability):** applied as `uv run prebuild media
   --story <id> --offline`, because the stated stack puts asset prep in the Python prebuild and media
   needs the events build; full schema validation stays in `npm run stories`.
