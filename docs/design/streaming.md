@@ -766,21 +766,39 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 ### 5.6 Geometry and seams
 
-- **Instance data (6 × vec4):** key (face, L, x, y); source slot + sub-rect (u0, v0, scale);
-  fade-partner slot + sub-rect; parent slot + sub-rect; codeMid of source, partner and parent + fade
-  start; per-edge flags (neighbor node level −1/0/+1, edge on the coarser source's tile boundary, that
-  edge's mip) + fade duration + source level + node level.
+- **Instance data (2 × uvec4 of integers, 32 B; `app/src/globe/instances.ts`):**
+  - `wanderNode`: the key (face, node level N, x, y) and source level s; the source's slot and codeMid,
+    and the up tile's (the source's parent, level s − 1) when a seam flag reads it; 24 seam flags.
+  - `wanderPrev`, for rule 6 and the reveals: one previous state (source, up, flags) and a transition
+    (kind, start, duration). `lod.ts` gives every instance whose seam state changes in one event the
+    same start and duration, so both sides of a seam blend alike.
+  - Sub-rects, mips, expected keys and the L1 bevel slot are exact integer functions of the key, so
+    the shader derives them: float sub-rects are inexact (1/264 is not dyadic), and six vec4 per
+    instance would crowd the attribute budget.
+- **Seam flags (`app/src/globe/seamFlags.ts`, which `lod.ts` calls):** a point on a node's boundary is
+  shared with every drawn node whose closure holds it, found through FACE_EDGES and integer lattice
+  coordinates, never float comparisons. Per edge: the node across is one level coarser (cN), and the
+  coarsest source on each half of the edge is s − 1 (cS0, cS1; the halves differ only on the coarse side
+  of a 2:1 edge whose two finer neighbors have different sources). Per corner: the coarsest source there
+  is s − 1 (cS), and the coarsest node is dN (0-2) levels coarser. From its own bits every node sharing a
+  point derives the same coarsest node and source for it. A random-cover property test checks that
+  against the true groups.
 - **Rules:**
-  1. **Balance.** `lod.ts` balances twice, across face edges too: adjacent drawn nodes differ by at most
-     one node level, and their sources by at most one level. It demotes the finer source, or splits the
-     coarser node.
-  2. **Vertex mip:** `m = clamp(log2(vertex spacing in source texels) − 1, 0, 2)`. A vertex on a shared
-     edge uses the coarser side's m.
+  1. **Balance.** `lod.ts` balances twice, across face edges too: nodes that share an edge differ by at
+     most one node level, and nodes that touch at an edge or only at a corner differ in source by at most
+     one level. It demotes the finer source, or splits the coarser node. A diagonal node may then be two
+     levels coarser at a corner, which dN carries, so node levels need no balance at corners.
+  2. **Vertex mip:** `m = clamp(7 − log2 G − (coarse − lv), 0, 2)` with G the grid's segments (32 full,
+     16 lite): the vertex spacing in source texels, log2, less one. Inside a node, coarse is its level and
+     lv its source; at a shared point they are the coarsest node and source of the group, so every node
+     sharing the point takes the same m.
   3. **Shared-edge heights:** an edge on the coarser source's tile boundary takes its heights from that
      source's edge profile; any other shared edge samples the coarser source's 2D texture at its m.
   4. **T-junctions:** on the finer side of a 2:1 node edge, odd vertices sit at the midpoint of their two
-     even neighbors' final displaced positions and take no height sample.
-  5. **Diagonal:** every quad splits along corner (k, l)–(k+1, l+1).
+     even neighbors' final displaced positions and take no height sample. The shader evaluates both
+     neighbors through the same code as every other point.
+  5. **Diagonal:** every quad of the shared grid (`app/src/globe/tileGrid.ts`: (G + 1)² vertices and 4G
+     skirt bottoms) splits along corner (k, l)–(k+1, l+1), counter-clockwise seen from outside.
   6. **Morph start:** a new child's vertex is the barycentric blend of its parent triangle's three
      vertices, each computed with the parent's own source, mip and edge rules. That is why the instance
      carries the parent's slot, sub-rect, codeMid and edge flags. (Parent heights alone miss the
@@ -1064,9 +1082,10 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        153; the largest miss past ±2 codes is 10.3% of the range's width, so an eighth passes every
        texel and a tenth does not [M, fixture bake]. The bound guards against mapping bugs; whether a
        shading seam shows at a face edge is E2's call, on the real bake (normals within ~2°).
-     - pure logic: `lod.ts` (balancing, edge flags), the scheduler (fake clock, network shim), the flight
-       time-warp, the event query and page residency, date conversion including the −15 Myr row, and the
-       snapshot rule (on 50-07-01 CE the tie goes to `bc1`)
+     - pure logic: `lod.ts` (balancing) and the seam flags it calls (`seamFlags.ts`), the scheduler
+       (fake clock, network shim), the flight time-warp, the event query and page residency, date
+       conversion including the −15 Myr row, and the snapshot rule (on 50-07-01 CE the tie goes to
+       `bc1`)
   5. Compile the stories, then build the app.
   6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
      ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
