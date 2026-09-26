@@ -20,6 +20,7 @@ import {
   type Edge,
   type Tile,
 } from '../surface/cube';
+import { halfValue } from '../surface/half';
 import { EDGE_ENTRIES, MIP_SIZES, SIZE, type DecodedWst } from '../surface/wst';
 
 export type Mip = 0 | 1 | 2;
@@ -83,27 +84,18 @@ export const FIXTURE_CROSS_FACE: CrossFaceBound = { relief: 1 / 8, shoreSplit: f
 // grid keeps and the other clamps (docs/design/measurements/work/surface-bake/region-bake.json).
 export const REGION_CROSS_FACE: CrossFaceBound = { relief: 1 / 3, shoreSplit: true };
 
-/** The integer an IEEE half-float holds, for the whole numbers within ±2048 the decoder writes. */
-export function halfToInt(bits: number): number {
-  const exponent = (bits >> 10) & 0x1f;
-  const fraction = bits & 0x3ff;
-  const magnitude =
-    exponent === 0 ? fraction / 2 ** 24 : (1 + fraction / 1024) * 2 ** (exponent - 15);
-  return bits & 0x8000 ? -magnitude : magnitude;
-}
-
 /** The height code the GPU sees at stored texel `k` of a mip, offset + codeMid. */
 export function codeAt(decoded: DecodedWst, mip: Mip, k: number): number {
   const bits = decoded.heightMips[mip][k];
   if (bits === undefined) throw new RangeError(`mip ${mip} has no texel ${k}`);
-  return halfToInt(bits) + decoded.header.codeMid;
+  return halfValue(bits) + decoded.header.codeMid;
 }
 
 /** Every height code of a mip as the GPU sees it, offset + codeMid. */
 export function mipCodes(decoded: DecodedWst, mip: Mip): Int32Array {
   return Int32Array.from(
     decoded.heightMips[mip],
-    (bits) => halfToInt(bits) + decoded.header.codeMid,
+    (bits) => halfValue(bits) + decoded.header.codeMid,
   );
 }
 
@@ -130,8 +122,8 @@ export function sideProfile(decoded: DecodedWst, edge: Edge, mip: Mip): SideProf
   const count = (TILE >> mip) + 1;
   const texel = (k: number, channel: number) => decoded.edges[2 * (row + k) + channel] ?? NaN;
   return {
-    codes: Array.from({ length: count }, (_, k) => halfToInt(texel(k, 0)) + decoded.header.codeMid),
-    shore: Array.from({ length: count }, (_, k) => halfToInt(texel(k, 1))),
+    codes: Array.from({ length: count }, (_, k) => halfValue(texel(k, 0)) + decoded.header.codeMid),
+    shore: Array.from({ length: count }, (_, k) => halfValue(texel(k, 1))),
   };
 }
 
