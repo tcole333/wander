@@ -42,6 +42,7 @@ const RANGES: Record<string, [number, number, number?]> = {
   zoomFloorKm: [5, 300, 1],
   reliefNear: [0, 16, 0.5],
   reliefFar: [0, 30, 0.5],
+  pixelRatio: [0.5, 2, 0.25],
   tilt: [0, 80, 1],
   heading: [-180, 180, 1],
 };
