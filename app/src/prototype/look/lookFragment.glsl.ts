@@ -187,11 +187,12 @@ struct LookNoise {
   vec3 fineGrad;
 };
 
-// The octave's cells per pixel where it starts and finishes fading out: from 10 pixels a cell to 4
-// (gradient noise's bumps are half a cell), so it never shimmers.
-#define LOOK_FADE vec2(0.1, 0.25)
+// The octave's cells per pixel where it starts and finishes fading out: from about 3 pixels a cell
+// to 2 (gradient noise's bumps are half a cell), fine enough for the spike's crinkle without
+// shimmering.
+#define LOOK_FADE vec2(0.3, 0.55)
 
-// The spike's noise at a direction, each octave fading out as its cells near 4 pixels. As in the
+// The spike's noise at a direction, each octave fading out as its cells near 2 pixels. As in the
 // spike, mottle sums the two lowest octaves and fine is the highest one shown; fine's gradient
 // comes with it, for the relief's normal. Octaves that a finer one hides entirely are skipped.
 LookNoise lookNoiseAt(vec3 dir, float degPx) {
@@ -320,9 +321,8 @@ float lookBevel(LookFields f, LookFootprint fp) {
 }
 
 // The spike's stylized relief, from which its normal map was made, less its fine noise: on land
-// that term joins the gradient analytically, at 0.035 where the spike had 0.06, as gradient
-// noise's slopes are 1.6 times value noise's. At sea the spike's 0.025 is left out, and the
-// mottle stays in the albedo.
+// that term joins the gradient analytically (lookSurface). At sea the spike's 0.025 is left out,
+// and the mottle stays in the albedo.
 float lookReliefAt(LookFields f, LookFootprint fp) {
   float bevel = lookBevel(f, fp);
   float land = clamp(0.5 + f.d / fp.texPx, 0.0, 1.0);
@@ -380,9 +380,8 @@ LookSurface lookSurface() {
   // The spike baked its close patch with normals at 0.45 of the globe's: relief softens as the
   // view closes.
   o.zoom = clamp(pow(fp.degPx / LOOK_REF_DEG_PX, lookNormalZoom), 0.15, 1.0);
-  // The fine noise's relief, at 0.035 where the spike had 0.06, as gradient noise's slopes are 1.6
-  // times value noise's.
-  float noiseRelief = 0.035 * land * lookNoise;
+  // The fine noise's relief, at the spike's 0.06.
+  float noiseRelief = 0.06 * land * lookNoise;
   dh += noiseRelief * vec2(dot(nz.fineGrad, e.dir - w.dir), dot(nz.fineGrad, n.dir - s.dir));
   o.dh = dh / (2.0 * ds.x);
 

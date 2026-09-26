@@ -79,9 +79,9 @@ export function defaultLookParams(): Params {
     maxSlope: 1,
     // The spike's tune.relief: the weight of elevation and depth terraces in the relief.
     relief: 1,
-    // Mips of blur on the heights the look reads, as the spike blurred its terrain: smoother
-    // relief and depth bands than the vertex's own heights.
-    heightBlur: 1.5,
+    // Mips of blur on the heights the look reads, as the spike blurred its terrain: a little
+    // smoother than the vertex's own heights (more reads as molten gold, not cast bronze).
+    heightBlur: 0.5,
     // The narrow coastal bevel's half-width in CSS pixels (from 3/4 to 4 source texels, the most
     // the shore field's reach of 8 allows).
     bevelWidth: 3,
