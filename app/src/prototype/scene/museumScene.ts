@@ -46,6 +46,8 @@ import { buildInstrument, type FadePart } from './instrument';
 
 const DEG = Math.PI / 180;
 const MAX_PIXEL_RATIO = 2;
+/** The pixel ratio from which the scene renders without MSAA. */
+const MSAA_OFF_RATIO = 1.5;
 
 function meshesOf(root: Object3D): Mesh[] {
   const meshes: Mesh[] = [];
@@ -280,6 +282,14 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
 
   const setSize = (width: number, height: number, pixelRatio: number) => {
     const ratio = Math.min(pixelRatio, MAX_PIXEL_RATIO);
+    // At Retina ratios the pixels are fine enough without MSAA, whose fill of targets that large
+    // costs the frame rate.
+    const samples = ratio >= MSAA_OFF_RATIO ? 0 : 4;
+    for (const rt of [composer.renderTarget1, composer.renderTarget2]) {
+      if (rt.samples === samples) continue;
+      rt.samples = samples;
+      rt.dispose();
+    }
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height);
     composer.setPixelRatio(ratio);
