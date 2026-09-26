@@ -55,29 +55,54 @@ export function latticePoint(tile: Tile, k: number, l: number, segments: Segment
   return `${lowest.face}:${lowest.X}:${lowest.Y}`;
 }
 
-/** The drawn nodes, by tile key. */
-export type DrawnIndex = ReadonlyMap<string, DrawnNode>;
+/**
+ * The drawn nodes that hold each lattice point, looked up by integer ids and remembered per
+ * point: `lod.ts` runs this on every change of the drawn set, so it has to be cheap.
+ */
+export class DrawnGroups {
+  readonly #index = new Map<number, DrawnNode>();
+  readonly #groups = new Map<number, DrawnNode[]>();
+  readonly #levels: [number, number];
+  readonly duplicates: boolean;
 
-export function indexNodes(nodes: readonly DrawnNode[]): DrawnIndex {
-  return new Map(nodes.map((node) => [tileKey(node.tile), node]));
-}
+  constructor(nodes: readonly DrawnNode[]) {
+    let low = MAX_LEVEL;
+    let high = 0;
+    for (const node of nodes) {
+      this.#index.set(tileId(node.tile), node);
+      low = Math.min(low, node.tile.level);
+      high = Math.max(high, node.tile.level);
+    }
+    this.#levels = [low, high];
+    this.duplicates = this.#index.size !== nodes.length;
+  }
 
-/** Every drawn node whose closure holds the lattice point (face, X, Y), from any face. */
-export function pointGroup(face: number, X: number, Y: number, index: DrawnIndex): DrawnNode[] {
-  const group = new Map<string, DrawnNode>();
-  for (const rep of representations(face, X, Y)) {
-    for (let level = 0; level <= MAX_LEVEL; level += 1) {
-      const span = LATTICE >> level;
-      for (const x of cells(rep.X, span, 2 ** level)) {
-        for (const y of cells(rep.Y, span, 2 ** level)) {
-          const key = tileKey({ face: rep.face, level, x, y });
-          const node = index.get(key);
-          if (node) group.set(key, node);
+  has(tile: Tile): boolean {
+    return this.#index.has(tileId(tile));
+  }
+
+  /** Every drawn node whose closure holds the lattice point (face, X, Y), from any face. */
+  at(face: number, X: number, Y: number): DrawnNode[] {
+    const reps = representations(face, X, Y);
+    const lowest = reps.reduce((a, b) => (b.face < a.face ? b : a));
+    const key = (lowest.face * (LATTICE + 1) + lowest.X) * (LATTICE + 1) + lowest.Y;
+    const known = this.#groups.get(key);
+    if (known) return known;
+    const group: DrawnNode[] = [];
+    for (const rep of reps) {
+      for (let level = this.#levels[0]; level <= this.#levels[1]; level += 1) {
+        const span = LATTICE >> level;
+        for (const x of cells(rep.X, span, 2 ** level)) {
+          for (const y of cells(rep.Y, span, 2 ** level)) {
+            const node = this.#index.get(tileId({ face: rep.face, level, x, y }));
+            if (node && !group.includes(node)) group.push(node);
+          }
         }
       }
     }
+    this.#groups.set(key, group);
+    return group;
   }
-  return [...group.values()];
 }
 
 /**
@@ -87,58 +112,65 @@ export function pointGroup(face: number, X: number, Y: number, index: DrawnIndex
  * level that is not the node's own or an ancestor's.
  */
 export function checkCover(nodes: readonly DrawnNode[], opts: { partial?: boolean } = {}): void {
-  const index = indexNodes(nodes);
-  if (index.size !== nodes.length) throw new CoverError('a node is drawn twice');
+  analyze(nodes, opts);
+}
+
+/**
+ * The 24 seam bits of every node (instances.ts `flag`), by tile key, once the set passes
+ * checkCover's rules. With `partial`, a missing neighbor counts as the node itself.
+ */
+export function seamFlags(
+  nodes: readonly DrawnNode[],
+  opts: { partial?: boolean } = {},
+): Map<string, number> {
+  return analyze(nodes, opts);
+}
+
+/** checkCover's rules and seamFlags' bits from one pass over each node's edge and corner groups. */
+function analyze(nodes: readonly DrawnNode[], opts: { partial?: boolean }): Map<string, number> {
+  const groups = new DrawnGroups(nodes);
+  if (groups.duplicates) throw new CoverError('a node is drawn twice');
   let area = 0;
-  for (const node of nodes) {
-    const { tile, source } = node;
+  for (const { tile, source } of nodes) {
     const key = tileKey(tile);
     if (!Number.isInteger(source) || source < 0 || source > tile.level) {
       throw new CoverError(`${key} draws source level ${source}, not an ancestor-or-self`);
     }
     for (let level = tile.level - 1; level >= 0; level -= 1) {
-      const ancestor = tileKey(ancestorAt(tile, level));
-      if (index.has(ancestor)) throw new CoverError(`${key} overlaps its ancestor ${ancestor}`);
+      const ancestor = ancestorAt(tile, level);
+      if (groups.has(ancestor)) {
+        throw new CoverError(`${key} overlaps its ancestor ${tileKey(ancestor)}`);
+      }
     }
     area += 4 ** (MAX_LEVEL - tile.level);
   }
   if (!opts.partial && area !== 6 * 4 ** MAX_LEVEL) {
     throw new CoverError('the drawn nodes leave a hole');
   }
-  for (const node of nodes) {
-    for (const probe of probes(node.tile)) {
-      for (const other of pointGroup(node.tile.face, probe.X, probe.Y, index)) {
-        const pair = `${tileKey(node.tile)} and ${tileKey(other.tile)}`;
-        if (probe.edge && Math.abs(other.tile.level - node.tile.level) > 1) {
-          throw new CoverError(`${pair} meet at an edge with node levels 2 apart`);
-        }
-        if (Math.abs(other.source - node.source) > 1) {
-          throw new CoverError(`${pair} touch with sources 2 apart`);
-        }
-      }
-    }
-  }
-}
 
-/**
- * The 24 seam bits of every node (instances.ts `flag`), by tile key. With `partial`, a missing
- * neighbor counts as the node itself. The set must pass checkCover.
- */
-export function seamFlags(
-  nodes: readonly DrawnNode[],
-  opts: { partial?: boolean } = {},
-): Map<string, number> {
-  checkCover(nodes, opts);
-  const index = indexNodes(nodes);
   const flags = new Map<string, number>();
   for (const node of nodes) {
     const { tile, source } = node;
-    const group = (X: number, Y: number) => pointGroup(tile.face, X, Y, index);
+    const key = tileKey(tile);
+    const refuse = (group: readonly DrawnNode[], edge: boolean) => {
+      for (const other of group) {
+        const pair = `${key} and ${tileKey(other.tile)}`;
+        if (edge && Math.abs(other.tile.level - tile.level) > 1) {
+          throw new CoverError(`${pair} meet at an edge with node levels 2 apart`);
+        }
+        if (Math.abs(other.source - source) > 1) {
+          throw new CoverError(`${pair} touch with sources 2 apart`);
+        }
+      }
+    };
+    const span = LATTICE >> tile.level;
     let bits = 0;
     EDGE_ORDER.forEach((edge, e) => {
       const halves = [1, 3].map((quarter) => {
-        const { X, Y } = alongEdge(tile, edge, (quarter * (LATTICE >> tile.level)) / 4);
-        return group(X, Y);
+        const { X, Y } = alongEdge(tile, edge, (quarter * span) / 4);
+        const group = groups.at(tile.face, X, Y);
+        refuse(group, true);
+        return group;
       });
       if (halves.some((g) => g.some((other) => other.tile.level === tile.level - 1))) {
         bits |= flag.cN(e);
@@ -149,15 +181,16 @@ export function seamFlags(
     });
     for (let c = 0; c < 4; c += 1) {
       const { X, Y } = corner(tile, c);
-      const g = group(X, Y);
-      const dN = tile.level - Math.min(...g.map((other) => other.tile.level));
+      const group = groups.at(tile.face, X, Y);
+      refuse(group, false);
+      const dN = tile.level - Math.min(...group.map((other) => other.tile.level));
       if (dN > 2) {
-        throw new CoverError(`${tileKey(tile)} has a node ${dN} levels coarser at a corner`);
+        throw new CoverError(`${key} has a node ${dN} levels coarser at a corner`);
       }
       bits |= flag.cornerDN(c, dN);
-      if (coarsestSource(g) === source - 1) bits |= flag.cornerCS(c);
+      if (coarsestSource(group) === source - 1) bits |= flag.cornerCS(c);
     }
-    flags.set(tileKey(tile), bits);
+    flags.set(key, bits);
   }
   return flags;
 }
@@ -227,6 +260,11 @@ export function ancestorAt(tile: Tile, level: number): Tile {
   return { face: tile.face, level, x: tile.x >> d, y: tile.y >> d };
 }
 
+/** An integer id for a tile: 6 faces × 128² cells per level. */
+function tileId(t: Tile): number {
+  return ((t.level * 6 + t.face) * 128 + t.x) * 128 + t.y;
+}
+
 function coarsestSource(group: readonly DrawnNode[]): number {
   return Math.min(...group.map((node) => node.source));
 }
@@ -291,16 +329,4 @@ function alongEdge(tile: Tile, edge: Edge, t: number): { X: number; Y: number } 
 function corner(tile: Tile, c: number): { X: number; Y: number } {
   const span = LATTICE >> tile.level;
   return { X: (tile.x + (c & 1)) * span, Y: (tile.y + (c >> 1)) * span };
-}
-
-/** The points that find every node touching `tile`: edge quarter points and the corners. */
-function probes(tile: Tile): { X: number; Y: number; edge: boolean }[] {
-  const span = LATTICE >> tile.level;
-  const points: { X: number; Y: number; edge: boolean }[] = [];
-  for (const edge of EDGE_ORDER) {
-    for (const quarter of [1, 3])
-      points.push({ ...alongEdge(tile, edge, (quarter * span) / 4), edge: true });
-  }
-  for (let c = 0; c < 4; c += 1) points.push({ ...corner(tile, c), edge: false });
-  return points;
 }
