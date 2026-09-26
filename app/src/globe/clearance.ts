@@ -1,6 +1,5 @@
-// The camera's terrain ceiling (streaming.md 5.7, Camera clearance): a continuous, conservative
-// bound on how high the drawn surface can reach near a direction, built once from bounds.bin and
-// availability. It never reads resident tiles, so it does not move when finer tiles land and the
+// The camera's terrain ceiling (streaming.md 5.7, Camera clearance): a continuous bound on how
+// high the drawn surface can reach near a direction, built once from bounds.bin and availability. It never reads resident tiles, so it does not move when finer tiles land and the
 // camera cannot pop. Land displaces by kLand·max(h, 0) and sea never rises above 0 (5.6 rule 7),
 // so kLand times a node's highest reachable height bounds every vertex drawn inside it.
 import {
@@ -62,19 +61,22 @@ export class ClearanceField {
   }
 
   /**
-   * The highest meters anything drawn inside `tile` can take: its available ancestors (which draw
-   * there when it has no tile of its own, and at seams), itself, and every available descendant
-   * (which draws there when the view is finer). A coarse tile's texels average its finer tiles'
-   * peaks away, so the descendants are needed.
+   * The highest meters anything drawn inside `tile` can take. With a tile of its own, that is the
+   * highest bound in its available subtree: itself, and every descendant that draws there when the
+   * view is finer (a coarse tile's texels average its finer tiles' peaks away, so they are needed).
+   * A coarser source or the up tile at a seam draws averages of the same ground, which cannot rise
+   * above that, but for the one coarse texel a seam point reaches across the node's edge: the
+   * neighbors' own terms, the weights' fade band and the camera's margin cover it. Without a tile
+   * of its own, the node draws its deepest available ancestor.
    */
   heightCeiling(tile: Tile): number {
     const key = tileKey(tile);
     const known = this.#ceiling.get(key);
     if (known !== undefined) return known;
     let high = this.#subtree(tile);
-    for (let level = tile.level - 1; level >= 0; level -= 1) {
+    for (let level = tile.level - 1; level >= 0 && high === -Infinity; level -= 1) {
       const d = tile.level - level;
-      high = Math.max(high, this.#own({ face: tile.face, level, x: tile.x >> d, y: tile.y >> d }));
+      high = this.#own({ face: tile.face, level, x: tile.x >> d, y: tile.y >> d });
     }
     this.#ceiling.set(key, high);
     return high;
