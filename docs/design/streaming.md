@@ -1151,6 +1151,14 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        (fake clock, network shim), the flight time-warp, the event query and page residency, date
        conversion including the −15 Myr row, and the snapshot rule (on 50-07-01 CE the tie goes to
        `bc1`)
+     - the vertex mirror (`vertexMirror.ts`, 5.6's rules as the shader runs them, in float32), on
+       the fixture and both tiers: every instance holding a shared lattice point gets its code,
+       shore, land, h, direction and position bit for bit; with `Math.tan` in place of the exact
+       `wanderTanQ`, every face-edge point splits across faces; a node drawing its own tile with no
+       seam flags samples every fixture tile's 33² grid bit for bit; each L7 tile drawn 1, 3 and 5
+       levels under its source samples the source's mip-m codes and shore bytes bilinearly at its
+       corner coordinates, and lerps the profile on a face edge; and skirt bottoms sit
+       `skirtTexels` node texels radially below their tops
   5. Compile the stories, then build the app.
   6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
      ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
