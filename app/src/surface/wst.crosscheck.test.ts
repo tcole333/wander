@@ -3,20 +3,22 @@
 // bit.
 import { describe, expect, it } from 'vitest';
 import { readExpectation, readExpectationBytes } from '../test/fixture';
-import { parseTileKey } from './cube';
+import { faceEdgeSides, parseTileKey } from './cube';
 import {
   FLAG_ALL_SEA,
   FLAG_INLAND_WATER,
-  PAYLOAD_BYTES,
+  MAX_PAYLOAD_BYTES,
+  MIP_START,
+  PROFILE_ENTRIES,
   decodePlanes,
   decodeWst,
   inflate,
+  payloadBytes,
   type DecodedWst,
   type WstHeader,
-  type WstPlanes,
 } from './wst';
 
-type PlaneName = keyof Omit<WstPlanes, 'edges'>;
+type PlaneName = 'codes' | 'shore' | 'water';
 type OutputName =
   | PlaneName
   | 'height0'
@@ -38,7 +40,9 @@ interface SyntheticTile {
 }
 
 const tiles = readExpectation<SyntheticTile[]>('synthetic.json');
-const EDGE_N100 = 26 + 2 * 100; // payload offset of edge profile N, entry 100
+const PROFILES_AT = 26;
+/** Payload offset of the code of entry k of the first stored side's profile. */
+const firstSideCode = (k: number) => PROFILES_AT + 2 * k;
 
 function syntheticTile(name: string): SyntheticTile {
   const tile = tiles.find((t) => t.name === name);
@@ -51,7 +55,11 @@ function stored(tile: SyntheticTile): ArrayBuffer {
 }
 
 async function payload(tile: SyntheticTile): Promise<Uint8Array> {
-  return (await inflate(stored(tile), PAYLOAD_BYTES)).slice();
+  return (await inflate(stored(tile), MAX_PAYLOAD_BYTES)).slice();
+}
+
+function storedSides(tile: SyntheticTile): number {
+  return faceEdgeSides(parseTileKey(tile.key)).length;
 }
 
 /** Where the bytes of `actual` first differ from the expected output file, or null. */
@@ -85,6 +93,21 @@ describe('the synthetic tiles', () => {
     expect(headers.some((h) => h.codeMid - h.codeMin === 2048)).toBe(true);
     expect(headers.some((h) => h.x > 255 && h.y > 255)).toBe(true);
   });
+
+  it('store edge profiles on 0, 1, 2 and 4 sides', () => {
+    expect(tiles.map(storedSides).sort()).toEqual([0, 1, 2, 4]);
+  });
+
+  it('pad the payload with a zero byte after an odd number of stored sides', async () => {
+    const odd = tiles.filter((tile) => storedSides(tile) % 2 === 1);
+    expect(odd).not.toHaveLength(0);
+    for (const tile of odd) {
+      const raw = await payload(tile);
+      const pad = PROFILES_AT + 3 * PROFILE_ENTRIES * storedSides(tile);
+      expect(raw.length, tile.name).toBe(pad + 1 + 4 * 264 * 264);
+      expect(raw[pad], tile.name).toBe(0);
+    }
+  });
 });
 
 describe.each(tiles)('decoding the synthetic tile $name', (tile) => {
@@ -108,7 +131,7 @@ describe.each(tiles)('decoding the synthetic tile $name', (tile) => {
     expect(decoded.header).toEqual(tile.header);
   });
 
-  it('builds the mips, RG8 channels, edges and grid bit for bit', async () => {
+  it('builds the mips, RG8 channels, edge texture and grid bit for bit', async () => {
     const decoded = await decodeWst(stored(tile), expected);
     const off = outputsOf(decoded)
       .map(([name, values]) => [name, mismatch(values, tile, name)])
@@ -130,6 +153,8 @@ describe.each(tiles)('decoding the synthetic tile $name', (tile) => {
 });
 
 describe('the decoder refuses', () => {
+  // The face-4 Kirkuk corner tile at L7, which stores E and then S; S's last entry and E's first
+  // share the tile's SE corner.
   const tile = syntheticTile('extremes');
   const expected = parseTileKey(tile.key);
   const { codeMid, codeMin, codeMax } = tile.header;
@@ -141,7 +166,7 @@ describe('the decoder refuses', () => {
   }
 
   it('a short or long payload', async () => {
-    expect(await refusal((raw) => raw.subarray(0, PAYLOAD_BYTES - 1))).toThrow(/bytes/);
+    expect(await refusal((raw) => raw.subarray(0, raw.length - 1))).toThrow(/bytes/);
     expect(
       await refusal((raw) => {
         const longer = new Uint8Array(raw.length + 1);
@@ -151,12 +176,28 @@ describe('the decoder refuses', () => {
     ).toThrow(/bytes/);
   });
 
+  it('a payload shorter than its header', async () => {
+    expect(await refusal((raw) => raw.subarray(0, PROFILES_AT - 1))).toThrow(/header/);
+  });
+
+  it('a payload that leaves out the pad byte after one stored side', async () => {
+    const random = syntheticTile('random');
+    const raw = await payload(random);
+    const pad = PROFILES_AT + 3 * PROFILE_ENTRIES;
+    const unpadded = new Uint8Array(raw.length - 1);
+    unpadded.set(raw.subarray(0, pad));
+    unpadded.set(raw.subarray(pad + 1), pad);
+    expect(() => decodePlanes(unpadded, parseTileKey(random.key))).toThrow(
+      `payload is ${payloadBytes(1) - 1} bytes, not ${payloadBytes(1)} for 1 stored sides`,
+    );
+  });
+
   it('a wrong magic', async () => {
     expect(await refusal((_, view) => view.setUint8(3, 0x32))).toThrow(/magic/);
   });
 
-  it('a wrong version', async () => {
-    expect(await refusal((_, view) => view.setUint8(4, 2))).toThrow(/version/);
+  it('the previous version', async () => {
+    expect(await refusal((_, view) => view.setUint8(4, 1))).toThrow(/version is 1, not 2/);
   });
 
   it('another tile', async () => {
@@ -200,10 +241,10 @@ describe('the decoder refuses', () => {
     },
   );
 
-  it('an edge code more than 2048 above codeMid', async () => {
-    expect(await refusal((_, view) => view.setInt16(EDGE_N100, codeMid + 2049, true))).toThrow(
-      /reach past codeMid/,
-    );
+  it('a profile code more than 2048 above codeMid', async () => {
+    expect(
+      await refusal((_, view) => view.setInt16(firstSideCode(100), codeMid + 2049, true)),
+    ).toThrow(/reach past codeMid/);
   });
 
   it('a codeMin or codeMax that misses the planes', async () => {
@@ -215,32 +256,57 @@ describe('the decoder refuses', () => {
     );
   });
 
+  // E's first entry at each mip moves to the other extreme, which keeps the code range, or its
+  // shore byte to the other end.
+  it.each([0, 1, 2].flatMap((mip) => [[mip, 'code'] as const, [mip, 'shore byte'] as const]))(
+    'stored sides that disagree at their shared corner at mip %i, in the %s',
+    async (mip, what) => {
+      const entry = MIP_START[mip] ?? NaN;
+      const shoreAt = PROFILES_AT + 2 * PROFILE_ENTRIES * storedSides(tile);
+      expect(
+        await refusal((raw, view) => {
+          if (what === 'code') {
+            const code = view.getInt16(firstSideCode(entry), true);
+            view.setInt16(firstSideCode(entry), 2 * codeMid - code, true);
+          } else {
+            raw[shoreAt + entry] = 255 - (raw[shoreAt + entry] ?? NaN);
+          }
+        }),
+      ).toThrow(`edge profiles S and E disagree at a tile corner at mip ${mip}`);
+    },
+  );
+
   it('bytes that are not gzip', async () => {
     const raw = await payload(tile);
     await expect(decodeWst(raw.slice().buffer, expected)).rejects.toThrow();
   });
 });
 
-describe('the decoder counts the edge profiles in the code bounds', () => {
+describe('the decoder counts the stored profile entries in the code bounds', () => {
+  // The face-5 tile along its face's N edge, which stores N alone.
   const tile = syntheticTile('random');
   const expected = parseTileKey(tile.key);
   const below = tile.header.codeMin - 1;
+  const entries = [
+    ['mip 0 entry 100', 100],
+    ['mip 2 entry 10', (MIP_START[2] ?? NaN) + 10],
+  ] as const;
 
-  async function withLowEdge(): Promise<{ raw: Uint8Array; view: DataView }> {
+  async function withLowEntry(k: number): Promise<{ raw: Uint8Array; view: DataView }> {
     const raw = await payload(tile);
     const view = new DataView(raw.buffer);
-    view.setInt16(EDGE_N100, below, true);
+    view.setInt16(firstSideCode(k), below, true);
     return { raw, view };
   }
 
-  it('so it takes a codeMin that only an edge code reaches', async () => {
-    const { raw, view } = await withLowEdge();
+  it.each(entries)('so it takes a codeMin that only N %s reaches', async (_, k) => {
+    const { raw, view } = await withLowEntry(k);
     view.setInt16(22, below, true);
     expect(decodePlanes(raw, expected).header.codeMin).toBe(below);
   });
 
-  it('so it refuses a codeMin above an edge code', async () => {
-    const { raw } = await withLowEdge();
+  it.each(entries)('so it refuses a codeMin above N %s', async (_, k) => {
+    const { raw } = await withLowEntry(k);
     expect(() => decodePlanes(raw, expected)).toThrow(/header codes/);
   });
 });
