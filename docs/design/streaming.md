@@ -772,8 +772,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - `wanderPrev`, for rule 6 and the reveals: one previous state (source, up, flags) and a transition
     (kind, start, duration). `lod.ts` gives every instance whose seam state changes in one event the
     same start and duration, so both sides of a seam blend alike.
-  - Sub-rects, mips, expected keys and the L1 bevel slot are exact integer functions of the key, so
-    the shader derives them: float sub-rects are inexact (1/264 is not dyadic), and six vec4 per
+  - Sub-rects, mips, expected keys and the L1 bevel slot are exact integer functions of these fields
+    (the key, the source level and the seam flags), so the shader derives them: float sub-rects are inexact (1/264 is not dyadic), and six vec4 per
     instance would crowd the attribute budget.
 - **Seam flags (`app/src/globe/seamFlags.ts`, which `lod.ts` calls):** a point on a node's boundary is
   shared with every drawn node whose closure holds it, found through FACE_EDGES and integer lattice
@@ -800,8 +800,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   5. **Diagonal:** every quad of the shared grid (`app/src/globe/tileGrid.ts`: (G + 1)² vertices and 4G
      skirt bottoms) splits along corner (k, l)–(k+1, l+1), counter-clockwise seen from outside.
   6. **Morph start:** a new child's vertex is the barycentric blend of its parent triangle's three
-     vertices, each computed with the parent's own source, mip and edge rules. That is why the instance
-     carries the parent's slot, sub-rect, codeMid and edge flags. (Parent heights alone miss the
+     vertices, each computed with the parent's own source, mip and edge rules. That is why
+     `wanderPrev`, with kind 2, carries the parent's source (slot, level, codeMid), its up tile and its
+     seam flags in the parent's own frame; the parent's sub-rects follow from its key (face, N − 1,
+     x >> 1, y >> 1) and that source level, as for the current state. (Parent heights alone miss the
      parent's chords, by ~1.9 km on a coarse root grid.)
   7. **Land or sea:** the shore channel, sampled at the same source, uv and mip as the height, selects
      the factor. Land displaces by `kLand·max(h, 0)`, so lake beds, depressions such as the Dead Sea and
