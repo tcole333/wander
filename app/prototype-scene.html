@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Museum scene</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #050403;
+      }
+      canvas {
+        position: fixed;
+        inset: 0;
+        display: block;
+      }
+      #hint {
+        position: fixed;
+        left: 16px;
+        bottom: 12px;
+        font:
+          12px/1.4 Georgia,
+          serif;
+        color: rgba(232, 220, 197, 0.55);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Dev-only harness for the look prototype's museum scene: never built. -->
+    <div id="hint">
+      1 world · 2 region · 3 close · drag turns the globe · right-drag orbits · wheel dollies
+    </div>
+    <script type="module" src="/src/prototype/scene/scenePage.ts"></script>
+  </body>
+</html>
