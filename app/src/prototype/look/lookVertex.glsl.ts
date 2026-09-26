@@ -13,6 +13,8 @@ out vec3 vLookDir;
 out float vLookH;
 out vec3 vLookTs;
 out vec3 vLookTt;
+// The displaced position in the globe frame, for the sea-level crossing of the view ray.
+out vec3 vLookPos;
 `;
 
 /** Statements right after the chunk's mainStart, at the top of main (normalMatrix is a uniform). */
@@ -26,6 +28,7 @@ export const LOOK_VERTEX_MAIN = /* glsl */ `
     vLookUv = wv.uv;
     vLookH = wv.last.h;
     vLookDir = wv.normal;
+    vLookPos = wv.position;
     // The face coordinates (s, t) of the lattice point, affine in (k, l) like the uv.
     ivec2 lookG = lookNode.xy * WANDER_G + ivec2(position.xy);
     vec2 st = vec2(lookG * 2) * wanderPow2(-(WANDER_LOG2G + lookNode.level)) - 1.0;
