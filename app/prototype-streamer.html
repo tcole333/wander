@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Streamer debug</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #15171a;
+        color: #d8d8d8;
+        font:
+          12px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+      }
+      #panel {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        padding: 8px 10px;
+        background: rgb(0 0 0 / 0.6);
+        border-radius: 4px;
+        max-width: 420px;
+      }
+      #panel button {
+        font: inherit;
+        margin: 0 4px 4px 0;
+      }
+      #panel label {
+        margin-right: 10px;
+        white-space: nowrap;
+      }
+      #panel input[type='number'] {
+        width: 56px;
+      }
+      #stats {
+        margin: 6px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Dev-only: the look prototype's streamer debug page (issue #4), served by the Vite dev
+         server and never built. ?data=region|global, ?view=<preset>, ?tilt=<degrees>. -->
+    <div id="panel">
+      <div id="views"></div>
+      <div id="controls"></div>
+      <pre id="stats">loading…</pre>
+    </div>
+    <script type="module" src="/src/prototype/globe/streamerPage.ts"></script>
+  </body>
+</html>
