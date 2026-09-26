@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pytest
 
+from prebuild.config import load_fixture
 from prebuild.cube import (
     TILE,
     Tile,
@@ -95,15 +96,29 @@ def test_a_tile_inside_a_face_reads_no_other_face():
     assert profile_rects(Tile(0, 7, 127, 127)) == []  # face 0 owns every edge at Kirkuk
 
 
+def test_a_side_on_a_face_edge_reads_a_strip_8_texels_across_it():
+    # Face 4's S edge is face 0's N edge, and face 0 owns it: the strip runs the side's length
+    # plus 4 texels each way, from 4 texels inside face 0 to 4 beyond it.
+    full = TILE << 2
+    assert profile_rects(Tile(4, 2, 1, 0)) == [(0, 2, range(full - 4, full + 4), range(252, 516))]
+
+
 def test_edge_profiles_at_kirkuk_read_owner_texels_on_the_lower_faces():
     full = TILE << 7
     rects = profile_rects(Tile(4, 7, 127, 0))
     assert {face for face, *_ in rects} == {0, 1}
     for _, level, rows, cols in rects:
         assert level == 7
-        assert len(rows) == 2 or len(cols) == 2  # a strip two texels across the face edge
+        assert len(rows) == 8 or len(cols) == 8  # a strip 8 texels across the face edge
         # Each strip straddles the owner face's N edge, where face 4 meets faces 0 and 1.
-        assert (rows.start, rows.stop) == (full - 1, full + 1)
+        assert (rows.start, rows.stop) == (full - 4, full + 4)
+
+
+@pytest.mark.parametrize("tile", [*load_fixture().tiles, Tile(4, 2, 1, 0)], ids=Tile.key)
+def test_owner_strips_start_and_end_at_multiples_of_4(tile):
+    # Mip-2 blocks are then the owner tile's own, whose stored texels start at 256·x - 4.
+    for _, _, rows, cols in profile_rects(tile):
+        assert [rows.start % 4, rows.stop % 4, cols.start % 4, cols.stop % 4] == [0, 0, 0, 0]
 
 
 def test_owner_texels_sit_where_the_tile_meets_the_owner_face():
@@ -111,7 +126,7 @@ def test_owner_texels_sit_where_the_tile_meets_the_owner_face():
     for face, level, rows, cols in profile_rects(Tile(1, 7, 0, 127)):
         assert face == 0
         # Face 1's W edge is face 0's E edge: owner columns straddle s = 1 on face 0.
-        assert (cols.start, cols.stop) == (full - 1, full + 1)
+        assert (cols.start, cols.stop) == (full - 4, full + 4)
         s = subsample(level, np.array([cols.start, cols.stop - 1]), 2)
         t = subsample(level, np.array([rows.start, rows.stop - 1]), 2)
         lon, lat = dir_to_lonlat(st_to_dir(face, s, t))

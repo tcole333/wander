@@ -7,7 +7,6 @@ A window is (i0, j0, w, h) in a global grid's cell indices, as in `gebco.Raster`
 and columns (i0 + k) mod global_w for k in [0, w).
 """
 
-import itertools
 from collections.abc import Iterable
 
 import numpy as np
@@ -21,6 +20,7 @@ from prebuild.cube import (
     Tile,
     dir_to_lonlat,
     edge_corner,
+    face_edge_sides,
     profile_owner,
     st_to_dir,
     subsample,
@@ -33,6 +33,9 @@ type Rect = tuple[int, int, range, range]  # face, level, texel rows (t), texel 
 
 SUBSAMPLES = 4  # height sub-samples per texel along s and along t
 HALO = 1  # cells kept around the cells bilinear sampling touches
+# Mip 2 reads the 4x4 mip-0 blocks on either side of a texel corner, aligned at multiples of 4.
+STRIP_DEPTH = 4
+STRIP_ALIGN = 4
 
 
 def subsample_lonlat(
@@ -56,22 +59,26 @@ def tile_texels(tile: Tile) -> Rect:
 
 
 def profile_rects(tile: Tile) -> list[Rect]:
-    """Owner-frame texels the tile's edge profiles read on other faces: for every entry another
-    face owns (streaming.md 3.0 item 7), the four owner texels around its corner, one rect per
-    owner face and edge. Entries the tile's own face owns read texels inside -4..259."""
+    """Owner-frame texels the tile's edge profiles read on other faces (streaming.md 3.0 item 7,
+    3.1 Edges): for each side on a face edge and each other face that owns some of its entries, a
+    strip from 4 texels before the first owned corner to 4 past the last, along the side and across
+    the face edge, its ends widened to multiples of 4 so its mip blocks are the owner tile's own.
+    Entries the tile's own face owns read its texels -4..259; in-face sides store no profile."""
     corners: dict[tuple[int, Edge], list[tuple[int, int]]] = {}
-    for edge, k in itertools.product(EDGES, range(TILE + 1)):
-        owner, owner_edge, owner_k = profile_owner(tile, edge, k)
-        if owner.face != tile.face:
-            corners.setdefault((owner.face, edge), []).append(
-                edge_corner(owner, owner_edge, owner_k)
-            )
+    for e in face_edge_sides(tile):
+        edge = EDGES[e]
+        for k in range(TILE + 1):  # every mip's corners are among mip 0's
+            owner, owner_edge, owner_k = profile_owner(tile, edge, k)
+            if owner.face != tile.face:
+                corners.setdefault((owner.face, edge), []).append(
+                    edge_corner(owner, owner_edge, owner_k)
+                )
     rects: list[Rect] = []
     for (face, _), points in sorted(corners.items()):
         cs = [c for c, _ in points]
         ct = [c for _, c in points]
         rects.append(
-            (face, tile.level, range(min(ct) - 1, max(ct) + 1), range(min(cs) - 1, max(cs) + 1))
+            (face, tile.level, _strip_span(min(ct), max(ct)), _strip_span(min(cs), max(cs)))
         )
     return rects
 
@@ -110,13 +117,20 @@ def union_windows(windows: Iterable[Window], cell_arcsec: int) -> Window:
 
 def tile_window(tile: Tile, cell_arcsec: int) -> Window:
     """Every cell a tile's heights read in a grid of `cell_arcsec` cells: bilinear sub-samples of
-    its texels -4..259 and of the owner-frame texels its edge profiles take, with a one-cell
+    its texels -4..259 and of the owner-frame strips its edge profiles take, with a one-cell
     halo."""
     windows = []
     for face, level, rows, cols in [tile_texels(tile), *profile_rects(tile)]:
         lon, lat = subsample_lonlat(face, level, rows, cols)
         windows.append(cell_window(lon, lat, cell_arcsec))
     return union_windows(windows, cell_arcsec)
+
+
+def _strip_span(first: int, last: int) -> range:
+    """Texels from 4 before corner `first` to 4 past corner `last`, widened to multiples of 4."""
+    start = (first - STRIP_DEPTH) // STRIP_ALIGN * STRIP_ALIGN
+    stop = -(-(last + STRIP_DEPTH) // STRIP_ALIGN) * STRIP_ALIGN
+    return range(start, stop)
 
 
 def _subsample_axis(level: int, g: range) -> FloatArray:
