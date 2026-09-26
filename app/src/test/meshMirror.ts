@@ -9,8 +9,9 @@ import { FIXED_SLOTS } from '../gpu/slotTable';
 import { nodeFromIndex, nodeIndex, tileKey, type Tile, type Vec3 } from '../surface/cube';
 import type { DecodedWst } from '../surface/wst';
 import { flagsNeedUp, packInstance, type InstanceState } from '../globe/instances';
+import { gridVertex, sharedPointGroups, tJunctions, type VertexRef } from '../globe/meshGroups';
 import { packScenario, type PackedScenario, type Scenario } from '../globe/meshScenarios';
-import { ancestorAt, isTJunction, latticePoint } from '../globe/seamFlags';
+import { ancestorAt, isTJunction } from '../globe/seamFlags';
 import { buildTileGrid, SKIRT, SURFACE, type Segments, type TileGrid } from '../globe/tileGrid';
 import {
   mirrorInstance,
@@ -27,6 +28,8 @@ import {
   surfaceAvailability,
 } from './fixture';
 import type { CoverageRecord } from './region';
+
+export { gridVertex, type VertexRef };
 
 export interface MirroredScenario {
   packed: PackedScenario;
@@ -49,12 +52,6 @@ export interface MirrorOptions {
   boundary?: boolean;
   /** The skirt depth in node texels; tunables.skirtTexels by default. */
   skirtTexels?: number;
-}
-
-/** A grid vertex of one instance. */
-export interface VertexRef {
-  instance: number;
-  vertex: number;
 }
 
 const decodedTiles = new Map<string, Promise<DecodedWst>>();
@@ -161,29 +158,12 @@ function mirrorOne(
   return vertices;
 }
 
-/** (k, l, role) of grid vertex v. */
-export function gridVertex(grid: TileGrid, v: number): [k: number, l: number, role: number] {
-  const [k = NaN, l = NaN, role = NaN] = grid.position.subarray(3 * v, 3 * v + 3);
-  return [k, l, role];
-}
-
 /**
  * The surface vertices of every lattice point two or more instances hold, by latticePoint: the
  * points an in-face seam, a face edge or a cube corner shares.
  */
 export function sharedGroups(mirrored: MirroredScenario): Map<string, VertexRef[]> {
-  const { grid, packed } = mirrored;
-  const G = grid.segments;
-  const all = new Map<string, VertexRef[]>();
-  packed.instances.forEach(({ node }, instance) => {
-    for (let vertex = 0; vertex < grid.vertexCount; vertex += 1) {
-      const [k, l, role] = gridVertex(grid, vertex);
-      if (role !== SURFACE || (k > 0 && k < G && l > 0 && l < G)) continue;
-      const key = latticePoint(node.tile, k, l, G);
-      all.set(key, [...(all.get(key) ?? []), { instance, vertex }]);
-    }
-  });
-  return new Map([...all].filter(([, members]) => members.length > 1));
+  return sharedPointGroups(mirrored.packed, mirrored.grid);
 }
 
 /** The fields every instance holding a shared point must agree on, bit for bit. */
@@ -261,29 +241,12 @@ export function chordOffsets(
   groups: Map<string, VertexRef[]>,
 ): ChordOffset[] {
   const { grid, packed, vertices } = mirrored;
-  const G = grid.segments;
-  const out: ChordOffset[] = [];
-  packed.instances.forEach(({ node, state }, instance) => {
-    for (let v = 0; v < grid.vertexCount; v += 1) {
-      const [k, l, role] = gridVertex(grid, v);
-      if (role !== SURFACE || !isTJunction(state.flags, k, l, G)) continue;
-      const at = `${tileKey(node.tile)} (${k}, ${l})`;
-      const [dk, dl] = l === 0 || l === G ? [1, 0] : [0, 1];
-      const [a, b] = [-1, 1].map((d) => {
-        const point = latticePoint(node.tile, k + d * dk, l + d * dl, G);
-        const coarse = (groups.get(point) ?? []).find(
-          (ref) => (packed.instances[ref.instance]?.node.tile.level ?? 8) < node.tile.level,
-        );
-        const end = coarse && vertices[coarse.instance]?.[coarse.vertex];
-        if (!end) throw new Error(`no coarse vertex at ${point} beside ${at}`);
-        return end.position;
-      });
-      const t = vertices[instance]?.[v];
-      if (!t || !a || !b) throw new RangeError(`no vertex ${at}`);
-      out.push({ at, offset: midpointOffset(t.position, a, b) });
-    }
+  const position = ({ instance, vertex }: VertexRef) => vertices[instance]?.[vertex]?.position;
+  return tJunctions(packed, grid, groups).map((t) => {
+    const [p, a, b] = [position(t), position(t.ends[0]), position(t.ends[1])];
+    if (!p || !a || !b) throw new RangeError(`no vertex at or beside ${t.at}`);
+    return { at: t.at, offset: midpointOffset(p, a, b) };
   });
-  return out;
 }
 
 function midpointOffset(p: Vec3, a: Vec3, b: Vec3): number {
