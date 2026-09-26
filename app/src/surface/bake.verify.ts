@@ -1,14 +1,17 @@
 // The region bake (streaming.md 7.3, Bake check), after `uv run prebuild --profile region`:
 // `npm run verify:bake` decodes every tile of build/region as the app decodes it and checks seams
 // within faces and on face edges with the fixture's checks (../test/seams.ts): border texels, the
-// edge profiles at every mip, where they meet and what their owners hold. It also checks each
-// header against its planes, bounds.bin and availability against the tiles, and known places. It
-// covers what the fixture never exercises: the GEBCO overviews, global reads with the longitude
-// wrap and pole clamp, full Natural Earth data, and owner-frame rasters on real face edges. It runs
-// only locally, since the bake reads the raw data; a missing or stale bake fails, naming the
-// command.
+// edge profiles at every mip, where they meet and what their owners hold. The vertex mirror then
+// draws every same-level pair of neighbors and proves their shared vertices identical
+// (../test/mirrorPair.ts). It also checks each header against its planes, bounds.bin and
+// availability against the tiles, and known places. It covers what the fixture never exercises:
+// the GEBCO overviews, global reads with the longitude wrap and pole clamp, full Natural Earth
+// data, and owner-frame rasters on real face edges. It runs only locally, since the bake reads the
+// raw data; a missing or stale bake fails, naming the command.
 import { beforeAll, describe, expect, it } from 'vitest';
+import { GRID_SEGMENTS } from '../globe/tileGrid';
 import { surfaceAvailability } from '../test/fixture';
+import { mirrorPair, type PairSeams } from '../test/mirrorPair';
 import { DATELINE_GEBCO, TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
 import {
   layerFiles,
@@ -47,6 +50,7 @@ import {
   texelOf,
   tileKey,
   tileOf,
+  type Edge,
   type Tile,
 } from './cube';
 import { PROFILE_ENTRIES, SIZE, inflate, type DecodedWst } from './wst';
@@ -65,6 +69,8 @@ const LAKE_HURON = { lon: -82.35, lat: 44.73, radiusKm: 30 };
 const EARTH_RADIUS_KM = 6371.0088;
 const GRID_DEG = 0.1;
 const GRID_KM = 11.1; // 0.1° of latitude
+// The mirror draws each pair on the full tier at d = 0, so every vertex takes mip 2.
+const SEGMENTS = GRID_SEGMENTS.full;
 
 const bake = readRegionBake();
 const avail = surfaceAvailability(bake.surface);
@@ -92,6 +98,12 @@ interface Findings {
   faceEdges: number[];
   /** Per level, the stored profile entries checked against a baked tile of their owner face. */
   ownerEntries: number[];
+  /** Per level, the same-level pairs the mirror drew, each once: within faces and on face edges. */
+  mirrorPairs: { inFace: number[]; faceEdge: number[] };
+  /** Per level, the shared vertices it compared. */
+  mirrorPoints: number[];
+  mirror: string[];
+  landSplits: string[];
 }
 
 let bounds: Map<number, [number, number]>;
@@ -129,6 +141,10 @@ async function sweep(): Promise<Findings> {
     withinFacePairs: levels.map(() => 0),
     faceEdges: levels.map(() => 0),
     ownerEntries: levels.map(() => 0),
+    mirrorPairs: { inFace: levels.map(() => 0), faceEdge: levels.map(() => 0) },
+    mirrorPoints: levels.map(() => 0),
+    mirror: [],
+    landSplits: [],
   };
   for (const t of available) {
     const key = tileKey(t);
@@ -169,6 +185,10 @@ async function sweep(): Promise<Findings> {
         found.edgeProfiles.push(...off.map((what) => `${pair}: ${what}`));
         found.crossFace.push(...crossFaceMisses(t, edge, mine, theirs, REGION_CROSS_FACE));
       }
+      // Face-edge pairs once, from the lower node index; in-face pairs come once already.
+      if (withinFace || nodeIndex(t) < nodeIndex(other.tile)) {
+        mirrorSeams(found, t, edge, mine, theirs, withinFace);
+      }
     }
     found.tileCorners.push(...tileCornerMismatches(mine));
     const owners = await bakedOwners(t, mine);
@@ -177,6 +197,29 @@ async function sweep(): Promise<Findings> {
     found.ownerMeans.push(...means.misses);
   }
   return found;
+}
+
+/** The mirror on `t` and its neighbor across `edge`, both drawing themselves at d = 0. */
+function mirrorSeams(
+  found: Findings,
+  t: Tile,
+  edge: Edge,
+  mine: DecodedWst,
+  theirs: DecodedWst,
+  withinFace: boolean,
+): void {
+  const pairs = withinFace ? found.mirrorPairs.inFace : found.mirrorPairs.faceEdge;
+  pairs[t.level] = (pairs[t.level] ?? 0) + 1;
+  let seams: PairSeams;
+  try {
+    seams = mirrorPair(t, edge, mine, theirs, bake.coverage, SEGMENTS);
+  } catch (error) {
+    found.mirror.push(`${tileKey(t)} ${edge}: ${String(error)}`);
+    return;
+  }
+  found.mirrorPoints[t.level] = (found.mirrorPoints[t.level] ?? 0) + seams.points;
+  found.mirror.push(...seams.mismatches);
+  found.landSplits.push(...seams.landSplits);
 }
 
 /** The decoded tiles that could hold the owner-frame texels of `t`'s entries, of those baked. */
@@ -315,6 +358,23 @@ describe('seams', () => {
     expect(failures(findings.crossFace)).toEqual(NONE);
     const edges = everywhere.map((level) => 6 * 4 * 2 ** level);
     expect(findings.faceEdges.slice(0, EVERY_TILE_BELOW)).toEqual(edges);
+  });
+});
+
+describe('the vertex mirror on every same-level pair at d = 0', () => {
+  it('gives both tiles the same code, shore, land, h, direction and position at every shared point', () => {
+    expect(failures(findings.mirror)).toEqual(NONE);
+    const { inFace, faceEdge } = findings.mirrorPairs;
+    expect(inFace.slice(0, EVERY_TILE_BELOW)).toEqual(
+      everywhere.map((level) => 2 * 6 * 2 ** level * (2 ** level - 1)),
+    );
+    expect(faceEdge.slice(0, EVERY_TILE_BELOW)).toEqual(everywhere.map((level) => 12 * 2 ** level));
+    const pairs = levels.map((level) => (inFace[level] ?? 0) + (faceEdge[level] ?? 0));
+    expect(findings.mirrorPoints).toEqual(pairs.map((count) => count * (SEGMENTS + 1)));
+  });
+
+  it('on a face edge, both tiles choose land or sea alike at every vertex', () => {
+    expect(failures(findings.landSplits)).toEqual(NONE);
   });
 });
 
