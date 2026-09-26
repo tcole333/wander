@@ -136,3 +136,13 @@ export function reliefForWidth(
   const t = Math.log(viewKm / nearKm) / Math.log(farKm / nearKm);
   return near + (far - near) * Math.min(1, Math.max(0, t));
 }
+
+/**
+ * The view as drawn: its tilt fades out, in log space, from `fromKm` wide to `toKm`, over which the
+ * camera blends into the world framing (cameraRig.ts BLEND_KM), so a tilted view zoomed out still
+ * faces its center. The stored tilt comes back on zooming in.
+ */
+export function drawnView(view: ViewState, fromKm = 3000, toKm = 10000): ViewState {
+  const wide = Math.log(view.viewKm / fromKm) / Math.log(toKm / fromKm);
+  return { ...view, tilt: view.tilt * (1 - Math.min(1, Math.max(0, wide))) };
+}
