@@ -1,10 +1,12 @@
 // The region bake (streaming.md 7.3, Bake check), after `uv run prebuild --profile region`:
 // `npm run verify:bake` decodes every tile of build/region as the app decodes it and checks seams
-// within faces and across face edges with the fixture's checks (../test/seams.ts), each header
-// against its planes, bounds.bin and availability against the tiles, and known places. It covers
-// what the fixture never exercises: the GEBCO overviews, global reads with the longitude wrap and
-// pole clamp, full Natural Earth data, and owner-frame rasters on real face edges. It runs only
-// locally, since the bake reads the raw data; a missing or stale bake fails, naming the command.
+// within faces and on face edges with the fixture's checks (../test/seams.ts): border texels, the
+// edge profiles at every mip, where they meet and what their owners hold. It also checks each
+// header against its planes, bounds.bin and availability against the tiles, and known places. It
+// covers what the fixture never exercises: the GEBCO overviews, global reads with the longitude
+// wrap and pole clamp, full Natural Earth data, and owner-frame rasters on real face edges. It runs
+// only locally, since the bake reads the raw data; a missing or stale bake fails, naming the
+// command.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { surfaceAvailability } from '../test/fixture';
 import { DATELINE_GEBCO, TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
@@ -16,12 +18,17 @@ import {
   readRegionBake,
 } from '../test/region';
 import {
+  MIPS,
   REGION_CROSS_FACE,
   codeAt,
   crossFaceMisses,
-  edgeCodes,
-  edgeProfileMatches,
+  edgeProfileMismatches,
   mipCodes,
+  ownerMeans,
+  ownerTiles,
+  sideProfile,
+  storedEdges,
+  tileCornerMismatches,
   withinFaceMismatches,
 } from '../test/seams';
 import { parseSurfaceBounds } from './bounds';
@@ -42,7 +49,7 @@ import {
   tileOf,
   type Tile,
 } from './cube';
-import { SIZE, inflate, type DecodedWst } from './wst';
+import { PROFILE_ENTRIES, SIZE, inflate, type DecodedWst } from './wst';
 
 const EVERY_TILE_BELOW = 5; // L0-L4 bake every tile (streaming.md 7.1)
 const CACHE_TILES = 256; // decoded tiles kept while the sweep walks node order
@@ -76,11 +83,15 @@ interface Findings {
   bounds: string[];
   withinFace: string[];
   edgeProfiles: string[];
+  tileCorners: string[];
+  ownerMeans: string[];
   crossFace: string[];
   /** Per level, the within-face pairs checked, each once from its west or south tile. */
   withinFacePairs: number[];
   /** Per level, the (tile, edge) checked on a face edge, so each edge once from either side. */
   faceEdges: number[];
+  /** Per level, the stored profile entries checked against a baked tile of their owner face. */
+  ownerEntries: number[];
 }
 
 let bounds: Map<number, [number, number]>;
@@ -112,9 +123,12 @@ async function sweep(): Promise<Findings> {
     bounds: [],
     withinFace: [],
     edgeProfiles: [],
+    tileCorners: [],
+    ownerMeans: [],
     crossFace: [],
     withinFacePairs: levels.map(() => 0),
     faceEdges: levels.map(() => 0),
+    ownerEntries: levels.map(() => 0),
   };
   for (const t of available) {
     const key = tileKey(t);
@@ -128,7 +142,9 @@ async function sweep(): Promise<Findings> {
     const { codeMin, codeMax } = mine.header;
     const [low, high] = codeRange(mine);
     if (low !== codeMin || high !== codeMax) {
-      found.headers.push(`${key}: header ${codeMin}..${codeMax}, planes and edges ${low}..${high}`);
+      found.headers.push(
+        `${key}: header ${codeMin}..${codeMax}, planes and profiles ${low}..${high}`,
+      );
     }
     const entry = bounds.get(nodeIndex(t));
     if (entry?.[0] !== mine.boundsM[0] || entry[1] !== mine.boundsM[1]) {
@@ -143,25 +159,45 @@ async function sweep(): Promise<Findings> {
       const theirs = await decoded(other.tile).catch(() => null);
       if (theirs === null) continue; // reported as undecoded in its own turn
       const pair = `${key} ${edge}`;
-      if (!edgeProfileMatches(t, edge, mine, theirs)) found.edgeProfiles.push(pair);
       if (withinFace) {
         found.withinFacePairs[t.level] = (found.withinFacePairs[t.level] ?? 0) + 1;
         const off = withinFaceMismatches(mine, theirs, edge);
         found.withinFace.push(...off.map((what) => `${pair}: ${what}`));
       } else {
         found.faceEdges[t.level] = (found.faceEdges[t.level] ?? 0) + 1;
+        const off = edgeProfileMismatches(t, edge, mine, theirs);
+        found.edgeProfiles.push(...off.map((what) => `${pair}: ${what}`));
         found.crossFace.push(...crossFaceMisses(t, edge, mine, theirs, REGION_CROSS_FACE));
       }
     }
+    found.tileCorners.push(...tileCornerMismatches(mine));
+    const owners = await bakedOwners(t, mine);
+    const means = ownerMeans(t, mine, (owner) => owners.get(tileKey(owner)));
+    found.ownerEntries[t.level] = (found.ownerEntries[t.level] ?? 0) + means.checked;
+    found.ownerMeans.push(...means.misses);
   }
   return found;
 }
 
-/** The lowest and highest code of the stored heights and the edge profiles. */
+/** The decoded tiles that could hold the owner-frame texels of `t`'s entries, of those baked. */
+async function bakedOwners(t: Tile, mine: DecodedWst): Promise<Map<string, DecodedWst>> {
+  const owners = new Map<string, DecodedWst>();
+  for (const owner of ownerTiles(t)) {
+    if (!availableNodes.has(nodeIndex(owner))) continue;
+    const found = tileKey(owner) === tileKey(t) ? mine : await decoded(owner).catch(() => null);
+    if (found !== null) owners.set(tileKey(owner), found);
+  }
+  return owners;
+}
+
+/** The lowest and highest code of the stored heights and the stored profile entries. */
 function codeRange(tile: DecodedWst): [number, number] {
   let low = Infinity;
   let high = -Infinity;
-  for (const values of [mipCodes(tile, 0), ...EDGES.map((edge) => edgeCodes(tile, edge))]) {
+  const profiles = storedEdges(tile.header).flatMap((edge) =>
+    MIPS.map((mip) => sideProfile(tile, edge, mip).codes),
+  );
+  for (const values of [mipCodes(tile, 0), ...profiles]) {
     for (const code of values) {
       low = Math.min(low, code);
       high = Math.max(high, code);
@@ -243,7 +279,7 @@ describe('the region bake', () => {
     expect(counts.slice(0, EVERY_TILE_BELOW)).toEqual(everywhere.map((level) => 6 * 4 ** level));
   });
 
-  it('gives each header the code range of its planes and edge profiles', () => {
+  it('gives each header the code range of its planes and stored profile entries', () => {
     expect(failures(findings.headers)).toEqual(NONE);
   });
 
@@ -260,8 +296,19 @@ describe('seams', () => {
     expect(findings.withinFacePairs.slice(0, EVERY_TILE_BELOW)).toEqual(pairs);
   });
 
-  it('neighbors share their edge profiles, within a face and across face edges', () => {
+  it('across a face edge, neighbors share their edge profiles and shore bytes at every mip', () => {
     expect(failures(findings.edgeProfiles)).toEqual(NONE);
+  });
+
+  it("each tile's stored sides hold the same entry where they meet, at every mip", () => {
+    expect(failures(findings.tileCorners)).toEqual(NONE);
+  });
+
+  it("each entry lies within 0.5 of the owner's mean of the four mip-m texels around it", () => {
+    expect(failures(findings.ownerMeans)).toEqual(NONE);
+    // At L0-L4 every tile is baked, so every entry of the 24·2^L stored sides has its owner.
+    const entries = everywhere.map((level) => 24 * 2 ** level * PROFILE_ENTRIES);
+    expect(findings.ownerEntries.slice(0, EVERY_TILE_BELOW)).toEqual(entries);
   });
 
   it('across a face edge, border texels map into neighbor column k, near the codes there', () => {
