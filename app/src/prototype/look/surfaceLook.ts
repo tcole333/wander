@@ -60,6 +60,7 @@ const SCALAR_UNIFORMS = {
   graticule: 'lookGraticule',
   noise: 'lookNoise',
   polish: 'lookPolish',
+  coarseRelief: 'lookCoarse',
   debugView: 'lookDebug',
 } as const;
 
@@ -98,6 +99,9 @@ export function defaultLookParams(): Params {
     // region scales, and gold highlights on islands at 1,500-3,000 km. Lower dulls the lamp's
     // glare on broad highlands such as Tibet, at the cost of a flatter, satin look.
     polish: 1,
+    // The share of the land's relief taken from heights about 24 pixels a texel, from 300 km wide
+    // out to the regional scale: magnified ranges keep their main forms, not every small ridge.
+    coarseRelief: 0.85,
     // 0 the look, 1 height, 2 shore/water/L1 fields, 3 normals, 4 source level.
     debugView: 0,
     ...PALETTE,

@@ -34,6 +34,8 @@ const RANGES: Record<string, [number, number, number?]> = {
   riverLine: [0, 4, 0.05],
   graticule: [0, 2, 0.05],
   noise: [0, 2, 0.05],
+  polish: [0, 1.5, 0.01],
+  coarseRelief: [0, 1, 0.01],
   debugView: [0, 4, 1],
   // Streamer.
   refinePx: [0.3, 4, 0.01],
