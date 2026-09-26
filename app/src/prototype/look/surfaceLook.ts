@@ -95,10 +95,10 @@ export function defaultLookParams(): Params {
     riverLine: 1,
     graticule: 1,
     noise: 1,
-    // How polished the high ground gets, the spike's 1: its contrast and glints at the world and
-    // region scales, and gold highlights on islands at 1,500-3,000 km. Lower dulls the lamp's
-    // glare on broad highlands such as Tibet, at the cost of a flatter, satin look.
-    polish: 1,
+    // How polished the high ground gets below the world scale (the whole globe keeps the spike's
+    // 1): lower dulls the lamp's glare on broad highlands such as Tibet at 3,000-10,000 km, at the
+    // cost of a flatter, satin look (the owner's note: the glare was too bright).
+    polish: 0.55,
     // The share of the land's relief taken from heights about 24 pixels a texel, from 300 km wide
     // out to the regional scale: magnified ranges keep their main forms, not every small ridge.
     coarseRelief: 0.85,

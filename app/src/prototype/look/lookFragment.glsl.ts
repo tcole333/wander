@@ -436,7 +436,10 @@ LookSurface lookSurface() {
   // The high ground's polish is the world view's, and half of it wears off as the view closes: all
   // of it leaves the land a soft, plastic lobe, while full polish makes fine relief glitter.
   // lookPolish tames broad highs such as Tibet, which otherwise mirror the lamp as one hotspot.
-  float polish = max(o.zoom * o.zoom, 0.5) * lookPolish;
+  // Below the world scale lookPolish tames broad highlands such as Tibet, which otherwise mirror
+  // the lamp as one hotspot at 3,000-10,000 km; the whole globe keeps the spike's full polish.
+  float belowWorld = 1.0 - smoothstep(0.8, 1.0, o.zoom);
+  float polish = max(o.zoom * o.zoom, 0.5) * mix(1.0, lookPolish, belowWorld);
   vec3 landColor = mix(mix(lookPatina, lookBronze, t1), lookBrassHi, t2 * mix(0.45, 0.75, polish));
   landColor = mix(landColor, lookRiver, 0.55 * water) * (1.0 - 0.35 * coast);
   float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14 + water * 0.2;
