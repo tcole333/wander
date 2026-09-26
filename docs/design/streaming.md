@@ -826,17 +826,19 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - Viewports over 1440×900 CSS scale the threshold by √(area ratio), so tile counts stay inside the
     pools.
   - **Camera clearance** (`app/src/globe/clearance.ts`, `viewCamera.ts`): a ceiling field built at boot
-    from `bounds.bin` and availability bounds how high the drawn surface can reach near a direction:
-    for each node, the highest bound over its available ancestors (drawn where it has no tile, and at
-    seams), itself and its available descendants (drawn when the view is finer, and higher, since a
-    coarse tile's texels average its finer tiles' peaks away), times `kLand`. Nodes enter with weights
-    that fade out between one and two cap radii, and levels blend by the cap's size, so the field is
-    continuous and never changes as tiles land. A view becomes a pose in four steps, each continuous
-    in the view: the target sits on the ceiling at the view's center; the tilt is capped so the line
-    from the target back to the camera clears the ceiling under it by `cameraClearance.lineDeg`,
-    counting curvature; the camera slides back along its ray until it is `cameraClearance` above the
-    ceiling around it; near is half the remaining gap and far reaches the displaced horizon. So the
-    camera never sits in the terrain and never jumps when tiles land, whatever the exaggeration.
+    from `bounds.bin` and availability bounds how high the drawn surface can reach near a direction.
+    A node with a tile of its own counts the highest bound in its available subtree, since its finer
+    tiles draw there at close views and reach higher (a coarse tile's texels average their peaks
+    away); a coarser source or the up tile at a seam draws averages of the same ground. A node without
+    a tile counts its deepest available ancestor, which draws there. Times `kLand`, nodes enter with
+    weights that fade out between one and two cap radii of their boundary, and levels blend by the
+    cap's size, so the field is continuous and never changes as tiles land. A view becomes a pose:
+    the target sits on the ceiling at the view's center; the camera slides back along its ray until it
+    is `cameraClearance` above the ceiling over its footprint, repeating until the ceiling it read
+    covers where it ends up; the tilt is capped so the line from the target back to that camera
+    clears the ceiling under it by `cameraClearance.lineDeg`, counting curvature; near is half the
+    remaining gap and far reaches the displaced horizon. So the camera never sits in the terrain and
+    never jumps when tiles land, whatever the exaggeration.
   - **Zoom floor:** an owner decision (1). It starts at `zoomFloorKm` (~100 km across, where an L6
     texel spans ~9 CSS px at 1440 px wide) and is settled by a look at 100, 50 and 30 km in E1/E2.
 - **Per-beat plan:**
