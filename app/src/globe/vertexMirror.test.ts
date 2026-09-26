@@ -45,7 +45,7 @@ import {
   vertexMip,
 } from './seamFlags';
 import { GRID_SEGMENTS, SKIRT } from './tileGrid';
-import { wanderDisplace, wanderPow2, wanderTanQ } from './vertexMirror';
+import { QUARTER_PI, wanderDisplace, wanderPow2, wanderTan, wanderTanQ } from './vertexMirror';
 
 const f = Math.fround;
 const TIERS = Object.entries(GRID_SEGMENTS);
@@ -64,7 +64,7 @@ describe('wanderTanQ', () => {
   });
 
   test('is ±1 at ±1 even where tan misses 1 by an ulp', () => {
-    // Math.tan at float32 π/4 rounds to 1 in float32, but GLSL does not promise a GPU's will.
+    // wanderTan at float32 π/4 rounds to 1, but a GPU that fuses its multiply-adds need not.
     const high = () => f(1 + 2 ** -23);
     expect([wanderTanQ(1, high), wanderTanQ(-1, high)]).toEqual([1, -1]);
   });
@@ -75,13 +75,27 @@ describe('wanderTanQ', () => {
   });
 
   test('is a float32 within 2^-22 of tan(πs/4), relatively', () => {
-    // The argument rounds twice in float32 and tan's slope near π/4 doubles that, then the result
-    // rounds once: about 2.6·2^-24 at worst.
+    // The argument rounds twice in float32 and tan's slope near π/4 doubles that, then the
+    // polynomial lands within a float32 step of tan: 2.5·2^-24 at worst.
     const off = samples.filter((s) => {
       const r = wanderTanQ(s);
       const exact = Math.tan((Math.PI * s) / 4);
       return f(r) !== r || Math.abs(r - exact) > 2 ** -22 * Math.abs(exact);
     });
+    expect(off).toEqual([]);
+  });
+});
+
+describe('wanderTan', () => {
+  test('lands within one float32 step of Math.tan at every argument wanderTanQ takes', () => {
+    // |s| = j/2048 on the full tier at L7, and a subset of those at coarser nodes and on lite.
+    const off: string[] = [];
+    for (let j = 0; j < 2048; j += 1) {
+      const x = f((j / 2048) * QUARTER_PI);
+      const tan = f(Math.tan(x));
+      const step = tan === 0 ? 2 ** -149 : 2 ** (Math.floor(Math.log2(tan)) - 23);
+      if (!(Math.abs(wanderTan(x) - tan) <= step)) off.push(`${x}: ${wanderTan(x)} vs ${tan}`);
+    }
     expect(off).toEqual([]);
   });
 });
