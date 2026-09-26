@@ -53,7 +53,7 @@ export interface MirrorContext {
   kSeaEff: number;
   /** tunables.skirtTexels: the skirt depth in node texels. */
   skirtTexels: number;
-  /** Stands in for wanderTanQ; only the test showing why tanQ is exact at ±1 sets it. */
+  /** Stands in for wanderTanQ; only the test showing that a tanQ missing ±1 splits face edges sets it. */
   tanQ?: (s: number) => number;
 }
 
@@ -110,10 +110,13 @@ export function wanderPow2(e: number): number {
   return powFloat[0] ?? NaN;
 }
 
-/** tan(πs/4), odd and exactly 0 at 0 and ±1 at |s| = 1: GLSL leaves tan's precision open. */
-export function wanderTanQ(s: number): number {
+/**
+ * tan(πs/4), odd and exactly 0 at 0 and ±1 at |s| = 1: GLSL leaves tan's precision open, so a
+ * GPU's tan at float32 π/4 may land an ulp off 1. `tan` stands in for the GPU's.
+ */
+export function wanderTanQ(s: number, tan: (x: number) => number = Math.tan): number {
   const a = Math.abs(s);
-  const r = a === 1 ? 1 : f(Math.tan(f(a * QUARTER_PI)));
+  const r = a === 1 ? 1 : f(tan(f(a * QUARTER_PI)));
   return s < 0 ? -r : r;
 }
 

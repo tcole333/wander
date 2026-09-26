@@ -11,7 +11,7 @@ import type { DecodedWst } from '../surface/wst';
 import { flagsNeedUp, packInstance, type InstanceState } from '../globe/instances';
 import { packScenario, type PackedScenario, type Scenario } from '../globe/meshScenarios';
 import { ancestorAt, isTJunction, latticePoint } from '../globe/seamFlags';
-import { buildTileGrid, SURFACE, type Segments, type TileGrid } from '../globe/tileGrid';
+import { buildTileGrid, SKIRT, SURFACE, type Segments, type TileGrid } from '../globe/tileGrid';
 import {
   mirrorInstance,
   mirrorSlot,
@@ -45,8 +45,10 @@ export interface MirrorOptions {
   bathymetry?: boolean;
   /** Stands in for wanderTanQ. */
   tanQ?: (s: number) => number;
-  /** Mirrors only the surface boundary, the vertices other instances can share. */
+  /** Mirrors only the surface boundary, the vertices other instances can share, and its skirts. */
   boundary?: boolean;
+  /** The skirt depth in node texels; tunables.skirtTexels by default. */
+  skirtTexels?: number;
 }
 
 /** A grid vertex of one instance. */
@@ -136,7 +138,7 @@ export function mirrorContext(
     c200: scale.c200,
     kLand: tunables.kLand,
     kSeaEff: (options.bathymetry ?? true) ? tunables.kSea : 0,
-    skirtTexels: tunables.skirtTexels,
+    skirtTexels: options.skirtTexels ?? tunables.skirtTexels,
     ...(options.tanQ ? { tanQ: options.tanQ } : {}),
   };
 }
@@ -153,7 +155,7 @@ function mirrorOne(
   const vertices: MirrorVertex[] = [];
   for (let v = 0; v < grid.vertexCount; v += 1) {
     const [k, l, role] = gridVertex(grid, v);
-    if (role !== SURFACE || (k > 0 && k < G && l > 0 && l < G)) continue;
+    if (role === SURFACE && k > 0 && k < G && l > 0 && l < G) continue;
     vertices[v] = mirrorVertex(words, instance, k, l, role, ctx);
   }
   return vertices;
@@ -286,6 +288,46 @@ export function chordOffsets(
 
 function midpointOffset(p: Vec3, a: Vec3, b: Vec3): number {
   return Math.max(...p.map((v, j) => Math.abs(v - ((a[j] ?? NaN) + (b[j] ?? NaN)) / 2)));
+}
+
+export interface SkirtCheck {
+  /** The largest per-component gap between a skirt bottom and its expected place, R = 1. */
+  worst: number;
+  at: string;
+  /** How many bottoms hang from T-junctions, and from nodes drawing an ancestor's tile. */
+  tjunctions: number;
+  deep: number;
+}
+
+/**
+ * Every skirt bottom against its top lowered radially by the context's skirtTexels texels of its
+ * node's level: skirtTexels·(π/2)/(256·2^N), along the top's own radial direction.
+ */
+export function skirtCheck(mirrored: MirroredScenario): SkirtCheck {
+  const { grid, packed, vertices, ctx } = mirrored;
+  const G = grid.segments;
+  const check: SkirtCheck = { worst: 0, at: '', tjunctions: 0, deep: 0 };
+  vertices.forEach((own, instance) => {
+    const { node, state } = packed.instances[instance] ?? {};
+    if (!node || !state) throw new RangeError(`no instance ${instance}`);
+    const depth = (ctx.skirtTexels * (Math.PI / 2)) / (256 * 2 ** node.tile.level);
+    own.forEach((bottom, v) => {
+      const [k, l, role] = gridVertex(grid, v);
+      if (role !== SKIRT) return;
+      const top = own[l * (G + 1) + k];
+      if (!top) throw new RangeError(`no top at ${tileKey(node.tile)} (${k}, ${l})`);
+      if (isTJunction(state.flags, k, l, G)) check.tjunctions += 1;
+      if (node.source !== node.tile.level) check.deep += 1;
+      const r = Math.hypot(...top.position);
+      top.position.forEach((t, i) => {
+        const error = Math.abs(t - (bottom.position[i] ?? NaN) - (t / r) * depth);
+        if (error <= check.worst) return;
+        check.worst = Number.isNaN(error) ? Infinity : error;
+        check.at = `${tileKey(node.tile)} (${k}, ${l})`;
+      });
+    });
+  });
+  return check;
 }
 
 /**
