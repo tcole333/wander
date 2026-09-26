@@ -246,14 +246,6 @@ float lookTerraces(float depth, float widthM) {
   return k - 1.0 + smoothstep(k * 1000.0 - widthM, k * 1000.0 + widthM, depth);
 }
 
-// Natural Earth's depth bands, 200, 1000, 2000 ... 10000 m: the band's top depth, edges as the
-// terraces'.
-float lookBandDepth(float depth, float widthM) {
-  float s200 = smoothstep(200.0 - widthM, 200.0 + widthM, depth);
-  float s1000 = smoothstep(1000.0 - widthM, 1000.0 + widthM, depth);
-  return 200.0 * (s200 - s1000) + 1000.0 * lookTerraces(depth, widthM);
-}
-
 // What the look reads at one point, and the footprint it reads it at.
 struct LookFields {
   // Height in meters, smoothed by heightBlur mips.
@@ -323,7 +315,8 @@ float lookReliefAt(LookFields f, LookFootprint fp) {
   float onLand = bevel + r * 1.35 * lookRelief - water * 0.12;
   onLand -= lake * 0.8 * bevel;
   float depth = max(-f.h, 0.0);
-  float terraces = lookTerraces(depth, fp.bandW);
+  // Magnified, each step would spread over the taps as a soft ridge: it fades out instead.
+  float terraces = lookTerraces(depth, fp.bandW) * smoothstep(0.2, 1.0, fp.texPx);
   float atSea = bevel - terraces * 0.022 * lookRelief;
   return mix(atSea, onLand, land);
 }
@@ -399,14 +392,15 @@ LookSurface lookSurface() {
   float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14 + water * 0.2;
   float landMetal = 0.75 + 0.25 * t1;
 
-  // Sea: lacquer by depth band, the shelf, mottle, and brass inlay.
+  // Sea: lacquer by depth, the shelf, mottle, and brass inlay. The depth is continuous, not the
+  // spike's bands, and the shelf and mottle are gentler than its: close up, bands and blotches
+  // read as flat khaki patches, where the lacquer should read as one surface.
   float depth = max(-c.h, 0.0);
-  float band = lookBandDepth(depth, fp.bandW);
   float coastal = clamp(0.5 + c.d1 * LOOK_L1_TEXEL_DEG / 3.2, 0.0, 1.0);
   float shelf = (1.0 - smoothstep(200.0 - fp.bandW, 200.0 + fp.bandW, depth)) * (1.0 - coastal * 0.2);
-  float mottleScale = max(0.35, 1.0 + mottle * 1.4 + (fine - 0.5) * 0.35);
-  vec3 seaColor = mix(lookShallow, lookDeep, sqrt(min(1.0, band / 6000.0)));
-  seaColor = mix(seaColor, lookShelf, shelf * 0.55) * mottleScale;
+  float mottleScale = clamp(1.0 + mottle * 1.4 + (fine - 0.5) * 0.35, 0.7, 1.3);
+  vec3 seaColor = mix(lookShallow, lookDeep, sqrt(min(1.0, depth / 6000.0)));
+  seaColor = mix(seaColor, lookShelf, shelf * 0.22) * mottleScale;
   vec3 gratDir = lookSeaLevelDir();
   float gratDegPx = max(degrees(max(length(dFdx(gratDir)), length(dFdy(gratDir)))), 1e-7);
   float grat = lookGraticule * lookGraticuleAt(lookLonLat(gratDir), gratDegPx);
