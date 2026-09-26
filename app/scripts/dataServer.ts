@@ -4,7 +4,7 @@
 // no Content-Encoding. /release.json is the release for that build (release.ts); it is not an R2
 // key. Plain Node, so it runs outside Vite:
 //
-//   npm run data -- --profile fixture|region [--port N]
+//   npm run data -- --profile fixture|region|global [--port N]
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
@@ -13,12 +13,16 @@ import { parseArgs } from 'node:util';
 import { localRelease } from './release.ts';
 
 /** Each profile's port, so the fixture and region servers can run side by side. */
-export const DATA_PORTS = { fixture: 8791, region: 8792 } as const;
+export const DATA_PORTS = { fixture: 8791, region: 8792, global: 8793 } as const;
 export type Profile = keyof typeof DATA_PORTS;
+
+/** Each profile's output root under build/ (streaming.md 7.1): the global profile writes build/out/. */
+const OUTPUT_DIR: Record<Profile, string> = { fixture: 'fixture', region: 'region', global: 'out' };
 
 const REBUILD: Record<Profile, string> = {
   fixture: 'run `npm run fixture` in app/',
   region: 'run `uv run prebuild --profile region` in pipeline/',
+  global: 'run `uv run prebuild` in pipeline/',
 };
 
 /** The Content-Type each object gets at upload (4.2); nothing else is served. */
@@ -65,7 +69,7 @@ export class DataServerError extends Error {
 /** Starts serving `build/<profile>/`; throws, naming the command, when that build is missing. */
 export async function startDataServer(options: DataServerOptions): Promise<DataServer> {
   const { profile, host = '127.0.0.1', repo = REPO_ROOT } = options;
-  const root = resolve(repo, 'build', profile);
+  const root = resolve(repo, 'build', OUTPUT_DIR[profile]);
   const stages = resolve(repo, 'build', 'stages', profile);
   for (const required of [root, join(stages, 'coverage.json'), join(stages, 'surface.json')]) {
     if (!existsSync(required)) {
@@ -148,10 +152,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     options: { profile: { type: 'string' }, port: { type: 'string' }, host: { type: 'string' } },
   });
   const profile = values.profile;
-  if (profile !== 'fixture' && profile !== 'region') {
-    throw new DataServerError('--profile must be fixture or region');
+  if (profile === undefined || !(profile in DATA_PORTS)) {
+    throw new DataServerError('--profile must be fixture, region or global');
   }
   const port = values.port === undefined ? undefined : Number(values.port);
-  const server = await startDataServer({ profile, port, host: values.host });
-  console.log(`serving build/${profile}/ at ${server.url} (release: ${server.url}/release.json)`);
+  const server = await startDataServer({ profile: profile as Profile, port, host: values.host });
+  console.log(
+    `serving build/${OUTPUT_DIR[profile as Profile]}/ at ${server.url} (release: ${server.url}/release.json)`,
+  );
 }

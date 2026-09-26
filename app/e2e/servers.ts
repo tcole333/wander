@@ -11,4 +11,5 @@ export const DEV_URL = `http://127.0.0.1:${DEV_PORT}`;
 export const DATA_URL = {
   fixture: `http://127.0.0.1:${DATA_PORTS.fixture}`,
   region: `http://127.0.0.1:${DATA_PORTS.region}`,
+  global: `http://127.0.0.1:${DATA_PORTS.global}`,
 };
