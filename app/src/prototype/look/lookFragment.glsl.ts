@@ -32,6 +32,7 @@ uniform float lookRiverPx;
 uniform float lookGraticule;
 uniform float lookNoise;
 uniform float lookPolish;
+uniform float lookCoarse;
 // The camera in the globe frame, set before each draw.
 uniform vec3 lookCamLocal;
 uniform int lookDebug;
@@ -56,6 +57,8 @@ ${glslFaceTable()}
 #define LOOK_TEXELS 264.0
 // The degrees of arc per pixel at which the spike's global bake was tuned (its region view).
 #define LOOK_REF_DEG_PX 0.13
+// The broad relief's heights: about this many pixels a texel.
+#define LOOK_COARSE_PX 24.0
 
 // Codes to meters, as the vertex chunk converts them.
 float lookMeters(float code, int lv) {
@@ -322,16 +325,20 @@ float lookBevel(LookFields f, LookFootprint fp) {
   return mix(narrow, broad, lookBroadWeight);
 }
 
+// The height's share of the relief.
+float lookHeightRelief(float h) {
+  return pow(max(h, 0.0) / 6500.0, 0.55) * 1.35 * lookRelief;
+}
+
 // The spike's stylized relief, from which its normal map was made, less its fine noise: on land
 // that term joins the gradient analytically (lookSurface). At sea the spike's 0.025 is left out,
 // and the mottle stays in the albedo.
 float lookReliefAt(LookFields f, LookFootprint fp) {
   float bevel = lookBevel(f, fp);
   float land = clamp(0.5 + f.d / fp.texPx, 0.0, 1.0);
-  float r = pow(max(f.h, 0.0) / 6500.0, 0.55);
   float water = lookWater(f.w, fp.texPx);
   float lake = smoothstep(0.5, 2.5, -f.w);
-  float onLand = bevel + r * 1.35 * lookRelief - water * 0.12;
+  float onLand = bevel + lookHeightRelief(f.h) - water * 0.12;
   onLand -= lake * 0.8 * bevel;
   float depth = max(-f.h, 0.0);
   // Magnified, each step would spread over the taps as a soft ridge: it fades out instead.
@@ -386,6 +393,29 @@ LookSurface lookSurface() {
   // softening, so the grain stays crisp close up (all of it reads as reptile skin).
   float noiseRelief = 0.06 * land * lookNoise * mix(1.0, 1.0 / o.zoom, 0.5);
   dh += noiseRelief * vec2(dot(nz.fineGrad, e.dir - w.dir), dot(nz.fineGrad, n.dir - s.dir));
+  // The broad forms: the height's relief again from heights about LOOK_COARSE_PX pixels a texel,
+  // up to 3 mips coarser (4-texel taps at most, within the border), mixed in from about 300 km
+  // wide out to the regional scale. Otherwise every small ridge of magnified heights shades at
+  // full contrast, and a range reads as crumpled foil with no main crest. Closer than 100 km the
+  // finest relief is broad on screen, and a caldera's rim stays crisp.
+  float mC = clamp(log2(fp.texPx * LOOK_COARSE_PX), 0.0, 3.0);
+  float deltaC = clamp(exp2(mC), 2.0, 4.0);
+  vec2 duC = vec2(deltaC / LOOK_TEXELS, 0.0);
+  float slot = float(vLookSlot);
+  vec4 hC = vec4(
+    textureLod(wanderHeight, vec3(vLookUv + duC.xy, slot), mC).r,
+    textureLod(wanderHeight, vec3(vLookUv - duC.xy, slot), mC).r,
+    textureLod(wanderHeight, vec3(vLookUv + duC.yx, slot), mC).r,
+    textureLod(wanderHeight, vec3(vLookUv - duC.yx, slot), mC).r
+  );
+  vec2 coarse = vec2(
+    lookHeightRelief(lookMeters(hC.x + vLookMid, vLookSrc)) - lookHeightRelief(lookMeters(hC.y + vLookMid, vLookSrc)),
+    lookHeightRelief(lookMeters(hC.z + vLookMid, vLookSrc)) - lookHeightRelief(lookMeters(hC.w + vLookMid, vLookSrc))
+  ) * (delta / deltaC);
+  vec2 fineH = vec2(lookHeightRelief(e.h) - lookHeightRelief(w.h), lookHeightRelief(n.h) - lookHeightRelief(s.h));
+  float kmPx = fp.degPx * 111.195;
+  float coarseW = lookCoarse * land * smoothstep(0.07, 0.2, kmPx) * (1.0 - smoothstep(0.3, 0.8, o.zoom));
+  dh += coarseW * (coarse - fineH);
   o.dh = dh / (2.0 * ds.x);
 
   float coast = lookLine(abs(c.d) / fp.texPx, lookCoastPx);
