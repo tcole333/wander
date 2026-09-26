@@ -15,6 +15,8 @@ export const tunables = {
   // on (5.6 rule 7).
   kLand: 8,
   kSea: 8,
+  // Skirt depth below a node's boundary, in its own texels, lowered radially (5.6 rule 8).
+  skirtTexels: 1,
   // The camera stays the larger of minKm and ofView of the view's own distance (before any slide)
   // above the terrain ceiling, and the line from the target to it clears the terrain by lineDeg
   // (5.7).

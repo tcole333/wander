@@ -850,7 +850,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      coastal dips sit flat at sea level (owner decision 18); sea displaces by `kSea·min(h, 0)` when
      Bathymetry is on, and by 0 otherwise. Turning Relief off animates `kLand` to 0. Depth bands use the
      same sea mask.
-  8. **Skirts** stay as insurance against sub-pixel float gaps.
+  8. **Skirts:** each boundary vertex has a skirt bottom `skirtTexels` of its node's texels below it,
+     lowered radially. Shared points are bit-identical, so skirts only cover sub-pixel gaps: a
+     T-junction midpoint rounds off the coarse chord by half a float32 step per component.
 - **Reveals:** on a still camera (no flight or gesture; a slow drift counts as still), new tiles wait
   until every visible desired tile of that level is ready, or `revealHold`, then morph together over
   `revealMorph`. While moving, each tile crossfades on its own over `tileFade`.
@@ -1375,6 +1377,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `refinePx` | 1.5 / 0.83 CSS px; merge at 0.7× | LOD refinement | fixed: the beat-model profiles; changing them invalidates section 6 |
 | `zoomFloorKm` | ~100 km across | closest view | owner decision 1, after E1/E2 |
 | `kLand`, `kSea` | ×8, ×8 | relief and bathymetry exaggeration (5.6 rule 7) | eye, at E1's look checkpoint with the owner |
+| `skirtTexels` | 1 node texel | skirt depth below a node's boundary, lowered radially (5.6 rule 8) | fixed: shared points are bit-identical, so the only gaps are T-junction midpoints rounding off the coarse chord, by half a float32 step per component, under 1.1e-7 R (0.7 m); one texel is 305 m even at L7, over 400 times that, so only a ray within about 2 mrad of the radial wall passes a gap without meeting a skirt |
 | `cameraClearance` | 2 km or 0.25 of the view distance; the view line 2° above the terrain | camera height and tilt cap (5.7) | eye, E2 |
 | `revealHold`, `revealMorph` | 300 ms, 700 ms | still-camera batched reveal | eye, E2 |
 | `tileFade` | 250 ms | per-tile crossfade while moving | eye |
