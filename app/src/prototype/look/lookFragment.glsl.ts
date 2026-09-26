@@ -373,13 +373,15 @@ LookSurface lookSurface() {
   float grat = lookGraticule * lookGraticuleAt(c.lonlat, fp.degPx);
   float inlay = max(grat * 0.5, coast * 0.55);
   seaColor = mix(seaColor, lookInlay, inlay);
-  float seaRough = 0.62 + mottle * 0.3 + (fine - 0.5) * 0.18 - inlay * 0.2;
+  // Rougher than the spike's 0.62: at low tilts the lamp's reflection lies mid-screen, and a
+  // narrower lobe spreads over the sea as a pale sheen.
+  float seaRough = 0.75 + mottle * 0.3 + (fine - 0.5) * 0.18 - inlay * 0.2;
   float seaMetal = 0.08 + inlay * 0.85;
 
   // Lakes take the shelf's lacquer.
   vec3 lakeColor = mix(lookShallow, lookShelf, 0.55) * mottleScale;
   landColor = mix(landColor, lakeColor, lake);
-  landRough = mix(landRough, 0.62 + mottle * 0.3, lake);
+  landRough = mix(landRough, 0.75 + mottle * 0.3, lake);
   landMetal = mix(landMetal, 0.08, lake);
 
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
