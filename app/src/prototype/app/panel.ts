@@ -49,14 +49,29 @@ const RANGES: Record<string, [number, number, number?]> = {
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 
-/** Adds `params` to `folder`, all but `skip`; those in `listen` follow changes made elsewhere. */
+/** What the page does with a param's controller. */
+export interface ParamControl {
+  disable(disabled?: boolean): unknown;
+  onChange(callback: () => void): unknown;
+}
+
+interface AddOptions {
+  /** Only these params, when given. */
+  only?: readonly string[];
+  skip?: readonly string[];
+  /** Params that follow changes made elsewhere. */
+  listen?: readonly string[];
+}
+
+/** Adds `params` to `folder`, and returns each param's controller by name. */
 export function addParams(
   folder: GUI,
   params: Params,
-  { skip = [], listen = [] }: { skip?: readonly string[]; listen?: readonly string[] } = {},
-): void {
+  { only, skip = [], listen = [] }: AddOptions = {},
+): Map<string, ParamControl> {
+  const controllers = new Map<string, ParamControl>();
   for (const [name, value] of Object.entries(params)) {
-    if (skip.includes(name)) continue;
+    if (skip.includes(name) || (only && !only.includes(name))) continue;
     let controller;
     if (typeof value === 'number') {
       const [min, max, step] = RANGES[name] ?? defaultRange(value);
@@ -69,7 +84,9 @@ export function addParams(
       controller = folder.add(params as Record<string, string>, name);
     }
     if (listen.includes(name)) controller.listen();
+    controllers.set(name, controller);
   }
+  return controllers;
 }
 
 function defaultRange(value: number): [number, number, number] {
