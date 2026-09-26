@@ -301,9 +301,9 @@ edge, 281,516 at a face corner and 284,222 at L0.
   60% of the tiles its decodes slowed from 1-2 ms to about 8 ms, while hidden Firefox did not; a
   foreground Safari run is still to come. A worker decodes one request at a time in arrival order,
   so tiles submitted coarsest first finish first.
-  - R16F values are f16 bits from an exact integer-to-half conversion (|v| ≤ 2048; Node 22 has no
-    `Float16Array`). The decoder is a pure function that does not import three; the worker wraps it
-    and posts its results with `{ transfer }`.
+  - R16F and RG16F values are f16 bits from an exact integer-to-half conversion (|v| ≤ 2048; Node
+    22 has no `Float16Array`). The decoder is a pure function that does not import three; the
+    worker wraps it and posts its results with `{ transfer }`.
   - The meter bounds are [floor(h(codeMin)), ceil(h(codeMax))] (3.8). In the 33² grid, vertex
     (k, l) sits at corner (8k, 8l). A vertex on a stored side is h of that side's mip-2 entry 2·(its
     index along the side), on which two stored sides agree at a tile corner; every other vertex, on
@@ -1124,11 +1124,12 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
      - fixture decode: the Tambora summit decodes between its texel mean less qLand/2 and GEBCO's
        highest cell; the shore sign is right at known points; cube keys round-trip; `cube.ts`
        matches the Python samples (3.0 item 9)
-     - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit; across face
-       edges (all of L0-L1 and the cube-corner fixture), edge profiles are bit-identical at every
-       mip, codes and shore bytes alike, reversed edges included; a tile's stored sides agree at
-       their shared corners at every mip, and the three Kirkuk tiles at the cube corner at every
-       level; each entry lies within 0.5 of the owner tile's own mip-m corner mean, as a real
+     - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit, and sides
+       inside a face leave their edge-texture rows at 0; across face edges (all of L0-L1 and the
+       cube-corner fixture), edge profiles are bit-identical at every mip, codes and shore bytes
+       alike, reversed edges included; a tile's stored sides agree at their shared corners at every
+       mip, and so do the three tiles at each cube corner (all eight at L0 and L1, the Kirkuk
+       corner at L2-L7); each entry lies within 0.5 of the owner tile's own mip-m corner mean, as a real
        (|entry − sum/4| ≤ 0.5), and its shore byte is (T + 2) >> 2 of the owner's four; the border
        texel k columns past a face edge maps into the neighbor's texel column k (the perpendicular
        coordinate is continuous), and each border code lies within the neighbor face's 3×3 code
