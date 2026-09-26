@@ -1099,6 +1099,31 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   elsewhere. Only the sources differ from 3.1's rule; the real encoder runs. It lists 55 tiles: all
   of L0-L1, the Sumbawa chain `2/1/3/1` to `7/1/103/50` plus its L7 neighbor `7/1/102/50`, and the
   18 Kirkuk corner tiles (faces 0, 1 and 4 at L2-L7).
+- **Mesh scenarios** (`app/src/globe/meshScenarios.ts`, test data the app never imports): drawn
+  sets on the fixture's tiles, each a cover `checkCover` accepts, which the vertex mirror runs in
+  Vitest and the GPU readback draws:
+  - `l1-globe`, the 24 L1 nodes, and `l0-l1-mixed`, faces 0, 2 and 4 at L1 against 1, 3 and 5 at
+    L0: 2:1 across nine face edges, the reversed 3N–4W and 2S–5S among them
+  - the Kirkuk corner, each face refined toward it to one of the 15 corner-level triples within one
+    level of each other around L3 and L6, with per-face source caps of 0-2 levels; and its L7
+    blocks on L4 and L2 (d = 3 and 5)
+  - the reversed corner of faces 2, 3 and 4, L1-L5 nodes on L0 and L1 sources: all on one level, a
+    checkerboard in either phase, which splits coarse edges, and L0 at a given level and finer
+  - `corner-span2`: a node, its two neighbors through one corner a level coarser and the diagonal
+    two levels coarser, inside face 0, on 0E–1W, and beside Sumbawa's L2 tile on 1E–2W
+  - `sumbawa-l7`, `7/1/102-103/50` at d = 0 with `7/1/102-103/51` at d = 1, and `sumbawa-l2`,
+    `2/1/3/1` drawing itself beside L1 nodes
+
+  Together they reach, on both tiers, every combination of 5.6's rules at a shared point: at an
+  edge point the seam (inside a face, on a face edge, on a reversed one), the node across (same
+  level, coarser, finer), the cS bits (clear, set, split) and the mip; T-junctions on each seam; at
+  a corner its kind (four nodes in a face or on a face edge, three at a cube corner or at a coarse
+  edge's midpoint), dN, cS and mip; and profile lerps on both kinds of face edge. A point counts
+  only where every node around it is drawn. `EXCLUDED` gives the reason for each of the 83 of 316
+  no scenario reaches. No balanced cover allows 81: a split on the fine or same-level side, dN 2 at
+  a cube corner, dN other than 1 at a midpoint, and m 2 on full where the coarsest node reads its
+  source's parent. The fixture cannot form the other 2, in-face corners at m 2 on full with cS 1,
+  since below L1 it bakes only the nested Kirkuk and Sumbawa chains.
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
   samples, 3.0 item 9) in `build/stages/fixture/expect/`.
@@ -1152,13 +1177,18 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        conversion including the −15 Myr row, and the snapshot rule (on 50-07-01 CE the tie goes to
        `bc1`)
      - the vertex mirror (`vertexMirror.ts`, 5.6's rules as the shader runs them, in float32), on
-       the fixture and both tiers: every instance holding a shared lattice point gets its code,
-       shore, land, h, direction and position bit for bit; with `Math.tan` in place of the exact
-       `wanderTanQ`, every face-edge point splits across faces; a node drawing its own tile with no
-       seam flags samples every fixture tile's 33² grid bit for bit; each L7 tile drawn 1, 3 and 5
-       levels under its source samples the source's mip-m codes and shore bytes bilinearly at its
-       corner coordinates, and lerps the profile on a face edge; and skirt bottoms sit
-       `skirtTexels` node texels radially below their tops
+       the mesh scenarios and both tiers: every instance holding a shared lattice point gets its
+       code, shore, land, h, direction and position bit for bit; every T-junction lies within
+       1e-7 R of the coarse chord it splits (5.2e-8 R at worst); flipping one cS bit, cN bit or
+       corner dN makes a shared point differ in every family that can flip it (where the field is
+       linear, as on the L1 tiles at 0°N 0°E, every mip holds the same code, so not in every
+       scenario); the scenarios reach every combination but the excluded ones, and none of those;
+       with `Math.tan` in place of the exact `wanderTanQ`, every face-edge point of `l1-globe`
+       splits across faces; a node drawing its own tile with no seam flags samples every fixture
+       tile's 33² grid bit for bit; each L7 tile drawn 1, 3 and 5 levels under its source samples
+       the source's mip-m codes and shore bytes bilinearly at its corner coordinates, and lerps the
+       profile on a face edge; and skirt bottoms sit `skirtTexels` node texels radially below their
+       tops
   5. Compile the stories, then build the app.
   6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
      ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
