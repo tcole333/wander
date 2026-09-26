@@ -172,13 +172,15 @@ float lookLine(float distPx, float widthPx) {
 }
 
 // The spike's graticule: every 15 degrees, 0.07 degrees wide, the equator 0.13; parallels to 75.
+// Close up the lines stop widening at 2 px (the equator 3.5), as engraved lines do on screen.
 float lookGraticuleAt(vec2 lonlat, float degPx) {
   float cosLat = cos(radians(lonlat.y));
   float dLon = abs(fract(lonlat.x / 15.0 + 0.5) - 0.5) * 15.0 * cosLat;
-  float meridian = lookLine(dLon / degPx, 0.07 / degPx);
+  float meridian = lookLine(dLon / degPx, min(0.07 / degPx, 2.0));
   float k = floor(lonlat.y / 15.0 + 0.5);
   float dLat = abs(lonlat.y - 15.0 * k);
-  float parallel = abs(k) <= 5.0 ? lookLine(dLat / degPx, (k == 0.0 ? 0.13 : 0.07) / degPx) : 0.0;
+  float widthPx = k == 0.0 ? min(0.13 / degPx, 3.5) : min(0.07 / degPx, 2.0);
+  float parallel = abs(k) <= 5.0 ? lookLine(dLat / degPx, widthPx) : 0.0;
   return max(meridian, parallel);
 }
 
