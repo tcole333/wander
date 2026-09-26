@@ -17,7 +17,7 @@ export interface Neighbor {
   tile: Tile;
   /** The neighbor's edge that meets the asking tile's edge. */
   edge: Edge;
-  /** Entry k is the neighbor's entry 256 − k. */
+  /** Entry k of a mip-m edge profile is the neighbor's entry (256 >> m) − k. */
   reversed: boolean;
 }
 
