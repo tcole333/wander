@@ -106,6 +106,9 @@ async function main(): Promise<void> {
     // The gimbal tilts the globe toward the camera, so a tilted view keeps the lamp behind the
     // camera; off, it turns the view center to the front and the camera tilts instead.
     faceCamera: true,
+    // Device pixels per CSS pixel. 1.5 holds 60 fps on the M5's Retina display in every preset,
+    // where 2 drops the widest views to about 50; up to 2 for the sharpest stills.
+    pixelRatio: Math.min(devicePixelRatio, 1.5),
   };
   for (const params of [look.params, museum.params, streamer.params, cameraParams]) {
     applyQuery(params, query);
@@ -151,7 +154,7 @@ async function main(): Promise<void> {
   addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
-    museum.setSize(innerWidth, innerHeight, devicePixelRatio);
+    museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
   });
 
   const deltas: number[] = [];
@@ -191,6 +194,9 @@ async function main(): Promise<void> {
     if (deltas.length > FRAMES) deltas.shift();
     last = now;
     limitZoom();
+    if (renderer.getPixelRatio() !== cameraParams.pixelRatio) {
+      museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
+    }
     control.step(now, dt);
     const view = control.current;
     if (cameraParams.reliefByZoom) {
