@@ -1,7 +1,7 @@
 // Pool specs only; the pool itself needs WebGL 2 and is checked by e2e/gpu-pool.spec.ts.
 import { describe, expect, it } from 'vitest';
 import {
-  HEIGHT_R16F,
+  EDGES_RG16F,
   MAX_SLOTS,
   poolBytesPerSlot,
   surfacePoolSpecs,
@@ -24,11 +24,11 @@ describe('surfacePoolSpecs', () => {
     expect(surface.shoreWater).toMatchObject({ width: 264, height: 264, levels: 3 });
   });
 
-  it('stores the four edge profiles as 257 × 4 R16F, one level, Nearest', () => {
+  it('stores the edge profiles as 257 × 12 RG16F, a row per side and mip, Nearest', () => {
     expect(surface.edges).toMatchObject({
-      channel: HEIGHT_R16F,
+      channel: EDGES_RG16F,
       width: 257,
-      height: 4,
+      height: 12,
       levels: 1,
       filter: 'nearest',
     });
@@ -39,9 +39,10 @@ describe('surfacePoolSpecs', () => {
   });
 
   // The slot that streaming.md 5.4 stages over two frames.
-  it('takes 359 KiB per surface slot: 182,952 + 182,952 + 2,056 bytes', () => {
+  it('takes 369.4 KiB per surface slot: 182,952 + 182,952 + 12,336 bytes', () => {
     const bytes = Object.values(surface).map((spec) => poolBytesPerSlot(spec));
-    expect(bytes).toEqual([182_952, 182_952, 2_056]);
+    expect(bytes).toEqual([182_952, 182_952, 12_336]);
+    expect(bytes.reduce((a, b) => a + b)).toBe(378_240);
   });
 });
 

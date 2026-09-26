@@ -24,6 +24,7 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { TILE } from '../surface/cube';
+import { EDGE_ENTRIES, EDGE_ROWS } from '../surface/wst';
 import { drawFullscreen, FULLSCREEN_VERTEX } from './fullscreen';
 
 export type PoolArray = Uint16Array | Uint8Array;
@@ -36,11 +37,19 @@ export interface PoolChannel<A extends PoolArray> {
   arrayType: { new (length: number): A; readonly BYTES_PER_ELEMENT: number };
 }
 
-/** Height codes and edge profiles as half floats, which hold every code (|code| ≤ 2048) exactly. */
+/** Height codes as half floats, which hold every code offset (|code − codeMid| ≤ 2048) exactly. */
 export const HEIGHT_R16F: PoolChannel<Uint16Array> = {
   format: RedFormat,
   type: HalfFloatType,
   components: 1,
+  arrayType: Uint16Array,
+};
+
+/** Edge profile entries as half floats: the code offset in R and the shore byte, 0..255, in G. */
+export const EDGES_RG16F: PoolChannel<Uint16Array> = {
+  format: RGFormat,
+  type: HalfFloatType,
+  components: 2,
   arrayType: Uint16Array,
 };
 
@@ -90,11 +99,12 @@ export function surfacePoolSpecs(slots: number): {
   return {
     height: { channel: HEIGHT_R16F, ...tile, filter: 'linear' },
     shoreWater: { channel: SHORE_WATER_RG8, ...tile, filter: 'linear' },
-    // Entry k of each edge (N, E, S, W) sits at texel corner k, 0..256 (streaming.md 3.0 item 7).
+    // Row 4m + e holds side e (N, E, S, W) at mip m, and texel k its entry k, which sits at texel
+    // corner 2^m·k (streaming.md 3.0 item 7, 3.1). Sides inside a face leave their rows at 0.
     edges: {
-      channel: HEIGHT_R16F,
-      width: TILE + 1,
-      height: 4,
+      channel: EDGES_RG16F,
+      width: EDGE_ENTRIES,
+      height: EDGE_ROWS,
       levels: 1,
       slots,
       filter: 'nearest',
@@ -150,7 +160,7 @@ export function createGpuPool<A extends PoolArray>(
   texture.minFilter = mipFilter(filter, levels);
   texture.wrapS = ClampToEdgeWrapping;
   texture.wrapT = ClampToEdgeWrapping;
-  // 3D uploads reject flipY. Rows are tightly packed (an edge row is 514 bytes).
+  // 3D uploads reject flipY. Rows are tightly packed, whatever their width in bytes.
   texture.flipY = false;
   texture.unpackAlignment = 1;
   // Allocate storage without uploading a whole array; needsUpdate makes three allocate it

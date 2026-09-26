@@ -11,7 +11,7 @@ function clock() {
 }
 
 /** A surface tile's seven parts at their real sizes: height mips, shore and water mips, edges. */
-const SURFACE_PARTS = [139_392, 34_848, 8_712, 139_392, 34_848, 8_712, 2_056];
+const SURFACE_PARTS = [139_392, 34_848, 8_712, 139_392, 34_848, 8_712, 12_336];
 
 function job(
   key: string,
@@ -53,7 +53,7 @@ describe('a surface tile at the lite animated budget', () => {
     const second = queue.run(tunables.uploadAnimated.lite);
     expect(second).toMatchObject({
       parts: 4,
-      bytes: 185_008,
+      bytes: 195_288,
       stoppedBy: 'empty',
       published: ['7/1/103/50'],
     });
