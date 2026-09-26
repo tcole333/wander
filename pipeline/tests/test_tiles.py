@@ -243,17 +243,20 @@ def test_the_kirkuk_corner_tiles_share_every_entry_of_their_edges(built, level):
         assert len(vertex) == 1
 
 
-def corner_mean(reader: Tile, planes, corner: tuple[int, int], m: int) -> tuple[float, int]:
-    """Around the face-global corner (cs, ct), the mean of the four mip-m codes of a tile's own
-    stored planes as a real, sum / 4, and (T + 2) >> 2 of their shore bytes, whose sum is T. The
-    planes start at face-global texel 256·x - 4 (and 256·y - 4), a multiple of 4."""
+def corner_mean(reader: Tile, planes, corner: tuple[int, int], m: int) -> tuple[int, int]:
+    """Around the face-global corner (cs, ct), the rha mean of the four mip-m codes of a tile's own
+    stored planes, sign(S)·((|S| + 2) >> 2) with S their sum, and (T + 2) >> 2 of their shore bytes,
+    whose sum is T. The planes start at face-global texel 256·x - 4 (and 256·y - 4), a multiple of
+    4."""
     cs, ct = corner
     row = (ct >> m) - 1 - ((256 * reader.y - 4) >> m)
     col = (cs >> m) - 1 - ((256 * reader.x - 4) >> m)
     codes, shore = mips(planes.codes)[m], mips(planes.shore)[m]
     code_sum = codes[row : row + 2, col : col + 2].sum()
     shore_sum = shore[row : row + 2, col : col + 2].sum()
-    return code_sum / 4, int((shore_sum + 2) >> 2)
+    code_sum = int(code_sum)
+    rha = (1 if code_sum >= 0 else -1) * ((abs(code_sum) + 2) >> 2)
+    return rha, int((shore_sum + 2) >> 2)
 
 
 def baked_reader(owner: Tile, corner: tuple[int, int]) -> Tile:
@@ -279,7 +282,7 @@ def test_each_entry_is_its_owner_faces_own_mip_corner_mean(built, tile):
             corner = edge_corner(owner, owner_edge, owner_k)
             reader = baked_reader(owner, corner)
             mean, shore = corner_mean(reader, built(reader), corner, m)
-            assert abs(planes.profiles[e, k] - mean) <= 0.5, (EDGES[e], m, c)
+            assert planes.profiles[e, k] == mean, (EDGES[e], m, c)
             assert planes.profile_shore[e, k] == shore, (EDGES[e], m, c)
 
 
