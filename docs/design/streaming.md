@@ -853,6 +853,37 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   8. **Skirts:** each boundary vertex has a skirt bottom `skirtTexels` of its node's texels below it,
      lowered radially. Shared points are bit-identical, so skirts only cover sub-pixel gaps: a
      T-junction midpoint rounds off the coarse chord by half a float32 step per component.
+- **Exactness:** every drawn tile that holds a shared point gives it the same bits, so seams need no
+  tolerance. The vertex shader and its CPU mirror (`app/src/globe/vertexMirror.ts`, step for step
+  the same) keep every step up to a point's code, shore and direction exact:
+  - The group's lv and m, the slot, and whether the point lies on a face edge come from integers
+    and seam flags that every node sharing the point derives alike (rules 1-2).
+  - The point's corner coordinates in the lv tile, its texel coordinates and its s and t are exact
+    dyadics, integers up to 8,192 times powers of two. Powers of two are built from their bits
+    (`uintBitsToFloat`), since ES 3.00 has no `ldexp` and `exp2` need not be exact.
+  - Geometry reads texels with `texelFetch` and weights them itself, never through hardware
+    filtering, which lands a quarter code off at texel corners in Safari and Firefox on the M5
+    [M `e2/results/gpu-pool-safari.json`, `gpu-pool-firefox.json`]. On a seam line the weight
+    across it is 0.5 or 1 and the fraction along it has at most 6 bits, so each weighted code has
+    at most 18 significant bits, each partial sum at most 19, and the sum plus codeMid at most 23:
+    float32 holds every one exactly, in any order and under FMA contraction. Tiles offset their
+    codes by different codeMids, but the weights sum to exactly 1, so every tile reaches the same
+    code. A face-edge point reads one profile entry, or at m = 0 deep under its source lerps two
+    with a fraction of at most 4 bits, exactly; a reversed edge lerps the same two from the other
+    end and gets the same value.
+  - Meters take one correctly rounded multiply of an exact bracket (3.1, Codes to meters).
+  - Each component of the unnormalized direction is ±tanQ(s), ±tanQ(t) or ±1, since the face frames
+    are signed permutations. tanQ(s) = sign(s)·tan(π|s|/4) is odd and exactly ±1 at |s| = 1, where
+    GLSL leaves `tan` unspecified and V8's `Math.tan(π/4)` is 0.9999999999999999, so every face
+    writes the same vector at a face edge or cube corner.
+  - The inexact tail (displacement, `normalize`, the radius) then runs on equal inputs, through the
+    one call site that also evaluates both T-junction neighbors, and `invariant gl_Position` keeps
+    the main and depth programs in step.
+
+  Interior points deep under their source, with both fractions non-zero, may round the codeMid add
+  differently on a GPU; no other instance holds them, so the GPU may differ from the mirror there
+  by 1 ulp. On the mirror, Vitest proves the seams of the fixture's scenarios and
+  `npm run verify:bake` those of every same-level pair of the region bake (7.3).
 - **Reveals:** on a still camera (no flight or gesture; a slow drift counts as still), new tiles wait
   until every visible desired tile of that level is ready, or `revealHold`, then morph together over
   `revealMorph`. While moving, each tile crossfades on its own over `tileFade`.
