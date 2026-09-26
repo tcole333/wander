@@ -17,7 +17,7 @@ import { createMuseumScene } from '../scene/museumScene';
 import { CameraRig, maxViewKm, type Relief } from './cameraRig';
 import { addParams, applyQuery, GUI } from './panel';
 import { ViewControl } from './viewControl';
-import { reliefForWidth, type ViewState } from './viewState';
+import { drawnView, reliefForWidth, type ViewState } from './viewState';
 
 const DATA_HOSTS = { region: 'http://127.0.0.1:8792', global: 'http://127.0.0.1:8793' };
 type DataName = keyof typeof DATA_HOSTS;
@@ -211,15 +211,16 @@ async function main(): Promise<void> {
 
     // The gimbal turns the globe so the camera looks into the front of the instrument, where the
     // lamp lights it (or, with faceCamera off, turns the view center to the front); then the
-    // camera goes where the view puts it in the turned globe frame.
+    // camera goes where the view puts it in the turned globe frame. Wide views drop their tilt.
     const surfaceRelief = relief(look.params);
+    const drawn = drawnView(view);
     const [lon, lat] = cameraParams.faceCamera
-      ? rig.gimbalFacing(camera, view, surfaceRelief)
-      : [view.lon, view.lat];
+      ? rig.gimbalFacing(camera, drawn, surfaceRelief)
+      : [drawn.lon, drawn.lat];
     museum.params.lat = lat;
     museum.params.lon = lon;
     museum.update(camera, now / 1000);
-    rig.place(camera, view, surfaceRelief, museum.globeMount, Number(museum.params.hideAltitude));
+    rig.place(camera, drawn, surfaceRelief, museum.globeMount, Number(museum.params.hideAltitude));
     streamer.update(camera, { width: innerWidth, height: innerHeight }, museum.globeMount);
     look.update(now / 1000);
     museum.render(camera);

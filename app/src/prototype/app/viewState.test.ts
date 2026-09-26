@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { dragView, flightAt, mixViews, reliefForWidth, type ViewState } from './viewState';
+import {
+  drawnView,
+  dragView,
+  flightAt,
+  mixViews,
+  reliefForWidth,
+  type ViewState,
+} from './viewState';
 
 const view = (lon: number, lat: number, viewKm: number): ViewState => ({
   lon,
@@ -48,5 +55,17 @@ describe('reliefForWidth', () => {
 
   it('holds the far relief at 3,000 km and wider', () => {
     expect(reliefForWidth(20000, 2, 8)).toBe(8);
+  });
+});
+
+describe('drawnView', () => {
+  const tilted = (viewKm: number): ViewState => ({ ...view(118, -8.25, viewKm), tilt: 45 });
+
+  it('keeps the tilt at 3,000 km wide and closer', () => {
+    expect(drawnView(tilted(3000)).tilt).toBe(45);
+  });
+
+  it('drops the tilt at 10,000 km wide and wider', () => {
+    expect(drawnView(tilted(20000)).tilt).toBe(0);
   });
 });
