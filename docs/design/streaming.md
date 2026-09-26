@@ -863,10 +863,12 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     (`uintBitsToFloat`), since ES 3.00 has no `ldexp` and `exp2` need not be exact.
   - Geometry reads texels with `texelFetch` and weights them itself, never through hardware
     filtering, which lands a quarter code off at texel corners in Safari and Firefox on the M5
-    [M `e2/results/gpu-pool-safari.json`, `gpu-pool-firefox.json`]. On a seam line the weight
-    across it is 0.5 or 1 and the fraction along it has at most 6 bits, so each weighted code has
-    at most 18 significant bits, each partial sum at most 19, and the sum plus codeMid at most 23:
-    float32 holds every one exactly, in any order and under FMA contraction. Tiles offset their
+    [M `e2/results/gpu-pool-safari.json`, `gpu-pool-firefox.json`]. Nodes stop at L7, so a point
+    lies at most 7 levels under its source, each texel fraction has at most 4 bits (3 on lite) and
+    each weight at most 8. Offsets are integers within ±2048, so every weighted code and partial
+    sum is a multiple of 2^-8 within ±2048, and the sum plus codeMid a multiple of 2^-8 below
+    2^16, at most 24 significant bits: float32 holds every one exactly, in any order and under FMA
+    contraction, and shore bytes likewise. A level-8 node would break this. Tiles offset their
     codes by different codeMids, but the weights sum to exactly 1, so every tile reaches the same
     code. A face-edge point reads one profile entry, or at m = 0 deep under its source lerps two
     with a fraction of at most 4 bits, exactly; a reversed edge lerps the same two from the other
@@ -874,16 +876,15 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - Meters take one correctly rounded multiply of an exact bracket (3.1, Codes to meters).
   - Each component of the unnormalized direction is ±tanQ(s), ±tanQ(t) or ±1, since the face frames
     are signed permutations. tanQ(s) = sign(s)·tan(π|s|/4) is odd and exactly ±1 at |s| = 1, where
-    GLSL leaves `tan` unspecified and V8's `Math.tan(π/4)` is 0.9999999999999999, so every face
-    writes the same vector at a face edge or cube corner.
+    GLSL leaves `tan`'s precision open and a GPU's tan at float32 π/4 may land an ulp off 1, so
+    every face writes the same vector at a face edge or cube corner.
   - The inexact tail (displacement, `normalize`, the radius) then runs on equal inputs, through the
     one call site that also evaluates both T-junction neighbors, and `invariant gl_Position` keeps
     the main and depth programs in step.
 
-  Interior points deep under their source, with both fractions non-zero, may round the codeMid add
-  differently on a GPU; no other instance holds them, so the GPU may differ from the mirror there
-  by 1 ulp. On the mirror, Vitest proves the seams of the fixture's scenarios and
-  `npm run verify:bake` those of every same-level pair of the region bake (7.3).
+  So a GPU's code, shore, land and h equal the mirror's bit for bit at every point, shared or not.
+  On the mirror, Vitest proves the seams of the fixture's scenarios and `npm run verify:bake` those
+  of every same-level pair of the region bake (7.3).
 - **Reveals:** on a still camera (no flight or gesture; a slow drift counts as still), new tiles wait
   until every visible desired tile of that level is ready, or `revealHold`, then morph together over
   `revealMorph`. While moving, each tile crossfades on its own over `tileFade`.
@@ -1134,7 +1135,7 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   sets on the fixture's tiles, each a cover `checkCover` accepts, which the vertex mirror runs in
   Vitest and the GPU readback draws:
   - `l1-globe`, the 24 L1 nodes, and `l0-l1-mixed`, faces 0, 2 and 4 at L1 against 1, 3 and 5 at
-    L0: 2:1 across nine face edges, the reversed 3N–4W and 2S–5S among them
+    L0: 2:1 across eight face edges, the reversed 3N–4W and 2S–5S among them
   - the Kirkuk corner, each face refined toward it to one of the 15 corner-level triples within one
     level of each other around L3 and L6, with per-face source caps of 0-2 levels; and its L7
     blocks on L4 and L2 (d = 3 and 5)

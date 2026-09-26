@@ -223,7 +223,7 @@ function accepted(scenario: Scenario): boolean {
 
 /**
  * 'l0-l1-mixed': faces 0, 2 and 4 at L1 and faces 1, 3 and 5 at L0, each node drawing itself: 2:1
- * across nine face edges, the reversed 3N–4W and 2S–5S among them.
+ * across eight face edges, the reversed 3N–4W and 2S–5S among them.
  */
 export function l0l1Mixed(): Scenario {
   const nodes = wholeLevel(1).filter(({ tile }) => tile.face % 2 === 0);
