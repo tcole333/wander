@@ -2,7 +2,8 @@
 // fixture tiles its slots hold, the release's qLand and c200, and every grid vertex of every
 // instance; then the groups of instances that hold each shared lattice point, where a group's
 // members disagree, how far T-junctions sit off the coarse chords, and the same scenario with one
-// seam flag bit flipped. The mirror's Vitest suites build on these.
+// seam flag bit flipped. The mirror's Vitest suites build on these, and the region bake check
+// builds its contexts the same way.
 import { tunables } from '../config/tunables';
 import { FIXED_SLOTS } from '../gpu/slotTable';
 import { nodeFromIndex, nodeIndex, tileKey, type Tile, type Vec3 } from '../surface/cube';
@@ -105,19 +106,39 @@ export async function mirrorScenario(
   };
   const packed = packScenario(scenario, (tile) => decoded(tile).header.codeMid);
   const coverage = readStageRecord<CoverageRecord>('coverage');
-  const ctx: MirrorContext = {
+  const ctx = mirrorContext(packed, decoded, coverage, segments, options);
+  const grid = buildTileGrid(segments);
+  const vertices = packed.instances.map((_, i) => mirrorOne(packed.words, i, grid, ctx, options));
+  return { packed, grid, ctx, vertices, options };
+}
+
+/** A release's qLand and c200 by level, as the coverage record holds them. */
+export interface CodeScale {
+  qLand: readonly number[];
+  c200: readonly number[];
+}
+
+/**
+ * The mirror's pools and uniforms for `packed`: each slot holds its tile as `decoded` gives it,
+ * `scale` gives qLand and c200, and tunables give kLand, kSea and skirtTexels.
+ */
+export function mirrorContext(
+  packed: PackedScenario,
+  decoded: (tile: Tile) => DecodedWst,
+  scale: CodeScale,
+  segments: Segments,
+  options: MirrorOptions = {},
+): MirrorContext {
+  return {
     segments,
     slots: new Map([...packed.slots].map(([slot, tile]) => [slot, mirrorSlot(decoded(tile))])),
-    qLand: coverage.qLand,
-    c200: coverage.c200,
+    qLand: scale.qLand,
+    c200: scale.c200,
     kLand: tunables.kLand,
     kSeaEff: (options.bathymetry ?? true) ? tunables.kSea : 0,
     skirtTexels: tunables.skirtTexels,
     ...(options.tanQ ? { tanQ: options.tanQ } : {}),
   };
-  const grid = buildTileGrid(segments);
-  const vertices = packed.instances.map((_, i) => mirrorOne(packed.words, i, grid, ctx, options));
-  return { packed, grid, ctx, vertices, options };
 }
 
 function mirrorOne(
@@ -187,14 +208,33 @@ export function sharedMismatches(
   for (const [point, members] of groups) {
     const [first, ...rest] = members.map(at);
     if (!first) continue;
-    for (const other of rest) {
-      for (const field of fields) {
-        const a = [first.v[field]].flat();
-        const b = [other.v[field]].flat();
-        if (!a.every((value, i) => value === b[i] && Object.is(value, b[i]))) {
-          out.push(`${point} ${field}: ${first.name} ${a.join()} vs ${other.name} ${b.join()}`);
-        }
-      }
+    for (const other of rest) out.push(...fieldMismatches(point, first, other, fields));
+  }
+  return out;
+}
+
+/** A vertex and the name its mismatches give it, `L/f/x/y (k, l)`. */
+export interface NamedVertex {
+  v: MirrorVertex;
+  name: string;
+}
+
+/**
+ * `point field: a vs b` for each of `fields` that differs between two vertices holding the same
+ * lattice point. Values must be identical: equal, of the same sign at zero, and not NaN.
+ */
+export function fieldMismatches(
+  point: string,
+  a: NamedVertex,
+  b: NamedVertex,
+  fields: readonly SharedField[] = SHARED_FIELDS,
+): string[] {
+  const out: string[] = [];
+  for (const field of fields) {
+    const x = [a.v[field]].flat();
+    const y = [b.v[field]].flat();
+    if (!x.every((value, i) => value === y[i] && Object.is(value, y[i]))) {
+      out.push(`${point} ${field}: ${a.name} ${x.join()} vs ${b.name} ${y.join()}`);
     }
   }
   return out;
