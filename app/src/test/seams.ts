@@ -324,7 +324,7 @@ export function ownerMeans(
 }
 
 /** The sums of the four mip-m codes and shore bytes of `tile` around face-global corner cs, ct. */
-function aroundCorner(
+export function aroundCorner(
   tile: Tile,
   decoded: DecodedWst,
   mip: Mip,
