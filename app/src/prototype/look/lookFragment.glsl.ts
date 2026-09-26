@@ -367,11 +367,11 @@ LookSurface lookSurface() {
   float worn = clamp(0.25 + r * 0.9 + mottle * 0.35 + (fine - 0.5) * 0.25, 0.0, 1.0);
   float t1 = smoothstep(0.0, 0.55, worn);
   float t2 = smoothstep(0.55, 1.0, worn);
-  vec3 landColor = mix(mix(lookPatina, lookBronze, t1), lookBrassHi, t2 * 0.75);
-  landColor = mix(landColor, lookRiver, 0.55 * water) * (1.0 - 0.35 * coast);
   // The high ground's polish is the world view's, and wears off as the view closes: there fine
   // relief on polished brass glitters, and a cone's flanks turn from the lamp so it reads as a pit.
   float polish = o.zoom * o.zoom;
+  vec3 landColor = mix(mix(lookPatina, lookBronze, t1), lookBrassHi, t2 * mix(0.45, 0.75, polish));
+  landColor = mix(landColor, lookRiver, 0.55 * water) * (1.0 - 0.35 * coast);
   float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14 + water * 0.2;
   float landMetal = 0.75 + 0.25 * t1;
 
