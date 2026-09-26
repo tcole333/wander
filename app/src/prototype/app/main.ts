@@ -229,7 +229,8 @@ async function main(): Promise<void> {
     museum.render(camera);
 
     const s = streamer.stats();
-    const busy = s.inFlight + s.decoding + s.uploading + streamer.details().queued > 0;
+    // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.
+    const busy = s.inFlight + s.decoding + s.uploading > 0;
     if (busy || !control.settled) {
       idleSince = Infinity;
       idleFrames = 0;
