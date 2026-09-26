@@ -15,6 +15,9 @@ import {
 const DAMP_S = 0.12;
 const TILT_PER_PX = 0.25;
 const MAX_TILT = 80;
+/** Zoom per wheel pixel, as e^(rate·deltaY): a 100 px notch is 1.35x, the world to 30 km in ~25. */
+const WHEEL_RATE = 0.003;
+const PINCH_RATE = 0.01;
 
 interface Flight {
   from: ViewState;
@@ -120,7 +123,9 @@ export class ViewControl {
         event.preventDefault();
         this.stop();
         const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
-        this.goal = zoomView(this.goal, event.deltaY * lines, this.minKm, this.maxKm);
+        // A trackpad pinch arrives as ctrl+wheel with small deltas, so it zooms faster per pixel.
+        const rate = event.ctrlKey ? PINCH_RATE : WHEEL_RATE;
+        this.goal = zoomView(this.goal, event.deltaY * lines, this.minKm, this.maxKm, rate);
       },
       { passive: false },
     );
