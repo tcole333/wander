@@ -176,9 +176,11 @@ vec4 lookGradientNoise(vec3 p) {
   return 1.13 * vec4(n, g);
 }
 
-// The spike's octaves, in cycles per degree.
-#define LOOK_OCTAVE_COUNT 5
-const float LOOK_OCTAVES[LOOK_OCTAVE_COUNT] = float[LOOK_OCTAVE_COUNT](0.35, 1.3, 4.5, 14.0, 42.0);
+// The spike's octaves, in cycles per degree, and finer ones for close views: a cast, hammered
+// grain from 100 km wide to 30.
+#define LOOK_OCTAVE_COUNT 8
+const float LOOK_OCTAVES[LOOK_OCTAVE_COUNT] =
+  float[LOOK_OCTAVE_COUNT](0.35, 1.3, 4.5, 14.0, 42.0, 126.0, 378.0, 1134.0);
 
 struct LookNoise {
   float mottle;
@@ -380,8 +382,9 @@ LookSurface lookSurface() {
   // The spike baked its close patch with normals at 0.45 of the globe's: relief softens as the
   // view closes.
   o.zoom = clamp(pow(fp.degPx / LOOK_REF_DEG_PX, lookNormalZoom), 0.15, 1.0);
-  // The fine noise's relief, at the spike's 0.06.
-  float noiseRelief = 0.06 * land * lookNoise;
+  // The fine noise's relief at the spike's 0.06, keeping half its strength against that
+  // softening, so the grain stays crisp close up (all of it reads as reptile skin).
+  float noiseRelief = 0.06 * land * lookNoise * mix(1.0, 1.0 / o.zoom, 0.5);
   dh += noiseRelief * vec2(dot(nz.fineGrad, e.dir - w.dir), dot(nz.fineGrad, n.dir - s.dir));
   o.dh = dh / (2.0 * ds.x);
 
@@ -391,13 +394,19 @@ LookSurface lookSurface() {
 
   // Land: patina, bronze and worn brass highs.
   float r = pow(max(c.h, 0.0) / 6500.0, 0.55);
-  float worn = clamp(0.25 + r * 0.9 + mottle * 0.35 + (fine - 0.5) * 0.25, 0.0, 1.0);
+  // Cavities keep their patina and rises wear bright, against the heights 4 texels around: a
+  // caldera reads as a pit. Only where the heights are near full resolution, as coarser mips
+  // than that have no finer detail to set against mip 2.
+  float mip2 = textureLod(wanderHeight, vec3(vLookUv, float(vLookSlot)), 2.0).r;
+  float hMip2 = lookMeters(mip2 + vLookMid, vLookSrc);
+  float cavity = clamp((c.h - hMip2) / 250.0, -1.0, 1.0) * (1.0 - smoothstep(1.0, 2.0, fp.texPx));
+  float worn = clamp(0.25 + r * 0.9 + mottle * 0.35 + (fine - 0.5) * 0.25 + 0.6 * cavity, 0.0, 1.0);
   float t1 = smoothstep(0.0, 0.55, worn);
   float t2 = smoothstep(0.55, 1.0, worn);
-  // The high ground's polish is the world view's, and wears off as the view closes: there fine
-  // relief on polished brass glitters, and a cone's flanks turn from the lamp so it reads as a pit.
+  // The high ground's polish is the world view's, and half of it wears off as the view closes: all
+  // of it leaves the land a soft, plastic lobe, while full polish makes fine relief glitter.
   // lookPolish tames broad highs such as Tibet, which otherwise mirror the lamp as one hotspot.
-  float polish = o.zoom * o.zoom * lookPolish;
+  float polish = max(o.zoom * o.zoom, 0.5) * lookPolish;
   vec3 landColor = mix(mix(lookPatina, lookBronze, t1), lookBrassHi, t2 * mix(0.45, 0.75, polish));
   landColor = mix(landColor, lookRiver, 0.55 * water) * (1.0 - 0.35 * coast);
   float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14 + water * 0.2;
