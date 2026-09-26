@@ -1210,7 +1210,7 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
      - the vertex mirror (`vertexMirror.ts`, 5.6's rules as the shader runs them, in float32), on
        the mesh scenarios and both tiers: every instance holding a shared lattice point gets its
        code, shore, land, h, direction and position bit for bit; every T-junction lies within
-       1e-7 R of the coarse chord it splits (5.2e-8 R at worst); flipping one cS bit, cN bit or
+       2^-24 R per component of the midpoint of the coarse chord it splits; flipping one cS bit, cN bit or
        corner dN makes a shared point differ in every family that can flip it (where the field is
        linear, as on the L1 tiles at 0°N 0°E, every mip holds the same code, so not in every
        scenario); the scenarios reach every combination but the excluded ones, and none of those;
