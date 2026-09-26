@@ -41,6 +41,9 @@ const PRESETS: Record<string, ViewState> = {
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
 };
 
+/** The camera params that drive kLand and kSea, shown in the look's folder. */
+const RELIEF_BY_ZOOM = ['reliefByZoom', 'reliefNear', 'reliefFar'];
+
 /** Frames the HUD and the ready check look back over. */
 const FRAMES = 120;
 /** How long the streamer must stay idle before a screenshot. */
@@ -306,7 +309,7 @@ function buildUi({ museum, look, streamer, cameraParams, control, go, settings }
 
   const gui = new GUI({ title: 'Wander look' });
   const cameraFolder = gui.addFolder('Camera');
-  addParams(cameraFolder, cameraParams);
+  addParams(cameraFolder, cameraParams, { skip: RELIEF_BY_ZOOM });
   // The goal is replaced as it moves, so the slider reads and writes it through accessors.
   const tilt = {
     get tilt() {
@@ -319,7 +322,18 @@ function buildUi({ museum, look, streamer, cameraParams, control, go, settings }
   };
   cameraFolder.add(tilt, 'tilt', 0, 80, 1).listen();
   addParams(gui.addFolder('Scene'), museum.params, { skip: ['lat', 'lon'] });
-  addParams(gui.addFolder('Surface look'), look.params, { listen: ['kLand', 'kSea'] });
+  // Relief exaggeration in one place: kLand and kSea follow the zoom, and are locked, while
+  // reliefByZoom is on.
+  const lookFolder = gui.addFolder('Surface look');
+  const byZoom = addParams(lookFolder, cameraParams, { only: RELIEF_BY_ZOOM });
+  const lookControls = addParams(lookFolder, look.params, { listen: ['kLand', 'kSea'] });
+  const lockRelief = () => {
+    for (const name of ['kLand', 'kSea']) {
+      lookControls.get(name)?.disable(cameraParams.reliefByZoom === true);
+    }
+  };
+  byZoom.get('reliefByZoom')?.onChange(lockRelief);
+  lockRelief();
   addParams(gui.addFolder('Streamer').close(), streamer.params);
   const copy = {
     'Copy settings': () => {
