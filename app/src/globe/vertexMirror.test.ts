@@ -4,9 +4,8 @@
 // node deep under its source samples the source's mip where the rules say, and skirts hang radially
 // below their tops.
 import { beforeAll, describe, expect, test } from 'vitest';
-import { tunables } from '../config/tunables';
 import { codeToMeters } from '../surface/codes';
-import { EDGES, tileKey, type Vec3 } from '../surface/cube';
+import { EDGES, tileKey } from '../surface/cube';
 import { GRID, MIP_SIZES } from '../surface/wst';
 import { mipCodes, sideProfile, type Mip } from '../test/seams';
 import {
@@ -17,6 +16,7 @@ import {
   mirrorScenario,
   sharedGroups,
   sharedMismatches,
+  skirtCheck,
   withFlags,
   type ChordOffset,
   type MirroredScenario,
@@ -61,6 +61,12 @@ describe('wanderTanQ', () => {
 
   test('is exactly 0 at 0 and ±1 at ±1', () => {
     expect([wanderTanQ(0), wanderTanQ(1), wanderTanQ(-1)]).toEqual([0, 1, -1]);
+  });
+
+  test('is ±1 at ±1 even where tan misses 1 by an ulp', () => {
+    // Math.tan at float32 π/4 rounds to 1 in float32, but GLSL does not promise a GPU's will.
+    const high = () => f(1 + 2 ** -23);
+    expect([wanderTanQ(1, high), wanderTanQ(-1, high)]).toEqual([1, -1]);
   });
 
   test('is odd', () => {
@@ -124,11 +130,11 @@ describe.each(TIERS)('l1-globe (%s)', (_tier, segments) => {
     expect(sharedMismatches(mirrored, groups)).toEqual([]);
   });
 
-  test('with Math.tan for wanderTanQ, every face-edge point splits across faces', async () => {
-    // Math.tan(π/4) is 0.9999999999999999, as a GPU's tan may miss 1, so a face's ±1 term no
-    // longer matches the ±tan term the face across writes in the same component.
+  test('with a tanQ an ulp off ±1 at |s| = 1, every face-edge point splits across faces', async () => {
+    // As a GPU's tan may give without tanQ's exact ±1: a face's ±1 term then no longer matches
+    // the ±tanQ term the face across writes in the same component.
     const withTan = await mirrorScenario(l1Globe(), segments, {
-      tanQ: (s) => Math.tan((s * Math.PI) / 4),
+      tanQ: (s) => (Math.abs(s) === 1 ? Math.sign(s) * f(1 + 2 ** -23) : wanderTanQ(s)),
     });
     const split = new Set(sharedMismatches(withTan, groups, ['dir']).map((m) => m.split(' ')[0]));
     expect([...split].sort()).toEqual(
@@ -139,29 +145,21 @@ describe.each(TIERS)('l1-globe (%s)', (_tier, segments) => {
   });
 
   test('skirt bottoms are their tops lowered radially by skirtTexels node texels', () => {
-    const worst = { error: 0, at: '' };
-    mirrored.vertices.forEach((vertices, instance) => {
-      const { tile } = mirrored.packed.instances[instance]?.node ?? {};
-      if (!tile) throw new RangeError(`no instance ${instance}`);
-      const depth = (tunables.skirtTexels * (Math.PI / 2)) / (256 * 2 ** tile.level);
-      vertices.forEach((bottom, v) => {
-        const [k, l, role] = gridVertex(mirrored.grid, v);
-        if (role !== SKIRT) return;
-        const top = vertices[l * (G + 1) + k];
-        if (!top) throw new RangeError(`no top at (${k}, ${l})`);
-        const radial = unit(top.position);
-        for (let i = 0; i < 3; i += 1) {
-          const drop = (top.position[i] ?? NaN) - (bottom.position[i] ?? NaN);
-          const error = Math.abs(drop - (radial[i] ?? NaN) * depth);
-          if (!(error <= worst.error))
-            Object.assign(worst, { error, at: `${tileKey(tile)} (${k}, ${l})` });
-        }
-      });
-    });
     // One float32 step for components below 2: rounding the bottom costs at most half of it, and
     // the normal's own rounding, scaled by the depth, far less than the other half.
-    expect(worst.error, worst.at).toBeLessThanOrEqual(2 ** -23);
+    const { worst, at } = skirtCheck(mirrored);
+    expect(worst, at).toBeLessThanOrEqual(2 ** -23);
   });
+});
+
+test('skirts hang skirtTexels texels of the node’s own level, not its source’s', async () => {
+  // Tambora's L7 tile drawn on its L2 source, two texels deep: 610 m, not 19.5 km.
+  const deep = loneNode({ face: 1, level: 7, x: 103, y: 50 }, 2);
+  for (const segments of Object.values(GRID_SEGMENTS)) {
+    const check = skirtCheck(await mirrorScenario(deep, segments, { skirtTexels: 2 }));
+    expect(check.deep).toBeGreaterThan(0);
+    expect(check.worst, check.at).toBeLessThanOrEqual(2 ** -23);
+  }
 });
 
 describe('the decoder grid', () => {
@@ -349,6 +347,7 @@ describe.each(TIER_NAMES)('the fixture families (%s)', (tier) => {
   const shared: string[] = [];
   const chords: ChordOffset[] = [];
   const controls: Control[] = [];
+  const skirts = { worst: 0, at: '', tjunctions: 0, deep: 0 };
   beforeAll(async () => {
     for (const { name: family, scenarios } of FAMILIES) {
       for (const scenario of scenarios) {
@@ -357,6 +356,11 @@ describe.each(TIER_NAMES)('the fixture families (%s)', (tier) => {
         const named = (at: string) => `${scenario.name}: ${at}`;
         shared.push(...sharedMismatches(mirrored, groups).map(named));
         chords.push(...chordOffsets(mirrored, groups).map((c) => ({ ...c, at: named(c.at) })));
+        const skirt = skirtCheck(mirrored);
+        skirts.tjunctions += skirt.tjunctions;
+        skirts.deep += skirt.deep;
+        if (!(skirt.worst <= skirts.worst))
+          Object.assign(skirts, { worst: skirt.worst, at: named(skirt.at) });
         controls.push(...(await negativeControls(family, mirrored, groups)));
       }
     }
@@ -371,6 +375,12 @@ describe.each(TIER_NAMES)('the fixture families (%s)', (tier) => {
     // of its 2^-22 step, and halving is exact.
     expect(chords.length).toBeGreaterThan(0);
     expect(chords.filter(({ offset }) => !(offset <= 2 ** -24))).toEqual([]);
+  });
+
+  test('skirt bottoms are their tops lowered radially, at T-junctions and deep sources too', () => {
+    expect(skirts.tjunctions).toBeGreaterThan(0);
+    expect(skirts.deep).toBeGreaterThan(0);
+    expect(skirts.worst, skirts.at).toBeLessThanOrEqual(2 ** -23);
   });
 
   test('flipping one cS bit, one cN bit or one corner dN makes a shared point differ', () => {
@@ -467,8 +477,3 @@ describe('coverage', () => {
     expect(idle).toEqual([]);
   });
 });
-
-function unit(p: Vec3): Vec3 {
-  const length = Math.hypot(...p);
-  return [p[0] / length, p[1] / length, p[2] / length];
-}
