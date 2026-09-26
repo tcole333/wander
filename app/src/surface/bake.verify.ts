@@ -2,16 +2,19 @@
 // `npm run verify:bake` decodes every tile of build/region as the app decodes it and checks seams
 // within faces and on face edges with the fixture's checks (../test/seams.ts): border texels, the
 // edge profiles at every mip, where they meet and what their owners hold. The vertex mirror then
-// draws every same-level pair of neighbors and proves their shared vertices identical
-// (../test/mirrorPair.ts). It also checks each header against its planes, bounds.bin and
-// availability against the tiles, and known places. It covers what the fixture never exercises:
-// the GEBCO overviews, global reads with the longitude wrap and pole clamp, full Natural Earth
-// data, and owner-frame rasters on real face edges. It runs only locally, since the bake reads the
-// raw data; a missing or stale bake fails, naming the command.
+// draws every same-level pair of neighbors, proves their shared vertices identical and gates the
+// non-owner crease along face edges (../test/mirrorPair.ts). It also checks each header against
+// its planes, bounds.bin and availability against the tiles, and known places. It covers what the
+// fixture never exercises: the GEBCO overviews, global reads with the longitude wrap and pole
+// clamp, full Natural Earth data, and owner-frame rasters on real face edges. It runs only
+// locally, since the bake reads the raw data; a missing or stale bake fails, naming the command.
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { GRID_SEGMENTS } from '../globe/tileGrid';
-import { surfaceAvailability } from '../test/fixture';
-import { mirrorPair, type PairSeams } from '../test/mirrorPair';
+import { nearestRank } from '../perf/frameStats';
+import { REPO_ROOT, surfaceAvailability } from '../test/fixture';
+import { mirrorPair, type CreaseSample, type PairSeams } from '../test/mirrorPair';
 import { DATELINE_GEBCO, TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
 import {
   layerFiles,
@@ -71,6 +74,23 @@ const GRID_DEG = 0.1;
 const GRID_KM = 11.1; // 0.1° of latitude
 // The mirror draws each pair on the full tier at d = 0, so every vertex takes mip 2.
 const SEGMENTS = GRID_SEGMENTS.full;
+// The non-owner crease in meters by level, [p95, max] over the face-edge vertices of every
+// available pair, measured on 2026-09-25 on the region bake ver8 ee095df5
+// (docs/design/measurements/work/surface-bake/face-edge-crease.json). A level may grow 10%.
+const CREASE_MEASURED: readonly (readonly [p95: number, max: number])[] = [
+  [156.4, 469.1],
+  [97.7, 410.5],
+  [68.5, 352.1],
+  [53.8, 337.5],
+  [44.2, 345.9],
+  [24.5, 98.0],
+  [16.0, 118.5],
+];
+const CREASE_SLACK = 1.1;
+// A 30 km wide view at 1440 CSS px spans 20.8 m per px at its target, so a crease of Δh meters,
+// exaggerated k times and seen side-on, spans Δh·k·1440/30,000 px there.
+const VIEW = { widthPx: 1440, widthM: 30_000 };
+const EXAGGERATIONS = [8, 16] as const;
 
 const bake = readRegionBake();
 const avail = surfaceAvailability(bake.surface);
@@ -104,6 +124,8 @@ interface Findings {
   mirrorPoints: number[];
   mirror: string[];
   landSplits: string[];
+  /** Per level, the non-owner crease at each face-edge point, once per point and non-owner face. */
+  creases: Map<string, CreaseSample>[];
 }
 
 let bounds: Map<number, [number, number]>;
@@ -145,6 +167,7 @@ async function sweep(): Promise<Findings> {
     mirrorPoints: levels.map(() => 0),
     mirror: [],
     landSplits: [],
+    creases: levels.map(() => new Map<string, CreaseSample>()),
   };
   for (const t of available) {
     const key = tileKey(t);
@@ -220,6 +243,7 @@ function mirrorSeams(
   found.mirrorPoints[t.level] = (found.mirrorPoints[t.level] ?? 0) + seams.points;
   found.mirror.push(...seams.mismatches);
   found.landSplits.push(...seams.landSplits);
+  for (const sample of seams.creases) found.creases[t.level]?.set(sample.id, sample);
 }
 
 /** The decoded tiles that could hold the owner-frame texels of `t`'s entries, of those baked. */
@@ -255,6 +279,68 @@ function failures(list: string[]): { count: number; first: string[] } {
 }
 
 const NONE = { count: 0, first: [] };
+
+interface CreaseLevel {
+  level: number;
+  points: number;
+  /** Meters, before exaggeration. */
+  p50: number;
+  p95: number;
+  max: number;
+  /** p95 and max in px at each exaggeration, in VIEW. */
+  px: Record<string, { p95: number; max: number }>;
+  /** Points where the non-owner's own corner mean of shore bytes would choose land differently. */
+  ownGridLandSplits: number;
+}
+
+/** Each level's non-owner crease: its face-edge points, percentiles and pixels in VIEW. */
+function creaseLevels(): CreaseLevel[] {
+  const round = (value: number, places: number) => Number(value.toFixed(places));
+  const px = (meters: number, k: number) => round((meters * k * VIEW.widthPx) / VIEW.widthM, 2);
+  return findings.creases.flatMap((samples, level) => {
+    if (samples.size === 0) return [];
+    const meters = [...samples.values()].map((sample) => sample.meters);
+    const p95 = nearestRank(meters, 0.95);
+    const max = Math.max(...meters);
+    return {
+      level,
+      points: samples.size,
+      p50: round(nearestRank(meters, 0.5), 1),
+      p95: round(p95, 1),
+      max: round(max, 1),
+      px: Object.fromEntries(
+        EXAGGERATIONS.map((k) => [`x${k}`, { p95: px(p95, k), max: px(max, k) }]),
+      ),
+      ownGridLandSplits: [...samples.values()].filter((sample) => sample.ownLandSplit).length,
+    };
+  });
+}
+
+/** The crease per level and the mirror's pair counts, in build/lab/crease.json. */
+function writeCreaseReport(creases: CreaseLevel[]): void {
+  const dir = join(REPO_ROOT, 'build', 'lab');
+  mkdirSync(dir, { recursive: true });
+  const report = {
+    what:
+      'The non-owner face-edge crease (streaming.md 5.6 rule 3): |h(the profile code the vertex ' +
+      "takes) - h(the non-owner tile's own 2D corner mean at the vertex mip)|, per level, at the " +
+      'face-edge vertices of every available same-level pair drawn at d = 0 on the full tier ' +
+      '(vertex mip 2), once per point and non-owner face. Meters before exaggeration; ' +
+      'percentiles are nearest-rank.',
+    px:
+      `meters * k * ${VIEW.widthPx} / ${VIEW.widthM}: a ${VIEW.widthM / 1000} km wide view at ` +
+      `${VIEW.widthPx} px, the exaggerated offset seen side-on at the target`,
+    ver8: bake.surface.ver,
+    levels: creases,
+    mirror: {
+      pairs: findings.mirrorPairs,
+      points: findings.mirrorPoints,
+      mismatches: findings.mirror.length,
+      landSplits: findings.landSplits.length,
+    },
+  };
+  writeFileSync(join(dir, 'crease.json'), `${JSON.stringify(report, null, 1)}\n`);
+}
 
 /** The tile at `level` holding (lon, lat), and the stored index of the texel there. */
 function locate(lon: number, lat: number, level: number): { tile: Tile; at: number } {
@@ -375,6 +461,22 @@ describe('the vertex mirror on every same-level pair at d = 0', () => {
 
   it('on a face edge, both tiles choose land or sea alike at every vertex', () => {
     expect(failures(findings.landSplits)).toEqual(NONE);
+  });
+
+  it("keeps each level's non-owner crease within 10% over its measured p95 and max", () => {
+    const creases = creaseLevels();
+    writeCreaseReport(creases);
+    expect(creases.map(({ level }) => level)).toEqual([...CREASE_MEASURED.keys()]);
+    const over = creases.flatMap(({ level, p95, max }) => {
+      const [p95Measured = NaN, maxMeasured = NaN] = CREASE_MEASURED[level] ?? [];
+      const p95Over = p95 > p95Measured * CREASE_SLACK || Number.isNaN(p95Measured);
+      const maxOver = max > maxMeasured * CREASE_SLACK || Number.isNaN(maxMeasured);
+      return [
+        ...(p95Over ? [`L${level} p95 ${p95} m, measured ${p95Measured}`] : []),
+        ...(maxOver ? [`L${level} max ${max} m, measured ${maxMeasured}`] : []),
+      ];
+    });
+    expect(over).toEqual([]);
   });
 });
 
