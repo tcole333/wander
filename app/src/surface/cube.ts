@@ -206,6 +206,17 @@ export function neighbor(t: Tile, edge: Edge): Neighbor {
   return { tile, edge: facing, reversed };
 }
 
+/**
+ * Indices into EDGES of the tile's sides that lie on a face edge, in N, E, S, W order: the sides
+ * that store an edge profile (streaming.md 3.1). An L0 tile has all four, a tile at a face corner
+ * two, and a tile inside a face none.
+ */
+export function faceEdgeSides(t: Tile): number[] {
+  const last = 2 ** t.level - 1;
+  const onFaceEdge = [t.y === last, t.x === last, t.y === 0, t.x === 0];
+  return onFaceEdge.flatMap((on, e) => (on ? [e] : []));
+}
+
 /** Bit k of an availability bitmap: byte k >> 3, bit k & 7, least significant first. */
 export function availGet(bitmap: Uint8Array, k: number): boolean {
   const byte = bitmap[k >> 3];
