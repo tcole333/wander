@@ -29,7 +29,7 @@ function recordingPools(log: Write[]): SurfacePools {
 const tile = {
   heightMips: [264, 132, 66].map((size) => new Uint16Array(size * size)),
   channelMips: [264, 132, 66].map((size) => new Uint8Array(2 * size * size)),
-  edges: new Uint16Array(257 * 4),
+  edges: new Uint16Array(257 * 12 * 2),
 } as unknown as DecodedWst;
 
 test('writes the heights, then shore and water, then the edges, into the one slot', () => {
@@ -53,6 +53,6 @@ test('writes the heights, then shore and water, then the edges, into the one slo
 
 test('sizes each part by the bytes it writes', () => {
   expect(surfaceParts(recordingPools([]), 0, tile).map((part) => part.bytes)).toEqual([
-    139_392, 34_848, 8_712, 139_392, 34_848, 8_712, 2_056,
+    139_392, 34_848, 8_712, 139_392, 34_848, 8_712, 12_336,
   ]);
 });
