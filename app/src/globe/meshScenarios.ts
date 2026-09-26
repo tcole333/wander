@@ -78,11 +78,16 @@ export function loneNode(tile: Tile, source = tile.level): Scenario {
 }
 
 /**
- * The scenario's instances, one per node in node order, once seamFlags accepts its cover. L0-L1
- * tiles take their fixed slots, their node indices (5.5, Fixed slots), and deeper tiles the next
- * free slot from 30. `codeMid` gives a tile's header codeMid.
+ * The scenario's instances, one per node in node order, once seamFlags accepts its cover. `codeMid`
+ * gives a tile's header codeMid, and `resident` the slot a tile already holds, where the pools hold
+ * every tile before the scenario packs. Otherwise L0-L1 tiles take their fixed slots, their node
+ * indices (5.5, Fixed slots), and deeper tiles the next free slot from 30.
  */
-export function packScenario(scenario: Scenario, codeMid: (tile: Tile) => number): PackedScenario {
+export function packScenario(
+  scenario: Scenario,
+  codeMid: (tile: Tile) => number,
+  resident?: (tile: Tile) => number,
+): PackedScenario {
   const { nodes, partial } = scenario;
   const flags = seamFlags(nodes, { partial });
   const slots = new Map<number, Tile>();
@@ -92,7 +97,7 @@ export function packScenario(scenario: Scenario, codeMid: (tile: Tile) => number
     const key = tileKey(tile);
     const known = slotOf.get(key);
     if (known !== undefined) return known;
-    const assigned = tile.level <= 1 ? nodeIndex(tile) : next++;
+    const assigned = resident ? resident(tile) : tile.level <= 1 ? nodeIndex(tile) : next++;
     slotOf.set(key, assigned);
     slots.set(assigned, tile);
     return assigned;
