@@ -266,5 +266,3 @@ ongoing work that starts in v1.
 ## Open questions
 
 - Music score and narration, after hearing v1's audio.
-- The zoom floor, the closest view in stories and explore, decided by looking at the Tambora close
-  view on real GEBCO data (streaming design, owner decision 1).

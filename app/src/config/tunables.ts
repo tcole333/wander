@@ -9,8 +9,9 @@ export const tunables = {
   // CSS px of screen error before a node refines; merge at `merge` times that. Section 6's
   // budgets were modelled with these values, so changing them invalidates the budgets.
   refinePx: { lite: 1.5, full: 0.83, merge: 0.7 },
-  // Visible width at the closest story and explore view (still open: owner decision 1).
-  zoomFloorKm: 100,
+  // Visible width at the closest story and explore view over L7, doubling for each coarser level
+  // under the view (owner decision 1).
+  zoomFloorKm: 30,
   // Relief exaggeration: land displaces by kLand·max(h, 0), sea by kSea·min(h, 0) with Bathymetry
   // on (5.6 rule 7).
   kLand: 8,

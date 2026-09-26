@@ -917,8 +917,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     clears the ceiling under it by `cameraClearance.lineDeg`, counting curvature; near is half the
     remaining gap and far reaches the displaced horizon. So the camera never sits in the terrain and
     never jumps when tiles land, whatever the exaggeration.
-  - **Zoom floor:** an owner decision (1). It starts at `zoomFloorKm` (~100 km across, where an L6
-    texel spans ~9 CSS px at 1440 px wide) and is settled by a look at 100, 50 and 30 km in E1/E2.
+  - **Zoom floor** (owner decision 1): it follows the data. The closest view is `zoomFloorKm`
+    (30 km across) over the deepest level the view center has, L7, and doubles for each level
+    coarser: 60 km over L6 land and shelf, 240 km over the L4 deep ocean. Closer, magnified texels
+    read as soft or molten.
 - **Per-beat plan:**
   - **Critical** = the beat's story-core items + surface tiles at desired−1 + the beat's overlay tiles
     (with its snapshot's index and meta) + the decoded card.
@@ -1488,8 +1490,8 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | Name | Start | Controls | Tuned by |
 |---|---|---|---|
 | `refinePx` | 1.5 / 0.83 CSS px; merge at 0.7× | LOD refinement | fixed: the beat-model profiles; changing them invalidates section 6 |
-| `zoomFloorKm` | ~100 km across | closest view | owner decision 1, after E1/E2 |
-| `kLand`, `kSea` | ×8, ×8 | relief and bathymetry exaggeration (5.6 rule 7) | eye, at E1's look checkpoint with the owner |
+| `zoomFloorKm` | 30 km across over L7, doubling per coarser level | closest view | owner decision 1 |
+| `kLand`, `kSea` | ×8, ×8 at 3,000 km across and wider, easing log-linearly to ×2 at 100 km and closer | relief and bathymetry exaggeration (5.6 rule 7) | owner decision 19 |
 | `skirtTexels` | 1 node texel | skirt depth below a node's boundary, lowered radially (5.6 rule 8) | fixed: shared points are bit-identical, so the only gaps are T-junction midpoints rounding off the coarse chord, by half a float32 step per component, under 1.1e-7 R (0.7 m); one texel is 305 m even at L7, over 400 times that, so only a ray within about 2 mrad of the radial wall passes a gap without meeting a skirt |
 | `cameraClearance` | 2 km or 0.25 of the view distance; the view line 2° above the terrain | camera height and tilt cap (5.7) | eye, E2 |
 | `revealHold`, `revealMorph` | 300 ms, 700 ms | still-camera batched reveal | eye, E2 |
@@ -1605,6 +1607,12 @@ Decided for the tile mesh (issue #4), 2026-09-25:
     beds would become trenches (Baikal's −1,168 m bed about 19 km deep at ×16) and the Dead Sea a 4 km
     pit; flat at sea level they read as water and lowland.
 
-Still open:
+Decided at the look prototype (issue #4), 2026-09-26, after looking at the global bake in the
+spike's look:
 
-1. **Zoom floor** for stories and explore (start ~100 km; compare 100/50/30 km in E1/E2).
+1. **Zoom floor:** it follows the data: 30 km across over L7, doubling for each coarser level
+   (5.7). A fixed 100 km would keep Tambora's caldera out of reach; a fixed 30 km would magnify L6
+   into melted blobs away from the L7 regions.
+19. **Relief follows the zoom:** kLand and kSea are ×8 at 3,000 km across and wider and ×2 at
+    100 km and closer, log-linear between (the PRD's "especially when zoomed out"). A constant ×8
+    turns close views into bronze walls tens of kilometers high.
