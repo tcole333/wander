@@ -758,8 +758,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     mirrored into a float texture.
   - `surfaceHeight(dir)` evaluates exactly what the globe draws (source, fade partner, morph, edges), so
     ribbons, medallions, labels and the plume emitter stay on the surface mid-fade.
-  - The CPU `heightAt()` uses the 33² grids. It serves camera clearance and event-label anchors, where a
-    few pixels of error do not show.
+  - The CPU `heightAt()` uses the 33² grids. It serves event-label anchors, where a few pixels of error
+    do not show. Camera clearance comes from the ceiling field (5.7) instead, which does not move as
+    tiles land.
 - **Debug key check** (debug builds only): a one-row RGBA8 texture holds each slot's tile key, written
   when the tile is published. The fragment shader outputs magenta where a slot's key differs from the
   key the instance expects, and a magenta sphere at 0.98 R shows any hole.
@@ -824,6 +825,18 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     budgets in section 6 and the pool sizes.
   - Viewports over 1440×900 CSS scale the threshold by √(area ratio), so tile counts stay inside the
     pools.
+  - **Camera clearance** (`app/src/globe/clearance.ts`, `viewCamera.ts`): a ceiling field built at boot
+    from `bounds.bin` and availability bounds how high the drawn surface can reach near a direction:
+    for each node, the highest bound over its available ancestors (drawn where it has no tile, and at
+    seams), itself and its available descendants (drawn when the view is finer, and higher, since a
+    coarse tile's texels average its finer tiles' peaks away), times `kLand`. Nodes enter with weights
+    that fade out between one and two cap radii, and levels blend by the cap's size, so the field is
+    continuous and never changes as tiles land. A view becomes a pose in four steps, each continuous
+    in the view: the target sits on the ceiling at the view's center; the tilt is capped so the line
+    from the target back to the camera clears the ceiling under it by `cameraClearance.lineDeg`,
+    counting curvature; the camera slides back along its ray until it is `cameraClearance` above the
+    ceiling around it; near is half the remaining gap and far reaches the displaced horizon. So the
+    camera never sits in the terrain and never jumps when tiles land, whatever the exaggeration.
   - **Zoom floor:** an owner decision (1). It starts at `zoomFloorKm` (~100 km across, where an L6
     texel spans ~9 CSS px at 1440 px wide) and is settled by a look at 100, 50 and 30 km in E1/E2.
 - **Per-beat plan:**
@@ -1312,6 +1325,8 @@ an E-number means that experiment sets it. Paired values are lite / full.
 |---|---|---|---|
 | `refinePx` | 1.5 / 0.83 CSS px; merge at 0.7× | LOD refinement | fixed: the beat-model profiles; changing them invalidates section 6 |
 | `zoomFloorKm` | ~100 km across | closest view | owner decision 1, after E1/E2 |
+| `kLand`, `kSea` | ×8, ×8 | relief and bathymetry exaggeration (5.6 rule 7) | eye, at E1's look checkpoint with the owner |
+| `cameraClearance` | 2 km or 0.25 of the view distance; the view line 2° above the terrain | camera height and tilt cap (5.7) | eye, E2 |
 | `revealHold`, `revealMorph` | 300 ms, 700 ms | still-camera batched reveal | eye, E2 |
 | `tileFade` | 250 ms | per-tile crossfade while moving | eye |
 | `bevelFade` | 400 ms | L1 coastal bevel fade-in | eye |
