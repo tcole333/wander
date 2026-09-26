@@ -47,6 +47,8 @@ type Clearance = typeof tunables.cameraClearance;
  * likeliest to block the view.
  */
 const LINE_SAMPLES = 16;
+/** Slides at most; each reads a larger cap, and a steady one ends at once. */
+const MAX_SLIDES = 16;
 
 export function viewPose(
   view: View,
@@ -65,33 +67,44 @@ export function viewPose(
 
   // The target, on the ceiling at the view's center.
   const groundKm = ceiling(g, view.viewKm / 8);
-  const { north, east } = tangentFrame(g);
+  const target = scale(g, 1 + groundKm / R);
+  const { north, east } = tangentFrame(view.lon * toRad, view.lat * toRad);
   const heading = view.headingDeg * toRad;
   const forward = add(scale(north, Math.cos(heading)), scale(east, Math.sin(heading)));
+  const rayAt = (tilt: number) =>
+    normalize(add(scale(g, Math.cos(tilt)), scale(forward, -Math.sin(tilt))));
 
-  // The tilt cap: the view line from the target back toward the camera must clear every sample
-  // of the ceiling under it by lineDeg, counting the globe's curvature.
+  // The camera slides back along its ray until it clears the ceiling by the margin. The ceiling is
+  // read over a cap that covers the camera's footprint, so the slide repeats until the cap it read
+  // covers where the camera ends up; each pass reads a larger cap, so it only moves back.
+  const margin = Math.max(clearance.minKm, clearance.ofView * d0);
+  const slide = (tilt: number) => {
+    const ray = rayAt(tilt);
+    let distance = d0;
+    let highKm = groundKm;
+    for (let pass = 0; pass < MAX_SLIDES; pass += 1) {
+      highKm = ceiling(g, distance * (Math.sin(tilt) + Math.cos(tilt)));
+      const next = Math.max(d0, reachRadius(target, ray, 1 + (highKm + margin) / R) * R);
+      if (next <= distance) break;
+      distance = next;
+    }
+    return { ray, distance, highKm };
+  };
+
+  // The tilt cap: the view line from the target back to the camera must clear every sample of the
+  // ceiling under it by lineDeg, counting the globe's curvature, out to where the camera would sit
+  // at the requested tilt. A smaller tilt only brings the camera nearer overhead.
   const requested = view.tiltDeg * toRad;
+  const reach = slide(requested).distance * Math.sin(requested);
   let steepest = 0;
   for (let i = 1; i <= LINE_SAMPLES; i += 1) {
-    const x = d0 * Math.sin(requested) * (i / LINE_SAMPLES) ** 2;
+    const x = reach * (i / LINE_SAMPLES) ** 2;
     const dir = along(g, scale(forward, -1), x / R);
     const rise = ceiling(dir, view.viewKm / 8) - groundKm - (x * x) / (2 * R);
     steepest = Math.max(steepest, Math.atan2(rise, x));
   }
   const tilt = Math.max(0, Math.min(requested, Math.PI / 2 - steepest - clearance.lineDeg * toRad));
-
-  // The camera, on its ray from the target, slid back until it clears the ceiling around it.
-  const target = scale(g, 1 + groundKm / R);
-  const ray = normalize(add(scale(g, Math.cos(tilt)), scale(forward, -Math.sin(tilt))));
-  const margin = Math.max(clearance.minKm, clearance.ofView * d0);
-  let distance = d0;
-  let highKm = groundKm;
-  for (let pass = 0; pass < 2; pass += 1) {
-    highKm = ceiling(g, distance * (Math.sin(tilt) + Math.cos(tilt)));
-    const need = 1 + (highKm + margin) / R;
-    distance = Math.max(d0, reachRadius(target, ray, need) * R);
-  }
+  const { ray, distance, highKm } = slide(tilt);
   const position = add(target, scale(ray, distance / R));
 
   const radius = length(position);
@@ -117,13 +130,15 @@ function reachRadius(from: Vec3, ray: Vec3, need: number): number {
   return -b + Math.sqrt(b * b - c);
 }
 
-/** North and east at `g` (globe frame G, +Z north); at a pole, north is +X's meridian. */
-function tangentFrame(g: Vec3): { north: Vec3; east: Vec3 } {
-  const pole: Vec3 = [0, 0, 1];
-  let east = cross(pole, g);
-  if (length(east) < 1e-12) east = [0, 1, 0];
-  east = normalize(east);
-  return { north: normalize(cross(g, east)), east };
+/**
+ * North and east at longitude `lon` and latitude `lat` (radians; globe frame G, +Z north), from the
+ * angles rather than the pole's cross product, so a view that reaches a pole keeps its heading.
+ */
+function tangentFrame(lon: number, lat: number): { north: Vec3; east: Vec3 } {
+  return {
+    east: [-Math.sin(lon), Math.cos(lon), 0],
+    north: [-Math.sin(lat) * Math.cos(lon), -Math.sin(lat) * Math.sin(lon), Math.cos(lat)],
+  };
 }
 
 /** The point `angle` radians from `g` toward the tangent direction `toward`. */
@@ -139,9 +154,6 @@ function scale(a: Vec3, k: number): Vec3 {
 }
 function dot(a: Vec3, b: Vec3): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-function cross(a: Vec3, b: Vec3): Vec3 {
-  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 function length(a: Vec3): number {
   return Math.sqrt(dot(a, a));

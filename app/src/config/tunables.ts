@@ -15,8 +15,9 @@ export const tunables = {
   // on (5.6 rule 7).
   kLand: 8,
   kSea: 8,
-  // The camera stays at least minKm, or ofView of its distance to the target, above the terrain
-  // ceiling, and the line from the target to it clears the terrain by lineDeg (5.7).
+  // The camera stays the larger of minKm and ofView of the view's own distance (before any slide)
+  // above the terrain ceiling, and the line from the target to it clears the terrain by lineDeg
+  // (5.7).
   cameraClearance: { minKm: 2, ofView: 0.25, lineDeg: 2 },
   revealHold: 300,
   revealMorph: 700,
