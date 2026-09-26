@@ -25,12 +25,15 @@ type DataName = keyof typeof DATA_HOSTS;
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
 const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 };
 /**
- * Keys 1-9 in this order. world's width is the widest the zoom allows. The close views look down
- * at 25 degrees: at 45 the near rim hides Tambora's caldera floor, and its lit far wall reads as a
+ * Keys 1-9 and 0 in this order. world's width is the widest the zoom allows; region and close are
+ * the spike's REGION and CLOSE framings, for comparing like for like. The close views look down at
+ * 25 degrees: at 45 the near rim hides Tambora's caldera floor, and its lit far wall reads as a
  * dome.
  */
 const PRESETS: Record<string, ViewState> = {
   world: WORLD,
+  region: { lon: 105, lat: -2, viewKm: 16000, tilt: 0, heading: 0 },
+  close: { ...TAMBORA, viewKm: 2700, tilt: 24 },
   sunda: { ...TAMBORA, viewKm: 1500, tilt: 20 },
   sumbawa: { ...TAMBORA, viewKm: 300, tilt: 45 },
   close100: { ...TAMBORA, viewKm: 100, tilt: 25 },
@@ -40,6 +43,9 @@ const PRESETS: Record<string, ViewState> = {
   mediterranean: { lon: 15, lat: 38, viewKm: 3000, tilt: 15, heading: 0 },
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
 };
+
+/** The keys that fly to the presets, in order; the rest are on the preset bar alone. */
+const PRESET_KEYS = '1234567890';
 
 /** The camera params that drive kLand and kSea, shown in the look's folder. */
 const RELIEF_BY_ZOOM = ['reliefByZoom', 'reliefNear', 'reliefFar'];
@@ -156,7 +162,7 @@ async function main(): Promise<void> {
 
   addEventListener('keydown', (event) => {
     if (event.target instanceof HTMLInputElement) return;
-    const name = Object.keys(PRESETS)[Number(event.key) - 1];
+    const name = Object.keys(PRESETS)[PRESET_KEYS.indexOf(event.key)];
     if (name) go(name);
   });
   addEventListener('resize', () => {
@@ -304,7 +310,7 @@ function buildUi({ museum, look, streamer, cameraParams, control, go, settings }
   const bar = document.getElementById('presets');
   Object.keys(PRESETS).forEach((name, i) => {
     const button = document.createElement('button');
-    button.textContent = `${i + 1} ${name}`;
+    button.textContent = `${PRESET_KEYS[i] ?? ''} ${name}`.trim();
     button.addEventListener('click', () => go(name));
     bar?.append(button);
   });
