@@ -4,7 +4,15 @@ import math
 import numpy as np
 import pytest
 
-from prebuild.cube import TILE, face_st, lonlat_to_dir, parse_tile_key, st_to_dir, texel_center
+from prebuild.cube import (
+    TILE,
+    face_edge_sides,
+    face_st,
+    lonlat_to_dir,
+    parse_tile_key,
+    st_to_dir,
+    texel_center,
+)
 from prebuild.expect import KIRKUK_VERTEX, sample_points, synthetic_tiles, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.profiles import Profile, make_context
@@ -95,7 +103,7 @@ OUTPUT_BYTES = {
     "channel0": 264 * 264 * 2,
     "channel1": 132 * 132 * 2,
     "channel2": 66 * 66 * 2,
-    "edges": 4 * 257 * 2,
+    "edges": 12 * 257 * 2 * 2,
     "grid": 33 * 33 * 4,
 }
 
@@ -144,3 +152,10 @@ def test_each_synthetic_output_is_a_little_endian_array_of_its_size(synthetic):
         assert np.array_equal(grid, decoder_outputs(t)["grid"].ravel()), row["name"]
         codes = np.frombuffer((expect / row["outputs"]["codes"]).read_bytes(), "<i2")
         assert np.array_equal(codes, t.codes.ravel()), row["name"]
+        edges = np.frombuffer((expect / row["outputs"]["edges"]).read_bytes(), "<u2")
+        assert np.array_equal(edges, decoder_outputs(t)["edges"].ravel()), row["name"]
+
+
+def test_the_synthetic_tiles_store_profiles_on_0_1_2_and_4_sides(synthetic):
+    _, rows = synthetic
+    assert sorted(len(face_edge_sides(parse_tile_key(row["key"]))) for row in rows) == [0, 1, 2, 4]
