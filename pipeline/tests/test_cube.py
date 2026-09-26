@@ -17,6 +17,7 @@ from prebuild.cube import (
     available_nodes,
     corner,
     dir_to_lonlat,
+    face_edge_sides,
     face_of,
     face_st,
     lonlat_to_dir,
@@ -424,3 +425,33 @@ def test_profile_owner_of_an_entry_along_an_east_or_west_edge(ask, owner):
 def test_profile_owner_rejects_an_entry_off_the_edge():
     with pytest.raises(ValueError):
         profile_owner(Tile(0, 1, 0, 0), "N", 257)
+
+
+# The sides that store edge profiles
+
+
+def test_every_side_of_an_l0_tile_lies_on_a_face_edge():
+    assert all(face_edge_sides(Tile(face, 0, 0, 0)) == (0, 1, 2, 3) for face in range(6))
+
+
+@pytest.mark.parametrize("level", range(1, 8))
+def test_the_kirkuk_corner_tiles_store_two_sides(level):
+    last = (1 << level) - 1
+    assert face_edge_sides(Tile(0, level, last, last)) == (0, 1)  # N, E
+    assert face_edge_sides(Tile(1, level, 0, last)) == (0, 3)  # N, W
+    assert face_edge_sides(Tile(4, level, last, 0)) == (1, 2)  # E, S
+
+
+def test_a_tile_inside_a_face_stores_no_side():
+    assert face_edge_sides(Tile(1, 7, 103, 50)) == ()
+
+
+def test_a_tile_along_one_face_edge_stores_that_side():
+    assert face_edge_sides(Tile(5, 9, 300, 511)) == (0,)  # N
+    assert face_edge_sides(Tile(4, 2, 1, 0)) == (2,)  # S
+
+
+def test_face_edge_sides_are_the_sides_whose_neighbor_is_on_another_face():
+    for t in all_tiles(3):
+        across = [e for e, edge in enumerate(EDGES) if neighbor(t, edge).tile.face != t.face]
+        assert face_edge_sides(t) == tuple(across), t.key()
