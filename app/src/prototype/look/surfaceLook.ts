@@ -72,8 +72,9 @@ export function defaultLookParams(): Params {
     // Relief normals scale by (degrees per pixel / 0.13)^normalZoom, as the spike's close patch
     // baked its normals at 0.45 of the globe's.
     normalZoom: 0.35,
-    // The steepest tilt the relief gives a normal, as a slope.
-    maxSlope: 2,
+    // The steepest tilt the relief gives a normal, as a slope: 45 degrees. Steeper, fine relief
+    // tilts its normals past the lamp's reflection and glitters.
+    maxSlope: 1,
     // The spike's tune.relief: the weight of elevation and depth terraces in the relief.
     relief: 1,
     // Mips of blur on the heights the look reads, as the spike blurred its terrain: smoother
