@@ -29,7 +29,7 @@ const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading:
  * Keys 1-9 and 0 in this order. world's width is the widest the zoom allows; region and close are
  * the spike's REGION and CLOSE framings, for comparing like for like. The close views look down at
  * 25 degrees: at 45 the near rim hides Tambora's caldera floor, and its lit far wall reads as a
- * dome.
+ * dome. The Himalaya reads as one range at 800 km; closer, its dissected flanks fill the frame.
  */
 const PRESETS: Record<string, ViewState> = {
   world: WORLD,
@@ -40,7 +40,7 @@ const PRESETS: Record<string, ViewState> = {
   close100: { ...TAMBORA, viewKm: 100, tilt: 25 },
   close50: { ...TAMBORA, viewKm: 50, tilt: 25 },
   close30: { ...TAMBORA, viewKm: 30, tilt: 25 },
-  himalaya: { lon: 87.0, lat: 28.0, viewKm: 300, tilt: 45, heading: 0 },
+  himalaya: { lon: 86.5, lat: 28.5, viewKm: 800, tilt: 40, heading: 0 },
   mediterranean: { lon: 15, lat: 38, viewKm: 3000, tilt: 15, heading: 0 },
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
 };
