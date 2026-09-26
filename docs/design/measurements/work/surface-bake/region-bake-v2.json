@@ -1,0 +1,311 @@
+{
+  "what": "The milestone-1 region bake in .wst format version 2 (per-mip edge profiles with shore bytes, stored only on sides that lie on a face edge; streaming.md 3.0 item 7, 3.1), `uv run prebuild --profile region` run from pipeline/ at commit 291607d, against the version 1 bake of region-bake.json rebuilt from main at 443754f (ver8 085efb54 again). Sizes are the stored .wst files (gzip level 9) in bytes; p50 and p90 are the nearest tile's size, as in region-bake.json.",
+  "date": "2026-09-25",
+  "machine": {
+    "model": "MacBook Pro, Apple M5",
+    "cpus": 10,
+    "memoryGB": 24,
+    "os": "macOS 26.5",
+    "python": "3.14.6",
+    "jobs": 8
+  },
+  "ver8": "ee095df5",
+  "v1Ver8": "085efb54",
+  "reproduced": "A second run of the surface stage published to surf/ee095df5/ again and found the same bytes there.",
+  "wallSeconds": {
+    "note": "overviews cached",
+    "coverage": 26.0,
+    "surface": 95.3,
+    "total": 125.6,
+    "surfaceSecondRun": 95.1
+  },
+  "counts": [
+    6,
+    24,
+    96,
+    384,
+    1536,
+    257,
+    328,
+    18
+  ],
+  "tiles": 2649,
+  "qLand": [
+    39.09375,
+    19.546875,
+    9.78125,
+    4.890625,
+    2.453125,
+    2.0,
+    2.0,
+    2.0
+  ],
+  "sizeBytesByLevel": [
+    {
+      "tiles": 6,
+      "p50": 48674,
+      "p90": 61021,
+      "max": 78268,
+      "mean": 54336,
+      "total": 326017
+    },
+    {
+      "tiles": 24,
+      "p50": 51752,
+      "p90": 69836,
+      "max": 77519,
+      "mean": 53794,
+      "total": 1291063
+    },
+    {
+      "tiles": 96,
+      "p50": 46280,
+      "p90": 66757,
+      "max": 79879,
+      "mean": 49547,
+      "total": 4756523
+    },
+    {
+      "tiles": 384,
+      "p50": 49141,
+      "p90": 71612,
+      "max": 100323,
+      "mean": 52223,
+      "total": 20053458
+    },
+    {
+      "tiles": 1536,
+      "p50": 43809,
+      "p90": 69742,
+      "max": 107634,
+      "mean": 47462,
+      "total": 72902278
+    },
+    {
+      "tiles": 257,
+      "p50": 49859,
+      "p90": 72818,
+      "max": 87020,
+      "mean": 50583,
+      "total": 12999785
+    },
+    {
+      "tiles": 328,
+      "p50": 42532,
+      "p90": 64179,
+      "max": 77058,
+      "mean": 42026,
+      "total": 13784510
+    },
+    {
+      "tiles": 18,
+      "p50": 30582,
+      "p90": 44484,
+      "max": 47690,
+      "mean": 29933,
+      "total": 538789
+    }
+  ],
+  "sizeBytes": {
+    "L5-L6 (land or shelf, inside the regions)": {
+      "tiles": 585,
+      "p50": 46066,
+      "p90": 68009,
+      "max": 87020,
+      "mean": 45785,
+      "total": 26784295
+    },
+    "L5-L6 reaching 2,000 m": {
+      "tiles": 91,
+      "p50": 61427,
+      "p90": 76350,
+      "max": 86157,
+      "mean": 60584,
+      "total": 5513115
+    },
+    "all": {
+      "tiles": 2649,
+      "p50": 45282,
+      "p90": 69118,
+      "max": 107634,
+      "mean": 47811,
+      "total": 126652423
+    },
+    "bounds.bin": 9641
+  },
+  "largestTiles": [
+    {
+      "key": "4/1/9/13",
+      "bytes": 107634,
+      "highestM": 5860.5
+    },
+    {
+      "key": "4/1/9/12",
+      "bytes": 101689,
+      "highestM": 4732.1
+    },
+    {
+      "key": "4/1/5/14",
+      "bytes": 101180,
+      "highestM": 7261.2
+    },
+    {
+      "key": "3/1/4/6",
+      "bytes": 100323,
+      "highestM": 6573.0
+    },
+    {
+      "key": "4/4/4/11",
+      "bytes": 100220,
+      "highestM": 2396.7
+    }
+  ],
+  "againstV1": {
+    "all": {
+      "tiles": 2649,
+      "v1Mean": 49102,
+      "v2Mean": 47811,
+      "meanChange": -1290,
+      "minChange": -2297,
+      "maxChange": 1960,
+      "v1Total": 130070587,
+      "v2Total": 126652423
+    },
+    "byLevel": [
+      {
+        "level": 0,
+        "tiles": 6,
+        "v1Mean": 52783,
+        "v2Mean": 54336,
+        "meanChange": 1553,
+        "minChange": 928,
+        "maxChange": 1960,
+        "v1Total": 316700,
+        "v2Total": 326017
+      },
+      {
+        "level": 1,
+        "tiles": 24,
+        "v1Mean": 53657,
+        "v2Mean": 53794,
+        "meanChange": 138,
+        "minChange": -386,
+        "maxChange": 693,
+        "v1Total": 1287762,
+        "v2Total": 1291063
+      },
+      {
+        "level": 2,
+        "tiles": 96,
+        "v1Mean": 50202,
+        "v2Mean": 49547,
+        "meanChange": -655,
+        "minChange": -1596,
+        "maxChange": 400,
+        "v1Total": 4819440,
+        "v2Total": 4756523
+      },
+      {
+        "level": 3,
+        "tiles": 384,
+        "v1Mean": 53310,
+        "v2Mean": 52223,
+        "meanChange": -1088,
+        "minChange": -1878,
+        "maxChange": 492,
+        "v1Total": 20471213,
+        "v2Total": 20053458
+      },
+      {
+        "level": 4,
+        "tiles": 1536,
+        "v1Mean": 48860,
+        "v2Mean": 47462,
+        "meanChange": -1397,
+        "minChange": -2150,
+        "maxChange": 177,
+        "v1Total": 75048720,
+        "v2Total": 72902278
+      },
+      {
+        "level": 5,
+        "tiles": 257,
+        "v1Mean": 51954,
+        "v2Mean": 50583,
+        "meanChange": -1371,
+        "minChange": -2297,
+        "maxChange": -98,
+        "v1Total": 13352075,
+        "v2Total": 12999785
+      },
+      {
+        "level": 6,
+        "tiles": 328,
+        "v1Mean": 43314,
+        "v2Mean": 42026,
+        "meanChange": -1288,
+        "minChange": -2148,
+        "maxChange": 98,
+        "v1Total": 14206998,
+        "v2Total": 13784510
+      },
+      {
+        "level": 7,
+        "tiles": 18,
+        "v1Mean": 31538,
+        "v2Mean": 29933,
+        "meanChange": -1605,
+        "minChange": -2022,
+        "maxChange": -813,
+        "v1Total": 567679,
+        "v2Total": 538789
+      }
+    ],
+    "byStoredSides": [
+      {
+        "sides": 0,
+        "tiles": 1929,
+        "v1Mean": 48668,
+        "v2Mean": 47143,
+        "meanChange": -1525,
+        "minChange": -2297,
+        "maxChange": -429,
+        "v1Total": 93880399,
+        "v2Total": 90938290
+      },
+      {
+        "sides": 1,
+        "tiles": 612,
+        "v1Mean": 50053,
+        "v2Mean": 49263,
+        "meanChange": -790,
+        "minChange": -1355,
+        "maxChange": -133,
+        "v1Total": 30632708,
+        "v2Total": 30149252
+      },
+      {
+        "sides": 2,
+        "tiles": 102,
+        "v1Mean": 51380,
+        "v2Mean": 51361,
+        "meanChange": -19,
+        "minChange": -553,
+        "maxChange": 693,
+        "v1Total": 5240780,
+        "v2Total": 5238864
+      },
+      {
+        "sides": 4,
+        "tiles": 6,
+        "v1Mean": 52783,
+        "v2Mean": 54336,
+        "meanChange": 1553,
+        "minChange": 928,
+        "maxChange": 1960,
+        "v1Total": 316700,
+        "v2Total": 326017
+      }
+    ]
+  }
+}
