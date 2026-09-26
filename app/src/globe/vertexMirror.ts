@@ -16,8 +16,8 @@ import { SKIRT, type Segments, type TileGrid } from './tileGrid';
 
 const f = Math.fround;
 
-/** The shader's literal 0.7853981633974483, π/4 in float32. */
-const QUARTER_PI = f(0.7853981633974483);
+/** π/4 in float32, as the shader's WANDER_QUARTER_PI holds it. */
+export const QUARTER_PI = f(0.7853981633974483);
 /** WANDER_INV_R, scene units (R = 1) per meter; the shader emits this float32 value. */
 export const INV_R = f(1 / constants.cube.earthRadiusM);
 /** Shore bytes at or above it are land (3.1). */
@@ -111,10 +111,31 @@ export function wanderPow2(e: number): number {
 }
 
 /**
- * tan(πs/4), odd and exactly 0 at 0 and ±1 at |s| = 1: GLSL leaves tan's precision open, so a
- * GPU's tan at float32 π/4 may land an ulp off 1. `tan` stands in for the GPU's.
+ * Cephes' tanf polynomial for |x| ≤ π/4, highest power first, as float32: tan(x) = x + x·z·P(z)
+ * with z = x². Over every argument wanderTanQ takes it lands within one float32 step of Math.tan.
  */
-export function wanderTanQ(s: number, tan: (x: number) => number = Math.tan): number {
+export const TAN_POLY = [
+  9.38540185543e-3, 3.11992232697e-3, 2.44301354525e-2, 5.34112807005e-2, 1.33387994085e-1,
+  3.33331568548e-1,
+].map(f);
+
+/**
+ * tan(x) for 0 ≤ x ≤ π/4, in float32 in the shader's order. GLSL leaves tan's precision open, and
+ * SwiftShader's misses by 6e-5 of the value, 100 m on the ground, so the shader evaluates this
+ * polynomial instead and every GPU places a point where the mirror does.
+ */
+export function wanderTan(x: number): number {
+  const z = f(x * x);
+  let p = TAN_POLY[0] ?? NaN;
+  for (let i = 1; i < TAN_POLY.length; i += 1) p = f(f(p * z) + (TAN_POLY[i] ?? NaN));
+  return f(f(f(p * z) * x) + x);
+}
+
+/**
+ * tan(πs/4), odd and exactly 0 at 0 and ±1 at |s| = 1, where a tan of float32 π/4 may land an ulp
+ * off 1. `tan` stands in for wanderTan.
+ */
+export function wanderTanQ(s: number, tan: (x: number) => number = wanderTan): number {
   const a = Math.abs(s);
   const r = a === 1 ? 1 : f(tan(f(a * QUARTER_PI)));
   return s < 0 ? -r : r;
