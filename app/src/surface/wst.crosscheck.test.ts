@@ -256,30 +256,58 @@ describe('the decoder refuses', () => {
     );
   });
 
-  // E's first entry at each mip moves to the other extreme, which keeps the code range, or its
-  // shore byte to the other end.
-  it.each([0, 1, 2].flatMap((mip) => [[mip, 'code'] as const, [mip, 'shore byte'] as const]))(
-    'stored sides that disagree at their shared corner at mip %i, in the %s',
-    async (mip, what) => {
-      const entry = MIP_START[mip] ?? NaN;
-      const shoreAt = PROFILES_AT + 2 * PROFILE_ENTRIES * storedSides(tile);
-      expect(
-        await refusal((raw, view) => {
-          if (what === 'code') {
-            const code = view.getInt16(firstSideCode(entry), true);
-            view.setInt16(firstSideCode(entry), 2 * codeMid - code, true);
-          } else {
-            raw[shoreAt + entry] = 255 - (raw[shoreAt + entry] ?? NaN);
-          }
-        }),
-      ).toThrow(`edge profiles S and E disagree at a tile corner at mip ${mip}`);
-    },
-  );
-
   it('bytes that are not gzip', async () => {
     const raw = await payload(tile);
     await expect(decodeWst(raw.slice().buffer, expected)).rejects.toThrow();
   });
+});
+
+describe('the decoder refuses stored sides that disagree at a tile corner', () => {
+  // The L0 face-2 tile, which stores all four sides in N, E, S, W order. Each case moves side b's
+  // corner entry to the other extreme of side a's (which keeps the code range) or its shore byte to
+  // the other end, so only that corner disagrees. The corners are written out here rather than
+  // read from the decoder, so a row it drops still fails.
+  const tile = syntheticTile('root');
+  const expected = parseTileKey(tile.key);
+  const { codeMin, codeMax } = tile.header;
+  const SIDES = 'NESW';
+  const CORNERS = [
+    ['NW', 0, 0, 3, -1],
+    ['NE', 0, -1, 1, -1],
+    ['SW', 2, 0, 3, 0],
+    ['SE', 2, -1, 1, 0],
+  ] as const;
+  const cases = CORNERS.flatMap((corner) =>
+    [0, 1, 2].flatMap((mip) => [
+      [...corner, mip, 'code'] as const,
+      [...corner, mip, 'shore byte'] as const,
+    ]),
+  );
+
+  it.each(cases)(
+    'at %s: %s and %s disagree at mip %i, in the %s',
+    async (_, a, atA, b, atB, mip, what) => {
+      const index = (at: number) => (MIP_START[mip] ?? NaN) + (at < 0 ? 256 >> mip : 0);
+      const codeAt = (side: number, at: number) =>
+        PROFILES_AT + 2 * (PROFILE_ENTRIES * side + index(at));
+      const shoreAt = (side: number, at: number) =>
+        PROFILES_AT + 2 * PROFILE_ENTRIES * 4 + PROFILE_ENTRIES * side + index(at);
+      const raw = await payload(tile);
+      const view = new DataView(raw.buffer);
+      if (what === 'code') {
+        view.setInt16(
+          codeAt(b, atB),
+          codeMin + codeMax - view.getInt16(codeAt(a, atA), true),
+          true,
+        );
+      } else {
+        raw[shoreAt(b, atB)] = 255 - (raw[shoreAt(a, atA)] ?? NaN);
+      }
+      expect(() => decodePlanes(raw, expected)).toThrow(
+        `edge profiles ${SIDES[a]} and ${SIDES[b]} disagree at a tile corner at mip ${mip}`,
+      );
+    },
+  );
 });
 
 describe('the decoder counts the stored profile entries in the code bounds', () => {

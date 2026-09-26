@@ -283,15 +283,34 @@ def test_the_encoder_refuses_any_code_mid_but_the_floor_of_the_mean(name, shift)
         encode_payload(dataclasses.replace(t, code_mid=t.code_mid + shift))
 
 
+# The four tile corners two stored sides share: (side a, its entry, side b, its entry), written out
+# here rather than imported so a row the codec drops still fails.
+CORNERS = {
+    "NW": (N, 0, W, -1),
+    "NE": (N, -1, E, -1),
+    "SW": (S, 0, W, 0),
+    "SE": (S, -1, E, 0),
+}
+SIDE_NAMES = "NESW"
+
+
+def corner_other(t: WstTile, field: str, m: int, a: int, at_a: int) -> int:
+    """The other extreme of side a's corner entry, so the code bounds stay and only the corner
+    disagrees."""
+    value = int(mip_entries(getattr(t, field), m)[a, at_a])
+    return {"profiles": t.code_min + t.code_max, "profile_shore": 255}[field] - value
+
+
+@pytest.mark.parametrize("corner", CORNERS)
 @pytest.mark.parametrize("m", range(3))
 @pytest.mark.parametrize("field", ["profiles", "profile_shore"])
-def test_the_encoder_refuses_profiles_that_disagree_at_a_corner(field, m):
-    t = SYNTHETIC["extremes"]
+def test_the_encoder_refuses_profiles_that_disagree_at_a_corner(field, m, corner):
+    t = SYNTHETIC["root"]  # stores all four sides
+    a, at_a, b, at_b = CORNERS[corner]
     changed = getattr(t, field).copy()
-    # E's first entry takes the other extreme from S's last, so the code bounds stay.
-    extremes = {"profiles": t.code_min + t.code_max, "profile_shore": 255}[field]
-    mip_entries(changed, m)[E, 0] = extremes - mip_entries(changed, m)[S, -1]
-    with pytest.raises(WstError, match=f"corner at mip {m}"):
+    mip_entries(changed, m)[b, at_b] = corner_other(t, field, m, a, at_a)
+    pattern = f"{SIDE_NAMES[a]} and {SIDE_NAMES[b]} disagree at a tile corner at mip {m}"
+    with pytest.raises(WstError, match=pattern):
         encode_payload(dataclasses.replace(t, **{field: changed}))
 
 
@@ -338,9 +357,6 @@ def test_planes_must_fit_their_types():
 
 RAW = encode_payload(SYNTHETIC["extremes"])
 KEY = SYNTHETIC["extremes"].tile
-# S's mip-2 entry 64, at the corner it shares with E. E is stored first, then S.
-S_MIP2_LAST = 26 + 902 + 2 * 450
-S_SHORE_MIP2_LAST = 26 + 2 * 902 + 451 + 450
 
 
 @pytest.mark.parametrize(
@@ -378,16 +394,21 @@ def test_the_decoder_refuses_another_tile():
         decode_payload(RAW, Tile(4, 7, 127, 1))
 
 
-@pytest.mark.parametrize(
-    ("offset", "fmt"), [(S_MIP2_LAST, "<h"), (S_SHORE_MIP2_LAST, "<B")], ids=["code", "shore"]
-)
-def test_the_decoder_refuses_profiles_that_disagree_at_a_corner(offset, fmt):
-    t = SYNTHETIC["extremes"]
-    code, shore = mip_entries(t.profiles, 2)[S, -1], mip_entries(t.profile_shore, 2)[S, -1]
-    # The other extreme: the code bounds stay, and only the corner disagrees.
-    other = {"<h": t.code_min + t.code_max - code, "<B": 255 - shore}[fmt]
-    with pytest.raises(WstError, match="corner at mip 2"):
-        decode_payload(poke(RAW, offset, fmt, other), KEY)
+@pytest.mark.parametrize("corner", CORNERS)
+@pytest.mark.parametrize("m", range(3))
+@pytest.mark.parametrize("field", ["profiles", "profile_shore"])
+def test_the_decoder_refuses_profiles_that_disagree_at_a_corner(field, m, corner):
+    t = SYNTHETIC["root"]  # stores all four sides, in N, E, S, W order
+    a, at_a, b, at_b = CORNERS[corner]
+    entry = sum(MIP_ENTRIES[:m]) + (at_b % MIP_ENTRIES[m])
+    if field == "profiles":
+        offset, fmt = 26 + 2 * (451 * b + entry), "<h"
+    else:
+        offset, fmt = 26 + 2 * 451 * 4 + 451 * b + entry, "<B"
+    raw = poke(encode_payload(t), offset, fmt, corner_other(t, field, m, a, at_a))
+    pattern = f"{SIDE_NAMES[a]} and {SIDE_NAMES[b]} disagree at a tile corner at mip {m}"
+    with pytest.raises(WstError, match=pattern):
+        decode_payload(raw, t.tile)
 
 
 # Meter bounds, mips, the grid and the decoder's outputs
