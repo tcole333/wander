@@ -229,6 +229,15 @@ def neighbor(t: Tile, edge: Edge) -> Neighbor:
     return Neighbor(Tile(face, t.level, x, y), facing, reverse)
 
 
+def face_edge_sides(t: Tile) -> tuple[int, ...]:
+    """Indices into EDGES of the tile's sides that lie on a face edge, in N, E, S, W order: the
+    sides that store an edge profile (streaming.md 3.1). An L0 tile has all four, a tile at a face
+    corner two, and a tile inside a face none."""
+    last = (1 << t.level) - 1
+    on_face_edge = (t.y == last, t.x == last, t.y == 0, t.x == 0)
+    return tuple(e for e, on in enumerate(on_face_edge) if on)
+
+
 def profile_owner(t: Tile, edge: Edge, k: int) -> tuple[Tile, Edge, int]:
     """Where the owner face addresses entry k (0..256) of `t`'s edge profile.
 
