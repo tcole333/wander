@@ -143,10 +143,22 @@ Earth radius, 3.0) live in one `shared/constants.json`, read by Python and impor
    | 5 | 0 S | 1 S, rev | 2 S, rev | 3 S |
 
    Eight of the 12 face edges run the same way on both faces. On the four reversed ones (2N–4N,
-   3N–4W, 1S–5E, 2S–5S), entry k is the neighbor's entry 256 − k, and along-edge tile index a is the
-   neighbor's n − 1 − a. On a face edge the build writes the shared values in each tile's own order.
-   Each edge-profile entry has one owner: the lowest-numbered face among the faces that meet at its
-   corner point, read from this table, never from a float comparison (3.1, Edges).
+   3N–4W, 1S–5E, 2S–5S), entry k of a mip-m edge profile is the neighbor's entry (256 >> m) − k, and
+   along-edge tile index a is the neighbor's n − 1 − a. On a face edge the build writes the shared
+   values in each tile's own order.
+
+   Edge profiles exist only on the sides that lie on a face edge (N when y = n − 1, E when
+   x = n − 1, S when y = 0, W when x = 0), at mips 0-2: entry k of mip m sits at texel corner 2^m·k,
+   for k in 0..(256 >> m). Each entry has one owner: the lowest-numbered face among the faces that
+   meet at its corner point, read from this table, never from a float comparison (3.1, Edges). Its
+   code is the owner's rha mean of the four owner-frame mip-m texel codes around the corner, and its
+   shore byte the rha mean of their four shore bytes. The mip-m texels come from owner-frame mip-0
+   texels by the decoder's `(a + b + c + d + 2) >> 2` over blocks aligned at multiples of 2^m in
+   face-global texels, so they are the owner tile's own mips. Where two stored sides meet at a tile
+   corner they hold the same code and shore byte at every mip. In-face tile edges carry no profile:
+   they rely on border identity alone (5.6 rule 3), while the vertex mip rule (5.6 rule 2) and the
+   land or sea choice (5.6 rule 7) need one canonical value per mip where two faces' texel grids
+   meet at an angle.
 8. Node index (availability bitmap, `index.bin`, `bounds.bin`) = `2(4^L − 1) + f·4^L + y·2^L + x`. Bit
    k is byte k>>3, bit k&7, least significant bit first.
 9. Cross-check: the fixture build writes Python samples to
@@ -188,15 +200,22 @@ u16 x | u16 y
 f32 qLand          meters per code at or above −200 m; one value per level
 f32 qDeep          = 4·qLand, meters per code below −200 m
 i16 codeMid        ⌊(codeMin + codeMax)/2⌋; the GPU stores code − codeMid
-i16 codeMin | i16 codeMax          over the stored 264² and the edge profiles; for decoding only
-                                   (LOD uses the meter bounds in bounds.bin, 3.8)
-i16 edge[4][257]   edge profiles N, E, S, W at texel corners 0..256 (3.0 item 7)
+i16 codeMin | i16 codeMax          over the stored 264² and every stored profile entry; for
+                                   decoding only (LOD uses the meter bounds in bounds.bin, 3.8)
+i16 profile[n][451]  edge profiles of the n sides on a face edge, in N, E, S, W order (3.0 item 7):
+                     mip 0 entries 0..256, then mip 1 entries 0..128, then mip 2 entries 0..64
+u8  shoreProfile[n][451]  the shore byte of each entry, in the same order
+u8  pad[n mod 2]     zero; keeps the height plane at an even offset
 u16 height[264*264]  zigzag(code − pred), pred = left + up − upleft (0 outside the grid)
 u8  shore[264*264]   (s − pred) mod 256; s = min(255, rha(128 + 16·d)), d = signed texels to the
                      NE 10m land ∪ minor-islands boundary, clamped ±8 (land > 0; lakes count as land)
 u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪ buffered rivers,
                      inside < 0
 ```
+
+The format is version 2; version 1 stored one mip-0 profile on every side. The key gives n, 0-4, so
+a payload is 26 + 1,353·n + (n mod 2) + 278,784 bytes: 278,810 inside a face, 280,164 along one face
+edge, 281,516 at a face corner and 284,222 at L0.
 
 - **Height values:** each texel is the mean of its 4×4 bilinear sub-samples (3.0 item 5) of GEBCO
   meters, taken from the coarsest source whose cell is no larger than the texel, or 15" where none
@@ -258,16 +277,25 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
   `pipeline/config/water.yaml` holds `halfWidthKm` for scalerank 0-12 and the allowlist, keyed by
   NE id. The shader holds on-screen line width with `fwidth`.
 - **Edges:** within a face, border texels equal the neighbor's interior values because both are the
-  same function of position. Across a face edge the texel grids do not line up, so each edge-profile
-  entry is computed once, by its owner face (3.0 item 7): the rha mean of the four owner-face texel
-  codes around its corner, from the clamped field, owner-frame border texels included. Owner-frame
-  texels are computed as strips by the same functions of position, so the owner's tile need not be
-  baked. Every tile that shares the corner writes that code in its own order, and a tile's corner
-  entries agree: N[0] = W[256], N[256] = E[256], S[0] = W[0] and S[256] = E[0].
+  same function of position, and so do their mips, since a tile's stored array starts at face-global
+  texel 256x − 4, a multiple of 4. A side inside a face therefore stores no profile. Across a face
+  edge the texel grids do not line up, so a side on a face edge stores an edge profile at mips 0-2,
+  and each entry is computed once, by its owner face (3.0 item 7): the rha mean of the four
+  owner-frame mip-m texel codes around its corner, from the clamped field, and the rha mean,
+  (T + 2) >> 2, of their four shore bytes, whose sum is T. Owner-frame texels, border texels past
+  the face edge included, are computed by the same functions of position as strips that reach 4
+  texels to either side of the face edge and 4 past each end of the side, their ends aligned to
+  multiples of 4, then mipped with the decoder's rule, so the owner's tile need not be baked and the
+  mips are the owner tile's own. Every tile that shares the corner writes that code and shore byte
+  in its own order, and a tile's stored sides agree at their shared corners at every mip:
+  N[0] = W[last], N[last] = E[last], S[0] = W[0] and S[last] = E[0], last = 256 >> m.
 - **Decode (TS worker):** inflate, undo the predictor, then build mips 132 and 66 with integer
   arithmetic, `m = (a + b + c + d + 2) >> 2`, for codes, shore and water alike. Mips are built only
-  here. Output: R16F offsets (code − codeMid) and RG8 (shore, water) for 3 mips, the R16F edge
-  profiles, the meter bounds, a 33² Float32 meter grid, and the compressed buffer handed back (5.2).
+  here. Output: R16F offsets (code − codeMid) and RG8 (shore, water) for 3 mips, the RG16F edge
+  texture, the meter bounds, a 33² Float32 meter grid, and the compressed buffer handed back (5.2).
+  The edge texture is 257 wide and 12 rows: row 4m + e holds side e (N 0, E 1, S 2, W 3) at mip m,
+  and column k its entry k as (code − codeMid, shore byte); the rows of in-face sides and the
+  columns past 256 >> m are 0.
   In a decode worker on the M5 a tile takes 1.7 ms at the median in Chromium and 2 ms in Firefox
   and Safari [M `e1/results/decode-*.json`]. Safari ran the test in a hidden tab, and after the first
   60% of the tiles its decodes slowed from 1-2 ms to about 8 ms, while hidden Firefox did not; a
@@ -276,21 +304,28 @@ u8  water[264*264]   same predictor and encoding; d = signed texels to lakes ∪
   - R16F values are f16 bits from an exact integer-to-half conversion (|v| ≤ 2048; Node 22 has no
     `Float16Array`). The decoder is a pure function that does not import three; the worker wraps it
     and posts its results with `{ transfer }`.
-  - The meter bounds are [floor(h(codeMin)), ceil(h(codeMax))] (3.8). In the 33² grid, interior
-    vertex k (at corner 8k) is h of the mean of the four mip-2 codes around it, and boundary vertices
-    are h of the edge-profile code at their corner. Both are exact dyadic values, so Python and
-    TypeScript agree bit for bit.
-  - It rejects a wrong key, magic, version or length, a qLand that is not positive or a qDeep other
-    than 4·qLand, any |code − codeMid| > 2048, and a codeMin or codeMax that does not match the
-    planes and edges.
-- **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 2 KiB = **359 KiB** [D].
-- **Size,** as stored (all three planes, gzip), measured on the region bake's 2,649 tiles
-  [M `work/surface-bake/region-bake.json`], and the planning sizes from here on:
-  - L5-L6 land or shelf tiles: 47.6 KB p50, 69.7 KB p90 and 88.8 KB at most, 47.1 KB mean. The 91
-    that reach 2,000 m: 62.9 KB p50 and 77.3 KB p90.
-  - L0-L4, every tile: 45-52 KB p50 and 59-72 KB p90 per level, and 109 KB at most, in eastern
+  - The meter bounds are [floor(h(codeMin)), ceil(h(codeMax))] (3.8). In the 33² grid, vertex
+    (k, l) sits at corner (8k, 8l). A vertex on a stored side is h of that side's mip-2 entry 2·(its
+    index along the side), on which two stored sides agree at a tile corner; every other vertex, on
+    an in-face side too, is h of the mean of the four mip-2 codes around it. Both are exact dyadic
+    values, so Python and TypeScript agree bit for bit.
+  - It rejects a wrong key, magic or version, a length other than the one the key's side count
+    gives, a qLand that is not positive or a qDeep other than 4·qLand, any |code − codeMid| > 2048,
+    a codeMin or codeMax that does not match the planes and stored profile entries, and stored sides
+    that disagree at a shared tile corner at any mip, in code or shore byte.
+- **GPU per slot:** R16F 178.7 KiB + RG8 178.7 KiB + edges 12.0 KiB (RG16F 257 × 12) = 378,240 B,
+  **369.4 KiB** [D].
+- **Size,** as stored (all three planes and the profiles, gzip), measured on the region bake's
+  2,649 tiles [M `work/surface-bake/region-bake-v2.json`], and the planning sizes from here on:
+  - L5-L6 land or shelf tiles: 46.1 KB p50, 68.0 KB p90 and 87.0 KB at most, 45.8 KB mean. The 91
+    that reach 2,000 m: 61.4 KB p50 and 76.4 KB p90.
+  - L0-L4, every tile: 44-52 KB p50 and 61-72 KB p90 per level, and 108 KB at most, in eastern
     Tibet at L4.
-  - L7 around Sumbawa: 32.0 KB p50.
+  - L7 around Sumbawa: 30.6 KB p50.
+  - Against version 1 the bake is 2.6% smaller, 1.3 KB a tile on average: a tile inside a face
+    sheds its four mip-0 profiles (1.5 KB mean), a tile along one face edge sheds 0.8 KB, a face
+    corner tile stays within 0.7 KB either way, and an L0 tile, with all four sides stored at three
+    mips, gains 0.9-2.0 KB.
 
   Levers if needed: a 5 m step at L6 (~20% smaller) and a coarser shore step.
 
@@ -684,7 +719,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   animates.
 - **Stopping early:** admission stops after `uploadStopMs` of measured time, or after any single call
   over `uploadSlowCall`, because a timer cannot bound one synchronous driver call.
-- **Staging:** a surface slot (359 KiB) may take two frames, height first. A tile becomes drawable only
+- **Staging:** a surface slot (369 KiB) may take two frames, height first. A tile becomes drawable only
   when every part is uploaded. On the M5, with nothing drawn between frames, a tile publishes in two
   frames at the median in all three browsers and at both tiers. Slow-call stops push some tiles to
   three: rarely in Chromium, and often in Safari and Firefox, whose 1 ms clocks read any write that
@@ -725,11 +760,11 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   draw-index textures are allocated at boot. Each is touched once behind the poster (a pool's
   `warm()` step, one draw), because ANGLE may zero-fill lazily on first use [E]. None is ever
   reallocated.
-- **Sizes:** surface 160 / 256 slots (lite / full), with the edge profiles in a 257 × 4 R16F array
-  (Nearest, one level). Overlay `overlaySlots` to start; E3 counts the peak with every layer on and
-  resizes to the peak plus 25%. No array may exceed 256 layers, the ES3 minimum [S]; a peak above
-  that is absorbed by the coarser-ancestor rule below, not by a second array (which would cost a
-  sampler).
+- **Sizes:** surface 160 / 256 slots (lite / full), with the edge profiles in a 257 × 12 RG16F
+  array (Nearest, one level, 12,336 B a slot; 378,240 B, 369.4 KiB, per surface slot in all, 3.1).
+  Overlay `overlaySlots` to start; E3 counts the peak with every layer on and resizes to the peak
+  plus 25%. No array may exceed 256 layers, the ES3 minimum [S]; a peak above that is absorbed by
+  the coarser-ancestor rule below, not by a second array (which would cost a sampler).
 - **Fixed slots:** L0-L1 (30 tiles) sit at slots 0-29. The shader reads the L1 ancestor's shoreline for
   the broad coastal bevel, whose weight fades in over `bevelFade` once all 24 L1 tiles are resident.
 - **Slot safety:** to publish a tile, upload all its parts, write its residency or indirection entry,
@@ -945,15 +980,15 @@ story above them.
 
 | Budget | Number | Basis |
 |---|---|---|
-| **Before the first live frame** | **~0.98 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 317 KB, 6 tiles at 52.8 KB mean [M `work/surface-bake/region-bake.json`]. The instrument and environment are procedural; there is no transcoder. |
-| **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.98 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
-| **Lobby settle** (background) | ≤ 3 MB before L2 | L1 1.29 MB, 24 tiles [M `work/surface-bake/region-bake.json`]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
+| **Before the first live frame** | **~0.99 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 326 KB, 6 tiles at 54.3 KB mean [M `work/surface-bake/region-bake-v2.json`]. The instrument and environment are procedural; there is no transcoder. |
+| **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.99 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
+| **Lobby settle** (background) | ≤ 3 MB before L2 | L1 1.29 MB, 24 tiles [M `work/surface-bake/region-bake-v2.json`]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
 | **Critical set per beat** | reported above (median flight 1.7 s + `holdMax`) × the floor bandwidth: 2.0 MB at 5 Mbps (the floor is owner decision 5) | model, full: median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors. |
 | **New bytes per beat** | reported above 8 MiB | model, full: median 2.2 / p90 5.0 / max 6.3 MB; lite: 1.1 / 2.1 / 2.4 [model]. Mountain tiles run ~30% over the mean, so p90 ≈ 6.5 MB [D from `alt/gebco_tiles.json`]. Plus overlays 0.05-0.4 MB and the card 0.11-0.18 MB. |
 | **Per story** | reported above 35 MiB (full) / 18 MiB (lite) | model tiles 15.8-23.3 MB full, 7.5-11.3 MB lite [model], ×1.3 for mountains; images ~1.2 MB; audio ≤ 0.32 MiB; overlays and effects 0.5-2 MB. Worst case 33.8 / 18.2 MB [D]. |
 | **Reading pace** | the next beat hides behind reading | a beat takes at least 15 s to read, so the full next beat needs 1.2 Mbps at the median and 3.4 Mbps at the maximum [D] |
-| **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 89 + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **225**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: 56 + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **165**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
+| **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **227**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **166**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: React/three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
 | **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread R3F/React ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year (12 × 18 KB) uploaded per frame; border previews crossfade with no fetch |
@@ -1090,7 +1125,11 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        highest cell; the shore sign is right at known points; cube keys round-trip; `cube.ts`
        matches the Python samples (3.0 item 9)
      - within a face, mip 0-2 border texels equal the neighbor's interior bit for bit; across face
-       edges (all of L0-L1 and the cube-corner fixture), edge profiles are bit-identical, the border
+       edges (all of L0-L1 and the cube-corner fixture), edge profiles are bit-identical at every
+       mip, codes and shore bytes alike, reversed edges included; a tile's stored sides agree at
+       their shared corners at every mip, and the three Kirkuk tiles at the cube corner at every
+       level; each entry lies within 0.5 of the owner tile's own mip-m corner mean, as a real
+       (|entry − sum/4| ≤ 0.5), and its shore byte is (T + 2) >> 2 of the owner's four; the border
        texel k columns past a face edge maps into the neighbor's texel column k (the perpendicular
        coordinate is continuous), and each border code lies within the neighbor face's 3×3 code
        range around the mapped point, widened by 2 codes plus an eighth of its width, and to 0
@@ -1121,8 +1160,11 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
 - **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
   every tile in `build/region/` and checks, with the fixture's seam code:
-  - within a face, mip 0-2 border identity for every pair of available neighbors, and edge-profile
-    identity for every such pair and every pair across a face edge
+  - within a face, mip 0-2 border identity for every pair of available neighbors; across a face
+    edge, edge-profile identity at every mip, codes and shore bytes alike, for every pair of
+    available neighbors, and each entry within 0.5 of the owner tile's own mip-m corner mean where
+    the owner tile is baked; and each tile's stored sides agreeing at their shared corners at every
+    mip
   - the cross-face border bound above on every face edge, widened for real terrain: 2 codes plus a
     third of the range's width, and a border texel the coastal clamp reaches is not compared when
     none of the neighbor's 3×3 lies on its side of the shore (the two grids then disagree about a
@@ -1133,8 +1175,8 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
     A one-texel slip along an edge still misses hundreds of texels, and a reversed edge far more.
     Whether a shading seam shows stays E2's call; if it does, face-edge border texels can be
     resampled from the neighbor's grid.
-  - each header's codeMin and codeMax against its planes and edge profiles, and `bounds.bin`
-    against the decoded meter bounds
+  - each header's codeMin and codeMax against its planes and stored profile entries, and
+    `bounds.bin` against the decoded meter bounds
   - availability against the files present, which hash to the layer's version
   - known places: Georgian Bay and Lake Huron's main body are water; the texel on the dateline on
     faces 2, 4 and 5 at L0-L4, and its neighbors on either side of it, decode within half a code
