@@ -119,10 +119,9 @@ async function main(): Promise<void> {
     // The gimbal tilts the globe toward the camera, so a tilted view keeps the lamp behind the
     // camera; off, it turns the view center to the front and the camera tilts instead.
     faceCamera: true,
-    // Device pixels per CSS pixel. 1 holds 60 fps on the M5 in every preset with room to spare;
-    // 1.5 is near the edge (the Mediterranean drops frames by 1.75), and 2 misses in regional
-    // views. Up to 2 for the sharpest stills.
-    pixelRatio: 1,
+    // Device pixels per CSS pixel, the display's up to 2, as the spike drew. From 1.5 the scene
+    // drops MSAA, so a Retina display holds 60 fps on the M5 at 2.
+    pixelRatio: Math.min(devicePixelRatio, 2),
   };
   for (const params of [look.params, museum.params, streamer.params, cameraParams]) {
     applyQuery(params, query);
