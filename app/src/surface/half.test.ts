@@ -1,6 +1,6 @@
 import { DataUtils } from 'three';
 import { describe, expect, it } from 'vitest';
-import { HALF_EXACT, halfBitsOf, intToHalfBits } from './half';
+import { HALF_EXACT, halfBitsOf, halfValue, intToHalfBits } from './half';
 
 const RANGE = Array.from({ length: 2 * HALF_EXACT + 1 }, (_, k) => k - HALF_EXACT);
 
@@ -25,6 +25,20 @@ describe('intToHalfBits', () => {
 
   it('is what the table lookup returns', () => {
     const off = RANGE.filter((v) => halfBitsOf(v) !== intToHalfBits(v));
+    expect(off).toEqual([]);
+  });
+});
+
+describe('halfValue', () => {
+  it('agrees with three for all 65,536 bit patterns', () => {
+    const off = Array.from({ length: 0x10000 }, (_, bits) => bits).filter(
+      (bits) => !Object.is(halfValue(bits), DataUtils.fromHalfFloat(bits)),
+    );
+    expect(off).toEqual([]);
+  });
+
+  it('inverts intToHalfBits for every integer within ±2048', () => {
+    const off = RANGE.filter((v) => halfValue(intToHalfBits(v)) !== v);
     expect(off).toEqual([]);
   });
 });

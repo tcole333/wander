@@ -29,3 +29,17 @@ const TABLE = Uint16Array.from({ length: 2 * HALF_EXACT + 1 }, (_, k) =>
 export function halfBitsOf(v: number): number {
   return TABLE[v + HALF_EXACT] ?? intToHalfBits(v);
 }
+
+/**
+ * The number IEEE 754 binary16 bits hold, exactly: what a texelFetch of an R16F or RG16F texel
+ * returns. Infinities and NaNs come out as such.
+ */
+export function halfValue(bits: number): number {
+  const exponent = (bits >> 10) & 0x1f;
+  const fraction = bits & 0x3ff;
+  let magnitude: number;
+  if (exponent === 0x1f) magnitude = fraction === 0 ? Infinity : NaN;
+  else if (exponent === 0) magnitude = fraction * 2 ** -24;
+  else magnitude = (1024 + fraction) * 2 ** (exponent - 25);
+  return bits & 0x8000 ? -magnitude : magnitude;
+}
