@@ -7,9 +7,10 @@
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 import { Mesh, PerspectiveCamera, WebGLRenderer } from 'three';
 import type { Release } from '../../data/release';
-import { loadSurfaceLayer } from '../../data/surfaceLayer';
+import { loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
 import { ClearanceField } from '../../globe/clearance';
 import { summarizeFrames } from '../../perf/frameStats';
+import { faceOf, faceSt, lonLatToDir, tileOf } from '../../surface/cube';
 import type { Params, StreamerStats } from '../contract';
 import { createSurfaceStreamer } from '../globe/streamer';
 import { createSurfaceLook } from '../look/surfaceLook';
@@ -49,6 +50,9 @@ const PRESET_KEYS = '1234567890';
 
 /** The camera params that drive kLand and kSea, shown in the look's folder. */
 const RELIEF_BY_ZOOM = ['reliefByZoom', 'reliefNear', 'reliefFar'];
+
+/** The level whose tiles zoomFloorKm is the floor over; each coarser level doubles it. */
+const FLOOR_LEVEL = 7;
 
 /** Frames the HUD and the ready check look back over. */
 const FRAMES = 120;
@@ -110,6 +114,8 @@ async function main(): Promise<void> {
 
   const camera = new PerspectiveCamera(30, innerWidth / innerHeight, 0.01, 100);
   const cameraParams = {
+    // The closest view over L7 tiles. Where the deepest tile is coarser, each level doubles it
+    // (60 km on L6 land, 240 km over open ocean), so every place bottoms out at the same stretch.
     zoomFloorKm: 30,
     // kLand and kSea follow the zoom: reliefNear at 100 km wide and closer, reliefFar at 3,000 km
     // and wider. Off, the look's own kLand and kSea hold.
@@ -130,8 +136,9 @@ async function main(): Promise<void> {
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
   const control = new ViewControl(PRESETS[preset] ?? WORLD);
+  control.minKmAt = (view) =>
+    Number(cameraParams.zoomFloorKm) * 2 ** (FLOOR_LEVEL - deepestLevel(layer, view.lon, view.lat));
   const limitZoom = () => {
-    control.minKm = cameraParams.zoomFloorKm;
     control.maxKm = maxViewKm(camera);
   };
   limitZoom();
@@ -249,6 +256,17 @@ async function main(): Promise<void> {
       hud.textContent = describe(stats());
     }
   });
+}
+
+/** The deepest level with a tile under a point. */
+function deepestLevel(layer: SurfaceLayer, lon: number, lat: number): number {
+  const dir = lonLatToDir(lon, lat);
+  const face = faceOf(dir);
+  const [s, t] = faceSt(face, dir);
+  for (let level = layer.surface.maxLevel; level > 0; level -= 1) {
+    if (layer.available({ face, level, x: tileOf(s, level), y: tileOf(t, level) })) return level;
+  }
+  return 0;
 }
 
 /** The relief the vertex shader draws, which the camera's clearance must clear. */
