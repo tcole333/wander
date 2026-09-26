@@ -366,11 +366,11 @@ describe.each(TIER_NAMES)('the fixture families (%s)', (tier) => {
     expect(shared).toEqual([]);
   });
 
-  test('every T-junction lies within 1e-7 R of the coarse chord it splits', () => {
-    // The midpoint is fround(P0 + P1)·0.5 of the coarse vertices, within half a float32 step of
-    // the chord per component.
+  test('every T-junction lies within 2^-24 R per component of the midpoint of the chord it splits', () => {
+    // It is fround(P0 + P1)·0.5 of the coarse vertices: the sum, under 4, rounds by at most half
+    // of its 2^-22 step, and halving is exact.
     expect(chords.length).toBeGreaterThan(0);
-    expect(chords.filter(({ offset }) => !(offset <= 1e-7))).toEqual([]);
+    expect(chords.filter(({ offset }) => !(offset <= 2 ** -24))).toEqual([]);
   });
 
   test('flipping one cS bit, one cN bit or one corner dN makes a shared point differ', () => {

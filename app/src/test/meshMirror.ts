@@ -243,13 +243,16 @@ export function fieldMismatches(
 export interface ChordOffset {
   /** The T-junction, as `tile (k, l)`. */
   at: string;
-  /** Its distance from the coarse node's chord between its two neighbors, R = 1. */
+  /**
+   * Its largest per-component distance from the midpoint of the coarse node's chord between its
+   * two neighbors, R = 1.
+   */
   offset: number;
 }
 
 /**
- * Every T-junction of every instance, and how far it sits from the chord it splits: the segment
- * between the coarse instance's own vertices at the T-junction's two neighbors.
+ * Every T-junction of every instance, and how far it sits from the midpoint of the chord it splits:
+ * the segment between the coarse instance's own vertices at the T-junction's two neighbors.
  */
 export function chordOffsets(
   mirrored: MirroredScenario,
@@ -275,19 +278,14 @@ export function chordOffsets(
       });
       const t = vertices[instance]?.[v];
       if (!t || !a || !b) throw new RangeError(`no vertex ${at}`);
-      out.push({ at, offset: segmentDistance(t.position, a, b) });
+      out.push({ at, offset: midpointOffset(t.position, a, b) });
     }
   });
   return out;
 }
 
-function segmentDistance(p: Vec3, a: Vec3, b: Vec3): number {
-  const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]] as const;
-  const ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]] as const;
-  const along =
-    (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / (ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2);
-  const t = Math.min(1, Math.max(0, along));
-  return Math.hypot(ap[0] - t * ab[0], ap[1] - t * ab[1], ap[2] - t * ab[2]);
+function midpointOffset(p: Vec3, a: Vec3, b: Vec3): number {
+  return Math.max(...p.map((v, j) => Math.abs(v - ((a[j] ?? NaN) + (b[j] ?? NaN)) / 2)));
 }
 
 /**
