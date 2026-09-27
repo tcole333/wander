@@ -442,6 +442,24 @@
   font-variant-numeric: lining-nums;
 }
 
+/* A short screen (1280x800 and the like): the card starts higher, with a smaller image and text,
+   so each beat's text, image and credit fit without scrolling. */
+@media (max-height: 860px) {
+  .wu-card {
+    top: 118px;
+    max-height: calc(100% - 118px - 124px);
+  }
+
+  .wu-frame {
+    width: min(100%, calc(56px * var(--ar)));
+  }
+
+  .wu-text p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
 /* Meanwhile */
 
 .wu-meanwhile {
