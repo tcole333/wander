@@ -21,6 +21,7 @@ import { clunk, detent, whir, type DetentWeight, type Whir } from '../../audio/v
 import { dayFromCivil, dayFromIso, formatDay } from '../../story/dates';
 import { parseStory } from '../../story/story';
 import { button, el, svg } from '../../story/ui/dom';
+import { SoundKnob } from '../../story/ui/soundKnob';
 import { flight, scrub } from './demos';
 import { render, TAKES, type Rendered } from './render';
 
@@ -102,15 +103,17 @@ function consolePanel(): HTMLElement {
     beginLabel.textContent = 'Sounding';
   });
 
-  const mute = knob('au-mute', 'Mute', speakerFace());
+  // The walk's own sound knob.
   const muteLabel = el('span', 'au-knob-label', 'Sound');
-  mute.setAttribute('aria-pressed', 'false');
-  mute.addEventListener('click', () => {
-    const muted = !(engine?.muted ?? false);
-    sound().setMuted(muted);
-    mute.setAttribute('aria-pressed', String(muted));
-    mute.classList.toggle('is-muted', muted);
-    muteLabel.textContent = muted ? 'Muted' : 'Sound';
+  const mute = new SoundKnob({
+    get muted() {
+      return engine?.muted ?? false;
+    },
+    toggle() {
+      const muted = !(engine?.muted ?? false);
+      sound().setMuted(muted);
+      muteLabel.textContent = muted ? 'Muted' : 'Sound';
+    },
   });
 
   const master = level(
@@ -129,7 +132,7 @@ function consolePanel(): HTMLElement {
     stack(begin, beginLabel),
     el('span', 'au-divider'),
     master,
-    stack(mute, muteLabel),
+    stack(mute.element, muteLabel),
     el('span', 'au-divider'),
     copy,
   );
@@ -493,25 +496,6 @@ function beginFace(): SVGSVGElement {
     svg('path', { d: key, class: 'au-cut-lip', transform: 'translate(0.5 0.8)' }),
     svg('path', { d: key, class: 'au-niello', 'fill-rule': 'evenodd' }),
   );
-  return face;
-}
-
-/** Mute's mark: a speaker and its waves, or with the sound off, a cross. */
-function speakerFace(): SVGSVGElement {
-  const face = svg('svg', { viewBox: '-16 -16 32 32', 'aria-hidden': 'true' });
-  const cone = 'M-10 -4 L-5 -4 L1 -9.5 L1 9.5 L-5 4 L-10 4 Z';
-  const waves = 'M4.5 -4.5 Q7.5 0 4.5 4.5 M7.5 -8 Q12.5 0 7.5 8';
-  const cross = 'M5 -4 L12 4 M12 -4 L5 4';
-  for (const [d, cls] of [
-    [cone, 'au-niello'],
-    [waves, 'au-niello-line au-waves'],
-    [cross, 'au-niello-line au-cross'],
-  ] as const) {
-    face.append(
-      svg('path', { d, class: `${cls} au-lip`, transform: 'translate(0.5 0.8)' }),
-      svg('path', { d, class: cls }),
-    );
-  }
   return face;
 }
 

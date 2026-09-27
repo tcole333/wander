@@ -792,7 +792,7 @@ function setShade(element: HTMLElement | SVGElement, shade: string): void {
  * A small knob's body, `r` px in radius, from the ruler's knobs' parts: the toothed rim in the
  * lamp's light, and the face with its bezel, turned rings and sheen, its rim cut deeper and its
  * teeth fewer so they read at the size. It carries its own gradients and filters, named from
- * `id`, so it stands away from the ruler too (the sound knob).
+ * `id`, so it stands away from the ruler too (the sound knob, in the walk and the Sound Cabinet).
  */
 export function smallKnob(id: string, r: number): SVGSVGElement {
   const face = r - 6.2;

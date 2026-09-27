@@ -158,59 +158,15 @@ body.au-room {
   overflow: visible;
 }
 
-.au-mute {
-  width: 44px;
-  height: 44px;
-}
-
-.au-mute .au-knob-face {
-  inset: 5px;
-}
-
-.au-mute .au-knob-face svg {
-  width: 22px;
-  height: 22px;
-}
-
-.au-niello,
-.au-niello-line {
+.au-niello {
   fill: #1b1007;
   stroke: #0d0703;
   stroke-width: 0.6;
 }
 
-.au-niello-line {
-  fill: none;
-  stroke: #1b1007;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.au-cut-lip,
-.au-niello.au-lip {
+.au-cut-lip {
   fill: rgb(255 240 200 / 0.55);
   stroke: none;
-}
-
-.au-niello-line.au-lip {
-  stroke: rgb(255 240 200 / 0.55);
-}
-
-.au-cross {
-  display: none;
-}
-
-.au-mute.is-muted .au-cross {
-  display: inline;
-}
-
-.au-mute.is-muted .au-waves {
-  display: none;
-}
-
-/* Muted: the cross, and the knob's face falls into shadow. */
-.au-mute.is-muted .au-knob-face {
-  filter: brightness(0.72);
 }
 
 /* Begin, waiting: its rim glows for the hand. Running: a garnet lit in its face. */
