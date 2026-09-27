@@ -22,7 +22,7 @@ export interface SurfaceRelease {
 export interface ModeraRelease {
   ver: string;
   /** The first and last years with files. */
-  years: [number, number];
+  years: number[];
   /** The grid's latitudes in degrees, north first: row 0 of every frame. */
   lat: number[];
   /** Column 0's center and the step between columns, degrees. */
