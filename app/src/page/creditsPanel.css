@@ -1,7 +1,9 @@
 /* The Credits panel (creditsPanel.ts): the credits sheet (creditsSheet.css) in the beat card's
    riveted brass frame, standing over the lobby or the walk at a reading width, on the room
-   darkened as if the lamp had turned toward the sheet. The sheet scrolls inside its frame; a close
-   mark is engraved at its top right, where it stays while the sheet scrolls. */
+   darkened as if the lamp had turned toward the sheet, so the walk's own card falls back into the
+   dark. The sheet scrolls inside its frame; a close mark is engraved at its top right, where it
+   stays while the sheet scrolls. It rises in, and fades out where the browser can keep a closing
+   dialog on top. */
 
 .cp {
   box-sizing: border-box;
@@ -19,16 +21,31 @@
 
 .cp::backdrop {
   background:
-    radial-gradient(ellipse 70% 90% at 50% 45%, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.78)),
+    radial-gradient(ellipse 60% 85% at 50% 45%, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.9)),
     rgb(8 5 2 / 0.2);
 }
 
 .cp[open] .cp-card {
-  animation: cp-rise 0.4s ease-out both;
+  animation: cp-rise 0.4s ease-out backwards;
 }
 
 .cp[open]::backdrop {
-  animation: cp-dim 0.4s ease-out both;
+  animation: cp-dim 0.4s ease-out backwards;
+}
+
+@supports (overlay: auto) {
+  .cp,
+  .cp::backdrop {
+    transition:
+      opacity 0.25s ease-in,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+
+  .cp:not([open]),
+  .cp:not([open])::backdrop {
+    opacity: 0;
+  }
 }
 
 @keyframes cp-rise {
