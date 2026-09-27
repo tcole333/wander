@@ -653,7 +653,10 @@ export class CraftRuler {
       const [x, y] = at(arc, a, STUD_AT);
       stud.style.transform = `translate(${f(x)}px, ${f(y)}px)`;
       stud.classList.toggle('is-off', !inside[i]);
+      // The keys reach each beat once: by its stud while it has one, else by its dot.
       stud.tabIndex = inside[i] ? 0 : -1;
+      const dot = this.#dots[i];
+      if (dot) dot.tabIndex = inside[i] ? -1 : 0;
       const numeral = this.#numerals[i];
       numeral?.setAttribute('transform', labelTransform(arc, a, NUMERAL_ROW));
       numeral?.classList.toggle('is-off', !inside[i]);
@@ -867,9 +870,9 @@ function brassFilter(id: string, spec: FilterSpec): string {
 function sharedDefs(): string {
   return `<defs>
 <linearGradient id="rc-band-fill" x1="0" x2="1" y1="0" y2="0">
-  <stop offset="0" stop-color="#8a6632"/><stop offset="0.2" stop-color="#be9451"/>
-  <stop offset="0.34" stop-color="#d0a862"/><stop offset="0.6" stop-color="#b38848"/>
-  <stop offset="1" stop-color="#76572b"/>
+  <stop offset="0" stop-color="#8a622c"/><stop offset="0.2" stop-color="#be8f47"/>
+  <stop offset="0.34" stop-color="#d0a256"/><stop offset="0.6" stop-color="#b3833f"/>
+  <stop offset="1" stop-color="#765426"/>
 </linearGradient>
 <linearGradient id="rc-rail-fill" x1="0" x2="1" y1="0" y2="0">
   <stop offset="0" stop-color="#4f3a1c"/><stop offset="0.3" stop-color="#7a5a2d"/>
@@ -880,20 +883,20 @@ function sharedDefs(): string {
   <stop offset="0.55" stop-color="#30230f"/><stop offset="1" stop-color="#18110a"/>
 </linearGradient>
 <linearGradient id="rc-lip-fill" x1="0" x2="1" y1="0" y2="0">
-  <stop offset="0" stop-color="#b58d4c"/><stop offset="0.3" stop-color="#f3d9a0"/>
-  <stop offset="0.65" stop-color="#d2ab66"/><stop offset="1" stop-color="#8e6c37"/>
+  <stop offset="0" stop-color="#b58843"/><stop offset="0.3" stop-color="#f3d18d"/>
+  <stop offset="0.65" stop-color="#d2a55a"/><stop offset="1" stop-color="#8e6830"/>
 </linearGradient>
 <linearGradient id="rc-plate-fill" x1="0" x2="0.35" y1="0" y2="1">
-  <stop offset="0" stop-color="#ecd092"/><stop offset="0.5" stop-color="#cfa65f"/>
-  <stop offset="1" stop-color="#9c763b"/>
+  <stop offset="0" stop-color="#ecc980"/><stop offset="0.5" stop-color="#cfa054"/>
+  <stop offset="1" stop-color="#9c7234"/>
 </linearGradient>
 <linearGradient id="rc-frame-fill" x1="0" x2="0.3" y1="0" y2="1">
-  <stop offset="0" stop-color="#a47d40"/><stop offset="0.5" stop-color="#6e5027"/>
-  <stop offset="1" stop-color="#3f2c13"/>
+  <stop offset="0" stop-color="#a47938"/><stop offset="0.5" stop-color="#6e4d22"/>
+  <stop offset="1" stop-color="#3f2a11"/>
 </linearGradient>
 <radialGradient id="rc-face-fill" cx="0.4" cy="0.36" r="0.75">
-  <stop offset="0" stop-color="#d8b471"/><stop offset="0.55" stop-color="#b28845"/>
-  <stop offset="1" stop-color="#6b4d26"/>
+  <stop offset="0" stop-color="#d8ae63"/><stop offset="0.55" stop-color="#b2833d"/>
+  <stop offset="1" stop-color="#6b4a21"/>
 </radialGradient>
 <radialGradient id="rc-gear-fill" cx="0.5" cy="0.5" r="0.5">
   <stop offset="0.5" stop-color="#5a4121"/><stop offset="0.86" stop-color="#76582c"/>
