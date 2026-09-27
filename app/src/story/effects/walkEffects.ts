@@ -85,6 +85,8 @@ export const createWalkEffects: CreateWalkEffects = (
   const callouts = new Callouts(labelRoot);
   const ash = ashUniformsOf(look.material);
   const climate = new WalkClimate(story, source, climateUniformsOf(look.material));
+  /** How strongly climate is drawn, under the dev shell's climate param. */
+  const climateShown = () => Math.min(1, climate.drawn * Math.max(0, Number(params.climate)));
   let lastS: number | null = null;
   const defaults = new Map(LAYERS.map(([, param]) => [param, look.params[param]]));
 
@@ -206,7 +208,7 @@ export const createWalkEffects: CreateWalkEffects = (
       // Veil, by the view's width under the camera, giving way where climate data is drawn.
       const altitude = Math.max(0, camera.length() - 1);
       const wideKm = 2 * altitude * tanHalf * cam.aspect * EARTH_KM;
-      const veilStrength = veilOn ? strength('veil') * (1 - climate.drawn) : 0;
+      const veilStrength = veilOn ? strength('veil') * (1 - climateShown()) : 0;
       veil.update(day, kLand, wideKm, camera, lampLocal, veilStrength, t);
 
       callouts.update(state.flight === null, cam, camera, globe, viewport, strength('labels'));
@@ -214,12 +216,13 @@ export const createWalkEffects: CreateWalkEffects = (
 
     climate() {
       const month = climate.month;
-      if (!month) return null;
+      const shown = climateShown();
+      if (!month || shown <= 0) return null;
       return {
         ...month,
         rangeK: Number(look.params.climateRangeK),
         base: String(look.params.bronze),
-        strength: climate.drawn,
+        strength: shown,
       };
     },
 
