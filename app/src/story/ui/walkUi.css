@@ -518,34 +518,50 @@
   }
 }
 
-/* The sound knob: small knurled brass at the top right, over Meanwhile, its domed face lit from
-   the upper left with a speaker cut in and filled with niello, as the Sound Cabinet's. Sound on,
-   the speaker sends out its waves; muted, a cross stands in their place and the face falls into
+/* The sound knob: the ruler's knobs in miniature at the top right, over Meanwhile, its face lit
+   from the upper left with a speaker cut in and filled with niello (soundKnob.ts). Sound on, the
+   speaker sends out its waves; muted, a cross stands in their place and the knob falls into
    shadow. It stands under the lens with the panels. */
 
 .wu-sound {
-  position: absolute;
-  top: 22px;
-  right: 26px;
+  position: relative;
   width: 34px;
   height: 34px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   cursor: pointer;
-  background:
-    linear-gradient(135deg, rgb(255 238 196 / 0.5), transparent 45%, rgb(0 0 0 / 0.55)),
-    repeating-conic-gradient(#3a2710 0 3deg, #d4b06c 3deg 6deg);
-  box-shadow:
-    0 0 0 1px #140c04,
-    inset 0 0 0 1px rgb(20 12 4 / 0.8),
-    var(--cast);
+  background: none;
+  box-shadow: var(--cast);
   transition: filter 0.15s;
+}
+
+.wu > .wu-sound {
+  position: absolute;
+  top: 22px;
+  right: 26px;
 }
 
 .wu-sound.wu-lit::before,
 .wu-sound.wu-lit::after {
   border-radius: 50%;
+}
+
+.wu-sound > svg {
+  position: absolute;
+  overflow: visible;
+}
+
+.wu-sound-body {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wu-sound-mark {
+  inset: 8px;
+  width: 18px;
+  height: 18px;
 }
 
 .wu-sound:hover {
@@ -554,28 +570,6 @@
 
 .wu-sound:active {
   filter: brightness(0.94);
-}
-
-.wu-sound-face {
-  position: absolute;
-  inset: 4px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background:
-    radial-gradient(60% 40% at 34% 26%, rgb(255 244 214 / 0.55), transparent 70%),
-    radial-gradient(circle at 40% 36%, #e4c486 0%, #c29a58 34%, #94703a 68%, #5a3f1a 100%);
-  box-shadow:
-    0 0 0 1.5px #24170a,
-    inset -2px -3px 6px rgb(40 24 8 / 0.55),
-    inset 1px 1px 1px rgb(255 240 200 / 0.6);
-  transition: filter 0.25s;
-}
-
-.wu-sound-face svg {
-  width: 18px;
-  height: 18px;
-  overflow: visible;
 }
 
 .wu-niello,
@@ -613,7 +607,7 @@
   display: none;
 }
 
-.wu-sound.is-muted .wu-sound-face {
+.wu-sound.is-muted .wu-sound-body {
   filter: brightness(0.68);
 }
 
