@@ -23,7 +23,8 @@ export class ClimateLegend {
   readonly #month = el('div', 'wu-legend-month');
   readonly #strip = el('div', 'wu-legend-strip');
   readonly #scale = el('div', 'wu-legend-scale');
-  /** What the month and the strip last showed, to skip redrawing them. */
+  /** What the plate, its month and its strip last showed, to skip redrawing them. */
+  #opacity = '0.000';
   #monthShown = '';
   #stripShown = '';
 
@@ -46,10 +47,14 @@ export class ClimateLegend {
   }
 
   update(climate: ClimateShown | null | undefined): void {
-    const strength = climate?.strength ?? 0;
-    this.element.style.opacity = strength.toFixed(3);
-    this.element.classList.toggle('is-shown', strength > 0);
-    this.element.setAttribute('aria-hidden', String(strength === 0));
+    const opacity = (climate?.strength ?? 0).toFixed(3);
+    if (opacity !== this.#opacity) {
+      this.#opacity = opacity;
+      const shown = Number(opacity) > 0;
+      this.element.style.opacity = opacity;
+      this.element.classList.toggle('is-shown', shown);
+      this.element.setAttribute('aria-hidden', String(!shown));
+    }
     if (!climate) return;
 
     const month = `${monthName(climate.month)} ${climate.year}`;
