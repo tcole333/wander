@@ -31,7 +31,7 @@ describe('credits.html', () => {
     );
   });
 
-  it('gives each image the license the lock records from Commons', () => {
+  it('gives each image the license its lock records', () => {
     const wrong = entries.filter(
       (entry, i) => !entry.text.includes(lock.images[i]?.license ?? '?'),
     );

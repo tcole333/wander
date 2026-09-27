@@ -88,6 +88,7 @@ focal: {qid: Q3591483, date: "1815-04-05"}
 image:
   commons: "File:ETH-Bib RAR 5880 Karte der Insel Sumbawa und Tambora 1855.jpg"
   sha1: "89111424ccbbe629dc375d90d431c5189c732b72"
+  credit: "Jakob Melchior Ziegler, Rudolf Leuzinger"
   crop: [0.395, 0.02, 0.60, 0.48]
   alt: "An engraved relief map of 1855 of the Sanggar peninsula on Sumbawa, showing Tambora's broad summit crater and the village of Sanggar on the bay."
 layers: [relief, bathymetry, coastline, landSea, water, labels, events]
@@ -198,6 +199,7 @@ focal: {qid: Q209625, at: [6.1833, 46.2203]}
 image:
   commons: "File:Ravensburg suppenkueche 1817.jpg"
   sha1: "41b59c909ed29425c3a77cc619228ca8ad3ab707"
+  credit: "J. A. Gradmann"
   crop: [0.012, 0.035, 0.988, 0.975]
   alt: "A hand-colored print of 1817: townspeople and children with jugs queue at the soup cauldron of the hospital kitchen in Ravensburg while a clerk keeps the list."
 layers: [relief, coastline, landSea, water, labels, borders, {climate: {mode: monthly}}, events]
@@ -232,6 +234,7 @@ image:
   commons: "File:Recollections of a lifetime - or men and things I have seen - in a series of familiar letters to a friend - historical, biographical, anecdotical, and descriptive (1856) (14740173686).jpg"
   sha1: "688583b7c4ac9f95461867b48dd311dce9299924"
   credit: "Lossing & Barritt, for S. G. Goodrich"
+  license: "No known copyright restrictions"
   crop: [0, 0, 1, 1]
   alt: "An 1856 wood engraving, Emigration in 1817: a New England farmer with a staff holds his horse beside a covered wagon; his wife, holding a baby, rides on the load beside a cat, while three children and two dogs wait on the road."
 layers: [relief, coastline, landSea, water, labels, borders, {climate: {mode: monthly}}, events]
