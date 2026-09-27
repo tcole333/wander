@@ -5,9 +5,9 @@
 // Keys: Space plays or pauses, the arrows step, B breaks out. Query: ?beat=<n> starts at beat n
 // (1-8). window.__walkUi serves scripts: jump(beat) lands at once, walk is the stub director.
 import storyText from '../../../../../stories/tambora/story.md?raw';
-import type { MeanwhileByBeat } from '../contract';
+import { meanwhileFromJson } from '../meanwhile';
+import tambora from '../meanwhile.tambora.json';
 import { parseStory } from '../story';
-import { SAMPLE_MEANWHILE } from './harnessMeanwhile';
 import { HarnessWalk } from './harnessWalk';
 import { createWalkUi } from './walkUi';
 
@@ -17,12 +17,7 @@ declare global {
   }
 }
 
-// The walk's real Meanwhile entries, once they exist; the samples until then.
-const found = import.meta.glob<MeanwhileByBeat>('../meanwhile.tambora.json', {
-  eager: true,
-  import: 'default',
-});
-const meanwhile = Object.values(found)[0] ?? SAMPLE_MEANWHILE;
+const meanwhile = meanwhileFromJson(tambora);
 
 const story = parseStory(storyText);
 const start = Math.max(0, Number(new URLSearchParams(location.search).get('beat') ?? 1) - 1);
