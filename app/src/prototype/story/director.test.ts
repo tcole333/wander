@@ -52,13 +52,13 @@ describe('the walk', () => {
     expect(control.current.viewKm).toBeCloseTo(beat(2).camera.viewKm, 6);
   });
 
-  it('holds a landing for the tiles at most 1.5 s', () => {
+  it('holds a landing for the tiles at most 0.4 s', () => {
     const { walk, land } = setup(() => false);
     walk.goTo(5);
     const took = land();
     const [flight] = walk.flights();
-    expect(flight?.heldS).toBe(1.5);
-    expect(took).toBeLessThan((flight?.plannedS ?? 0) + 1.5 + 0.05);
+    expect(flight?.heldS).toBe(0.4);
+    expect(took).toBeLessThan((flight?.plannedS ?? 0) + 0.4 + 0.05);
   });
 
   it('plays on after the reading time and stops on the last beat', () => {

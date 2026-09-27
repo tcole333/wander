@@ -45,9 +45,9 @@ describe('flightPath', () => {
 });
 
 describe('flightSeconds', () => {
-  it('holds short flights to 1.6 s and long ones to 4.5 s', () => {
-    expect([flightSeconds(0), flightSeconds(20)]).toEqual([1.6, 4.5]);
-    expect(flightSeconds(3)).toBeCloseTo(2.5, 9);
+  it('holds short flights to 2.4 s and long ones to 5 s', () => {
+    expect([flightSeconds(0), flightSeconds(20)]).toEqual([2.4, 5]);
+    expect(flightSeconds(3)).toBeCloseTo(3.75, 9);
   });
 });
 

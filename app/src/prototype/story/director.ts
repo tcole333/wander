@@ -8,9 +8,14 @@ import type { Walk, WalkMode, WalkOptions, WalkState } from './contract';
 import { flightEase, flightPath, flightSeconds, MAX_LEAD, type FlightPath } from './flight';
 import type { LonLat, Story, StoryBeat } from './story';
 
-/** The readiness gate: how far into a flight it checks, and the longest it holds, in seconds. */
-const GATE_AT = 0.7;
-const HOLD_MAX_S = 1.5;
+/**
+ * The readiness gate: how far into a flight it checks, and the longest it holds, in seconds. The
+ * streamer can only finish while the view is nearly the destination's, so the gate waits until the
+ * camera has almost landed (smootherstep has covered 99% of the path by 0.9), where a short hold
+ * reads as a slower settle rather than a stall in mid-air.
+ */
+const GATE_AT = 0.9;
+const HOLD_MAX_S = 0.4;
 /** The time constant with which the flight's clock slows into a hold and picks up after it. */
 const CLOCK_TAU_S = 0.25;
 /** A new target mid-flight: the old course blends into the new flight over this long. */
