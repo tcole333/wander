@@ -91,7 +91,9 @@ void main() {
       // One report racing out, a faint wash behind it; then the next.
       float f = fract(uTime / 4.5);
       float r = R * (1.0 - (1.0 - f) * (1.0 - f));
-      float behind = step(d, r) * exp(-(r - d) / max(0.08 * r, 1.0));
+      // Outside the ring the wash is 0; exp() of the distance there overflows to infinity, and
+      // 0 times infinity is NaN, which the bloom spreads over the whole frame.
+      float behind = d <= r ? exp(-(r - d) / max(0.08 * r, 1.0)) : 0.0;
       a = (ring(d, r, 2.2, 7.0) + 0.12 * behind) * (1.0 - 0.6 * f);
     } else {
       a = 0.6 * ring(d, R, 1.2, 4.0);
