@@ -35,7 +35,7 @@ const OVERSHOOT = 8;
 export function openingPose(progress: number): OpeningPose {
   const p = clamp01(progress);
   return {
-    lamp: easeOut(stretch(p, 0, 0.5)),
+    lamp: smooth(stretch(p, 0.06, 0.55)),
     outer: OUTER_FROM * (1 - settle(stretch(p, 0.04, 0.72))),
     meridian: MERIDIAN_FROM * (1 - settle(stretch(p, 0.14, 0.84))),
     spin: SPIN_FROM * (1 - settle(stretch(p, 0, 1))),
@@ -54,10 +54,6 @@ function settle(x: number): number {
 /** Where `p` falls between `from` and `to`, clamped to 0..1. */
 function stretch(p: number, from: number, to: number): number {
   return clamp01((p - from) / (to - from));
-}
-
-function easeOut(x: number): number {
-  return 1 - (1 - x) ** 3;
 }
 
 function smooth(x: number): number {
