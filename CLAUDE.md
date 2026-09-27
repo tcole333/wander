@@ -62,9 +62,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
-  every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`.
-  `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
-  2.5 min on the M5).
+  every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`, and
+  `modera` until the climate layer has an excerpt. `uv run prebuild --profile region` bakes the
+  milestone-1 region into `build/region/` (about 2.5 min on the M5, plus 50 s for `modera`, which
+  writes all of ModE-RA whatever the profile).
 - `npm run verify:bake`, after the region bake: decodes every tile of `build/region/` and checks
   its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
   7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake
