@@ -72,3 +72,14 @@ def test_the_stage_writes_both_keys_and_locks_them_with_the_credit_and_license(t
     assert image["credit"] == "Test Pattern, L. Hebert"
     assert image["license"] == "Public domain"
     assert image["source"] == "https://commons.wikimedia.org/wiki/File:Wander_test_quadrants.jpg"
+
+
+def test_a_beats_own_credit_and_license_stand_in_for_commons(tmp_path):
+    story = tmp_path / "stories" / "test" / "story.md"
+    story.parent.mkdir(parents=True)
+    worded = '  credit: "L. Hebert"\n  license: "No known copyright restrictions"\n  crop:'
+    story.write_text(STORY.replace("  crop:", worded), encoding="utf-8")
+    media.run(make_context(Profile.FIXTURE, 1, tmp_path, story="test", offline=True))
+
+    [image] = json.loads((story.parent / "story.lock.json").read_text(encoding="utf-8"))["images"]
+    assert (image["credit"], image["license"]) == ("L. Hebert", "No known copyright restrictions")
