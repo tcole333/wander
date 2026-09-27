@@ -62,6 +62,9 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps --only-shell chromium
       - run: npm run e2e
+      # The bundled release's data must be live on R2 before the page that names it can merge
+      # (streaming.md 4.3); it fails, naming npm run publish-data, until the upload is done.
+      - run: npm run check-release
       - name: Upload the Playwright report
         if: failure()
         uses: actions/upload-artifact@v7
@@ -100,6 +103,13 @@ jobs:
         with:
           name: app-dist
           path: app/dist
+      # Checked again at the last moment: the page never ships naming data that is not live.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: app/.nvmrc
+      - name: Check the release's data is live
+        working-directory: app
+        run: npm run check-release
       - name: Deploy
         id: deploy
         # Pinned by commit: this action receives the deploy token.
@@ -110,10 +120,12 @@ jobs:
           accountId: 5cd6b468f9f946f44222ad8a966999ca
           wranglerVersion: "4.139.0"
           command: pages deploy app/dist --project-name=wander --branch=main
-      - name: Check the deployment serves the app and real 404s
+      - name: Check the deployment serves the app, its credits and real 404s
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
           curl -fsS "$DEPLOYMENT_URL/" | grep -q '<title>Wander</title>'
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$DEPLOYMENT_URL/credits")
+          test "$status" = 200 || { echo "/credits returned $status, not 200"; exit 1; }
           status=$(curl -s -o /dev/null -w '%{http_code}' "$DEPLOYMENT_URL/no-such-page")
           test "$status" = 404 || { echo "missing path returned $status, not 404"; exit 1; }
