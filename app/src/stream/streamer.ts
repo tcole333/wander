@@ -119,6 +119,7 @@ export const createSurfaceStreamer = (async (
     });
   });
   if (rootErrors.length > 0 || roots.filter((t) => t.level === 0).length < 6) {
+    for (const pool of [pools.height, pools.shoreWater, pools.edges]) pool.dispose();
     throw new DataError(`the roots did not load: ${JSON.stringify(rootErrors)}`);
   }
   while (uploads.length > 0) {
