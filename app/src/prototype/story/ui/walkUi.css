@@ -123,7 +123,7 @@
   position: absolute;
   left: 30px;
   top: 128px;
-  width: 420px;
+  width: 450px;
   max-height: calc(100% - 128px - 124px);
   display: flex;
   flex-direction: column;
@@ -190,7 +190,7 @@
 }
 
 .wu-figure {
-  margin: 16px 0 14px;
+  margin: 10px 0 8px;
   padding: 5px;
 }
 
@@ -198,7 +198,7 @@
   position: relative;
   overflow: hidden;
   margin: 0 auto;
-  width: min(100%, calc(230px * var(--ar)));
+  width: min(100%, calc(120px * var(--ar)));
   aspect-ratio: var(--ar);
   background: linear-gradient(160deg, #a58a5c, #7d6340);
   box-shadow:
@@ -277,37 +277,37 @@
   text-decoration: underline;
 }
 
-.wu-sources {
-  border-top: 1px solid rgb(90 62 26 / 0.4);
-  padding-top: 8px;
-}
-
-.wu-sources summary {
+.wu-sources-toggle {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 2px 0;
-  list-style: none;
+  gap: 7px;
+  margin-left: auto;
+  padding: 8px 2px;
+  border: 0;
+  background: none;
   cursor: pointer;
-  font: 600 10.5px/1.4 var(--reading);
+  font: 600 10.5px/1 var(--reading);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #3d2a12;
 }
 
-.wu-sources summary::-webkit-details-marker {
+.wu-sources-toggle[hidden] {
   display: none;
 }
 
-.wu-sources summary::after {
+.wu-sources-toggle::after {
   content: '+';
-  margin-left: auto;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 0;
 }
 
-.wu-sources[open] summary::after {
+.wu-sources-toggle[aria-expanded='true']::after {
   content: '\2013';
+}
+
+.wu-sources-toggle:hover {
+  color: var(--garnet);
 }
 
 .wu-sources-count {
@@ -315,11 +315,16 @@
   font-variant-numeric: lining-nums;
 }
 
-.wu-sources ol {
-  margin: 8px 0 2px;
-  padding: 0 0 0 18px;
+.wu-sources {
+  margin: 4px 0 2px;
+  padding: 10px 0 0 18px;
+  border-top: 1px solid rgb(90 62 26 / 0.4);
   font: 400 12.5px/1.4 var(--reading);
   color: var(--ink-soft);
+}
+
+.wu-sources[hidden] {
+  display: none;
 }
 
 .wu-sources li {
@@ -365,6 +370,10 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #3d2a12;
+}
+
+.wu-sources-toggle[hidden] + .wu-count {
+  margin-left: auto;
 }
 
 .wu-step span {
@@ -426,7 +435,7 @@
 }
 
 .wu-count {
-  margin-left: auto;
+  margin-left: 18px;
   font: 400 11.5px/1 var(--display);
   letter-spacing: 0.1em;
   color: var(--ink-faint);
