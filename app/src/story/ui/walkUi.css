@@ -880,3 +880,121 @@
   outline: 1px solid var(--brass-hi);
   outline-offset: 3px;
 }
+
+/* The climate legend: a small plate of Meanwhile's dark cast brass over the ruler's right end, its
+   month engraved in gilt over an enamel strip set in a brass bezel, the strip's ends named and its
+   degrees cut under it. Its opacity follows the layer (climateLegend.ts). */
+
+.wu-legend {
+  position: absolute;
+  box-sizing: border-box;
+  right: 26px;
+  bottom: calc(var(--ruler-reach) + 16px);
+  width: 300px;
+  padding: 11px 16px 10px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.wu-legend.is-shown {
+  visibility: visible;
+}
+
+.wu-legend-month {
+  font: 400 11px/1.2 var(--display);
+  letter-spacing: 0.26em;
+  margin-right: -0.26em;
+  text-transform: uppercase;
+  text-align: center;
+  background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1px 0.5px rgb(0 0 0 / 0.9));
+}
+
+.wu-legend-ramp {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 9px;
+  margin-top: 9px;
+}
+
+.wu-legend-end {
+  font: italic 400 12.5px/1 var(--reading);
+  color: #d8c49c;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.8);
+}
+
+/* The bezel: a thin lit brass rim around the enamel, sunk into the plate. */
+.wu-legend-frame {
+  padding: 2px;
+  background: linear-gradient(135deg, #f0d59a, #b08a4a 40%, #6e5027 80%, #3e2c13);
+  box-shadow:
+    0 0 0 1px #0d0905,
+    1px 2px 3px rgb(0 0 0 / 0.6);
+}
+
+/* The enamel: its gradient from the look's colors (set inline), glassy under a faint gloss. */
+.wu-legend-strip {
+  position: relative;
+  height: 10px;
+  box-shadow:
+    inset 1px 1px 2px rgb(0 0 0 / 0.55),
+    inset -1px -1px 0 rgb(255 240 200 / 0.18);
+}
+
+.wu-legend-strip::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 50%;
+  background: linear-gradient(rgb(255 250 235 / 0.22), transparent);
+}
+
+.wu-legend-scale {
+  grid-column: 2;
+  position: relative;
+  height: 15px;
+  margin-top: 1px;
+}
+
+/* A numeral under a tick cut down from the bezel. */
+.wu-legend-tick,
+.wu-legend-unit {
+  position: absolute;
+  top: 5px;
+  font: 400 10px/1 var(--reading);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: #cbb488;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.8);
+  white-space: nowrap;
+}
+
+.wu-legend-tick {
+  translate: -50% 0;
+}
+
+.wu-legend-tick::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 1px;
+  height: 3px;
+  background: #cbb488;
+  box-shadow: 1px 0 0 rgb(0 0 0 / 0.6);
+}
+
+.wu-legend-unit {
+  left: calc(100% + 12px);
+}
+
+.wu-legend-note {
+  margin-top: 5px;
+  text-align: center;
+  font: italic 400 12px/1.2 var(--reading);
+  color: #bfa87c;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.8);
+}
