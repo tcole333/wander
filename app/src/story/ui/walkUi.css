@@ -883,7 +883,8 @@
 
 /* The climate legend: a small plate of Meanwhile's dark cast brass over the ruler's right end, its
    month engraved in gilt over an enamel strip set in a brass bezel, the strip's ends named and its
-   degrees cut under it. Its opacity follows the layer (climateLegend.ts). */
+   degrees cut under it. It rises into view as a flight lands and fades with the layer
+   (climateLegend.ts). */
 
 .wu-legend {
   position: absolute;
@@ -893,12 +894,16 @@
   width: 300px;
   padding: 11px 16px 10px;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
+  translate: 0 6px;
+  transition:
+    opacity 0.5s,
+    translate 0.5s;
 }
 
 .wu-legend.is-shown {
-  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
 }
 
 .wu-legend-month {
