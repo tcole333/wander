@@ -15,7 +15,7 @@ import {
 import { tunables } from '../config/tunables';
 import type { CreateSurfaceStreamer, SurfaceStreamer } from '../contract';
 import type { Release } from '../data/release';
-import { fetchData, loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
+import { DataError, fetchData, loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
 import { flagsNeedUp, INSTANCE_WORDS, packInstance, type InstanceState } from '../globe/instances';
 import { ancestorAt, CoverError, seamFlags, type DrawnNode } from '../globe/seamFlags';
 import { GRID_SEGMENTS } from '../globe/tileGrid';
@@ -119,7 +119,7 @@ export const createSurfaceStreamer = (async (
     });
   });
   if (rootErrors.length > 0 || roots.filter((t) => t.level === 0).length < 6) {
-    throw new Error(`the roots did not load: ${JSON.stringify(rootErrors)}`);
+    throw new DataError(`the roots did not load: ${JSON.stringify(rootErrors)}`);
   }
   while (uploads.length > 0) {
     uploads.run(tunables.uploadIdle.full);
