@@ -61,6 +61,11 @@ export interface Lobby {
   readonly glows: Object3D;
   /** Resolves as the opening starts, when the room's poster should give way to the canvas. */
   readonly opened: Promise<void>;
+  /**
+   * The lobby's Wander mark, which comes in with the plaques; the room's poster mark glides onto
+   * it (main.ts, page/room.ts).
+   */
+  readonly mark: HTMLElement;
   /** One frame, before the view steps; `camera` stands where the last frame drew from. */
   update(nowMs: number, dtS: number, camera: PerspectiveCamera): void;
   /**
@@ -161,6 +166,7 @@ export function createLobby(parts: LobbyParts): Lobby {
   return {
     glows: glows.points,
     opened,
+    mark: plaques.mark,
 
     update(nowMs, dtS, camera) {
       elapsed += dtS;

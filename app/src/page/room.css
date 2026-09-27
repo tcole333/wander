@@ -110,13 +110,25 @@
 }
 
 /* On open the mark goes ahead of the room, so it never hangs over the walk beside the walk's own
-   mark. Its lines fade, since the mark itself carries the rise. */
+   mark. Its lines fade, since the mark itself carries the rise. Opening onto the lobby, it lifts
+   out of the room instead and glides onto the lobby's mark (room.ts), in the room's type. */
 .room-mark > * {
   transition: opacity 0.3s ease;
 }
 
 .room.is-open .room-mark > * {
   opacity: 0;
+}
+
+.room-mark.is-gliding {
+  position: fixed;
+  z-index: 21;
+  max-width: none;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--reading);
+  -webkit-font-smoothing: antialiased;
+  animation: none;
 }
 
 .room-mark .wu-mark-word {
