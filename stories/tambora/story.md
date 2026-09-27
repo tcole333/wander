@@ -51,7 +51,7 @@ id: sunda
 date: "1815-04-05"
 precision: day
 window: "1815-04-05..1815-04-10"
-camera: {target: [118.0, -8.25], viewKm: 1500, tilt: 20, heading: 0, drift: none}
+camera: {target: [117.5, -5.5], viewKm: 3200, tilt: 20, heading: 0, drift: none}
 focal: {qid: Q3591483, date: "1815-04-05"}
 image:
   commons: "File:East India Isles. Drawn under the direction of Mr. Pinkerton by L. Hebert. Neele sculpt. 352 Strand. London- published April (IA dr east-india-isles-drawn-under-the-direction-of-mr-pinkerton-by-l-hebert-00364021).jpg"
