@@ -1,7 +1,8 @@
 // The prototype's camera controls over the view state: dragging slides the globe under the cursor
 // with the heading kept, right-drag or shift-drag tilts, the wheel zooms, the arrow keys pan (with
 // shift they tilt), + and - zoom, and presets fly there with an eased flight. Input moves a goal;
-// the drawn view follows it, damped.
+// the drawn view follows it, damped. A story (story/director.ts) hears of that input through
+// onInput, and turns the arrow keys off to step its beats with them.
 import {
   damp,
   dragView,
@@ -41,6 +42,10 @@ export class ViewControl {
   /** The zoom's limits in km, set by the page: the closest a view may come, by where it is. */
   minKmAt: (view: ViewState) => number = () => 30;
   maxKm = Infinity;
+  /** Called when the visitor moves the view: a drag, a tilt, the wheel or a key. */
+  onInput: () => void = () => {};
+  /** Whether the arrow keys pan and tilt. */
+  arrowKeys = true;
   #held = new Set<string>();
   #shift = false;
   #widthPx = 1440;
@@ -111,8 +116,10 @@ export class ViewControl {
     addEventListener('keydown', (event) => {
       this.#shift = event.shiftKey;
       if (!KEYS.has(event.key) || isFormField(event.target)) return;
+      if (!this.arrowKeys && event.key.startsWith('Arrow')) return;
       event.preventDefault();
       this.#held.add(event.key);
+      this.onInput();
     });
     addEventListener('keyup', (event) => {
       this.#shift = event.shiftKey;
@@ -130,6 +137,8 @@ export class ViewControl {
       if (!drag) return;
       const dx = event.clientX - drag.x;
       const dy = event.clientY - drag.y;
+      if (dx === 0 && dy === 0) return;
+      this.onInput();
       drag.x = event.clientX;
       drag.y = event.clientY;
       if (drag.tilt) {
@@ -148,6 +157,7 @@ export class ViewControl {
       (event) => {
         event.preventDefault();
         this.stop();
+        this.onInput();
         const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
         // A trackpad pinch arrives as ctrl+wheel with small deltas, so it zooms faster per pixel.
         const rate = event.ctrlKey ? PINCH_RATE : WHEEL_RATE;
@@ -185,7 +195,7 @@ export class ViewControl {
   }
 }
 
-function isFormField(target: EventTarget | null): boolean {
+export function isFormField(target: EventTarget | null): boolean {
   return (
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
