@@ -53,6 +53,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
       }
     },
     rulerUnit: () => ruler.unit,
+    cardReach: () => card.element.offsetLeft + card.element.offsetWidth,
     dispose() {
       card.dispose();
       ruler.dispose();
