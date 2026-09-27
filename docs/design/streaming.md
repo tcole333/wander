@@ -715,8 +715,14 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   generation counter drops decode results nobody wants before they are uploaded.
 - **Watchdog:** no bytes for `stallBytes`, or no headers for `stallHeaders`, means abort and retry.
   Retries follow `retryDelays` with jitter; after that the object is degraded for `degradeFor` while
-  its ancestor keeps drawing.
-- **A 404 on an immutable key** is a release bug: log it, and do not retry.
+  its ancestor keeps drawing. Milestone 1 has this without the classes: `fetchData`
+  (`app/src/data/surfaceLayer.ts`) watches every data fetch, tiles, roots and `bounds.bin` alike,
+  and a body that keeps arriving, however slowly, is never aborted, since an abort throws away what
+  has arrived. A tile that still fails draws from its ancestors for `degradeFor`, then is wanted
+  again, so a short outage leaves the view coarse for half a minute at most, never for the session.
+  Roots that fail bring the data plate (owner decision 21).
+- **A 404 on an immutable key** is a release bug: log it, and do not retry. The tile's node keeps
+  drawing its ancestors.
 - **No throughput estimator:** flights gate on readiness, so a sample that reads low during a stall
   degrades nothing.
 
@@ -1553,8 +1559,8 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `titleFontWait` | 1 s | title plate font fallback | eye |
 | `inFlight` | 12 total; next + background ≤ 4; background ≥ 1 | fetch concurrency | E3, E4 |
 | `queueDrop`, `finishIfReceived` | 300 ms, 70% | cancellation | E3 |
-| `stallBytes`, `stallHeaders` | 2.5 s, 4 s | watchdog | E3 stall test |
-| `retryDelays`, `degradeFor` | 0.5, 2, 8 s with jitter; 60 s | retries | E3 |
+| `stallBytes`, `stallHeaders` | 10 s, 10 s | watchdog | E3 stall test; generous while one queue serves every request, since an abort throws away the bytes that have arrived |
+| `retryDelays`, `degradeFor` | 0.5, 2, 8 s with jitter; 30 s | retries | E3 |
 | `motionLodRate` | 1 screen or 1 level per second | request cap at desired−2 | E2, E3 |
 | `uploadAnimated`, `uploadIdle` | 256 / 512 KiB, 1 / 2 MiB | upload admission | E1, E2 (idle caps are a guess) |
 | `uploadStopMs`, `uploadSlowCall` | ~1 ms, 0.5 ms | early stop | E1, E2 (guess) |
