@@ -218,7 +218,6 @@ export const createWalkEffects: CreateWalkEffects = (
       return {
         ...month,
         rangeK: Number(look.params.climateRangeK),
-        style: Number(look.params.climateStyle) === 1 ? 'cloisonne' : 'wash',
         base: String(look.params.bronze),
         strength: climate.drawn,
       };

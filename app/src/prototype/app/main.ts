@@ -5,8 +5,7 @@
 // Query: ?data=fixture|region|global|<origin> (a local bake's server by name, or any data server's
 // origin; global when its server answers), ?view=<preset>, ?ui=0 (no panel or HUD, for
 // screenshots), and any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1). The climate's
-// alternates for the owner's choice live here only: ?climateRangeK=6 saturates at ±6 K, and
-// ?climateStyle=1 draws the cloisonné enamel.
+// alternate for the owner's choice lives here only: ?climateRangeK=6 saturates at ±6 K.
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
 // ?story=tambora walks the story instead of the presets, as the boot plays it. The panel hides

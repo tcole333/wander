@@ -62,13 +62,13 @@ export class ClimateLegend {
       this.#monthShown = month;
       this.#month.textContent = month;
     }
-    const { rangeK, style, base } = climate;
-    const strip = `${rangeK} ${style} ${base}`;
+    const { rangeK, base } = climate;
+    const strip = `${rangeK} ${base}`;
     if (strip === this.#stripShown) return;
     this.#stripShown = strip;
     const stops = Array.from({ length: STOPS }, (_, i) => {
       const k = rangeK * ((2 * i) / (STOPS - 1) - 1);
-      return `${climateSwatch(base, k, rangeK, style)} ${((100 * i) / (STOPS - 1)).toFixed(2)}%`;
+      return `${climateSwatch(base, k, rangeK)} ${((100 * i) / (STOPS - 1)).toFixed(2)}%`;
     });
     this.#strip.style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
     this.#scale.replaceChildren(

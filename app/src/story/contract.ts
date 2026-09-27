@@ -3,7 +3,6 @@
 // number (dates.ts); the story itself comes from stories/tambora/story.md (story.ts).
 import type { Object3D, PerspectiveCamera } from 'three';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';
-import type { ClimateStyle } from '../look/climateHook';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Precision } from './dates';
@@ -69,14 +68,13 @@ export interface MeanwhileEntry {
 /** Keyed by beat id. */
 export type MeanwhileByBeat = Record<string, MeanwhileEntry[]>;
 
-/** The climate the globe draws: the month, the palette it is drawn in, and how strongly. */
+/** The climate the globe draws: the month, its palette's range and middle, and how strongly. */
 export interface ClimateShown {
   year: number;
   /** 1-12. */
   month: number;
   /** K at which the palette saturates, either side of the 1901-2000 average. */
   rangeK: number;
-  style: ClimateStyle;
   /** The land's color at the average, sRGB hex: the palette's middle. */
   base: string;
   /** 0 to 1, easing in and out with the layer. */
