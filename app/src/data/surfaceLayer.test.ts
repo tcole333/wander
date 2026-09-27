@@ -26,13 +26,13 @@ function body(chunks: number, every: number, then: 'ends' | 'stops' = 'ends'): R
 }
 
 /** Stubs fetch with one answer per call, in order; the last answers every call after it. */
-function network(...answers: (() => Promise<Response>)[]) {
+function network(...answers: ((init: RequestInit) => Promise<Response>)[]) {
   let calls = 0;
-  const fetch = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(() => {
+  const fetch = vi.fn<(url: string, init: RequestInit) => Promise<Response>>((_url, init) => {
     const answer = answers[Math.min(calls, answers.length - 1)];
     calls += 1;
     if (!answer) throw new Error('no answer');
-    return answer();
+    return answer(init);
   });
   vi.stubGlobal('fetch', fetch);
   return fetch;
@@ -40,7 +40,11 @@ function network(...answers: (() => Promise<Response>)[]) {
 
 const status = (code: number) => () => Promise.resolve(new Response(null, { status: code }));
 const lost = () => Promise.reject(new TypeError('Failed to fetch'));
-const silent = () => new Promise<Response>(() => {});
+/** Never answers, and rejects when aborted, as a browser's fetch does. */
+const silent = ({ signal }: RequestInit) =>
+  new Promise<Response>((_, reject) => {
+    signal?.addEventListener('abort', () => reject(signal.reason as Error));
+  });
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -91,6 +95,15 @@ describe('fetchData', () => {
     await vi.runAllTimersAsync();
     expect([...new Uint8Array(await bytes)]).toEqual([1, 2]);
     expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  test('names the stall, not the abort, when every attempt stalls', async () => {
+    network(silent);
+    const failure = expect(fetchData(TILE)).rejects.toThrow(
+      `${TILE}: no response for ${tunables.stallHeaders / 1000} s`,
+    );
+    await vi.runAllTimersAsync();
+    await failure;
   });
 
   test('never aborts a slow body that keeps arriving', async () => {
