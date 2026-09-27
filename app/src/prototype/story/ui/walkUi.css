@@ -20,9 +20,11 @@
   --display: 'Libre Baskerville', Baskerville, Georgia, serif;
   --reading: 'Source Serif 4', Georgia, serif;
 
-  /* How far up from the page's foot the time ruler reaches; the card and the Resume plaque clear
-     it. */
-  --ruler-reach: 124px;
+  /* How far up from the page's foot the time ruler reaches (rulerCraft.ts): beside the card,
+     where its plaque stands when the playhead is nearest the rule's start, and at its crest, over
+     which the Resume plaque stands. */
+  --ruler-reach: 136px;
+  --ruler-crest: 152px;
 
   /* The key lamp's color (0xffd6a8), and the shadows a panel casts away from it. */
   --lamp: 255 214 168;
@@ -207,9 +209,9 @@
   position: absolute;
   box-sizing: border-box;
   left: 30px;
-  top: 128px;
+  top: 124px;
   width: 450px;
-  max-height: calc(100% - 128px - var(--ruler-reach));
+  max-height: calc(100% - 124px - var(--ruler-reach));
   display: flex;
   flex-direction: column;
   padding: 8px;
@@ -326,7 +328,7 @@
 .wu-mount {
   --mount-edge: 10px;
   box-sizing: border-box;
-  width: min(100%, calc(120px * var(--ar) + 2 * var(--mount-edge)));
+  width: min(100%, calc(114px * var(--ar) + 2 * var(--mount-edge)));
   margin: 0 auto;
   padding: 4px;
   background: var(--brushed), linear-gradient(135deg, #f5dfaa, #c7a060 28%, #8e6c35 62%, #5a4120);
@@ -751,7 +753,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--ruler-reach) + 2px);
+  bottom: var(--ruler-crest);
   width: max-content;
   margin: 0 auto;
   padding: 10px 34px 9px;
