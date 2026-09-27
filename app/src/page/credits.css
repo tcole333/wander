@@ -184,6 +184,11 @@
   text-shadow: var(--engraved);
 }
 
+/* A date range in a label keeps to one line. */
+.credits-range {
+  white-space: nowrap;
+}
+
 .credits-sources dd {
   margin: 0;
   font: 400 14.5px/1.55 var(--reading);
