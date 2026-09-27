@@ -1,7 +1,8 @@
 // The production build (dist/ under vite preview) plays the walk: pointed at the fixture's data
-// server with ?data=, which the page honors because it is served from loopback, and with
-// Wikimedia Commons stubbed so no run depends on it. The room opens onto a drawn globe, beat 1's
-// title shows, the Right arrow brings beat 2's, the credits page loads, and nothing logs an error.
+// server with ?data=, which the page honors because it is served from loopback. The room opens
+// onto a drawn globe, beat 1's title shows with its image from the data host, the Right arrow
+// brings beat 2's, the credits page loads, nothing logs an error, and no request goes to
+// Wikimedia: the images are the media stage's, on the data host.
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
@@ -11,43 +12,22 @@ const story = parseStory(
   readFileSync(new URL('../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
 
-/** A 1×1 PNG for every image Commons would serve. */
-const PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-  'base64',
+/** The media stage's committed test image, standing in for the story's images. */
+const JPEG = readFileSync(
+  new URL('../../pipeline/tests/data/media/quadrants.jpg', import.meta.url),
 );
 
-/** Commons' API answers every file with the stub image, and its thumbnails are the stub. */
-async function stubCommons(page: Page): Promise<void> {
-  const thumb = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Stub.png/960px-Stub.png';
-  await page.route('https://commons.wikimedia.org/**', (route) =>
+/**
+ * The fixture bakes no story images, so the data host's img/ keys answer with the test image, as
+ * R2 would answer with the baked ones.
+ */
+async function serveImages(page: Page): Promise<void> {
+  await page.route(`${DATA_URL.fixture}/img/**`, (route) =>
     route.fulfill({
       headers: { 'Access-Control-Allow-Origin': '*' },
-      json: {
-        query: {
-          pages: {
-            '1': {
-              imageinfo: [
-                {
-                  url: thumb,
-                  thumburl: thumb,
-                  width: 1400,
-                  height: 1000,
-                  descriptionurl: 'https://commons.wikimedia.org/wiki/File:Stub.png',
-                  extmetadata: {
-                    Artist: { value: 'A mapmaker' },
-                    LicenseShortName: { value: 'Public domain' },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      },
+      contentType: 'image/jpeg',
+      body: JPEG,
     }),
-  );
-  await page.route('https://upload.wikimedia.org/**', (route) =>
-    route.fulfill({ contentType: 'image/png', body: PNG }),
   );
 }
 
@@ -96,7 +76,9 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
   });
-  await stubCommons(page);
+  const requested: string[] = [];
+  page.on('request', (request) => requested.push(request.url()));
+  await serveImages(page);
 
   await page.goto(`/?data=${DATA_URL.fixture}`);
   // The room is the poster until the first live frame, then fades out of the way.
@@ -105,6 +87,7 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
 
   const title = page.locator('.wu-card .wu-title');
   await expect(title).toHaveText(story.beats[0]?.title ?? '');
+  await expect(page.locator('.wu-frame img.is-loaded').first()).toBeAttached();
   await page.keyboard.press('ArrowRight');
   await expect(title).toHaveText(story.beats[1]?.title ?? '');
   // M mutes, and the sound knob shows so.
@@ -119,4 +102,7 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Credits');
 
   expect(errors).toEqual([]);
+  expect(requested.filter((url) => url.startsWith(`${DATA_URL.fixture}/img/`))).not.toEqual([]);
+  const wikimedia = requested.filter((url) => /(^|\.)wikimedia\.org$/.test(new URL(url).hostname));
+  expect(wikimedia).toEqual([]);
 });
