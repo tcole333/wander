@@ -7,8 +7,7 @@
 // Space plays or pauses, and Escape resumes after the visitor breaks out to explore.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
-// the story's UI last (walk.css). The dev shell (prototype/app/main.ts) and the production entry
-// both boot it.
+// the story's UI last (walk.css). The dev shell (prototype/app/main.ts) boots it.
 import './walk.css';
 import {
   Mesh,
