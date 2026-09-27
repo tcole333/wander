@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from prebuild import coverage, excerpts, fetch, surface
+from prebuild import coverage, excerpts, fetch, modera, surface
 from prebuild.expect import clear_stamp, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
@@ -19,13 +19,15 @@ STAGES: dict[str, Runner] = {
     "excerpts": excerpts.run,
     "coverage": coverage.run,
     "surface": surface.run,
+    "modera": modera.run,
 }
 
 # A run with no stage named leaves these out: excerpts rewrites committed files, and media
 # builds the one story named with --story.
 NAMED_ONLY = frozenset({"excerpts", "media"})
 # The fixture reads only committed excerpts, so it never runs the stages that read raw data.
-RAW_DATA_ONLY = frozenset({"fetch", "excerpts"})
+# modera has no excerpt yet (modera.py).
+RAW_DATA_ONLY = frozenset({"fetch", "excerpts", "modera"})
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
@@ -87,7 +89,7 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         description="Turn Wander's raw sources into web-ready assets (streaming.md 7.1).",
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
-            "excerpts and media; the fixture profile also skips fetch."
+            "excerpts and media; the fixture profile also skips fetch and modera."
         ),
     )
     parser.add_argument(
