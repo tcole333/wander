@@ -16,6 +16,7 @@
     "test": "vitest run",
     "verify:bake": "vitest run --config vitest.bake.config.ts",
     "data": "node scripts/dataServer.ts",
+    "publish-data": "node scripts/publish.ts",
     "fixture": "uv run --directory ../pipeline --locked prebuild --profile fixture",
     "e2e": "playwright test --project=swiftshader",
     "e2e:gpu": "playwright test --project=gpu-chromium",
