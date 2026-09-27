@@ -106,11 +106,16 @@ export interface WalkPage {
   dispose(): void;
 }
 
+/** This browser cannot draw the walk: it gives no WebGL 2 context, or a shader does not link. */
+export class DrawError extends Error {
+  override name = 'DrawError';
+}
+
 /**
  * Builds the renderer, the museum scene, the streamer, the look, the camera and its controls in
  * `host`, starts the story if given, readies its shaders and runs the frame loop. When any step
- * throws (no WebGL, data that does not arrive, a shader that will not compile), what the earlier
- * steps made is released, its DOM and keys too, before the error goes on.
+ * throws (a DrawError, data that does not arrive), what the earlier steps made is released, its
+ * DOM and keys too, before the error goes on.
  */
 export async function bootWalk(
   host: HTMLElement,
@@ -133,8 +138,20 @@ async function assemble(
   { story: source = null, view = WORLD, tune = () => {} }: BootOptions,
   made: (() => void)[],
 ): Promise<WalkPage> {
-  const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+  const renderer = createRenderer();
   renderer.shadowMap.enabled = true;
+  // A shader that does not link draws nothing and throws nowhere, so the boot counts them. This
+  // replaces three's own report, so the logs are reported here.
+  let unlinked = 0;
+  renderer.debug.onShaderError = (gl, program, vertex, fragment) => {
+    unlinked += 1;
+    console.error(
+      'A shader did not link:',
+      gl.getProgramInfoLog(program),
+      gl.getShaderInfoLog(vertex),
+      gl.getShaderInfoLog(fragment),
+    );
+  };
   renderer.domElement.className = 'walk-canvas';
   const labels = document.createElement('div');
   labels.className = 'walk-labels';
@@ -209,6 +226,8 @@ async function assemble(
     museum.globeMount.add(story.effects.group);
     tune(story.effects.params);
     await precompile(renderer, museum, camera, story.effects.group);
+    // precompile drew every program once, and three checks each link at its first use.
+    if (unlinked > 0) throw new DrawError(`${unlinked} shaders did not link`);
   }
   const walk = story?.walk ?? null;
 
@@ -314,6 +333,15 @@ async function assemble(
       for (const undo of made.splice(0).reverse()) undo();
     },
   };
+}
+
+/** The walk's renderer, or a DrawError when this browser gives no WebGL 2 context. */
+function createRenderer(): WebGLRenderer {
+  try {
+    return new WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+  } catch (error) {
+    throw new DrawError('no WebGL 2 context', { cause: error });
+  }
 }
 
 /**
