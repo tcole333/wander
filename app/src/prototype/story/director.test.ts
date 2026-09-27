@@ -112,4 +112,10 @@ describe('the walk', () => {
     expect(walk.state()).toMatchObject({ beat: 0, mode: 'playing', day: beat(0).day });
     expect(control.current.lon).toBeCloseTo(beat(0).camera.target[0], 6);
   });
+
+  it('scrubs to whole days, as the date plate reads them', () => {
+    const { walk } = setup();
+    walk.scrub(beat(3).day - 0.25);
+    expect(walk.state().day).toBe(beat(3).day - 1);
+  });
 });
