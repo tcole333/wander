@@ -109,49 +109,72 @@ export class ViewControl {
     this.current = this.settled ? { ...this.goal } : damp(this.current, this.goal, dtS, DAMP_S);
   }
 
-  /** Mouse and wheel input on `element`, and keys held anywhere on the page but in a form field. */
-  attach(element: HTMLElement): void {
+  /**
+   * Mouse and wheel input on `element`, and keys held anywhere on the page but in a form field.
+   * Returns what takes the listeners off again.
+   */
+  attach(element: HTMLElement): () => void {
+    const listeners = new AbortController();
+    const { signal } = listeners;
     this.#widthPx = element.clientWidth || this.#widthPx;
-    addEventListener('resize', () => (this.#widthPx = element.clientWidth || this.#widthPx));
-    addEventListener('keydown', (event) => {
-      this.#shift = event.shiftKey;
-      if (!KEYS.has(event.key) || isFormField(event.target)) return;
-      if (!this.arrowKeys && event.key.startsWith('Arrow')) return;
-      event.preventDefault();
-      this.#held.add(event.key);
-      this.onInput();
+    addEventListener('resize', () => (this.#widthPx = element.clientWidth || this.#widthPx), {
+      signal,
     });
-    addEventListener('keyup', (event) => {
-      this.#shift = event.shiftKey;
-      this.#held.delete(event.key);
-    });
-    addEventListener('blur', () => this.#held.clear());
+    addEventListener(
+      'keydown',
+      (event) => {
+        this.#shift = event.shiftKey;
+        if (!KEYS.has(event.key) || isFormField(event.target)) return;
+        if (!this.arrowKeys && event.key.startsWith('Arrow')) return;
+        event.preventDefault();
+        this.#held.add(event.key);
+        this.onInput();
+      },
+      { signal },
+    );
+    addEventListener(
+      'keyup',
+      (event) => {
+        this.#shift = event.shiftKey;
+        this.#held.delete(event.key);
+      },
+      { signal },
+    );
+    addEventListener('blur', () => this.#held.clear(), { signal });
     let drag: { x: number; y: number; tilt: boolean } | null = null;
-    element.addEventListener('pointerdown', (event) => {
-      if (event.button !== 0 && event.button !== 2) return;
-      this.stop();
-      drag = { x: event.clientX, y: event.clientY, tilt: event.button === 2 || event.shiftKey };
-      element.setPointerCapture(event.pointerId);
-    });
-    element.addEventListener('pointermove', (event) => {
-      if (!drag) return;
-      const dx = event.clientX - drag.x;
-      const dy = event.clientY - drag.y;
-      if (dx === 0 && dy === 0) return;
-      this.onInput();
-      drag.x = event.clientX;
-      drag.y = event.clientY;
-      if (drag.tilt) {
-        const tilt = Math.min(MAX_TILT, Math.max(0, this.goal.tilt - dy * TILT_PER_PX));
-        this.goal = { ...this.goal, tilt };
-      } else {
-        this.goal = dragView(this.goal, dx, dy, element.clientWidth);
-      }
-    });
+    element.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (event.button !== 0 && event.button !== 2) return;
+        this.stop();
+        drag = { x: event.clientX, y: event.clientY, tilt: event.button === 2 || event.shiftKey };
+        element.setPointerCapture(event.pointerId);
+      },
+      { signal },
+    );
+    element.addEventListener(
+      'pointermove',
+      (event) => {
+        if (!drag) return;
+        const dx = event.clientX - drag.x;
+        const dy = event.clientY - drag.y;
+        if (dx === 0 && dy === 0) return;
+        this.onInput();
+        drag.x = event.clientX;
+        drag.y = event.clientY;
+        if (drag.tilt) {
+          const tilt = Math.min(MAX_TILT, Math.max(0, this.goal.tilt - dy * TILT_PER_PX));
+          this.goal = { ...this.goal, tilt };
+        } else {
+          this.goal = dragView(this.goal, dx, dy, element.clientWidth);
+        }
+      },
+      { signal },
+    );
     const end = () => (drag = null);
-    element.addEventListener('pointerup', end);
-    element.addEventListener('pointercancel', end);
-    element.addEventListener('contextmenu', (event) => event.preventDefault());
+    element.addEventListener('pointerup', end, { signal });
+    element.addEventListener('pointercancel', end, { signal });
+    element.addEventListener('contextmenu', (event) => event.preventDefault(), { signal });
     element.addEventListener(
       'wheel',
       (event) => {
@@ -164,8 +187,9 @@ export class ViewControl {
         const minKm = this.minKmAt(this.goal);
         this.goal = zoomView(this.goal, event.deltaY * lines, minKm, this.maxKm, rate);
       },
-      { passive: false },
+      { passive: false, signal },
     );
+    return () => listeners.abort();
   }
 
   /** The goal after `dtS` seconds of the held keys. */
