@@ -55,7 +55,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders, range names follow Mountains, ocean and sea names follow Labels. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. |
 | **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders: 1878 snapshot"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. |
-| **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; ~105-112 KB per year [M]. ES3 guarantees only 256 array layers [S]. |
+| **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
 | **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, noted as illustrative in Credits. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
 | **Story compile and media** | `uv run prebuild media --story <id>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
 | **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then desired set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on the full tier; also keeping N+1's desired set and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
@@ -424,13 +424,12 @@ f32 scale[frames] | f32 offset[frames]    K = u8·scale + offset; 255 = missing
 u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitudes in release.json)
 ```
 
-- **Scaling:** per frame, offset = the frame's minimum and scale = max(0.1 K, (max − min)/254), both
-  rounded to float32 before the codes are taken, so nothing clips and every value decodes within half
-  a step. The step is 0.1 K except in 30 of 7,056 wide-range months (up to 0.137 K, February 1984).
-  Spread's (max − min)/254 stays under 0.04 K, so every spread frame takes the 0.1 K step, the same
-  as the mean's. The build reports the largest step. The coldest 1814-1817 month is December 1817, at
-  −15.57 K. Measured with gzip-9: 81-121 KB per mean year (106 KB for 1815), 59-85 KB per spread
-  year, 2.98 MB for `annual.bin` and 99 MB for the layer's 1,177 files [M, `uv run prebuild modera`].
+- **Scaling:** per frame, offset = the frame's minimum and scale = max(0.1 K, (max − min)/254), so
+  nothing clips. The step is 0.1 K except in 30 of 7,056 mean months (up to 0.137 K, February 1984);
+  spread always takes 0.1 K. The build reports the largest step. The coldest 1814-1817 month is
+  December 1817, at −15.57 K. Measured with gzip-9: 81-121 KB per mean year (106 KB for 1815),
+  59-85 KB per spread year, 2.98 MB for `annual.bin` and 99 MB for the layer's 1,177 files [M,
+  `uv run prebuild modera`].
 - Year files have 12 frames. `annual.bin` has 588 frames, 1421-2008, each the unweighted mean of the
   year's 12 monthly means. Months follow the source's `(year, month)` indexing; its hour offsets are
   not reinterpreted through dates.
