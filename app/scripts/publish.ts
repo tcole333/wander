@@ -5,16 +5,17 @@
 // the L0 tiles) goes up first and its headers are checked at the origin, then through the data
 // host, because the edge keeps whatever it sees for a year; the rest follows, then a second listing
 // checks every size. Every PUT carries If-None-Match: *, so nothing is overwritten. Last come the
-// bundled app/src/generated/release.json and its copy rel/<id>.json. Plain Node:
+// bundled app/src/generated/release.json and its copy rel/<id>.json. The fixture never leaves this
+// machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
 //
-//   npm run publish-data -- [--profile global|region|fixture] [--dry-run] [--canary-only]
+//   npm run publish-data -- [--profile global|region] [--dry-run] [--canary-only]
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type { Release, SurfaceRelease } from '../src/data/release.ts';
-import { OUTPUT_DIR, REBUILD, REPO_ROOT, type Profile } from './dataServer.ts';
+import { OUTPUT_DIR, REBUILD, REPO_ROOT } from './dataServer.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import { localRelease, ReleaseError } from './release.ts';
@@ -97,8 +98,11 @@ function countBits(base64: string): number {
   return count;
 }
 
+/** The profiles whose builds go to R2. */
+const PUBLISHED = ['global', 'region'] as const;
+
 export interface PublishOptions {
-  profile: Profile;
+  profile: (typeof PUBLISHED)[number];
   /** List R2 and report what an upload would send, writing nothing. */
   dryRun?: boolean;
   /** Stop once the canary is up and checked. */
@@ -298,10 +302,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       'canary-only': { type: 'boolean', default: false },
     },
   });
-  if (!(values.profile in OUTPUT_DIR)) {
-    throw new PublishError('--profile must be global, region or fixture');
+  const profile = PUBLISHED.find((name) => name === values.profile);
+  if (profile === undefined) {
+    const serve = '`npm run data -- --profile fixture` serves the fixture';
+    throw new PublishError(`--profile must be global or region; ${serve}`);
   }
-  const profile = values.profile as Profile;
   try {
     await publish({ profile, dryRun: values['dry-run'], canaryOnly: values['canary-only'] });
   } catch (error) {

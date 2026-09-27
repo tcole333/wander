@@ -610,9 +610,11 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
    records in `build/stages/global/` (7.2).
 2. `uv run prebuild media --story <id>` when images, audio or event references change, or the events
    version changes. It writes `img/` and `aud/` into `build/out/` and the committed lock.
-3. `npm run publish-data`, which takes the same `--profile` as the prebuild (default global), so a
-   region bake and a global bake never mix in one upload. It signs R2's S3 API itself (aws4fetch)
-   with the credentials in `~/.config/wander/r2.env`, so it needs no rclone or AWS profile:
+3. `npm run publish-data`, which takes the same `--profile` as the prebuild, global (the default) or
+   region, so a region bake and a global bake never mix in one upload; the fixture never leaves the
+   machine, and the local data server serves its release (7.3). It signs R2's S3 API itself
+   (aws4fetch) with the credentials in `~/.config/wander/r2.env`, so it needs no rclone or AWS
+   profile:
    - merges the stage records into the release and takes exactly the keys it names from the
      profile's output root, so versions left there by older builds stay local
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
@@ -1182,8 +1184,6 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   samples, 3.0 item 9) in `build/stages/fixture/expect/`.
   `uv run prebuild --profile fixture media --story _fixture --offline` writes
   `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
-  `npm run publish-data -- --profile fixture` writes `app/src/generated/release.fixture.json`
-  (dataHost `http://127.0.0.1:8791`) and uploads nothing.
 - **Release selection:** the app imports the release through a Vite alias chosen by
   `WANDER_RELEASE=fixture|prod`, and `npm run stories` compiles against the same release.
 - **Dev:** `npm ci && npm run dev` runs against production data (CORS `*`), so a fresh clone needs no
