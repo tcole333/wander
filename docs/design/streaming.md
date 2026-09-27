@@ -595,10 +595,12 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   2. **Response Header Transform Rule:** `Access-Control-Allow-Origin: *`, `Timing-Allow-Origin: *`.
      Every request is a simple GET with no Range header, so none needs a preflight.
   3. Smart Tiered Cache on and HTTP/3 on. Origin Range Requests stay off, because nothing uses ranges.
-- **Object headers** (set by rclone at upload): `Cache-Control: public, max-age=31536000, immutable`
-  and an explicit Content-Type: `application/octet-stream` for `.wst`, `.wot`, `.wev` and `.bin`, then
-  `application/json`, `image/avif`, `image/jpeg`, `audio/mp4`, `font/woff` and `font/woff2`. Custom
-  extensions keep dev servers from guessing an encoding.
+- **Object headers** (set by `publish-data` at upload, from the table in
+  `app/scripts/objectHeaders.ts` that the local data server also serves):
+  `Cache-Control: public, max-age=31536000, immutable` and an explicit Content-Type:
+  `application/octet-stream` for `.wst`, `.wot`, `.wev` and `.bin`, then `application/json`,
+  `image/avif`, `image/jpeg`, `audio/mp4`, `font/woff` and `font/woff2`. Custom extensions keep dev
+  servers from guessing an encoding.
 
 ### 4.3 Publish order and retention
 
@@ -609,13 +611,24 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 2. `uv run prebuild media --story <id>` when images, audio or event references change, or the events
    version changes. It writes `img/` and `aud/` into `build/out/` and the committed lock.
 3. `npm run publish-data`, which takes the same `--profile` as the prebuild (default global), so a
-   region bake and a global bake never mix in one upload:
-   - uploads the keys in the profile's output root that R2 lacks (`rclone --immutable
-     --ignore-existing`, with headers)
+   region bake and a global bake never mix in one upload. It signs R2's S3 API itself (aws4fetch)
+   with the credentials in `~/.config/wander/r2.env`, so it needs no rclone or AWS profile:
+   - merges the stage records into the release and takes exactly the keys it names from the
+     profile's output root, so versions left there by older builds stay local
+   - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
+     upload, because keys are content-versioned and a mismatch means a broken build or upload
+   - uploads the canary first, `bounds.bin` and the L0 tiles, and checks their headers at the origin
+     over the S3 API, then one tile through the data host with the app's `Origin`, since the edge
+     keeps whatever it sees for a year; `--canary-only` stops here
+   - uploads the rest of what R2 lacks, 24 at a time. Every PUT sends `If-None-Match: *`, which R2
+     refuses with 412 when the key exists, so nothing is overwritten; a 412 is checked by size.
+   - lists again and checks every key's size
    - runs the publish check: GET 20 random new objects twice; expect `HIT` on the second (from this
      machine), a byte-exact sha, CORS and the right Content-Type
    - warms the cache (4.4)
-   - writes `release.json` from the stage records and uploads `rel/<id>.json`
+   - writes `release.json` and uploads `rel/<id>.json` last
+
+   `--dry-run` lists R2 and reports the keys and bytes an upload would send, writing nothing.
 4. Commit and push. CI tests, compiles the stories, builds, checks with a HEAD request that
    `rel/<id>.json` is live on the data host, and deploys Pages last, so HTML never names data that is
    not live.
