@@ -34,13 +34,21 @@
 }
 
 /* Over the walk, its card and Meanwhile fall back into the dark with the room, so no second
-   vellum sheet reads beside the panel's frame. */
+   vellum sheet reads beside the panel's frame, and the sound knob and the climate legend in
+   Meanwhile's column fall back with them. The knob keeps its own glint's timing and the legend
+   its own fade; a hidden legend stays hidden. */
 .wu > .wu-card,
 .wu > .wu-meanwhile {
   transition: opacity 0.4s ease-out;
 }
 
-body:has(> .cp[open]) .wu > :is(.wu-card, .wu-meanwhile) {
+.wu > .wu-sound {
+  transition:
+    filter 0.15s,
+    opacity 0.4s ease-out;
+}
+
+body:has(> .cp[open]) .wu > :is(.wu-card, .wu-meanwhile, .wu-sound, .wu-legend.is-shown) {
   opacity: 0.4;
 }
 
