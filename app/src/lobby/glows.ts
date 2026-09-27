@@ -1,10 +1,11 @@
 // The lobby's ambient glows (PRD, "First visit: the lobby": faint ambient events glowing on the
 // globe). Until the global event index exists they are Meanwhile's stand-in entries
-// (story/meanwhile.tambora.json), each a soft ember point with a slow twinkle of its own. One Points
-// object in three's built-in points material, additive and lit by nothing, so it compiles with the
-// rest of the scene before the lobby opens. The points are sized in pixels and fade out toward the
-// horizon rather than being depth-tested, since the exaggerated relief would bury the ones in the
-// mountains.
+// (story/meanwhile.tambora.json), each a pinprick of lamp-lit brass with a slow, shallow breath of
+// its own: small, so neighbors stay apart, and never ember-hot, since ember orange is the chosen
+// story's. One Points object in three's built-in points material, additive and lit by nothing, so
+// it compiles with the rest of the scene before the lobby opens. The points are sized in pixels
+// and fade out toward the horizon rather than being depth-tested, since the exaggerated relief
+// would bury the ones in the mountains.
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -20,11 +21,11 @@ import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
 
 /** A point's size in CSS pixels, and how far out from the globe's center it floats, in radii. */
-const SIZE_PX = 20;
+const SIZE_PX = 12;
 const LIFT = 1.006;
 /** A point's brightness swings between these over its own period, in seconds. */
-const DIM = 0.3;
-const BRIGHT = 1.15;
+const DIM = 0.4;
+const BRIGHT = 0.7;
 const PERIOD_S: [number, number] = [3.5, 8];
 /** How far a place must turn toward the camera past the horizon to glow fully (as a cosine). */
 const HORIZON_FADE = 0.15;
@@ -56,10 +57,10 @@ export class Glows {
       size: SIZE_PX,
       sizeAttenuation: false,
       map: glowTexture([
-        [0, 'rgba(255,236,200,1)'],
-        [0.16, 'rgba(255,172,96,0.95)'],
-        [0.42, 'rgba(232,102,44,0.4)'],
-        [1, 'rgba(232,102,44,0)'],
+        [0, 'rgba(255,214,150,1)'],
+        [0.2, 'rgba(224,160,82,0.8)'],
+        [0.5, 'rgba(192,150,82,0.25)'],
+        [1, 'rgba(192,150,82,0)'],
       ]),
       vertexColors: true,
       blending: AdditiveBlending,
