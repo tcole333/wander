@@ -208,12 +208,9 @@ body.au-room {
   display: none;
 }
 
-.au-mute.is-muted {
-  box-shadow:
-    0 0 0 1px #140c04,
-    0 0 0 3px rgb(200 54 76 / 0.55),
-    0 0 10px 2px rgb(230 70 90 / 0.4),
-    4px 7px 12px rgb(0 0 0 / 0.6);
+/* Muted: the cross, and the knob's face falls into shadow. */
+.au-mute.is-muted .au-knob-face {
+  filter: brightness(0.72);
 }
 
 /* Begin, waiting: its rim glows for the hand. Running: a garnet lit in its face. */
@@ -255,21 +252,18 @@ body.au-room {
     0 0 18px 3px rgb(230 70 90 / 0.28);
 }
 
-/* The drawers: dark cast brass, three abreast, dim until Begin is pressed. */
+/* The drawers: dark cast brass, three abreast, in shadow until Begin is pressed. */
 
 .au-drawers {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 26px;
   align-items: start;
-  transition:
-    opacity 0.5s,
-    filter 0.5s;
+  transition: filter 0.5s;
 }
 
 .is-locked .au-drawers {
-  opacity: 0.55;
-  filter: saturate(0.7);
+  filter: brightness(0.5);
 }
 
 .au-drawer {
