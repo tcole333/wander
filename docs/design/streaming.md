@@ -1616,7 +1616,7 @@ Decided for the surface core (issue #3), 2026-09-24 and 2026-09-25:
     structures later raised, lowered or regulated. Canals and the other reservoirs are dropped; a
     dropped reservoir's river centerline still draws.
 14. **Python stack:** Python 3.14 with numpy, netCDF4, PyYAML, shapely, pyogrio and scipy, pinned in
-    `uv.lock`. The `modera` stage reads ModE-RA with netCDF4 as well, so xarray never joins.
+    `uv.lock`.
 15. **Fixture at the Kirkuk corner:** a mid pyramid (4' for L3-L4, 1' for L5-L6, 15" for L7), so
     cross-face seams are tested on real terrain at L3-L7.
 16. **Milestone-1 region:** L5-L6 only where the Tambora beats refine at the full tier and at the
