@@ -53,18 +53,36 @@ function discGeometry(rings = 48, spokes = 128): BufferGeometry {
   return geometry;
 }
 
+// The stain's curl is a slow, smooth field, so it is found at the disc's vertices; only the fine
+// smoke is found per fragment.
 const VERTEX = /* glsl */ `
 uniform vec3 uUp;
 uniform vec3 uEast;
 uniform vec3 uNorth;
 uniform float uDiscKm;
 uniform float uShell;
+uniform int uStyle;
+uniform float uGrainKm;
+uniform float uTime;
 varying vec2 vKm;
+varying vec2 vCurl;
+
+${SMOKE_NOISE}
+
 void main() {
   float angle = position.x * uDiscKm / ${EARTH_KM.toFixed(4)};
   vec3 h = cos(position.y) * uEast + sin(position.y) * uNorth;
   vec3 p = (uUp * cos(angle) + h * sin(angle)) * uShell;
   vKm = vec2(cos(position.y), sin(position.y)) * position.x * uDiscKm;
+  vCurl = vec2(0.0);
+  if (uStyle == 2) {
+    vec2 at = vKm / uGrainKm;
+    float t = uTime * 0.03;
+    vCurl = vec2(
+      smokeFbm(vec3(at, t), 2, 0.0),
+      smokeFbm(vec3(at + vec2(5.2, 1.3), t + 7.0), 2, 0.0)
+    );
+  }
   gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
 }
 `;
@@ -78,6 +96,7 @@ uniform float uTime;
 uniform bool uRacing;
 uniform vec3 uColor;
 varying vec2 vKm;
+varying vec2 vCurl;
 
 ${SMOKE_NOISE}
 
@@ -88,7 +107,7 @@ float ring(float d, float r, float widthPx, float glowPx) {
   return 1.0 - smoothstep(0.5 * widthPx - 0.5, 0.5 * widthPx + 0.5, x) + 0.3 * exp(-x / glowPx);
 }
 
-// The stain's density, 0 to 1: densest at the source and thinning out to about R. Curling noise
+// The stain's density, 0 to 1: densest at the source and thinning out to about R. The curl
 // pushes its reach in and out and draws its smoke into wisps, more so as it thins; the noise's
 // third axis is presentation time, so the smoke billows in place. It is gone before the disc's
 // rim, however the smoke curls.
@@ -97,13 +116,8 @@ float stain(float R) {
   float cellPx = length(fwidth(p));
   float reach = length(vKm) / R;
   if (reach > 1.35) return 0.0;
-  float t = uTime * 0.03;
-  vec2 curl = vec2(
-    smokeFbm(vec3(p, t), 3, cellPx),
-    smokeFbm(vec3(p + vec2(5.2, 1.3), t + 7.0), 3, cellPx)
-  );
-  float q = length(vKm + (0.2 + 0.25 * reach) * R * curl) / R;
-  float smoke = smokeFbm(vec3(2.0 * (p + 1.5 * curl), 1.3 * t), 6, 2.0 * cellPx);
+  float q = length(vKm + (0.2 + 0.25 * reach) * R * vCurl) / R;
+  float smoke = smokeFbm(vec3(2.0 * (p + 1.5 * vCurl), 0.04 * uTime), 6, 2.0 * cellPx);
   float body = 0.85 * (1.0 - smoothstep(0.25, 1.1, q));
   float density = body + (0.25 + 0.6 * (0.85 - body)) * smoke;
   density *= (1.0 - smoothstep(1.0, 1.4, q)) * (1.0 - smoothstep(1.1, 1.35, reach));
@@ -183,7 +197,8 @@ export class PulseDisc {
       blending: stained ? MultiplyBlending : AdditiveBlending,
       premultipliedAlpha: true,
     });
-    this.mesh = new Mesh(discGeometry(), material);
+    // The stain's disc is finer, for its curl found at the vertices.
+    this.mesh = new Mesh(stained ? discGeometry(64, 256) : discGeometry(), material);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 2;
   }
