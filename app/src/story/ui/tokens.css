@@ -1,0 +1,66 @@
+/* The walk's materials as tokens: the PRD's palette and faces, the lamp, the lens's vignette and
+   grain, and the vellum, brass and rivets its panels are made of (walkUi.css). The page's room,
+   plates and credits (src/page/) draw with them too. */
+
+:root {
+  --ink: #241d16;
+  --ink-soft: #4a3518;
+  --ink-faint: #6b4e22;
+  --vellum: #d8c7a2;
+  --parch-1: #e9dcbc;
+  --parch-2: #cdb78c;
+  --brass: #b08a4a;
+  --brass-lit: #c09652;
+  --brass-hi: #e3c486;
+  --brass-lo: #5e4521;
+  --garnet: #702735;
+  --ivory: #e8dcc5;
+  --display: 'Libre Baskerville', Baskerville, Georgia, serif;
+  --reading: 'Source Serif 4', Georgia, serif;
+
+  /* The key lamp's color (0xffd6a8), and the shadows a panel casts away from it. */
+  --lamp: 255 214 168;
+  --cast: 7px 12px 24px rgb(0 0 0 / 0.55), 2px 4px 6px rgb(0 0 0 / 0.45);
+  --cast-near: 2px 3px 5px rgb(0 0 0 / 0.55), 1px 1px 1px rgb(0 0 0 / 0.4);
+  --engraved: 0.5px 0.8px 0 rgb(255 247 222 / 0.55);
+
+  /* The canvas's vignette (vignette 0.72, darkening by smoothstep(0.28, 1.05) of the distance from
+     the page's center in page heights) at 0.4 of its strength, so the cards' text keeps its
+     contrast at the page's edges. */
+  --vignette: 0.3;
+  --lens: radial-gradient(
+      circle 105vh at 50% 50%,
+      transparent 26.7%,
+      rgb(0 0 0 / calc(var(--vignette) * 0.065)) 38.1%,
+      rgb(0 0 0 / calc(var(--vignette) * 0.198)) 47.6%,
+      rgb(0 0 0 / calc(var(--vignette) * 0.375)) 57.1%,
+      rgb(0 0 0 / calc(var(--vignette) * 0.567)) 66.7%,
+      rgb(0 0 0 / calc(var(--vignette) * 0.752)) 76.2%,
+      rgb(0 0 0 / calc(var(--vignette) * 0.899)) 85.7%,
+      rgb(0 0 0 / var(--vignette)) 100%
+    )
+    fixed;
+  /* Film grain, overlaid: neutral gray noise, as the canvas's grain pass adds. */
+  --grain: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4' stitchTiles='stitch'/><feColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/><feComponentTransfer><feFuncR type='linear' slope='2.4' intercept='-0.7'/><feFuncG type='linear' slope='2.4' intercept='-0.7'/><feFuncB type='linear' slope='2.4' intercept='-0.7'/></feComponentTransfer></filter><rect width='160' height='160' filter='url(%23g)'/></svg>")
+    fixed;
+  /* The vellum's grain: a faint cloudy mottling and a fine tooth. */
+  --fiber: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='m' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='0.016' numOctaves='3' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.28 0 0 0 0 0.1 1.6 0 0 0 -0.7'/></filter><filter id='t' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='0.45 0.9' numOctaves='2' seed='8' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.08 2 0 0 0 -0.98'/></filter><rect width='300' height='300' filter='url(%23m)' opacity='0.24'/><rect width='300' height='300' filter='url(%23t)' opacity='0.13'/></svg>");
+  /* Foxing: brown blotches that gather toward a sheet's edges. */
+  --foxing: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='450' height='700' viewBox='0 0 450 700' preserveAspectRatio='none'><radialGradient id='e' r='0.7'><stop offset='0.68' stop-opacity='0'/><stop offset='1'/></radialGradient><filter id='x' x='0' y='0' width='1' height='1' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='0.045' numOctaves='4' seed='11'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.3 0 0 0 0 0.08 4 0 0 0 -2.05'/><feComposite in2='SourceGraphic' operator='in'/></filter><rect width='450' height='700' fill='url(%23e)' filter='url(%23x)'/></svg>");
+  /* Brushed metal: faint streaks along the grain of the brass. */
+  --brushed: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='120'><filter id='b' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='0.002 0.9' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.87 0 0 0 0 0.64 1.6 0 0 0 -0.72'/></filter><rect width='320' height='120' filter='url(%23b)' opacity='0.07'/></svg>");
+  /* A domed brass rivet, lit from the upper left. */
+  --rivet: radial-gradient(
+    circle at 38% 34%,
+    #fff3cc 0,
+    #dcb872 28%,
+    #8a6a36 58%,
+    #2a1c0e 76%,
+    transparent 84%
+  );
+  /* Aged vellum, warmest where the lamp falls. */
+  --vellum-light:
+    radial-gradient(110% 75% at 6% 0%, rgb(255 240 206 / 0.45), transparent 62%),
+    radial-gradient(90% 70% at 90% 105%, rgb(110 70 25 / 0.26), transparent 70%);
+  --vellum-ground: linear-gradient(160deg, #efdbae, #ddc18f 55%, #cdac78);
+}
