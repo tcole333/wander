@@ -18,17 +18,17 @@ import { yearsLabel } from '../story/ui/format';
 export class Plaques {
   /** The lobby's layer, over the canvas as the walk's UI is. */
   readonly element = el('div', 'wu lobby');
-  readonly #mark: HTMLElement;
+  /** The Wander mark, where the walk's stands. */
+  readonly mark = mark();
   readonly #column = el('nav', 'lobby-column');
 
   /** The plaque for `story`; choosing it calls `onChoose`. */
   constructor(story: Story, onChoose: () => void) {
-    this.#mark = mark();
     this.#column.setAttribute('aria-label', 'Stories');
     const rule = el('div', 'lobby-rule');
     this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule);
     this.#column.append(plaque(story, onChoose));
-    this.element.append(this.#mark, this.#column, creditsLink('lobby-credits'));
+    this.element.append(this.mark, this.#column, creditsLink('lobby-credits'));
   }
 
   /** How far right the column reaches where it stands, in CSS px (its slide aside). */
@@ -46,7 +46,7 @@ export class Plaques {
    * takes its place. Resolves once they have gone.
    */
   leave(): Promise<void> {
-    this.#mark.remove();
+    this.mark.remove();
     this.element.classList.add('is-leaving');
     (document.activeElement as HTMLElement | null)?.blur();
     return new Promise((done) => setTimeout(done, LEAVE_MS));

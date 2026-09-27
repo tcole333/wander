@@ -35,12 +35,13 @@ async function serveImages(page: Page): Promise<void> {
 
 /**
  * The share of the canvas lit brighter than the room's lamp pool can reach (#160d06 at its
- * brightest): the globe and the instrument, drawn. The walk's DOM layers are hidden for the shot,
- * and the browser decodes it, so the test needs no PNG library.
+ * brightest): the globe and the instrument, drawn. The walk's DOM layers and the poster's mark,
+ * which glides over the canvas as the room opens, are hidden for the shot, and the browser decodes
+ * it, so the test needs no PNG library.
  */
 async function litFraction(page: Page): Promise<number> {
   const hide = await page.addStyleTag({
-    content: '.wu, .walk-labels { visibility: hidden !important; }',
+    content: '.wu, .walk-labels, .room-mark { visibility: hidden !important; }',
   });
   // A page shot clipped to the canvas, not an element shot: an element shot first waits for two
   // steady frames, and CI's software renderer draws the walk seconds apart.
