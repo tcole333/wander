@@ -1,13 +1,16 @@
 // Every sound rendered offline for listening away from the page (scripts/renderSounds.ts): each
 // voice several times over, a scrub by months and one by days, a flight, the Tambora bed at three
-// moments (and room tone alone) and each cue, as 48 kHz 16-bit stereo WAV with its peak and RMS.
+// moments (and room tone alone), each cue, and a stretch of the walk as it sounds, as 48 kHz
+// 16-bit stereo WAV with its peak and RMS.
+import storyText from '../../../../stories/tambora/story.md?raw';
 import { tamboraBed } from '../../audio/bed';
 import { CUE_NAMES, startCue, type CueName } from '../../audio/cues';
 import { SoundEngine } from '../../audio/engine';
 import type { Mix } from '../../audio/mix';
 import { clunk, detent, type DetentWeight } from '../../audio/voices';
 import { dayFromIso } from '../../story/dates';
-import { flight, scrub } from './demos';
+import { parseStory } from '../../story/story';
+import { flight, scrub, walkStretch } from './demos';
 
 const RATE = 48000;
 
@@ -81,6 +84,13 @@ export const TAKES: Record<string, Take> = {
   // Room tone alone, once the mountain is quiet.
   'bed-1818-01-01': bed('1818-01-01'),
   ...Object.fromEntries(CUE_NAMES.map((name) => [`cue-${name}`, cue(name)])),
+  // The walk from its first beat onto the distant cannon, then on to the eruption.
+  'walk-stretch': {
+    seconds: 20,
+    play(engine, seconds) {
+      walkStretch(engine, parseStory(storyText), seconds, 0.05);
+    },
+  },
 };
 
 export interface Rendered {
