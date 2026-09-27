@@ -1,7 +1,9 @@
 // The walk's story effects (contract.ts WalkEffects): the ember, the plume, pulses, callout
-// plaques, and the illustrative ash and veil, each a function of story time and the beat's effect
-// list, so scrubbing backward shows the right state. The beat's layers switch the look's lines
-// and bathymetry. `group` hangs from the museum's globeMount (the globe frame, radius 1).
+// plaques, and the illustrative ash and veil, each a function of story time, so scrubbing backward
+// shows the right state. The plume, ash and veil belong to the story: any beat that lists them
+// turns them on for every beat, and story time alone shows or hides them, so they never vanish as
+// a flight leaves the beat that lists them. Pulses and plaques come from the beat's effect list,
+// and its layers switch the look's lines and bathymetry. `group` hangs from the museum's globeMount (the globe frame, radius 1).
 import {
   Group,
   MathUtils,
@@ -42,6 +44,13 @@ function plumeOf(beat: StoryBeat): PlumeEffect | undefined {
   return beat.effects.find((e): e is PlumeEffect => e.kind === 'plume');
 }
 
+/** Whether any beat spreads `dataset`. */
+function spreads(story: Story, dataset: string): boolean {
+  return story.beats.some((beat) =>
+    beat.effects.some((e) => e.kind === 'spread' && e.dataset === dataset),
+  );
+}
+
 /**
  * Where the beat's ember glows, on the beats whose focal event is the eruption (a beat with a
  * plume, or one sharing its focal event with such a beat): the focal place if the beat names one,
@@ -67,8 +76,13 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
   const ash = ashUniformsOf(look.material);
   const defaults = new Map(LAYERS.map(([, param]) => [param, look.params[param]]));
 
+  const erupting = story.beats.map(plumeOf).find(Boolean);
+  const plume = erupting && { effect: erupting, draw: new Plume(erupting) };
+  if (plume) group.add(plume.draw.mesh);
+  const ashOn = spreads(story, 'ash-1815');
+  const veilOn = spreads(story, 'veil-1815');
+
   let shown = -1;
-  let plume: { effect: PlumeEffect; draw: Plume } | undefined;
   let pulses: PulseDisc[] = [];
   let lamp: SpotLight | null | undefined;
 
@@ -78,16 +92,6 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
   const place = new Vector3();
 
   const show = (beat: StoryBeat) => {
-    const own = plumeOf(beat);
-    if (plume && plume.effect !== own) {
-      group.remove(plume.draw.mesh);
-      plume.draw.dispose();
-      plume = undefined;
-    }
-    if (own && !plume) {
-      plume = { effect: own, draw: new Plume(own) };
-      group.add(plume.draw.mesh);
-    }
     for (const pulse of pulses) {
       group.remove(pulse.mesh);
       pulse.dispose();
@@ -132,7 +136,6 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
 
       // Ember.
       const where = emberPlace(story, beat);
-      const erupting = plumeOf(beat) ?? story.beats.map(plumeOf).find(Boolean);
       if (where) {
         const height = where.vent ? kLand * VENT_M : 0;
         dirOf(where.at, place).multiplyScalar(1 + height / EARTH_M);
@@ -167,7 +170,6 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
       }
 
       // Ash, through the look.
-      const ashOn = beat.effects.some((e) => e.kind === 'spread' && e.dataset === 'ash-1815');
       if (ash) {
         ash.lookAshStrength.value = ashOn ? strength('ash') : 0;
         if (ashOn) {
@@ -187,7 +189,6 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
       }
 
       // Veil, by the view's width under the camera.
-      const veilOn = beat.effects.some((e) => e.kind === 'spread' && e.dataset === 'veil-1815');
       const altitude = Math.max(0, camera.length() - 1);
       const wideKm = 2 * altitude * tanHalf * cam.aspect * EARTH_KM;
       veil.update(day, kLand, wideKm, camera, lampLocal, veilOn ? strength('veil') : 0, t);
