@@ -27,8 +27,10 @@ export function openCredits(returnTo: HTMLElement | null = null): void {
   panel ??= buildPanel();
   if (panel.dialog.open) return;
   panel.returnTo = returnTo;
-  panel.scroll.scrollTop = 0;
   panel.dialog.showModal();
+  // Only once shown: a closed dialog has no box to scroll, and the browser brings back the offset
+  // the sheet closed at.
+  panel.scroll.scrollTop = 0;
 }
 
 /**
