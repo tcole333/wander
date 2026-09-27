@@ -113,20 +113,21 @@ export function toBuffer(ctx: BaseAudioContext, samples: Float32Array): AudioBuf
 /** The sources a long sound starts, and what else to undo, to stop them all at once. */
 export class Sources {
   readonly #nodes: AudioScheduledSourceNode[] = [];
-  readonly #undo: (() => void)[] = [];
+  readonly #undo: ((at: number) => void)[] = [];
 
   add<T extends AudioScheduledSourceNode>(node: T): T {
     this.#nodes.push(node);
     return node;
   }
 
-  onStop(undo: () => void): void {
+  /** `undo` runs when stop is called, given the time the sources stop at. */
+  onStop(undo: (at: number) => void): void {
     this.#undo.push(undo);
   }
 
   stop(at: number): void {
     for (const node of this.#nodes) node.stop(at);
-    for (const undo of this.#undo) undo();
+    for (const undo of this.#undo) undo(at);
     this.#nodes.length = 0;
     this.#undo.length = 0;
   }

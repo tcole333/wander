@@ -50,4 +50,17 @@ describe('events on the audio clock', () => {
     wake(60);
     expect(times.filter((t) => t < 60)).toEqual([0.1]);
   });
+
+  it('keeps the events due before a stop set ahead, and none after it', () => {
+    const { engine, wake } = clock();
+    const times: number[] = [];
+    const sources = new Sources();
+    every(engine, 0.1, sources, (t) => {
+      times.push(t);
+      return t + 1;
+    });
+    sources.stop(5);
+    wake(10);
+    expect(times).toEqual([0.1, 1.1, 2.1, 3.1, 4.1]);
+  });
 });

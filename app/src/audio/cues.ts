@@ -276,7 +276,7 @@ export function startCue(engine: SoundEngine, name: CueName, at = engine.soon())
 /**
  * Events from `at` on: `next` sounds one at `t` and returns when the one after it falls. Events a
  * late pump has missed (a stalled page, a hidden tab's slowed timers) are skipped, not sounded all
- * at once.
+ * at once, and a stop set ahead keeps those due before it.
  */
 export function every(
   engine: SoundEngine,
@@ -285,12 +285,15 @@ export function every(
   next: (t: number) => number,
 ): void {
   let t = at;
-  sources.onStop(
-    engine.schedule((horizon) => {
-      t = Math.max(t, engine.soon());
-      while (t < horizon) t = next(t);
-    }),
-  );
+  const pump = (horizon: number) => {
+    t = Math.max(t, engine.soon());
+    while (t < horizon) t = next(t);
+  };
+  const unschedule = engine.schedule(pump);
+  sources.onStop((end) => {
+    unschedule();
+    pump(end);
+  });
 }
 
 /** A loop of sparse grains, about `seconds` long at a prime length in samples. */
