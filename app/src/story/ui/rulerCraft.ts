@@ -788,6 +788,36 @@ function setShade(element: HTMLElement | SVGElement, shade: string): void {
     element.style.setProperty('--shade', shade);
 }
 
+/**
+ * A small knob's body, `r` px in radius, from the ruler's knobs' parts: the toothed rim in the
+ * lamp's light, and the face with its bezel, turned rings and sheen, its rim cut deeper and its
+ * teeth fewer so they read at the size. It carries its own gradients and filters, named from
+ * `id`, so it stands away from the ruler too (the sound knob).
+ */
+export function smallKnob(id: string, r: number): SVGSVGElement {
+  const face = r - 6.2;
+  const s = r / KNOB_R;
+  const body = svg('svg', { viewBox: `${-r} ${-r} ${2 * r} ${2 * r}`, 'aria-hidden': 'true' });
+  const rings = [0.86, 0.76, 0.65, 0.54, 0.43].map((k) => `<circle r="${f(k * face)}"/>`).join('');
+  body.innerHTML = `<defs>${knobGradients(id)}
+<linearGradient id="${id}-knurl" gradientUnits="userSpaceOnUse" x1="${f(-0.76 * r)}" y1="${f(-0.76 * r)}" x2="${f(0.76 * r)}" y2="${f(0.76 * r)}">
+  <stop offset="0" stop-color="#f2d596"/><stop offset="0.45" stop-color="#b08642"/><stop offset="1" stop-color="#4a3416"/>
+</linearGradient>
+${brassFilter(`${id}-lit-teeth`, { bevel: 0.6, relief: 2.5, texture: '0.5', amount: 0.05, shine: 0.6, bloom: 0.4 })}
+${brassFilter(`${id}-lit-dome`, { bevel: 2.5, relief: 4, texture: '0.08', amount: 0.08, bloom: 0.45, patina: 0.15 })}
+<filter id="${id}-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${f(4 * s)}"/></filter>
+</defs>
+<path d="${teeth(48, r - 2.5, r, 0.2, 0.55)}" fill="url(#${id}-knurl)" stroke="#1c1207" stroke-width="0.4"/>
+<circle r="${f(r - 2.9)}" fill="#1a1007"/>
+<circle r="${f(r - 3.4)}" fill="url(#${id}-bezel)" filter="url(#${id}-lit-teeth)"/>
+<circle r="${f(face + 0.4)}" fill="#24170a"/>
+<circle r="${f(face)}" fill="url(#${id}-face-fill)" filter="url(#${id}-lit-dome)"/>
+<g fill="none" stroke="rgb(60 40 15 / 0.22)" stroke-width="0.35">${rings}</g>
+<ellipse cx="${f(-13 * s)}" cy="${f(-15 * s)}" rx="${f(16 * s)}" ry="${f(9 * s)}" fill="url(#${id}-sheen)" transform="rotate(-40 ${f(-13 * s)} ${f(-15 * s)})"/>
+<path d="M${f(-45 * s)} ${f(-10 * s)} A${f(46 * s)} ${f(46 * s)} 0 0 1 ${f(-10 * s)} ${f(-45 * s)}" stroke="rgb(255 236 190 / 0.3)" stroke-width="${f(5 * s)}" fill="none" stroke-linecap="round" filter="url(#${id}-soft)"/>`;
+  return body;
+}
+
 /** Positions an element absolutely within its parent. */
 function place(element: HTMLElement | SVGElement, left: number, top: number): void {
   element.style.left = `${left}px`;
@@ -893,6 +923,21 @@ function brassFilter(id: string, spec: FilterSpec): string {
 </filter>`;
 }
 
+/** The knobs' bezel, face and lamp's sheen, as `<prefix>-bezel`, `-face-fill` and `-sheen`. */
+function knobGradients(prefix: string): string {
+  return `<linearGradient id="${prefix}-bezel" x1="0" x2="1" y1="0" y2="1">
+  <stop offset="0" stop-color="#e8c283"/><stop offset="0.5" stop-color="#b88e4b"/>
+  <stop offset="1" stop-color="#5a411f"/>
+</linearGradient>
+<radialGradient id="${prefix}-face-fill" cx="0.4" cy="0.36" r="0.75">
+  <stop offset="0" stop-color="#d8ae63"/><stop offset="0.55" stop-color="#b2833d"/>
+  <stop offset="1" stop-color="#6b4a21"/>
+</radialGradient>
+<radialGradient id="${prefix}-sheen" r="0.5">
+  <stop offset="0" stop-color="${KEY_LAMP_CSS}" stop-opacity="0.3"/><stop offset="1" stop-color="${KEY_LAMP_CSS}" stop-opacity="0"/>
+</radialGradient>`;
+}
+
 /** Gradients and filters every part of the ruler shares, defined once in the body. */
 function sharedDefs(): string {
   return `<defs>
@@ -921,10 +966,7 @@ function sharedDefs(): string {
   <stop offset="0" stop-color="#a47938"/><stop offset="0.5" stop-color="#6e4d22"/>
   <stop offset="1" stop-color="#3f2a11"/>
 </linearGradient>
-<radialGradient id="rc-face-fill" cx="0.4" cy="0.36" r="0.75">
-  <stop offset="0" stop-color="#d8ae63"/><stop offset="0.55" stop-color="#b2833d"/>
-  <stop offset="1" stop-color="#6b4a21"/>
-</radialGradient>
+${knobGradients('rc')}
 <radialGradient id="rc-gear-fill" cx="0.5" cy="0.5" r="0.5">
   <stop offset="0.5" stop-color="#5a4121"/><stop offset="0.86" stop-color="#76582c"/>
   <stop offset="1" stop-color="#3b2a14"/>
@@ -936,17 +978,10 @@ function sharedDefs(): string {
 <radialGradient id="rc-garnet-glow" r="0.5">
   <stop offset="0" stop-color="rgb(255 90 100 / 0.5)"/><stop offset="1" stop-color="rgb(200 40 60 / 0)"/>
 </radialGradient>
-<linearGradient id="rc-bezel" x1="0" x2="1" y1="0" y2="1">
-  <stop offset="0" stop-color="#e8c283"/><stop offset="0.5" stop-color="#b88e4b"/>
-  <stop offset="1" stop-color="#5a411f"/>
-</linearGradient>
 <linearGradient id="rc-steel" x1="0" x2="1" y1="0" y2="0">
   <stop offset="0" stop-color="#141c30"/><stop offset="0.45" stop-color="#6f8cc0"/>
   <stop offset="1" stop-color="#1c2640"/>
 </linearGradient>
-<radialGradient id="rc-sheen" r="0.5">
-  <stop offset="0" stop-color="${KEY_LAMP_CSS}" stop-opacity="0.3"/><stop offset="1" stop-color="${KEY_LAMP_CSS}" stop-opacity="0"/>
-</radialGradient>
 ${brassFilter('rc-lit-band', { bevel: 6, relief: 4, texture: '0.005 0.8', amount: 0.06, bloom: 0.5, patina: 0.4 })}
 ${brassFilter('rc-lit-rail', { bevel: 3, relief: 3, texture: '0.11', amount: 0.3, shine: 0.6, bloom: 0.2, patina: 0.3 })}
 ${brassFilter('rc-lit-base', { bevel: 3, relief: 2.5, texture: '0.05', amount: 0.1, shine: 0.35, bloom: 0.1, patina: 0.3 })}
