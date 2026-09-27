@@ -870,9 +870,9 @@ function brassFilter(id: string, spec: FilterSpec): string {
 function sharedDefs(): string {
   return `<defs>
 <linearGradient id="rc-band-fill" x1="0" x2="1" y1="0" y2="0">
-  <stop offset="0" stop-color="#8a622c"/><stop offset="0.2" stop-color="#be8f47"/>
-  <stop offset="0.34" stop-color="#d0a256"/><stop offset="0.6" stop-color="#b3833f"/>
-  <stop offset="1" stop-color="#765426"/>
+  <stop offset="0" stop-color="#6a4a20"/><stop offset="0.2" stop-color="#94703a"/>
+  <stop offset="0.34" stop-color="#a8804a"/><stop offset="0.6" stop-color="#8a6534"/>
+  <stop offset="1" stop-color="#5a3f1c"/>
 </linearGradient>
 <linearGradient id="rc-rail-fill" x1="0" x2="1" y1="0" y2="0">
   <stop offset="0" stop-color="#4f3a1c"/><stop offset="0.3" stop-color="#7a5a2d"/>
@@ -920,7 +920,7 @@ function sharedDefs(): string {
 <radialGradient id="rc-sheen" r="0.5">
   <stop offset="0" stop-color="rgb(255 240 205 / 0.5)"/><stop offset="1" stop-color="rgb(255 240 205 / 0)"/>
 </radialGradient>
-${brassFilter('rc-lit-band', { bevel: 6, relief: 4, texture: '0.005 0.8', amount: 0.06, bloom: 0.5, patina: 0.2 })}
+${brassFilter('rc-lit-band', { bevel: 6, relief: 4, texture: '0.005 0.8', amount: 0.06, bloom: 0.5, patina: 0.4 })}
 ${brassFilter('rc-lit-rail', { bevel: 3, relief: 3, texture: '0.11', amount: 0.3, shine: 0.6, bloom: 0.2, patina: 0.3 })}
 ${brassFilter('rc-lit-base', { bevel: 3, relief: 2.5, texture: '0.05', amount: 0.1, shine: 0.35, bloom: 0.1, patina: 0.3 })}
 ${brassFilter('rc-lit-lip', { bevel: 0.8, relief: 2, texture: '0.01 0.5', amount: 0.03, shine: 1.2, bloom: 0.9 })}
