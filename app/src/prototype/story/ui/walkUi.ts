@@ -1,8 +1,8 @@
 // The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the Wander mark, the beat card,
-// the time ruler with the story's controls on it, Meanwhile and the Resume plaque, in the
-// instrument's materials: aged vellum in brass, dark cast brass and engraved gilt, lit by the
-// scene's lamp from the upper left and under its lens (walkUi.css). Libre Baskerville for display
-// and Source Serif 4 for reading.
+// the time ruler with the story's controls on it (rulerCraft.ts), Meanwhile and the Resume plaque,
+// in the instrument's materials: aged vellum in brass, dark cast brass and engraved gilt, lit by
+// the scene's lamp from the upper left and under its lens (walkUi.css). Libre Baskerville for
+// display and Source Serif 4 for reading.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
