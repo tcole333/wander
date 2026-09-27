@@ -1,50 +1,29 @@
-// The look prototype (prototype.html, dev only): the streamed globe in the look's material, hung
-// in the museum scene's gimbal, with a camera that flies from the whole instrument down to a few
-// tens of km. The gimbal turns the view center toward the lamp and the camera, as the spike's did.
+// The look prototype (prototype.html, dev only): the dev shell over the walk's boot (walk/boot.ts),
+// with presets to fly between, a HUD, a lil-gui panel over every part's params, and hooks for
+// scripts.
 //
 // Query: ?data=region|global|<origin> (a local bake's server by name, or any data server's origin;
 // global when its server answers), ?view=<preset>, ?ui=0 (no panel or HUD, for screenshots), and
 // any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
-// ?story=tambora walks the story instead of the presets: the director flies between its beats
-// (story/director.ts), the card, time ruler and Meanwhile sit over the globe (story/ui/), and the
-// ember, plume, plaques, ash and veil follow story time (story/effects/). It starts paused on the
-// first beat; Left and Right step beats, Space plays or pauses, and Escape resumes after the
-// visitor breaks out to explore. The panel hides behind a small gear at the top right.
-// window.__walk serves scripts (scripts/walkShots.ts).
-import {
-  Mesh,
-  MeshStandardMaterial,
-  PerspectiveCamera,
-  WebGLRenderer,
-  WebGLRenderTarget,
-  type Material,
-  type Object3D,
-} from 'three';
-import type { MuseumScene, Params, StreamerStats, SurfaceLook } from '../../contract';
+// ?story=tambora walks the story instead of the presets, as the boot plays it. The panel hides
+// behind a small gear at the top right. window.__walk serves scripts (scripts/walkShots.ts).
+import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
-import { loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
-import { ClearanceField } from '../../globe/clearance';
-import { createSurfaceLook } from '../../look/surfaceLook';
-import { summarizeFrames } from '../../perf/frameStats';
-import { createMuseumScene } from '../../scene/museumScene';
-import type { MeanwhileByBeat, WalkEffects, WalkState, WalkUi } from '../../story/contract';
-import {
-  bindWalkKeys,
-  createWalk,
-  type DirectedWalk,
-  type FlightRecord,
-} from '../../story/director';
-import { createWalkEffects } from '../../story/effects/walkEffects';
+import type { WalkState } from '../../story/contract';
+import type { DirectedWalk, FlightRecord } from '../../story/director';
 import { meanwhileFromJson } from '../../story/meanwhile';
-import { parseStory, type LonLat, type Story } from '../../story/story';
-import { createWalkUi } from '../../story/ui/walkUi';
-import { createSurfaceStreamer } from '../../stream/streamer';
-import { faceOf, faceSt, lonLatToDir, tileOf } from '../../surface/cube';
-import { CameraRig, maxViewKm, type Relief } from '../../view/cameraRig';
-import { ViewControl } from '../../view/viewControl';
-import { drawnView, reliefForWidth, type ViewState } from '../../view/viewState';
+import { parseStory, type LonLat } from '../../story/story';
+import type { ViewControl } from '../../view/viewControl';
+import type { ViewState } from '../../view/viewState';
+import {
+  bootWalk,
+  WORLD,
+  type StoryParts,
+  type StorySource,
+  type WalkStats,
+} from '../../walk/boot';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 
 /** The local bakes' data servers by name (npm run data); ?data= may name any other origin. */
@@ -54,7 +33,7 @@ const DATA_HOSTS: Record<string, string> = {
 };
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
-const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 };
+
 /**
  * Keys 1-9 and 0 in this order. world's width is the widest the zoom allows; region and close are
  * the spike's REGION and CLOSE framings, for comparing like for like. The close views look down at
@@ -75,11 +54,6 @@ const PRESETS: Record<string, ViewState> = {
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
 };
 
-interface StorySource {
-  story: Story;
-  meanwhile: MeanwhileByBeat;
-}
-
 /** The stories ?story= walks: the text, read by Vite, and Meanwhile's stand-in entries. */
 const STORIES: Record<string, () => Promise<StorySource>> = {
   tambora: async () => {
@@ -97,29 +71,9 @@ const PRESET_KEYS = '1234567890';
 /** The camera params that drive kLand and kSea, shown in the look's folder. */
 const RELIEF_BY_ZOOM = ['reliefByZoom', 'reliefNear', 'reliefFar'];
 
-/** The level whose tiles zoomFloorKm is the floor over; each coarser level doubles it. */
-const FLOOR_LEVEL = 7;
-
-/**
- * How far right a story shifts the lens, as a share of the card's reach from the left edge: 0.5
- * would center the view in the space right of the card, but Meanwhile covers its top right, and
- * a beat's neighbors (Makassar on the sound beat, Yunnan on the last) would slip under it.
- */
-const LENS_SHIFT = 0.35;
-
-/** Frames the HUD and the ready check look back over. */
-const FRAMES = 120;
-/** How long the streamer must stay idle before a screenshot. */
-const IDLE_MS = 1000;
-const IDLE_FRAMES = 5;
-
-export interface ProtoStats extends StreamerStats {
+export interface ProtoStats extends WalkStats {
   data: string;
-  view: ViewState;
   preset: string;
-  fps: number;
-  frameP95: number;
-  altitudeKm: number;
 }
 
 declare global {
@@ -160,60 +114,14 @@ async function main(): Promise<void> {
   const dataHost = DATA_HOSTS[data] ?? data;
   const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
 
-  const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
-  renderer.shadowMap.enabled = true;
-  document.body.prepend(renderer.domElement);
-  const museum = createMuseumScene(renderer);
-  museum.setSize(innerWidth, innerHeight, devicePixelRatio);
-
-  const [streamer, layer] = await Promise.all([
-    createSurfaceStreamer(renderer, release),
-    loadSurfaceLayer(release),
-  ]);
-  const look = createSurfaceLook(streamer.pools, release.surface);
-  const rig = new CameraRig(new ClearanceField(layer));
-
-  const globe = new Mesh(streamer.geometry, look.material);
-  // The grid's positions are lattice indices; the vertex shader places them.
-  globe.frustumCulled = false;
-  globe.castShadow = true;
-  globe.receiveShadow = true;
-  globe.customDepthMaterial = look.depthMaterial;
-  museum.globeMount.add(globe);
-
-  const camera = new PerspectiveCamera(30, innerWidth / innerHeight, 0.01, 100);
-  const cameraParams = {
-    // The closest view over L7 tiles. Where the deepest tile is coarser, each level doubles it
-    // (60 km on L6 land, 240 km over open ocean), so every place bottoms out at the same stretch.
-    zoomFloorKm: 30,
-    // kLand and kSea follow the zoom: reliefNear at 100 km wide and closer, reliefFar at 3,000 km
-    // and wider. Off, the look's own kLand and kSea hold.
-    reliefByZoom: true,
-    reliefNear: 2,
-    reliefFar: 8,
-    // The gimbal tilts the globe toward the camera, so a tilted view keeps the lamp behind the
-    // camera; off, it turns the view center to the front and the camera tilts instead.
-    faceCamera: true,
-    // Device pixels per CSS pixel, the display's up to 2, as the spike drew. From 1.5 the scene
-    // drops MSAA, so a Retina display holds 60 fps on the M5 at 2. A story draws at most 1.5:
-    // at 2 the plume's overlapping puffs and the flights miss frames on a Retina display.
-    pixelRatio: Math.min(devicePixelRatio, source ? 1.5 : 2),
-  };
-  for (const params of [look.params, museum.params, streamer.params, cameraParams]) {
-    applyQuery(params, query);
-  }
-
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
-  const control = new ViewControl(PRESETS[preset] ?? WORLD);
-  control.minKmAt = (view) =>
-    Number(cameraParams.zoomFloorKm) * 2 ** (FLOOR_LEVEL - deepestLevel(layer, view.lon, view.lat));
-  const limitZoom = () => {
-    control.maxKm = maxViewKm(camera);
-  };
-  limitZoom();
-  control.go(control.goal, true);
-  control.attach(renderer.domElement);
+  const page = await bootWalk(document.body, release, {
+    story: source,
+    view: PRESETS[preset],
+    tune: (params) => applyQuery(params, query),
+  });
+  const { museum, look, streamer, control, cameraParams, story } = page;
   const go = (name: string, instant = false) => {
     const view = PRESETS[name];
     if (!view) return;
@@ -228,22 +136,15 @@ async function main(): Promise<void> {
         scene: withoutGimbal(museum.params),
         look: look.params,
         streamer: streamer.params,
-        camera: { ...cameraParams, view: roundView(control.current) },
+        camera: { ...cameraParams, view: page.stats().view },
       },
       null,
       2,
     );
-  // A story's page steps through its beats instead of the presets. The walk flies the camera,
-  // and holds a late landing until the streamer has nothing in hand.
-  const story = source
-    ? startStory(source, control, museum.globeMount, look, () => {
-        const s = streamer.stats();
-        return s.inFlight + s.decoding + s.uploading === 0;
-      })
-    : null;
+  // A story's page steps through its beats instead of the presets.
   if (story) {
-    applyQuery(story.effects.params, query);
-    await precompile(renderer, museum, camera, story.effects.group);
+    document.body.classList.add('story');
+    document.getElementById('presets')?.remove();
   }
   if (showUi) {
     buildUi({ museum, look, streamer, cameraParams, control, go, settings, story });
@@ -257,41 +158,9 @@ async function main(): Promise<void> {
     const name = Object.keys(PRESETS)[PRESET_KEYS.indexOf(event.key)];
     if (name) go(name);
   });
-  // In a story the card covers the view's left, so the lens shifts right by LENS_SHIFT of the
-  // card's reach: each beat's place lands right of the card, and what lies around it clears both
-  // the card and Meanwhile. The streamer and the plaques read the shifted projection.
-  const frameLens = () => {
-    const card = story ? document.querySelector('.wu-card') : null;
-    const shift = card ? LENS_SHIFT * card.getBoundingClientRect().right : 0;
-    if (shift === 0) return;
-    camera.setViewOffset(innerWidth, innerHeight, -shift, 0, innerWidth, innerHeight);
-  };
-  frameLens();
-  addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    frameLens();
-    museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
-  });
 
-  const deltas: number[] = [];
-  let last = performance.now();
-  let idleSince = Infinity;
-  let idleFrames = 0;
-  const stats = (): ProtoStats => {
-    const frame = summarizeFrames(deltas);
-    const total = deltas.reduce((sum, d) => sum + d, 0);
-    return {
-      ...streamer.stats(),
-      data,
-      view: roundView(control.current),
-      preset,
-      fps: total > 0 ? (1000 * deltas.length) / total : 0,
-      frameP95: frame.p95,
-      altitudeKm: rig.altitude * 6371.0088,
-    };
-  };
-  const ready = () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS;
+  const stats = (): ProtoStats => ({ ...page.stats(), data, preset });
+  const ready = () => page.ready();
   window.__proto = {
     presets: Object.keys(PRESETS),
     stats,
@@ -306,60 +175,7 @@ async function main(): Promise<void> {
   if (walk) serveWalk(walk, ready);
 
   const hud = document.getElementById('hud');
-  let shown = 0;
-  renderer.setAnimationLoop((now: number) => {
-    const dt = Math.min(0.1, (now - last) / 1000);
-    deltas.push(now - last);
-    if (deltas.length > FRAMES) deltas.shift();
-    last = now;
-    limitZoom();
-    if (renderer.getPixelRatio() !== cameraParams.pixelRatio) {
-      museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
-    }
-    walk?.update(now, dt);
-    control.step(now, dt);
-    const view = control.current;
-    if (cameraParams.reliefByZoom) {
-      const k = reliefForWidth(view.viewKm, cameraParams.reliefNear, cameraParams.reliefFar);
-      look.params.kLand = k;
-      look.params.kSea = k;
-    }
-
-    // The gimbal turns the globe so the camera looks into the front of the instrument, where the
-    // lamp lights it (or, with faceCamera off, turns the view center to the front); then the
-    // camera goes where the view puts it in the turned globe frame. Wide views drop their tilt.
-    const surfaceRelief = relief(look.params);
-    const drawn = drawnView(view);
-    const [lon, lat] = cameraParams.faceCamera
-      ? rig.gimbalFacing(camera, drawn, surfaceRelief)
-      : [drawn.lon, drawn.lat];
-    museum.params.lat = lat;
-    museum.params.lon = lon;
-    museum.update(camera, now / 1000);
-    rig.place(camera, drawn, surfaceRelief, museum.globeMount, Number(museum.params.hideAltitude));
-    const viewport = { width: innerWidth, height: innerHeight };
-    streamer.update(camera, viewport, museum.globeMount);
-    // The story's effects set the look's layers and ash, so they run before the look's update.
-    story?.effects.update(story.walk.state(), camera, museum.globeMount, viewport, now / 1000);
-    look.update(now / 1000);
-    museum.render(camera);
-    story?.ui.update(story.walk.state(), drawn);
-
-    const s = streamer.stats();
-    // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.
-    const busy = s.inFlight + s.decoding + s.uploading > 0;
-    if (busy || !control.settled) {
-      idleSince = Infinity;
-      idleFrames = 0;
-    } else {
-      idleSince = Math.min(idleSince, now);
-      idleFrames += 1;
-    }
-    if (hud && showUi && now - shown > 250) {
-      shown = now;
-      hud.textContent = describe(stats());
-    }
-  });
+  if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);
 }
 
 async function loadStory(name: string | null): Promise<StorySource | null> {
@@ -367,76 +183,6 @@ async function loadStory(name: string | null): Promise<StorySource | null> {
   const load = STORIES[name];
   if (!load) throw new Error(`no story '${name}'`);
   return load();
-}
-
-interface StoryParts {
-  walk: DirectedWalk;
-  effects: WalkEffects;
-  ui: WalkUi;
-}
-
-/**
- * The story mode's parts: the director, with input on the globe breaking out and the arrow keys
- * stepping beats instead of panning; the effects, hung in the globe's frame with their plaques in
- * #labels; and the card, ruler and Meanwhile over them.
- */
-function startStory(
-  { story, meanwhile }: StorySource,
-  control: ViewControl,
-  globeMount: Object3D,
-  look: SurfaceLook,
-  ready: () => boolean,
-): StoryParts {
-  document.body.classList.add('story');
-  document.getElementById('presets')?.remove();
-  const walk = createWalk(story, control, { ready });
-  control.arrowKeys = false;
-  control.onInput = () => walk.breakOut();
-  bindWalkKeys(walk);
-
-  const labels = document.getElementById('labels');
-  if (!labels) throw new Error('prototype.html has no #labels');
-  const effects = createWalkEffects(story, look, labels);
-  globeMount.add(effects.group);
-  const ui = createWalkUi(document.body, walk, meanwhile);
-  return { walk, effects, ui };
-}
-
-/**
- * Readies every shader the walk draws before it starts, so no flight stalls on one. The scene's
- * materials compile, hidden ones too (the plume, the veil, every beat's pulses), and the
- * instrument's brass also as it draws while fading out near the globe (transparent), against a
- * render target as the composer draws them (no tone mapping, linear output). Then one frame is
- * drawn with every effect shown, as the GPU finishes some programs only at their first draw; the
- * effects' first update hides them again.
- */
-async function precompile(
-  renderer: WebGLRenderer,
-  museum: MuseumScene,
-  camera: PerspectiveCamera,
-  effects: Object3D,
-): Promise<void> {
-  const brass = new Set<Material>();
-  museum.scene.traverse((object) => {
-    if (!(object instanceof Mesh)) return;
-    for (const material of [object.material as Material | Material[]].flat()) {
-      if (material instanceof MeshStandardMaterial && !material.transparent) brass.add(material);
-    }
-  });
-  const target = new WebGLRenderTarget(1, 1);
-  renderer.setRenderTarget(target);
-  const opaque = renderer.compileAsync(museum.scene, camera);
-  for (const material of brass) material.transparent = true;
-  const fading = renderer.compileAsync(museum.scene, camera);
-  for (const material of brass) {
-    material.transparent = false;
-    material.needsUpdate = true;
-  }
-  renderer.setRenderTarget(null);
-  await Promise.all([opaque, fading]);
-  target.dispose();
-  effects.traverse((object) => (object.visible = true));
-  museum.render(camera);
 }
 
 /** window.__walk, for scripts: `ready` is the page's own check that the streamer is idle. */
@@ -459,43 +205,12 @@ function serveWalk(walk: DirectedWalk, ready: () => boolean): void {
   };
 }
 
-/** The deepest level with a tile under a point. */
-function deepestLevel(layer: SurfaceLayer, lon: number, lat: number): number {
-  const dir = lonLatToDir(lon, lat);
-  const face = faceOf(dir);
-  const [s, t] = faceSt(face, dir);
-  for (let level = layer.surface.maxLevel; level > 0; level -= 1) {
-    if (layer.available({ face, level, x: tileOf(s, level), y: tileOf(t, level) })) return level;
-  }
-  return 0;
-}
-
-/** The relief the vertex shader draws, which the camera's clearance must clear. */
-function relief(params: Params): Relief {
-  const flat = params.flatRelief === true;
-  return {
-    kLand: flat ? 0 : Number(params.kLand),
-    kSeaEff: flat || params.bathymetry !== true ? 0 : Number(params.kSea),
-  };
-}
-
 /** The scene's params without lat and lon, which the view drives. */
 function withoutGimbal(params: Params): Params {
   const rest = { ...params };
   delete rest.lat;
   delete rest.lon;
   return rest;
-}
-
-function roundView(view: ViewState): ViewState {
-  const round = (value: number, digits: number) => Number(value.toFixed(digits));
-  return {
-    lon: round(view.lon, 3),
-    lat: round(view.lat, 3),
-    viewKm: round(view.viewKm, 1),
-    tilt: round(view.tilt, 1),
-    heading: round(view.heading, 1),
-  };
 }
 
 function describe(s: ProtoStats): string {
