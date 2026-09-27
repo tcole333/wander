@@ -1,7 +1,8 @@
 // The walk's sound (PRD, Audio; issue #12), with the approved engine and mix: a clunk on each beat
 // change; the whir while the camera flies, to a beat or to a Meanwhile entry, its pace following
 // the camera's; a detent for each day, month and year the ruler's playhead passes, of the marks
-// the ruler engraves at that moment (marks.ts); the story's bed following story time; and each
+// the ruler engraves at that moment (marks.ts); the story's bed following story time, from when
+// no flight to a beat is under way (the landing, when the walk flies in from the lobby); and each
 // beat's cues from landing on it until the walk leaves it, when they fade over bedCrossfade. While
 // a Meanwhile entry has the camera, far from the beat's place, its cues fall back.
 //
@@ -69,7 +70,12 @@ export function paceOf(from: ViewState, to: ViewState, dt: number): number {
 export class WalkScore {
   readonly #engine: SoundEngine;
   readonly #detents: Detents;
-  readonly #bed: Bed | null;
+  /**
+   * The story's bed, null for a story with none. It comes in once no flight to a beat is under
+   * way: at once for a walk that starts on its beat, at the landing (or the visitor's breakout) for
+   * one that flies in from the lobby, whose whir carries the dive. Undefined until then.
+   */
+  #bed: Bed | null | undefined;
   #beat: number;
   #day: number;
   /**
@@ -95,7 +101,7 @@ export class WalkScore {
     this.#day = from.day;
     this.#bedDay = from.day;
     this.#onBeat = landed(from);
-    this.#bed = BEDS[from.story.id]?.(engine, from.day, at) ?? null;
+    if (from.flight === null) this.#startBed(from, at);
   }
 
   frame({ state, unit, pace, at, dt }: WalkFrame): void {
@@ -155,10 +161,16 @@ export class WalkScore {
       this.#pace = 0;
     }
 
-    if (this.#bed && to !== this.#bedDay && at - this.#bedAt >= BED_EVERY_S) {
+    if (this.#bed === undefined && state.flight === null) this.#startBed(state, at);
+    else if (this.#bed && to !== this.#bedDay && at - this.#bedAt >= BED_EVERY_S) {
       this.#bed.setDay(to, at);
       [this.#bedDay, this.#bedAt] = [to, at];
     }
+  }
+
+  #startBed(state: WalkState, at: number): void {
+    this.#bed = BEDS[state.story.id]?.(this.#engine, state.day, at) ?? null;
+    [this.#bedDay, this.#bedAt] = [state.day, at];
   }
 
   /** Fades everything the walk has playing. */

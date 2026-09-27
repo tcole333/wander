@@ -7,7 +7,7 @@ import type { SoundEngine } from './engine';
 import { mix } from './mix';
 import { WalkScore } from './walkAudio';
 
-/** The cues the score starts, and the levels it sets them to, heard without audio. */
+/** The cues and bed the score starts, and the levels it sets cues to, heard without audio. */
 const heard = vi.hoisted(() => ({ started: [] as string[], levels: [] as [string, number][] }));
 
 vi.mock('./cues', async (original) => ({
@@ -24,18 +24,30 @@ vi.mock('./voices', () => ({
     play() {}
   },
 }));
-vi.mock('./bed', () => ({ tamboraBed: () => ({ setDay() {}, stop() {} }) }));
+vi.mock('./bed', () => ({
+  tamboraBed() {
+    heard.started.push('bed');
+    return { setDay() {}, stop() {} };
+  },
+}));
 
 const story = parseStory(
   readFileSync(new URL('../../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
 const DT = 1 / 60;
 
-/** The walk's director, run frame by frame into a score on an engine without audio. */
-function setup() {
-  const control = new ViewControl(beatView(story.beats[0]!));
+/**
+ * The walk's director, run frame by frame into a score on an engine without audio: standing on
+ * its first beat, or flying in to it from the whole globe, as from the lobby.
+ */
+function setup(arrive: 'jump' | 'fly' = 'jump') {
+  const control = new ViewControl(
+    arrive === 'fly'
+      ? { lon: 75, lat: 15, viewKm: 30000, tilt: 0, heading: 0 }
+      : beatView(story.beats[0]!),
+  );
   control.minKmAt = () => 1;
-  const walk = createWalk(story, control, { ready: () => true });
+  const walk = createWalk(story, control, { ready: () => true, arrive });
   const engine = { ctx: { currentTime: 0 }, soon: () => engine.ctx.currentTime + 0.05, mix };
   const score = new WalkScore(engine as unknown as SoundEngine, walk.state(), 0.05);
   const run = (seconds: number) => {
@@ -66,6 +78,19 @@ describe("the walk's score", () => {
     walk.resume();
     run(8);
     expect(heard.started).toContain('eruption');
+  });
+
+  it('brings the bed at once on a walk that stands on its first beat', () => {
+    setup();
+    expect(heard.started).toEqual(['bed']);
+  });
+
+  it("brings the bed and the beat's cues at the landing of a walk flying in from the lobby", () => {
+    const { run } = setup('fly');
+    run(0.5);
+    expect(heard.started).toEqual([]);
+    run(8);
+    expect(heard.started.toSorted()).toEqual(['bed', ...story.beats[0]!.audioCues].toSorted());
   });
 
   it("ducks a beat's cues while a Meanwhile entry has the camera, until it lands back", () => {
