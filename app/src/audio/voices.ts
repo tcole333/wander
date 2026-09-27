@@ -4,11 +4,10 @@
 // pitch, level and filters, so no two detents are the same sound.
 import { tunables } from '../config/tunables';
 import type { SoundEngine } from './engine';
-import { paceDetents, type Detent, type DetentWeight } from './marks';
 import { gainOf } from './mix';
 import { jitter, jitterDb, lfo, loop, rand, releaseOnEnd, Sources, strike } from './synth';
 
-export type { DetentWeight };
+export type DetentWeight = 'day' | 'month' | 'year';
 
 interface DetentShape {
   /** The pawl's click: the band it sounds in, Hz, and its decay, s. */
@@ -69,6 +68,8 @@ const RING_PARTIALS = [
   { ratio: 5.4, level: 0.2, decay: 0.3 },
 ];
 
+const WEIGHT_RANK: Record<DetentWeight, number> = { day: 0, month: 1, year: 2 };
+
 /** One detent at `at`. */
 export function detent(engine: SoundEngine, weight: DetentWeight, at = engine.soon()): void {
   const ctx = engine.ctx;
@@ -98,29 +99,27 @@ export function detent(engine: SoundEngine, weight: DetentWeight, at = engine.so
 }
 
 /**
- * Detents as the ruler passes its marks, at most `detents.maxPerSecond` (marks.ts paces them): the
- * finer ones drop first, and one too soon after the last is dropped, unless it is heavier, when
- * it waits its turn.
+ * Detents as the ruler passes its marks, at most `detents.maxPerSecond`: one that comes too soon
+ * after the last is dropped, unless it is heavier, when it waits its turn.
  */
 export class Detents {
   readonly #engine: SoundEngine;
-  #last: Detent | null = null;
+  #last = -Infinity;
+  #lastWeight: DetentWeight = 'day';
 
   constructor(engine: SoundEngine) {
     this.#engine = engine;
   }
 
   play(weight: DetentWeight, at = this.#engine.soon()): void {
-    this.pass([{ at, weight }]);
-  }
-
-  /** The detents a stretch of the ruler asks for, in time order. */
-  pass(asked: Detent[]): void {
     const gap = 1 / tunables.detents.maxPerSecond;
-    for (const each of paceDetents(asked, gap, this.#last)) {
-      detent(this.#engine, each.weight, each.at);
-      this.#last = each;
+    if (at - this.#last < gap) {
+      if (WEIGHT_RANK[weight] <= WEIGHT_RANK[this.#lastWeight]) return;
+      at = this.#last + gap;
     }
+    this.#last = at;
+    this.#lastWeight = weight;
+    detent(this.#engine, weight, at);
   }
 }
 

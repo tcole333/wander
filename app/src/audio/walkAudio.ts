@@ -113,13 +113,9 @@ export class WalkScore {
     const from = this.#day;
     const to = state.day;
     if (to !== from) {
-      const marks = marksPassed(from, to, unit);
-      this.#detents.pass(
-        marks.map((mark) => ({
-          at: at - dt + (dt * (mark.day - from)) / (to - from),
-          weight: mark.weight,
-        })),
-      );
+      for (const mark of marksPassed(from, to, unit)) {
+        this.#detents.play(mark.weight, at - dt + (dt * (mark.day - from)) / (to - from));
+      }
       this.#day = to;
     }
 
