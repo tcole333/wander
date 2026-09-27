@@ -354,6 +354,20 @@
   border: 1px solid rgb(241 227 194 / 0.35);
 }
 
+/* A plate spans the text column and sizes to its label, so the whole description reads. */
+.wu-mount.is-plate {
+  width: 100%;
+}
+
+.wu-mount.is-plate .wu-frame {
+  aspect-ratio: auto;
+}
+
+.wu-mount.is-plate .wu-plate {
+  position: static;
+  margin: 10px;
+}
+
 .wu-caption {
   margin-top: 7px;
   text-align: center;

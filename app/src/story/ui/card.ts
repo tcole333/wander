@@ -11,8 +11,6 @@ import type { StoryBeat, StoryImage } from '../story';
 import { button, creditsLink, el, onPress } from './dom';
 import { curlyQuotes, dateLine } from './format';
 
-/** The frame's shape for a plate, which has no image to take one from. */
-const PLATE_ASPECT = 1.4;
 /** The frame's width, CSS px, when the card has not been laid out to measure it. */
 const FRAME_PX = 340;
 
@@ -112,8 +110,9 @@ export class BeatCard {
   /**
    * The image in its mount: a brass bevel around a mat, and the baked crop filling the mat's
    * window, with the credit as the caption below. The small file shows first, blurred, and the
-   * sharp one, at the width the browser picks for the frame, fades in over it. With neither, or
-   * with no baked crop in the lock, the frame becomes a plate with the image's description.
+   * sharp one, at the width the browser picks for the frame, fades in over it; should the sharp one
+   * fail, the small one sharpens in its place. With neither, or with no baked crop in the lock, the
+   * frame becomes a plate across the text column, its label the image's whole description.
    */
   #showImage(image: StoryImage | undefined): void {
     this.#figure.replaceChildren();
@@ -135,7 +134,7 @@ export class BeatCard {
     const plate = () => {
       frame.classList.remove('is-loading');
       frame.replaceChildren(el('div', 'wu-plate', image.alt));
-      mount.style.setProperty('--ar', String(PLATE_ASPECT));
+      mount.classList.add('is-plate');
       caption.hidden = true;
     };
     const files = [...(image.locked?.files ?? [])].sort((a, b) => a.w - b.w);
@@ -173,7 +172,8 @@ export class BeatCard {
       setTimeout(() => preview?.remove(), 800);
     });
     full.addEventListener('error', () => {
-      if (!shown) plate();
+      if (shown) preview?.classList.remove('wu-preview');
+      else plate();
     });
     frame.append(full);
     requestAnimationFrame(() => this.#checkOverflow());
