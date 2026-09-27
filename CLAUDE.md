@@ -11,7 +11,9 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 Milestone 1 (the Tambora slice) is under way. The surface core (issue #3) is complete: the
 prebuild's profiles, cube conventions, `.wst` codec, committed excerpts and `fetch`, `excerpts`,
 `coverage` and `surface` stages; the region bake and its check; the decoder and the GPU pools.
-The app itself is still a placeholder; hosting and CI are live.
+The Tambora walk plays on the dev page `app/prototype.html?story=tambora`, booted from production
+modules by `app/src/walk/boot.ts`; the production entry is still a placeholder. Hosting and CI are
+live.
 
 ## Layout
 
@@ -20,7 +22,9 @@ Paths in the docs are relative to the repo root, except the measurement citation
 
 - `app/`: the npm project. TypeScript, Vite, React, react-three-fiber, three.js pinned to an exact
   version (the renderer relies on version-specific three.js APIs). drei and Zustand join with the
-  globe runtime. Tunables live in `app/src/config/tunables.ts`.
+  globe runtime. Tunables live in `app/src/config/tunables.ts`. The walk's modules live in
+  `app/src/` (`walk/`, `view/`, `stream/`, `look/`, `scene/`, `story/`); `app/src/prototype/`
+  holds only the dev pages' shells and harnesses.
 - `pipeline/`: the uv project for the Python prebuild (`uv run prebuild`, under Commands), which
   turns raw sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
