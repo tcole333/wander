@@ -849,6 +849,9 @@ interface FilterSpec {
  * blurred by `bevel`, is its height, roughened by `texture`, lit from the upper left, diffusely
  * and with a highlight in the lamp's light as brass reflects it; a cloudy tarnish ages it, a
  * fine grain lies over it as over the canvas, and its brightest edges bloom past it a little.
+ * The diffuse light saturates at 1 (flat brass shows its fill in the lamp's color), so slopes
+ * facing the lamp get no brighter than the fill and only the brass-tinted highlight lifts them:
+ * an overdriven red would clip ahead of the green and turn the highlights lemon.
  */
 function brassFilter(id: string, spec: FilterSpec): string {
   const { bevel, relief, texture, amount, shine = 1, bloom = 0.5, patina = 0 } = spec;
@@ -857,9 +860,9 @@ function brassFilter(id: string, spec: FilterSpec): string {
 <feGaussianBlur in="SourceAlpha" stdDeviation="${bevel}" result="hump"/>
 <feTurbulence type="fractalNoise" baseFrequency="${texture}" numOctaves="2" seed="7" result="tex"/>
 <feComposite in="tex" in2="hump" operator="arithmetic" k2="${amount}" k3="1" result="height"/>
-<feDiffuseLighting in="height" surfaceScale="${relief}" diffuseConstant="1.05" lighting-color="#fff2e0" result="diffuse"><feDistantLight azimuth="225" elevation="50"/></feDiffuseLighting>
+<feDiffuseLighting in="height" surfaceScale="${relief}" diffuseConstant="1.31" lighting-color="#fff2e0" result="diffuse"><feDistantLight azimuth="225" elevation="50"/></feDiffuseLighting>
 <feSpecularLighting in="height" surfaceScale="${relief}" specularConstant="${shine}" specularExponent="16" lighting-color="${SHINE_CSS}" result="spec"><feDistantLight azimuth="225" elevation="35"/></feSpecularLighting>
-<feComposite in="SourceGraphic" in2="diffuse" operator="arithmetic" k1="1.25" result="lit"/>
+<feComposite in="SourceGraphic" in2="diffuse" operator="arithmetic" k1="1" result="lit"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.006 0.03" numOctaves="3" seed="21" result="cloud"/>
 <feColorMatrix in="cloud" type="matrix" values="${k} 0 0 0 ${b} ${k} 0 0 0 ${b} ${k} 0 0 0 ${b} 0 0 0 0 1" result="tarnish"/>
 <feBlend in="lit" in2="tarnish" mode="multiply" result="aged"/>
@@ -892,7 +895,7 @@ function sharedDefs(): string {
   <stop offset="0.55" stop-color="#30230f"/><stop offset="1" stop-color="#18110a"/>
 </linearGradient>
 <linearGradient id="rc-lip-fill" x1="0" x2="1" y1="0" y2="0">
-  <stop offset="0" stop-color="#b58843"/><stop offset="0.3" stop-color="#f3d18d"/>
+  <stop offset="0" stop-color="#b58843"/><stop offset="0.3" stop-color="#e6bd7a"/>
   <stop offset="0.65" stop-color="#d2a55a"/><stop offset="1" stop-color="#8e6830"/>
 </linearGradient>
 <linearGradient id="rc-plate-fill" x1="0" x2="0.35" y1="0" y2="1">
@@ -919,7 +922,7 @@ function sharedDefs(): string {
   <stop offset="0" stop-color="rgb(255 90 100 / 0.5)"/><stop offset="1" stop-color="rgb(200 40 60 / 0)"/>
 </radialGradient>
 <linearGradient id="rc-bezel" x1="0" x2="1" y1="0" y2="1">
-  <stop offset="0" stop-color="#f6dea4"/><stop offset="0.5" stop-color="#b88e4b"/>
+  <stop offset="0" stop-color="#e8c283"/><stop offset="0.5" stop-color="#b88e4b"/>
   <stop offset="1" stop-color="#5a411f"/>
 </linearGradient>
 <linearGradient id="rc-steel" x1="0" x2="1" y1="0" y2="0">
@@ -933,9 +936,9 @@ ${brassFilter('rc-lit-band', { bevel: 6, relief: 4, texture: '0.005 0.8', amount
 ${brassFilter('rc-lit-rail', { bevel: 3, relief: 3, texture: '0.11', amount: 0.3, shine: 0.6, bloom: 0.2, patina: 0.3 })}
 ${brassFilter('rc-lit-base', { bevel: 3, relief: 2.5, texture: '0.05', amount: 0.1, shine: 0.35, bloom: 0.1, patina: 0.3 })}
 ${brassFilter('rc-lit-lip', { bevel: 0.8, relief: 2, texture: '0.01 0.5', amount: 0.03, shine: 0.6, bloom: 0.9 })}
-${brassFilter('rc-lit-teeth', { bevel: 1, relief: 2.5, texture: '0.5', amount: 0.05, bloom: 0.4 })}
+${brassFilter('rc-lit-teeth', { bevel: 1, relief: 2.5, texture: '0.5', amount: 0.05, shine: 0.6, bloom: 0.4 })}
 ${brassFilter('rc-lit-dome', { bevel: 8, relief: 5, texture: '0.08', amount: 0.08, bloom: 0.45, patina: 0.15 })}
-${brassFilter('rc-lit-plate', { bevel: 2, relief: 3, texture: '0.01 0.6', amount: 0.05, bloom: 0.6, patina: 0.1 })}
+${brassFilter('rc-lit-plate', { bevel: 2, relief: 3, texture: '0.01 0.6', amount: 0.05, shine: 0.6, bloom: 0.6, patina: 0.1 })}
 <filter id="rc-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
 </defs>`;
 }
