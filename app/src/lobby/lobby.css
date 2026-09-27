@@ -43,7 +43,8 @@
   translate: 0 0;
 }
 
-/* Chosen: the plaques slide away to the left, as if drawn back into the wall. */
+/* Chosen: the plaques slide away to the left, as if drawn back into the wall, and the Credits
+   link lifts away where it stands, clear of the globe. */
 .lobby.is-leaving .lobby-column,
 .lobby.is-leaving .lobby-credits {
   opacity: 0;
@@ -53,6 +54,10 @@
     opacity 0.5s ease-in,
     translate 0.55s cubic-bezier(0.5, 0, 0.75, 0),
     visibility 0s 0.55s;
+}
+
+.lobby.is-leaving .lobby-credits {
+  translate: 0 -6px;
 }
 
 .lobby-head {
