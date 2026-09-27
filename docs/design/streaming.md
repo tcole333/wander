@@ -1706,10 +1706,10 @@ Decided at go-live (issues #6 and #13), 2026-09-27:
 Decided for the climate layer (issue #7), 2026-09-27:
 
 22. **Climate look:** the frost and verdigris wash (3.5), saturating at ±4 K, where 1816's summer
-    runs 2-5 K under the average in Europe and New England. Two alternates stay in the dev shell for
-    a later choice: saturation at ±6 K (`?climateRangeK=6`), and cloisonné, translucent blue and
-    garnet enamel with isotherms engraved at whole degrees (`?climateStyle=1`, a define the
-    production program never holds).
+    runs 2-5 K under the average in Europe and New England. Saturation at ±6 K stays a dev-shell
+    param for a later choice (`?climateRangeK=6`). The cloisonné alternate, translucent blue and
+    garnet enamel with isotherms engraved at whole degrees, is rendered in `build/wave2/climate/`
+    and left out of the code, which stays simpler; commit 5b1ed01 holds it if it is chosen.
 23. **Data replaces illustration:** wherever ModE-RA's climate is drawn, the illustrative veil fades
     out, so the beats that promise the real 1816 cold show it.
 24. **No climate over Yunnan:** ModE-RA shows no distinct 1816-1817 cold there (JJA 1816 is
