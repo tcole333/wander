@@ -55,6 +55,12 @@ function buildPanel(): Panel {
   const source = page.querySelector('.credits-card .wu-sheet');
   if (!source) throw new Error('credits.html has no credits sheet');
   const sheet = document.importNode(source, true) as HTMLElement;
+  // The attributions lead off the site, so they open in a tab of their own and the walk keeps its
+  // place.
+  for (const link of sheet.querySelectorAll('a[href]')) {
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener');
+  }
 
   const dialog = el('dialog', 'cp');
   const title = sheet.querySelector('.wu-title');
