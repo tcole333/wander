@@ -1,7 +1,8 @@
 // The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the Wander mark, the beat card,
-// the time ruler, Meanwhile and the Resume plaque, in the instrument's materials: aged vellum in
-// brass, dark cast brass and engraved gilt, lit by the scene's lamp from the upper left and under
-// its lens (walkUi.css). Libre Baskerville for display and Source Serif 4 for reading.
+// the time ruler with the story's controls on it, Meanwhile and the Resume plaque, in the
+// instrument's materials: aged vellum in brass, dark cast brass and engraved gilt, lit by the
+// scene's lamp from the upper left and under its lens (walkUi.css). Libre Baskerville for display
+// and Source Serif 4 for reading.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -11,12 +12,12 @@ import type { CreateWalkUi, WalkUi } from '../contract';
 import { BeatCard } from './card';
 import { button, el } from './dom';
 import { MeanwhilePanel } from './meanwhile';
-import { TimeRuler } from './ruler';
+import { CraftRuler } from './rulerCraft';
 
 export const createWalkUi: CreateWalkUi = (root, walk, meanwhile): WalkUi => {
   const layer = el('div', 'wu');
   const card = new BeatCard();
-  const ruler = new TimeRuler(walk, walk.state().story);
+  const ruler = new CraftRuler(walk, walk.state().story);
   const panel = new MeanwhilePanel(walk, meanwhile);
   const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
   resume.textContent = 'Resume story';
