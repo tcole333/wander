@@ -1,9 +1,10 @@
 // The release's surface section (streaming.md 3.8) from the coverage and surface records (7.2),
-// and its media section from the stories' locks (3.9).
+// and its media section from the stories' locks (3.9), which the bundled release must match.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
+import bundled from '../src/generated/release.json';
 import { mediaRelease, surfaceRelease } from './release';
 
 const coverage = { qLand: [39.09375, 2], c200: [-5, -100], avail: 'Pw==' };
@@ -61,5 +62,13 @@ describe('mediaRelease', () => {
     } finally {
       rmSync(stories, { recursive: true, force: true });
     }
+  });
+
+  // The card finds its images through the bundled locks and CI checks the bundled release, so a
+  // lock rebaked without a publish would ship a card asking for keys R2 lacks.
+  test('the bundled release names every key the committed locks do', () => {
+    expect(bundled.media, 'run `npm run publish-data` and commit its release').toEqual(
+      mediaRelease(),
+    );
   });
 });
