@@ -120,21 +120,6 @@
   background: var(--lens);
 }
 
-.wu-parchment {
-  background:
-    radial-gradient(120% 90% at 30% 20%, rgb(255 250 230 / 0.35), transparent 60%),
-    radial-gradient(90% 80% at 80% 100%, rgb(120 80 30 / 0.28), transparent 70%),
-    linear-gradient(160deg, var(--parch-1), var(--parch-2));
-  border: 1px solid #6e5227;
-  box-shadow:
-    inset 0 0 0 6px rgb(110 82 39 / 0),
-    inset 0 0 0 7px rgb(110 82 39 / 0.5),
-    inset 0 0 40px rgb(90 60 20 / 0.32),
-    0 18px 40px rgb(0 0 0 / 0.65),
-    0 0 0 3px #2a1f12,
-    0 0 0 4px #9a7640;
-}
-
 /* Dark cast brass: a lit rim, its engraved inner line, and brushed metal catching the lamp. */
 .wu-brass {
   border: 3px solid transparent;
@@ -216,16 +201,48 @@
   color: #a98b58;
 }
 
-/* The beat card */
+/* The beat card: a vellum sheet in a thin brass frame, riveted at its corners. */
 
 .wu-card {
   position: absolute;
+  box-sizing: border-box;
   left: 30px;
   top: 128px;
   width: 450px;
-  max-height: calc(100% - 128px - 124px);
+  max-height: calc(100% - 128px - var(--ruler-reach));
   display: flex;
   flex-direction: column;
+  padding: 8px;
+  background:
+    var(--rivet) left 1.5px top 1.5px / 5px 5px no-repeat,
+    var(--rivet) right 1.5px top 1.5px / 5px 5px no-repeat,
+    var(--rivet) left 1.5px bottom 1.5px / 5px 5px no-repeat,
+    var(--rivet) right 1.5px bottom 1.5px / 5px 5px no-repeat,
+    var(--brushed),
+    linear-gradient(135deg, #f3dca2 0%, #c9a263 16%, #9e7a3b 42%, #7a5a2a 70%, #4d3717 100%);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 242 205 / 0.8),
+    inset -1px -1px 0 rgb(30 18 6 / 0.85),
+    0 0 0 1px #1a1109,
+    var(--cast);
+}
+
+.wu-sheet {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    var(--vellum-light),
+    var(--foxing) 0 0 / 100% 100% no-repeat,
+    var(--fiber),
+    var(--vellum-ground);
+  box-shadow:
+    -1px -1px 0 rgb(40 24 8 / 0.75),
+    1px 1px 0 rgb(255 238 196 / 0.55),
+    inset 2px 3px 5px rgb(60 36 10 / 0.38),
+    inset 0 0 22px rgb(125 80 28 / 0.26),
+    inset 0 0 3px rgb(90 55 18 / 0.45);
 }
 
 .wu-card.is-fresh .wu-card-head,
@@ -240,27 +257,38 @@
 }
 
 .wu-card-head {
-  padding: 24px 30px 0;
+  padding: 20px 28px 0;
 }
 
 .wu-date {
-  font: 600 11px/1.3 var(--reading);
-  letter-spacing: 0.2em;
+  font: 400 10.5px/1.3 var(--display);
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  font-variant-numeric: lining-nums;
+  text-shadow: var(--engraved);
 }
 
 .wu-title {
-  margin: 8px 0 14px;
-  font: 400 23px/1.22 var(--display);
-  letter-spacing: 0.07em;
+  margin: 6px 0 0;
+  font: 400 23px/1.24 var(--display);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: #2a2016;
   text-wrap: balance;
   text-shadow:
-    0 1px 0 rgb(255 248 225 / 0.6),
-    0 -1px 0 rgb(60 40 15 / 0.18);
+    0.5px 1px 0 rgb(255 247 222 / 0.75),
+    -0.5px -0.5px 0 rgb(60 38 12 / 0.22);
+}
+
+/* A hairline cut into the vellum: a dark line with the lit edge of its cut under it. */
+.wu-rule {
+  height: 2px;
+  margin: 11px 0 12px;
+  background:
+    linear-gradient(90deg, rgb(74 53 24 / 0.75), rgb(74 53 24 / 0.45) 75%, transparent) top / 100%
+      1px no-repeat,
+    linear-gradient(90deg, rgb(255 247 222 / 0.8), rgb(255 247 222 / 0.5) 75%, transparent) bottom /
+      100% 1px no-repeat;
 }
 
 .wu-body {
@@ -268,7 +296,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 30px 14px;
+  padding: 0 28px 8px;
   scrollbar-width: thin;
   scrollbar-color: rgb(110 82 39 / 0.55) transparent;
   --fade-top: 0px;
@@ -288,23 +316,45 @@
   color: var(--ink);
 }
 
+/* The image, mounted as in a museum case: a brass bevel, a cream mat, and the mat's bevel cut
+   around the window, lit at its lower right edges and shaded at its upper left. */
+
 .wu-figure {
-  margin: 10px 0 8px;
-  padding: 5px;
+  margin: 10px 0 2px;
+}
+
+.wu-mount {
+  --mount-edge: 10px;
+  box-sizing: border-box;
+  width: min(100%, calc(120px * var(--ar) + 2 * var(--mount-edge)));
+  margin: 0 auto;
+  padding: 4px;
+  background: var(--brushed), linear-gradient(135deg, #f5dfaa, #c7a060 28%, #8e6c35 62%, #5a4120);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 245 212 / 0.85),
+    inset -1px -1px 0 rgb(40 24 8 / 0.8),
+    0 0 0 1px rgb(60 38 12 / 0.6),
+    3px 5px 9px rgb(60 36 10 / 0.38),
+    1px 1px 2px rgb(40 24 8 / 0.35);
+}
+
+.wu-mat {
+  padding: 6px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(255 252 240 / 0.5), transparent 60%),
+    linear-gradient(160deg, #f3ead2, #e0d1ad);
+  box-shadow: inset 1px 1px 2px rgb(40 24 8 / 0.4);
 }
 
 .wu-frame {
   position: relative;
   overflow: hidden;
-  margin: 0 auto;
-  width: min(100%, calc(120px * var(--ar)));
+  width: 100%;
   aspect-ratio: var(--ar);
   background: linear-gradient(160deg, #a58a5c, #7d6340);
   box-shadow:
-    0 0 0 1px #3d2a12,
-    0 0 0 4px #c6a262,
-    0 0 0 5px #5e4521,
-    0 4px 12px 5px rgb(60 35 10 / 0.35);
+    1px 1px 0 1px #fffaf0,
+    0 0 0 2px #cbbb95;
   transition: aspect-ratio 0.3s ease;
 }
 
@@ -312,7 +362,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 18px rgb(40 24 6 / 0.45);
+  box-shadow:
+    inset 2px 2px 3px rgb(30 18 6 / 0.45),
+    inset 0 0 14px rgb(40 24 6 / 0.3);
   pointer-events: none;
 }
 
@@ -334,13 +386,13 @@
   left: calc(-100% * var(--cx) / var(--cw));
   top: calc(-100% * var(--cy) / var(--ch));
   opacity: 0;
-  filter: sepia(0.2) saturate(0.85) contrast(1.04);
+  filter: sepia(0.24) saturate(0.82) contrast(1.04);
   transition: opacity 0.7s ease;
   user-select: none;
 }
 
 .wu-frame img.wu-preview {
-  filter: sepia(0.2) saturate(0.85) contrast(1.04) blur(2px);
+  filter: sepia(0.24) saturate(0.82) contrast(1.04) blur(2px);
 }
 
 .wu-frame img.is-loaded {
@@ -360,12 +412,19 @@
   border: 1px solid rgb(241 227 194 / 0.35);
 }
 
+.wu-caption {
+  margin-top: 7px;
+  text-align: center;
+}
+
+.wu-caption[hidden] {
+  display: none;
+}
+
 .wu-credit {
   display: block;
-  margin-top: 10px;
-  font: 400 11px/1.3 var(--reading);
+  font: italic 400 11.5px/1.3 var(--reading);
   color: var(--ink-faint);
-  text-align: center;
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -376,33 +435,37 @@
   text-decoration: underline;
 }
 
-.wu-sources-toggle {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  margin-left: auto;
-  padding: 8px 2px;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  font: 600 10.5px/1 var(--reading);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #3d2a12;
+/* The sources: a footnote under an engraved rule, unfolding the list. */
+
+.wu-foot {
+  flex: none;
+  margin: 0 28px;
+  padding: 0 0 8px;
+  background:
+    linear-gradient(90deg, rgb(74 53 24 / 0.55), rgb(74 53 24 / 0.35) 75%, transparent) top / 100%
+      1px no-repeat,
+    linear-gradient(90deg, rgb(255 247 222 / 0.7), rgb(255 247 222 / 0.4) 75%, transparent) 0 1px /
+      100% 1px no-repeat;
 }
 
-.wu-sources-toggle[hidden] {
+.wu-foot[hidden] {
   display: none;
 }
 
-.wu-sources-toggle::after {
-  content: '+';
-  font-size: 13px;
-  letter-spacing: 0;
-}
-
-.wu-sources-toggle[aria-expanded='true']::after {
-  content: '\2013';
+.wu-sources-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 0 1px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 400 10px/1 var(--display);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-shadow: var(--engraved);
 }
 
 .wu-sources-toggle:hover {
@@ -410,20 +473,47 @@
 }
 
 .wu-sources-count {
+  font: italic 400 13px/1 var(--reading);
+  letter-spacing: 0;
   color: var(--ink-faint);
-  font-variant-numeric: lining-nums;
+  font-variant-numeric: oldstyle-nums;
+}
+
+.wu-sources-hand {
+  margin-left: 4px;
+  font-size: 15px;
+  letter-spacing: 0;
+  transition: transform 0.35s ease;
+}
+
+.wu-foot.is-open .wu-sources-hand {
+  transform: rotate(90deg);
+}
+
+.wu-sources-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s ease;
+}
+
+.wu-foot.is-open .wu-sources-fold {
+  grid-template-rows: 1fr;
 }
 
 .wu-sources {
-  margin: 4px 0 2px;
-  padding: 10px 0 0 18px;
-  border-top: 1px solid rgb(90 62 26 / 0.4);
+  min-height: 0;
+  max-height: min(30vh, 230px);
+  overflow: hidden auto;
+  margin: 0;
+  padding: 0 0 0 18px;
   font: 400 12.5px/1.4 var(--reading);
   color: var(--ink-soft);
+  scrollbar-width: thin;
+  scrollbar-color: rgb(110 82 39 / 0.55) transparent;
 }
 
-.wu-sources[hidden] {
-  display: none;
+.wu-sources li:first-child {
+  margin-top: 10px;
 }
 
 .wu-sources li {
@@ -431,8 +521,9 @@
 }
 
 .wu-sources li::marker {
+  font: italic 400 12px var(--reading);
   color: var(--ink-faint);
-  font-size: 11px;
+  font-variant-numeric: oldstyle-nums;
 }
 
 .wu-sources a {
@@ -443,102 +534,8 @@
 
 .wu-source-by {
   font-size: 11.5px;
+  font-style: italic;
   color: var(--ink-faint);
-}
-
-.wu-controls {
-  display: flex;
-  align-items: center;
-  margin: 0 22px;
-  padding: 10px 6px 14px;
-  border-top: 1px solid rgb(90 62 26 / 0.5);
-}
-
-.wu-steps {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.wu-step {
-  padding: 8px 4px;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  font: 600 10.5px/1 var(--reading);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #3d2a12;
-}
-
-.wu-sources-toggle[hidden] + .wu-count {
-  margin-left: auto;
-}
-
-.wu-step span {
-  font-size: 15px;
-  line-height: 0;
-}
-
-.wu-step:hover:not(:disabled) {
-  color: var(--garnet);
-}
-
-.wu-step:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.wu-play {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  background: radial-gradient(circle at 35% 30%, #f3dca4, #b08a4a 55%, #5e4521);
-  box-shadow:
-    0 0 0 1px #3d2a12,
-    inset 0 1px 1px rgb(255 240 200 / 0.6),
-    0 2px 5px rgb(40 25 5 / 0.45);
-}
-
-.wu-play:hover {
-  filter: brightness(1.07);
-}
-
-.wu-play-icon {
-  position: absolute;
-  inset: 6px;
-  width: 28px;
-  height: 28px;
-  fill: #2a1c0e;
-}
-
-.wu-play-ring {
-  position: absolute;
-  inset: -5px;
-  width: 50px;
-  height: 50px;
-  transform: rotate(-90deg);
-  fill: none;
-  pointer-events: none;
-}
-
-.wu-ring {
-  stroke: var(--garnet);
-  stroke-width: 2;
-  stroke-linecap: round;
-  transition: opacity 0.3s;
-}
-
-.wu-count {
-  margin-left: 18px;
-  font: 400 11.5px/1 var(--display);
-  letter-spacing: 0.1em;
-  color: var(--ink-faint);
-  font-variant-numeric: lining-nums;
 }
 
 /* A short screen (1280x800 and the like): the card starts higher, with a smaller image and text,
@@ -546,11 +543,11 @@
 @media (max-height: 860px) {
   .wu-card {
     top: 118px;
-    max-height: calc(100% - 118px - 124px);
+    max-height: calc(100% - 118px - var(--ruler-reach));
   }
 
-  .wu-frame {
-    width: min(100%, calc(56px * var(--ar)));
+  .wu-mount {
+    width: min(100%, calc(56px * var(--ar) + 2 * var(--mount-edge)));
   }
 
   .wu-text p {
