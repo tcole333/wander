@@ -1,9 +1,9 @@
 // Wander's sound (PRD, Audio; streaming.md 2, Audio): one AudioContext, created on the visitor's
 // first gesture and resumed inside it, since browsers keep audio locked until then. Every sound
 // plays into one of three buses (ui for the instrument's voices, bed for the story's ambient bed,
-// cue for the beats' cues), and the buses into a master level and mute and a gentle limiter that
-// only the eruption's blast reaches. The engine runs as well on an OfflineAudioContext, to render
-// sounds to files.
+// cue for the beats' cues), and the buses into a master level and mute, a fade for a hidden tab
+// (streaming.md 5.9), and a gentle limiter that only the eruption's blast reaches. The engine runs
+// as well on an OfflineAudioContext, to render sounds to files.
 import { tunables } from '../config/tunables';
 import { gainOf, mix as defaultMix, type Mix } from './mix';
 import { noiseSamples, primeAtLeast, toBuffer, type NoiseColor } from './synth';
@@ -25,6 +25,7 @@ export class SoundEngine {
   #mix: Mix;
   #muted = false;
   readonly #master: GainNode;
+  readonly #presence: GainNode;
   readonly #pumps = new Set<Pump>();
   #timer: ReturnType<typeof setInterval> | undefined;
   readonly #noise = new Map<string, AudioBuffer>();
@@ -41,7 +42,8 @@ export class SoundEngine {
       release: 0.25,
     });
     this.#master = new GainNode(ctx, { gain: gainOf(this.#mix.master) });
-    this.#master.connect(limiter).connect(ctx.destination);
+    this.#presence = new GainNode(ctx, { gain: 1 });
+    this.#master.connect(this.#presence).connect(limiter).connect(ctx.destination);
     const bus = (name: Bus) => {
       const node = new GainNode(ctx, { gain: gainOf(this.#mix.buses[name]) });
       node.connect(this.#master);
@@ -82,6 +84,15 @@ export class SoundEngine {
   setMuted(muted: boolean): void {
     this.#muted = muted;
     this.#glideMaster();
+  }
+
+  /** Fades everything out (`on` false: the tab is hidden) or back in, evenly over `seconds`. */
+  fade(on: boolean, seconds: number): void {
+    const gain = this.#presence.gain;
+    const now = this.ctx.currentTime;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(on ? 1 : 0, now + seconds);
   }
 
   /**
@@ -139,5 +150,10 @@ export function unlockSound(mix: Mix = defaultMix): SoundEngine {
   live ??= new SoundEngine(new AudioContext({ latencyHint: 'interactive' }), mix);
   const ctx = live.ctx as AudioContext;
   if (ctx.state !== 'running') void ctx.resume();
+  return live;
+}
+
+/** The live engine once a gesture has unlocked it (the walk's own, or a lobby's click), else none. */
+export function unlockedSound(): SoundEngine | undefined {
   return live;
 }
