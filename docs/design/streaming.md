@@ -424,13 +424,16 @@ f32 scale[frames] | f32 offset[frames]    K = u8·scale + offset; 255 = missing
 u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitudes in release.json)
 ```
 
-- **Scaling:** per frame, offset = the frame's minimum and scale = max(0.1 K, (max − min)/254), so
-  nothing clips. The step is 0.1 K except in 30 of 7,056 wide-range months (up to 0.137 K, February
-  1984); spread stays under 0.04 K. The build reports the largest step. The coldest 1814-1817 month is
-  December 1817, at −15.57 K. Measured with gzip-9: ~105-112 KB per year per variable, and 2.98 MB
-  for `annual.bin` [M, fact-check re-encode of the ensmean NetCDF].
-- Year files have 12 frames. `annual.bin` has 588 frames, 1421-2008. Months follow the source's
-  `(year, month)` indexing; its hour offsets are not reinterpreted through dates.
+- **Scaling:** per frame, offset = the frame's minimum and scale = max(0.1 K, (max − min)/254), both
+  rounded to float32 before the codes are taken, so nothing clips and every value decodes within half
+  a step. The step is 0.1 K except in 30 of 7,056 wide-range months (up to 0.137 K, February 1984).
+  Spread's (max − min)/254 stays under 0.04 K, so every spread frame takes the 0.1 K step, the same
+  as the mean's. The build reports the largest step. The coldest 1814-1817 month is December 1817, at
+  −15.57 K. Measured with gzip-9: 81-121 KB per mean year (106 KB for 1815), 59-85 KB per spread
+  year, 2.98 MB for `annual.bin` and 99 MB for the layer's 1,177 files [M, `uv run prebuild modera`].
+- Year files have 12 frames. `annual.bin` has 588 frames, 1421-2008, each the unweighted mean of the
+  year's 12 monthly means. Months follow the source's `(year, month)` indexing; its hour offsets are
+  not reinterpreted through dates.
 - **GPU:** an R8 ring of 60 monthly layers (1.1 MB), and the annual means in three arrays covering
   1421-1617, 1617-1813 and 1813-2008 (197/197/196 layers). The boundary year sits in both neighbors,
   so interpolation never spans two textures. Per-frame scale and offset live in a small LUT texture.
@@ -1069,12 +1072,13 @@ files, and `media` because it builds one story, named with `--story <id>`. A bar
 global profile (owner decision 17). Each profile has its own output root: `build/out/` for global,
 `build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3);
 `publish-data` takes the same `--profile` (4.3). The fixture profile skips `fetch` and `excerpts`,
-so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context worker processes.
+so it needs no raw data, and `modera` until the climate layer has its excerpt (7.3). `--jobs`
+defaults to min(8, CPUs), with spawn-context worker processes.
 `media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
-| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs) and NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
+| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, and ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
@@ -1082,7 +1086,7 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | curated names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | pinned exports in `pipeline/queries/` → `.wev` + details | build < 1 min [E] | local |
-| `modera` | two ~520 MB NetCDFs → 1,176 year files + annual; reports the largest step | ~2-5 min [E] | local |
+| `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
 | `npm run poster` | Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
@@ -1104,8 +1108,9 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
   their parent, and asserted closed upward. A tile is in a region when one of its 33² mesh corners
   lies within the region's radius for that level, or the region's center lies in the tile.
 - **Python stack:** the surface core runs on Python 3.14.6 with numpy, netCDF4, PyYAML, shapely,
-  pyogrio and scipy, pinned exactly in `uv.lock` (owner decision 14). xarray arrives with `modera`,
-  and each later stage pins what it adds, such as fontTools for `labels`.
+  pyogrio and scipy, pinned exactly in `uv.lock` (owner decision 14). `modera` reads its NetCDFs with
+  netCDF4 too, so xarray is not needed; each later stage pins what it adds, such as fontTools for
+  `labels`.
 - **Incremental builds:** each stage is deterministic: sorted iteration, gzip level 9 with mtime 0,
   and libraries pinned in `uv.lock`. A layer's version is a hash of its output bytes (`<ver8>`,
   section 3), so an unchanged layer reproduces its version and uploads nothing. A story text edit
@@ -1126,7 +1131,7 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` |
-| modera | `{ver, years, lat[96], lon0, dlon, bytes{variable: {year}}}` |
+| modera | `{ver, years[first, last], lat[96], lon0, dlon, bytes{mean: {year}, spread: {year}, annual}}`: 3.8's `modera` section as is, the latitudes north first to 6 decimals |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |
 
@@ -1183,7 +1188,9 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   since below L1 it bakes only the nested Kirkuk and Sumbawa chains.
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
-  samples, 3.0 item 9) in `build/stages/fixture/expect/`.
+  samples, 3.0 item 9) in `build/stages/fixture/expect/`. It skips `modera` for now: the ModE-RA
+  excerpt and the climate checks join CI once the owner has picked the climate layer's look, and
+  until then a pytest round-trips the climate codec on a synthetic array.
   `uv run prebuild --profile fixture media --story _fixture --offline` writes
   `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
 - **Release selection:** the app imports the release through a Vite alias chosen by
@@ -1610,7 +1617,7 @@ Decided for the surface core (issue #3), 2026-09-24 and 2026-09-25:
     structures later raised, lowered or regulated. Canals and the other reservoirs are dropped; a
     dropped reservoir's river centerline still draws.
 14. **Python stack:** Python 3.14 with numpy, netCDF4, PyYAML, shapely, pyogrio and scipy, pinned in
-    `uv.lock`. xarray arrives with the `modera` stage.
+    `uv.lock`. The `modera` stage reads ModE-RA with netCDF4 as well, so xarray never joins.
 15. **Fixture at the Kirkuk corner:** a mid pyramid (4' for L3-L4, 1' for L5-L6, 15" for L7), so
     cross-face seams are tested on real terrain at L3-L7.
 16. **Milestone-1 region:** L5-L6 only where the Tambora beats refine at the full tier and at the
