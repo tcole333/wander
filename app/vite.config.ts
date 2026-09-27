@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url';
-import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 import { labReports } from './e2e/lab/reports.ts';
 
@@ -7,7 +6,7 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 
 export default defineConfig({
   // labReports: the dev server writes what lab pages post to build/lab/ (e2e/lab/reports.ts).
-  plugins: [react(), labReports()],
+  plugins: [labReports()],
   resolve: {
     alias: { '@shared': fileURLToPath(new URL('../shared', import.meta.url)) },
   },
