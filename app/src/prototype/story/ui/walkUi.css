@@ -556,14 +556,15 @@
   }
 }
 
-/* Meanwhile */
+/* Meanwhile: vellum slips in dark cast brass, each with its engraved compass rose. */
 
 .wu-meanwhile {
   position: absolute;
+  box-sizing: border-box;
   right: 26px;
   top: 24px;
-  width: 300px;
-  padding: 14px 14px 14px;
+  width: 330px;
+  padding: 15px 15px 16px;
 }
 
 .wu-meanwhile[hidden] {
@@ -575,15 +576,19 @@
 }
 
 .wu-mw-head {
-  margin: 2px 0 12px;
+  margin: 2px 0 13px;
   font: 400 17px/1.2 var(--display);
-  color: #d6b87c;
   text-align: center;
+  background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1.5px 0.5px rgb(0 0 0 / 0.9));
 }
 
 .wu-mw-list {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -598,15 +603,27 @@
   border: 0;
   text-align: left;
   cursor: pointer;
-  background: linear-gradient(160deg, var(--parch-1), var(--parch-2));
+  background: var(--vellum-light), var(--fiber), var(--vellum-ground);
+  outline: 1px solid rgb(110 82 39 / 0.42);
+  outline-offset: -4px;
   box-shadow:
-    inset 0 0 0 1px rgb(110 82 39 / 0.6),
-    inset 0 0 18px rgb(90 60 20 / 0.3);
-  transition: filter 0.15s;
+    inset 1px 1px 0 rgb(255 248 226 / 0.7),
+    inset -1px -1px 0 rgb(80 50 15 / 0.45),
+    inset 0 0 16px rgb(125 80 28 / 0.3),
+    var(--cast-near);
+  transition:
+    filter 0.2s,
+    box-shadow 0.2s;
 }
 
 .wu-mw-entry:hover {
   filter: brightness(1.06);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 248 226 / 0.7),
+    inset -1px -1px 0 rgb(80 50 15 / 0.45),
+    inset 0 0 16px rgb(125 80 28 / 0.3),
+    var(--cast-near),
+    0 0 12px rgb(var(--lamp) / 0.28);
 }
 
 .wu-mw-words {
@@ -622,12 +639,12 @@
 
 .wu-mw-date {
   display: block;
-  margin-top: 3px;
-  font: 600 9.5px/1.3 var(--reading);
-  letter-spacing: 0.14em;
+  margin-top: 4px;
+  font: 400 9px/1.3 var(--display);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  font-variant-numeric: lining-nums;
+  text-shadow: var(--engraved);
 }
 
 .wu-compass {
@@ -635,56 +652,97 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  width: 44px;
-  padding-left: 8px;
-  border-left: 1px solid rgb(110 82 39 / 0.35);
+  gap: 2px;
+  width: 50px;
+  padding-left: 9px;
+  border-left: 1px solid rgb(110 82 39 / 0.4);
+  box-shadow: inset 1px 0 0 rgb(255 247 222 / 0.55);
 }
 
 .wu-compass-point {
-  font: 600 9px/1 var(--reading);
-  letter-spacing: 0.08em;
+  font: 400 8.5px/1 var(--display);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
+  text-shadow: var(--engraved);
 }
 
 .wu-rose {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
+  overflow: visible;
 }
 
 .wu-rose-ring {
   fill: none;
-  stroke: rgb(94 69 33 / 0.75);
-  stroke-width: 0.8;
-}
-
-.wu-rose-ring.is-inner {
-  stroke-width: 0.5;
-  stroke-dasharray: 1 1.4;
+  stroke: rgb(74 53 24 / 0.8);
+  stroke-width: 0.7;
 }
 
 .wu-rose-ticks {
-  stroke: rgb(94 69 33 / 0.8);
-  stroke-width: 0.9;
+  fill: none;
+  stroke: rgb(74 53 24 / 0.7);
+  stroke-width: 0.55;
+}
+
+.wu-rose-point {
+  stroke: rgb(58 40 16 / 0.8);
+  stroke-width: 0.4;
+  stroke-linejoin: round;
+}
+
+.wu-rose-point.is-lit {
+  fill: rgb(250 243 222 / 0.85);
+}
+
+.wu-rose-point.is-shaded {
+  fill: rgb(84 60 26 / 0.72);
+}
+
+.wu-rose-hub {
+  fill: #efe3c4;
+  stroke: rgb(58 40 16 / 0.8);
+  stroke-width: 0.5;
 }
 
 .wu-needle-g {
-  transition: transform 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.3s;
+  filter: drop-shadow(0.6px 1px 0.4px rgb(40 24 8 / 0.55));
 }
 
-.wu-needle-n {
-  fill: var(--garnet);
-}
-
+.wu-needle-n,
 .wu-needle-s {
-  fill: #8a6a36;
+  stroke: rgb(30 16 6 / 0.6);
+  stroke-width: 0.3;
+  stroke-linejoin: round;
+}
+
+.wu-needle-n.is-lit {
+  fill: #a8404f;
+}
+
+.wu-needle-n.is-shaded {
+  fill: #5a1824;
+}
+
+.wu-needle-s.is-lit {
+  fill: #d4b271;
+}
+
+.wu-needle-s.is-shaded {
+  fill: #6f5027;
 }
 
 .wu-rose-pin {
-  fill: #e9dcbc;
-  stroke: #5e4521;
-  stroke-width: 0.6;
+  fill: #e0bd78;
+  stroke: #3d2a12;
+  stroke-width: 0.5;
+}
+
+.wu-compass.is-here .wu-needle-g {
+  opacity: 0;
 }
 
 /* The time ruler */
@@ -934,10 +992,6 @@
 .wu-resume:hover {
   color: #fff0cc;
   border-color: #eab46a;
-}
-
-.wu-compass.is-here .wu-needle-g {
-  opacity: 0;
 }
 
 /* The look panel's gear (app/panel.ts), which a story tucks the panel behind: small engraved

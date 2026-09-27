@@ -1,8 +1,8 @@
 // Meanwhile, at the top right: what else is happening during the current beat, or once the visitor
-// has scrubbed story time away from the beat's date, the entries nearest the time scrubbed to. Each
-// entry has a compass needle pointing from the view's center toward it (turned with the view's
-// heading, so it points the way to look on screen) and the compass point it lies at. Choosing one
-// flies there.
+// has scrubbed story time away from the beat's date, the entries nearest the time scrubbed to, on
+// vellum slips in a dark cast-brass panel. Each entry has an engraved compass rose whose needle
+// points from the view's center toward it (turned with the view's heading, so it points the way to
+// look on screen), and the compass point it lies at. Choosing one flies there.
 import { arcKm, type ViewState } from '../../app/viewState';
 import type { MeanwhileByBeat, MeanwhileEntry, Walk, WalkState } from '../contract';
 import { nearestEntries } from '../meanwhile';
@@ -15,6 +15,8 @@ const ARRIVE_KM = 1500;
 const HERE_SHARE = 0.05;
 /** How many entries a scrub away from the beat's date shows. */
 const NEAREST = 3;
+/** The rose's center, in its SVG's units (40 across). */
+const C = 20;
 
 interface Row {
   entry: MeanwhileEntry;
@@ -56,7 +58,7 @@ export class MeanwhilePanel {
       row.drawn = drawn;
       row.compass.classList.toggle('is-here', here);
       row.point.textContent = here ? 'Here' : compassPoint(bearing);
-      if (!here) row.needle.setAttribute('transform', `rotate(${drawn} 16 16)`);
+      if (!here) row.needle.setAttribute('transform', `rotate(${drawn} ${C} ${C})`);
     }
   }
 
@@ -73,10 +75,7 @@ export class MeanwhilePanel {
     this.element.hidden = entries.length === 0;
     this.#rows = entries.map((entry) => {
       const needle = svg('g', { class: 'wu-needle-g' });
-      needle.append(
-        svg('path', { class: 'wu-needle-n', d: 'M16 4.5 L18.4 16 L13.6 16 Z' }),
-        svg('path', { class: 'wu-needle-s', d: 'M13.6 16 L18.4 16 L16 27.5 Z' }),
-      );
+      needle.append(...halves(C - 16, 2.2, 'wu-needle-n'), ...halves(C + 16, 2.2, 'wu-needle-s'));
       const compass = el('span', 'wu-compass');
       return { entry, needle, compass, point: el('span', 'wu-compass-point'), drawn: '' };
     });
@@ -104,18 +103,52 @@ export class MeanwhilePanel {
   }
 }
 
-/** A small engraved compass rose, 32 units across, around `needle`. */
+/**
+ * An engraved compass rose, 40 units across, around `needle`: a ring of 32 ticks, four long
+ * cardinal points over four short ones, each point cut into a lit half and a shaded half.
+ */
 function rose(needle: SVGGElement): SVGSVGElement {
-  const face = svg('svg', { viewBox: '0 0 32 32', class: 'wu-rose', 'aria-hidden': 'true' });
+  const face = svg('svg', { viewBox: '0 0 40 40', class: 'wu-rose', 'aria-hidden': 'true' });
+  const points = (length: number, waist: number, angles: number[]) =>
+    angles.map((angle) => {
+      const point = svg('g', { transform: `rotate(${angle} ${C} ${C})` });
+      point.append(...halves(C - length, waist, 'wu-rose-point'));
+      return point;
+    });
   face.append(
-    svg('circle', { cx: 16, cy: 16, r: 14.5, class: 'wu-rose-ring' }),
-    svg('circle', { cx: 16, cy: 16, r: 11.5, class: 'wu-rose-ring is-inner' }),
-    svg('path', {
-      class: 'wu-rose-ticks',
-      d: 'M16 1.5v3M16 27.5v3M1.5 16h3M27.5 16h3M5.7 5.7l1.8 1.8M24.5 24.5l1.8 1.8M26.3 5.7l-1.8 1.8M7.5 24.5l-1.8 1.8',
-    }),
+    svg('circle', { cx: C, cy: C, r: 19, class: 'wu-rose-ring' }),
+    svg('circle', { cx: C, cy: C, r: 16.4, class: 'wu-rose-ring' }),
+    svg('path', { class: 'wu-rose-ticks', d: ticks() }),
+    ...points(10.5, 2.2, [45, 135, 225, 315]),
+    ...points(15.6, 3, [0, 90, 180, 270]),
+    svg('circle', { cx: C, cy: C, r: 3, class: 'wu-rose-hub' }),
     needle,
-    svg('circle', { cx: 16, cy: 16, r: 1.6, class: 'wu-rose-pin' }),
+    svg('circle', { cx: C, cy: C, r: 1.5, class: 'wu-rose-pin' }),
   );
   return face;
+}
+
+/**
+ * A point from the center to the tip at height `tip`, `waist` wide either side, as a lit half (the
+ * lamp's side, left) and a shaded half.
+ */
+function halves(tip: number, waist: number, className: string): SVGPathElement[] {
+  const toward = Math.sign(tip - C);
+  const side = (dx: number) => `M${C} ${C}L${C} ${tip}L${C + dx} ${C + toward * waist}Z`;
+  return [
+    svg('path', { class: `${className} is-lit`, d: side(-waist) }),
+    svg('path', { class: `${className} is-shaded`, d: side(waist) }),
+  ];
+}
+
+/** The ring's ticks: every 11.25 degrees, longer at the eight points. */
+function ticks(): string {
+  const at = (r: number, a: number) =>
+    `${(C + r * Math.sin(a)).toFixed(2)} ${(C - r * Math.cos(a)).toFixed(2)}`;
+  let path = '';
+  for (let k = 0; k < 32; k += 1) {
+    const a = (k * Math.PI) / 16;
+    path += `M${at(k % 4 === 0 ? 16.4 : 17.7, a)}L${at(19, a)}`;
+  }
+  return path;
 }
