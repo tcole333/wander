@@ -106,6 +106,17 @@
   ],
   "ash": [
     {
+      "label": "Austria defeats Murat at Tolentino",
+      "day": "1815-05-02",
+      "dateLabel": "2–3 May 1815",
+      "at": [13.2911, 43.2136],
+      "qid": "Q1359641",
+      "source": {
+        "title": "Battle of Tolentino (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Tolentino"
+      }
+    },
+    {
       "label": "The Congress of Vienna closes",
       "day": "1815-06-09",
       "dateLabel": "9 June 1815",
@@ -117,25 +128,14 @@
       }
     },
     {
-      "label": "Napoleon reaches exile on Saint Helena",
-      "day": "1815-10-15",
-      "dateLabel": "15 October 1815",
-      "at": [-5.7179, -15.9251],
-      "qid": "Q3061949",
+      "label": "Decatur's squadron takes the Algerine flagship off Cape Gata",
+      "day": "1815-06-17",
+      "dateLabel": "17 June 1815",
+      "at": [-2.1931, 36.7222],
+      "qid": "Q2838431",
       "source": {
-        "title": "From Waterloo to the island of St Helena (Fondation Napoléon)",
-        "url": "https://www.napoleon.org/en/young-historians/napodoc/from-waterloo-to-the-island-of-st-helena/"
-      }
-    },
-    {
-      "label": "Brazil becomes a kingdom",
-      "day": "1815-12-16",
-      "dateLabel": "16 December 1815",
-      "at": [-43.1745, -22.9035],
-      "qid": "Q903779",
-      "source": {
-        "title": "United Kingdom of Portugal, Brazil and the Algarves (Wikipedia)",
-        "url": "https://en.wikipedia.org/wiki/United_Kingdom_of_Portugal,_Brazil_and_the_Algarves"
+        "title": "Battle off Cape Gata (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_off_Cape_Gata"
       }
     }
   ],
@@ -163,14 +163,14 @@
       }
     },
     {
-      "label": "Nepal ratifies the Treaty of Sugauli, ending the Anglo-Nepalese War",
-      "day": "1816-03-04",
-      "dateLabel": "4 March 1816",
-      "at": [85.1475, 27.411],
-      "qid": "Q2003866",
+      "label": "Napoleon reaches exile on Saint Helena",
+      "day": "1815-10-15",
+      "dateLabel": "15 October 1815",
+      "at": [-5.7179, -15.9251],
+      "qid": "Q3061949",
       "source": {
-        "title": "Treaty of Sugauli, text and endorsement (Wikisource)",
-        "url": "https://en.wikisource.org/wiki/Treaty_of_Sugauli"
+        "title": "From Waterloo to the island of St Helena (Fondation Napoléon)",
+        "url": "https://www.napoleon.org/en/young-historians/napodoc/from-waterloo-to-the-island-of-st-helena/"
       }
     }
   ],
@@ -211,36 +211,35 @@
   ],
   "new-england-1816": [
     {
-      "label": "San Martín wins at Chacabuco",
-      "day": "1817-02-12",
-      "dateLabel": "12 February 1817",
-      "at": [-70.6839, -32.9931],
-      "qid": "Q1425658",
+      "label": "Bussa's rebellion rises on Barbados",
+      "day": "1816-04-14",
+      "dateLabel": "14–16 April 1816",
+      "at": [-59.5432, 13.1939],
+      "qid": "Q29914504",
       "source": {
-        "title": "Batalla de Chacabuco, 12 febrero de 1817 (Memoria Chilena, Biblioteca Nacional de Chile)",
-        "url": "https://www.memoriachilena.gob.cl/602/w3-article-77073.html"
+        "title": "Bussa's rebellion (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Bussa%27s_rebellion"
       }
     },
     {
-      "label": "An Anglo-Dutch fleet bombards Algiers",
-      "day": "1816-08-27",
-      "dateLabel": "27 August 1816",
-      "at": [3.06, 36.7761],
-      "qid": "Q891806",
+      "label": "Indiana's delegates sign its first constitution at Corydon",
+      "day": "1816-06-29",
+      "dateLabel": "29 June 1816",
+      "at": [-86.1239, 38.2117],
       "source": {
-        "title": "The Bombardment of Algiers, 27 August 1816 (Royal Museums Greenwich)",
-        "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-12109"
+        "title": "Constitution of Indiana (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Constitution_of_Indiana"
       }
     },
     {
-      "label": "Karl Drais rides his running machine, the bicycle's forerunner",
-      "day": "1817-06-12",
-      "dateLabel": "12 June 1817",
-      "at": [8.4652, 49.4863],
-      "qid": "Q1255515",
+      "label": "The frigate Méduse runs aground off Mauritania",
+      "day": "1816-07-02",
+      "dateLabel": "2 July 1816",
+      "at": [-16.809, 20.0475],
+      "qid": "Q1572828",
       "source": {
-        "title": "Karl Drais und seine Laufmaschine (Stadt Mannheim)",
-        "url": "https://www.mannheim.de/de/tourismus-entdecken/stadtgeschichte/stadtpunkte/buergertum-handel-industrie/karl-drais-und-seine-laufmaschine"
+        "title": "French frigate Méduse (1810) (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/French_frigate_M%C3%A9duse_(1810)"
       }
     }
   ],
