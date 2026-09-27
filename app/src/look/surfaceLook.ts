@@ -14,7 +14,6 @@ import { ASH_FRAGMENT_APPLY, ASH_FRAGMENT_PARS, createAshUniforms, registerAsh }
 import {
   CLIMATE_FRAGMENT_APPLY,
   CLIMATE_FRAGMENT_PARS,
-  CLOISONNE_DEFINE,
   createClimateUniforms,
   registerClimate,
 } from './climateHook';
@@ -112,10 +111,8 @@ export function defaultLookParams(): Params {
     coarseRelief: 0.85,
     // 0 the look, 1 height, 2 shore/water/L1 fields, 3 normals, 4 source level.
     debugView: 0,
-    // The climate palette's saturation either side of the average, K, and its style: 0 the frost
-    // and verdigris wash, 1 the cloisonné alternate (dev only; switching recompiles the look).
+    // The climate palette's saturation either side of the average, K.
     climateRangeK: tunables.climateRangeK,
-    climateStyle: 0,
     ...PALETTE,
   };
 }
@@ -202,13 +199,6 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       (target.value as Color).set(hex);
     }
     climate.lookClimateRange.value = Math.max(0.5, Number(params.climateRangeK));
-    const cloisonne = Number(params.climateStyle) === 1;
-    const defines = (material.defines ??= {});
-    if (cloisonne !== CLOISONNE_DEFINE in defines) {
-      if (cloisonne) defines[CLOISONNE_DEFINE] = '';
-      else delete defines[CLOISONNE_DEFINE];
-      material.needsUpdate = true;
-    }
   };
   update();
 

@@ -5,10 +5,6 @@
 // saturates at the look's climateRangeK either side of the 1901-2000 average, and the field is
 // sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
 // default, the look is unchanged; the walk compiles it at 0 before it starts.
-//
-// A dev-only alternate, cloisonné (the look's climateStyle 1, which the dev shell sets): translucent
-// enamel fired over the metal, blue where colder and garnet where warmer, with isotherms engraved at
-// whole degrees. It is a define, so the production program never holds it.
 import {
   ClampToEdgeWrapping,
   DataTexture,
@@ -40,12 +36,7 @@ export const CLIMATE_LOOK = {
   /** Where full cold takes the metal's roughness and metalness. */
   coldRoughness: 0.82,
   coldMetalness: 0.35,
-  /** The cloisonné alternate's enamels. */
-  enamelCold: '#2f6a9c',
-  enamelWarm: '#8c2f3c',
 } as const;
-
-export type ClimateStyle = 'wash' | 'cloisonne';
 
 export interface ClimateUniforms {
   /** 0 leaves the look as it is. */
@@ -90,9 +81,6 @@ export function climateUniformsOf(material: Material): ClimateUniforms | undefin
   return registry.get(material);
 }
 
-/** The define that swaps the wash for the cloisonné alternate. */
-export const CLOISONNE_DEFINE = 'LOOK_CLIMATE_CLOISONNE';
-
 /** An sRGB hex color in linear RGB, as three's color management turns a Color uniform. */
 export function linearRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
@@ -120,12 +108,6 @@ const mix3 = (a: number[], b: number[], t: number): [number, number, number] => 
   (a[2] ?? 0) + ((b[2] ?? 0) - (a[2] ?? 0)) * t,
 ];
 
-/** The cloisonné enamel's opacity at |t|, the anomaly as a share of the range. */
-function enamelOpacity(at: number): number {
-  const s = Math.min(1, Math.max(0, (at - 0.05) / 0.25));
-  return (0.15 + 0.75 * at) * s * s * (3 - 2 * s);
-}
-
 const luminance = ([r, g, b]: number[]) =>
   0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
 
@@ -142,18 +124,9 @@ function underLamp(rgb: [number, number, number]): [number, number, number] {
  * the legend's ramp, mixed in linear light as the shader mixes it and seen under the key lamp, as
  * the globe is, so the strip and the globe agree.
  */
-export function climateSwatch(
-  base: string,
-  k: number,
-  rangeK: number,
-  style: ClimateStyle,
-): string {
+export function climateSwatch(base: string, k: number, rangeK: number): string {
   const t = Math.min(1, Math.max(-1, k / rangeK));
   const bronze = linearRgb(base);
-  if (style === 'cloisonne') {
-    const enamel = linearRgb(t < 0 ? CLIMATE_LOOK.enamelCold : CLIMATE_LOOK.enamelWarm);
-    return srgbHex(underLamp(mix3(bronze, enamel, enamelOpacity(Math.abs(t)))));
-  }
   const [tint, pull] =
     t < 0
       ? [CLIMATE_LOOK.frost, CLIMATE_LOOK.frostMix]
@@ -198,20 +171,6 @@ void lookClimate(inout LookSurface s) {
   float k = field.x / max(field.y, 1e-3);
   float t = clamp(k / lookClimateRange, -1.0, 1.0);
   float a = lookClimateStrength * cover * mix(${f(CLIMATE_LOOK.seaShare)}, 1.0, s.land);
-#ifdef ${CLOISONNE_DEFINE}
-  // Enamel over the metal, clear near the average: the metal's own sheen shows through it, a
-  // little glossier where it lies thick.
-  vec3 enamel = t < 0.0 ? ${vec3(CLIMATE_LOOK.enamelCold)} : ${vec3(CLIMATE_LOOK.enamelWarm)};
-  float e = a * (0.15 + 0.75 * abs(t)) * smoothstep(0.05, 0.3, abs(t));
-  s.albedo = mix(s.albedo, enamel, e);
-  s.roughness = mix(s.roughness, 0.45, e * 0.5);
-  s.metalness = mix(s.metalness, 0.6, e * 0.5);
-  // Isotherms engraved at whole degrees, about a pixel and a half wide.
-  float off = abs(fract(k + 0.5) - 0.5) / max(fwidth(k), 1e-4);
-  float line = (1.0 - smoothstep(0.5, 1.3, off)) * a;
-  s.albedo *= 1.0 - 0.65 * line;
-  s.roughness = mix(s.roughness, 0.9, line);
-#else
   if (t < 0.0) {
     // Frost and verdigris: a pale blue-green patina that dulls the metal's polish.
     float c = -t * a;
@@ -222,7 +181,6 @@ void lookClimate(inout LookSurface s) {
     // A muted copper blush.
     s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.copper)}, t * a * ${f(CLIMATE_LOOK.copperMix)});
   }
-#endif
 }
 `;
 

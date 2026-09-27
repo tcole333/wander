@@ -37,9 +37,8 @@ const RANGES: Record<string, [number, number, number?]> = {
   polish: [0, 1.5, 0.01],
   coarseRelief: [0, 1, 0.01],
   debugView: [0, 4, 1],
-  // The climate's palette: saturation in K, and 0 the wash or 1 the cloisonné alternate.
+  // The climate's palette: saturation in K.
   climateRangeK: [1, 10, 0.5],
-  climateStyle: [0, 1, 1],
   // Streamer.
   refinePx: [0.3, 4, 0.01],
   maxLevel: [0, 7, 1],
