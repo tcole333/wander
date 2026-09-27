@@ -525,10 +525,10 @@
 
 .wu-sound {
   position: absolute;
-  top: 24px;
+  top: 22px;
   right: 26px;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -558,7 +558,7 @@
 
 .wu-sound-face {
   position: absolute;
-  inset: 5px;
+  inset: 4px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -573,8 +573,8 @@
 }
 
 .wu-sound-face svg {
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   overflow: visible;
 }
 
@@ -624,7 +624,7 @@
   position: absolute;
   box-sizing: border-box;
   right: 26px;
-  top: 80px;
+  top: 66px;
   width: 330px;
   padding: 15px 15px 16px;
 }
