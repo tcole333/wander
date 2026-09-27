@@ -38,7 +38,7 @@ export const CUES = {
     play(engine, out, at, sources) {
       every(engine, at + rand(0.2, 0.8), sources, (t) => {
         const length = grumble(engine, out, t);
-        return t + length + rand(0.8, 4.5);
+        return t + length + rand(5, 14);
       });
     },
   },
