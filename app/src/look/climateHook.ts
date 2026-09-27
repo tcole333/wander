@@ -1,6 +1,7 @@
 // The look's climate hook (streaming.md 3.5): ModE-RA's temperature anomaly for one month, a
 // 192 x 96 field on the source's grid that the walk's effects fill (story/effects/climate.ts), as a
-// frost and verdigris wash on the metal. Cold lands take a pale blue-green patina and lose their
+// frost and verdigris wash on the metal. Cold lands take a blue-green patina that tints the metal
+// rather than covering it, so its wear, rivers and coast still show, and lose some of their
 // polish; warm lands blush a muted copper; the sea's lacquer takes a third of either. The palette
 // saturates at the look's climateRangeK either side of the 1901-2000 average, and the field is
 // sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
@@ -23,19 +24,25 @@ export const CLIMATE_GRID = { nlon: 192, nlat: 96 } as const;
 /** The wash's colors and how far each pulls the metal at full saturation. */
 export const CLIMATE_LOOK = {
   /**
-   * Verdigris (#47746b) lightened, and cooled so that under the warm lamp it still reads as a pale
-   * blue-green patina, not khaki: frost on a patinated bronze.
+   * Verdigris, blue enough that the warm lamp leaves it blue-green rather than khaki, which would
+   * read as the ash beat's dust.
    */
-  frost: '#8cbccf',
+  frost: '#5fb3c4',
   frostMix: 0.85,
+  /**
+   * The metal's linear luminance at which the frost takes its own color: brighter metal takes a
+   * brighter frost and darker a darker (within 0.3 and 1.7 of it), so the frost keeps the metal's
+   * engraving and the dark sea stays lacquer.
+   */
+  frostLuminance: 0.16,
   /** A muted, rosy copper: the warm lamp alone turns a plain copper hot orange. */
   copper: '#a8665a',
   copperMix: 0.55,
   /** The sea's share of the land's wash. */
   seaShare: 1 / 3,
   /** Where full cold takes the metal's roughness and metalness. */
-  coldRoughness: 0.82,
-  coldMetalness: 0.35,
+  coldRoughness: 0.72,
+  coldMetalness: 0.55,
 } as const;
 
 export interface ClimateUniforms {
@@ -127,11 +134,14 @@ function underLamp(rgb: [number, number, number]): [number, number, number] {
 export function climateSwatch(base: string, k: number, rangeK: number): string {
   const t = Math.min(1, Math.max(-1, k / rangeK));
   const bronze = linearRgb(base);
-  const [tint, pull] =
-    t < 0
-      ? [CLIMATE_LOOK.frost, CLIMATE_LOOK.frostMix]
-      : [CLIMATE_LOOK.copper, CLIMATE_LOOK.copperMix];
-  return srgbHex(underLamp(mix3(bronze, linearRgb(tint), pull * Math.abs(t))));
+  if (t >= 0) {
+    return srgbHex(
+      underLamp(mix3(bronze, linearRgb(CLIMATE_LOOK.copper), CLIMATE_LOOK.copperMix * t)),
+    );
+  }
+  const rel = Math.min(1.7, Math.max(0.3, luminance(bronze) / CLIMATE_LOOK.frostLuminance));
+  const frost = linearRgb(CLIMATE_LOOK.frost).map((c) => c * rel);
+  return srgbHex(underLamp(mix3(bronze, frost, CLIMATE_LOOK.frostMix * -t)));
 }
 
 const f = (x: number) => x.toFixed(6);
@@ -172,9 +182,11 @@ void lookClimate(inout LookSurface s) {
   float t = clamp(k / lookClimateRange, -1.0, 1.0);
   float a = lookClimateStrength * cover * mix(${f(CLIMATE_LOOK.seaShare)}, 1.0, s.land);
   if (t < 0.0) {
-    // Frost and verdigris: a pale blue-green patina that dulls the metal's polish.
+    // Frost and verdigris: a blue-green patina as bright as the metal under it, which dulls its
+    // polish.
     float c = -t * a;
-    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.frost)}, c * ${f(CLIMATE_LOOK.frostMix)});
+    float rel = clamp(dot(s.albedo, vec3(0.2126, 0.7152, 0.0722)) / ${f(CLIMATE_LOOK.frostLuminance)}, 0.3, 1.7);
+    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.frost)} * rel, c * ${f(CLIMATE_LOOK.frostMix)});
     s.roughness = mix(s.roughness, ${f(CLIMATE_LOOK.coldRoughness)}, c * s.land);
     s.metalness = mix(s.metalness, ${f(CLIMATE_LOOK.coldMetalness)}, c * s.land);
   } else {
