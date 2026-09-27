@@ -12,7 +12,8 @@ from prebuild.profiles import Profile
 REPO = Path("/repo")
 # Stand-ins for the stages of streaming.md 7.1 that have not landed, in their order.
 STAND_INS = {
-    name: lambda ctx: None for name in ("fetch", "excerpts", "coverage", "surface", "media")
+    name: lambda ctx: None
+    for name in ("fetch", "excerpts", "coverage", "surface", "modera", "media")
 }
 
 
@@ -23,8 +24,8 @@ def planned(*argv: str) -> list[str]:
 @pytest.mark.parametrize(
     ("argv", "stages"),
     [
-        ((), ["fetch", "coverage", "surface"]),
-        (("--profile", "region"), ["fetch", "coverage", "surface"]),
+        ((), ["fetch", "coverage", "surface", "modera"]),
+        (("--profile", "region"), ["fetch", "coverage", "surface", "modera"]),
         (("--profile", "fixture"), ["coverage", "surface"]),
         (("surface", "coverage"), ["coverage", "surface"]),
         (("coverage", "coverage"), ["coverage"]),
@@ -43,6 +44,7 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("no-such-stage",),
         ("--profile", "fixture", "fetch"),
         ("--profile", "fixture", "excerpts"),
+        ("--profile", "fixture", "modera"),
         ("--profile", "moon"),
         ("--jobs", "0"),
         ("--jobs", "many"),
@@ -171,7 +173,7 @@ def test_other_profiles_write_no_sidecars(tmp_path):
 
 
 def test_the_stages_that_have_landed_are_registered_in_order():
-    assert list(STAGES) == ["fetch", "excerpts", "coverage", "surface"]
+    assert list(STAGES) == ["fetch", "excerpts", "coverage", "surface", "modera"]
 
 
 def test_main_prints_usage_for_help(capsys):
