@@ -162,7 +162,7 @@ id: veil
 date: "1815-06-28"
 precision: day
 window: "1815-04-10..1816-06-10"
-camera: {target: [100.0, -5.0], viewKm: 14000, tilt: 0, heading: 0, drift: slow}
+camera: {target: [85.0, 12.0], viewKm: 16000, tilt: 0, heading: 0, drift: slow}
 focal: {qid: Q3591483, date: "1815-04-05"}
 image:
   commons: "File:Joseph Mallord William Turner - The Decline of the Carthaginian Empire - WGA23169.jpg"
