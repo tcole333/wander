@@ -1,8 +1,8 @@
 // The lobby's DOM (lobby.css): the Wander mark where the walk has it, the Credits link engraved at
 // the top right, and at the left a column with a heading and the story's plaque in dark cast
 // brass: an engraved medallion (Tambora's volcano, milestone 1's one story), the title, the years
-// and the blurb, and an ember that wakes in its socket when the plaque is hovered or focused. The
-// plaque is a button, so Tab reaches it and Enter or Space chooses it. The column fades in as the
+// and the blurb, a Begin line at its foot, and an ember that wakes in its socket when the plaque
+// is hovered or focused. The plaque is a button, so Tab reaches it and Enter or Space chooses it. The column fades in as the
 // opening ends and slides away once the plaque is chosen.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
@@ -85,7 +85,11 @@ function plaque(story: Story, choose: () => void): HTMLButtonElement {
   );
   const ember = el('span', 'lobby-ember');
   ember.setAttribute('aria-hidden', 'true');
-  button.append(medallion(), words, ember);
+  const begin = el('span', 'lobby-begin', 'Begin');
+  const hand = el('span', 'lobby-begin-hand', '☞');
+  hand.setAttribute('aria-hidden', 'true');
+  begin.append(hand);
+  button.append(medallion(), words, ember, begin);
   return button;
 }
 
