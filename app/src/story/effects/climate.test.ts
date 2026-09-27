@@ -35,7 +35,7 @@ const loadSynthetic = vi.fn((url: string) =>
 function pausedOn(id: string, iso?: string): WalkState {
   const beat = story.beats.findIndex((b) => b.id === id);
   const day = iso ? dayFromIso(iso) : (story.beats[beat]?.day ?? 0);
-  return { story, beat, mode: 'paused', flight: null, day, advanceIn: null };
+  return { story, beat, mode: 'paused', flight: null, flying: false, day, advanceIn: null };
 }
 
 /** A second of frames at 30 per second. */
