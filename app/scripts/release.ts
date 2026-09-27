@@ -1,11 +1,31 @@
 // The release's surface section (streaming.md 3.8), merged from the coverage and surface stage
-// records (7.2) as `npm run publish-data` will merge them. The local data server (dataServer.ts)
-// serves a release of this shape for a profile's build, so lab and dev pages read what a published
-// release will give them. Plain Node, so it runs outside Vite.
+// records (7.2) of a profile's build as `npm run publish-data` publishes it. The local data server
+// (dataServer.ts) serves a release of this shape for a profile's build, so lab and dev pages read
+// what a published release will give them; both find the build with profileBuild. Plain Node, so
+// it runs outside Vite.
 import { createHash } from 'node:crypto';
-import { readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Release, SurfaceRelease } from '../src/data/release.ts';
+
+export type Profile = 'fixture' | 'region' | 'global';
+
+export const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+
+/** Each profile's output root under build/ (streaming.md 7.1): the global profile writes build/out/. */
+export const OUTPUT_DIR: Record<Profile, string> = {
+  fixture: 'fixture',
+  region: 'region',
+  global: 'out',
+};
+
+/** The command that makes each profile's build, for the error when it is missing. */
+const REBUILD: Record<Profile, string> = {
+  fixture: 'run `npm run fixture` in app/',
+  region: 'run `uv run prebuild --profile region` in pipeline/',
+  global: 'run `uv run prebuild` in pipeline/',
+};
 
 interface CoverageRecord {
   qLand: number[];
@@ -22,6 +42,21 @@ interface SurfaceRecord {
 
 export class ReleaseError extends Error {
   override name = 'ReleaseError';
+}
+
+/**
+ * A profile's output root and stage records under `repo`'s build/; throws, naming the command that
+ * makes them, when the build is missing.
+ */
+export function profileBuild(profile: Profile, repo = REPO_ROOT): { root: string; stages: string } {
+  const root = resolve(repo, 'build', OUTPUT_DIR[profile]);
+  const stages = resolve(repo, 'build', 'stages', profile);
+  for (const required of [root, join(stages, 'coverage.json'), join(stages, 'surface.json')]) {
+    if (!existsSync(required)) {
+      throw new ReleaseError(`${required} is missing: ${REBUILD[profile]}`);
+    }
+  }
+  return { root, stages };
 }
 
 /** The surface section, once both records describe the same availability. */

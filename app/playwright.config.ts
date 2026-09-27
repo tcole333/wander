@@ -1,5 +1,5 @@
 import { defineConfig, devices, type Project } from '@playwright/test';
-import type { Profile } from './scripts/dataServer';
+import type { Profile } from './scripts/release';
 import { DATA_URL, DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/servers';
 
 // CI's software renderer. SwiftShader screenshots misrepresent the look and timing, so this
