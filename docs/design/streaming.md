@@ -1663,4 +1663,5 @@ Decided at go-live (issues #6 and #13), 2026-09-27:
     card, its title and blurb, in the room; data that does not arrive gets a brass plate with
     Reload; any other failed boot gets the card with Reload; and a lost context reloads once, then
     shows the card if the context is lost again within five minutes. The CSS room with the Wander
-    mark is the poster.
+    mark is the poster. Credits are a page, `/credits`, opened in a new tab from the beat card, until
+    the PRD's brass Credits panel arrives with the lobby.
