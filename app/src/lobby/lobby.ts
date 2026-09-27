@@ -5,10 +5,10 @@
 // key or wheel runs the rest of it in SKIP_S. Then the instrument turns slowly eastward, as the
 // Earth does, stopping at any input and turning on after TURN_IDLE_S without one; dragging and the
 // wheel move it as in the walk. Choosing a plaque dives: the plaques slide away, the walk starts in
-// that press (so its sound, when it joins, unlocks inside the visitor's gesture), and the camera
-// flies into the story's first beat by the walk's own flight and readiness gate while the time
-// ruler rises; the card and Meanwhile come in at the landing. The turn stops, and the glows go as
-// the story's own effects come up (walk/boot.ts).
+// that press, its sound unlocking in the press's own handler (walk/boot.ts), and the camera flies
+// into the story's first beat by the walk's own flight and readiness gate while the time ruler
+// rises; the card and Meanwhile come in at the landing. The turn stops, and the glows go as the
+// story's own effects come up (walk/boot.ts).
 //
 // While it stands, the lobby holds the scene's lamp and ring swings and the view's longitude. The
 // walk's boot (walk/boot.ts) calls update() every frame before the view steps, and shifts its lens
