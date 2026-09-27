@@ -78,7 +78,7 @@ function buildPanel(): Panel {
   }
   const scroll = el('div', 'cp-scroll');
   scroll.append(...sheet.childNodes);
-  const corner = el('button', 'cp-close', '✕');
+  const corner = el('button', 'cp-close', '×');
   corner.type = 'button';
   corner.setAttribute('aria-label', 'Close');
   corner.addEventListener('click', close);

@@ -189,9 +189,10 @@
   color: var(--garnet);
 }
 
+/* In ink, which reads on the vellum where the lamp's brass would not. */
 .credits-card a:focus-visible,
 .credits-card button:focus-visible {
-  outline: 1px solid var(--brass-hi);
+  outline: 1px solid var(--ink-soft);
   outline-offset: 3px;
 }
 

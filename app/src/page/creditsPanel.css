@@ -92,7 +92,7 @@
   border: 0;
   background: none;
   cursor: pointer;
-  font: 400 16px/1 var(--display);
+  font: 400 22px/1 var(--display);
   color: var(--ink-soft);
   text-shadow: var(--engraved);
 }
