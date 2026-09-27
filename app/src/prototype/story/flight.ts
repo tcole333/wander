@@ -10,9 +10,9 @@ import { arcKm, mixViews, type ViewState } from '../app/viewState';
 export const RHO = 1.42;
 
 /** A flight lasts its path length over this, within the clamp below, in seconds. */
-const LENGTH_PER_S = 1.2;
-const MIN_S = 1.6;
-const MAX_S = 4.5;
+const LENGTH_PER_S = 0.8;
+const MIN_S = 2.4;
+const MAX_S = 5;
 
 const DEG = Math.PI / 180;
 
@@ -26,7 +26,7 @@ export interface FlightPath {
 /** The steepest start flightEase takes before it would overshoot. */
 export const MAX_LEAD = 2.5;
 
-/** clamp(S / 1.2, 1.6, 4.5) seconds. */
+/** clamp(S / 0.8, 2.4, 5) seconds. */
 export function flightSeconds(length: number): number {
   return Math.min(MAX_S, Math.max(MIN_S, length / LENGTH_PER_S));
 }
