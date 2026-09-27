@@ -281,7 +281,9 @@ export class Plume {
     const lampLen = Math.hypot(lampE, lampN) || 1;
 
     const heightKm = this.#effect.heightKm;
-    const scale = Math.max(1, Math.min(kLand, (0.35 * viewKm) / heightKm));
+    // Exaggerated with the relief, but never taller than a fifth of the view, so a close view
+    // keeps the umbrella in frame.
+    const scale = Math.max(1, Math.min(kLand, (0.2 * viewKm) / heightKm));
     const top = heightKm * state.column * scale;
     const topR = 2 + 0.135 * top;
     const baseKm = (kLand * VENT_M) / 1000;
