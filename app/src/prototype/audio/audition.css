@@ -1,0 +1,870 @@
+/* The sound audition (auditionPage.ts) in the walk's materials (walkUi.css): a dark room with the
+   key lamp high at the upper left, dark cast brass drawers under the lens, vellum slips, brass
+   plaques and knurled knobs, engraved small caps. */
+
+body.au-room {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 55% 60% at 18% 6%, rgb(255 214 168 / 0.1), transparent 70%),
+    radial-gradient(ellipse 80% 90% at 40% 30%, #1d1710 0%, #110d09 55%, #07090a 100%);
+  background-attachment: fixed;
+}
+
+.wu.au {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  box-sizing: border-box;
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 34px 40px;
+  pointer-events: auto;
+}
+
+/* The room's grain and the lens's vignette, fixed to the page, behind the panels. */
+.au::before,
+.au::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.au::before {
+  background: var(--grain);
+  mix-blend-mode: overlay;
+  opacity: 0.14;
+}
+
+.au::after {
+  background: var(--lens);
+}
+
+.au > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The head: the mark, and the console beside it. */
+
+.au-head {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 26px 0 30px;
+}
+
+.au .wu-mark {
+  position: static;
+  flex: none;
+  width: 300px;
+}
+
+.au-console {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 16px 28px 14px;
+}
+
+.au-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.au-knob-label {
+  font: 400 9.5px/1 var(--display);
+  letter-spacing: 0.28em;
+  margin-right: -0.28em;
+  text-transform: uppercase;
+  color: #c8a25e;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.9);
+}
+
+.au-divider {
+  align-self: stretch;
+  width: 2px;
+  margin: 4px 0;
+  background:
+    linear-gradient(rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.7)) left / 1px 100% no-repeat,
+    linear-gradient(rgb(255 226 170 / 0.16), rgb(255 226 170 / 0.16)) right / 1px 100% no-repeat;
+}
+
+.au-console .au-level {
+  flex: 1;
+  max-width: 420px;
+}
+
+.au-copy {
+  margin-left: auto;
+}
+
+/* Knurled knobs: a toothed brass rim lit from the upper left, and a domed face with its mark cut
+   in and filled with niello. */
+
+.au-knob {
+  position: relative;
+  flex: none;
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background:
+    linear-gradient(135deg, rgb(255 238 196 / 0.5), transparent 45%, rgb(0 0 0 / 0.55)),
+    repeating-conic-gradient(#3a2710 0 2.5deg, #d4b06c 2.5deg 5deg);
+  box-shadow:
+    0 0 0 1px #140c04,
+    inset 0 0 0 1px rgb(20 12 4 / 0.8),
+    4px 7px 12px rgb(0 0 0 / 0.6),
+    1px 2px 3px rgb(0 0 0 / 0.5);
+  transition: filter 0.15s;
+}
+
+.au-knob:hover {
+  filter: brightness(1.12) drop-shadow(0 0 6px rgb(255 206 130 / 0.35));
+}
+
+.au-knob:active {
+  filter: brightness(0.94);
+}
+
+.au-knob-face {
+  position: absolute;
+  inset: 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(60% 40% at 34% 26%, rgb(255 244 214 / 0.55), transparent 70%),
+    radial-gradient(circle at 40% 36%, #e4c486 0%, #c29a58 34%, #94703a 68%, #5a3f1a 100%);
+  box-shadow:
+    0 0 0 1.5px #24170a,
+    inset -2px -3px 6px rgb(40 24 8 / 0.55),
+    inset 1px 1px 1px rgb(255 240 200 / 0.6);
+}
+
+.au-knob-face svg {
+  width: 30px;
+  height: 30px;
+  overflow: visible;
+}
+
+.au-mute {
+  width: 44px;
+  height: 44px;
+}
+
+.au-mute .au-knob-face {
+  inset: 5px;
+}
+
+.au-mute .au-knob-face svg {
+  width: 22px;
+  height: 22px;
+}
+
+.au-niello,
+.au-niello-line {
+  fill: #1b1007;
+  stroke: #0d0703;
+  stroke-width: 0.6;
+}
+
+.au-niello-line {
+  fill: none;
+  stroke: #1b1007;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.au-cut-lip,
+.au-niello.au-lip {
+  fill: rgb(255 240 200 / 0.55);
+  stroke: none;
+}
+
+.au-niello-line.au-lip {
+  stroke: rgb(255 240 200 / 0.55);
+}
+
+.au-cross {
+  display: none;
+}
+
+.au-mute.is-muted .au-cross {
+  display: inline;
+}
+
+.au-mute.is-muted .au-waves {
+  display: none;
+}
+
+.au-mute.is-muted {
+  box-shadow:
+    0 0 0 1px #140c04,
+    0 0 0 3px rgb(200 54 76 / 0.55),
+    0 0 10px 2px rgb(230 70 90 / 0.4),
+    4px 7px 12px rgb(0 0 0 / 0.6);
+}
+
+/* Begin, waiting: its rim glows for the hand. Running: a garnet lit in its face. */
+
+.is-locked .au-begin {
+  animation: au-beckon 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes au-beckon {
+  to {
+    filter: brightness(1.14) drop-shadow(0 0 10px rgb(255 190 110 / 0.55));
+  }
+}
+
+.au-begin.is-running .au-knob-face {
+  background:
+    radial-gradient(circle at 42% 38%, rgb(255 214 220 / 0.95) 0 3%, transparent 9%),
+    radial-gradient(closest-side, #d0405a 0 30%, #7a1428 52%, #4a0a18 58%, transparent 60%),
+    radial-gradient(
+      closest-side,
+      #3a270f 0 60%,
+      #e2bd78 63%,
+      #8a6630 68%,
+      #2a1a0a 71%,
+      transparent 73%
+    ),
+    radial-gradient(60% 40% at 34% 26%, rgb(255 244 214 / 0.55), transparent 70%),
+    radial-gradient(circle at 40% 36%, #e4c486 0%, #c29a58 34%, #94703a 68%, #5a3f1a 100%);
+}
+
+.au-begin.is-running .au-knob-face svg {
+  display: none;
+}
+
+.au-begin.is-running {
+  box-shadow:
+    0 0 0 1px #140c04,
+    4px 7px 12px rgb(0 0 0 / 0.6),
+    0 0 18px 3px rgb(230 70 90 / 0.28);
+}
+
+/* The drawers: dark cast brass, three abreast, dim until Begin is pressed. */
+
+.au-drawers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+  align-items: start;
+  transition:
+    opacity 0.5s,
+    filter 0.5s;
+}
+
+.is-locked .au-drawers {
+  opacity: 0.55;
+  filter: saturate(0.7);
+}
+
+.au-drawer {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  padding: 16px 16px 18px;
+}
+
+.au-drawer-title {
+  margin: 2px 0 4px;
+  font: 400 18px/1.2 var(--display);
+  text-align: center;
+  background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1.5px 0.5px rgb(0 0 0 / 0.9));
+}
+
+.au-drawer > .au-level {
+  margin: 0 4px 5px;
+}
+
+/* A vellum slip, as Meanwhile's entries are. */
+
+.au-slip {
+  display: grid;
+  gap: 8px;
+  padding: 11px 14px 11px 13px;
+  background: var(--vellum-light), var(--fiber), var(--vellum-ground);
+  outline: 1px solid rgb(110 82 39 / 0.42);
+  outline-offset: -4px;
+  box-shadow:
+    inset 1px 1px 0 rgb(255 248 226 / 0.7),
+    inset -1px -1px 0 rgb(80 50 15 / 0.45),
+    inset 0 0 16px rgb(125 80 28 / 0.3),
+    var(--cast-near);
+}
+
+.au-slip-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.au-slip-words {
+  flex: 1;
+  min-width: 0;
+}
+
+.au-slip-name {
+  display: block;
+  font: 400 10.5px/1.3 var(--display);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-shadow: var(--engraved);
+}
+
+.au-slip-line {
+  display: block;
+  margin-top: 3px;
+  font: italic 400 13px/1.3 var(--reading);
+  color: var(--ink-faint);
+}
+
+.au-actions {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+/* A garnet in a brass bezel: dark at rest, lit while its sound plays. */
+
+.au-jewel {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #a5606a 0 10%, #5a1824 45%, #2a0710 90%);
+  box-shadow:
+    0 0 0 1.5px #a57b3c,
+    0 0 0 2.5px #3a270f,
+    inset 0 0 2px rgb(0 0 0 / 0.6),
+    1px 1.5px 2px 1.5px rgb(60 36 10 / 0.35);
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
+}
+
+.au-jewel.is-lit {
+  background: radial-gradient(circle at 36% 32%, #ffc2ca 0 12%, #d0405a 40%, #6a1022 92%);
+  box-shadow:
+    0 0 0 1.5px #d9ae5e,
+    0 0 0 2.5px #3a270f,
+    0 0 9px 2px rgb(230 70 90 / 0.55);
+}
+
+/* A small cast brass plaque, its lettering cut in. */
+
+.au-plaque {
+  padding: 7px 11px 6px;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  font: 400 9px/1 var(--display);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #3b2910;
+  text-shadow:
+    0.5px 1px 0 rgb(255 238 190 / 0.6),
+    -0.5px -0.5px 0 rgb(40 24 8 / 0.35);
+  background:
+    radial-gradient(120% 160% at 18% 0%, rgb(255 240 200 / 0.5), transparent 60%), var(--brushed),
+    linear-gradient(#e7ca8a, #c39b58 42%, #9a7536 78%, #6f5027);
+  outline: 1px solid rgb(90 62 26 / 0.45);
+  outline-offset: -3px;
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near);
+  transition:
+    filter 0.15s,
+    box-shadow 0.2s,
+    translate 0.08s;
+}
+
+.au-plaque:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near),
+    0 0 12px 2px rgb(255 190 110 / 0.3);
+}
+
+.au-plaque:active {
+  translate: 0.5px 1px;
+  filter: brightness(0.93);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.7),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a;
+}
+
+.au-copy {
+  padding: 11px 26px 10px;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  background:
+    var(--rivet) left 8px center / 6px 6px no-repeat,
+    var(--rivet) right 8px center / 6px 6px no-repeat,
+    radial-gradient(120% 160% at 18% 0%, rgb(255 240 200 / 0.5), transparent 60%),
+    var(--brushed),
+    linear-gradient(#e7ca8a, #c39b58 42%, #9a7536 78%, #6f5027);
+}
+
+/* A level: its name in small caps, a groove cut in the vellum with a gilt inlay up to the knob,
+   and the setting in old-style figures. On the dark brass, the groove is black and the name gilt. */
+
+.au-level {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 54px;
+  align-items: center;
+  gap: 10px;
+}
+
+.au-level-name {
+  font: 400 8.5px/1 var(--display);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-shadow: var(--engraved);
+}
+
+.au-readout {
+  justify-self: end;
+  font: italic 400 12.5px/1 var(--reading);
+  font-variant-numeric: oldstyle-nums tabular-nums;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.on-brass .au-level-name {
+  color: #c8a25e;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.9);
+}
+
+.on-brass .au-readout {
+  color: #dcc08a;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.9);
+}
+
+.au-range {
+  --fill: 50%;
+  --groove: rgb(74 53 24 / 0.3);
+  --groove-cut: inset 0.5px 1px 1px rgb(40 24 8 / 0.75), 0 1px 0 rgb(255 247 222 / 0.65);
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.on-brass .au-range {
+  --groove: rgb(0 0 0 / 0.6);
+  --groove-cut: inset 0.5px 1px 1px rgb(0 0 0 / 0.9), 0 1px 0 rgb(255 226 170 / 0.18);
+}
+
+.au-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, #9a7536, #e2bf7c var(--fill), transparent var(--fill)), var(--groove);
+  box-shadow: var(--groove-cut);
+}
+
+.au-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--groove);
+  box-shadow: var(--groove-cut);
+}
+
+.au-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #9a7536, #e2bf7c);
+}
+
+.au-range::-webkit-slider-thumb {
+  width: 15px;
+  height: 15px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 36% 32%,
+    #fff3cf 0 7%,
+    #e2bd78 22%,
+    #a57b3c 58%,
+    #5a3f1a 88%,
+    #3a270f
+  );
+  box-shadow:
+    0 0 0 1px rgb(24 14 4 / 0.85),
+    1px 2px 3px rgb(0 0 0 / 0.6);
+  -webkit-appearance: none;
+}
+
+.au-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 36% 32%,
+    #fff3cf 0 7%,
+    #e2bd78 22%,
+    #a57b3c 58%,
+    #5a3f1a 88%,
+    #3a270f
+  );
+  box-shadow:
+    0 0 0 1px rgb(24 14 4 / 0.85),
+    1px 2px 3px rgb(0 0 0 / 0.6);
+}
+
+.au-range:hover::-webkit-slider-thumb {
+  filter: brightness(1.2);
+  box-shadow:
+    0 0 0 1px rgb(24 14 4 / 0.85),
+    1px 2px 3px rgb(0 0 0 / 0.6),
+    0 0 8px 2px rgb(255 206 130 / 0.5);
+}
+
+.au-range:focus-visible {
+  outline: 1px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+
+/* The bed's ruler: story time from 1815 through 1817 on a dark rail, gilt ticks at the months and
+   the years, a plaque over the playhead with the date, and a garnet playhead. Positions run over
+   the range's travel, so each sits over the thumb at its day. */
+
+.au-ruler {
+  --thumb: 22px;
+  position: relative;
+  height: 142px;
+  padding: 0 14px;
+  border-width: 2px;
+  outline-offset: -6px;
+}
+
+.au-rail {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 58px;
+  height: 30px;
+  border-top: 1px solid rgb(226 190 122 / 0.45);
+  box-shadow: 0 -1px 0 rgb(0 0 0 / 0.6);
+}
+
+.au-tick,
+.au-year,
+.au-eruption,
+.au-plate {
+  position: absolute;
+  left: calc(var(--p) * (100% - var(--thumb)) + var(--thumb) / 2);
+}
+
+.au-tick {
+  top: 0;
+  width: 1px;
+  height: 6px;
+  background: #e2bf7c;
+  box-shadow: 0.5px 0.8px 0 rgb(0 0 0 / 0.6);
+  opacity: 0.8;
+}
+
+.au-tick.is-year {
+  height: 12px;
+  width: 1.4px;
+  opacity: 1;
+}
+
+.au-year {
+  top: 12px;
+  translate: -50% 0;
+  font: 400 12.5px/1 var(--display);
+  letter-spacing: 0.08em;
+  color: #e2bf7c;
+  text-shadow: 0.6px 0.9px 0 rgb(0 0 0 / 0.8);
+}
+
+/* The eruption: a garnet fleck on the rail. */
+.au-eruption {
+  top: -4px;
+  width: 7px;
+  height: 7px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: linear-gradient(135deg, #e0707f, #8a1a2c);
+  box-shadow: 0 0 6px rgb(230 70 90 / 0.6);
+}
+
+/* The plaque hangs in the rail's frame, above it. */
+.au-plate {
+  top: -49px;
+  translate: -50% 0;
+  padding: 7px 16px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 160% at 18% 0%, rgb(255 240 200 / 0.5), transparent 60%), var(--brushed),
+    linear-gradient(#e7ca8a, #c39b58 42%, #9a7536 78%, #6f5027);
+  outline: 1px solid rgb(90 62 26 / 0.45);
+  outline-offset: -3px;
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near);
+}
+
+.au-plate-text {
+  font: 400 13px/1 var(--display);
+  letter-spacing: 0.06em;
+  color: #2f200c;
+  text-shadow:
+    0.5px 1px 0 rgb(255 238 190 / 0.6),
+    -0.5px -0.5px 0 rgb(40 24 8 / 0.3);
+}
+
+/* The playhead: a garnet in a brass bezel, a blued steel needle down from it. */
+.au-day {
+  --playhead:
+    radial-gradient(circle at 40% 36%, rgb(255 214 220 / 0.95) 0 5%, transparent 14%) 0 0 / 22px
+      22px no-repeat,
+    radial-gradient(closest-side, #d0405a 0 34%, #7a1428 58%, transparent 62%) 0 0 / 22px 22px
+      no-repeat,
+    radial-gradient(closest-side, #e8c47e 0 72%, #6f4f22 80%, #2a1a0a 88%, transparent 92%) 0 0 /
+      22px 22px no-repeat,
+    linear-gradient(90deg, transparent 10px, #3a4a66 10px, #1a2238 12px, transparent 12px) 0 20px /
+      22px 10px no-repeat;
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 44px;
+  width: calc(100% - 28px);
+  height: 30px;
+  margin: 0;
+  background: none;
+  cursor: grab;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.au-day:active {
+  cursor: grabbing;
+}
+
+.au-day::-webkit-slider-runnable-track {
+  height: 30px;
+  background: none;
+}
+
+.au-day::-moz-range-track {
+  height: 30px;
+  background: none;
+}
+
+.au-day::-webkit-slider-thumb {
+  width: 22px;
+  height: 30px;
+  border: 0;
+  background: var(--playhead);
+  filter: drop-shadow(1px 2px 1.5px rgb(0 0 0 / 0.7));
+  -webkit-appearance: none;
+}
+
+.au-day::-moz-range-thumb {
+  width: 22px;
+  height: 30px;
+  border: 0;
+  border-radius: 0;
+  background: var(--playhead);
+  filter: drop-shadow(1px 2px 1.5px rgb(0 0 0 / 0.7));
+}
+
+.au-day:focus-visible {
+  outline: 1px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+
+/* The moments rendered to files: small plaques along the foot of the ruler. */
+
+.au-moments {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 13px;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.au-moments .au-plaque {
+  padding: 6px 9px 5px;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+}
+
+/* The rumble through the years, engraved on vellum. */
+
+.au-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.au-chart-span {
+  fill: rgb(176 138 74 / 0.2);
+}
+
+.au-chart-area {
+  fill: rgb(74 53 24 / 0.14);
+}
+
+.au-chart-curve {
+  fill: none;
+  stroke: #3a2810;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.au-chart-axis {
+  fill: none;
+  stroke: rgb(74 53 24 / 0.75);
+  stroke-width: 0.7;
+}
+
+.au-chart-years text {
+  font: 600 8.5px/1 var(--reading);
+  letter-spacing: 0.1em;
+  text-anchor: middle;
+  fill: var(--ink-faint);
+  font-variant-numeric: lining-nums;
+}
+
+.au-chart-mark {
+  fill: #b83048;
+  stroke: #3a0a14;
+  stroke-width: 0.7;
+  filter: drop-shadow(0 0 2.5px rgb(230 70 90 / 0.6));
+}
+
+/* The rumble's dial and the bed's levels, on one slip. */
+
+.au-bed-levels {
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.au-bed-sliders {
+  display: grid;
+  gap: 10px;
+}
+
+.au-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-right: 12px;
+  border-right: 1px solid rgb(110 82 39 / 0.4);
+  box-shadow: 1px 0 0 rgb(255 247 222 / 0.55);
+}
+
+.au-dial svg {
+  width: 100px;
+  height: 58px;
+  overflow: visible;
+}
+
+.au-dial-arc,
+.au-dial-ticks {
+  fill: none;
+  stroke: rgb(74 53 24 / 0.8);
+  stroke-width: 0.8;
+}
+
+.au-dial-ticks {
+  stroke-width: 0.9;
+}
+
+.au-dial-red {
+  fill: none;
+  stroke: rgb(112 39 53 / 0.75);
+  stroke-width: 2.4;
+}
+
+.au-needle {
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+  filter: drop-shadow(0.8px 1.2px 0.4px rgb(40 24 8 / 0.5));
+}
+
+.au-needle-steel {
+  fill: #2c3a56;
+  stroke: #0b1020;
+  stroke-width: 0.4;
+}
+
+.au-dial-pin {
+  fill: #e0bd78;
+  stroke: #3d2a12;
+  stroke-width: 0.6;
+}
+
+.au-dial-label {
+  font: 400 8.5px/1 var(--display);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-shadow: var(--engraved);
+}
+
+/* Copied by hand: the settings on a vellum sheet. */
+
+.au-sheet {
+  position: fixed;
+  z-index: 20;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  max-height: 70vh;
+  overflow: auto;
+  margin: 0;
+  padding: 22px 28px;
+  font: 400 13px/1.45 var(--reading);
+  color: var(--ink);
+  background: var(--vellum-light), var(--fiber), var(--vellum-ground);
+  box-shadow:
+    inset 0 0 22px rgb(125 80 28 / 0.26),
+    0 0 0 8px #9e7a3b,
+    0 0 0 9px #1a1109,
+    var(--cast);
+  cursor: pointer;
+}
