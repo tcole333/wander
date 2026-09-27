@@ -1,7 +1,7 @@
 // The crafted time ruler's geometry and scale (rulerCraft.ts draws them): the band's circle, the
 // radial rows its parts sit on, the span's calendar engraved in two rows, and the whole story in
 // whole years on the base plate beneath. Pure, so it can be tested without a page.
-import { civilFromDay, dayFromCivil, monthName, yearLabel } from '../dates';
+import { civilFromDay, dayFromCivil, monthName, yearLabel, type Precision } from '../dates';
 import type { StoryBeat } from '../story';
 import { monthAbbrev, monthsIn, type Span } from './format';
 
@@ -143,13 +143,25 @@ export interface Scale extends Record<TickKind, string> {
 }
 
 /**
- * The span's scale in calendar terms, for the unit that fits: days, months or years, each ticked
- * and numbered or named in the lower row, and the unit above (a month with its year, a year)
- * named in the upper row over the part of it the rule shows.
+ * The finest unit the band engraves for a span: days once a day's tick has room, months once
+ * every third month's name does, and years otherwise.
+ */
+export function engravedUnit(arc: Arc, span: Span): Precision {
+  const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
+  if (pxPerDay >= DAY_TICK_PX) return 'day';
+  if (pxPerDay * 28 * 3 >= MONTH_LABEL_PX) return 'month';
+  return 'year';
+}
+
+/**
+ * The span's scale in calendar terms, for the unit that fits (engravedUnit): days, months or
+ * years, each ticked and numbered or named in the lower row, and the unit above (a month with its
+ * year, a year) named in the upper row over the part of it the rule shows.
  */
 export function engraveScale(arc: Arc, span: Span, angle: (day: number) => number): Scale {
   const scale: Scale = { full: '', major: '', minor: '', labels: [] };
   const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
+  const unit = engravedUnit(arc, span);
   const inRule = (day: number) => day >= span.start && day <= span.end;
   const edges = (a: number, length: number) =>
     radial(arc, a, BAND - 1, BAND - 1 - length) + radial(arc, a, -BAND + 1, -BAND + 1 + length);
@@ -177,7 +189,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
     if (month.month === 1) scale.full += radial(arc, angle(month.start), -BAND + 1, BAND - 1);
     else if (pxPerDay * 28 >= 4) scale.major += edges(angle(month.start), 7);
   }
-  if (pxPerDay >= DAY_TICK_PX) {
+  if (unit === 'day') {
     // Days, numbered as often as they fit, under each month named with its year.
     const step =
       pxPerDay >= DAY_LABEL_PX ? 1 : (DAY_STEPS.find((s) => s * pxPerDay >= DAY_STEP_PX) ?? 30);
@@ -209,7 +221,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
         MONTH_YEAR_LABEL_PX,
       );
     }
-  } else if (pxPerDay * 28 * 3 >= MONTH_LABEL_PX) {
+  } else if (unit === 'month') {
     // Months, each with a fine tick at its middle and named, or where that crowds, every third
     // (January, April, July, October), under each year.
     const every = pxPerDay * 30 >= MONTH_LABEL_PX ? 1 : 3;
