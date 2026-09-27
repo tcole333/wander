@@ -4,9 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wander</title>
+    <meta
+      name="description"
+      content="In April 1815 Tambora explodes, and the veil it spreads across the sky brings cold and hunger from New England to Yunnan. An interactive history on a brass globe."
+    />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://wander-data.traviscole.xyz" crossorigin />
+    <link
+      rel="preload"
+      href="/node_modules/@fontsource/libre-baskerville/files/libre-baskerville-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <body class="room-page">
+    <!-- The poster, in the museum's room, until the walk's first live frame (src/page/room.ts). -->
+    <div id="room" class="room">
+      <div class="room-mark">
+        <div class="wu-mark-word">WANDER</div>
+        <div class="wu-mark-rule"><span></span><i>✦</i><span></span></div>
+        <div class="wu-mark-sub">AN INTERACTIVE HISTORY</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
