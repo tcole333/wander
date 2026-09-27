@@ -4,8 +4,8 @@
 // byte budget, and packs the drawn instances with their sources and seam flags. One request queue,
 // rebuilt every frame, so requests nobody wants any more simply drop; no request classes or byte
 // cache. fetchData aborts a stalled request and retries a failed one; a tile that still fails draws
-// from its ancestors for `degradeFor`, then is wanted again, and one the data host lacks (a 404)
-// never is.
+// from its ancestors for `degradeFor`, then is wanted again; one the data host lacks (a 404), or
+// whose bytes do not decode, never is.
 import {
   Frustum,
   Matrix4,
@@ -67,7 +67,7 @@ export interface StreamerDetails {
   queued: number;
   /** Tiles the drawn nodes want past WANT_MAX, left unrequested. */
   trimmed: number;
-  /** Tiles that failed lately or are missing, whose nodes draw from their ancestors. */
+  /** Tiles that failed lately or for good, whose nodes draw from their ancestors. */
   failed: number;
   culled: number;
   /** Drawn nodes per source level, L0 first. */
@@ -157,7 +157,7 @@ export const createSurfaceStreamer = (async (
   const waiting = new Map<string, Waiting>();
   /** Tiles in the upload queue, holding reserved slots. */
   const uploading = new Set<string>();
-  /** Tiles that failed, with the time they may be requested again: never, for a missing one. */
+  /** Failed tiles, with the time each may be requested again: never, if it failed for good. */
   const failed = new Map<string, number>();
   const logged = new Set<string>();
   /** The tiles the drawn nodes want this frame, with their ancestors down to L2. */
@@ -188,12 +188,16 @@ export const createSurfaceStreamer = (async (
     logged.add(message);
     console.warn(`streamer: ${message}`);
   };
-  const fail = (key: string, error: unknown) => {
-    const missing = error instanceof MissingError;
-    failed.set(key, missing ? Infinity : performance.now() + tunables.degradeFor);
-    logOnce(`${key} ${missing ? 'is missing' : 'failed'}: ${String(error)}`);
+  /**
+   * The tile's node draws from its ancestors for `degradeFor`, or for good when a retry cannot
+   * help: the data host lacks the tile, or it does not decode, since the HTTP cache hands back the
+   * same bytes and a failed decode worker is never replaced.
+   */
+  const fail = (key: string, error: unknown, forGood: boolean) => {
+    failed.set(key, forGood ? Infinity : performance.now() + tunables.degradeFor);
+    logOnce(`${key} failed: ${String(error)}`);
   };
-  /** Whether `key` failed lately. An entry past its time is dropped, so the tile is wanted again. */
+  /** Whether `key` failed lately. An expired entry is dropped, so the tile is wanted again. */
   const failing = (key: string) => {
     const until = failed.get(key);
     if (until === undefined) return false;
@@ -284,7 +288,7 @@ export const createSurfaceStreamer = (async (
     }
     for (const result of decoder.drain()) {
       decoding.delete(result.key);
-      if ('error' in result) fail(result.key, result.error);
+      if ('error' in result) fail(result.key, result.error, true);
       else if (!wanted.has(result.key) || table.slotOf(result.key) !== undefined) dropped += 1;
       else waiting.set(result.key, { decoded: result.tile, evictedAt: -Infinity });
     }
@@ -358,7 +362,7 @@ export const createSurfaceStreamer = (async (
         },
         (error: unknown) => {
           inFlight.delete(key);
-          fail(key, error);
+          fail(key, error, error instanceof MissingError);
         },
       );
     }
