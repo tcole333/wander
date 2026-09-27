@@ -1,8 +1,10 @@
-// The production build (dist/ under vite preview) plays the walk: pointed at the fixture's data
-// server with ?data=, which the page honors because it is served from loopback. The room opens
-// onto a drawn globe, beat 1's title shows with its image from the data host, the Right arrow
-// brings beat 2's, the credits page loads, nothing logs an error, and no request goes to
-// Wikimedia: the images are the media stage's, on the data host.
+// The production build (dist/ under vite preview) opens on the lobby and plays the walk: pointed
+// at the fixture's data server with ?data=, which the page honors because it is served from
+// loopback. The room opens onto a drawn instrument and a key runs the rest of the opening; the
+// Credits panel opens from the lobby and closes; the Tambora plaque dives into beat 1, whose title
+// shows with its image from the data host, and the Right arrow brings beat 2's; M mutes; the
+// card's Credits link opens the panel too; the credits page still loads on its own; nothing logs
+// an error; and no request goes to Wikimedia: the images are the media stage's, on the data host.
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
@@ -69,7 +71,7 @@ async function litFraction(page: Page): Promise<number> {
 // fewer pixels a frame.
 test.use({ viewport: { width: 640, height: 400 } });
 
-test('plays the Tambora walk from the fixture and links its credits', async ({ page }) => {
+test('enters the Tambora walk from the lobby and opens its credits', async ({ page }) => {
   test.setTimeout(240_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -81,23 +83,40 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
   await serveImages(page);
 
   await page.goto(`/?data=${DATA_URL.fixture}`);
-  // The room is the poster until the first live frame, then fades out of the way.
+  // The room is the poster until the lobby's opening starts, then fades out of the way. Any key
+  // runs the rest of the opening, which CI's software renderer would otherwise draw many slow
+  // frames of.
   await expect(page.locator('#room')).toBeHidden({ timeout: 60_000 });
+  await page.keyboard.press('Shift');
   await expect.poll(() => litFraction(page), { timeout: 90_000 }).toBeGreaterThan(0.05);
 
-  const title = page.locator('.wu-card .wu-title');
-  await expect(title).toHaveText(story.beats[0]?.title ?? '');
+  const panel = page.getByRole('dialog', { name: 'Credits' });
+  await page.locator('.lobby-credits').click({ timeout: 60_000 });
+  await expect(panel).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(panel).toBeHidden();
+
+  await page.locator('.lobby-plaque').click();
+  // The walk's card, not the Credits panel's sheet in the same frame.
+  const title = page.locator('.wu .wu-card .wu-title');
+  await expect(title).toHaveText(story.beats[0]?.title ?? '', { timeout: 30_000 });
   await expect(page.locator('.wu-frame img.is-loaded').first()).toBeAttached();
   await page.keyboard.press('ArrowRight');
-  await expect(title).toHaveText(story.beats[1]?.title ?? '');
+  await expect(title).toHaveText(story.beats[1]?.title ?? '', { timeout: 30_000 });
   // M mutes, and the sound knob shows so.
   const sound = page.locator('.wu-sound');
   await expect(sound).toHaveAttribute('aria-pressed', 'false');
   await page.keyboard.press('m');
   await expect(sound).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
 
-  const href = await page.locator('.wu-card-credits').getAttribute('href');
-  const credits = await page.goto(href ?? '');
+  // The card stays veiled until the walk lands, which CI's renderer reaches only after many slow
+  // frames, so its Credits link is pressed as the keyboard would press it, without waiting.
+  await page.locator('.wu-card-credits').dispatchEvent('click');
+  await expect(panel).toBeVisible();
+  await panel.getByRole('button', { name: 'Close' }).click();
+  await expect(panel).toBeHidden();
+
+  const credits = await page.goto('/credits');
   expect(credits?.status()).toBe(200);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Credits');
 
