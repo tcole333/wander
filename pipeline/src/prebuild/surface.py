@@ -17,9 +17,7 @@ ceil(h(codeMax))], in node order:
 """
 
 import base64
-import filecmp
 import gzip
-import os
 import shutil
 import struct
 import time
@@ -36,6 +34,7 @@ from prebuild.cube import Tile, available_nodes, node_count, node_from_index, no
 from prebuild.expect import write_surface_expectations
 from prebuild.hashing import layer_version, sha256_bytes
 from prebuild.height import height_source
+from prebuild.layers import publish, staging_folder
 from prebuild.natural_earth import load_vectors
 from prebuild.paths import config_dir
 from prebuild.profiles import Context, Profile
@@ -51,10 +50,6 @@ BOUNDS_VERSION = int(FORMATS["surfaceBounds"]["version"])
 BOUNDS_HEADER = struct.Struct("<4sBBHI")
 
 
-class LayerConflict(RuntimeError):
-    """A layer folder already holds other bytes than the build made for the same version."""
-
-
 def run(ctx: Context) -> None:
     started = time.perf_counter()
     cover = coverage.fresh_record(ctx)
@@ -65,10 +60,7 @@ def run(ctx: Context) -> None:
     height_source(ctx)  # the GEBCO overviews, before the workers map them
     vectors = load_vectors(ctx, load_water(config_dir(ctx.repo) / "water.yaml"))
     layer = ctx.out / LAYER
-    for leftover in layer.glob(".tmp-*"):
-        shutil.rmtree(leftover, ignore_errors=True)
-    staging = layer / f".tmp-{os.getpid()}"
-    staging.mkdir(parents=True)
+    staging = staging_folder(layer)
     try:
         with workers.tile_pool(ctx, vectors) as pool:
             qs = [q_land[t.level] for t in tiles]
@@ -126,27 +118,6 @@ def read_bounds(stored: bytes) -> tuple[int, list[tuple[int, int]]]:
         raise ValueError(f"{len(raw)} bytes do not hold {count} bounds")
     values = np.frombuffer(raw, "<i2", 2 * count, BOUNDS_HEADER.size).reshape(count, 2)
     return max_level, [(int(low), int(high)) for low, high in values]
-
-
-def publish(staging: Path, target: Path) -> None:
-    """Rename the staged layer to its version, or keep the one already there when it holds the
-    same bytes."""
-    try:
-        staging.rename(target)
-        return
-    except OSError:
-        if not target.is_dir():
-            raise
-    names = _files(staging)
-    same = names == _files(target) and all(
-        filecmp.cmp(staging / name, target / name, shallow=False) for name in names
-    )
-    if not same:
-        raise LayerConflict(f"{target} already holds other bytes than this build made")
-
-
-def _files(root: Path) -> list[str]:
-    return sorted(path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file())
 
 
 def _bake(tile: Tile, q: float, staging: Path) -> tuple[str, tuple[int, int]]:
