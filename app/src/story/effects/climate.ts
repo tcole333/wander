@@ -2,12 +2,12 @@
 // under the story day, on the beats whose layers show climate monthly. The years those beats reach
 // load at the start, from the beat before each (a flight sweeps story time from its date) to the
 // end of the beat's window: each year's mean file is fetched from the data host, inflated and read
-// (data/climate.ts). A year a scrub reaches beyond them loads when first asked for. Each frame the
-// two months around the story day blend into the look's field (look/climateHook.ts), uploaded when
-// the blend changes, and the look's strength eases in and out over half a second as beats change,
-// once a field has loaded. Annual means wait for the ruler's wide spans (monthly only here).
-// Without a modera section in the release, or once a file fails, it logs once and draws no
-// climate: the walk never breaks over climate.
+// (data/climate.ts). A year a scrub reaches beyond them loads when first asked for, and past the
+// data's years the layer eases out. Each frame the two months around the story day blend into the
+// look's field (look/climateHook.ts), uploaded when the blend changes, and the look's strength
+// eases in and out over half a second as beats change, once a field has loaded. Annual means wait
+// for the ruler's wide spans (monthly only here). Without a modera section in the release, or once
+// a file fails, it logs once and draws no climate: the walk never breaks over climate.
 import { DataUtils } from 'three';
 import {
   climateKey,
@@ -115,7 +115,7 @@ export class WalkClimate {
   update(state: WalkState, dtS: number, strength: number): void {
     const uniforms = this.#uniforms;
     if (this.#off || !uniforms) return;
-    const wanted = showsMonthly(state.story.beats[state.beat]);
+    const wanted = showsMonthly(state.story.beats[state.beat]) && this.#covers(state.day);
     if (wanted && this.#blendFor(state.day, uniforms)) {
       const { year, month } = civilFromDay(state.day);
       this.#month = { year, month };
@@ -157,6 +157,13 @@ export class WalkClimate {
     texture.needsUpdate = true;
     this.#blend = blend;
     return true;
+  }
+
+  /** Whether the data's years hold both months around `day`. */
+  #covers(day: number): boolean {
+    const [first = 0, last = -1] = this.#source.modera?.years ?? [];
+    const { from, to } = monthsAround(day);
+    return from.year >= first && to.year <= last;
   }
 
   /** A year's file once loaded; the first ask starts its load. */
