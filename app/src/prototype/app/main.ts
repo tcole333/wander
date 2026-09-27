@@ -5,6 +5,10 @@
 // Query: ?data=region|global (global when its server answers), ?view=<preset>, ?ui=0 (no panel or
 // HUD, for screenshots), and any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
 // window.__proto serves scripts (scripts/prototypeShots.ts).
+//
+// ?story=tambora walks the story instead of the presets (story/director.ts): it starts paused on
+// the first beat; Left and Right step beats, Space plays or pauses, and Escape resumes after the
+// visitor breaks out to explore. window.__walk serves scripts.
 import { Mesh, PerspectiveCamera, WebGLRenderer } from 'three';
 import type { Release } from '../../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
@@ -15,6 +19,10 @@ import type { Params, StreamerStats } from '../contract';
 import { createSurfaceStreamer } from '../globe/streamer';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { createMuseumScene } from '../scene/museumScene';
+import type { WalkState } from '../story/contract';
+import { formatDay } from '../story/dates';
+import { bindWalkKeys, createWalk, type DirectedWalk, type FlightRecord } from '../story/director';
+import { parseStory, type Story } from '../story/story';
 import { CameraRig, maxViewKm, type Relief } from './cameraRig';
 import { addParams, applyQuery, GUI } from './panel';
 import { ViewControl } from './viewControl';
@@ -43,6 +51,11 @@ const PRESETS: Record<string, ViewState> = {
   himalaya: { lon: 86.5, lat: 28.5, viewKm: 800, tilt: 40, heading: 0 },
   mediterranean: { lon: 15, lat: 38, viewKm: 3000, tilt: 15, heading: 0 },
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
+};
+
+/** The stories ?story= walks, read as text by Vite. */
+const STORIES: Record<string, () => Promise<{ default: string }>> = {
+  tambora: () => import('../../../../stories/tambora/story.md?raw'),
 };
 
 /** The keys that fly to the presets, in order; the rest are on the preset bar alone. */
@@ -82,12 +95,25 @@ declare global {
       settings(): string;
       error?: string;
     };
+    __walk?: {
+      state(): Omit<WalkState, 'story'>;
+      next(): void;
+      back(): void;
+      goTo(beat: number): void;
+      togglePlay(): void;
+      resume(): void;
+      scrub(day: number): void;
+      /** True while no flight to a beat is under way. */
+      landed(): boolean;
+      flights(): readonly FlightRecord[];
+    };
   }
 }
 
 async function main(): Promise<void> {
   const query = new URLSearchParams(location.search);
   const showUi = query.get('ui') !== '0';
+  const story = await loadStory(query.get('story'));
   const data = await pickData(query.get('data'));
   const release = (await (await fetch(`${DATA_HOSTS[data]}/release.json`)).json()) as Release;
 
@@ -163,11 +189,24 @@ async function main(): Promise<void> {
       null,
       2,
     );
+  // A story's page steps through its beats instead of the presets.
+  if (story) document.getElementById('presets')?.remove();
   if (showUi) buildUi({ museum, look, streamer, cameraParams, control, go, settings });
   else document.body.classList.add('clean');
 
+  // The walk flies the camera, and holds a late landing until the streamer has nothing in hand.
+  const walk = story
+    ? createWalk(story, control, {
+        ready: () => {
+          const s = streamer.stats();
+          return s.inFlight + s.decoding + s.uploading === 0;
+        },
+      })
+    : null;
+  if (walk) startWalk(walk, control);
+
   addEventListener('keydown', (event) => {
-    if (event.target instanceof HTMLInputElement) return;
+    if (walk || event.target instanceof HTMLInputElement) return;
     const name = Object.keys(PRESETS)[PRESET_KEYS.indexOf(event.key)];
     if (name) go(name);
   });
@@ -217,6 +256,7 @@ async function main(): Promise<void> {
     if (renderer.getPixelRatio() !== cameraParams.pixelRatio) {
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
+    walk?.update(now, dt);
     control.step(now, dt);
     const view = control.current;
     if (cameraParams.reliefByZoom) {
@@ -256,6 +296,70 @@ async function main(): Promise<void> {
       hud.textContent = describe(stats());
     }
   });
+}
+
+async function loadStory(name: string | null): Promise<Story | null> {
+  if (name === null) return null;
+  const load = STORIES[name];
+  if (!load) throw new Error(`no story '${name}'`);
+  return parseStory((await load()).default);
+}
+
+/**
+ * The story mode's wiring: input on the globe breaks out, the arrow keys step beats instead of
+ * panning, a line of text reads the beat and its date, and window.__walk serves scripts.
+ */
+function startWalk(walk: DirectedWalk, control: ViewControl): void {
+  control.arrowKeys = false;
+  control.onInput = () => walk.breakOut();
+  bindWalkKeys(walk);
+
+  const readout = document.createElement('div');
+  Object.assign(readout.style, {
+    position: 'fixed',
+    left: '50%',
+    bottom: '18px',
+    transform: 'translateX(-50%)',
+    padding: '8px 14px',
+    font: '13px/1.4 Georgia, serif',
+    letterSpacing: '0.04em',
+    color: '#d9c49a',
+    background: 'rgb(12 9 6 / 0.72)',
+    border: '1px solid rgb(202 164 94 / 0.45)',
+    whiteSpace: 'nowrap',
+    pointerEvents: 'none',
+  });
+  document.body.append(readout);
+  const read = () => {
+    const state = walk.state();
+    const beat = state.story.beats[state.beat];
+    const parts = [
+      `${state.beat + 1} / ${state.story.beats.length}`,
+      beat?.title ?? '',
+      formatDay(state.day),
+      state.mode === 'breakout' ? 'breakout (Esc resumes)' : state.mode,
+    ];
+    if (state.advanceIn !== null) parts.push(`next in ${Math.ceil(state.advanceIn)} s`);
+    const text = parts.join('   ·   ');
+    if (readout.textContent !== text) readout.textContent = text;
+    requestAnimationFrame(read);
+  };
+  read();
+
+  window.__walk = {
+    state: () => {
+      const { beat, mode, flight, day, advanceIn } = walk.state();
+      return { beat, mode, flight, day, advanceIn };
+    },
+    next: () => walk.next(),
+    back: () => walk.back(),
+    goTo: (beat) => walk.goTo(beat),
+    togglePlay: () => walk.togglePlay(),
+    resume: () => walk.resume(),
+    scrub: (day) => walk.scrub(day),
+    landed: () => walk.state().flight === null,
+    flights: () => walk.flights(),
+  };
 }
 
 /** The deepest level with a tile under a point. */
