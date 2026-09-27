@@ -5,8 +5,8 @@ the record `build/stages/<profile>/modera.json`.
 The stage reads the ensemble mean and spread NetCDFs with netCDF4, one year of 12 months at a time,
 and writes `mean/<year>.bin` and `spread/<year>.bin` for every year, then `annual.bin`: each year's
 unweighted mean of its 12 monthly means. Months follow the source's (year, month) order; its hour
-offsets are never turned into dates. The files are staged in `fd/modera/.tmp-<pid>/` and renamed to
-`fd/modera/<ver8>/` once hashed, as the surface stage publishes its layer.
+offsets are never turned into dates. The files are staged in `fd/modera/.tmp-<pid>/` and published
+as `fd/modera/<ver8>/` once hashed (layers.py).
 
     'WCY1' u8 version | u8 variable (0 mean, 1 spread, 2 annual mean) | i16 firstYear | u16 frames
     u16 nlat | u16 nlon | u16 pad
@@ -21,7 +21,6 @@ with a committed excerpt, once the owner has picked its look.
 """
 
 import gzip
-import os
 import shutil
 import struct
 import time
@@ -33,10 +32,10 @@ import numpy.typing as npt
 
 from prebuild.constants import FORMATS, SENTINELS
 from prebuild.hashing import layer_version, sha256_bytes
+from prebuild.layers import publish, staging_folder
 from prebuild.profiles import Context
 from prebuild.records import write_record
 from prebuild.sources import verified_path
-from prebuild.surface import publish
 
 type FloatArray = npt.NDArray[np.float64]
 
@@ -87,9 +86,7 @@ def run(ctx: Context) -> None:
     started = time.perf_counter()
     paths = {name: verified_path(ctx, SOURCE, filename) for name, filename in FILES.items()}
     layer = ctx.out / LAYER
-    for leftover in layer.glob(".tmp-*"):
-        shutil.rmtree(leftover, ignore_errors=True)
-    staging = layer / f".tmp-{os.getpid()}"
+    staging = staging_folder(layer)
     digests: dict[str, str] = {}
     sizes: dict[str, dict[str, int]] = {"mean": {}, "spread": {}}
     largest = {"mean": (0.0, ""), "spread": (0.0, "")}
