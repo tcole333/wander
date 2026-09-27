@@ -71,14 +71,14 @@
   ],
   "sumbawa": [
     {
-      "label": "The Congress of Vienna closes",
-      "day": "1815-06-09",
-      "dateLabel": "9 June 1815",
-      "at": [16.3638, 48.2085],
-      "qid": "Q46362",
+      "label": "Austria turns back Murat's Neapolitans on the Po at Occhiobello",
+      "day": "1815-04-08",
+      "dateLabel": "8–9 April 1815",
+      "at": [11.5796, 44.9152],
+      "qid": "Q1404251",
       "source": {
-        "title": "Final Document of the Congress of Vienna 1815 (Austrian Commission for UNESCO, Memory of the World)",
-        "url": "https://www.unesco.at/en/communication/documentary-heritage/memory-of-the-world-in-austria/final-document-of-the-congress-of-vienna-1815"
+        "title": "Battle of Occhiobello (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Occhiobello"
       }
     },
     {
@@ -106,6 +106,17 @@
   ],
   "ash": [
     {
+      "label": "The Congress of Vienna closes",
+      "day": "1815-06-09",
+      "dateLabel": "9 June 1815",
+      "at": [16.3638, 48.2085],
+      "qid": "Q46362",
+      "source": {
+        "title": "Final Document of the Congress of Vienna 1815 (Austrian Commission for UNESCO, Memory of the World)",
+        "url": "https://www.unesco.at/en/communication/documentary-heritage/memory-of-the-world-in-austria/final-document-of-the-congress-of-vienna-1815"
+      }
+    },
+    {
       "label": "Napoleon reaches exile on Saint Helena",
       "day": "1815-10-15",
       "dateLabel": "15 October 1815",
@@ -125,17 +136,6 @@
       "source": {
         "title": "United Kingdom of Portugal, Brazil and the Algarves (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/United_Kingdom_of_Portugal,_Brazil_and_the_Algarves"
-      }
-    },
-    {
-      "label": "Decatur's squadron forces peace on Algiers",
-      "day": "1815-07-03",
-      "dateLabel": "3 July 1815",
-      "at": [3.06, 36.7761],
-      "qid": "Q7837330",
-      "source": {
-        "title": "Treaty of Peace, Signed Algiers June 30 and July 3, 1815 (Avalon Project, Yale Law School)",
-        "url": "https://avalon.law.yale.edu/19th_century/bar1815t.asp"
       }
     }
   ],
@@ -163,14 +163,14 @@
       }
     },
     {
-      "label": "The Treaty of Sugauli ends the Anglo-Nepalese War",
+      "label": "Nepal ratifies the Treaty of Sugauli, ending the Anglo-Nepalese War",
       "day": "1816-03-04",
       "dateLabel": "4 March 1816",
-      "at": [84.7333, 26.7833],
+      "at": [85.1475, 27.411],
       "qid": "Q2003866",
       "source": {
-        "title": "Treaty of Sugauli (Wikipedia)",
-        "url": "https://en.wikipedia.org/wiki/Treaty_of_Sugauli"
+        "title": "Treaty of Sugauli, text and endorsement (Wikisource)",
+        "url": "https://en.wikisource.org/wiki/Treaty_of_Sugauli"
       }
     }
   ],
@@ -271,7 +271,7 @@
       "label": "Work on the Erie Canal begins at Rome, New York",
       "day": "1817-07-04",
       "dateLabel": "4 July 1817",
-      "at": [-75.4633, 43.2194],
+      "at": [-75.4722, 43.214],
       "qid": "Q459578",
       "source": {
         "title": "The Erie Canal - July 4, 1817 (Historical Marker Database)",
