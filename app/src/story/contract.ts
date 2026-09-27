@@ -107,6 +107,8 @@ export type CreateWalkUi = (
   walk: Walk,
   meanwhile: MeanwhileByBeat,
   sound: SoundSwitch,
+  /** The data host, which serves the card's images. */
+  dataHost: string,
 ) => WalkUi;
 
 /**

@@ -11,12 +11,14 @@
 // server's release instead (page/dataOrigin.ts), for the smoke test and local checks.
 import './page/room.css';
 import storyText from '../../stories/tambora/story.md?raw';
+import storyLock from '../../stories/tambora/story.lock.json';
 import { DataError, fetchData } from './data/surfaceLayer';
 import type { Release } from './data/release';
 import bundled from './generated/release.json';
 import { afterContextLoss } from './page/contextLoss';
 import { dataOverride } from './page/dataOrigin';
 import { dataPlate, Room, storyPlate } from './page/room';
+import { withLock } from './story/lock';
 import meanwhile from './story/meanwhile.tambora.json';
 import { meanwhileFromJson } from './story/meanwhile';
 import { parseStory, type Story } from './story/story';
@@ -26,7 +28,7 @@ async function main(): Promise<void> {
   const roomElement = document.getElementById('room');
   if (!roomElement) throw new Error('index.html has no #room');
   const room = new Room(roomElement);
-  const story = parseStory(storyText);
+  const story = withLock(parseStory(storyText), storyLock);
 
   // Watched from before the boot, whose warm-up can lose the context too. The event does not
   // bubble, but it passes through the window on its way to the canvas.
