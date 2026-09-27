@@ -1,0 +1,16 @@
+/* The walk's page layers (boot.ts): the canvas fills the window under everything, and a story's
+   place plaques sit over it, under its card, ruler and Meanwhile. */
+
+.walk-canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+.walk-labels {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
