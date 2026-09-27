@@ -1,7 +1,4 @@
-// Small DOM helpers for the walk's UI. The Credits link opens the Credits panel over the walk, so
-// the walk keeps its place (page/creditsPanel.ts).
-
-export { creditsLink } from '../../page/creditsPanel';
+// Small DOM helpers for the walk's UI.
 
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
