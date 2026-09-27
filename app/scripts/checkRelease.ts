@@ -1,26 +1,30 @@
 // npm run check-release: is the bundled release's data live on its data host, as the deployed page
 // will read it? It HEADs rel/<id>.json (never a GET: the edge caches a 404 for hours), which
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
-// its six L0 tiles, and the climate years the walk loads as it starts when the release has a
-// modera section, as the page fetches them, cross-origin from the app's origin, so it never
-// leaves a 404 cached for a key about to be uploaded, and checks each answers 200 with R2's
-// headers (streaming.md 4.2). CI runs it as its own job, which the Pages deploy waits for, so the
-// app never ships naming data that is not there. Plain Node:
+// its six L0 tiles, the climate years the walk loads as it starts when the release has a modera
+// section, and the first of the stories' images, as the page fetches them, cross-origin from the
+// app's origin, so it never leaves a 404 cached for a key about to be uploaded, and checks each
+// answers 200 with R2's headers and its Content-Type (streaming.md 4.2). CI runs it as its own
+// job, which the Pages deploy waits for, so the app never ships naming data that is not there.
+// Plain Node:
 //
 //   npm run check-release
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { Release } from '../src/data/release.ts';
+import { objectHeaders } from './objectHeaders.ts';
 
 /** The origin the deployed page fetches from, which R2's CORS rule must answer. */
 export const APP_ORIGIN = 'https://wander.traviscole.xyz';
 
-/** The headers every data object answers with (4.2). */
-const EXPECTED: Record<string, string> = {
-  'access-control-allow-origin': '*',
-  'content-type': 'application/octet-stream',
-  'cache-control': 'public, max-age=31536000, immutable',
-};
+/** The headers every data object answers with (4.2), with the Content-Type its key's. */
+function expected(key: string): Record<string, string> {
+  return {
+    'access-control-allow-origin': '*',
+    'content-type': objectHeaders(key)?.['Content-Type'] ?? 'none',
+    'cache-control': 'public, max-age=31536000, immutable',
+  };
+}
 
 /**
  * The climate years the check reads: those the walk loads as it starts, for the Tambora story's
@@ -29,8 +33,8 @@ const EXPECTED: Record<string, string> = {
 export const CLIMATE_YEARS = [1815, 1816, 1817];
 
 /**
- * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles and, with a modera
- * section, the climate's mean for each of CLIMATE_YEARS.
+ * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
+ * section the climate's mean for each of CLIMATE_YEARS, and the first image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -39,7 +43,8 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
   const climate = modera
     ? CLIMATE_YEARS.map((year) => `fd/modera/${modera.ver}/mean/${year}.bin`)
     : [];
-  return { copy: `rel/${release.id}.json`, data: [bounds, ...roots, ...climate] };
+  const image = release.media.images.slice(0, 1);
+  return { copy: `rel/${release.id}.json`, data: [bounds, ...roots, ...climate, ...image] };
 }
 
 /** What is wrong with the release's data on its host; empty when it is all live. */
@@ -67,7 +72,7 @@ export async function checkRelease(release: Release): Promise<string[]> {
       problems.push(`${key}: HTTP ${response.status}`);
       continue;
     }
-    for (const [name, value] of Object.entries(EXPECTED)) {
+    for (const [name, value] of Object.entries(expected(key))) {
       const got = response.headers.get(name);
       if (got !== value) problems.push(`${key}: ${name} is ${got ?? 'missing'}, not ${value}`);
     }
