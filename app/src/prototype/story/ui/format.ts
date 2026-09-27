@@ -1,7 +1,7 @@
 // Pure helpers for the walk's UI: the card's date line, the time ruler's calendar and beat pips,
 // Meanwhile's compass bearings, and plain credits from Commons metadata.
 import { civilFromDay, dayFromCivil, formatDay, monthName, yearLabel } from '../dates';
-import type { LonLat, Story, StoryBeat } from '../story';
+import type { LonLat, StoryBeat } from '../story';
 
 const DASH = '–';
 
@@ -45,13 +45,33 @@ export interface Span {
   end: number;
 }
 
-/** The ruler's span: the story's beats and windows, with a margin either side. */
-export function storySpan(story: Story): Span {
-  const days = story.beats.flatMap((beat) => [beat.day, ...(beat.window ?? [])]);
-  const first = Math.min(...days);
-  const last = Math.max(...days);
-  const margin = Math.max(30, (last - first) * 0.05);
-  return { start: first - margin, end: last + margin };
+/** The least span of the ruler, days: an eruption's days stay days wide. */
+const MIN_SPAN_DAYS = 40;
+
+/**
+ * A beat's stretch of the ruler: its window and date with a tenth of their length either side,
+ * and at least MIN_SPAN_DAYS, so each beat shows its own time in days, months or years.
+ */
+export function beatSpan(beat: StoryBeat): Span {
+  const [from, to] = beat.window ?? [beat.day, beat.day];
+  const first = Math.min(from, beat.day);
+  const last = Math.max(to, beat.day);
+  const width = Math.max(MIN_SPAN_DAYS, 1.2 * (last - first));
+  const center = (first + last) / 2;
+  return { start: center - width / 2, end: center + width / 2 };
+}
+
+/**
+ * The ruler's span `t` of the way from `a` to `b`, with the playhead at `day`: the width eases in
+ * log space, and the playhead's place along the rule moves from `aAt` (its share of `a` when the
+ * move began) to where `day` falls on `b`, so the playhead stays on the rule as it zooms.
+ */
+export function mixSpans(a: Span, b: Span, aAt: number, day: number, t: number): Span {
+  const [widthA, widthB] = [a.end - a.start, b.end - b.start];
+  const width = widthA * (widthB / widthA) ** t;
+  const bAt = (day - b.start) / widthB;
+  const at = Math.min(1, Math.max(0, aAt + (bAt - aAt) * t));
+  return { start: day - at * width, end: day + (1 - at) * width };
 }
 
 export interface MonthMark {

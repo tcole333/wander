@@ -1,17 +1,23 @@
-// The time ruler along the bottom: a brass rule spanning the story, engraved with months and years,
-// a numbered pip per beat (fanned out where beats crowd together, with a leader to each one's
-// date), and a garnet playhead with a date plate at story time. Dragging the rule or the playhead
-// scrubs; a pip flies to its beat.
-import { formatDay, yearLabel, type Precision } from '../dates';
+// The time ruler along the bottom: a brass rule zoomed to the beat's own time (beatSpan), easing
+// from one beat's span to the next during flights, and engraved with years, months and, once they
+// are wide enough, days. A garnet playhead with a date plate above the rule marks story time, and
+// a numbered pip below it marks each beat: those in the span at their dates (fanned out where they
+// crowd, with a leader to each one's date), the rest dimmed at the ends. Dragging the rule or the
+// plate scrubs; a pip flies to its beat.
+import { civilFromDay, formatDay, monthName, yearLabel, type Precision } from '../dates';
 import type { Walk, WalkState } from '../contract';
 import type { Story } from '../story';
 import { el, onPress, svg } from './dom';
-import { monthAbbrev, monthsIn, spreadPips, storySpan, type Span } from './format';
+import { beatSpan, mixSpans, monthAbbrev, monthsIn, spreadPips, type Span } from './format';
 
 /** Pips' least spacing, px. */
-const PIP_GAP = 26;
-/** The least width of a month, px, for its name to be engraved. */
+const PIP_GAP = 24;
+/** The least width of a month, px, for its name to be engraved, and for its name and year. */
 const MONTH_LABEL_PX = 28;
+const MONTH_YEAR_LABEL_PX = 90;
+/** The least width of a day, px, for its tick to be engraved, and for its number. */
+const DAY_TICK_PX = 6;
+const DAY_LABEL_PX = 18;
 /** The playhead's plate may reach this far past the rule's ends, px. */
 const PLATE_OVERHANG = 14;
 
@@ -19,7 +25,6 @@ export class TimeRuler {
   readonly element = el('div', 'wu-ruler wu-brass');
   readonly #walk: Walk;
   readonly #story: Story;
-  readonly #span: Span;
   readonly #scale = el('div', 'wu-scale');
   readonly #band = el('div', 'wu-band');
   readonly #engraving = el('div', 'wu-engraving');
@@ -27,6 +32,14 @@ export class TimeRuler {
   readonly #pips: HTMLButtonElement[];
   readonly #playhead = el('div', 'wu-playhead');
   readonly #plate = el('div', 'wu-plate-date');
+  /**
+   * The span drawn; the one a flight eases from, with the playhead's share of it then; and the
+   * beat's own.
+   */
+  #span: Span;
+  #from: { span: Span; at: number };
+  #to: Span;
+  #flying = false;
   #width = 0;
   #beat = -1;
   #plateText = '';
@@ -36,7 +49,9 @@ export class TimeRuler {
   constructor(walk: Walk, story: Story) {
     this.#walk = walk;
     this.#story = story;
-    this.#span = storySpan(story);
+    const first = story.beats[walk.state().beat] ?? story.beats[0];
+    this.#span = this.#to = first ? beatSpan(first) : { start: 0, end: 1 };
+    this.#from = { span: this.#span, at: 0.5 };
     this.#band.append(this.#engraving);
     this.#pips = story.beats.map((beat, i) => {
       const pip = el('button', 'wu-pip', String(i + 1));
@@ -59,11 +74,24 @@ export class TimeRuler {
   }
 
   update(state: WalkState): void {
-    if (this.#width === 0) this.#layout();
-    if (state.beat !== this.#beat) {
+    // A flight to a beat, or back to it after a break-out, zooms from the span drawn.
+    const flying = state.flight !== null;
+    if (state.beat !== this.#beat || (flying && !this.#flying)) {
       this.#pips[this.#beat]?.classList.remove('is-current');
       this.#pips[state.beat]?.classList.add('is-current');
       this.#beat = state.beat;
+      const { start, end } = this.#span;
+      this.#from = { span: this.#span, at: (state.day - start) / (end - start) };
+      const beat = state.story.beats[state.beat];
+      if (beat) this.#to = beatSpan(beat);
+    }
+    this.#flying = flying;
+    const t = state.flight ?? 1;
+    const { span: from, at } = this.#from;
+    const span = mixSpans(from, this.#to, at, state.day, t * t * (3 - 2 * t));
+    if (this.#width === 0 || span.start !== this.#span.start || span.end !== this.#span.end) {
+      this.#span = span;
+      this.#layout();
     }
     const x = this.#x(state.day);
     this.#playhead.style.transform = `translateX(${x.toFixed(1)}px)`;
@@ -114,52 +142,89 @@ export class TimeRuler {
     target.addEventListener('pointercancel', end);
   }
 
-  /** Engraves the months and years and places the pips for the rule's width. */
+  /** Engraves the span's years, months and days, and places the pips, for the rule's width. */
   #layout(): void {
     this.#width = this.#scale.clientWidth;
+    const span = this.#span;
+    const dayPx = this.#width / (span.end - span.start);
+    const days = dayPx >= DAY_TICK_PX;
     const marks: HTMLElement[] = [];
-    const months = monthsIn(this.#span);
+    const months = monthsIn(span);
     let firstYearAt = Infinity;
     for (const month of months) {
       const x0 = this.#x(month.start);
       const x1 = this.#x(month.end);
-      if (month.start >= this.#span.start) {
+      if (month.start >= span.start) {
         const tick = el('div', month.month === 1 ? 'wu-tick is-year' : 'wu-tick');
-        tick.style.left = `${x0.toFixed(1)}px`;
+        tick.style.left = px(x0);
         marks.push(tick);
-        if (month.month === 1) {
+        if (month.month === 1 && !days) {
           firstYearAt = Math.min(firstYearAt, x0);
           marks.push(yearMark(month.year, x0));
         }
       }
-      // January goes unnamed: its year stands at its tick.
-      if (month.month !== 1 && x1 - x0 >= MONTH_LABEL_PX) {
-        const label = el('div', 'wu-month', monthAbbrev(month.month));
-        label.style.left = `${((x0 + x1) / 2).toFixed(1)}px`;
-        marks.push(label);
+      // Zoomed to days, each month is named with its year; otherwise January goes unnamed, its
+      // year standing at its tick.
+      if (days && x1 - x0 >= MONTH_YEAR_LABEL_PX) {
+        marks.push(monthMark(`${monthName(month.month)} ${yearLabel(month.year)}`, x0, x1));
+      } else if (month.month !== 1 && x1 - x0 >= MONTH_LABEL_PX) {
+        marks.push(monthMark(monthAbbrev(month.month), x0, x1));
+      }
+    }
+    if (days) {
+      for (let day = Math.ceil(span.start); day < span.end; day += 1) {
+        const date = civilFromDay(day).day;
+        if (date !== 1) {
+          const tick = el('div', 'wu-tick is-day');
+          tick.style.left = px(this.#x(day));
+          marks.push(tick);
+        }
+        if (dayPx >= DAY_LABEL_PX) {
+          const number = el('div', 'wu-day', String(date));
+          number.style.left = px(this.#x(day + 0.5));
+          marks.push(number);
+        }
       }
     }
     // The first year is named at the rule's start when its January lies before it.
     const first = months[0];
-    if (first && firstYearAt > 60 && first.start < this.#span.start) {
+    if (!days && first && firstYearAt > 60 && first.start < span.start) {
       marks.push(yearMark(first.year, 0));
     }
     this.#engraving.replaceChildren(...marks);
 
-    const trueX = this.#story.beats.map((beat) => this.#x(beat.day));
+    const beats = this.#story.beats;
+    const trueX = beats.map((beat) => this.#x(beat.day));
+    const inside = beats.map((beat) => beat.day >= span.start && beat.day <= span.end);
     const pipX = spreadPips(trueX, PIP_GAP, 10, this.#width - 10);
-    this.#pips.forEach((pip, i) => (pip.style.left = `${(pipX[i] ?? 0).toFixed(1)}px`));
+    this.#pips.forEach((pip, i) => {
+      pip.style.left = px(pipX[i] ?? 0);
+      pip.classList.toggle('is-off', !inside[i]);
+    });
     this.#leaders.replaceChildren(
-      ...trueX.map((x, i) =>
-        svg('path', { d: `M${(pipX[i] ?? 0).toFixed(1)} 0 L${x.toFixed(1)} 12 V16` }),
+      ...trueX.flatMap((x, i) =>
+        inside[i]
+          ? [svg('path', { d: `M${x.toFixed(1)} 0 V3 L${(pipX[i] ?? 0).toFixed(1)} 9` })]
+          : [],
       ),
     );
   }
 }
 
+function px(x: number): string {
+  return `${x.toFixed(1)}px`;
+}
+
 function yearMark(year: number, x: number): HTMLElement {
   const label = el('div', 'wu-year', yearLabel(year));
-  label.style.left = `${x.toFixed(1)}px`;
+  label.style.left = px(x);
+  return label;
+}
+
+/** A month's name, centered on the part of it the rule shows. */
+function monthMark(name: string, x0: number, x1: number): HTMLElement {
+  const label = el('div', 'wu-month', name);
+  label.style.left = px((x0 + x1) / 2);
   return label;
 }
 
