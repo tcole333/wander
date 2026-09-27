@@ -42,10 +42,15 @@ export function readR2Env(path: string = R2_ENV): R2Credentials {
   const missing = CREDENTIALS.filter((name) => !values.get(name));
   if (missing.length > 0) throw new R2Error(`${path} has no ${missing.join(', ')}`);
   const value = (name: (typeof CREDENTIALS)[number]) => values.get(name)!;
+  const endpoint = value('R2_ENDPOINT');
+  // Checked here, since a request to a malformed URL fails like a network error and is retried.
+  if (!URL.canParse(endpoint) || new URL(endpoint).protocol !== 'https:') {
+    throw new R2Error(`${path}: R2_ENDPOINT is not an https:// URL`);
+  }
   return {
     accessKeyId: value('R2_ACCESS_KEY_ID'),
     secretAccessKey: value('R2_SECRET_ACCESS_KEY'),
-    endpoint: value('R2_ENDPOINT'),
+    endpoint,
   };
 }
 
