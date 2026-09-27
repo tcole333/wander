@@ -50,6 +50,11 @@ export interface Walk {
 export interface WalkOptions {
   /** Whether the tiles the current view needs have landed, for the flight's readiness hold. */
   ready: () => boolean;
+  /**
+   * How the walk comes to its first beat: a jump there (the default), or a flight from the view,
+   * as from the lobby.
+   */
+  arrive?: 'jump' | 'fly';
 }
 
 export type CreateWalk = (story: Story, control: ViewControl, options: WalkOptions) => Walk;
