@@ -78,14 +78,28 @@
           monospace;
       }
       body.clean #hud,
-      body.clean #presets {
+      body.clean #presets,
+      body.story #hud {
         display: none;
+      }
+      /* A story's place plaques, under its card, ruler and Meanwhile. */
+      #labels {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      /* The panel, closed, sits left of Meanwhile. */
+      body.story .lil-gui.autoPlace {
+        right: 344px;
       }
     </style>
   </head>
   <body>
     <!-- Dev-only: the look prototype (issue #4), served by the Vite dev server and never built.
-         ?data=region|global, ?view=<preset>, ?ui=0, and any module param by name. -->
+         ?data=region|global, ?view=<preset>, ?ui=0, ?story=tambora, and any module param by
+         name. -->
+    <div id="labels"></div>
     <pre id="hud">loading…</pre>
     <div id="presets"></div>
     <div id="note" hidden></div>
