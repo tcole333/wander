@@ -69,6 +69,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
   7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake
   is missing or was built from other pipeline code, configs or pinned sources.
+- `npm run publish-data -- [--profile global|region|fixture] [--dry-run] [--canary-only]`: uploads
+  the keys the build's release names that R2 lacks, canary first and never overwriting a key, then
+  writes `app/src/generated/release.json` (commit it) and `rel/<id>.json`
+  (`docs/design/streaming.md` 4.3). `--dry-run` lists R2 and reports what it would upload. Local
+  only.
 - `uv run prebuild fetch` downloads what is missing from `pipeline/sources.toml` into the raw-data
   folder and checks every sha256. `uv run prebuild excerpts` rewrites the committed excerpts in
   `pipeline/tests/data/` from it, reproducing them byte for byte; commit what it changes.
@@ -81,6 +86,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   deleted in v1. Objects under `_smoke/` are the hosting checks from issue #1.
 - `wrangler` covers the R2 bucket, objects and Pages. Zone rules and DNS are edited in the
   dashboard.
+- `npm run publish-data` writes R2 over its S3 API with the credentials in
+  `~/.config/wander/r2.env`, outside the repo (never print them, never use the `~/.aws` profiles).
+  CI holds no R2 credentials.
 
 ## Data
 
