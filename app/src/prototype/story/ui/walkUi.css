@@ -66,9 +66,9 @@
   );
   /* Aged vellum, warmest where the lamp falls. */
   --vellum-light:
-    radial-gradient(110% 75% at 6% 0%, rgb(255 246 222 / 0.5), transparent 62%),
+    radial-gradient(110% 75% at 6% 0%, rgb(255 240 206 / 0.45), transparent 62%),
     radial-gradient(90% 70% at 90% 105%, rgb(110 70 25 / 0.26), transparent 70%);
-  --vellum-ground: linear-gradient(160deg, #f5e7c4, #e6d0a2 55%, #d7bc8a);
+  --vellum-ground: linear-gradient(160deg, #efdbae, #ddc18f 55%, #cdac78);
 
   position: fixed;
   inset: 0;
