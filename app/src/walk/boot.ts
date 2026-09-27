@@ -90,8 +90,6 @@ export interface WalkStats extends StreamerStats {
 
 /** A booted walk: the parts the dev shell's panel and hooks reach into, and its checks. */
 export interface WalkPage {
-  /** The renderer's canvas, whose context loss the production entry watches. */
-  canvas: HTMLCanvasElement;
   museum: MuseumScene;
   look: SurfaceLook;
   streamer: SurfaceStreamer;
@@ -310,7 +308,6 @@ async function assemble(
   });
 
   return {
-    canvas: renderer.domElement,
     museum,
     look,
     streamer,
