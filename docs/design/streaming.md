@@ -446,24 +446,26 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 - **Milestone 1** draws monthly means only, on the beats whose layers carry
   `{climate: {mode: monthly}}` (`app/src/story/effects/climate.ts`). The walk loads the years those
   beats reach, from the beat before each (a flight sweeps story time from its date) to the end of
-  the beat's window, and a year a scrub reaches beyond them when first asked for. Each month's frame
-  stands at its middle day; the CPU blends the two around the story day into one 192 × 96 RG16F
-  field (anomaly × coverage, coverage), uploaded only when the blend changes, and the look samples
-  it with a B-spline, mapping latitude to rows by a straight line through the Gaussian latitudes
-  (within 0.03° of them). The ring, the annual arrays, the latitude LUT, the span switch and the
-  prefetch come with explore mode. The layer eases in and out over 0.5 s as beats change; the
-  look's program always holds it, so the walk's precompile builds it at strength 0. Without a
-  `modera` section, or once a file fails, the walk logs once and draws no climate.
+  the beat's window, and a year a scrub reaches beyond them when first asked for; past the data's
+  years the layer eases out. Each month's frame stands at its middle day; the CPU blends the two
+  around the story day into one 192 × 96 RG16F field (anomaly × coverage, coverage), uploaded only
+  when the blend changes, and the look samples it with a B-spline, mapping latitude to rows by a
+  straight line through the Gaussian latitudes. The ring (and with it, dropping years far from the
+  cursor), the annual arrays, the latitude LUT, the span switch and the prefetch come with explore
+  mode. The layer eases in and out over 0.5 s as beats change; the look's program always holds it,
+  so the walk's precompile builds it at strength 0. Without a `modera` section, or once a file
+  fails, the walk logs once and draws no climate.
 - **Look** (owner decision 22): a frost and verdigris wash on the metal
-  (`app/src/look/climateHook.ts`). Cold land takes a pale blue-green patina, lightened from
-  verdigris (#47746b) and cooled so the warm lamp does not turn it khaki, and loses its polish
-  (rougher, less metallic); warm land takes a muted copper blush; the sea's lacquer takes a third of
-  either. It saturates at `climateRangeK`. Where the climate is drawn, the illustrative veil gives
-  way to it, keyed on the data being drawn rather than on the beat's layers.
-- **Legend:** a small plate of Meanwhile's cast brass over the ruler's right end while climate is
-  drawn: the month ("July 1816"), an enamel strip in the look's colors as the key lamp shows them,
-  "Colder" and "Warmer" at its ends, ticks at 0, ±½ and ±1 of the range (±2 and ±4 °C), and "than
-  the 1901–2000 average".
+  (`app/src/look/climateHook.ts`). Cold land takes a blue-green patina that tints the metal rather
+  than covering it, so its wear, rivers and coast still show, and loses some of its polish (rougher,
+  less metallic); warm land takes a rosy copper blush; the sea's lacquer takes a third of either.
+  It saturates at `climateRangeK`. Where the climate is drawn, the illustrative veil gives way to
+  it, keyed on the data being drawn rather than on the beat's layers.
+- **Legend:** a small plate of Meanwhile's cast brass, in Meanwhile's column over the ruler's right
+  end, while climate is drawn: the month ("July 1816"), an enamel strip in the look's colors as the
+  key lamp shows them, "Colder" and "Warmer" at its ends, ticks at 0, ±½ and ±1 of the range (−4 to
+  "+4 °C"), and "than the 1901–2000 average". It rises into view once a flight has landed, since a
+  flight sweeps story time through months the ruler's date plate already names.
 
 ### 3.6 Effect data
 
