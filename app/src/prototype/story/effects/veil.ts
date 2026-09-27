@@ -1,9 +1,9 @@
 // The veil: a thin, warm haze on a shell above the highest exaggerated land, thicker toward the
 // limb, lit on the lamp's side, with zonal streaks drifting around the globe so it reads as a veil
 // and not a tint. Toward the limb it takes the colors of Luke Howard's twilight of 29 June 1815:
-// orange low down, a purple glow at the very rim. Its coverage is timeline.ts veilDensity, baked into a small
-// longitude-latitude texture whenever story time moves. Strongest at wide views, gone by a
-// regional one.
+// orange low down, a purple glow at the very rim. Its coverage is timeline.ts veilDensity, baked
+// into a small longitude-latitude texture whenever story time moves. Strongest at wide views, thin
+// over a continent, gone by a regional one.
 import {
   Color,
   DataTexture,
@@ -56,7 +56,7 @@ void main() {
   vec3 toCamera = normalize(uCamera - n * uRadius);
   float facing = dot(n, toCamera);
   float mu = max(facing, 0.2);
-  float a = (1.0 - exp(-0.09 * d * (0.2 + 1.8 * streak * streak) / mu)) * uStrength;
+  float a = (1.0 - exp(-0.15 * d * (0.1 + 2.4 * streak * streak * streak) / mu)) * uStrength;
   if (a < 0.002) discard;
   float lit = 0.3 + 0.7 * smoothstep(-0.35, 0.75, dot(n, uLamp));
   vec3 color = mix(uColor, uTwilight, smoothstep(0.75, 0.25, facing));
@@ -143,7 +143,7 @@ export class Veil {
     strength: number,
     elapsedS: number,
   ): void {
-    const fade = smoothstep(1500, 9000, viewKm) * strength;
+    const fade = smoothstep(800, 5000, viewKm) * strength;
     this.mesh.visible = fade > 0.001;
     if (!this.mesh.visible) return;
     if (Math.abs(day - this.#day) > 0.05 || Number.isNaN(this.#day)) this.#bake(day);
