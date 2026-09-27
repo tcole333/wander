@@ -22,7 +22,14 @@ const meanwhile = meanwhileFromJson(tambora);
 const story = parseStory(storyText);
 const start = Math.max(0, Number(new URLSearchParams(location.search).get('beat') ?? 1) - 1);
 const walk = new HarnessWalk(story, Math.min(start, story.beats.length - 1));
-const ui = createWalkUi(document.body, walk, meanwhile);
+// A stand-in for the walk's sound, so the sound knob stands where it does in the walk.
+const sound = {
+  muted: false,
+  toggle() {
+    this.muted = !this.muted;
+  },
+};
+const ui = createWalkUi(document.body, walk, meanwhile, sound);
 window.__walkUi = { walk, jump: (beat) => walk.jump(beat) };
 
 addEventListener('keydown', (event) => {

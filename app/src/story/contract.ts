@@ -5,6 +5,7 @@ import type { Object3D, PerspectiveCamera } from 'three';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
+import type { Precision } from './dates';
 import type { LonLat, Story } from './story';
 
 /** Playing advances by itself after each landing; breakout means the visitor is exploring. */
@@ -70,10 +71,24 @@ export type MeanwhileByBeat = Record<string, MeanwhileEntry[]>;
 export interface WalkUi {
   /** Every frame: the state and the drawn view (for Meanwhile's compass bearings). */
   update(state: WalkState, view: ViewState): void;
+  /** The finest unit the time ruler engraves now, whose marks the detents sound. */
+  rulerUnit(): Precision;
   dispose(): void;
 }
 
-export type CreateWalkUi = (root: HTMLElement, walk: Walk, meanwhile: MeanwhileByBeat) => WalkUi;
+/** The walk's sound as its mute control sees it (audio/walkAudio.ts). */
+export interface SoundSwitch {
+  readonly muted: boolean;
+  toggle(): void;
+}
+
+/** With `sound`, the UI carries its mute control. */
+export type CreateWalkUi = (
+  root: HTMLElement,
+  walk: Walk,
+  meanwhile: MeanwhileByBeat,
+  sound?: SoundSwitch,
+) => WalkUi;
 
 /**
  * The ember, plume, pulses, callout labels, and illustrative ash and veil, as functions of story
