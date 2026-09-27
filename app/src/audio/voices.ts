@@ -185,9 +185,9 @@ export function whir(engine: SoundEngine, at = engine.soon()): Whir {
   const gate = new GainNode(ctx, { gain: 0 });
   teeth.connect(crests).connect(gate.gain);
   teeth.start(at);
-  const tick = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 2600 * pitch, Q: 2.6 });
+  const tick = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 1200 * pitch, Q: 2.6 });
   loop(engine, engine.noise('white', 1.3), at, sources).connect(tick).connect(gate);
-  gate.connect(new GainNode(ctx, { gain: 0.9 })).connect(out);
+  gate.connect(new GainNode(ctx, { gain: 0.4 })).connect(out);
 
   // The fly: a soft band of moving air.
   const air = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 700 * pitch, Q: 1.1 });
@@ -213,7 +213,7 @@ export function whir(engine: SoundEngine, at = engine.soon()): Whir {
       const rate = (14 + 38 * p) * pitch;
       teeth.frequency.setTargetAtTime(rate, when, glide);
       mesh.frequency.setTargetAtTime(rate * 6, when, glide);
-      tick.frequency.setTargetAtTime((2300 + 1500 * p) * pitch, when, glide);
+      tick.frequency.setTargetAtTime((1200 + 800 * p) * pitch, when, glide);
       air.frequency.setTargetAtTime((520 + 900 * p) * pitch, when, glide);
       out.gain.setTargetAtTime(level * p ** 1.3, when, glide * 0.7);
     },
