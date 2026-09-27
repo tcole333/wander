@@ -16,8 +16,8 @@ as `fd/modera/<ver8>/` once hashed (layers.py).
 Per frame, offset is the frame's lowest value and scale max(0.1 K, range / 254), so no value clips
 and every value decodes within half a step. Each stored file is gzip level 9 with mtime 0.
 
-The fixture profile skips this stage for now, since it reads raw data: CI covers the climate layer,
-with a committed excerpt, once the owner has picked its look.
+The fixture profile skips this stage for now, since it reads raw data: the ModE-RA excerpt joins the
+fixture with the rest of issue #7's excerpts (streaming.md 7.3).
 """
 
 import gzip
