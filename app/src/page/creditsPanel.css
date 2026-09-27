@@ -53,11 +53,19 @@
   max-height: calc(100vh - 48px);
 }
 
-.cp-card .wu-sheet {
+/* The sheet stands about as tall as the beat card for its width, so it takes the card's foxing
+   rather than the page's, which is drawn for a sheet three times as tall. */
+.cp-card.credits-card .wu-sheet {
   position: relative;
   overflow: hidden;
+  background:
+    var(--vellum-light),
+    var(--foxing) 0 0 / 100% 100% no-repeat,
+    var(--fiber),
+    var(--vellum-ground);
 }
 
+/* The sheet scrolls under a faded foot, so a line cut off below reads as more to come. */
 .cp-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -65,6 +73,7 @@
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgb(110 82 39 / 0.55) transparent;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 30px), transparent);
 }
 
 .cp-scroll:focus-visible {
