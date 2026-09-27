@@ -25,7 +25,7 @@ export const mix: Mix = {
   bed: { room: -48, rumble: -25 },
   cues: {
     'rumble-far': -27,
-    'cannon-far': -21,
+    'cannon-far': -29,
     eruption: -16,
     ashfall: -12,
     rain: -27,
