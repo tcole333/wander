@@ -15,10 +15,29 @@ export interface SurfaceRelease {
   bounds: string;
 }
 
+/**
+ * release.json's `modera` (3.5): ModE-RA's monthly 2 m temperature anomalies (K, against
+ * 1901-2000) as a mean and a spread file per year under fd/modera/<ver>/, and annual.bin.
+ */
+export interface ModeraRelease {
+  ver: string;
+  /** The first and last years with files. */
+  years: [number, number];
+  /** The grid's latitudes in degrees, north first: row 0 of every frame. */
+  lat: number[];
+  /** Column 0's center and the step between columns, degrees. */
+  lon0: number;
+  dlon: number;
+  /** Each stored file's bytes: mean and spread by year, and annual.bin. */
+  bytes: { mean: Record<string, number>; spread: Record<string, number>; annual: number };
+}
+
 /** The part of release.json built so far: every stage adds its section. */
 export interface Release {
   id: string;
   built: string;
   dataHost: string;
   surface: SurfaceRelease;
+  /** Present once the build has run the modera stage. */
+  modera?: ModeraRelease;
 }
