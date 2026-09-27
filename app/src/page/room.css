@@ -109,6 +109,16 @@
   }
 }
 
+/* On open the mark goes ahead of the room, so it never hangs over the walk beside the walk's own
+   mark. Its lines fade, since the mark itself carries the rise. */
+.room-mark > * {
+  transition: opacity 0.3s ease;
+}
+
+.room.is-open .room-mark > * {
+  opacity: 0;
+}
+
 .room-mark .wu-mark-word {
   font-size: 62px;
 }
