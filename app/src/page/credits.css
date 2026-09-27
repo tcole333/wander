@@ -59,14 +59,10 @@
     var(--vellum-ground);
 }
 
-/* The beat card's frame, standing in the page's flow at a reading width. */
+/* The beat card's frame, standing in the page's flow as the plates' card does (room.css), at a
+   reading width. */
 .credits-card.wu-card {
-  position: relative;
-  left: auto;
-  top: auto;
   width: 720px;
-  max-width: 100%;
-  max-height: none;
   margin: 0 auto;
 }
 
@@ -212,24 +208,6 @@
 .credits-foot {
   margin: 10px 44px 0;
   padding: 16px 0 30px;
-  text-align: center;
-  background:
-    linear-gradient(
-        90deg,
-        transparent,
-        rgb(74 53 24 / 0.5) 20%,
-        rgb(74 53 24 / 0.5) 80%,
-        transparent
-      )
-      top / 100% 1px no-repeat,
-    linear-gradient(
-        90deg,
-        transparent,
-        rgb(255 247 222 / 0.6) 20%,
-        rgb(255 247 222 / 0.6) 80%,
-        transparent
-      )
-      0 1px / 100% 1px no-repeat;
 }
 
 /* Back to the globe: an engraved line, as the card's sources toggle is. */
