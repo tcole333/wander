@@ -100,7 +100,7 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
   await page.keyboard.press('ArrowRight');
   await expect(title).toHaveText(story.beats[1]?.title ?? '');
 
-  const href = await page.locator('.wu-credits').getAttribute('href');
+  const href = await page.locator('.wu-card-credits').getAttribute('href');
   const credits = await page.goto(href ?? '');
   expect(credits?.status()).toBe(200);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Credits');
