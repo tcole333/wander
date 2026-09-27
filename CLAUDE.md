@@ -55,8 +55,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
   7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin` and L0 tiles and checks R2's headers. CI runs it on every pull request and before
-  the Pages deploy; it fails, naming `npm run publish-data`, until the release's data is uploaded.
+  its `bounds.bin` and L0 tiles and checks R2's headers. CI runs it as its own job, which the Pages
+  deploy waits for; it fails, naming `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
   The smoke tests run against that build in `app/dist/` (it does not rebuild), on the fixture's

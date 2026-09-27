@@ -1289,9 +1289,9 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        on the M5.
   7. `npm run check-release` (`app/scripts/checkRelease.ts`): HEAD `rel/<id>.json` on the data
      host and, once it answers, GET `bounds.bin` and the six L0 tiles with the app's `Origin`,
-     checking R2's headers (4.2). It runs on every pull request, so a page naming data that is not
-     live cannot merge, and on `main` again just before the tested build deploys to Pages; the
-     deployment is then checked for `/`, `/credits` and a real 404.
+     checking R2's headers (4.2). It runs as its own job on every pull request and push, so a page
+     naming data that is not live cannot merge, and the Pages deploy of the tested build on `main`
+     waits for it; the deployment is then checked for `/`, `/credits` and a real 404.
 - **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
   every tile in `build/region/` and checks, with the fixture's seam code:
   - within a face, mip 0-2 border identity for every pair of available neighbors; across a face
