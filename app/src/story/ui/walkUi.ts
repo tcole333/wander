@@ -1,6 +1,6 @@
 // The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the Wander mark, the beat card,
-// the time ruler with the story's controls on it (rulerCraft.ts), Meanwhile and the Resume plaque,
-// in the instrument's materials: aged vellum in brass, dark cast brass and engraved gilt, lit by
+// the time ruler with the story's controls on it (rulerCraft.ts), the sound knob, Meanwhile and
+// the Resume plaque, in the instrument's materials: aged vellum in brass, dark cast brass and engraved gilt, lit by
 // the scene's lamp from the upper left and under its lens (walkUi.css, its materials in
 // tokens.css). Libre Baskerville for display and Source Serif 4 for reading.
 import '@fontsource/libre-baskerville/400.css';
@@ -14,15 +14,19 @@ import { BeatCard } from './card';
 import { button, el } from './dom';
 import { MeanwhilePanel } from './meanwhile';
 import { CraftRuler } from './rulerCraft';
+import { SoundKnob } from './soundKnob';
 
-export const createWalkUi: CreateWalkUi = (root, walk, meanwhile): WalkUi => {
+export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound): WalkUi => {
   const layer = el('div', 'wu');
   const card = new BeatCard();
   const ruler = new CraftRuler(walk, walk.state().story);
+  const knob = sound ? new SoundKnob(sound) : null;
   const panel = new MeanwhilePanel(walk, meanwhile);
   const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
   resume.textContent = 'Resume story';
-  layer.append(mark(), card.element, panel.element, ruler.element, resume);
+  layer.append(mark(), card.element);
+  if (knob) layer.append(knob.element);
+  layer.append(panel.element, ruler.element, resume);
   root.append(layer);
 
   let away: boolean | null = null;
@@ -30,6 +34,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile): WalkUi => {
     update(state, view) {
       card.update(state);
       ruler.update(state);
+      knob?.update();
       panel.update(state, view);
       if ((state.mode === 'breakout') !== away) {
         away = state.mode === 'breakout';
@@ -37,6 +42,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile): WalkUi => {
         resume.tabIndex = away ? 0 : -1;
       }
     },
+    rulerUnit: () => ruler.unit,
     dispose() {
       card.dispose();
       ruler.dispose();
