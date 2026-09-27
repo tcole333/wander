@@ -1,4 +1,7 @@
-// Small DOM helpers for the walk's UI.
+// Small DOM helpers for the walk's UI. The Credits link opens the Credits panel over the walk, so
+// the walk keeps its place (page/creditsPanel.ts).
+
+export { creditsLink } from '../../page/creditsPanel';
 
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -20,16 +23,6 @@ export function onPress(element: HTMLElement, action: (event: MouseEvent) => voi
     action(event);
     element.blur();
   });
-}
-
-/** The credits page (credits.html), in a tab of its own so the walk keeps its place. */
-export function creditsLink(className: string): HTMLAnchorElement {
-  const link = el('a', className, 'Credits');
-  link.href = '/credits';
-  link.target = '_blank';
-  link.rel = 'noopener';
-  onPress(link, () => {});
-  return link;
 }
 
 export function button(className: string, label: string, action: () => void): HTMLButtonElement {

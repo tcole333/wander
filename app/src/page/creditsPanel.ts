@@ -1,0 +1,113 @@
+// The Credits panel (PRD, Credits): the credits page's sheet over the lobby or the walk, in the beat
+// card's riveted brass frame on the darkened room. Its content is the page's own (credits.html,
+// read here as text and parsed), so the page and the panel never differ. The lobby's and the card's
+// Credits links open it in place and still point at /credits, for a new tab or a link passed on.
+// Escape, its close controls or a press beside the sheet close it. Focus moves into it, and back
+// to the link when the keyboard opened it; keys pressed while it is open stay in it, so neither
+// the walk nor the globe acts on them.
+import creditsPage from '../../credits.html?raw';
+import '../story/ui/tokens.css';
+import '../story/ui/walkUi.css';
+import './room.css';
+import './creditsSheet.css';
+import './creditsPanel.css';
+
+interface Panel {
+  dialog: HTMLDialogElement;
+  scroll: HTMLElement;
+  /** The link to give focus back to on closing, when the keyboard opened the panel. */
+  returnTo: HTMLElement | null;
+}
+
+let panel: Panel | null = null;
+
+/** Opens the panel over the page; `returnTo` has focus back when it closes. */
+export function openCredits(returnTo: HTMLElement | null = null): void {
+  panel ??= buildPanel();
+  if (panel.dialog.open) return;
+  panel.returnTo = returnTo;
+  panel.scroll.scrollTop = 0;
+  panel.dialog.showModal();
+}
+
+/**
+ * A link to the credits page that opens the panel in place instead. A click meant for a new tab
+ * or window still follows the link.
+ */
+export function creditsLink(className: string, text = 'Credits'): HTMLAnchorElement {
+  const link = make('a', className, text);
+  link.href = '/credits';
+  link.addEventListener('click', (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    // A click the keyboard made (Enter on the link) has no pointer detail.
+    openCredits(event.detail === 0 ? link : null);
+  });
+  return link;
+}
+
+/** The panel from the page's sheet: its head, its sections and its foot, whose link closes. */
+function buildPanel(): Panel {
+  const page = new DOMParser().parseFromString(creditsPage, 'text/html');
+  const source = page.querySelector('.credits-card .wu-sheet');
+  if (!source) throw new Error('credits.html has no credits sheet');
+  const sheet = document.importNode(source, true) as HTMLElement;
+
+  const dialog = make('dialog', 'cp');
+  const title = sheet.querySelector('.wu-title');
+  if (title) {
+    title.id = 'cp-title';
+    dialog.setAttribute('aria-labelledby', title.id);
+  }
+  const close = () => dialog.close();
+  const back = sheet.querySelector('.credits-back');
+  if (back) {
+    const button = make('button', 'credits-back', back.textContent?.trim() ?? 'Close');
+    button.type = 'button';
+    button.addEventListener('click', close);
+    back.replaceWith(button);
+  }
+  const scroll = make('div', 'cp-scroll');
+  scroll.append(...sheet.childNodes);
+  const corner = make('button', 'cp-close', '✕');
+  corner.type = 'button';
+  corner.setAttribute('aria-label', 'Close');
+  corner.addEventListener('click', close);
+  sheet.append(corner, scroll);
+  const card = make('article', 'cp-card wu-card wu-lit credits-card');
+  card.append(sheet);
+  dialog.append(card);
+  document.body.append(dialog);
+
+  const made: Panel = { dialog, scroll, returnTo: null };
+  // A press on the backdrop lands on the dialog itself, outside its card.
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) close();
+  });
+  dialog.addEventListener('keydown', (event) => event.stopPropagation());
+  dialog.addEventListener('close', () => {
+    const to = made.returnTo;
+    made.returnTo = null;
+    if (to?.isConnected) {
+      to.focus();
+      return;
+    }
+    // Opened by a press: the link the browser gives focus back to lets it go again, so Space and
+    // the arrow keys stay with the walk.
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  return made;
+}
+
+function make<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className: string,
+  text?: string,
+): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tag);
+  element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}
