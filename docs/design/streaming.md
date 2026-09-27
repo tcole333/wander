@@ -567,9 +567,12 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   - `camera`: `target` [lon, lat] in degrees; `viewKm`, the visible width at the target; `tilt` in
     degrees from nadir; `heading` in degrees clockwise from north; `drift`, none or slow
   - `focal`: `{qid, at?, date?}` (overrides Wikidata)
-  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?}`. `credit` names the makers
-    when Commons' Artist field names an uploader instead (the Internet Archive's Flickr account
-    for a book's engraving); otherwise the credit comes from Commons.
+  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?, license?}`. `credit` names
+    the makers where Commons' Artist field names an uploader instead (the Internet Archive's Flickr
+    account for a book's engraving) or spells a name otherwise than the credits page ('J.A.Gradmann'
+    for J. A. Gradmann); `license` gives the source's own rights statement where Commons gives only
+    its template's short name ('No restrictions' for No known copyright restrictions). Otherwise
+    both come from Commons.
   - `layers`: the listed layers are on and anything omitted is off. The canonical order, which is also
     the `?l=` bit order: relief, bathymetry, coastline, landSea, water, graticule, labels, borders,
     ecoregions, petroleum, mountains, minerals, climate, events. `climate` may carry
@@ -592,8 +595,9 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   `{eventsVer, images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, license,
   source}], audio: [{key, bytes, loopStart, loopEnd}], events: {qid: {label, t, at}}, meanwhile:
   {beatId: [qid, …]}}`. An image's entry is found by its sha1 and crop, so a recrop needs a new
-  bake. `credit` is the makers: the Artist field's names (a catalog's 'Pinkerton, John, 1758-1826'
-  as 'John Pinkerton'), else Commons' Credit, else the story's own; `license` is Commons'
+  bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the Artist
+  field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else Commons'
+  Credit; `license` is the story's own `license` when the beat gives one, else Commons'
   LicenseShortName as it stands; `source` is the file's page. The media stage writes `images` so
   far; `eventsVer`, `events` and `meanwhile` join with the events build and `audio` with the first
   CC0 sample. Until `npm run stories` compiles the story, the app joins the lock to the parsed
@@ -1249,9 +1253,10 @@ every key the locks name (3.8).
   samples, 3.0 item 9) in `build/stages/fixture/expect/`. It skips `modera` for now: the ModE-RA
   excerpt listed above joins the fixture with the rest of #7's excerpts, and until then a pytest
   covers the climate codec and the stage on synthetic NetCDFs.
-  The fixture bakes no story images. `media --offline` reads the committed test image and the
-  metadata Commons would give it (`pipeline/tests/data/media/`), and pytest runs the stage that
-  way on a one-beat story, touching neither Commons nor R2. The smoke test answers the fixture data
+  Until the fixture story lands (#9), the fixture bakes no story images; it will bake them with
+  `media --story _fixture --offline`. `--offline` reads the committed test image and the metadata
+  Commons would give it (`pipeline/tests/data/media/`), and pytest runs the stage that way on a
+  one-beat story, touching neither Commons nor R2. The smoke test answers the fixture data
   host's `img/` keys with the same test image and fails on any request to a Wikimedia host.
 - **Release selection:** the app bundles `app/src/generated/release.json`. A page served from
   loopback may name a local data server instead, with `?data=<origin>` or

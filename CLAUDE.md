@@ -88,7 +88,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
-  The release names every key the locks name, so `npm run publish-data` uploads them.
+  The release names every key the locks name, so `npm run publish-data` uploads them. Each
+  profile's root needs its own run: until `uv run prebuild --profile region media --story <id>`,
+  the region bake's cards show plates (in the dev shell and `walkShots`) and
+  `npm run publish-data -- --profile region` stops, naming the command.
 - `npm run verify:bake`, after the region bake: decodes every tile of `build/region/` and checks
   its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
   7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake
