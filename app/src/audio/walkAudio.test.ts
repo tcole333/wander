@@ -67,4 +67,18 @@ describe("the walk's score", () => {
     run(8);
     expect(heard.started).toContain('eruption');
   });
+
+  it("ducks a beat's cues while a Meanwhile entry has the camera, until it lands back", () => {
+    const { walk, run } = setup();
+    walk.goTo(2);
+    run(8);
+    walk.flyTo([2.35, 48.86], 1500);
+    run(8);
+    walk.resume();
+    run(8);
+    expect(heard.levels).toEqual([
+      ['eruption', mix.cues.eruption - 12],
+      ['eruption', mix.cues.eruption],
+    ]);
+  });
 });
