@@ -622,10 +622,11 @@ body.au-room {
   box-shadow: 0 0 6px rgb(230 70 90 / 0.6);
 }
 
-/* The plaque hangs in the rail's frame, above it. */
+/* The plaque hangs in the rail's frame, above the playhead: centered on it midway, and sliding to
+   its inner side toward either end, so it never hangs past the frame. */
 .au-plate {
   top: -49px;
-  translate: -50% 0;
+  translate: calc(var(--p) * -100%) 0;
   padding: 7px 16px 6px;
   border-radius: 2px;
   white-space: nowrap;
