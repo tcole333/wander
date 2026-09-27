@@ -267,7 +267,7 @@ image:
   sha1: "46aeb506e3aa0ed8cba6f807f00fb37ebc5ccc82"
   crop: [0.48, 0.32, 0.93, 0.70]
   alt: "Detail of an 1831 French map tracing the march of cholera out of India, with red routes running from Bengal toward Burma and China."
-layers: [relief, coastline, landSea, water, labels, borders, {climate: {mode: annual}}, events]
+layers: [relief, coastline, landSea, water, labels, borders, events]
 effects:
   - pulse: {at: [89.2167, 23.1667], start: "1817-08-28", end: "1817-12-31", radiusKm: 300, style: contagion}
   - callout: {at: [102.7061, 25.0433], text: Yunnan}
