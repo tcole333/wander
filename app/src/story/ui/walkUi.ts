@@ -45,7 +45,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound): WalkUi
       ruler.update(state);
       knob.update();
       panel.update(state, view);
-      legend.update(climate);
+      legend.update(state.flight === null ? climate : null);
       if ((state.mode === 'breakout') !== away) {
         away = state.mode === 'breakout';
         resume.classList.toggle('is-shown', away);

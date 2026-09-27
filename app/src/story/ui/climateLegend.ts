@@ -1,7 +1,9 @@
 // The climate legend, at the bottom right over the ruler's end: a small plate of dark cast brass
 // like Meanwhile's, shown while the globe draws ModE-RA's temperatures. Its month is engraved in
 // gilt over an enamel strip in the look's own colors (look/climateHook.ts climateSwatch), with the
-// strip's ends named and its degrees engraved under it. It eases in and out with the layer.
+// strip's ends named and its degrees engraved under it. It waits for a flight to land, since a
+// flight sweeps story time through months the ruler's date plate already names, then rises into
+// view like the Resume plaque, and fades as the layer eases out.
 import { climateSwatch } from '../../look/climateHook';
 import { monthName } from '../dates';
 import type { ClimateShown } from '../contract';
@@ -23,8 +25,8 @@ export class ClimateLegend {
   readonly #month = el('div', 'wu-legend-month');
   readonly #strip = el('div', 'wu-legend-strip');
   readonly #scale = el('div', 'wu-legend-scale');
-  /** What the plate, its month and its strip last showed, to skip redrawing them. */
-  #opacity = '0.000';
+  /** Whether the plate is shown, and what its month and strip last showed, to skip redrawing. */
+  #shown = false;
   #monthShown = '';
   #stripShown = '';
 
@@ -46,16 +48,15 @@ export class ClimateLegend {
     );
   }
 
+  /** Every frame: the climate drawn, or null during a flight or while none is. */
   update(climate: ClimateShown | null | undefined): void {
-    const opacity = (climate?.strength ?? 0).toFixed(3);
-    if (opacity !== this.#opacity) {
-      this.#opacity = opacity;
-      const shown = Number(opacity) > 0;
-      this.element.style.opacity = opacity;
+    const shown = (climate?.strength ?? 0) >= 0.5;
+    if (shown !== this.#shown) {
+      this.#shown = shown;
       this.element.classList.toggle('is-shown', shown);
       this.element.setAttribute('aria-hidden', String(!shown));
     }
-    if (!climate) return;
+    if (!climate || !shown) return;
 
     const month = `${monthName(climate.month)} ${climate.year}`;
     if (month !== this.#monthShown) {
