@@ -2,9 +2,10 @@
 // a camera that flies from the whole instrument down to a few tens of km. The gimbal turns the
 // view center toward the lamp and the camera, as the spike's did. Given a story, the walk plays
 // over it: the director flies between its beats (story/director.ts), the card, time ruler and
-// Meanwhile sit over the globe (story/ui/), and the ember, plume, plaques, ash and veil follow
-// story time (story/effects/). It starts paused on the first beat; Left and Right step beats,
-// Space plays or pauses, and Escape resumes after the visitor breaks out to explore.
+// Meanwhile sit over the globe (story/ui/), the ember, plume, plaques, ash and veil follow story
+// time (story/effects/), and its sound follows the walk from the visitor's first gesture
+// (audio/walkAudio.ts). It starts paused on the first beat; Left and Right step beats, Space plays
+// or pauses, Escape resumes after the visitor breaks out to explore, and M mutes.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
@@ -19,6 +20,7 @@ import {
   type Material,
   type Object3D,
 } from 'three';
+import { createWalkAudio, type WalkAudio } from '../audio/walkAudio';
 import type { MuseumScene, Params, StreamerStats, SurfaceLook, SurfaceStreamer } from '../contract';
 import type { Release } from '../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
@@ -74,11 +76,12 @@ export interface BootOptions {
   tune?: (params: Params) => void;
 }
 
-/** The director, the effects hung in the globe's frame, and the card, ruler and Meanwhile. */
+/** The director, the effects hung in the globe's frame, the card, ruler and Meanwhile, and sound. */
 export interface StoryParts {
   walk: DirectedWalk;
   effects: WalkEffects;
   ui: WalkUi;
+  sound: WalkAudio;
 }
 
 export interface WalkStats extends StreamerStats {
@@ -298,7 +301,11 @@ async function assemble(
     story?.effects.update(story.walk.state(), camera, museum.globeMount, viewport, now / 1000);
     look.update(now / 1000);
     museum.render(camera);
-    story?.ui.update(story.walk.state(), drawn);
+    if (story) {
+      const state = story.walk.state();
+      story.ui.update(state, drawn);
+      story.sound.update(state, story.ui.rulerUnit(), drawn, dt);
+    }
 
     const s = streamer.stats();
     // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.
@@ -348,8 +355,9 @@ function createRenderer(): WebGLRenderer {
 
 /**
  * The story mode's parts: the director, with input on the globe breaking out and the arrow keys
- * stepping beats instead of panning; the effects, with their plaques in `labels`; and the card,
- * ruler and Meanwhile over them in `root`. With them, what ends the story.
+ * stepping beats instead of panning; the effects, with their plaques in `labels`; the card,
+ * ruler, Meanwhile and the sound knob over them in `root`; and the sound. With them, what ends
+ * the story.
  */
 function startStory(
   { story, meanwhile }: StorySource,
@@ -365,14 +373,16 @@ function startStory(
   const unbindKeys = bindWalkKeys(walk);
 
   const effects = createWalkEffects(story, look, labels);
-  const ui = createWalkUi(root, walk, meanwhile);
+  const sound = createWalkAudio();
+  const ui = createWalkUi(root, walk, meanwhile, sound);
   const end = () => {
     unbindKeys();
+    sound.dispose();
     ui.dispose();
     effects.dispose();
     walk.dispose();
   };
-  return [{ walk, effects, ui }, end];
+  return [{ walk, effects, ui, sound }, end];
 }
 
 /**

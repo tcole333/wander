@@ -105,8 +105,13 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
 
   const title = page.locator('.wu-card .wu-title');
   await expect(title).toHaveText(story.beats[0]?.title ?? '');
+  // The first key unlocks sound as it steps; M mutes it, and the sound knob shows so.
   await page.keyboard.press('ArrowRight');
   await expect(title).toHaveText(story.beats[1]?.title ?? '');
+  const sound = page.locator('.wu-sound');
+  await expect(sound).toHaveAttribute('aria-pressed', 'false');
+  await page.keyboard.press('m');
+  await expect(sound).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
 
   const href = await page.locator('.wu-card-credits').getAttribute('href');
   const credits = await page.goto(href ?? '');
