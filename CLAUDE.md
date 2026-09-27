@@ -55,14 +55,15 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
   7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin`, L0 tiles and the climate years the walk starts with, and checks R2's headers.
-  CI runs it as its own job, which the Pages deploy waits for; it fails, naming
-  `npm run publish-data`, until the release's data is uploaded.
+  its `bounds.bin`, L0 tiles, the climate years the walk starts with and the first story image, and
+  checks R2's headers. CI runs it as its own job, which the Pages deploy waits for; it fails,
+  naming `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
   The smoke tests run against that build in `app/dist/` (it does not rebuild), on the fixture's
-  data server through `?data=` and with Commons stubbed; the other tests run test-only pages on
-  the Vite dev server, reading the fixture from its data server, so none of it reaches the build.
+  data server through `?data=`, its story images answered by the media stage's test image, and
+  fail on any request to Wikimedia; the other tests run test-only pages on the Vite dev server,
+  reading the fixture from its data server, so none of it reaches the build.
   Run `npx playwright install chromium` once first.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only. It is the start of the GPU matrix
@@ -84,6 +85,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `modera` until the climate layer has an excerpt. `uv run prebuild --profile region` bakes the
   milestone-1 region into `build/region/` (about 2.5 min on the M5, plus 50 s for `modera`, which
   writes all of ModE-RA whatever the profile).
+- `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
+  crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
+  (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
+  The release names every key the locks name, so `npm run publish-data` uploads them.
 - `npm run verify:bake`, after the region bake: decodes every tile of `build/region/` and checks
   its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
   7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake
