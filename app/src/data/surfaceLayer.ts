@@ -17,11 +17,19 @@ export interface SurfaceLayer {
   tiles(): Tile[];
 }
 
+/** Data the page needs did not arrive: the data host refused it or could not be reached. */
+export class DataError extends Error {
+  override name = 'DataError';
+}
+
 /** Fetches data as the runtime does: cross-origin, without credentials (4.2, 5.2). */
 export async function fetchData(url: string): Promise<ArrayBuffer> {
-  const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
-  if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
-  return response.arrayBuffer();
+  const lost = (error: unknown) => {
+    throw new DataError(`${url}: ${String(error)}`);
+  };
+  const response = await fetch(url, { mode: 'cors', credentials: 'omit' }).catch(lost);
+  if (!response.ok) throw new DataError(`${url}: HTTP ${response.status}`);
+  return response.arrayBuffer().catch(lost);
 }
 
 export async function loadSurfaceLayer(release: Release): Promise<SurfaceLayer> {
