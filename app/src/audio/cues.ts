@@ -47,10 +47,10 @@ export const CUES = {
     play(engine, out, at, sources) {
       every(engine, at + rand(0.4, 1), sources, (t) => {
         boom(engine, out, t, 1);
-        if (Math.random() > 0.3) return t + rand(3.5, 8.5);
+        if (Math.random() > 0.3) return t + rand(10, 22);
         // Now and then a second report follows the first, as from a salvo.
         boom(engine, out, t + rand(1.1, 1.9), rand(0.45, 0.75));
-        return t + rand(6, 11);
+        return t + rand(16, 28);
       });
     },
   },
