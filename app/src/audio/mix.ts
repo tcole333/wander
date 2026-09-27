@@ -21,7 +21,7 @@ export interface Mix {
 export const mix: Mix = {
   master: 0,
   buses: { ui: 0, bed: 0, cue: 0 },
-  voices: { detentDay: -33, detentMonth: -29, detentYear: -26, clunk: -24, whir: -28 },
+  voices: { detentDay: -33, detentMonth: -29, detentYear: -26, clunk: -24, whir: -31 },
   bed: { room: -48, rumble: -25 },
   cues: {
     'rumble-far': -27,
