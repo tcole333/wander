@@ -316,9 +316,17 @@ function showText(text: string): void {
   box.focus();
 }
 
-/** A bake's name or a data server's origin: the one asked for, else global when it answers. */
+/**
+ * A bake's name or an http(s) data server's origin: the one asked for, else global when it answers.
+ * Anything else asked for throws, so the walk never quietly plays another bake.
+ */
 async function pickData(asked: string | null): Promise<string> {
-  if (asked !== null && (asked in DATA_HOSTS || URL.canParse(asked))) return asked;
+  if (asked !== null) {
+    if (Object.hasOwn(DATA_HOSTS, asked)) return asked;
+    const url = URL.canParse(asked) ? new URL(asked) : null;
+    if (url?.protocol === 'http:' || url?.protocol === 'https:') return url.origin;
+    throw new Error(`no data server '${asked}'`);
+  }
   try {
     const response = await fetch(`${DATA_HOSTS.global}/release.json`);
     if (response.ok) return 'global';
