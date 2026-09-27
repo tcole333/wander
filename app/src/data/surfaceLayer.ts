@@ -53,12 +53,16 @@ async function fetchOnce(url: string): Promise<ArrayBuffer> {
   const stalled = new Promise<never>((_, reject) => {
     stall = reject;
   });
-  /** Aborts the request, rejecting `stalled`, unless the next step lands within `ms`. */
+  /**
+   * Rejects `stalled` and aborts the request, unless the next step lands within `ms`. The stall
+   * comes first: an abort rejects the pending fetch or read at once, and the race would settle
+   * with its AbortError instead.
+   */
   const watch = (ms: number, what: string) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      controller.abort();
       stall(new DataError(`${url}: ${what} for ${ms / 1000} s`));
+      controller.abort();
     }, ms);
   };
   try {
