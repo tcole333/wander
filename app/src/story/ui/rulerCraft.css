@@ -32,9 +32,15 @@
 }
 
 /* Painted brass swallows presses, so a click on the band's lip or a gear never turns the globe
-   and breaks out of the story. */
+   and breaks out of the story. Only the brass: a browser hit-tests an outer svg's whole box, whose
+   empty air above the band would take presses meant for the card's foot. */
 .rc-body,
 .rc-gear {
+  pointer-events: none;
+}
+
+.rc-body *,
+.rc-gear * {
   pointer-events: visiblePainted;
 }
 
