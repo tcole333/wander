@@ -3,8 +3,8 @@
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
 // its six L0 tiles as the page fetches them, cross-origin from the app's origin, so it never
 // leaves a 404 cached for a key about to be uploaded, and checks each answers 200 with R2's
-// headers (streaming.md 4.2). CI runs it on every pull request and again just before the Pages
-// deploy, so the app never ships naming data that is not there. Plain Node:
+// headers (streaming.md 4.2). CI runs it as its own job, which the Pages deploy waits for, so the
+// app never ships naming data that is not there. Plain Node:
 //
 //   npm run check-release
 import { readFileSync } from 'node:fs';

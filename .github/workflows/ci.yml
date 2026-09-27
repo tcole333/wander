@@ -62,9 +62,6 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps --only-shell chromium
       - run: npm run e2e
-      # The bundled release's data must be live on R2 before the page that names it can merge
-      # (streaming.md 4.3); it fails, naming npm run publish-data, until the upload is done.
-      - run: npm run check-release
       - name: Upload the Playwright report
         if: failure()
         uses: actions/upload-artifact@v7
@@ -84,10 +81,27 @@ jobs:
           include-hidden-files: true
           retention-days: 7
 
+  release:
+    name: Release data is live
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: app/.nvmrc
+      # The bundled release's data must be live on R2 before the page that names it can merge or
+      # deploy (streaming.md 4.3); it fails, naming npm run publish-data, until the upload is done.
+      # Plain Node with a type import only, so it needs no npm ci.
+      - run: npm run check-release
+
   deploy:
     name: Deploy to Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [pipeline, app]
+    needs: [pipeline, app, release]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
@@ -103,13 +117,6 @@ jobs:
         with:
           name: app-dist
           path: app/dist
-      # Checked again at the last moment: the page never ships naming data that is not live.
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: app/.nvmrc
-      - name: Check the release's data is live
-        working-directory: app
-        run: npm run check-release
       - name: Deploy
         id: deploy
         # Pinned by commit: this action receives the deploy token.
