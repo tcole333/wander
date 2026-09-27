@@ -2,11 +2,12 @@
 // release.json. The keys are exactly those the release names, found in the profile's output root,
 // so older versions left there are never uploaded. R2 is listed first: keys are content-versioned,
 // so a key present with another size stops the run before any upload. The canary (bounds.bin and
-// the L0 tiles) goes up first and its headers are checked at the origin, then through the data
-// host, because the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
+// the L0 tiles) goes up first and the headers R2 stored with it are checked, because a key is never
+// overwritten and the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
 // If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. Last
-// come the bundled app/src/generated/release.json and its copy rel/<id>.json. The fixture never
-// leaves this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
+// come the bundled app/src/generated/release.json and its copy rel/<id>.json; CI's
+// `npm run check-release` reads the same roots through the data host. The fixture never leaves
+// this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
 //
 //   npm run publish-data -- [--profile global|region] [--dry-run]
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -21,7 +22,6 @@ import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import { localRelease, ReleaseError } from './release.ts';
 
 export const DATA_HOST = 'https://wander-data.traviscole.xyz';
-const APP_ORIGIN = 'https://wander.traviscole.xyz';
 const GENERATED = join(REPO_ROOT, 'app', 'src', 'generated', 'release.json');
 const CONCURRENCY = 24;
 const TILE = /\/\d+\/[0-5]\/\d+\/\d+\.wst$/;
@@ -141,9 +141,7 @@ export async function publish(options: PublishOptions): Promise<void> {
   const canaryObjects = sections.flatMap((section) => section.objects).filter(inCanary);
   await uploadAll(bucket, 'canary', missing.filter(inCanary));
   for (const object of canaryObjects) await checkOrigin(bucket, object);
-  const tile = canaryObjects.find((object) => TILE.test(object.key))!;
-  await checkDataHost(release.dataHost, tile);
-  console.log('canary: its headers are right at the origin and through the data host');
+  console.log('canary: R2 stored its headers');
 
   const rest = missing.filter((object) => object !== copy && !inCanary(object));
   await uploadAll(bucket, 'upload', rest);
@@ -222,49 +220,20 @@ async function upload(bucket: R2Bucket, object: LocalObject): Promise<void> {
   }
 }
 
-/** The object's headers over the S3 endpoint, checked before the data host is asked for it. */
+/** The headers R2 stored with the object, read over the S3 endpoint. */
 async function checkOrigin(bucket: R2Bucket, object: LocalObject): Promise<void> {
   const headers = await bucket.head(object.key);
   if (!headers) throw new PublishError(`${object.key} is not on R2`);
-  expectHeaders(object.key, 'at the origin', headers, {
-    ...stored(object.key),
+  const { 'Cache-Control': cacheControl, 'Content-Type': contentType } = objectHeaders(object.key)!;
+  const expected = {
+    'cache-control': cacheControl,
+    'content-type': contentType,
     'content-length': String(object.size),
-  });
-}
-
-/** One object through the data host as the app fetches it: CORS, immutable, the stored bytes. */
-async function checkDataHost(dataHost: string, object: LocalObject): Promise<void> {
-  const where = `through ${dataHost}`;
-  const response = await fetch(`${dataHost}/${object.key}`, { headers: { Origin: APP_ORIGIN } });
-  if (!response.ok) throw new PublishError(`${object.key} ${where}: HTTP ${response.status}`);
-  expectHeaders(object.key, where, response.headers, {
-    ...stored(object.key),
-    'access-control-allow-origin': '*',
-    'timing-allow-origin': '*',
-    'content-encoding': null,
-  });
-  const body = Buffer.from(await response.arrayBuffer());
-  if (!body.equals(await readFile(object.path))) {
-    throw new PublishError(`${object.key} ${where} is not the stored bytes`);
-  }
-}
-
-/** The headers publish-data stores with the object, as a response names them. */
-function stored(key: string): Record<string, string> {
-  const headers = objectHeaders(key)!;
-  return { 'cache-control': headers['Cache-Control'], 'content-type': headers['Content-Type'] };
-}
-
-function expectHeaders(
-  key: string,
-  where: string,
-  headers: Headers,
-  expected: Record<string, string | null>,
-): void {
+  };
   const wrong = Object.entries(expected).filter(([name, value]) => headers.get(name) !== value);
   if (wrong.length === 0) return;
   const found = wrong.map(([name, value]) => `${name} is ${headers.get(name)}, not ${value}`);
-  throw new PublishError(`${key} ${where}: ${found.join('; ')}`);
+  throw new PublishError(`${object.key} on R2: ${found.join('; ')}`);
 }
 
 function sizeOf(objects: LocalObject[]): string {

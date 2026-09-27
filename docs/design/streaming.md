@@ -619,9 +619,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      profile's output root, so versions left there by older builds stay local
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
      upload, because keys are content-versioned and a mismatch means a broken build or upload
-   - uploads the canary first, `bounds.bin` and the L0 tiles, and checks their headers at the origin
-     over the S3 API, then one tile through the data host with the app's `Origin`, since the edge
-     keeps whatever it sees for a year
+   - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
+     them over the S3 API before anything else goes up, since a key is never overwritten and the
+     edge keeps whatever it sees for a year; `npm run check-release` reads the same keys through the
+     data host with the app's `Origin` (7.3)
    - uploads the rest of what R2 lacks, 24 at a time. Every PUT sends `If-None-Match: *`, which R2
      refuses with 412 when the key exists, so nothing is overwritten; a 412 is checked by size.
    - runs the publish check: GET 20 random new objects twice; expect `HIT` on the second (from this
