@@ -1,6 +1,7 @@
 // The veil: a thin, warm haze on a shell above the highest exaggerated land, thicker toward the
-// limb, lit on the lamp's side, with faint zonal streaks drifting around the globe so it reads as
-// a veil and not a tint. Its coverage is timeline.ts veilDensity, baked into a small
+// limb, lit on the lamp's side, with zonal streaks drifting around the globe so it reads as a veil
+// and not a tint. Toward the limb it takes the colors of Luke Howard's twilight of 29 June 1815:
+// orange low down, a purple glow at the very rim. Its coverage is timeline.ts veilDensity, baked into a small
 // longitude-latitude texture whenever story time moves. Strongest at wide views, gone by a
 // regional one.
 import {
@@ -38,6 +39,8 @@ uniform sampler2D uCover;
 uniform vec3 uCamera;
 uniform vec3 uLamp;
 uniform vec3 uColor;
+uniform vec3 uTwilight;
+uniform vec3 uRim;
 uniform float uRadius;
 uniform float uStrength;
 uniform float uTime;
@@ -51,15 +54,18 @@ void main() {
   // The streaks drift west, as the cloud circled the globe.
   float streak = texture2D(uCover, uv + vec2(uTime * 0.002, 0.0)).g;
   vec3 toCamera = normalize(uCamera - n * uRadius);
-  float mu = max(dot(n, toCamera), 0.2);
-  float a = (1.0 - exp(-0.065 * d * (0.5 + streak) / mu)) * uStrength;
+  float facing = dot(n, toCamera);
+  float mu = max(facing, 0.2);
+  float a = (1.0 - exp(-0.09 * d * (0.2 + 1.8 * streak * streak) / mu)) * uStrength;
   if (a < 0.002) discard;
   float lit = 0.3 + 0.7 * smoothstep(-0.35, 0.75, dot(n, uLamp));
-  gl_FragColor = vec4(uColor * lit, a);
+  vec3 color = mix(uColor, uTwilight, smoothstep(0.75, 0.25, facing));
+  color = mix(color, uRim, 0.6 * smoothstep(0.3, 0.08, facing));
+  gl_FragColor = vec4(color * lit, a);
 }
 `;
 
-/** Value noise stretched along the parallels, in the green channel: the veil's streaks. */
+/** Value noise drawn out along the parallels into bands, in the green channel: the veil's streaks. */
 function streaks(cover: Uint8Array): Uint8Array {
   let seed = 1815;
   const rand = () => {
@@ -67,9 +73,9 @@ function streaks(cover: Uint8Array): Uint8Array {
     return seed / 2147483647;
   };
   const octaves = [
-    { cols: 6, rows: 10, amp: 0.5 },
-    { cols: 12, rows: 22, amp: 0.3 },
-    { cols: 24, rows: 40, amp: 0.2 },
+    { cols: 3, rows: 18, amp: 0.5 },
+    { cols: 6, rows: 34, amp: 0.3 },
+    { cols: 12, rows: 60, amp: 0.2 },
   ].map((o) => ({ ...o, grid: Array.from({ length: o.cols * o.rows }, rand) }));
   const smooth = (t: number) => t * t * (3 - 2 * t);
   for (let j = 0; j < H; j += 1) {
@@ -110,6 +116,8 @@ export class Veil {
         uCamera: { value: new Vector3() },
         uLamp: { value: new Vector3(0, 0, 1) },
         uColor: { value: new Color('#c9a27a') },
+        uTwilight: { value: new Color('#d9894a') },
+        uRim: { value: new Color('#9a6a8a') },
         uRadius: { value: 1 },
         uStrength: { value: 0 },
         uTime: { value: 0 },
