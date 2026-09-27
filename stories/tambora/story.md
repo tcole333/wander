@@ -4,11 +4,7 @@ title: Tambora
 blurb: In April 1815 Tambora explodes, and the veil it spreads across the sky brings cold and hunger from New England to Yunnan.
 credits:
   - Drafted by Claude from the sources listed under each beat.
-  - Temperatures from the ModE-RA monthly reanalysis.
   - The eruption plume, the ashfall and the spreading veil are illustrative reconstructions, not observations.
-  - Maps of 1812, 1813 and 1832 from the David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries, via Wikimedia Commons.
-  - Map of Tambora from Heinrich Zollinger, Besteigung des Vulkanes Tambora (Winterthur, J. Wurster, 1855), drawn by J. M. Ziegler and engraved by R. Leuzinger; ETH-Bibliothek Zürich, Rar 5880.
-  - Emigration in 1817, engraved by Lossing & Barritt for Samuel G. Goodrich, Recollections of a Lifetime (1856).
 ---
 
 ## A Mountain Thought Extinct
