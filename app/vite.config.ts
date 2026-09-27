@@ -19,8 +19,10 @@ export default defineConfig({
     // The app ships as one entry bundle with no lazy chunks (streaming design, section 2), so
     // Vite's code-splitting hint does not apply; section 6 budgets the entry at 500 KB compressed.
     chunkSizeWarningLimit: 1500,
-    // The credits page is a second page of plain HTML and CSS, sharing the app's hashed fonts.
-    rolldownOptions: { input: { main: 'index.html', credits: 'credits.html' } },
+    // The credits page and Pages' 404 are plain HTML and CSS, sharing the app's hashed fonts.
+    rolldownOptions: {
+      input: { main: 'index.html', credits: 'credits.html', notFound: '404.html' },
+    },
     // The bundled packages' licenses, which the credits page links to.
     license: { fileName: 'licenses.txt' },
   },
