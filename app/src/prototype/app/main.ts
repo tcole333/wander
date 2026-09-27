@@ -185,8 +185,9 @@ async function main(): Promise<void> {
     // camera; off, it turns the view center to the front and the camera tilts instead.
     faceCamera: true,
     // Device pixels per CSS pixel, the display's up to 2, as the spike drew. From 1.5 the scene
-    // drops MSAA, so a Retina display holds 60 fps on the M5 at 2.
-    pixelRatio: Math.min(devicePixelRatio, 2),
+    // drops MSAA, so a Retina display holds 60 fps on the M5 at 2. A story draws at most 1.5:
+    // at 2 the plume's overlapping puffs and the flights miss frames on a Retina display.
+    pixelRatio: Math.min(devicePixelRatio, source ? 1.5 : 2),
   };
   for (const params of [look.params, museum.params, streamer.params, cameraParams]) {
     applyQuery(params, query);
