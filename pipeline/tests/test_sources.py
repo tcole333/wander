@@ -17,7 +17,7 @@ HEX64 = re.compile(r"[0-9a-f]{64}")
 SHA = "0" * 64
 
 
-def test_the_registry_pins_the_surface_core_inputs():
+def test_the_registry_pins_the_inputs_of_the_landed_stages():
     pinned = {
         source_id: sorted(PurePosixPath(p.path).name for p in source.pinned())
         for source_id, source in load_sources().items()
@@ -35,6 +35,11 @@ def test_the_registry_pins_the_surface_core_inputs():
             "ne_10m_rivers_lake_centerlines_scale_rank.zip",
         ],
         "natural-earth-10m-minor-islands": ["ne_10m_minor_islands.zip"],
+        "mode-ra-temp2": [
+            "ModE-RA_ensmean_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
+            "ModE-RA_ensstd_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
+            "ModE-readme.txt",
+        ],
     }
 
 

@@ -4,7 +4,8 @@
 # without one is verify-only: checked, never downloaded), unzips each `unzipped` member beside its
 # zip, and checks every sha256. Other stages check only byte sizes.
 #
-# This holds the surface core's inputs (issue #3); each later issue pins the inputs its stages read.
+# This holds the surface core's inputs (issue #3) and ModE-RA for the modera stage (issue #7); each
+# later issue pins the inputs its stages read.
 
 [gebco-2026]
 name = "GEBCO_2026 Grid, 15 arc-second global land and sea-floor elevation (ice surface), NetCDF"
@@ -87,3 +88,32 @@ path = "sources/natural-earth-10m-minor-islands/ne_10m_minor_islands.zip"
 source_url = "https://naturalearth.s3.amazonaws.com/5.1.2/10m_physical/ne_10m_minor_islands.zip"
 bytes = 314932
 sha256 = "47c0b3ce26df7b4dbabdbb251023918cb2f5c83462a426288f1f253da7284db2"
+
+# The WDCC experiment on ModE-Sim sets 1420_3 and 1850_1, whose NetCDFs are dated 2023-02-27.
+# NOAA's paleo archive serves the same files and the project readme.
+[mode-ra-temp2]
+name = "ModE-RA monthly 2 m temperature anomaly reanalysis, 1421-2008 (ensemble mean and spread)"
+version = "ModE-RA_s14203-18501"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Valler et al. (2023), ModE-RA, WDCC at DKRZ, DOI 10.26050/WDCC/ModE-RA_s14203-18501; publication DOI 10.1038/s41597-023-02733-8."
+landing_page = "https://www.wdc-climate.de/ui/entry?acronym=ModE-RA_s14203-18501"
+retrieved = "2026-07-14"
+
+[[mode-ra-temp2.files]]
+path = "sources/mode-ra-temp2/ModE-RA_ensmean_temp2_anom_wrt_1901-2000_1421-2008_mon.nc"
+source_url = "https://www.ncei.noaa.gov/pub/data/paleo/gcmoutput/ModE/ModE-RA/ensstat/ModE-RA_ensmean_temp2_anom_wrt_1901-2000_1421-2008_mon.nc"
+bytes = 520294712
+sha256 = "528ca47c318212c2c496e175c7fa8da2e40a1c286ac333d6f172d53be7cbc7c8"
+
+[[mode-ra-temp2.files]]
+path = "sources/mode-ra-temp2/ModE-RA_ensstd_temp2_anom_wrt_1901-2000_1421-2008_mon.nc"
+source_url = "https://www.ncei.noaa.gov/pub/data/paleo/gcmoutput/ModE/ModE-RA/ensstat/ModE-RA_ensstd_temp2_anom_wrt_1901-2000_1421-2008_mon.nc"
+bytes = 520294068
+sha256 = "e4c4a111c84f83c1be0a03b6b01e5aed097a6b5af4a3bb1423dfeb299c74a835"
+
+[[mode-ra-temp2.files]]
+path = "sources/mode-ra-temp2/ModE-readme.txt"
+source_url = "https://www.ncei.noaa.gov/pub/data/paleo/gcmoutput/ModE/ModE-readme.txt"
+bytes = 13775
+sha256 = "06d7fde69a896cfc382f4683b83bc8f1ce806803244081af3d67b8e0e9571ff1"
