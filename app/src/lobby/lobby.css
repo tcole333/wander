@@ -1,0 +1,259 @@
+/* The lobby (plaques.ts, lobby.ts) in the walk's materials (tokens.css, walkUi.css): the walk's
+   mark, a heading cut in gilt over a hairline, and each story's plaque in dark cast brass lit from
+   the lamp at the upper left: an engraved medallion, the title in gilt, the years in brass small
+   capitals and the blurb in ivory. A hovered or focused plaque catches the lamp along its edge,
+   and an ember wakes in its socket and in its medallion's crater. The Credits link is engraved at
+   the top right. The walk's UI arrives from here: its ruler rises during the dive, and its card
+   and Meanwhile come in at the landing. */
+
+.lobby > .wu-mark,
+.lobby-column,
+.lobby-credits {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.9s ease,
+    translate 0.9s ease,
+    visibility 0s 0.9s;
+}
+
+.lobby.is-shown > .wu-mark,
+.lobby.is-shown .lobby-column,
+.lobby.is-shown .lobby-credits {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.9s ease var(--delay, 0s),
+    translate 0.9s ease var(--delay, 0s),
+    visibility 0s;
+}
+
+.lobby-column {
+  --delay: 0.15s;
+
+  position: absolute;
+  box-sizing: border-box;
+  left: 30px;
+  top: 146px;
+  width: 356px;
+  translate: -14px 0;
+}
+
+.lobby.is-shown .lobby-column {
+  translate: 0 0;
+}
+
+/* Chosen: the plaques slide away to the left, as if drawn back into the wall. */
+.lobby.is-leaving .lobby-column,
+.lobby.is-leaving .lobby-credits {
+  opacity: 0;
+  visibility: hidden;
+  translate: -64px 0;
+  transition:
+    opacity 0.5s ease-in,
+    translate 0.55s cubic-bezier(0.5, 0, 0.75, 0),
+    visibility 0s 0.55s;
+}
+
+.lobby-head {
+  margin: 0 0 0 2px;
+  font: 400 22px/1.2 var(--display);
+  background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1.5px 0.5px rgb(0 0 0 / 0.9));
+}
+
+.lobby-rule {
+  height: 1px;
+  margin: 12px 0 16px;
+  background: linear-gradient(90deg, #b08a4a, rgb(176 138 74 / 0.35) 60%, transparent);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.6);
+}
+
+/* A story's plaque: dark cast brass (walkUi.css .wu-brass), its lettering cut into it. */
+.lobby-plaque {
+  position: relative;
+  display: grid;
+  grid-template-columns: 60px 1fr 12px;
+  column-gap: 16px;
+  align-items: start;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 18px 18px 19px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    box-shadow 0.35s,
+    filter 0.35s;
+}
+
+/* Lit: the lamp catches its edge, and its brass warms. */
+.lobby-plaque:is(:hover, :focus-visible) {
+  border-image: linear-gradient(135deg, #fff0c8, #dcb46c 22%, #9a7438 55%, #4a3517 100%) 1;
+  filter: brightness(1.07);
+  box-shadow:
+    inset 1px 1px 0 rgb(0 0 0 / 0.75),
+    inset -1px -1px 0 rgb(255 226 170 / 0.16),
+    0 0 0 1px #0d0905,
+    var(--cast),
+    0 0 0 1px rgb(255 214 150 / 0.4),
+    0 0 26px 2px rgb(var(--lamp) / 0.2);
+}
+
+.lobby-medal {
+  display: block;
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(1px 2px 2px rgb(0 0 0 / 0.75));
+}
+
+.lobby-medal-groove {
+  fill: none;
+  stroke: #24180b;
+  stroke-width: 1.1;
+}
+
+.lobby-medal-cut {
+  stroke: #d8b46c;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lobby-medal-lip {
+  stroke: #040201;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.lobby-medal-crater {
+  fill: #3a1a0c;
+  transition: fill 0.35s;
+}
+
+.lobby-plaque:is(:hover, :focus-visible) .lobby-medal-crater {
+  fill: #ff9a4c;
+}
+
+.lobby-words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.lobby-title {
+  font: 400 25px/1.1 var(--display);
+  letter-spacing: 0.02em;
+  background: linear-gradient(172deg, #f8e6b4 0%, #dcb86f 40%, #a77c3a 72%, #d2ac64 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1.2px 0.4px rgb(0 0 0 / 0.9));
+}
+
+.lobby-years {
+  margin-top: 8px;
+  font: 400 10.5px/1 var(--display);
+  letter-spacing: 0.26em;
+  color: #b8955a;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.8);
+}
+
+.lobby-blurb {
+  margin-top: 12px;
+  font: italic 400 14.5px/1.5 var(--reading);
+  color: rgb(232 220 197 / 0.8);
+  text-wrap: pretty;
+  text-shadow: 0.5px 1px 1px rgb(0 0 0 / 0.6);
+}
+
+/* The ember's socket: a small bore ringed in brass, dark until the plaque is lit. */
+.lobby-ember {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  margin-top: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #2a1c10, #070403 70%);
+  box-shadow:
+    0 0 0 1.5px #6a4e24,
+    0 0 0 2.5px #150d06,
+    0.5px 0.5px 0 2.5px rgb(255 226 170 / 0.12),
+    inset 1px 1.5px 2px rgb(0 0 0 / 0.9);
+}
+
+.lobby-ember::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, #fff1d0 0, #ffb266 22%, #e8662c 55%, #8a2c0e);
+  box-shadow:
+    0 0 9px 3px rgb(232 102 44 / 0.55),
+    0 0 22px 7px rgb(232 102 44 / 0.2);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+.lobby-plaque:is(:hover, :focus-visible) .lobby-ember::after {
+  opacity: 1;
+}
+
+.lobby-credits {
+  --delay: 0.3s;
+
+  position: absolute;
+  top: 40px;
+  right: 42px;
+  font: 400 11px/1 var(--display);
+  letter-spacing: 0.3em;
+  margin-right: -0.3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #b8955a;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.85);
+}
+
+.lobby-credits:hover {
+  color: var(--brass-hi);
+}
+
+/* The walk's UI arriving from the lobby: the ruler waits below the page and rises during the
+   dive, and the card and Meanwhile come in at the landing. */
+
+.lobby-dive .wu .rc {
+  transition: translate 1.6s cubic-bezier(0.22, 0.8, 0.3, 1) 0.35s;
+}
+
+.lobby-ruler-down .wu .rc {
+  translate: 0 105%;
+  transition: none;
+}
+
+.lobby-dive .wu-card,
+.lobby-dive .wu-meanwhile {
+  transition:
+    opacity 0.7s ease,
+    translate 0.7s ease,
+    visibility 0s;
+}
+
+.lobby-veiled .wu-card,
+.lobby-veiled .wu-meanwhile {
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
+
+.lobby-veiled .wu-card {
+  translate: -18px 0;
+}
+
+.lobby-veiled .wu-meanwhile {
+  translate: 18px 0;
+}
