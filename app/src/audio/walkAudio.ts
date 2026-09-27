@@ -2,7 +2,8 @@
 // change; the whir while the camera flies, to a beat or to a Meanwhile entry, its pace following
 // the camera's; a detent for each day, month and year the ruler's playhead passes, of the marks
 // the ruler engraves at that moment (marks.ts); the story's bed following story time; and each
-// beat's cues from landing on it until the walk leaves it, when they fade over bedCrossfade.
+// beat's cues from landing on it until the walk leaves it, when they fade over bedCrossfade. While
+// a Meanwhile entry has the camera, far from the beat's place, its cues fall back.
 //
 // WalkScore plays all of it on any engine, live or offline (the Sound Cabinet renders a stretch of
 // the walk with it). createWalkAudio attaches it to a page: nothing sounds before the visitor's
@@ -16,7 +17,7 @@ import type { SoundSwitch, WalkState } from '../story/contract';
 import { isFormField } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import { tamboraBed, type Bed } from './bed';
-import { isCueName, startCue, type CueHandle } from './cues';
+import { isCueName, startCue, type CueHandle, type CueName } from './cues';
 import { unlockedSound, unlockSound, type SoundEngine } from './engine';
 import { marksPassed } from './marks';
 import { clunk, Detents, whir, type Whir } from './voices';
@@ -38,6 +39,8 @@ const FULL_PACE = 1.5;
 const PACE_STEP = 0.02;
 /** The bed's day is passed at most this often, s. */
 const BED_EVERY_S = 0.1;
+/** How far a beat's cues fall back while a Meanwhile entry has the camera, dB. */
+const AWAY_DB = -12;
 
 /** Where the mute is remembered. */
 const MUTED_KEY = 'wander.muted';
@@ -74,9 +77,11 @@ export class WalkScore {
    * and landing, not breaking out of the flight, arrives.
    */
   #onBeat: boolean;
-  /** The beat whose cues play, once landed on, and the cues. */
+  /** Whether a Meanwhile entry has taken the camera from the beat since the walk last landed. */
+  #away = false;
+  /** The beat whose cues play, once landed on, and the cues by name. */
   #cueBeat: number | null = null;
-  #cues: CueHandle[] = [];
+  #cues: [CueName, CueHandle][] = [];
   #whir: Whir | null = null;
   #pace = 0;
   #bedDay: number;
@@ -103,19 +108,27 @@ export class WalkScore {
       }
     }
 
+    const home = landed(state);
     if (state.flight !== null) this.#onBeat = false;
-    else if (landed(state)) this.#onBeat = true;
+    else if (home) this.#onBeat = true;
+    const away = !home && (this.#away || (state.flying && state.flight === null));
 
-    // The beat left: its cues fade. Standing on one: its cues start.
+    // The beat left: its cues fade. Standing on one: its cues start, and fall back while away.
     if (this.#cueBeat !== null && this.#cueBeat !== state.beat) {
-      for (const cue of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
+      for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
       this.#cues = [];
       this.#cueBeat = null;
     }
-    if (this.#cueBeat === null && this.#onBeat) {
+    if (away !== this.#away) {
+      this.#away = away;
+      for (const [name, cue] of this.#cues) {
+        cue.setLevel(engine.mix.cues[name] + (away ? AWAY_DB : 0), at);
+      }
+    }
+    if (this.#cueBeat === null && this.#onBeat && !away) {
       this.#cueBeat = state.beat;
       const names = state.story.beats[state.beat]?.audioCues ?? [];
-      this.#cues = names.filter(isCueName).map((name) => startCue(engine, name, at));
+      this.#cues = names.filter(isCueName).map((name) => [name, startCue(engine, name, at)]);
     }
 
     // The marks the playhead passed since the last frame, spread over that frame's time, though
@@ -151,7 +164,7 @@ export class WalkScore {
   /** Fades everything the walk has playing. */
   stop(at: number): void {
     this.#bed?.stop(at);
-    for (const cue of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
+    for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
     this.#whir?.stop(at);
   }
 }
