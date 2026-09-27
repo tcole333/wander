@@ -31,7 +31,7 @@ import numpy as np
 import numpy.typing as npt
 
 from prebuild.constants import FORMATS, SENTINELS
-from prebuild.hashing import layer_version, sha256_bytes
+from prebuild.hashing import sha256_bytes
 from prebuild.layers import publish, staging_folder
 from prebuild.profiles import Context
 from prebuild.records import write_record
@@ -121,8 +121,7 @@ def run(ctx: Context) -> None:
                     if variable == MEAN:
                         annual.append(frames.mean(axis=0))
             annual_bytes = write("annual.bin", quantize(np.stack(annual), ANNUAL, FIRST_YEAR))
-        ver = layer_version(digests)
-        publish(staging, layer / ver)
+        ver = publish(staging, layer, digests)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
     record = {
