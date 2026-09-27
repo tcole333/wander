@@ -1,0 +1,23 @@
+// Where the production entry reads its data. The public page reads the bundled release only; a page
+// served from this machine may name a local data server instead (npm run data, streaming.md 7.3)
+// with ?data=<origin>, or one of the local bakes' servers by name, and reads that server's
+// /release.json. The public page never asks: a query on any other host is ignored.
+
+/** The local bakes' data servers by name, on the ports scripts/dataServer.ts gives them. */
+export const DATA_SERVERS: Readonly<Record<string, string>> = {
+  fixture: 'http://127.0.0.1:8791',
+  region: 'http://127.0.0.1:8792',
+  global: 'http://127.0.0.1:8793',
+};
+
+/** The hostnames a page on this machine is served from. */
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+/** The data server a page asks for, or null for the bundled release. */
+export function dataOverride(page: { hostname: string; search: string }): string | null {
+  if (!LOOPBACK.has(page.hostname)) return null;
+  const asked = new URLSearchParams(page.search).get('data');
+  if (asked === null) return null;
+  const origin = DATA_SERVERS[asked] ?? asked;
+  return URL.canParse(origin) ? new URL(origin).origin : null;
+}
