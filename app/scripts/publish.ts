@@ -145,7 +145,7 @@ export async function publish(options: PublishOptions): Promise<void> {
 }
 
 /** Each section with what R2 lacks of it; a key R2 holds at another size stops the run. */
-async function plan(bucket: R2Bucket, sections: Section[]) {
+export async function plan(bucket: Pick<R2Bucket, 'list'>, sections: Section[]) {
   const plans: (Section & { missing: LocalObject[] })[] = [];
   const conflicts: string[] = [];
   for (const section of sections) {
