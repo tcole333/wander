@@ -47,6 +47,14 @@ def test_the_pinned_original_bakes_its_crop_at_each_width_and_any_other_is_refus
     assert all(abs(a - b) <= 6 for a, b in zip(center, TOP_RIGHT, strict=True))
 
 
+def test_a_16_bit_grayscale_original_bakes_its_grays_scaled_to_8_bits():
+    stream = io.BytesIO()
+    Image.new("I;16", (300, 200), 20000).save(stream, "TIFF")
+    baked = media.bake(stream.getvalue(), (0.0, 0.0, 1.0, 1.0))
+    gray = Image.open(io.BytesIO(baked[256].data)).getpixel((128, 85))
+    assert abs(gray - round(20000 / 257)) <= 2
+
+
 def test_the_stage_writes_both_keys_and_locks_them_with_the_credit_and_license(tmp_path):
     story = tmp_path / "stories" / "test" / "story.md"
     story.parent.mkdir(parents=True)
