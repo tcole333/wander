@@ -1,0 +1,277 @@
+/* The credits page (credits.html): the museum's room (room.css), the Wander mark above, and every
+   credit on a vellum sheet in the beat card's riveted brass frame, in the walk's own materials and
+   faces (tokens.css, walkUi.css). Headings are engraved small capitals, as the card's sources
+   are; the images carry the time ruler's roman beat numerals. */
+
+@import '@fontsource/libre-baskerville/400.css';
+@import '@fontsource/source-serif-4/400.css';
+@import '@fontsource/source-serif-4/400-italic.css';
+@import '@fontsource/source-serif-4/600.css';
+@import '../story/ui/tokens.css';
+@import '../story/ui/walkUi.css';
+@import './room.css';
+
+.credits-page {
+  margin: 0;
+  min-height: 100vh;
+  padding: 34px 16px 72px;
+  box-sizing: border-box;
+  background:
+    var(--room-lens) fixed,
+    var(--room) fixed,
+    #000;
+  font-family: var(--reading);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.credits-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--grain);
+  mix-blend-mode: screen;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.credits-mark {
+  width: 300px;
+  margin: 0 auto 30px;
+  text-align: center;
+  filter: drop-shadow(1px 2px 1px rgb(0 0 0 / 0.85)) drop-shadow(2px 4px 8px rgb(0 0 0 / 0.6));
+}
+
+.credits-mark a {
+  display: block;
+  text-decoration: none;
+}
+
+.credits-mark a:focus-visible,
+.credits-card a:focus-visible {
+  outline: 1px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+
+/* The card's foxing drawn for a sheet nearly three times as tall as it is wide, so its blotches
+   keep their shape rather than stretching down the page. */
+.credits-card .wu-sheet {
+  background:
+    var(--vellum-light),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='450' height='1200' viewBox='0 0 450 1200' preserveAspectRatio='none'><radialGradient id='e' r='0.7'><stop offset='0.68' stop-opacity='0'/><stop offset='1'/></radialGradient><filter id='x' x='0' y='0' width='1' height='1' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='0.045' numOctaves='4' seed='11'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.3 0 0 0 0 0.08 4 0 0 0 -2.05'/><feComposite in2='SourceGraphic' operator='in'/></filter><rect width='450' height='1200' fill='url(%23e)' filter='url(%23x)'/></svg>")
+      0 0 / 100% 100% no-repeat,
+    var(--fiber),
+    var(--vellum-ground);
+}
+
+/* The beat card's frame, standing in the page's flow at a reading width. */
+.credits-card.wu-card {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 720px;
+  max-width: 100%;
+  max-height: none;
+  margin: 0 auto;
+}
+
+.credits-card .wu-card-head {
+  padding: 30px 44px 0;
+}
+
+.credits-card .wu-title {
+  font-size: 30px;
+}
+
+.credits-section {
+  padding: 4px 44px 10px;
+}
+
+.credits-section + .credits-section {
+  margin-top: 8px;
+}
+
+/* An engraved heading over a hairline, as the card's sources fold under one. */
+.credits-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 14px;
+  font: 400 11px/1 var(--display);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-shadow: var(--engraved);
+}
+
+.credits-head::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background:
+    linear-gradient(90deg, rgb(74 53 24 / 0.55), rgb(74 53 24 / 0.3) 75%, transparent) top / 100%
+      1px no-repeat,
+    linear-gradient(90deg, rgb(255 247 222 / 0.7), rgb(255 247 222 / 0.35) 75%, transparent)
+      bottom / 100% 1px no-repeat;
+}
+
+.credits-lines,
+.credits-images {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credits-lines li {
+  position: relative;
+  margin: 0 0 8px;
+  padding-left: 20px;
+  font: 400 15px/1.55 var(--reading);
+}
+
+.credits-lines li::before {
+  content: '✦';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.credits-images li {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 4px;
+  margin: 0 0 14px;
+  font: 400 14.5px/1.55 var(--reading);
+}
+
+.credits-numeral {
+  padding-top: 1px;
+  font: 400 17px/1.3 var(--display);
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  text-shadow: var(--engraved);
+}
+
+.credits-beat {
+  display: block;
+  margin-bottom: 2px;
+  font: 400 10px/1.5 var(--display);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-shadow: var(--engraved);
+}
+
+.credits-license {
+  display: inline-block;
+  margin-left: 2px;
+  font: italic 400 13.5px/1.4 var(--reading);
+  color: var(--ink-faint);
+}
+
+.credits-aside {
+  margin: 4px 0 0 46px;
+  font: italic 400 13px/1.5 var(--reading);
+  color: var(--ink-faint);
+}
+
+.credits-sources {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 12px 18px;
+  margin: 0 0 8px;
+}
+
+.credits-sources dt {
+  padding-top: 4px;
+  font: 400 10px/1.5 var(--display);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-shadow: var(--engraved);
+}
+
+.credits-sources dd {
+  margin: 0;
+  font: 400 14.5px/1.55 var(--reading);
+}
+
+.credits-card cite {
+  font-style: italic;
+}
+
+.credits-card a {
+  color: #5b2a1f;
+  text-decoration-color: rgb(91 42 31 / 0.35);
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+.credits-card a:hover {
+  color: var(--garnet);
+  text-decoration-color: currentColor;
+}
+
+.credits-foot {
+  margin: 10px 44px 0;
+  padding: 16px 0 30px;
+  text-align: center;
+  background:
+    linear-gradient(
+        90deg,
+        transparent,
+        rgb(74 53 24 / 0.5) 20%,
+        rgb(74 53 24 / 0.5) 80%,
+        transparent
+      )
+      top / 100% 1px no-repeat,
+    linear-gradient(
+        90deg,
+        transparent,
+        rgb(255 247 222 / 0.6) 20%,
+        rgb(255 247 222 / 0.6) 80%,
+        transparent
+      )
+      0 1px / 100% 1px no-repeat;
+}
+
+/* Back to the globe: an engraved line, as the card's sources toggle is. */
+.credits-card a.credits-back {
+  font: 400 11px/1 var(--display);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-soft);
+  text-shadow: var(--engraved);
+}
+
+.credits-card a.credits-back::before {
+  content: '☜';
+  margin-right: 9px;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.credits-card a.credits-back:hover {
+  color: var(--garnet);
+}
+
+@media (max-width: 640px) {
+  .credits-card .wu-card-head,
+  .credits-section {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  .credits-sources {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .credits-sources dd {
+    margin-bottom: 10px;
+  }
+}
