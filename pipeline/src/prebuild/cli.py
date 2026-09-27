@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from prebuild import coverage, excerpts, fetch, modera, surface
+from prebuild import coverage, excerpts, fetch, media, modera, surface
 from prebuild.expect import clear_stamp, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
@@ -20,6 +20,7 @@ STAGES: dict[str, Runner] = {
     "coverage": coverage.run,
     "surface": surface.run,
     "modera": modera.run,
+    "media": media.run,
 }
 
 # A run with no stage named leaves these out: excerpts rewrites committed files, and media
@@ -52,8 +53,13 @@ def plan(
             parser.error(f"unknown stage {name!r} (stages: {_listed(stages)})")
         if profile is Profile.FIXTURE and name in RAW_DATA_ONLY:
             parser.error(f"the fixture profile reads no raw data, so it does not run {name}")
+    if "media" in named and args.story is None:
+        parser.error("media builds one story: name it with --story <id>")
+    if (args.story is not None or args.offline) and "media" not in named:
+        parser.error("--story and --offline go with the media stage")
     names = [name for name in stages if name in named] if named else default_stages(profile, stages)
-    return make_context(profile, args.jobs, repo), names
+    ctx = make_context(profile, args.jobs, repo, story=args.story, offline=args.offline)
+    return ctx, names
 
 
 def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGES) -> None:
@@ -104,6 +110,12 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         default=default_jobs(),
         metavar="N",
         help="worker processes (default: min(8, CPUs))",
+    )
+    parser.add_argument("--story", metavar="ID", help="the story media builds: stories/<ID>/")
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="media reads the committed sources in pipeline/tests/data/media/, not Commons",
     )
     parser.add_argument("stages", nargs="*", metavar="stage", help="stages to run (see below)")
     return parser

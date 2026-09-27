@@ -30,7 +30,7 @@ def planned(*argv: str) -> list[str]:
         (("surface", "coverage"), ["coverage", "surface"]),
         (("coverage", "coverage"), ["coverage"]),
         (("excerpts",), ["excerpts"]),
-        (("--profile", "region", "media"), ["media"]),
+        (("--profile", "region", "media", "--story", "tambora"), ["media"]),
         (("--profile", "fixture", "surface"), ["surface"]),
     ],
 )
@@ -48,6 +48,8 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("--profile", "moon"),
         ("--jobs", "0"),
         ("--jobs", "many"),
+        ("media",),
+        ("surface", "--story", "tambora"),
     ],
 )
 def test_plan_rejects_bad_arguments_with_exit_code_2(argv):
@@ -173,7 +175,7 @@ def test_other_profiles_write_no_sidecars(tmp_path):
 
 
 def test_the_stages_that_have_landed_are_registered_in_order():
-    assert list(STAGES) == ["fetch", "excerpts", "coverage", "surface", "modera"]
+    assert list(STAGES) == ["fetch", "excerpts", "coverage", "surface", "modera", "media"]
 
 
 def test_main_prints_usage_for_help(capsys):

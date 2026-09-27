@@ -34,9 +34,18 @@ class Context:
     stages_dir: Path  # stage records and, for the fixture, the test sidecars and stamp
     cache: Path
     jobs: int
+    story: str | None = None  # the story the media stage builds (--story)
+    offline: bool = False  # media reads committed sources instead of Commons (--offline)
 
 
-def make_context(profile: Profile, jobs: int, repo: Path = REPO_ROOT) -> Context:
+def make_context(
+    profile: Profile,
+    jobs: int,
+    repo: Path = REPO_ROOT,
+    *,
+    story: str | None = None,
+    offline: bool = False,
+) -> Context:
     build = repo / "build"
     return Context(
         profile=profile,
@@ -46,6 +55,8 @@ def make_context(profile: Profile, jobs: int, repo: Path = REPO_ROOT) -> Context
         stages_dir=build / "stages" / profile.value,
         cache=build / "cache",
         jobs=jobs,
+        story=story,
+        offline=offline,
     )
 
 
