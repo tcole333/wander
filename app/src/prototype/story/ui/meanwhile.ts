@@ -1,8 +1,11 @@
-// Meanwhile, at the top right: what else is happening during the current beat, each entry with a
-// compass needle pointing from the view's center toward it (turned with the view's heading, so it
-// points the way to look on screen) and the compass point it lies at. Choosing one flies there.
+// Meanwhile, at the top right: what else is happening during the current beat, or once the visitor
+// has scrubbed story time away from the beat's date, the entries nearest the time scrubbed to. Each
+// entry has a compass needle pointing from the view's center toward it (turned with the view's
+// heading, so it points the way to look on screen) and the compass point it lies at. Choosing one
+// flies there.
 import { arcKm, type ViewState } from '../../app/viewState';
 import type { MeanwhileByBeat, MeanwhileEntry, Walk, WalkState } from '../contract';
+import { nearestEntries } from '../meanwhile';
 import { el, onPress, svg } from './dom';
 import { bearingDeg, compassPoint, curlyQuotes } from './format';
 
@@ -10,6 +13,8 @@ import { bearingDeg, compassPoint, curlyQuotes } from './format';
 const ARRIVE_KM = 1500;
 /** An entry nearer the view's center than this share of the view's width is here. */
 const HERE_SHARE = 0.05;
+/** How many entries a scrub away from the beat's date shows. */
+const NEAREST = 3;
 
 interface Row {
   entry: MeanwhileEntry;
@@ -25,7 +30,8 @@ export class MeanwhilePanel {
   readonly #walk: Walk;
   readonly #byBeat: MeanwhileByBeat;
   readonly #list = el('ul', 'wu-mw-list');
-  #beatId: string | null = null;
+  /** The entries shown, by label, to tell when they change. */
+  #shown: string | null = null;
   #rows: Row[] = [];
 
   constructor(walk: Walk, byBeat: MeanwhileByBeat) {
@@ -35,10 +41,11 @@ export class MeanwhilePanel {
   }
 
   update(state: WalkState, view: ViewState): void {
-    const beatId = state.story.beats[state.beat]?.id ?? null;
-    if (beatId !== this.#beatId) {
-      this.#beatId = beatId;
-      this.#show(beatId === null ? [] : (this.#byBeat[beatId] ?? []));
+    const entries = this.#entries(state);
+    const shown = entries.map((entry) => entry.label).join('\n');
+    if (shown !== this.#shown) {
+      this.#shown = shown;
+      this.#show(entries);
     }
     for (const row of this.#rows) {
       const [lon, lat] = row.entry.at;
@@ -51,6 +58,15 @@ export class MeanwhilePanel {
       row.point.textContent = here ? 'Here' : compassPoint(bearing);
       if (!here) row.needle.setAttribute('transform', `rotate(${drawn} 16 16)`);
     }
+  }
+
+  /** The beat's own entries, or in a break-out scrubbed off the beat's date, the nearest. */
+  #entries(state: WalkState): MeanwhileEntry[] {
+    const beat = state.story.beats[state.beat];
+    if (!beat) return [];
+    const scrubbed = state.mode === 'breakout' && Math.abs(state.day - beat.day) >= 1;
+    if (scrubbed) return nearestEntries(this.#byBeat, state.day, NEAREST);
+    return this.#byBeat[beat.id] ?? [];
   }
 
   #show(entries: MeanwhileEntry[]): void {
