@@ -91,8 +91,10 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   await expect.poll(() => litFraction(page), { timeout: 90_000 }).toBeGreaterThan(0.05);
 
   const panel = page.getByRole('dialog', { name: 'Credits' });
+  // The sheet's heading, so a sheet hidden inside a shown dialog fails.
+  const sheet = panel.getByRole('heading', { name: 'Credits', exact: true });
   await page.locator('.lobby-credits').click({ timeout: 60_000 });
-  await expect(panel).toBeVisible();
+  await expect(sheet).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(panel).toBeHidden();
 
@@ -112,7 +114,7 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   // The card stays veiled until the walk lands, which CI's renderer reaches only after many slow
   // frames, so its Credits link is pressed as the keyboard would press it, without waiting.
   await page.locator('.wu-card-credits').dispatchEvent('click');
-  await expect(panel).toBeVisible();
+  await expect(sheet).toBeVisible();
   await panel.getByRole('button', { name: 'Close' }).click();
   await expect(panel).toBeHidden();
 
