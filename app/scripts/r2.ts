@@ -72,16 +72,17 @@ export class R2Bucket {
   /** Every key under `prefix` with its size, across ListObjectsV2's pages. */
   async list(prefix: string): Promise<Map<string, number>> {
     const sizes = new Map<string, number>();
+    const what = `list ${prefix}`;
     let token: string | undefined;
     do {
       const query = new URLSearchParams({ 'list-type': '2', prefix, 'max-keys': '1000' });
       if (token !== undefined) query.set('continuation-token', token);
-      const response = await this.send(`${this.base}?${query}`, { method: 'GET' });
-      const xml = await (await ok(response, `list ${prefix}`)).text();
+      const response = await this.send(`${this.base}?${query}`, { method: 'GET' }, what);
+      const xml = await (await ok(response, what)).text();
       for (const [, contents] of xml.matchAll(/<Contents>(.*?)<\/Contents>/gs)) {
         const key = tag(contents!, 'Key');
         const size = tag(contents!, 'Size');
-        if (key === undefined || size === undefined) throw new R2Error(`list ${prefix}: bad XML`);
+        if (key === undefined || size === undefined) throw new R2Error(`${what}: bad XML`);
         sizes.set(key, Number(size));
       }
       token = tag(xml, 'IsTruncated') === 'true' ? tag(xml, 'NextContinuationToken') : undefined;
@@ -91,7 +92,7 @@ export class R2Bucket {
 
   /** The object's headers, or undefined when the bucket has no such key. */
   async head(key: string): Promise<Headers | undefined> {
-    const response = await this.send(this.url(key), { method: 'HEAD' });
+    const response = await this.send(this.url(key), { method: 'HEAD' }, `HEAD ${key}`);
     if (response.status === 404) return undefined;
     return (await ok(response, `HEAD ${key}`)).headers;
   }
@@ -102,11 +103,8 @@ export class R2Bucket {
     body: Uint8Array<ArrayBuffer>,
     headers: ObjectHeaders,
   ): Promise<'created' | 'present'> {
-    const response = await this.send(this.url(key), {
-      method: 'PUT',
-      headers: { ...headers, 'If-None-Match': '*' },
-      body,
-    });
+    const init = { method: 'PUT', headers: { ...headers, 'If-None-Match': '*' }, body };
+    const response = await this.send(this.url(key), init, `PUT ${key}`);
     if (response.status === 412) {
       await response.body?.cancel();
       return 'present';
@@ -119,8 +117,12 @@ export class R2Bucket {
     return `${this.base}/${key.split('/').map(encodeURIComponent).join('/')}`;
   }
 
-  /** A signed request, signed again and retried with backoff on network errors, 429 and 5xx. */
-  private async send(url: string, init: RequestInit): Promise<Response> {
+  /**
+   * A signed request, signed again and retried with backoff on network errors, 429 and 5xx. A
+   * network error that outlasts the retries is thrown as its code alone, since fetch's own error
+   * names the endpoint's host.
+   */
+  private async send(url: string, init: RequestInit, what: string): Promise<Response> {
     for (let attempt = 1; ; attempt += 1) {
       try {
         const response = await this.client.fetch(url, init);
@@ -129,7 +131,7 @@ export class R2Bucket {
         }
         await response.body?.cancel();
       } catch (error) {
-        if (attempt === ATTEMPTS) throw error;
+        if (attempt === ATTEMPTS) throw new R2Error(`${what}: network error ${networkCode(error)}`);
       }
       const wait = BACKOFF_MS * 2 ** (attempt - 1) * (0.5 + Math.random());
       await new Promise((done) => setTimeout(done, wait));
@@ -145,6 +147,12 @@ async function ok(response: Response, what: string): Promise<Response> {
   if (response.ok) return response;
   const code = tag(await response.text(), 'Code');
   throw new R2Error(`${what}: HTTP ${response.status}${code === undefined ? '' : ` ${code}`}`);
+}
+
+/** A failed fetch's error code (ENOTFOUND, ECONNRESET…), which never names the host. */
+function networkCode(error: unknown): string {
+  const code = (error as { cause?: { code?: unknown } } | undefined)?.cause?.code;
+  return typeof code === 'string' ? code : 'without a code';
 }
 
 /** The text of the first `<name>` element, unescaped. */
