@@ -32,18 +32,32 @@ export class MissingError extends DataError {
  * Fetches data as the runtime does: cross-origin, without credentials, the body through a reader
  * (4.2, 5.2). A request with no response headers for `stallHeaders`, or whose body stops arriving
  * for `stallBytes`, is aborted; a body that keeps arriving, however slowly, never is. A failure
- * other than a 404 retries after each of `retryDelays`, with jitter; the last failure rejects.
+ * other than a 404 retries after each of `retryDelays`, with jitter; the last failure rejects, and
+ * so does a failure once `stillWanted` turns false while waiting to retry, freeing the request's
+ * place for one somebody wants.
  */
-export async function fetchData(url: string): Promise<ArrayBuffer> {
+export async function fetchData(url: string, stillWanted = () => true): Promise<ArrayBuffer> {
   for (const delay of tunables.retryDelays) {
     try {
       return await fetchOnce(url);
     } catch (error) {
       if (error instanceof MissingError) throw error;
+      await backoff(delay * (0.5 + Math.random()), stillWanted, error);
     }
-    await new Promise((wake) => setTimeout(wake, delay * (0.5 + Math.random())));
   }
   return fetchOnce(url);
+}
+
+/** How often a backoff asks whether the data is still wanted. */
+const RECHECK = 250;
+
+/** Waits `ms`, or rethrows `error` as soon as nobody wants the data any more. */
+async function backoff(ms: number, stillWanted: () => boolean, error: unknown): Promise<void> {
+  for (let left = ms; ; left -= RECHECK) {
+    if (!stillWanted()) throw error;
+    if (left <= 0) return;
+    await new Promise((wake) => setTimeout(wake, Math.min(left, RECHECK)));
+  }
 }
 
 async function fetchOnce(url: string): Promise<ArrayBuffer> {

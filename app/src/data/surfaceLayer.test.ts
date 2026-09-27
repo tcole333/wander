@@ -1,6 +1,6 @@
 // fetchData on a public network, with fetch stubbed and the clock faked: failures retry with
-// backoff, stalls abort and retry, a slow body that keeps arriving is left alone, and a 404 is
-// final.
+// backoff until nobody wants the bytes, stalls abort and retry, a slow body that keeps arriving is
+// left alone, and a 404 is final.
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { tunables } from '../config/tunables';
 import { DataError, fetchData, MissingError } from './surfaceLayer';
@@ -53,6 +53,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('fetchData', () => {
@@ -73,6 +74,20 @@ describe('fetchData', () => {
     await vi.runAllTimersAsync();
     await failure;
     expect(fetch).toHaveBeenCalledTimes(1 + tunables.retryDelays.length);
+  });
+
+  test('gives up while waiting to retry once nobody wants the bytes', async () => {
+    // The most jitter: the first backoff lasts 1.5 times its delay.
+    vi.spyOn(Math, 'random').mockReturnValue(1);
+    const fetch = network(lost);
+    let wanted = true;
+    let failure: unknown;
+    fetchData(TILE, () => wanted).catch((error: unknown) => (failure = error));
+    await vi.advanceTimersByTimeAsync(1);
+    wanted = false;
+    await vi.advanceTimersByTimeAsync(tunables.retryDelays[0]);
+    expect(failure).toBeInstanceOf(DataError);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   test('does not retry a 404', async () => {
