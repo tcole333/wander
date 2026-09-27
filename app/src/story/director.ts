@@ -129,8 +129,6 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
   const listeners = new Set<(state: WalkState) => void>();
   let notified = '';
 
-  control.go(beatView(first), true);
-
   const state = (): WalkState => ({
     story,
     beat,
@@ -273,6 +271,9 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     if (mode !== 'breakout') return;
     goTo(beat);
   };
+
+  if (options.arrive === 'fly') fly(beatView(first), 0);
+  else control.go(beatView(first), true);
 
   return {
     state,

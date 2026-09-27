@@ -40,6 +40,16 @@ describe('the walk', () => {
     expect(control.current.viewKm).toBe(beat(0).camera.viewKm);
   });
 
+  it('flies in to its first beat from the view it starts on, as from the lobby', () => {
+    const control = new ViewControl({ lon: 40, lat: 15, viewKm: 30000, tilt: 0, heading: 0 });
+    const walk = createWalk(story, control, { ready: () => true, arrive: 'fly' });
+    expect(walk.state()).toMatchObject({ beat: 0, mode: 'paused', flight: 0 });
+    expect(control.current.lon).toBe(40);
+    for (let t = 0; t < 6 && walk.state().flight !== null; t += DT) walk.update(0, DT);
+    expect(walk.state().flight).toBeNull();
+    expect(control.current.lon).toBeCloseTo(beat(0).camera.target[0], 6);
+  });
+
   it('flies to a beat and lands on its camera and date', () => {
     const { control, walk, run, land } = setup();
     walk.goTo(2);
