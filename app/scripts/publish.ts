@@ -21,7 +21,7 @@ import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import { localRelease, ReleaseError } from './release.ts';
 
-export const DATA_HOST = 'https://wander-data.traviscole.xyz';
+const DATA_HOST = 'https://wander-data.traviscole.xyz';
 const GENERATED = join(REPO_ROOT, 'app', 'src', 'generated', 'release.json');
 const CONCURRENCY = 24;
 const TILE = /\/\d+\/[0-5]\/\d+\/\d+\.wst$/;
@@ -52,13 +52,13 @@ export function releaseSections(release: Release, root: string): Section[] {
 }
 
 /** The canary: bounds.bin and the six L0 tiles, the first objects any page asks for. */
-export function canaryKeys({ surface }: Release): string[] {
+function canaryKeys({ surface }: Release): string[] {
   const l0 = [0, 1, 2, 3, 4, 5].map((face) => `surf/${surface.ver}/0/${face}/0/0.wst`);
   return [surface.bounds, ...l0];
 }
 
 /** release.json's bytes, the same bundled and on R2: two-space JSON and a trailing newline. */
-export function releaseJson(release: Release): string {
+function releaseJson(release: Release): string {
   return `${JSON.stringify(release, null, 2)}\n`;
 }
 

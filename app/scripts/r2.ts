@@ -1,16 +1,16 @@
 // The R2 bucket over its S3 API, for publish-data (streaming.md 4.3): paginated listing, HEAD, and
 // PUTs that never overwrite (If-None-Match: *, which R2 answers with 412 when the key exists),
 // signed with aws4fetch and retried with backoff on network errors, 429 and 5xx. The credentials
-// come from ~/.config/wander/r2.env, outside the repo (WANDER_R2_ENV names another file); their
-// values never reach a message or a log, and the ~/.aws profiles are never read.
+// come from ~/.config/wander/r2.env, outside the repo; their values never reach a message or a
+// log, and the ~/.aws profiles are never read.
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { AwsClient } from 'aws4fetch';
 import type { ObjectHeaders } from './objectHeaders.ts';
 
-export const BUCKET = 'wander-data';
-
+const BUCKET = 'wander-data';
+const R2_ENV = join(homedir(), '.config', 'wander', 'r2.env');
 const ATTEMPTS = 6;
 const BACKOFF_MS = 500;
 const CREDENTIALS = ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_ENDPOINT'] as const;
@@ -26,12 +26,8 @@ export interface R2Credentials {
   endpoint: string;
 }
 
-export function r2EnvPath(): string {
-  return process.env.WANDER_R2_ENV ?? join(homedir(), '.config', 'wander', 'r2.env');
-}
-
 /** The S3 credentials from a KEY=value file; a failure names the file and keys, never a value. */
-export function readR2Env(path: string = r2EnvPath()): R2Credentials {
+export function readR2Env(path: string = R2_ENV): R2Credentials {
   let text: string;
   try {
     text = readFileSync(path, 'utf8');
@@ -57,7 +53,7 @@ export class R2Bucket {
   private readonly client: AwsClient;
   private readonly base: string;
 
-  constructor(credentials: R2Credentials, bucket: string = BUCKET) {
+  constructor(credentials: R2Credentials) {
     const { accessKeyId, secretAccessKey, endpoint } = credentials;
     this.client = new AwsClient({
       accessKeyId,
@@ -66,7 +62,7 @@ export class R2Bucket {
       region: 'auto',
       retries: 0,
     });
-    this.base = `${endpoint.replace(/\/+$/, '')}/${bucket}`;
+    this.base = `${endpoint.replace(/\/+$/, '')}/${BUCKET}`;
   }
 
   /** Every key under `prefix` with its size, across ListObjectsV2's pages. */
