@@ -1,7 +1,8 @@
 // The sound knob at the top right, over Meanwhile: a small knurled brass knob, the ruler's knobs
 // in miniature (rulerCraft.ts), with a speaker cut into its face and filled with niello. While
 // sound is on the speaker sends out its waves; muted, a cross stands in their place and the knob
-// falls into shadow. Pressing it mutes or unmutes, as the M key does (audio/walkAudio.ts).
+// falls into shadow. Pressing it mutes or unmutes, as the M key does (audio/walkAudio.ts). The
+// Sound Cabinet's mute is the same knob.
 import type { SoundSwitch } from '../contract';
 import { button, svg } from './dom';
 import { smallKnob } from './rulerCraft';
