@@ -43,6 +43,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import type { CreateMuseumScene } from '../contract';
 import { instrumentOpacity, partOpacity } from './fade';
 import { buildInstrument, type FadePart } from './instrument';
+import { KEY_LAMP, LENS } from './lens';
 
 const DEG = Math.PI / 180;
 const MAX_PIXEL_RATIO = 2;
@@ -185,7 +186,7 @@ void main() {
   vec4 c = texture2D(tDiffuse, vUv);
   vec2 p = vUv - 0.5;
   p.x *= aspect;
-  float v = 1.0 - smoothstep(0.28, 1.05, length(p));
+  float v = 1.0 - smoothstep(${LENS.from.toFixed(2)}, ${LENS.to.toFixed(2)}, length(p));
   c.rgb *= mix(1.0 - vignette, 1.0, v);
   float g = fract(sin(dot(vUv * 1000.0 + time, vec2(12.9898, 78.233))) * 43758.5453);
   c.rgb += (g - 0.5) * grain;
@@ -202,7 +203,7 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
     bloomStrength: 0.42,
     bloomRadius: 0.45,
     bloomThreshold: 1.05,
-    vignette: 0.72,
+    vignette: LENS.vignette,
     grain: 0.02,
     ringsVisible: true,
     instrumentVisible: true,
@@ -229,7 +230,7 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
   scene.environmentIntensity = params.envIntensity;
 
   // One warm museum lamp high to the left, a warm rim from behind, and a faint room fill.
-  const key = new SpotLight(0xffd6a8, params.keyIntensity, 0, 0.62, 0.85, 0);
+  const key = new SpotLight(KEY_LAMP, params.keyIntensity, 0, 0.62, 0.85, 0);
   key.position.set(-4.2, 5.2, 9.5);
   key.castShadow = params.shadows;
   key.shadow.mapSize.set(2048, 2048);
