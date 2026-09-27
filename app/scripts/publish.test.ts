@@ -17,6 +17,17 @@ const FILES: Record<string, number> = {
   'surf/aaaa1111/1/0/0/0.wst': 200,
   // An older bake's version, left in the same output root.
   'surf/bbbb2222/0/0/0/0.wst': 300,
+  'fd/modera/cccc3333/mean/1816.bin': 90,
+  'fd/modera/cccc3333/spread/1816.bin': 60,
+  'fd/modera/cccc3333/annual.bin': 400,
+};
+const MODERA = {
+  ver: 'cccc3333',
+  years: [1816, 1816] as [number, number],
+  lat: [45, -45],
+  lon0: -180,
+  dlon: 90,
+  bytes: { mean: { '1816': 90 }, spread: { '1816': 60 }, annual: 400 },
 };
 
 let root: string;
@@ -52,6 +63,18 @@ describe('releaseSections', () => {
 
   test('refuses a version folder with fewer tiles than the release makes available', () => {
     expect(() => releaseSections(release('/wAAAA=='), root)).toThrow(/7 tiles, not the 8/);
+  });
+
+  test('names every climate file the modera section lists, with their sizes', () => {
+    const [, climate] = releaseSections({ ...release(SEVEN), modera: MODERA }, root);
+    const expected = Object.entries(FILES).filter(([key]) => key.startsWith('fd/modera/'));
+    expect(climate?.prefix).toBe('fd/modera/cccc3333/');
+    expect(climate?.objects.map(({ key, size }) => [key, size]).sort()).toEqual(expected.sort());
+  });
+
+  test('refuses a climate file of another size than the modera section gives', () => {
+    const modera = { ...MODERA, bytes: { ...MODERA.bytes, annual: 401 } };
+    expect(() => releaseSections({ ...release(SEVEN), modera }, root)).toThrow(/400 B, not/);
   });
 });
 
