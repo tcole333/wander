@@ -10,6 +10,7 @@ import {
   beatSpan,
   mixSpans,
   monthsIn,
+  platePrecision,
   spreadPips,
   yearsLabel,
 } from './format';
@@ -30,6 +31,17 @@ describe('the walk UI', () => {
       '6 June 1816',
       '28 August 1817',
     ]);
+  });
+
+  it("names the beat's month on the plate while the day stands on it, flying in or landed", () => {
+    const first = story.beats[0]!;
+    const on = { story, beat: 0, mode: 'paused' as const, day: first.day, advanceIn: null };
+    const flying = { flight: 0.4, flying: true };
+    const landed = { flight: null, flying: false };
+    expect(platePrecision({ ...on, ...flying })).toBe('month');
+    expect(platePrecision({ ...on, ...landed })).toBe('month');
+    expect(platePrecision({ ...on, ...flying, day: first.day - 3 })).toBe('day');
+    expect(platePrecision({ ...on, ...landed, mode: 'breakout' })).toBe('day');
   });
 
   it("dates the story by its beats' first and last years", () => {

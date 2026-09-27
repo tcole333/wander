@@ -28,7 +28,7 @@ import { civilFromDay, formatDay, monthName, yearLabel, type Precision } from '.
 import type { Walk, WalkState } from '../contract';
 import type { Story } from '../story';
 import { button, el, onPress, svg } from './dom';
-import { beatSpan, mixSpans, spreadPips, type Span } from './format';
+import { beatSpan, mixSpans, platePrecision, spreadPips, type Span } from './format';
 import {
   along,
   anchored,
@@ -1144,11 +1144,4 @@ function cartouche(x: number, y: number, w: number, h: number, n: number, tab: n
     `M${x + n} ${y}H${r - n}A${n} ${n} 0 0 0 ${r} ${y + n}V${b - n}A${n} ${n} 0 0 0 ${r - n} ${b}` +
     `${foot}H${x + n}A${n} ${n} 0 0 0 ${x} ${b - n}V${y + n}A${n} ${n} 0 0 0 ${x + n} ${y}Z`
   );
-}
-
-/** The plaque names the beat's date at the beat's precision while landed on it; else the day. */
-function platePrecision(state: WalkState): Precision {
-  const beat = state.story.beats[state.beat];
-  const landed = state.flight === null && state.mode !== 'breakout';
-  return beat && landed && Math.abs(state.day - beat.day) < 0.5 ? beat.precision : 'day';
 }
