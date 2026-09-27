@@ -231,6 +231,7 @@ focal: {qid: Q209625, at: [-72.0, 43.0]}
 image:
   commons: "File:Recollections of a lifetime - or men and things I have seen - in a series of familiar letters to a friend - historical, biographical, anecdotical, and descriptive (1856) (14740173686).jpg"
   sha1: "688583b7c4ac9f95461867b48dd311dce9299924"
+  credit: "Lossing & Barritt, for S. G. Goodrich"
   crop: [0, 0, 1, 1]
   alt: "An 1856 wood engraving, Emigration in 1817: a New England farmer with a staff holds his horse beside a covered wagon; his wife, holding a baby, rides on the load beside a cat, while three children and two dogs wait on the road."
 layers: [relief, coastline, landSea, water, labels, borders, {climate: {mode: monthly}}, events]
