@@ -36,8 +36,11 @@ export interface Instrument {
   fixed: Group;
   /** The meridian ring and its polar pivots: they tilt with the globe. */
   tilting: Group;
-  /** The two graduated rings, for the rings toggle. */
+  /** The two graduated rings' fade parts, for the rings toggle. */
   rings: Object3D[];
+  /** The meridian ring and the outer ring themselves, which the lobby's opening swings. */
+  meridian: Mesh;
+  outer: Mesh;
   gears: { mesh: Mesh; ratio: number }[];
   fadeParts: FadePart[];
 }
@@ -421,5 +424,5 @@ export function buildInstrument(): Instrument {
     fadeParts.push({ object: gear, samples: [new Vector3()], halfWidth: spec.radius });
   }
 
-  return { fixed, tilting, rings: [tilting, outer], gears, fadeParts };
+  return { fixed, tilting, rings: [tilting, outer], meridian, outer, gears, fadeParts };
 }
