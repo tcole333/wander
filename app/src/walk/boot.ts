@@ -6,7 +6,8 @@
 // and climate follow story time (story/effects/), and its sound follows the walk from the
 // visitor's first gesture (audio/walkAudio.ts). It starts paused on the first beat; Left and Right
 // step beats, Space plays or pauses, Escape resumes after the visitor breaks out to explore, and M
-// mutes.
+// mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing the story's plaque starts the
+// walk and flies into its first beat.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
@@ -26,10 +27,11 @@ import type { MuseumScene, Params, StreamerStats, SurfaceLook, SurfaceStreamer }
 import type { Release } from '../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
 import { ClearanceField } from '../globe/clearance';
+import { createLobby, type Lobby } from '../lobby/lobby';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { summarizeFrames } from '../perf/frameStats';
 import { createMuseumScene } from '../scene/museumScene';
-import type { MeanwhileByBeat, WalkEffects, WalkUi } from '../story/contract';
+import type { MeanwhileByBeat, Walk, WalkEffects, WalkUi } from '../story/contract';
 import { bindWalkKeys, createWalk, type DirectedWalk } from '../story/director';
 import { createWalkEffects } from '../story/effects/walkEffects';
 import type { Story } from '../story/story';
@@ -52,6 +54,8 @@ const FLOOR_LEVEL = 7;
  * a beat's neighbors (Makassar on the sound beat, Yunnan on the last) would slip under it.
  */
 const LENS_SHIFT = 0.35;
+/** The time constant with which the lens eases from the lobby's shift to the story's, seconds. */
+const LENS_EASE_S = 0.6;
 
 /** Frames the frame rate and p95 look back over. */
 const FRAMES = 120;
@@ -68,6 +72,11 @@ export interface StorySource {
 export interface BootOptions {
   /** The story to walk; without one, the globe is the visitor's to explore. */
   story?: StorySource | null;
+  /**
+   * Starts in the lobby, where choosing the story's plaque starts it, rather than on its first
+   * beat. Needs a story.
+   */
+  lobby?: boolean;
   /** Where the view starts. */
   view?: ViewState;
   /**
@@ -100,7 +109,10 @@ export interface WalkPage {
   control: ViewControl;
   /** The camera's params: the zoom floor, relief by zoom, the gimbal's facing, the pixel ratio. */
   cameraParams: Params;
-  story: StoryParts | null;
+  /** The story's parts, once it has started: at once, or when its plaque is chosen. */
+  readonly story: StoryParts | null;
+  /** The lobby, when the page starts in one. */
+  lobby: Lobby | null;
   stats(): WalkStats;
   /** True once the view has settled and the streamer has been idle for a while. */
   ready(): boolean;
@@ -137,7 +149,7 @@ export async function bootWalk(
 async function assemble(
   host: HTMLElement,
   release: Release,
-  { story: source = null, view = WORLD, tune = () => {} }: BootOptions,
+  { story: source = null, lobby: inLobby = false, view = WORLD, tune = () => {} }: BootOptions,
   made: (() => void)[],
 ): Promise<WalkPage> {
   const renderer = createRenderer();
@@ -220,34 +232,83 @@ async function assemble(
   control.go(control.goal, true);
   made.push(control.attach(renderer.domElement));
 
-  // A story's page steps through its beats. The walk flies the camera, and holds a late landing
-  // until the streamer has nothing in hand.
-  const [story, endStory] = source
-    ? startStory(source, release, control, look, labels, host, () => {
-        const s = streamer.stats();
-        return s.inFlight + s.decoding + s.uploading === 0;
-      })
-    : [null, () => {}];
-  made.push(endStory);
-  if (story) {
-    museum.globeMount.add(story.effects.group);
-    tune(story.effects.params);
-    await precompile(renderer, museum, camera, story.effects.group);
+  const deltas: number[] = [];
+  let last = performance.now();
+  let idleSince = Infinity;
+  let idleFrames = 0;
+  const ready = () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS;
+
+  // A story's effects hang in the globe frame from the start, so the precompile readies their
+  // programs. Its page steps through its beats: the walk flies the camera, and holds a late
+  // landing until the streamer has nothing in hand. It starts on its first beat, or in the lobby,
+  // which starts it when its plaque is chosen.
+  let story: StoryParts | null = null;
+
+  // What stands at the left shifts the lens right, and the streamer and the plaques read the
+  // shifted projection. In the lobby, the plaques: by half their reach, which centers the
+  // instrument in the room beside them. In a story, the card: by LENS_SHIFT of its reach, so each
+  // beat's place lands right of it and what lies around it clears both the card and Meanwhile. The
+  // lens eases from one to the other during the dive.
+  let cardShift = 0;
+  let shift = 0;
+  let drawnShift = NaN;
+  const measureLens = () => {
+    const card = story ? host.querySelector('.wu-card') : null;
+    cardShift = card ? LENS_SHIFT * card.getBoundingClientRect().right : 0;
+  };
+
+  const effects = source && createWalkEffects(source.story, look, labels, release);
+  if (effects) {
+    made.push(() => effects.dispose());
+    museum.globeMount.add(effects.group);
+    tune(effects.params);
+  }
+  const begin = (arrive: 'jump' | 'fly'): Walk => {
+    if (!source || !effects) throw new Error('the page has no story to begin');
+    const [parts, end] = startStory(source, effects, release, control, host, arrive, () => {
+      const s = streamer.stats();
+      return s.inFlight + s.decoding + s.uploading === 0;
+    });
+    made.push(end);
+    story = parts;
+    measureLens();
+    return parts.walk;
+  };
+  const lobby =
+    source && inLobby
+      ? createLobby({
+          host,
+          stories: [source.story],
+          places: Object.values(source.meanwhile).flatMap((entries) => entries.map((e) => e.at)),
+          museum,
+          control,
+          ready,
+          enter: () => begin('fly'),
+        })
+      : null;
+  if (lobby) made.push(() => lobby.dispose());
+  if (effects) {
+    await precompile(
+      renderer,
+      museum,
+      camera,
+      lobby ? [effects.group, lobby.glows] : [effects.group],
+    );
     // precompile drew every program once, and three checks each link at its first use.
     if (unlinked > 0) throw new DrawError(`${unlinked} shaders did not link`);
   }
-  const walk = story?.walk ?? null;
+  if (lobby && effects) effects.group.visible = false;
+  else if (source) begin('jump');
 
-  // In a story the card covers the view's left, so the lens shifts right by LENS_SHIFT of the
-  // card's reach: each beat's place lands right of the card, and what lies around it clears both
-  // the card and Meanwhile. The streamer and the plaques read the shifted projection.
-  const frameLens = () => {
-    const card = story ? host.querySelector('.wu-card') : null;
-    const shift = card ? LENS_SHIFT * card.getBoundingClientRect().right : 0;
-    if (shift === 0) return;
+  const frameLens = (dtS: number) => {
+    const target = lobby?.lensShift() ?? cardShift;
+    shift += (target - shift) * (1 - Math.exp(-dtS / LENS_EASE_S));
+    if (Math.abs(target - shift) < 0.05) shift = target;
+    if (shift === drawnShift) return;
+    drawnShift = shift;
     camera.setViewOffset(innerWidth, innerHeight, -shift, 0, innerWidth, innerHeight);
   };
-  frameLens();
+  frameLens(Infinity);
   const listeners = new AbortController();
   made.push(() => listeners.abort());
   addEventListener(
@@ -255,16 +316,13 @@ async function assemble(
     () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      frameLens();
+      measureLens();
+      drawnShift = NaN;
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     },
     { signal: listeners.signal },
   );
 
-  const deltas: number[] = [];
-  let last = performance.now();
-  let idleSince = Infinity;
-  let idleFrames = 0;
   made.push(() => renderer.setAnimationLoop(null));
   renderer.setAnimationLoop((now: number) => {
     const dt = Math.min(0.1, (now - last) / 1000);
@@ -275,8 +333,10 @@ async function assemble(
     if (renderer.getPixelRatio() !== cameraParams.pixelRatio) {
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
-    walk?.update(now, dt);
+    lobby?.update(now, dt, camera);
+    story?.walk.update(now, dt);
     control.step(now, dt);
+    frameLens(dt);
     const current = control.current;
     if (cameraParams.reliefByZoom) {
       const k = reliefForWidth(current.viewKm, cameraParams.reliefNear, cameraParams.reliefFar);
@@ -326,7 +386,10 @@ async function assemble(
     streamer,
     control,
     cameraParams,
-    story,
+    get story() {
+      return story;
+    },
+    lobby,
     stats: () => {
       const frame = summarizeFrames(deltas);
       const total = deltas.reduce((sum, d) => sum + d, 0);
@@ -338,7 +401,7 @@ async function assemble(
         altitudeKm: rig.altitude * 6371.0088,
       };
     },
-    ready: () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS,
+    ready,
     dispose() {
       for (const undo of made.splice(0).reverse()) undo();
     },
@@ -355,34 +418,33 @@ function createRenderer(): WebGLRenderer {
 }
 
 /**
- * The story mode's parts: the director, with input on the globe breaking out and the arrow keys
- * stepping beats instead of panning; the effects, with their plaques in `labels` and the climate
- * from the release's data host; the card, ruler, Meanwhile, climate legend and sound knob over
- * them in `root`, the card's images from the release's data host; and the sound. With them, what
- * ends the story.
+ * The story mode's parts: the director, arriving on the first beat by `arrive`, with input on the
+ * globe breaking out and the arrow keys stepping beats instead of panning; the story's `effects`,
+ * shown from now on; the card, ruler, Meanwhile, climate legend and sound knob over them in
+ * `root`, the card's images from `dataHost`; and the sound. With them, what ends the story (the
+ * effects end with the boot, which made them).
  */
 function startStory(
   { story, meanwhile }: StorySource,
-  release: Release,
+  effects: WalkEffects,
+  { dataHost }: Release,
   control: ViewControl,
-  look: SurfaceLook,
-  labels: HTMLElement,
   root: HTMLElement,
+  arrive: 'jump' | 'fly',
   ready: () => boolean,
 ): [StoryParts, () => void] {
-  const walk = createWalk(story, control, { ready });
+  const walk = createWalk(story, control, { ready, arrive });
   control.arrowKeys = false;
   control.onInput = () => walk.breakOut();
   const unbindKeys = bindWalkKeys(walk);
 
-  const effects = createWalkEffects(story, look, labels, release);
+  effects.group.visible = true;
   const sound = createWalkAudio();
-  const ui = createWalkUi(root, walk, meanwhile, sound, release.dataHost);
+  const ui = createWalkUi(root, walk, meanwhile, sound, dataHost);
   const end = () => {
     unbindKeys();
     sound.dispose();
     ui.dispose();
-    effects.dispose();
     walk.dispose();
   };
   return [{ walk, effects, ui, sound }, end];
@@ -400,7 +462,7 @@ async function precompile(
   renderer: WebGLRenderer,
   museum: MuseumScene,
   camera: PerspectiveCamera,
-  effects: Object3D,
+  effects: Object3D[],
 ): Promise<void> {
   const brass = new Set<Material>();
   museum.scene.traverse((object) => {
@@ -421,7 +483,7 @@ async function precompile(
   renderer.setRenderTarget(null);
   await Promise.all([opaque, fading]);
   target.dispose();
-  effects.traverse((object) => (object.visible = true));
+  for (const group of effects) group.traverse((object) => (object.visible = true));
   museum.render(camera);
 }
 
