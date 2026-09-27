@@ -1,10 +1,10 @@
 /* The lobby (plaques.ts, lobby.ts) in the walk's materials (tokens.css, walkUi.css): the walk's
    mark, a heading cut in gilt over a hairline, and each story's plaque in dark cast brass lit from
    the lamp at the upper left: an engraved medallion, the title in gilt, the years in brass small
-   capitals and the blurb in ivory. A hovered or focused plaque catches the lamp along its edge,
-   and an ember wakes in its socket and in its medallion's crater. The Credits link is engraved at
-   the top right. The walk's UI arrives from here: its ruler rises during the dive, and its card
-   and Meanwhile come in at the landing. */
+   capitals, the blurb in ivory and Begin at its foot. A hovered or focused plaque catches the lamp
+   along its edge, and an ember wakes in its socket and in its medallion's crater. The Credits link
+   is engraved at the top right. The walk's UI arrives from here: its ruler rises during the dive,
+   and its card and Meanwhile come in at the landing. */
 
 .lobby > .wu-mark,
 .lobby-column,
@@ -207,6 +207,32 @@
 
 .lobby-plaque:is(:hover, :focus-visible) .lobby-ember::after {
   opacity: 1;
+}
+
+/* Begin, engraved at the plaque's foot as the card's Sources are, brightening as the plaque is
+   lit. */
+.lobby-begin {
+  grid-column: 2 / -1;
+  justify-self: end;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 12px;
+  font: 400 11px/1 var(--display);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #b8955a;
+  text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.85);
+  transition: color 0.35s;
+}
+
+.lobby-begin-hand {
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.lobby-plaque:is(:hover, :focus-visible) .lobby-begin {
+  color: var(--brass-hi);
 }
 
 .lobby-credits {
