@@ -521,7 +521,7 @@
 /* The sound knob: the ruler's knobs in miniature at the top right, over Meanwhile, its face lit
    from the upper left with a speaker cut in and filled with niello (soundKnob.ts). Sound on, the
    speaker sends out its waves; muted, a cross stands in their place and the knob falls into
-   shadow. It stands under the lens with the panels. */
+   shadow. It stands under the lens with the panels, and presses in as the play knob does. */
 
 .wu-sound {
   position: relative;
@@ -562,6 +562,7 @@
   inset: 8px;
   width: 18px;
   height: 18px;
+  transition: scale 0.1s;
 }
 
 .wu-sound:hover {
@@ -570,6 +571,10 @@
 
 .wu-sound:active {
   filter: brightness(0.94);
+}
+
+.wu-sound:active .wu-sound-mark {
+  scale: 0.94;
 }
 
 .wu-niello,
