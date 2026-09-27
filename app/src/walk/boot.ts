@@ -27,7 +27,7 @@ import type { MuseumScene, Params, StreamerStats, SurfaceLook, SurfaceStreamer }
 import type { Release } from '../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
 import { ClearanceField } from '../globe/clearance';
-import { createLobby, type Lobby } from '../lobby/lobby';
+import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { summarizeFrames } from '../perf/frameStats';
 import { createMuseumScene } from '../scene/museumScene';
@@ -276,6 +276,10 @@ async function assemble(
     museum.globeMount.add(effects.group);
     tune(effects.params);
   }
+  // Flying in from the lobby, the story's effects come up from nothing as the lobby's glows go,
+  // so Tambora's ember never pops in: `rising` holds their strengths to come up to.
+  let rising: Params | null = null;
+  let risen = 0;
   const begin = (arrive: 'jump' | 'fly'): Walk => {
     if (!source || !effects) throw new Error('the page has no story to begin');
     const [parts, end] = startStory(source, effects, release, control, host, arrive, () => {
@@ -285,7 +289,17 @@ async function assemble(
     made.push(end);
     story = parts;
     measureLens();
+    if (arrive === 'fly') {
+      rising = { ...effects.params };
+      riseEffects(0);
+    }
     return parts.walk;
+  };
+  const riseEffects = (dtS: number) => {
+    if (!rising || !effects) return;
+    risen = Math.min(1, risen + dtS / GLOW_FADE_S);
+    for (const [name, full] of Object.entries(rising)) effects.params[name] = Number(full) * risen;
+    if (risen === 1) rising = null;
   };
   const lobby =
     source && inLobby
@@ -348,6 +362,7 @@ async function assemble(
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
     lobby?.update(now, dt, camera);
+    riseEffects(dt);
     story?.walk.update(now, dt);
     control.step(now, dt);
     frameLens(dt);

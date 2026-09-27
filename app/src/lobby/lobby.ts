@@ -28,8 +28,11 @@ const OPEN_WAIT_S = 4;
 const TURN_EASE_S = 1.5;
 /** How long the lobby waits after the visitor's last input before it turns again, in seconds. */
 const TURN_IDLE_S = 5;
-/** How long the glows take to go once a plaque is chosen, in seconds. */
-const GLOW_FADE_S = 0.8;
+/**
+ * How long the glows take to go once the plaque is chosen, in seconds, as the story's own effects
+ * come up (walk/boot.ts).
+ */
+export const GLOW_FADE_S = 0.8;
 /** How long the card and Meanwhile take to come in at the landing (lobby.css), in ms. */
 const ARRIVE_MS = 800;
 
