@@ -278,7 +278,7 @@ async function assemble(
     source && inLobby
       ? createLobby({
           host,
-          stories: [source.story],
+          story: source.story,
           places: Object.values(source.meanwhile).flatMap((entries) => entries.map((e) => e.at)),
           museum,
           control,

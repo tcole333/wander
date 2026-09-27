@@ -1,9 +1,9 @@
 // The lobby's DOM (lobby.css): the Wander mark where the walk has it, the Credits link engraved at
-// the top right, and at the left a column with a heading and each story's plaque in dark cast
-// brass: an engraved medallion, the title, the years and the blurb, and an ember that wakes in its
-// socket when the plaque is hovered or focused. A plaque is a button, so Tab reaches it and Enter
-// or Space chooses it. The column fades in as the opening ends and slides away once a plaque is
-// chosen.
+// the top right, and at the left a column with a heading and the story's plaque in dark cast
+// brass: an engraved medallion (Tambora's volcano, milestone 1's one story), the title, the years
+// and the blurb, and an ember that wakes in its socket when the plaque is hovered or focused. The
+// plaque is a button, so Tab reaches it and Enter or Space chooses it. The column fades in as the
+// opening ends and slides away once the plaque is chosen.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -21,13 +21,13 @@ export class Plaques {
   readonly #mark: HTMLElement;
   readonly #column = el('nav', 'lobby-column');
 
-  /** The plaques for `stories`; choosing one calls `onChoose` with it. */
-  constructor(stories: Story[], onChoose: (story: Story) => void) {
+  /** The plaque for `story`; choosing it calls `onChoose`. */
+  constructor(story: Story, onChoose: () => void) {
     this.#mark = mark();
     this.#column.setAttribute('aria-label', 'Stories');
     const rule = el('div', 'lobby-rule');
     this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule);
-    for (const story of stories) this.#column.append(plaque(story, () => onChoose(story)));
+    this.#column.append(plaque(story, onChoose));
     this.element.append(this.#mark, this.#column, creditsLink('lobby-credits'));
   }
 
