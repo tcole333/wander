@@ -72,6 +72,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   (`build/lab/`). It needs no build; the lab specs that read the region bake start its data server
   and fail, naming the command, when the bake is missing. Local only; it opens a tab in both
   browsers.
+- `npm run dev`, then `/prototype-audio.html`: the Sound Cabinet, every sound in `app/src/audio/`
+  on one page with its level. Every level lives in `app/src/audio/mix.ts`; Copy settings copies the
+  mix as JSON to paste over it. With the dev server up, `node scripts/renderSounds.ts --out <dir>`
+  renders every sound to WAV with its peak and RMS.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
