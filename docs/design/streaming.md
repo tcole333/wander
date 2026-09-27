@@ -621,10 +621,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      upload, because keys are content-versioned and a mismatch means a broken build or upload
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks their headers at the origin
      over the S3 API, then one tile through the data host with the app's `Origin`, since the edge
-     keeps whatever it sees for a year; `--canary-only` stops here
+     keeps whatever it sees for a year
    - uploads the rest of what R2 lacks, 24 at a time. Every PUT sends `If-None-Match: *`, which R2
      refuses with 412 when the key exists, so nothing is overwritten; a 412 is checked by size.
-   - lists again and checks every key's size
    - runs the publish check: GET 20 random new objects twice; expect `HIT` on the second (from this
      machine), a byte-exact sha, CORS and the right Content-Type
    - warms the cache (4.4)

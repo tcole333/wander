@@ -3,12 +3,12 @@
 // so older versions left there are never uploaded. R2 is listed first: keys are content-versioned,
 // so a key present with another size stops the run before any upload. The canary (bounds.bin and
 // the L0 tiles) goes up first and its headers are checked at the origin, then through the data
-// host, because the edge keeps whatever it sees for a year; the rest follows, then a second listing
-// checks every size. Every PUT carries If-None-Match: *, so nothing is overwritten. Last come the
-// bundled app/src/generated/release.json and its copy rel/<id>.json. The fixture never leaves this
-// machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
+// host, because the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
+// If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. Last
+// come the bundled app/src/generated/release.json and its copy rel/<id>.json. The fixture never
+// leaves this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
 //
-//   npm run publish-data -- [--profile global|region] [--dry-run] [--canary-only]
+//   npm run publish-data -- [--profile global|region] [--dry-run]
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -105,12 +105,10 @@ export interface PublishOptions {
   profile: (typeof PUBLISHED)[number];
   /** List R2 and report what an upload would send, writing nothing. */
   dryRun?: boolean;
-  /** Stop once the canary is up and checked. */
-  canaryOnly?: boolean;
 }
 
 export async function publish(options: PublishOptions): Promise<void> {
-  const { profile, dryRun = false, canaryOnly = false } = options;
+  const { profile, dryRun = false } = options;
   const root = resolve(REPO_ROOT, 'build', OUTPUT_DIR[profile]);
   const stages = resolve(REPO_ROOT, 'build', 'stages', profile);
   for (const required of [root, join(stages, 'coverage.json'), join(stages, 'surface.json')]) {
@@ -146,17 +144,9 @@ export async function publish(options: PublishOptions): Promise<void> {
   const tile = canaryObjects.find((object) => TILE.test(object.key))!;
   await checkDataHost(release.dataHost, tile);
   console.log('canary: its headers are right at the origin and through the data host');
-  if (canaryOnly) return;
 
   const rest = missing.filter((object) => object !== copy && !inCanary(object));
   await uploadAll(bucket, 'upload', rest);
-  for (const { prefix, objects } of sections) {
-    const remote = await bucket.list(prefix);
-    const wrong = objects.filter((object) => remote.get(object.key) !== object.size);
-    if (wrong.length > 0) {
-      throw new PublishError(`${wrong.length} keys under ${prefix} are not on R2 at their size`);
-    }
-  }
   mkdirSync(dirname(GENERATED), { recursive: true });
   writeFileSync(GENERATED, json);
   if (missing.includes(copy)) await uploadAll(bucket, 'release', [copy]);
@@ -289,7 +279,7 @@ function scaled(bytes: number): string {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // npm keeps a flag written before `--` as its own config and runs the script without it, so
   // `npm run publish-data --dry-run` would upload everything: a flag npm kept stops the run.
-  const kept = ['dry-run', 'canary-only', 'profile'].filter(
+  const kept = ['dry-run', 'profile'].filter(
     (flag) => process.env[`npm_config_${flag.replace('-', '_')}`] !== undefined,
   );
   if (kept.length > 0) {
@@ -299,7 +289,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     options: {
       profile: { type: 'string', default: 'global' },
       'dry-run': { type: 'boolean', default: false },
-      'canary-only': { type: 'boolean', default: false },
     },
   });
   const profile = PUBLISHED.find((name) => name === values.profile);
@@ -308,7 +297,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     throw new PublishError(`--profile must be global or region; ${serve}`);
   }
   try {
-    await publish({ profile, dryRun: values['dry-run'], canaryOnly: values['canary-only'] });
+    await publish({ profile, dryRun: values['dry-run'] });
   } catch (error) {
     const known = [PublishError, R2Error, ReleaseError].find((type) => error instanceof type);
     if (!known) throw error;
