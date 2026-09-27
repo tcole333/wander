@@ -5,31 +5,16 @@
 // key. Plain Node, so it runs outside Vite:
 //
 //   npm run data -- --profile fixture|region|global [--port N]
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { join, resolve, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolve, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { objectHeaders } from './objectHeaders.ts';
-import { localRelease } from './release.ts';
+import { localRelease, OUTPUT_DIR, profileBuild, type Profile } from './release.ts';
 
 /** Each profile's port, so the fixture and region servers can run side by side. */
-export const DATA_PORTS = { fixture: 8791, region: 8792, global: 8793 } as const;
-export type Profile = keyof typeof DATA_PORTS;
-
-/** Each profile's output root under build/ (streaming.md 7.1): the global profile writes build/out/. */
-export const OUTPUT_DIR: Record<Profile, string> = {
-  fixture: 'fixture',
-  region: 'region',
-  global: 'out',
-};
-
-/** The command that makes each profile's build, for the error when it is missing. */
-export const REBUILD: Record<Profile, string> = {
-  fixture: 'run `npm run fixture` in app/',
-  region: 'run `uv run prebuild --profile region` in pipeline/',
-  global: 'run `uv run prebuild` in pipeline/',
-};
+export const DATA_PORTS: Record<Profile, number> = { fixture: 8791, region: 8792, global: 8793 };
 
 // The zone's Transform Rule (4.2); each object's own headers come from objectHeaders.ts.
 const ZONE_HEADERS = { 'Access-Control-Allow-Origin': '*', 'Timing-Allow-Origin': '*' };
@@ -48,22 +33,14 @@ export interface DataServer {
   close(): Promise<void>;
 }
 
-export const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
-
 export class DataServerError extends Error {
   override name = 'DataServerError';
 }
 
 /** Starts serving `build/<profile>/`; throws, naming the command, when that build is missing. */
 export async function startDataServer(options: DataServerOptions): Promise<DataServer> {
-  const { profile, host = '127.0.0.1', repo = REPO_ROOT } = options;
-  const root = resolve(repo, 'build', OUTPUT_DIR[profile]);
-  const stages = resolve(repo, 'build', 'stages', profile);
-  for (const required of [root, join(stages, 'coverage.json'), join(stages, 'surface.json')]) {
-    if (!existsSync(required)) {
-      throw new DataServerError(`${required} is missing: ${REBUILD[profile]}`);
-    }
-  }
+  const { profile, host = '127.0.0.1', repo } = options;
+  const { root, stages } = profileBuild(profile, repo);
 
   let origin = '';
   const server = createServer((req, res) => {

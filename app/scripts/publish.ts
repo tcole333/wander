@@ -12,14 +12,13 @@
 //   npm run publish-data -- [--profile global|region] [--dry-run]
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type { Release, SurfaceRelease } from '../src/data/release.ts';
-import { OUTPUT_DIR, REBUILD, REPO_ROOT } from './dataServer.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
-import { localRelease, ReleaseError } from './release.ts';
+import { localRelease, OUTPUT_DIR, profileBuild, ReleaseError, REPO_ROOT } from './release.ts';
 
 const DATA_HOST = 'https://wander-data.traviscole.xyz';
 const GENERATED = join(REPO_ROOT, 'app', 'src', 'generated', 'release.json');
@@ -109,13 +108,7 @@ export interface PublishOptions {
 
 export async function publish(options: PublishOptions): Promise<void> {
   const { profile, dryRun = false } = options;
-  const root = resolve(REPO_ROOT, 'build', OUTPUT_DIR[profile]);
-  const stages = resolve(REPO_ROOT, 'build', 'stages', profile);
-  for (const required of [root, join(stages, 'coverage.json'), join(stages, 'surface.json')]) {
-    if (!existsSync(required)) {
-      throw new PublishError(`${required} is missing: ${REBUILD[profile]}`);
-    }
-  }
+  const { root, stages } = profileBuild(profile);
   const release = localRelease(stages, DATA_HOST);
   const json = releaseJson(release);
   const sections = releaseSections(release, root);
