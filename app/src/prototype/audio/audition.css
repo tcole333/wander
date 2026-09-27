@@ -792,3 +792,8 @@ body.au-room {
     var(--cast);
   cursor: pointer;
 }
+
+.au-sheet::selection {
+  background: rgb(176 138 74 / 0.4);
+  color: var(--ink);
+}
