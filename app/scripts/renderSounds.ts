@@ -2,9 +2,9 @@
 // (prototype-audio.html; the takes are in src/prototype/audio/render.ts) to 48 kHz 16-bit stereo
 // WAV in <out>: each voice several times over, detent scrubs by months and by days, a flight's
 // whir, the Tambora bed at three moments, each cue, and a stretch of the walk as it sounds (the
-// take walk-stretch). Prints each file's peak and RMS level in
-// dBFS, writes them to <out>/levels.json, and fails when a file clips. Plain Node, run from app/
-// with `npm run dev` up (--url defaults to its address):
+// take walk-stretch). Prints each file's peak and RMS level in dBFS, writes them to
+// <out>/levels.json, and fails when a file clips. Plain Node, run from app/ with `npm run dev` up
+// (--url defaults to its address):
 //
 //   node scripts/renderSounds.ts --out <dir> [--url http://localhost:5173] [--takes a,b]
 import { chromium } from '@playwright/test';
