@@ -23,7 +23,7 @@ const FILES: Record<string, number> = {
 };
 const MODERA = {
   ver: 'cccc3333',
-  years: [1816, 1816] as [number, number],
+  years: [1816, 1816],
   lat: [45, -45],
   lon0: -180,
   dlon: 90,
