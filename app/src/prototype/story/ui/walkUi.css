@@ -1,0 +1,800 @@
+/* The walk's UI: the spike's parchment card, brass panels and plaques, in the PRD's palette. */
+
+.wu {
+  --ink: #241d16;
+  --ink-soft: #4a3518;
+  --ink-faint: #6b4e22;
+  --vellum: #d8c7a2;
+  --parch-1: #e9dcbc;
+  --parch-2: #cdb78c;
+  --brass: #b08a4a;
+  --brass-lit: #c09652;
+  --brass-hi: #e3c486;
+  --brass-lo: #5e4521;
+  --garnet: #702735;
+  --ivory: #e8dcc5;
+  --display: 'Libre Baskerville', Baskerville, Georgia, serif;
+  --reading: 'Source Serif 4', Georgia, serif;
+
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  font-family: var(--reading);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.wu > * {
+  pointer-events: auto;
+}
+
+:where(.wu) button {
+  font: inherit;
+  color: inherit;
+}
+
+.wu button:focus-visible,
+.wu summary:focus-visible,
+.wu a:focus-visible {
+  outline: 1px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+
+.wu-parchment {
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgb(255 250 230 / 0.35), transparent 60%),
+    radial-gradient(90% 80% at 80% 100%, rgb(120 80 30 / 0.28), transparent 70%),
+    linear-gradient(160deg, var(--parch-1), var(--parch-2));
+  border: 1px solid #6e5227;
+  box-shadow:
+    inset 0 0 0 6px rgb(110 82 39 / 0),
+    inset 0 0 0 7px rgb(110 82 39 / 0.5),
+    inset 0 0 40px rgb(90 60 20 / 0.32),
+    0 18px 40px rgb(0 0 0 / 0.65),
+    0 0 0 3px #2a1f12,
+    0 0 0 4px #9a7640;
+}
+
+.wu-brass {
+  background: linear-gradient(#1b140d, #0f0b07);
+  border: 1px solid #8a6a36;
+  box-shadow:
+    inset 0 0 0 3px #120d08,
+    inset 0 0 0 4px rgb(200 160 90 / 0.35),
+    0 12px 30px rgb(0 0 0 / 0.6);
+}
+
+/* The mark */
+
+.wu-mark {
+  position: absolute;
+  top: 26px;
+  left: 34px;
+  width: 300px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.wu-mark-word {
+  font: 400 42px/1 var(--display);
+  letter-spacing: 0.16em;
+  margin-right: -0.16em;
+  background: linear-gradient(#f0d69c, #a67c3c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.9));
+}
+
+.wu-mark-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 7px;
+  color: var(--brass);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.wu-mark-rule span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brass));
+}
+
+.wu-mark-rule span:last-child {
+  background: linear-gradient(270deg, transparent, var(--brass));
+}
+
+.wu-mark-rule i {
+  font-style: normal;
+}
+
+.wu-mark-sub {
+  font: 400 9.5px/1 var(--display);
+  letter-spacing: 0.32em;
+  color: #a98b58;
+}
+
+/* The beat card */
+
+.wu-card {
+  position: absolute;
+  left: 30px;
+  top: 128px;
+  width: 420px;
+  max-height: calc(100% - 128px - 124px);
+  display: flex;
+  flex-direction: column;
+}
+
+.wu-card.is-fresh .wu-card-head,
+.wu-card.is-fresh .wu-body {
+  animation: wu-fade 0.45s ease both;
+}
+
+@keyframes wu-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.wu-card-head {
+  padding: 24px 30px 0;
+}
+
+.wu-date {
+  font: 600 11px/1.3 var(--reading);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-variant-numeric: lining-nums;
+}
+
+.wu-title {
+  margin: 8px 0 14px;
+  font: 400 23px/1.22 var(--display);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-wrap: balance;
+  text-shadow:
+    0 1px 0 rgb(255 248 225 / 0.6),
+    0 -1px 0 rgb(60 40 15 / 0.18);
+}
+
+.wu-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 30px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(110 82 39 / 0.55) transparent;
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--fade-top),
+    #000 calc(100% - var(--fade-bottom)),
+    transparent
+  );
+}
+
+.wu-text p {
+  margin: 0 0 10px;
+  font: 400 14.5px/1.55 var(--reading);
+  color: var(--ink);
+}
+
+.wu-figure {
+  margin: 16px 0 14px;
+  padding: 5px;
+}
+
+.wu-frame {
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  width: min(100%, calc(230px * var(--ar)));
+  aspect-ratio: var(--ar);
+  background: linear-gradient(160deg, #a58a5c, #7d6340);
+  box-shadow:
+    0 0 0 1px #3d2a12,
+    0 0 0 4px #c6a262,
+    0 0 0 5px #5e4521,
+    0 4px 12px 5px rgb(60 35 10 / 0.35);
+  transition: aspect-ratio 0.3s ease;
+}
+
+.wu-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 18px rgb(40 24 6 / 0.45);
+  pointer-events: none;
+}
+
+.wu-frame.is-loading {
+  animation: wu-glow 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes wu-glow {
+  to {
+    filter: brightness(1.12);
+  }
+}
+
+.wu-frame img {
+  position: absolute;
+  max-width: none;
+  width: calc(100% / var(--cw));
+  height: calc(100% / var(--ch));
+  left: calc(-100% * var(--cx) / var(--cw));
+  top: calc(-100% * var(--cy) / var(--ch));
+  opacity: 0;
+  filter: sepia(0.2) saturate(0.85) contrast(1.04);
+  transition: opacity 0.7s ease;
+  user-select: none;
+}
+
+.wu-frame img.wu-preview {
+  filter: sepia(0.2) saturate(0.85) contrast(1.04) blur(2px);
+}
+
+.wu-frame img.is-loaded {
+  opacity: 1;
+}
+
+.wu-plate {
+  position: absolute;
+  inset: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  text-align: center;
+  font: italic 400 13px/1.45 var(--reading);
+  color: #f1e3c2;
+  border: 1px solid rgb(241 227 194 / 0.35);
+}
+
+.wu-credit {
+  display: block;
+  margin-top: 10px;
+  font: 400 11px/1.3 var(--reading);
+  color: var(--ink-faint);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wu-credit:hover {
+  text-decoration: underline;
+}
+
+.wu-sources {
+  border-top: 1px solid rgb(90 62 26 / 0.4);
+  padding-top: 8px;
+}
+
+.wu-sources summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  list-style: none;
+  cursor: pointer;
+  font: 600 10.5px/1.4 var(--reading);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #3d2a12;
+}
+
+.wu-sources summary::-webkit-details-marker {
+  display: none;
+}
+
+.wu-sources summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.wu-sources[open] summary::after {
+  content: '\2013';
+}
+
+.wu-sources-count {
+  color: var(--ink-faint);
+  font-variant-numeric: lining-nums;
+}
+
+.wu-sources ol {
+  margin: 8px 0 2px;
+  padding: 0 0 0 18px;
+  font: 400 12.5px/1.4 var(--reading);
+  color: var(--ink-soft);
+}
+
+.wu-sources li {
+  margin-bottom: 7px;
+}
+
+.wu-sources li::marker {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.wu-sources a {
+  color: #5b2a1f;
+  text-decoration-color: rgb(91 42 31 / 0.35);
+  text-underline-offset: 2px;
+}
+
+.wu-source-by {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+
+.wu-controls {
+  display: flex;
+  align-items: center;
+  margin: 0 22px;
+  padding: 10px 6px 14px;
+  border-top: 1px solid rgb(90 62 26 / 0.5);
+}
+
+.wu-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wu-step {
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 600 10.5px/1 var(--reading);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #3d2a12;
+}
+
+.wu-step span {
+  font-size: 15px;
+  line-height: 0;
+}
+
+.wu-step:hover:not(:disabled) {
+  color: var(--garnet);
+}
+
+.wu-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.wu-play {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #f3dca4, #b08a4a 55%, #5e4521);
+  box-shadow:
+    0 0 0 1px #3d2a12,
+    inset 0 1px 1px rgb(255 240 200 / 0.6),
+    0 2px 5px rgb(40 25 5 / 0.45);
+}
+
+.wu-play:hover {
+  filter: brightness(1.07);
+}
+
+.wu-play-icon {
+  position: absolute;
+  inset: 6px;
+  width: 28px;
+  height: 28px;
+  fill: #2a1c0e;
+}
+
+.wu-play-ring {
+  position: absolute;
+  inset: -5px;
+  width: 50px;
+  height: 50px;
+  transform: rotate(-90deg);
+  fill: none;
+  pointer-events: none;
+}
+
+.wu-ring {
+  stroke: var(--garnet);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: opacity 0.3s;
+}
+
+.wu-count {
+  margin-left: auto;
+  font: 400 11.5px/1 var(--display);
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  font-variant-numeric: lining-nums;
+}
+
+/* Meanwhile */
+
+.wu-meanwhile {
+  position: absolute;
+  right: 26px;
+  top: 24px;
+  width: 300px;
+  padding: 14px 14px 14px;
+}
+
+.wu-meanwhile[hidden] {
+  display: none;
+}
+
+.wu-meanwhile.is-fresh .wu-mw-list {
+  animation: wu-fade 0.45s ease both;
+}
+
+.wu-mw-head {
+  margin: 2px 0 12px;
+  font: 400 17px/1.2 var(--display);
+  color: #d6b87c;
+  text-align: center;
+}
+
+.wu-mw-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wu-mw-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 10px 10px 14px;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  background: linear-gradient(160deg, var(--parch-1), var(--parch-2));
+  box-shadow:
+    inset 0 0 0 1px rgb(110 82 39 / 0.6),
+    inset 0 0 18px rgb(90 60 20 / 0.3);
+  transition: filter 0.15s;
+}
+
+.wu-mw-entry:hover {
+  filter: brightness(1.06);
+}
+
+.wu-mw-words {
+  flex: 1;
+  min-width: 0;
+}
+
+.wu-mw-label {
+  display: block;
+  font: 400 15px/1.25 var(--reading);
+  color: var(--ink);
+}
+
+.wu-mw-date {
+  display: block;
+  margin-top: 3px;
+  font: 600 9.5px/1.3 var(--reading);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-variant-numeric: lining-nums;
+}
+
+.wu-compass {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 44px;
+  padding-left: 8px;
+  border-left: 1px solid rgb(110 82 39 / 0.35);
+}
+
+.wu-compass-point {
+  font: 600 9px/1 var(--reading);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.wu-rose {
+  width: 32px;
+  height: 32px;
+}
+
+.wu-rose-ring {
+  fill: none;
+  stroke: rgb(94 69 33 / 0.75);
+  stroke-width: 0.8;
+}
+
+.wu-rose-ring.is-inner {
+  stroke-width: 0.5;
+  stroke-dasharray: 1 1.4;
+}
+
+.wu-rose-ticks {
+  stroke: rgb(94 69 33 / 0.8);
+  stroke-width: 0.9;
+}
+
+.wu-needle-g {
+  transition: transform 0.2s;
+}
+
+.wu-needle-n {
+  fill: var(--garnet);
+}
+
+.wu-needle-s {
+  fill: #8a6a36;
+}
+
+.wu-rose-pin {
+  fill: #e9dcbc;
+  stroke: #5e4521;
+  stroke-width: 0.6;
+}
+
+/* The time ruler */
+
+.wu-ruler {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 16px;
+  height: 88px;
+}
+
+.wu-scale {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  top: 0;
+  bottom: 0;
+}
+
+.wu-band {
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: 42px;
+  height: 32px;
+  padding: 0 8px;
+  cursor: ew-resize;
+  touch-action: none;
+  background: linear-gradient(#f0d69c 0%, #d0aa66 28%, #a67c3c 72%, #6f5027 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 240 200 / 0.75),
+    inset 0 -1px 0 rgb(40 25 5 / 0.6),
+    0 0 0 1px #2a1f12,
+    0 2px 6px rgb(0 0 0 / 0.6);
+}
+
+.wu-engraving {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.wu-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 7px;
+  background: rgb(42 28 14 / 0.75);
+  box-shadow: 1px 0 0 rgb(255 240 200 / 0.4);
+}
+
+.wu-tick.is-year {
+  height: 100%;
+  background: rgb(42 28 14 / 0.85);
+}
+
+.wu-month,
+.wu-year {
+  position: absolute;
+  white-space: nowrap;
+  color: rgb(42 28 14 / 0.9);
+  text-shadow: 0 1px 0 rgb(255 240 200 / 0.45);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.wu-month {
+  top: 9px;
+  transform: translateX(-50%);
+  font: 600 9px/1 var(--reading);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wu-year {
+  bottom: 3px;
+  margin-left: 5px;
+  font: 400 11.5px/1 var(--display);
+  letter-spacing: 0.04em;
+}
+
+.wu-leaders {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  width: 100%;
+  height: 16px;
+  overflow: visible;
+  fill: none;
+  stroke: rgb(200 160 90 / 0.55);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.wu-pip {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font: 600 10.5px/20px var(--reading);
+  color: #2a1c0e;
+  font-variant-numeric: lining-nums;
+  background: radial-gradient(circle at 35% 30%, #f3dca4, #b08a4a 60%, #6a4d24);
+  box-shadow:
+    0 0 0 1px #120d08,
+    0 1px 3px rgb(0 0 0 / 0.6);
+  transition:
+    transform 0.15s,
+    box-shadow 0.3s;
+}
+
+.wu-pip:hover {
+  transform: scale(1.12);
+}
+
+.wu-pip.is-current {
+  color: #f6e3c0;
+  background: radial-gradient(circle at 35% 30%, #d77a86, var(--garnet) 60%, #3a0f18);
+  box-shadow:
+    0 0 0 1px #120d08,
+    0 0 0 2px rgb(227 196 134 / 0.7),
+    0 0 10px rgb(200 60 70 / 0.55);
+}
+
+.wu-playhead {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  pointer-events: none;
+}
+
+.wu-needle {
+  position: absolute;
+  left: -1px;
+  top: 4px;
+  height: 40px;
+  width: 2px;
+  background: linear-gradient(transparent, #b3404f 30%, var(--garnet));
+}
+
+.wu-plate-date {
+  position: absolute;
+  left: 0;
+  top: 38px;
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  font: 400 13px/1 var(--display);
+  letter-spacing: 0.05em;
+  color: #2a1c0e;
+  font-variant-numeric: lining-nums tabular-nums;
+  background: linear-gradient(#f8e6b8, #d2ad69 50%, #a07a3d);
+  border: 1px solid #3d2a12;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 240 200 / 0.65),
+    inset 0 0 0 3px rgb(120 85 35 / 0.35),
+    0 3px 10px rgb(0 0 0 / 0.65);
+}
+
+.wu-ruler.is-scrubbing .wu-plate-date {
+  cursor: grabbing;
+}
+
+.wu-jewel {
+  position: absolute;
+  left: -7px;
+  top: 72px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #eaa3ad, #8a2a3a 45%, #3a0c16);
+  box-shadow:
+    0 0 0 2px #c9a260,
+    0 0 0 3px #3d2a12,
+    0 0 9px rgb(170 40 60 / 0.7);
+}
+
+/* The Resume plaque */
+
+.wu-resume {
+  position: absolute;
+  left: 50%;
+  bottom: 124px;
+  padding: 10px 26px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  font: 400 12px/1 var(--display);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fbe1b0;
+  background: linear-gradient(#20180f, #120d08);
+  border: 1px solid #d59a4e;
+  outline: 1px solid rgb(0 0 0 / 0.6);
+  box-shadow:
+    inset 0 0 0 2px #1a130b,
+    inset 0 0 0 3px rgb(226 190 120 / 0.35),
+    0 4px 14px rgb(0 0 0 / 0.7);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 6px);
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+
+.wu-resume.is-shown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.wu-resume:hover {
+  color: #fff0cc;
+  border-color: #eab46a;
+}
+
+.wu-compass.is-here .wu-needle-g {
+  opacity: 0;
+}
