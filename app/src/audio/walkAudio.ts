@@ -34,14 +34,15 @@ const CLUNK_GAP = 0.15;
  * second.
  */
 const FULL_PACE = 1.5;
-/** The whir's pace and the bed's day are passed on this often, s, or sooner on a real change. */
-const RESEND_S = 0.1;
+/** The least change in pace worth passing to the whir. */
 const PACE_STEP = 0.02;
+/** The bed's day is passed at most this often, s. */
+const BED_EVERY_S = 0.1;
 
 /** Where the mute is remembered. */
 const MUTED_KEY = 'wander.muted';
 /** The gestures that can unlock sound; a touch counts once it ends. */
-const GESTURES = ['pointerdown', 'keydown', 'touchstart', 'pointerup', 'touchend'] as const;
+const GESTURES = ['pointerdown', 'keydown', 'pointerup', 'touchend'] as const;
 
 /** One frame of the walk, as its sound hears it. */
 export interface WalkFrame {
@@ -78,7 +79,6 @@ export class WalkScore {
   #cues: CueHandle[] = [];
   #whir: Whir | null = null;
   #pace = 0;
-  #paceAt = -Infinity;
   #bedDay: number;
   #bedAt = -Infinity;
   #clunkAt = -Infinity;
@@ -132,9 +132,9 @@ export class WalkScore {
 
     if (state.flying) {
       this.#whir ??= whir(engine, at);
-      if (Math.abs(pace - this.#pace) >= PACE_STEP || at - this.#paceAt >= RESEND_S) {
+      if (Math.abs(pace - this.#pace) >= PACE_STEP) {
         this.#whir.setPace(pace, at);
-        [this.#pace, this.#paceAt] = [pace, at];
+        this.#pace = pace;
       }
     } else if (this.#whir) {
       this.#whir.stop(at);
@@ -142,7 +142,7 @@ export class WalkScore {
       this.#pace = 0;
     }
 
-    if (this.#bed && to !== this.#bedDay && at - this.#bedAt >= RESEND_S) {
+    if (this.#bed && to !== this.#bedDay && at - this.#bedAt >= BED_EVERY_S) {
       this.#bed.setDay(to, at);
       [this.#bedDay, this.#bedAt] = [to, at];
     }
