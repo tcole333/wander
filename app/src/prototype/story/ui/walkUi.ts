@@ -1,0 +1,56 @@
+// The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the Wander mark, the beat card
+// with the story's controls, the time ruler, Meanwhile and the Resume plaque, in the spike's look:
+// vellum on dark brass, Libre Baskerville for display and Source Serif 4 for reading.
+import '@fontsource/libre-baskerville/400.css';
+import '@fontsource/source-serif-4/400.css';
+import '@fontsource/source-serif-4/400-italic.css';
+import '@fontsource/source-serif-4/600.css';
+import './walkUi.css';
+import type { CreateWalkUi, WalkUi } from '../contract';
+import { BeatCard } from './card';
+import { button, el } from './dom';
+import { MeanwhilePanel } from './meanwhile';
+import { TimeRuler } from './ruler';
+
+export const createWalkUi: CreateWalkUi = (root, walk, meanwhile): WalkUi => {
+  const layer = el('div', 'wu');
+  const card = new BeatCard(walk);
+  const ruler = new TimeRuler(walk, walk.state().story);
+  const panel = new MeanwhilePanel(walk, meanwhile);
+  const resume = button('wu-resume', 'Resume story', () => walk.resume());
+  resume.textContent = 'Resume story';
+  layer.append(mark(), card.element, panel.element, ruler.element, resume);
+  root.append(layer);
+
+  let away: boolean | null = null;
+  return {
+    update(state, view) {
+      card.update(state);
+      ruler.update(state);
+      panel.update(state, view);
+      if ((state.mode === 'breakout') !== away) {
+        away = state.mode === 'breakout';
+        resume.classList.toggle('is-shown', away);
+        resume.tabIndex = away ? 0 : -1;
+      }
+    },
+    dispose() {
+      card.dispose();
+      ruler.dispose();
+      layer.remove();
+    },
+  };
+};
+
+/** The spike's wordmark: WANDER over a rule and its line. */
+function mark(): HTMLElement {
+  const header = el('header', 'wu-mark');
+  const rule = el('div', 'wu-mark-rule');
+  rule.append(el('span'), el('i', undefined, '✦'), el('span'));
+  header.append(
+    el('div', 'wu-mark-word', 'WANDER'),
+    rule,
+    el('div', 'wu-mark-sub', 'AN INTERACTIVE HISTORY'),
+  );
+  return header;
+}
