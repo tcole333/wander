@@ -1,6 +1,14 @@
-// Pure helpers for the walk's UI: the card's date line, the time ruler's calendar and beat pips,
-// Meanwhile's compass bearings, and typographer's quotes.
-import { civilFromDay, dayFromCivil, formatDay, monthName, yearLabel } from '../dates';
+// Pure helpers for the walk's UI: the card's date line, the time ruler's calendar, date plate and
+// beat pips, Meanwhile's compass bearings, and typographer's quotes.
+import type { WalkState } from '../contract';
+import {
+  civilFromDay,
+  dayFromCivil,
+  formatDay,
+  monthName,
+  yearLabel,
+  type Precision,
+} from '../dates';
 import type { LonLat, StoryBeat } from '../story';
 
 const DASH = '–';
@@ -15,6 +23,17 @@ export function dateLine(beat: StoryBeat): string {
   if (beat.precision === 'day' && end > start && end - start <= 31) return dayRange(start, end);
   if (beat.precision === 'month' && wholeMonths(start, end)) return monthRange(start, end);
   return formatDay(beat.day, beat.precision);
+}
+
+/**
+ * The precision the ruler's date plate names the day at: the beat's own while the day stands on
+ * the beat's date, landed or flying in without moving it (the lobby's dive); the day's while it
+ * slides between beats and once the visitor breaks out.
+ */
+export function platePrecision(state: WalkState): Precision {
+  const beat = state.story.beats[state.beat];
+  const onBeat = beat && state.mode !== 'breakout' && Math.abs(state.day - beat.day) < 0.5;
+  return beat && onBeat ? beat.precision : 'day';
 }
 
 /** The years a story's beats span, first to last: '1815–1817', or one year alone. */
