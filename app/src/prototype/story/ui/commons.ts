@@ -1,7 +1,7 @@
 // A beat's image straight from Wikimedia Commons (a local prototype: no mirror yet): one API call
 // per image gives a thumbnail wide enough for the crop to stay sharp, the original's size for the
 // frame's shape, and the author and license for the credit.
-import { creditLine } from './format';
+import { creditLine, plainText } from './format';
 
 export interface CommonsImage {
   /** A thumbnail wide enough that the crop fills the card at 2x. */
@@ -20,6 +20,15 @@ const API = 'https://commons.wikimedia.org/w/api.php';
 const CROP_PX = 680;
 /** Commons' largest standard thumbnail width; it rounds requests up to one of these. */
 const WIDTHS = [330, 500, 960, 1280, 1920, 3840];
+
+/**
+ * Makers for files whose Commons Artist field names the uploader instead: the Internet Archive's
+ * Flickr account. The maker stands in the credit before Commons' license.
+ */
+const MAKERS: Record<string, string> = {
+  'File:Recollections of a lifetime - or men and things I have seen - in a series of familiar letters to a friend - historical, biographical, anecdotical, and descriptive (1856) (14740173686).jpg':
+    'Lossing & Barritt, for S. G. Goodrich',
+};
 
 const cache = new Map<string, Promise<CommonsImage>>();
 
@@ -78,12 +87,16 @@ async function fetchImage(title: string, width: number): Promise<CommonsImage> {
     return typeof value === 'string' ? value : '';
   };
   const full = info.thumburl ?? info.url;
+  const maker = MAKERS[title];
+  const license = meta('LicenseShortName');
   return {
     full,
     preview: previewOf(full),
     width: info.width,
     height: info.height,
-    credit: creditLine(meta('Artist'), meta('Credit'), meta('LicenseShortName')),
+    credit: maker
+      ? `${maker} · ${plainText(license)}`
+      : creditLine(meta('Artist'), meta('Credit'), license),
     page: info.descriptionurl,
   };
 }
