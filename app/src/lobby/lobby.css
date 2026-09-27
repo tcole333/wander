@@ -2,9 +2,10 @@
    mark, a heading cut in gilt over a hairline, and each story's plaque in dark cast brass lit from
    the lamp at the upper left: an engraved medallion, the title in gilt, the years in brass small
    capitals, the blurb in ivory and Begin at its foot. A hovered or focused plaque catches the lamp
-   along its edge, and an ember wakes in its socket and in its medallion's crater. The Credits link
-   is engraved at the top right. The walk's UI arrives from here: its ruler rises during the dive,
-   and its card and Meanwhile come in at the landing. */
+   along its edge, and an ember wakes in its socket and in its medallion's crater. The lamp's pool
+   falls on the wall behind them, and the Credits link is engraved at the top right. The walk's UI
+   arrives from here: its ruler rises during the dive, and its card and Meanwhile come in at the
+   landing. */
 
 .lobby > .wu-mark,
 .lobby-column,
@@ -26,6 +27,27 @@
     opacity 0.9s ease var(--delay, 0s),
     translate 0.9s ease var(--delay, 0s),
     visibility 0s;
+}
+
+/* The lamp's pool on the wall at the upper left, where it lights the plaques. It comes up with the
+   column and goes with it. */
+.lobby::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 40% 60% at 14% 20%, rgb(var(--lamp) / 0.07), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.lobby.is-shown::before {
+  opacity: 1;
+}
+
+.lobby.is-leaving::before {
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
 }
 
 .lobby-column {
