@@ -97,7 +97,8 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   await page.locator('.lobby-credits').click({ timeout: 60_000 });
   await expect(sheet).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(panel).toBeHidden();
+  // The panel fades out over a few frames, which CI's software renderer draws seconds apart.
+  await expect(panel).toBeHidden({ timeout: 30_000 });
 
   await page.locator('.lobby-plaque').click();
   // The walk's card, not the Credits panel's sheet in the same frame.
@@ -117,7 +118,7 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   await page.locator('.wu-card-credits').dispatchEvent('click');
   await expect(sheet).toBeVisible();
   await panel.getByRole('button', { name: 'Close' }).click();
-  await expect(panel).toBeHidden();
+  await expect(panel).toBeHidden({ timeout: 30_000 });
 
   const credits = await page.goto('/credits');
   expect(credits?.status()).toBe(200);
