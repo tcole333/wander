@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walk UI</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: radial-gradient(ellipse 70% 80% at 52% 46%, #1b1610 0%, #090c0d 72%);
+      }
+      #globe {
+        position: fixed;
+        left: 50%;
+        top: 46%;
+        width: 820px;
+        height: 820px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(circle at 42% 38%, #22302d, #111b1b 55%, #070a0a);
+        box-shadow:
+          0 0 0 10px #2a1f12,
+          0 0 0 12px #8a6a36,
+          0 0 60px 20px rgb(0 0 0 / 0.8);
+      }
+      #focal {
+        position: fixed;
+        left: -9px;
+        top: -9px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffd9a0, #e8662c 45%, rgb(232 102 44 / 0) 70%);
+        box-shadow: 0 0 24px 8px rgb(232 102 44 / 0.45);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Dev-only harness for the Tambora walk's UI (issue #4): never built. ?beat=<1-8>. -->
+    <div id="globe"></div>
+    <div id="focal"></div>
+    <script type="module" src="/src/prototype/story/ui/harnessPage.ts"></script>
+  </body>
+</html>
