@@ -897,7 +897,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 ### 5.7 LOD, prefetch and readiness
 
 - **`lod.ts` is a pure function** of camera, viewport (CSS px), tier, exaggeration, availability and
-  per-node meter bounds (3.8), with frustum and horizon culling.
+  per-node meter bounds (3.8), with frustum and horizon culling. In milestone 1 it is
+  `app/src/stream/selectNodes.ts` (`NodeSelector`), promoted from the prototype under its own name.
   - **Refine** while a texel covers more than `refinePx` (1.5 CSS px lite, 0.83 full); **merge** below
     0.7× that. These are the beat model's Low and Medium profiles, so changing them invalidates the
     budgets in section 6 and the pool sizes.
