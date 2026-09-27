@@ -1,0 +1,372 @@
+/* The crafted time ruler (rulerCraft.ts): the brass band, its rail, knobs, gears and plaque. Each
+   part that moves or never changes is a layer of its own (will-change), so a frame never paints
+   the lit brass again. --shade is the canvas's vignette where a part sits. */
+
+.wu .rc {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 170px;
+  pointer-events: none;
+  --cut: #2a1a0a;
+  --lip: rgb(255 240 200 / 0.55);
+}
+
+.rc > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.rc-body,
+.rc-engraving,
+.rc-finish,
+.rc-gear {
+  overflow: visible;
+  will-change: transform;
+}
+
+.rc-gear {
+  filter: brightness(var(--shade, 1));
+}
+
+.rc-finish {
+  pointer-events: none;
+}
+
+/* Engraving: the dark cut over its lit lower lip. */
+
+.rc-cut {
+  fill: var(--cut);
+  stroke: var(--cut);
+}
+
+.rc-cut-lip {
+  fill: var(--lip);
+  stroke: var(--lip);
+}
+
+/* Niello: a cut filled with dark enamel, for the controls' glyphs. */
+.rc-niello {
+  fill: #1b1007;
+  stroke: #0d0703;
+  stroke-width: 0.6;
+}
+
+.rc text {
+  stroke: none;
+  font-variant-numeric: lining-nums;
+  user-select: none;
+}
+
+.rc-labels text {
+  text-shadow: 0.6px 0.9px 0 var(--lip);
+}
+
+.rc-tick {
+  fill: none;
+  stroke-width: 0.9;
+}
+
+.rc-tick.is-full {
+  stroke-width: 1.4;
+}
+
+.rc-tick.is-minor {
+  stroke-width: 0.7;
+}
+
+.rc-upper {
+  font: 600 11px/1 var(--reading);
+  letter-spacing: 0.24em;
+}
+
+.rc-upper.is-year {
+  font: 400 15px/1 var(--display);
+  letter-spacing: 0.1em;
+}
+
+.rc-month {
+  font: 600 11px/1 var(--reading);
+  letter-spacing: 0.16em;
+}
+
+.rc-year {
+  font: 400 16px/1 var(--display);
+  letter-spacing: 0.05em;
+}
+
+.rc-day {
+  font: 400 12.5px/1 var(--display);
+}
+
+.rc-leaders {
+  fill: none;
+  stroke-width: 0.8;
+}
+
+/* Gilt inlay on the dark rail. */
+.rc-gilt {
+  fill: #e2bf7c;
+  stroke: rgb(226 190 122 / 0.7);
+}
+
+.rc-gilt-shadow {
+  stroke: rgb(0 0 0 / 0.5);
+}
+
+.rc-numeral {
+  font: 600 8.5px/1 var(--reading);
+  letter-spacing: 0.08em;
+  text-shadow: 0.6px 0.9px 0 rgb(0 0 0 / 0.7);
+}
+
+.rc-numeral.is-off {
+  opacity: 0.45;
+}
+
+.rc-hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.rc.is-scrubbing .rc-hit,
+.rc.is-scrubbing .rc-plate {
+  cursor: grabbing;
+}
+
+/* The beats' studs on the rail */
+
+.rc-stud {
+  z-index: 1;
+  left: -7px;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: pointer;
+  background: radial-gradient(
+    circle at 36% 32%,
+    #fff3cf 0 7%,
+    #e2bd78 22%,
+    #a57b3c 58%,
+    #5a3f1a 88%,
+    #3a270f
+  );
+  box-shadow:
+    0 0 0 1px rgb(24 14 4 / 0.85),
+    1px 2px 3px rgb(0 0 0 / 0.75);
+  transition:
+    filter 0.15s,
+    box-shadow 0.2s;
+}
+
+.rc-stud::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+}
+
+.rc-stud:hover {
+  filter: brightness(1.25);
+  box-shadow:
+    0 0 0 1px rgb(24 14 4 / 0.85),
+    1px 2px 3px rgb(0 0 0 / 0.75),
+    0 0 8px 2px rgb(255 206 130 / 0.55);
+}
+
+.rc-stud.is-off {
+  filter: brightness(0.6) saturate(0.75);
+}
+
+.rc-stud.is-off:hover {
+  filter: brightness(0.95);
+}
+
+.rc-stud.is-current {
+  background: radial-gradient(
+    circle at 36% 32%,
+    #ffffff 0 8%,
+    #fbe4a8 20%,
+    #d9ae5e 52%,
+    #8a6128 85%,
+    #4a3312
+  );
+  box-shadow:
+    0 0 0 1px rgb(24 14 4 / 0.9),
+    0 0 0 2.5px rgb(236 200 132 / 0.55),
+    1px 2px 3px rgb(0 0 0 / 0.75),
+    0 0 10px 2px rgb(255 206 130 / 0.5);
+}
+
+/* The playhead and the plaque */
+
+.rc-playhead {
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: 0 0;
+  will-change: transform;
+  filter: brightness(var(--shade, 1)) drop-shadow(1px 2px 2px rgb(0 0 0 / 0.6));
+}
+
+.rc-playhead svg {
+  position: absolute;
+  left: -24px;
+  top: -24px;
+  overflow: visible;
+}
+
+.rc-plate {
+  z-index: 3;
+  width: 0;
+  height: 0;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  transform-origin: 0 0;
+  will-change: transform;
+  filter: brightness(var(--shade, 1));
+}
+
+.rc-plate-body,
+.rc-plate-text {
+  position: absolute;
+  overflow: visible;
+}
+
+/* The date changes while the plaque's lit body stays as it is, so each is a layer of its own. */
+.rc-plate-text {
+  will-change: transform;
+}
+
+.rc-plate-top {
+  font: 600 11px/1 var(--reading);
+  letter-spacing: 0.22em;
+}
+
+.rc-plate-year {
+  font: 400 22px/1 var(--display);
+  letter-spacing: 0.06em;
+}
+
+.rc-lever {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition:
+    filter 0.15s,
+    translate 0.15s;
+}
+
+.rc-lever svg {
+  display: block;
+  overflow: visible;
+}
+
+.rc-lever:hover:not(:disabled) {
+  filter: brightness(1.18) drop-shadow(0 0 4px rgb(255 206 130 / 0.5));
+}
+
+.rc-lever.is-back:hover:not(:disabled) {
+  translate: -2px 0;
+}
+
+.rc-lever.is-next:hover:not(:disabled) {
+  translate: 2px 0;
+}
+
+.rc-lever:active:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.rc-lever:disabled {
+  cursor: default;
+  filter: brightness(0.55) saturate(0.6);
+}
+
+.rc-cut-line {
+  fill: none;
+  stroke: rgb(42 26 10 / 0.6);
+  stroke-width: 0.8;
+}
+
+/* The knobs */
+
+.rc-knob {
+  z-index: 4;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  pointer-events: auto;
+  filter: brightness(var(--shade, 1));
+}
+
+.rc-knob > svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.rc-knurl,
+.rc-knob-mark,
+.rc-knob-ring {
+  will-change: transform;
+}
+
+.rc-play {
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.rc-play:hover {
+  filter: brightness(calc(var(--shade, 1) * 1.16)) drop-shadow(0 0 6px rgb(255 206 130 / 0.35));
+}
+
+.rc-play:active {
+  filter: brightness(calc(var(--shade, 1) * 0.95));
+}
+
+.rc-play .rc-knob-mark {
+  transition: scale 0.1s;
+}
+
+.rc-play:active .rc-knob-mark {
+  scale: 0.94;
+}
+
+.rc-ring {
+  fill: none;
+  stroke: #c8364c;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 2px rgb(230 70 90 / 0.8));
+  transition: opacity 0.3s;
+}
+
+.rc-count-num {
+  font: 400 25px/1 var(--display);
+  letter-spacing: 0.04em;
+}
+
+.rc-count-of {
+  font: 600 8.5px/1 var(--reading);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* The Resume plaque stands clear of the plaque at the band's crest. */
+
+.wu .wu-resume {
+  bottom: 152px;
+}
