@@ -12,12 +12,6 @@
         overflow: hidden;
         background: #050403;
       }
-      canvas {
-        position: fixed;
-        inset: 0;
-        display: block;
-        touch-action: none;
-      }
       #hud {
         position: fixed;
         left: 16px;
@@ -82,13 +76,6 @@
       body.story #hud {
         display: none;
       }
-      /* A story's place plaques, under its card, ruler and Meanwhile. */
-      #labels {
-        position: fixed;
-        inset: 0;
-        overflow: hidden;
-        pointer-events: none;
-      }
       /* The panel, closed, sits left of Meanwhile. */
       body.story .lil-gui.autoPlace {
         right: 344px;
@@ -99,7 +86,6 @@
     <!-- Dev-only: the look prototype (issue #4), served by the Vite dev server and never built.
          ?data=region|global|<origin>, ?view=<preset>, ?ui=0, ?story=tambora, and any module
          param by name. -->
-    <div id="labels"></div>
     <pre id="hud">loading…</pre>
     <div id="presets"></div>
     <div id="note" hidden></div>
