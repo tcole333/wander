@@ -1,5 +1,5 @@
 // The sound audition (prototype-audio.html, dev only): every sound in src/audio/ on one page for
-// the owner's first listen, in the walk's materials (walkUi.css): dark cast brass drawers holding
+// the owner's first listen, in the walk's materials (tokens.css, walkUi.css): dark cast brass drawers holding
 // vellum slips, engraved small caps, brass plaques and knurled knobs. Begin is the gesture that
 // unlocks audio. Then each voice, the Tambora bed with story time on a small ruler, and each cue
 // play from their slips, each with its level, and Copy settings copies the mix as JSON to paste
@@ -9,6 +9,7 @@ import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
 import '@fontsource/source-serif-4/600.css';
+import '../../story/ui/tokens.css';
 import '../../story/ui/walkUi.css';
 import './audition.css';
 import storyText from '../../../../stories/tambora/story.md?raw';
