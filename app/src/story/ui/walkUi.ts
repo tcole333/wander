@@ -20,13 +20,11 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound): WalkUi
   const layer = el('div', 'wu');
   const card = new BeatCard();
   const ruler = new CraftRuler(walk, walk.state().story);
-  const knob = sound ? new SoundKnob(sound) : null;
+  const knob = new SoundKnob(sound);
   const panel = new MeanwhilePanel(walk, meanwhile);
   const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
   resume.textContent = 'Resume story';
-  layer.append(mark(), card.element);
-  if (knob) layer.append(knob.element);
-  layer.append(panel.element, ruler.element, resume);
+  layer.append(mark(), card.element, knob.element, panel.element, ruler.element, resume);
   root.append(layer);
 
   let away: boolean | null = null;
@@ -34,7 +32,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound): WalkUi
     update(state, view) {
       card.update(state);
       ruler.update(state);
-      knob?.update();
+      knob.update();
       panel.update(state, view);
       if ((state.mode === 'breakout') !== away) {
         away = state.mode === 'breakout';

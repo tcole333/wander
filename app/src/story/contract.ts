@@ -82,12 +82,11 @@ export interface SoundSwitch {
   toggle(): void;
 }
 
-/** With `sound`, the UI carries its mute control. */
 export type CreateWalkUi = (
   root: HTMLElement,
   walk: Walk,
   meanwhile: MeanwhileByBeat,
-  sound?: SoundSwitch,
+  sound: SoundSwitch,
 ) => WalkUi;
 
 /**
