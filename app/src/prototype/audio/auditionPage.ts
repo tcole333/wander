@@ -3,7 +3,8 @@
 // vellum slips, engraved small caps, brass plaques and knurled knobs. Begin is the gesture that
 // unlocks audio. Then each voice, the Tambora bed with story time on a small ruler, and each cue
 // play from their slips, each with its level, and Copy settings copies the mix as JSON to paste
-// over src/audio/mix.ts.
+// over src/audio/mix.ts. window.__sound serves scripts/renderSounds.ts, which renders every sound
+// offline from this page.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -20,6 +21,16 @@ import { dayFromCivil, dayFromIso, formatDay } from '../../story/dates';
 import { parseStory } from '../../story/story';
 import { button, el, svg } from '../../story/ui/dom';
 import { flight, scrub } from './demos';
+import { render, TAKES, type Rendered } from './render';
+
+declare global {
+  interface Window {
+    __sound?: {
+      takes: string[];
+      render(name: string): Promise<Rendered>;
+    };
+  }
+}
 
 const mix: Mix = structuredClone(tunedMix);
 const story = parseStory(storyText);
@@ -48,6 +59,11 @@ const head = el('header', 'au-head');
 head.append(mark(), consolePanel());
 root.append(head, drawers);
 document.body.append(root);
+
+window.__sound = {
+  takes: Object.keys(TAKES),
+  render: (name) => render(name, mix),
+};
 
 function mark(): HTMLElement {
   const header = el('div', 'wu-mark');
