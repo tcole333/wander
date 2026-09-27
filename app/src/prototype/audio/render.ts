@@ -1,6 +1,6 @@
 // Every sound rendered offline for listening away from the page (scripts/renderSounds.ts): each
-// voice several times over, a scrub, a flight, the Tambora bed at three moments (and room tone
-// alone) and each cue, as 48 kHz 16-bit stereo WAV with its peak and RMS level.
+// voice several times over, a scrub by months and one by days, a flight, the Tambora bed at three
+// moments (and room tone alone) and each cue, as 48 kHz 16-bit stereo WAV with its peak and RMS.
 import { tamboraBed } from '../../audio/bed';
 import { CUE_NAMES, startCue, type CueName } from '../../audio/cues';
 import { SoundEngine } from '../../audio/engine';
@@ -59,6 +59,14 @@ export const TAKES: Record<string, Take> = {
       const [from, to] = [dayFromIso('1815-01-01'), dayFromIso('1818-01-01')];
       const back = scrub(engine, from, to, 2, 0.2) + 0.9;
       scrub(engine, to, from, 1.6, back);
+    },
+  },
+  'detent-scrub-days': {
+    seconds: 3.4,
+    play(engine) {
+      const [from, to] = [dayFromIso('1815-03-20'), dayFromIso('1815-04-20')];
+      const back = scrub(engine, from, to, 1.4, 0.2, 'day') + 0.4;
+      scrub(engine, to, from, 1.12, back, 'day');
     },
   },
   'whir-flight': {

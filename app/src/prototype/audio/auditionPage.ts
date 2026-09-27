@@ -142,19 +142,43 @@ function mechanismDrawer(): HTMLElement {
   const detentYear = voice('year', 'The ruler passes a year');
   detentYear.append(levelOf('detentYear'));
 
-  const [from, to] = [dayFromIso('1815-01-01'), dayFromIso('1818-01-01')];
-  const scrubSlip = slip('Scrub', 'Three years dragged past the playhead', [
-    trigger('Forward', (jewel) => {
-      const e = sound();
-      scrub(e, from, to, 2, e.soon());
-      flash(jewel, 2000);
-    }),
-    trigger('Back', (jewel) => {
-      const e = sound();
-      scrub(e, to, from, 1.6, e.soon());
-      flash(jewel, 1600);
-    }),
-  ]);
+  /** The ruler dragged across `span` and back, marked by `unit`, over about `seconds`. */
+  const scrubSlip = (
+    name: string,
+    line: string,
+    span: [string, string],
+    unit: 'month' | 'day',
+    seconds: number,
+  ) => {
+    const [from, to] = [dayFromIso(span[0]), dayFromIso(span[1])];
+    return slip(name, line, [
+      trigger('Forward', (jewel) => {
+        const e = sound();
+        scrub(e, from, to, seconds, e.soon(), unit);
+        flash(jewel, seconds * 1000);
+      }),
+      trigger('Back', (jewel) => {
+        const e = sound();
+        scrub(e, to, from, seconds * 0.8, e.soon(), unit);
+        flash(jewel, seconds * 800);
+      }),
+    ]);
+  };
+  const scrubMonths = scrubSlip(
+    'Scrub · months',
+    'Three years dragged past the playhead',
+    ['1815-01-01', '1818-01-01'],
+    'month',
+    2,
+  );
+  // Fast enough that the pacer holds the days to its limit through the middle of the drag.
+  const scrubDays = scrubSlip(
+    'Scrub · days',
+    'A month dragged past the playhead, day by day',
+    ['1815-03-20', '1815-04-20'],
+    'day',
+    1.4,
+  );
 
   const clunkSlip = slip('Clunk', 'A beat changes', [
     trigger('Sound', (jewel) => {
@@ -198,7 +222,7 @@ function mechanismDrawer(): HTMLElement {
   whirSlip.append(paceRow, levelOf('whir'));
   remix.push(() => held?.setPace(pace));
 
-  drawer.append(detentDay, detentMonth, detentYear, scrubSlip, clunkSlip, whirSlip);
+  drawer.append(detentDay, detentMonth, detentYear, scrubMonths, scrubDays, clunkSlip, whirSlip);
   return drawer;
 }
 
