@@ -1,9 +1,10 @@
 // The walk's story effects (contract.ts WalkEffects): the ember, the plume, pulses, callout
-// plaques, and the illustrative ash and veil, each a function of story time, so scrubbing backward
-// shows the right state. The plume, ash and veil belong to the story: any beat that lists them
-// turns them on for every beat, and story time alone shows or hides them, so they never vanish as
-// a flight leaves the beat that lists them. Pulses and plaques come from the beat's effect list,
-// and its layers switch the look's lines and bathymetry. Every mesh is made up front, the story's
+// plaques, the illustrative ash and veil, and ModE-RA's real climate, each a function of story
+// time, so scrubbing backward shows the right state. The plume, ash and veil belong to the story:
+// any beat that lists them turns them on for every beat, and story time alone shows or hides them,
+// so they never vanish as a flight leaves the beat that lists them. Pulses and plaques come from
+// the beat's effect list, and its layers switch the look's lines, bathymetry and climate
+// (climate.ts). Where the climate's data is drawn, the illustrative veil gives way to it. Every mesh is made up front, the story's
 // pulses too, so their shaders compile before the walk starts (walk/boot.ts). `group` hangs from
 // the museum's globeMount (the globe frame, radius 1).
 import {
@@ -16,11 +17,13 @@ import {
   type SpotLight,
 } from 'three';
 import { ashUniformsOf } from '../../look/ashHook';
+import { climateUniformsOf } from '../../look/climateHook';
 import type { Params, ViewportCss } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
 import { dayFromIso } from '../dates';
 import type { LonLat, Story, StoryBeat } from '../story';
 import { Callouts } from './callouts';
+import { WalkClimate } from './climate';
 import { Ember } from './ember';
 import { dirOf, EARTH_KM, EARTH_M, tangents } from './geo';
 import { Plume, VENT_M } from './plume';
@@ -67,8 +70,13 @@ function emberPlace(story: Story, beat: StoryBeat): { at: LonLat; vent: boolean 
   return { at: erupting.at, vent: true };
 }
 
-export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => {
-  const params: Params = { ember: 1, plume: 1, pulses: 1, labels: 1, ash: 1, veil: 1 };
+export const createWalkEffects: CreateWalkEffects = (
+  story,
+  look,
+  labelRoot,
+  source = { dataHost: '' },
+) => {
+  const params: Params = { ember: 1, plume: 1, pulses: 1, labels: 1, ash: 1, veil: 1, climate: 1 };
   const group = new Group();
   group.name = 'walk-effects';
   const ember = new Ember();
@@ -76,6 +84,8 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
   group.add(ember.group, veil.mesh);
   const callouts = new Callouts(labelRoot);
   const ash = ashUniformsOf(look.material);
+  const climate = new WalkClimate(story, source, climateUniformsOf(look.material));
+  let lastS: number | null = null;
   const defaults = new Map(LAYERS.map(([, param]) => [param, look.params[param]]));
 
   const erupting = story.beats.map(plumeOf).find(Boolean);
@@ -121,6 +131,8 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
       const day = state.day;
       const kLand = look.params.flatRelief === true ? 0 : Number(look.params.kLand);
       const strength = (name: string) => Math.max(0, Number(params[name]));
+      const dtS = lastS === null ? 0 : Math.min(0.1, Math.max(0, t - lastS));
+      lastS = t;
 
       // The camera and the lamp in the globe frame, and the globe frame as the camera sees it.
       globe.updateWorldMatrix(true, false);
@@ -188,16 +200,33 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
         }
       }
 
-      // Veil, by the view's width under the camera.
+      // Climate, through the look.
+      climate.update(state, dtS, strength('climate'));
+
+      // Veil, by the view's width under the camera, giving way where climate data is drawn.
       const altitude = Math.max(0, camera.length() - 1);
       const wideKm = 2 * altitude * tanHalf * cam.aspect * EARTH_KM;
-      veil.update(day, kLand, wideKm, camera, lampLocal, veilOn ? strength('veil') : 0, t);
+      const veilStrength = veilOn ? strength('veil') * (1 - climate.drawn) : 0;
+      veil.update(day, kLand, wideKm, camera, lampLocal, veilStrength, t);
 
       callouts.update(state.flight === null, cam, camera, globe, viewport, strength('labels'));
     },
 
+    climate() {
+      const month = climate.month;
+      if (!month) return null;
+      return {
+        ...month,
+        rangeK: Number(look.params.climateRangeK),
+        style: Number(look.params.climateStyle) === 1 ? 'cloisonne' : 'wash',
+        base: String(look.params.bronze),
+        strength: climate.drawn,
+      };
+    },
+
     dispose() {
       if (ash) ash.lookAshStrength.value = 0;
+      climate.dispose();
       for (const [param, value] of defaults) if (value !== undefined) look.params[param] = value;
       plume?.draw.dispose();
       for (const pulse of allPulses) pulse.dispose();
