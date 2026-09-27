@@ -2,8 +2,10 @@
 // the drawn nodes for the camera, requests the tiles they want coarsest first and nearest the view
 // center first, decodes them in the workers, uploads them into the surface pools within the frame's
 // byte budget, and packs the drawn instances with their sources and seam flags. One request queue,
-// rebuilt every frame, so requests nobody wants any more simply drop; no request classes, watchdog
-// or byte cache.
+// rebuilt every frame, so requests nobody wants any more simply drop; no request classes or byte
+// cache. fetchData aborts a stalled request and retries a failed one; a tile that still fails draws
+// from its ancestors for `degradeFor`, then is wanted again, and one the data host lacks (a 404)
+// never is.
 import {
   Frustum,
   Matrix4,
@@ -15,7 +17,13 @@ import {
 import { tunables } from '../config/tunables';
 import type { CreateSurfaceStreamer, SurfaceStreamer } from '../contract';
 import type { Release } from '../data/release';
-import { DataError, fetchData, loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
+import {
+  DataError,
+  fetchData,
+  loadSurfaceLayer,
+  MissingError,
+  type SurfaceLayer,
+} from '../data/surfaceLayer';
 import { flagsNeedUp, INSTANCE_WORDS, packInstance, type InstanceState } from '../globe/instances';
 import { ancestorAt, CoverError, seamFlags, type DrawnNode } from '../globe/seamFlags';
 import { GRID_SEGMENTS } from '../globe/tileGrid';
@@ -59,6 +67,7 @@ export interface StreamerDetails {
   queued: number;
   /** Tiles the drawn nodes want past WANT_MAX, left unrequested. */
   trimmed: number;
+  /** Tiles that failed lately or are missing, whose nodes draw from their ancestors. */
   failed: number;
   culled: number;
   /** Drawn nodes per source level, L0 first. */
@@ -148,7 +157,8 @@ export const createSurfaceStreamer = (async (
   const waiting = new Map<string, Waiting>();
   /** Tiles in the upload queue, holding reserved slots. */
   const uploading = new Set<string>();
-  const failed = new Set<string>();
+  /** Tiles that failed, with the time they may be requested again: never, for a missing one. */
+  const failed = new Map<string, number>();
   const logged = new Set<string>();
   /** The tiles the drawn nodes want this frame, with their ancestors down to L2. */
   const wanted = new Map<string, Tile>();
@@ -178,9 +188,18 @@ export const createSurfaceStreamer = (async (
     logged.add(message);
     console.warn(`streamer: ${message}`);
   };
-  const fail = (key: string, error: string) => {
-    failed.add(key);
-    logOnce(`${key} failed: ${error}`);
+  const fail = (key: string, error: unknown) => {
+    const missing = error instanceof MissingError;
+    failed.set(key, missing ? Infinity : performance.now() + tunables.degradeFor);
+    logOnce(`${key} ${missing ? 'is missing' : 'failed'}: ${String(error)}`);
+  };
+  /** Whether `key` failed lately. An entry past its time is dropped, so the tile is wanted again. */
+  const failing = (key: string) => {
+    const until = failed.get(key);
+    if (until === undefined) return false;
+    if (until > performance.now()) return true;
+    failed.delete(key);
+    return false;
   };
   const resident = (tile: Tile) => table.stateOf(tileKey(tile)) === 'resident';
   const usable = (tile: Tile) =>
@@ -247,7 +266,7 @@ export const createSurfaceStreamer = (async (
   }
 
   function wantable(tile: Tile): boolean {
-    return layer.available(tile) && !failed.has(tileKey(tile));
+    return layer.available(tile) && !failing(tileKey(tile));
   }
 
   /**
@@ -313,7 +332,7 @@ export const createSurfaceStreamer = (async (
         !inFlight.has(key) &&
         !decoding.has(key) &&
         !waiting.has(key) &&
-        !failed.has(key),
+        !failing(key),
     );
     queued = missing.length;
     const pending = () => inFlight.size + decoding.size + waiting.size + uploading.size;
@@ -339,7 +358,7 @@ export const createSurfaceStreamer = (async (
         },
         (error: unknown) => {
           inFlight.delete(key);
-          fail(key, String(error));
+          fail(key, error);
         },
       );
     }
