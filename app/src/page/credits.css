@@ -1,15 +1,9 @@
 /* The credits page (credits.html): the museum's room (room.css), the Wander mark above, and every
    credit on a vellum sheet in the beat card's riveted brass frame, in the walk's own materials and
-   faces (tokens.css, walkUi.css). Headings are engraved small capitals, as the card's sources
+   faces (static.css). Headings are engraved small capitals, as the card's sources
    are; the images carry the time ruler's roman beat numerals. */
 
-@import '@fontsource/libre-baskerville/400.css';
-@import '@fontsource/source-serif-4/400.css';
-@import '@fontsource/source-serif-4/400-italic.css';
-@import '@fontsource/source-serif-4/600.css';
-@import '../story/ui/tokens.css';
-@import '../story/ui/walkUi.css';
-@import './room.css';
+@import './static.css';
 
 .credits-page {
   margin: 0;
