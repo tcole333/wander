@@ -6,23 +6,28 @@
 // HUD, for screenshots), and any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
-// ?story=tambora walks the story instead of the presets (story/director.ts): it starts paused on
-// the first beat; Left and Right step beats, Space plays or pauses, and Escape resumes after the
-// visitor breaks out to explore. window.__walk serves scripts.
-import { Mesh, PerspectiveCamera, WebGLRenderer } from 'three';
+// ?story=tambora walks the story instead of the presets: the director flies between its beats
+// (story/director.ts), the card, time ruler and Meanwhile sit over the globe (story/ui/), and the
+// ember, plume, plaques, ash and veil follow story time (story/effects/). It starts paused on the
+// first beat; Left and Right step beats, Space plays or pauses, and Escape resumes after the
+// visitor breaks out to explore. The panel starts closed. window.__walk serves scripts
+// (scripts/walkShots.ts).
+import { Mesh, PerspectiveCamera, WebGLRenderer, type Object3D } from 'three';
 import type { Release } from '../../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
 import { ClearanceField } from '../../globe/clearance';
 import { summarizeFrames } from '../../perf/frameStats';
 import { faceOf, faceSt, lonLatToDir, tileOf } from '../../surface/cube';
-import type { Params, StreamerStats } from '../contract';
+import type { Params, StreamerStats, SurfaceLook } from '../contract';
 import { createSurfaceStreamer } from '../globe/streamer';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { createMuseumScene } from '../scene/museumScene';
-import type { WalkState } from '../story/contract';
-import { formatDay } from '../story/dates';
+import type { MeanwhileByBeat, WalkEffects, WalkState, WalkUi } from '../story/contract';
 import { bindWalkKeys, createWalk, type DirectedWalk, type FlightRecord } from '../story/director';
-import { parseStory, type Story } from '../story/story';
+import { createWalkEffects } from '../story/effects/walkEffects';
+import { meanwhileFromJson } from '../story/meanwhile';
+import { parseStory, type LonLat, type Story } from '../story/story';
+import { createWalkUi } from '../story/ui/walkUi';
 import { CameraRig, maxViewKm, type Relief } from './cameraRig';
 import { addParams, applyQuery, GUI } from './panel';
 import { ViewControl } from './viewControl';
@@ -53,9 +58,20 @@ const PRESETS: Record<string, ViewState> = {
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
 };
 
-/** The stories ?story= walks, read as text by Vite. */
-const STORIES: Record<string, () => Promise<{ default: string }>> = {
-  tambora: () => import('../../../../stories/tambora/story.md?raw'),
+interface StorySource {
+  story: Story;
+  meanwhile: MeanwhileByBeat;
+}
+
+/** The stories ?story= walks: the text, read by Vite, and Meanwhile's stand-in entries. */
+const STORIES: Record<string, () => Promise<StorySource>> = {
+  tambora: async () => {
+    const [text, meanwhile] = await Promise.all([
+      import('../../../../stories/tambora/story.md?raw'),
+      import('../story/meanwhile.tambora.json'),
+    ]);
+    return { story: parseStory(text.default), meanwhile: meanwhileFromJson(meanwhile.default) };
+  },
 };
 
 /** The keys that fly to the presets, in order; the rest are on the preset bar alone. */
@@ -103,7 +119,9 @@ declare global {
       togglePlay(): void;
       resume(): void;
       scrub(day: number): void;
-      /** True while no flight to a beat is under way. */
+      breakOut(): void;
+      flyTo(target: LonLat, viewKm: number): void;
+      /** True once the flight to the beat is over and the streamer has been idle for a while. */
       landed(): boolean;
       flights(): readonly FlightRecord[];
     };
@@ -113,7 +131,7 @@ declare global {
 async function main(): Promise<void> {
   const query = new URLSearchParams(location.search);
   const showUi = query.get('ui') !== '0';
-  const story = await loadStory(query.get('story'));
+  const source = await loadStory(query.get('story'));
   const data = await pickData(query.get('data'));
   const release = (await (await fetch(`${DATA_HOSTS[data]}/release.json`)).json()) as Release;
 
@@ -189,21 +207,21 @@ async function main(): Promise<void> {
       null,
       2,
     );
-  // A story's page steps through its beats instead of the presets.
-  if (story) document.getElementById('presets')?.remove();
-  if (showUi) buildUi({ museum, look, streamer, cameraParams, control, go, settings });
-  else document.body.classList.add('clean');
-
-  // The walk flies the camera, and holds a late landing until the streamer has nothing in hand.
-  const walk = story
-    ? createWalk(story, control, {
-        ready: () => {
-          const s = streamer.stats();
-          return s.inFlight + s.decoding + s.uploading === 0;
-        },
+  // A story's page steps through its beats instead of the presets. The walk flies the camera,
+  // and holds a late landing until the streamer has nothing in hand.
+  const story = source
+    ? startStory(source, control, museum.globeMount, look, () => {
+        const s = streamer.stats();
+        return s.inFlight + s.decoding + s.uploading === 0;
       })
     : null;
-  if (walk) startWalk(walk, control);
+  if (story) applyQuery(story.effects.params, query);
+  if (showUi) {
+    buildUi({ museum, look, streamer, cameraParams, control, go, settings, story });
+  } else {
+    document.body.classList.add('clean');
+  }
+  const walk = story?.walk ?? null;
 
   addEventListener('keydown', (event) => {
     if (walk || event.target instanceof HTMLInputElement) return;
@@ -233,10 +251,11 @@ async function main(): Promise<void> {
       altitudeKm: rig.altitude * 6371.0088,
     };
   };
+  const ready = () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS;
   window.__proto = {
     presets: Object.keys(PRESETS),
     stats,
-    ready: () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS,
+    ready,
     go,
     view: (view, instant) => {
       preset = 'custom';
@@ -244,6 +263,7 @@ async function main(): Promise<void> {
     },
     settings,
   };
+  if (walk) serveWalk(walk, ready);
 
   const hud = document.getElementById('hud');
   let shown = 0;
@@ -277,9 +297,13 @@ async function main(): Promise<void> {
     museum.params.lon = lon;
     museum.update(camera, now / 1000);
     rig.place(camera, drawn, surfaceRelief, museum.globeMount, Number(museum.params.hideAltitude));
-    streamer.update(camera, { width: innerWidth, height: innerHeight }, museum.globeMount);
+    const viewport = { width: innerWidth, height: innerHeight };
+    streamer.update(camera, viewport, museum.globeMount);
+    // The story's effects set the look's layers and ash, so they run before the look's update.
+    story?.effects.update(story.walk.state(), camera, museum.globeMount, viewport, now / 1000);
     look.update(now / 1000);
     museum.render(camera);
+    story?.ui.update(story.walk.state(), drawn);
 
     const s = streamer.stats();
     // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.
@@ -298,54 +322,48 @@ async function main(): Promise<void> {
   });
 }
 
-async function loadStory(name: string | null): Promise<Story | null> {
+async function loadStory(name: string | null): Promise<StorySource | null> {
   if (name === null) return null;
   const load = STORIES[name];
   if (!load) throw new Error(`no story '${name}'`);
-  return parseStory((await load()).default);
+  return load();
+}
+
+interface StoryParts {
+  walk: DirectedWalk;
+  effects: WalkEffects;
+  ui: WalkUi;
 }
 
 /**
- * The story mode's wiring: input on the globe breaks out, the arrow keys step beats instead of
- * panning, a line of text reads the beat and its date, and window.__walk serves scripts.
+ * The story mode's parts: the director, with input on the globe breaking out and the arrow keys
+ * stepping beats instead of panning; the effects, hung in the globe's frame with their plaques in
+ * #labels; and the card, ruler and Meanwhile over them.
  */
-function startWalk(walk: DirectedWalk, control: ViewControl): void {
+function startStory(
+  { story, meanwhile }: StorySource,
+  control: ViewControl,
+  globeMount: Object3D,
+  look: SurfaceLook,
+  ready: () => boolean,
+): StoryParts {
+  document.body.classList.add('story');
+  document.getElementById('presets')?.remove();
+  const walk = createWalk(story, control, { ready });
   control.arrowKeys = false;
   control.onInput = () => walk.breakOut();
   bindWalkKeys(walk);
 
-  const readout = document.createElement('div');
-  Object.assign(readout.style, {
-    position: 'fixed',
-    left: '50%',
-    bottom: '18px',
-    transform: 'translateX(-50%)',
-    padding: '8px 14px',
-    font: '13px/1.4 Georgia, serif',
-    letterSpacing: '0.04em',
-    color: '#d9c49a',
-    background: 'rgb(12 9 6 / 0.72)',
-    border: '1px solid rgb(202 164 94 / 0.45)',
-    whiteSpace: 'nowrap',
-    pointerEvents: 'none',
-  });
-  document.body.append(readout);
-  const read = () => {
-    const state = walk.state();
-    const beat = state.story.beats[state.beat];
-    const parts = [
-      `${state.beat + 1} / ${state.story.beats.length}`,
-      beat?.title ?? '',
-      formatDay(state.day),
-      state.mode === 'breakout' ? 'breakout (Esc resumes)' : state.mode,
-    ];
-    if (state.advanceIn !== null) parts.push(`next in ${Math.ceil(state.advanceIn)} s`);
-    const text = parts.join('   ·   ');
-    if (readout.textContent !== text) readout.textContent = text;
-    requestAnimationFrame(read);
-  };
-  read();
+  const labels = document.getElementById('labels');
+  if (!labels) throw new Error('prototype.html has no #labels');
+  const effects = createWalkEffects(story, look, labels);
+  globeMount.add(effects.group);
+  const ui = createWalkUi(document.body, walk, meanwhile);
+  return { walk, effects, ui };
+}
 
+/** window.__walk, for scripts: `ready` is the page's own check that the streamer is idle. */
+function serveWalk(walk: DirectedWalk, ready: () => boolean): void {
   window.__walk = {
     state: () => {
       const { beat, mode, flight, day, advanceIn } = walk.state();
@@ -357,7 +375,9 @@ function startWalk(walk: DirectedWalk, control: ViewControl): void {
     togglePlay: () => walk.togglePlay(),
     resume: () => walk.resume(),
     scrub: (day) => walk.scrub(day),
-    landed: () => walk.state().flight === null,
+    breakOut: () => walk.breakOut(),
+    flyTo: (target, viewKm) => walk.flyTo(target, viewKm),
+    landed: () => walk.state().flight === null && ready(),
     flights: () => walk.flights(),
   };
 }
@@ -425,9 +445,11 @@ interface UiParts {
   control: ViewControl;
   go: (name: string) => void;
   settings: () => string;
+  story: StoryParts | null;
 }
 
-function buildUi({ museum, look, streamer, cameraParams, control, go, settings }: UiParts): void {
+function buildUi(parts: UiParts): void {
+  const { museum, look, streamer, cameraParams, control, go, settings, story } = parts;
   const bar = document.getElementById('presets');
   Object.keys(PRESETS).forEach((name, i) => {
     const button = document.createElement('button');
@@ -464,6 +486,11 @@ function buildUi({ museum, look, streamer, cameraParams, control, go, settings }
   byZoom.get('reliefByZoom')?.onChange(lockRelief);
   lockRelief();
   addParams(gui.addFolder('Streamer').close(), streamer.params);
+  // In a story the panel starts closed, out of the walk's way.
+  if (story) {
+    addParams(gui.addFolder('Story effects'), story.effects.params);
+    gui.close();
+  }
   const copy = {
     'Copy settings': () => {
       const text = settings();

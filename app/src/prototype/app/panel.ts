@@ -40,6 +40,13 @@ const RANGES: Record<string, [number, number, number?]> = {
   // Streamer.
   refinePx: [0.3, 4, 0.01],
   maxLevel: [0, 7, 1],
+  // Story effects: strengths, 1 as designed.
+  ember: [0, 2, 0.01],
+  plume: [0, 2, 0.01],
+  pulses: [0, 2, 0.01],
+  labels: [0, 1, 0.01],
+  ash: [0, 2, 0.01],
+  veil: [0, 2, 0.01],
   // Camera.
   zoomFloorKm: [5, 300, 1],
   reliefNear: [0, 16, 0.5],
