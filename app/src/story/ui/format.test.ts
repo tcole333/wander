@@ -11,6 +11,7 @@ import {
   mixSpans,
   monthsIn,
   spreadPips,
+  yearsLabel,
 } from './format';
 
 const story = parseStory(
@@ -29,6 +30,10 @@ describe('the walk UI', () => {
       '6 June 1816',
       '28 August 1817',
     ]);
+  });
+
+  it("dates the story by its beats' first and last years", () => {
+    expect(yearsLabel(story.beats)).toBe('1815–1817');
   });
 
   it('spans each beat with its window, at least 40 days, and zooms between spans', () => {

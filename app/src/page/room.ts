@@ -5,8 +5,8 @@
 // draw the globe, its GPU keeps dropping it, or the boot stops on anything else. The card offers a
 // Reload unless the browser cannot draw.
 import type { Story } from '../story/story';
-import { civilFromDay, yearLabel } from '../story/dates';
 import { button, el } from '../story/ui/dom';
+import { yearsLabel } from '../story/ui/format';
 
 export class Room {
   readonly #element: HTMLElement;
@@ -61,7 +61,7 @@ export function storyPlate(story: Story, why: Unable): HTMLElement {
   plate.setAttribute('role', 'alert');
   const sheet = el('div', 'wu-sheet');
   const head = el('header', 'wu-card-head');
-  head.append(el('div', 'wu-date', years(story)), el('h1', 'wu-title', story.title));
+  head.append(el('div', 'wu-date', yearsLabel(story.beats)), el('h1', 'wu-title', story.title));
   head.append(el('div', 'wu-rule'));
   const foot = el('footer', 'plate-foot');
   foot.append(el('p', 'plate-note', NOTES[why]));
@@ -69,13 +69,6 @@ export function storyPlate(story: Story, why: Unable): HTMLElement {
   sheet.append(head, el('p', 'plate-blurb', story.blurb), foot);
   plate.append(sheet);
   return plate;
-}
-
-/** The years the story's beats span: '1815–1817'. */
-function years(story: Story): string {
-  const first = civilFromDay(story.beats[0]?.day ?? 0).year;
-  const last = civilFromDay(story.beats.at(-1)?.day ?? 0).year;
-  return first === last ? yearLabel(first) : `${yearLabel(first)}–${yearLabel(last)}`;
 }
 
 function reload(): HTMLButtonElement {

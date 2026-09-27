@@ -17,6 +17,13 @@ export function dateLine(beat: StoryBeat): string {
   return formatDay(beat.day, beat.precision);
 }
 
+/** The years a story's beats span, first to last: '1815–1817', or one year alone. */
+export function yearsLabel(beats: StoryBeat[]): string {
+  const first = civilFromDay(beats[0]?.day ?? 0).year;
+  const last = civilFromDay(beats.at(-1)?.day ?? 0).year;
+  return first === last ? yearLabel(first) : `${yearLabel(first)}${DASH}${yearLabel(last)}`;
+}
+
 function dayRange(start: number, end: number): string {
   const a = civilFromDay(start);
   const b = civilFromDay(end);
