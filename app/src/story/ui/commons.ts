@@ -1,6 +1,6 @@
-// A beat's image straight from Wikimedia Commons (a local prototype: no mirror yet): one API call
-// per image gives a thumbnail wide enough for the crop to stay sharp, the original's size for the
-// frame's shape, and the author and license for the credit.
+// A beat's image straight from Wikimedia Commons (no mirror yet): one API call per image gives a
+// thumbnail wide enough for the crop to stay sharp, the original's size for the frame's shape, and
+// the author and license for the credit.
 import { creditLine, plainText } from './format';
 
 export interface CommonsImage {

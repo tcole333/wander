@@ -4,8 +4,8 @@
 // turns them on for every beat, and story time alone shows or hides them, so they never vanish as
 // a flight leaves the beat that lists them. Pulses and plaques come from the beat's effect list,
 // and its layers switch the look's lines and bathymetry. Every mesh is made up front, the story's
-// pulses too, so their shaders compile before the walk starts (main.ts). `group` hangs from the
-// museum's globeMount (the globe frame, radius 1).
+// pulses too, so their shaders compile before the walk starts (walk/boot.ts). `group` hangs from
+// the museum's globeMount (the globe frame, radius 1).
 import {
   Group,
   MathUtils,

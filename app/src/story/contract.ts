@@ -1,5 +1,5 @@
 // The Tambora walk's modules (issue #4, checkpoint 2): the director, the story UI and the story
-// effects are built separately and joined by prototype.html?story=tambora. Story time is a day
+// effects are built separately and joined by the walk's boot (walk/boot.ts). Story time is a day
 // number (dates.ts); the story itself comes from stories/tambora/story.md (story.ts).
 import type { Object3D, PerspectiveCamera } from 'three';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';

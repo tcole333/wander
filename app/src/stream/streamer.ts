@@ -1,9 +1,9 @@
-// The look prototype's surface streamer (issue #4; streaming.md 5.2-5.7, simplified). Every frame
-// it selects the drawn nodes for the camera, requests the tiles they want coarsest first and
-// nearest the view center first, decodes them in the workers, uploads them into the surface pools
-// within the frame's byte budget, and packs the drawn instances with their sources and seam flags.
-// One request queue, rebuilt every frame, so requests nobody wants any more simply drop; no request
-// classes, watchdog or byte cache.
+// The walk's surface streamer (issue #4; streaming.md 5.2-5.7, simplified). Every frame it selects
+// the drawn nodes for the camera, requests the tiles they want coarsest first and nearest the view
+// center first, decodes them in the workers, uploads them into the surface pools within the frame's
+// byte budget, and packs the drawn instances with their sources and seam flags. One request queue,
+// rebuilt every frame, so requests nobody wants any more simply drop; no request classes, watchdog
+// or byte cache.
 import {
   Frustum,
   Matrix4,

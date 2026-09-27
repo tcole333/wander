@@ -1,8 +1,8 @@
-// The prototype's camera controls over the view state: dragging slides the globe under the cursor
-// with the heading kept, right-drag or shift-drag tilts, the wheel zooms, the arrow keys pan (with
-// shift they tilt), + and - zoom, and presets fly there with an eased flight. Input moves a goal;
-// the drawn view follows it, damped. A story (story/director.ts) hears of that input through
-// onInput, and turns the arrow keys off to step its beats with them.
+// The walk's camera controls over the view state: dragging slides the globe under the cursor with
+// the heading kept, right-drag or shift-drag tilts, the wheel zooms, the arrow keys pan (with shift
+// they tilt), + and - zoom, and presets fly there with an eased flight. Input moves a goal; the
+// drawn view follows it, damped. A story (story/director.ts) hears of that input through onInput,
+// and turns the arrow keys off to step its beats with them.
 import {
   damp,
   dragView,

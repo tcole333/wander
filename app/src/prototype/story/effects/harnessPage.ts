@@ -1,5 +1,5 @@
-// Entry of prototype-walk-effects.html (dev only): the walk's story effects on the look
-// prototype's globe, set up as main.ts sets it up, with a stub walk state instead of the director.
+// Entry of prototype-walk-effects.html (dev only): the walk's story effects on the walk's globe,
+// set up as walk/boot.ts sets it up, with a stub walk state instead of the director.
 // ?beat=<index> picks the beat and flies there with its camera; ?day=<yyyy-mm-dd> sets story time
 // (the beat's date otherwise); the bar changes both. window.__walkFx serves screenshot scripts.
 import storyText from '../../../../../stories/tambora/story.md?raw';

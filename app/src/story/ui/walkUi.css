@@ -814,8 +814,8 @@
   outline-offset: 3px;
 }
 
-/* The look panel's gear (app/panel.ts), which a story tucks the panel behind: small engraved
-   brass at the top right corner. */
+/* The look panel's gear (prototype/app/panel.ts), which a story tucks the panel behind: small
+   engraved brass at the top right corner. */
 
 .wu-gear {
   position: fixed;
