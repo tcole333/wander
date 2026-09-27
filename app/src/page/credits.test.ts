@@ -38,6 +38,11 @@ describe('credits.html', () => {
     expect(wrong).toEqual([]);
   });
 
+  it('holds its sheet in the card the Credits panel shows over the globe', () => {
+    expect(credits).toMatch(/<main class="[^"]*\bcredits-card\b[^"]*">\s*<div class="wu-sheet">/);
+    expect(credits).toMatch(/class="credits-back"/);
+  });
+
   it("carries every line of the story's own credits", () => {
     const text = plain(credits);
     const missing = story.credits.filter((line) => !text.includes(line));

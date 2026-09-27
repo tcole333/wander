@@ -1,0 +1,100 @@
+/* The Credits panel (creditsPanel.ts): the credits sheet (creditsSheet.css) in the beat card's
+   riveted brass frame, standing over the lobby or the walk at a reading width, on the room
+   darkened as if the lamp had turned toward the sheet. The sheet scrolls inside its frame; a close
+   mark is engraved at its top right, where it stays while the sheet scrolls. */
+
+.cp {
+  box-sizing: border-box;
+  width: min(720px, 100vw - 32px);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: none;
+  font-family: var(--reading);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.cp::backdrop {
+  background:
+    radial-gradient(ellipse 70% 90% at 50% 45%, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.78)),
+    rgb(8 5 2 / 0.2);
+}
+
+.cp[open] .cp-card {
+  animation: cp-rise 0.4s ease-out both;
+}
+
+.cp[open]::backdrop {
+  animation: cp-dim 0.4s ease-out both;
+}
+
+@keyframes cp-rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+@keyframes cp-dim {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The card's frame, in the dialog's flow rather than at the walk's card's place. */
+.cp-card.wu-card {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-height: calc(100vh - 48px);
+}
+
+.cp-card .wu-sheet {
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(110 82 39 / 0.55) transparent;
+}
+
+.cp-scroll:focus-visible {
+  outline: none;
+}
+
+/* The close mark: cut into the vellum as the card's engraved lines are. */
+.cp-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 400 16px/1 var(--display);
+  color: var(--ink-soft);
+  text-shadow: var(--engraved);
+}
+
+.cp-close:hover {
+  color: var(--garnet);
+}
+
+@media (max-width: 640px) {
+  .cp-close {
+    top: 8px;
+    right: 8px;
+  }
+}
