@@ -37,6 +37,16 @@ const story = parseStory(storyText);
 const FIRST = dayFromIso('1815-01-01');
 const LAST = dayFromIso('1817-12-31');
 
+/** The cues' names on their slips. */
+const CUE_TITLES: Record<CueName, string> = {
+  'rumble-far': 'Far rumble',
+  'cannon-far': 'Far cannon fire',
+  eruption: 'Eruption',
+  ashfall: 'Ashfall',
+  rain: 'Rain',
+  'wind-cold': 'Cold wind',
+};
+
 let engine: SoundEngine | undefined;
 
 /** The live engine, unlocked by the press that asks for it. */
@@ -321,7 +331,7 @@ function cuesDrawer(): HTMLElement {
   for (const name of CUE_NAMES) {
     const beats = story.beats.filter((b) => b.audioCues.includes(name)).map((b) => b.title);
     let playing: CueHandle | undefined;
-    const cueSlip = slip(name.replaceAll('-', ' '), beats.join(', '), [
+    const cueSlip = slip(CUE_TITLES[name], beats.join(', '), [
       trigger('Start', (jewel) => {
         playing ??= startCue(sound(), name);
         jewel.classList.add('is-lit');
