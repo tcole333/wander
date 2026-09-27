@@ -219,8 +219,9 @@ ongoing work that starts in v1.
 
 ## Technical approach
 
-- **App:** TypeScript, Vite, React, react-three-fiber with drei, Zustand for app state, three.js
-  WebGLRenderer.
+- **App:** TypeScript, Vite and three.js's WebGLRenderer, with a plain-DOM UI. The approved
+  Tambora walk is plain three.js, and its bundle is smaller without React, so react-three-fiber,
+  drei and Zustand are no longer planned.
 - **Prebuild:** Python (uv) turns raw sources into web-ready assets offline; the browser does no
   geographic processing.
 - **Hosting:** Cloudflare Pages for the app at `wander.traviscole.xyz`; Cloudflare R2 for data
