@@ -2,7 +2,7 @@
 // 192 x 96 field on the source's grid that the walk's effects fill (story/effects/climate.ts), as a
 // frost and verdigris wash on the metal. Cold lands take a blue-green patina that tints the metal
 // rather than covering it, so its wear, rivers and coast still show, and lose some of their
-// polish; warm lands blush a muted copper; the sea's lacquer takes a third of either. The palette
+// polish; warm lands blush a rosy copper; the sea's lacquer takes a third of either. The palette
 // saturates at the look's climateRangeK either side of the 1901-2000 average, and the field is
 // sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
 // default, the look is unchanged; the walk compiles it at 0 before it starts.
@@ -35,9 +35,9 @@ export const CLIMATE_LOOK = {
    * engraving and the dark sea stays lacquer.
    */
   frostLuminance: 0.16,
-  /** A muted, rosy copper: the warm lamp alone turns a plain copper hot orange. */
-  copper: '#a8665a',
-  copperMix: 0.55,
+  /** A rosy copper toward garnet, which the warm lamp cannot turn into the metal's own orange. */
+  copper: '#9a4f5a',
+  copperMix: 0.65,
   /** The sea's share of the land's wash. */
   seaShare: 1 / 3,
   /** Where full cold takes the metal's roughness and metalness. */
@@ -190,7 +190,7 @@ void lookClimate(inout LookSurface s) {
     s.roughness = mix(s.roughness, ${f(CLIMATE_LOOK.coldRoughness)}, c * s.land);
     s.metalness = mix(s.metalness, ${f(CLIMATE_LOOK.coldMetalness)}, c * s.land);
   } else {
-    // A muted copper blush.
+    // A rosy copper blush.
     s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.copper)}, t * a * ${f(CLIMATE_LOOK.copperMix)});
   }
 }
