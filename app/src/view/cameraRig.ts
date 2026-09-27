@@ -1,4 +1,4 @@
-// Where the prototype's camera sits for a view. Near the globe it is viewPose's camera (streaming.md
+// Where the walk's camera sits for a view. Near the globe it is viewPose's camera (streaming.md
 // 5.7) in the globe frame, carried into the world through globeMount; far out it blends into the
 // spike's world framing, which shows the whole instrument off-center (spike main.js composition).
 import { MathUtils, Vector3, type Object3D, type PerspectiveCamera } from 'three';

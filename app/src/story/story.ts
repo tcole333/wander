@@ -1,6 +1,6 @@
 // A story's source (streaming.md 3.9: stories/<story>/story.md) read straight into the walk: front
-// matter, then per beat an H2 title, a fenced YAML block tagged `beat`, and the beat's text. This is
-// the prototype's stand-in for `npm run stories` (issue #9): it parses and checks shapes, and dates
+// matter, then per beat an H2 title, a fenced YAML block tagged `beat`, and the beat's text. This
+// is the walk's stand-in for `npm run stories` (issue #9): it parses and checks shapes, and dates
 // become day numbers (dates.ts).
 import { parse } from 'yaml';
 import { dayFromIso, type Precision } from './dates';

@@ -1,7 +1,7 @@
-// The globe's material for the look prototype (contract.ts, SurfaceLook): a MeshStandardMaterial
-// whose vertex stage is the merged surface vertex chunk and whose fragment stage computes the
-// spike's baked look from the surface pools, per fragment. A MeshDepthMaterial with the same vertex
-// stage lets the displaced globe cast its own shadows.
+// The globe's material (SurfaceLook in ../contract.ts): a MeshStandardMaterial whose vertex stage
+// is the merged surface vertex chunk and whose fragment stage computes the spike's baked look from
+// the surface pools, per fragment. A MeshDepthMaterial with the same vertex stage lets the
+// displaced globe cast its own shadows.
 import { Color, Matrix4, MeshDepthMaterial, MeshStandardMaterial, Vector3 } from 'three';
 import { tunables } from '../config/tunables';
 import type { CreateSurfaceLook, Params } from '../contract';

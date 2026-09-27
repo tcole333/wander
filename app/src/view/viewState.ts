@@ -1,6 +1,6 @@
-// The prototype page's view state and how it moves: presets eased from one to the next, damped
-// steps toward the goal the controls set, drags that slide the view center under the cursor and
-// wheel zoom. Pure functions; the page owns the state.
+// The walk's view state and how it moves: presets eased from one to the next, damped steps toward
+// the goal the controls set, drags that slide the view center under the cursor and wheel zoom. Pure
+// functions; the page owns the state.
 import { EARTH_RADIUS_KM } from '../globe/viewCamera';
 
 export interface ViewState {

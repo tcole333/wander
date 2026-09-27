@@ -1,9 +1,9 @@
-// The look prototype's modules (issue #4, re-scoped to a look checkpoint): the streaming globe, the
-// surface look and the museum scene are built separately and joined by the dev-only page
-// prototype.html. Each module owns a plain `params` object of numbers, booleans and '#rrggbb'
-// strings; the page's lil-gui panel edits those objects in place, and each module reads them every
-// frame in `update`. The globe frame is the one the surface vertex shader writes: three.js axes,
-// Earth radius 1 (streaming.md 3.0).
+// The walk's modules (issue #4, re-scoped to a look checkpoint): the streaming globe, the surface
+// look and the museum scene are built separately and joined by the walk's boot (walk/boot.ts). Each
+// module owns a plain `params` object of numbers, booleans and '#rrggbb' strings; the dev shell's
+// lil-gui panel edits those objects in place, and each module reads them every frame in `update`.
+// The globe frame is the one the surface vertex shader writes: three.js axes, Earth radius 1
+// (streaming.md 3.0).
 import type {
   InstancedBufferGeometry,
   Material,
