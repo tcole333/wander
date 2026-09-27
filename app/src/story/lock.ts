@@ -20,7 +20,7 @@ export interface LockedImage {
   files: LockedFile[];
   /** The makers, as the card's caption names them. */
   credit: string;
-  /** The license exactly as Commons states it. */
+  /** The license as Commons states it, or the source's rights statement as the story words it. */
   license: string;
   /** The file's page on Commons. */
   source: string;
