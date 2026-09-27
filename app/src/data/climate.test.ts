@@ -2,35 +2,16 @@
 // back and two of its months blended as the walk blends them for a story day.
 import { describe, expect, test } from 'vitest';
 import { dayFromIso } from '../story/dates';
+import { syntheticYear } from '../test/climate';
 import { blendMonths, CLIMATE_MISSING, monthsAround, parseClimate } from './climate';
 
 const NLAT = 2;
 const NLON = 3;
 const FRAMES = 12;
 
-/** A year of 12 frames: frame f's cell i holds code 10·i + f at scale 0.1 and offset f − 5. */
-function syntheticYear(): Uint8Array {
-  const cells = NLAT * NLON;
-  const raw = new Uint8Array(16 + 8 * FRAMES + FRAMES * cells);
-  const view = new DataView(raw.buffer);
-  raw.set([...'WCY1'].map((c) => c.charCodeAt(0)));
-  view.setUint8(4, 1);
-  view.setUint8(5, 0);
-  view.setInt16(6, 1816, true);
-  view.setUint16(8, FRAMES, true);
-  view.setUint16(10, NLAT, true);
-  view.setUint16(12, NLON, true);
-  for (let f = 0; f < FRAMES; f += 1) {
-    view.setFloat32(16 + 4 * f, 0.1, true);
-    view.setFloat32(16 + 4 * (FRAMES + f), f - 5, true);
-    for (let i = 0; i < cells; i += 1) raw[16 + 8 * FRAMES + f * cells + i] = 10 * i + f;
-  }
-  return raw;
-}
-
 describe('climate files', () => {
   test('parse a year and blend two of its months by the weight between them', () => {
-    const raw = syntheticYear();
+    const raw = syntheticYear(NLAT, NLON);
     // July's first cell has no value.
     raw[16 + 8 * FRAMES + 6 * NLAT * NLON] = CLIMATE_MISSING;
     const year = parseClimate(raw);
