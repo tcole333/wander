@@ -59,3 +59,29 @@ def write_grid(tmp_path):
         return path
 
     return write
+
+
+@pytest.fixture
+def write_modera(tmp_path):
+    """Writes a monthly grid laid out as ModE-RA's files and returns its path: float32 `temp2`
+    (time, latitude, longitude), rows north first, columns from -180° evenly around the globe."""
+
+    def write(name: str, temp2: np.ndarray) -> Path:
+        path = tmp_path / name
+        months, rows, columns = temp2.shape
+        with netCDF4.Dataset(path, "w", format="NETCDF4") as dataset:
+            dataset.createDimension("time", months)
+            dataset.createDimension("latitude", rows)
+            dataset.createDimension("longitude", columns)
+            lat = dataset.createVariable("latitude", "f8", ("latitude",))
+            lon = dataset.createVariable("longitude", "f8", ("longitude",))
+            lat[:] = np.linspace(80, -80, rows)
+            lon[:] = -180 + np.arange(columns) * 360 / columns
+            variable = dataset.createVariable("temp2", "f4", ("time", "latitude", "longitude"))
+            with warnings.catch_warnings():
+                # netCDF4 1.7.4 sets an array's shape when it writes, which numpy 2.5 deprecates.
+                warnings.filterwarnings("ignore", "Setting the shape", DeprecationWarning)
+                variable[:] = temp2
+        return path
+
+    return write
