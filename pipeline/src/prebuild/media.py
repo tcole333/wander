@@ -183,6 +183,11 @@ def bake(data: bytes, crop: Crop) -> dict[int, Baked]:
         w, h = image.size
         x0, y0, x1, y1 = crop
         cropped = image.crop((round(x0 * w), round(y0 * h), round(x1 * w), round(y1 * h)))
+    if cropped.mode.startswith("I;16"):
+        # Pillow clips 16-bit values when it converts them, so they are scaled to 8 bits first.
+        cropped = cropped.convert("I").point(lambda v: v / 257).convert("L")
+    elif cropped.mode in ("I", "F"):
+        raise MediaError(f"an original in Pillow's {cropped.mode} mode has no 8-bit scale to bake")
     if cropped.mode not in ("RGB", "L"):
         cropped, profile = cropped.convert("RGB"), None  # the profile described the old mode
     baked: dict[int, Baked] = {}
