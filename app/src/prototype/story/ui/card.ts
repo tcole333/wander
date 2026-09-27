@@ -1,6 +1,7 @@
-// The beat card: a vellum panel at the left with the date line, the title, the beat's text, its
-// framed image from Commons with a one-line credit, the sources folded away, and the story's
-// controls (Back, Play or Pause, Next, and the beat's number) along its foot.
+// The beat card: a vellum panel at the left with the date line, the title, the beat's text, and
+// its framed image from Commons with a one-line credit, sized so all of it shows without
+// scrolling. The story's controls run along its foot: Back, Play or Pause, Next, the Sources
+// toggle, which opens the beat's sources under the image, and the beat's number.
 import type { Walk, WalkState } from '../contract';
 import type { StoryBeat, StoryImage } from '../story';
 import { commonsImage } from './commons';
@@ -22,7 +23,8 @@ export class BeatCard {
   readonly #body = el('div', 'wu-body');
   readonly #text = el('div', 'wu-text');
   readonly #figure = el('figure', 'wu-figure');
-  readonly #sources = el('details', 'wu-sources');
+  readonly #sources = el('ol', 'wu-sources');
+  readonly #sourcesToggle: HTMLButtonElement;
   readonly #back: HTMLButtonElement;
   readonly #play: HTMLButtonElement;
   readonly #next: HTMLButtonElement;
@@ -42,11 +44,9 @@ export class BeatCard {
     head.append(this.#date, this.#title);
     this.#body.append(this.#text, this.#figure, this.#sources);
     this.#body.addEventListener('scroll', () => this.#checkOverflow());
-    this.#sources.addEventListener('toggle', () => {
-      this.#checkOverflow();
-      if (!this.#sources.open) return;
-      this.#body.scrollTo({ top: this.#body.scrollHeight, behavior: 'smooth' });
-    });
+    this.#sourcesToggle = button('wu-sources-toggle', 'Sources', () =>
+      this.#openSources(this.#sourcesToggle.getAttribute('aria-expanded') !== 'true'),
+    );
 
     this.#back = button('wu-step', 'Back', () => this.#walk.back());
     this.#back.innerHTML = '<span aria-hidden="true">&lsaquo;</span> Back';
@@ -62,7 +62,7 @@ export class BeatCard {
     const controls = el('footer', 'wu-controls');
     const steps = el('div', 'wu-steps');
     steps.append(this.#back, this.#play, this.#next);
-    controls.append(steps, this.#count);
+    controls.append(steps, this.#sourcesToggle, this.#count);
 
     this.element.append(head, this.#body, controls);
   }
@@ -113,14 +113,21 @@ export class BeatCard {
     requestAnimationFrame(() => this.#checkOverflow());
   }
 
+  #openSources(open: boolean): void {
+    this.#sources.hidden = !open;
+    this.#sourcesToggle.setAttribute('aria-expanded', String(open));
+    this.#checkOverflow();
+    if (open) this.#body.scrollTo({ top: this.#body.scrollHeight, behavior: 'smooth' });
+  }
+
   #showSources(beat: StoryBeat): void {
-    this.#sources.open = false;
-    this.#sources.hidden = beat.sources.length === 0;
-    const summary = el('summary', undefined, 'Sources');
-    summary.append(el('span', 'wu-sources-count', String(beat.sources.length)));
-    onPress(summary, () => {});
-    const list = el('ol');
-    for (const source of beat.sources) {
+    this.#openSources(false);
+    this.#sourcesToggle.hidden = beat.sources.length === 0;
+    this.#sourcesToggle.replaceChildren(
+      'Sources',
+      el('span', 'wu-sources-count', String(beat.sources.length)),
+    );
+    const items = beat.sources.map((source) => {
       const item = el('li');
       const link = el('a', undefined, source.title);
       link.href = source.url;
@@ -131,9 +138,9 @@ export class BeatCard {
         .filter((part) => part !== undefined && part !== null && part !== '')
         .join(', ');
       item.append(link, el('div', 'wu-source-by', by));
-      list.append(item);
-    }
-    this.#sources.replaceChildren(summary, list);
+      return item;
+    });
+    this.#sources.replaceChildren(...items);
   }
 
   #showImage(image: StoryImage | undefined): void {
