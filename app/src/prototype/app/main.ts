@@ -10,8 +10,8 @@
 // (story/director.ts), the card, time ruler and Meanwhile sit over the globe (story/ui/), and the
 // ember, plume, plaques, ash and veil follow story time (story/effects/). It starts paused on the
 // first beat; Left and Right step beats, Space plays or pauses, and Escape resumes after the
-// visitor breaks out to explore. The panel starts closed. window.__walk serves scripts
-// (scripts/walkShots.ts).
+// visitor breaks out to explore. The panel hides behind a small gear at the top right.
+// window.__walk serves scripts (scripts/walkShots.ts).
 import {
   Mesh,
   MeshStandardMaterial,
@@ -37,7 +37,7 @@ import { meanwhileFromJson } from '../story/meanwhile';
 import { parseStory, type LonLat, type Story } from '../story/story';
 import { createWalkUi } from '../story/ui/walkUi';
 import { CameraRig, maxViewKm, type Relief } from './cameraRig';
-import { addParams, applyQuery, GUI } from './panel';
+import { addParams, applyQuery, GUI, tuckAway } from './panel';
 import { ViewControl } from './viewControl';
 import { drawnView, reliefForWidth, type ViewState } from './viewState';
 
@@ -553,10 +553,10 @@ function buildUi(parts: UiParts): void {
   byZoom.get('reliefByZoom')?.onChange(lockRelief);
   lockRelief();
   addParams(gui.addFolder('Streamer').close(), streamer.params);
-  // In a story the panel starts closed, out of the walk's way.
+  // In a story the panel hides behind a gear, out of the walk's way.
   if (story) {
     addParams(gui.addFolder('Story effects'), story.effects.params);
-    gui.close();
+    tuckAway(gui);
   }
   const copy = {
     'Copy settings': () => {
