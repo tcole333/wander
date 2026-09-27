@@ -18,7 +18,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile): WalkUi => {
   const card = new BeatCard();
   const ruler = new TimeRuler(walk, walk.state().story);
   const panel = new MeanwhilePanel(walk, meanwhile);
-  const resume = button('wu-resume', 'Resume story', () => walk.resume());
+  const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
   resume.textContent = 'Resume story';
   layer.append(mark(), card.element, panel.element, ruler.element, resume);
   root.append(layer);

@@ -955,43 +955,71 @@
     0 0 9px rgb(170 40 60 / 0.7);
 }
 
-/* The Resume plaque */
+/* The Resume plaque: a small cast brass plaque, riveted at its ends, its lettering cut in. */
 
 .wu-resume {
   position: absolute;
-  left: 50%;
-  bottom: 124px;
-  padding: 10px 26px 9px;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--ruler-reach) + 2px);
+  width: max-content;
+  margin: 0 auto;
+  padding: 10px 34px 9px;
   cursor: pointer;
   white-space: nowrap;
   font: 400 12px/1 var(--display);
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #fbe1b0;
-  background: linear-gradient(#20180f, #120d08);
-  border: 1px solid #d59a4e;
-  outline: 1px solid rgb(0 0 0 / 0.6);
+  color: #3b2910;
+  text-shadow:
+    0.5px 1px 0 rgb(255 238 190 / 0.6),
+    -0.5px -0.5px 0 rgb(40 24 8 / 0.35);
+  border: 0;
+  border-radius: 2px;
+  background:
+    var(--rivet) left 9px center / 6px 6px no-repeat,
+    var(--rivet) right 9px center / 6px 6px no-repeat,
+    radial-gradient(120% 160% at 18% 0%, rgb(255 240 200 / 0.5), transparent 60%),
+    var(--brushed),
+    linear-gradient(#e7ca8a, #c39b58 42%, #9a7536 78%, #6f5027);
+  outline: 1px solid rgb(90 62 26 / 0.5);
+  outline-offset: -5px;
   box-shadow:
-    inset 0 0 0 2px #1a130b,
-    inset 0 0 0 3px rgb(226 190 120 / 0.35),
-    0 4px 14px rgb(0 0 0 / 0.7);
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near),
+    5px 9px 16px rgb(0 0 0 / 0.5);
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, 6px);
+  translate: 0 6px;
   transition:
     opacity 0.3s,
-    transform 0.3s;
+    translate 0.3s,
+    box-shadow 0.3s,
+    filter 0.3s;
 }
 
 .wu-resume.is-shown {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(-50%, 0);
+  translate: 0 0;
 }
 
 .wu-resume:hover {
-  color: #fff0cc;
-  border-color: #eab46a;
+  filter: brightness(1.08);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near),
+    5px 9px 16px rgb(0 0 0 / 0.5),
+    0 0 22px 4px rgb(255 190 110 / 0.4);
+}
+
+.wu-resume:focus-visible {
+  outline: 1px solid var(--brass-hi);
+  outline-offset: 3px;
 }
 
 /* The look panel's gear (app/panel.ts), which a story tucks the panel behind: small engraved
