@@ -1,16 +1,20 @@
 // The beat card: a sheet of aged vellum in a thin riveted brass frame at the left, with the date
-// line, the title in engraved capitals over a hairline rule, the beat's text, and its image from
-// Commons mounted like a museum card (a mat, a brass bevel and a caption line for the credit),
-// sized so all of it shows without scrolling. The sources fold into a footnote at its foot, with
-// the credits page beside them. The story's controls live on the time ruler.
+// line, the title in engraved capitals over a hairline rule, the beat's text, and its image
+// mounted like a museum card (a mat, a brass bevel and a caption line for the credit), sized so
+// all of it shows without scrolling. The image is the story's crop, baked by the media stage and
+// read from the data host; its credit comes from the story's lock (../lock.ts). The sources fold
+// into a footnote at its foot, with the credits page beside them. The story's controls live on the
+// time ruler.
 import type { WalkState } from '../contract';
+import type { LockedFile } from '../lock';
 import type { StoryBeat, StoryImage } from '../story';
-import { commonsImage } from './commons';
 import { button, creditsLink, el, onPress } from './dom';
 import { curlyQuotes, dateLine } from './format';
 
-/** The frame's shape until Commons says what the image's is. */
-const GUESS_ASPECT = 1.4;
+/** The frame's shape for a plate, which has no image to take one from. */
+const PLATE_ASPECT = 1.4;
+/** The frame's width, CSS px, when the card has not been laid out to measure it. */
+const FRAME_PX = 340;
 
 export class BeatCard {
   readonly element = el('article', 'wu-card wu-lit');
@@ -22,11 +26,12 @@ export class BeatCard {
   readonly #foot = el('footer', 'wu-foot');
   readonly #sources = el('ol', 'wu-sources');
   readonly #sourcesToggle: HTMLButtonElement;
+  /** Where the images are, as the release's other keys are. */
+  readonly #dataHost: string;
   #beat: StoryBeat | null = null;
-  /** Bumped per beat, so a slow image never lands on a later beat's card. */
-  #imageToken = 0;
 
-  constructor() {
+  constructor(dataHost: string) {
+    this.#dataHost = dataHost;
     const head = el('header', 'wu-card-head');
     head.append(this.#date, this.#title, el('div', 'wu-rule'));
     this.#body.append(this.#text, this.#figure);
@@ -105,22 +110,20 @@ export class BeatCard {
   }
 
   /**
-   * The image in its mount: a brass bevel around a mat, and the image's window in the mat, cropped
-   * to the story's crop, with the credit as the caption below.
+   * The image in its mount: a brass bevel around a mat, and the baked crop filling the mat's
+   * window, with the credit as the caption below. The small file shows first, blurred, and the
+   * sharp one, at the width the browser picks for the frame, fades in over it. With neither, or
+   * with no baked crop in the lock, the frame becomes a plate with the image's description.
    */
   #showImage(image: StoryImage | undefined): void {
-    const token = ++this.#imageToken;
     this.#figure.replaceChildren();
     this.#figure.hidden = !image;
     if (!image) return;
-    const [x0, y0, x1, y1] = image.crop;
     const mount = el('div', 'wu-mount');
     const mat = el('div', 'wu-mat');
     const frame = el('div', 'wu-frame is-loading');
     mat.append(frame);
     mount.append(mat);
-    const crop = { '--cx': x0, '--cy': y0, '--cw': x1 - x0, '--ch': y1 - y0, '--ar': GUESS_ASPECT };
-    for (const [name, value] of Object.entries(crop)) mount.style.setProperty(name, String(value));
     const caption = el('figcaption', 'wu-caption');
     const credit = el('a', 'wu-credit');
     credit.target = '_blank';
@@ -132,47 +135,48 @@ export class BeatCard {
     const plate = () => {
       frame.classList.remove('is-loading');
       frame.replaceChildren(el('div', 'wu-plate', image.alt));
-      mount.style.setProperty('--ar', String(GUESS_ASPECT));
+      mount.style.setProperty('--ar', String(PLATE_ASPECT));
       caption.hidden = true;
     };
-    commonsImage(image.commons, x1 - x0).then(
-      (info) => {
-        if (token !== this.#imageToken) return;
-        const aspect = ((x1 - x0) * info.width) / ((y1 - y0) * info.height);
-        mount.style.setProperty('--ar', String(aspect));
-        credit.textContent = info.credit;
-        credit.title = info.credit;
-        credit.href = info.page;
-        // The preview shows first, blurred; the full image fades in over it and replaces it. With
-        // neither, the frame becomes a plate with the image's description.
-        const preview = info.preview !== info.full ? picture(info.preview, '') : null;
-        const full = picture(info.full, image.alt);
-        let shown = false;
-        const show = (img: HTMLImageElement) => {
-          shown = true;
-          frame.classList.remove('is-loading');
-          img.classList.add('is-loaded');
-        };
-        if (preview) {
-          preview.classList.add('wu-preview');
-          preview.addEventListener('load', () => show(preview));
-          preview.addEventListener('error', () => preview.remove());
-          frame.append(preview);
-        }
-        full.addEventListener('load', () => {
-          show(full);
-          setTimeout(() => preview?.remove(), 800);
-        });
-        full.addEventListener('error', () => {
-          if (!shown) plate();
-        });
-        frame.append(full);
-        requestAnimationFrame(() => this.#checkOverflow());
-      },
-      () => {
-        if (token === this.#imageToken) plate();
-      },
-    );
+    const files = [...(image.locked?.files ?? [])].sort((a, b) => a.w - b.w);
+    const [small, large] = [files[0], files.at(-1)];
+    if (!image.locked || !small || !large) {
+      plate();
+      return;
+    }
+    const { credit: makers, license, source } = image.locked;
+    mount.style.setProperty('--ar', String(large.w / large.h));
+    const line = [makers, license].filter((part) => part.length > 0).join(' · ');
+    credit.textContent = line;
+    credit.title = line;
+    credit.href = source;
+
+    const url = (file: LockedFile) => `${this.#dataHost}/${file.key}`;
+    const across = Math.ceil(frame.getBoundingClientRect().width) || FRAME_PX;
+    const srcset = files.map((file) => `${url(file)} ${file.w}w`).join(', ');
+    const preview = small !== large ? picture(url(small), '') : null;
+    const full = picture(url(large), image.alt, { srcset, sizes: `${across}px` });
+    let shown = false;
+    const show = (img: HTMLImageElement) => {
+      shown = true;
+      frame.classList.remove('is-loading');
+      img.classList.add('is-loaded');
+    };
+    if (preview) {
+      preview.classList.add('wu-preview');
+      preview.addEventListener('load', () => show(preview));
+      preview.addEventListener('error', () => preview.remove());
+      frame.append(preview);
+    }
+    full.addEventListener('load', () => {
+      show(full);
+      setTimeout(() => preview?.remove(), 800);
+    });
+    full.addEventListener('error', () => {
+      if (!shown) plate();
+    });
+    frame.append(full);
+    requestAnimationFrame(() => this.#checkOverflow());
   }
 
   /** Fades the text's foot while more of it lies below, and its head once scrolled. */
@@ -184,15 +188,23 @@ export class BeatCard {
   }
 
   dispose(): void {
-    this.#imageToken += 1;
     this.element.remove();
   }
 }
 
-function picture(src: string, alt: string): HTMLImageElement {
+/** An image of `src`, or of the width the browser picks from `choices`, set before `src`. */
+function picture(
+  src: string,
+  alt: string,
+  choices?: { srcset: string; sizes: string },
+): HTMLImageElement {
   const image = el('img');
   image.decoding = 'async';
   image.alt = alt;
+  if (choices) {
+    image.sizes = choices.sizes;
+    image.srcset = choices.srcset;
+  }
   image.src = src;
   image.draggable = false;
   return image;

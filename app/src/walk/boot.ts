@@ -358,7 +358,8 @@ function createRenderer(): WebGLRenderer {
  * The story mode's parts: the director, with input on the globe breaking out and the arrow keys
  * stepping beats instead of panning; the effects, with their plaques in `labels` and the climate
  * from the release's data host; the card, ruler, Meanwhile, climate legend and sound knob over
- * them in `root`; and the sound. With them, what ends the story.
+ * them in `root`, the card's images from the release's data host; and the sound. With them, what
+ * ends the story.
  */
 function startStory(
   { story, meanwhile }: StorySource,
@@ -376,7 +377,7 @@ function startStory(
 
   const effects = createWalkEffects(story, look, labels, release);
   const sound = createWalkAudio();
-  const ui = createWalkUi(root, walk, meanwhile, sound);
+  const ui = createWalkUi(root, walk, meanwhile, sound, release.dataHost);
   const end = () => {
     unbindKeys();
     sound.dispose();

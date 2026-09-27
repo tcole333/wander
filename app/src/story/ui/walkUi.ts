@@ -18,9 +18,9 @@ import { MeanwhilePanel } from './meanwhile';
 import { CraftRuler } from './rulerCraft';
 import { SoundKnob } from './soundKnob';
 
-export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound): WalkUi => {
+export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHost): WalkUi => {
   const layer = el('div', 'wu');
-  const card = new BeatCard();
+  const card = new BeatCard(dataHost);
   const ruler = new CraftRuler(walk, walk.state().story);
   const knob = new SoundKnob(sound);
   const panel = new MeanwhilePanel(walk, meanwhile);

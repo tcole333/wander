@@ -4,6 +4,7 @@
 // become day numbers (dates.ts).
 import { parse } from 'yaml';
 import { dayFromIso, type Precision } from './dates';
+import type { LockedImage } from './lock';
 
 export type LonLat = [lon: number, lat: number];
 
@@ -22,6 +23,8 @@ export interface StoryImage {
   /** Fractions of the image: x0, y0, x1, y1. */
   crop: [number, number, number, number];
   alt: string;
+  /** The baked crop on the data host and its credit, from the story's lock (lock.ts). */
+  locked?: LockedImage;
 }
 
 export interface StoryCamera {

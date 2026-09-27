@@ -1,10 +1,15 @@
 // The walk UI's harness (prototype-walk-ui.html, dev only): the real Tambora story and the walk's
 // UI over a dark stand-in for the globe, driven by a stub director on timers. An ember marks where
-// the beat's focal place falls on screen, to check the card never covers it.
+// the beat's focal place falls on screen, to check the card never covers it. The card's images come
+// from the bundled release's data host, or a local data server's with ?data= (page/dataOrigin.ts).
 //
 // Keys: Space plays or pauses, the arrows step, B breaks out. Query: ?beat=<n> starts at beat n
 // (1-8). window.__walkUi serves scripts: jump(beat) lands at once, walk is the stub director.
 import storyText from '../../../../../stories/tambora/story.md?raw';
+import storyLock from '../../../../../stories/tambora/story.lock.json';
+import bundled from '../../../generated/release.json';
+import { dataOverride } from '../../../page/dataOrigin';
+import { withLock } from '../../../story/lock';
 import { meanwhileFromJson } from '../../../story/meanwhile';
 import tambora from '../../../story/meanwhile.tambora.json';
 import { parseStory } from '../../../story/story';
@@ -19,7 +24,7 @@ declare global {
 
 const meanwhile = meanwhileFromJson(tambora);
 
-const story = parseStory(storyText);
+const story = withLock(parseStory(storyText), storyLock);
 const start = Math.max(0, Number(new URLSearchParams(location.search).get('beat') ?? 1) - 1);
 const walk = new HarnessWalk(story, Math.min(start, story.beats.length - 1));
 // A stand-in for the walk's sound, so the sound knob stands where it does in the walk.
@@ -29,7 +34,8 @@ const sound = {
     this.muted = !this.muted;
   },
 };
-const ui = createWalkUi(document.body, walk, meanwhile, sound);
+const dataHost = dataOverride(location) ?? bundled.dataHost;
+const ui = createWalkUi(document.body, walk, meanwhile, sound, dataHost);
 window.__walkUi = { walk, jump: (beat) => walk.jump(beat) };
 
 addEventListener('keydown', (event) => {

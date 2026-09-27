@@ -5,7 +5,6 @@ import { parseStory } from '../story';
 import {
   bearingDeg,
   compassPoint,
-  creditLine,
   curlyQuotes,
   dateLine,
   beatSpan,
@@ -60,20 +59,6 @@ describe('the walk UI', () => {
     expect(compassPoint(bearingDeg(tambora, [89.22, 23.17]))).toBe('NW');
     expect(compassPoint(bearingDeg([0, 0], [90, 0]))).toBe('E');
     expect(compassPoint(359)).toBe('N');
-  });
-
-  it('credits Commons images by artist, else by credit, with the license', () => {
-    const artists =
-      '<div class="fn value">\n<dl><dd>Pinkerton, John, 1758-1826</dd>\n<dd>Hebert, L.</dd></dl></div>';
-    expect(creditLine(artists, '', 'Public domain')).toBe(
-      'John Pinkerton, L. Hebert · Public domain',
-    );
-    const turner =
-      '<bdi><a href="x"><span title="English painter">J. M. W. Turner</span></a></bdi>';
-    expect(creditLine(turner, '', 'Public domain')).toBe('J. M. W. Turner · Public domain');
-    expect(creditLine('', 'Bibliothèque&nbsp;nationale &amp; Co', 'CC0')).toBe(
-      'Bibliothèque nationale & Co · CC0',
-    );
   });
 
   it('curls straight quotes', () => {

@@ -1,5 +1,5 @@
 // Pure helpers for the walk's UI: the card's date line, the time ruler's calendar and beat pips,
-// Meanwhile's compass bearings, and plain credits from Commons metadata.
+// Meanwhile's compass bearings, and typographer's quotes.
 import { civilFromDay, dayFromCivil, formatDay, monthName, yearLabel } from '../dates';
 import type { LonLat, StoryBeat } from '../story';
 
@@ -148,50 +148,6 @@ const POINTS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 /** The nearest of the eight compass points. */
 export function compassPoint(deg: number): string {
   return POINTS[Math.round((((deg % 360) + 360) % 360) / 45) % 8] ?? 'N';
-}
-
-const ENTITIES: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
-
-/** Text from a Commons metadata value, which is HTML: tags dropped, entities decoded. */
-export function plainText(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&(#x[\da-f]+|#\d+|\w+);/gi, (whole, code: string) => {
-      if (code.startsWith('#x') || code.startsWith('#X')) {
-        return String.fromCodePoint(parseInt(code.slice(2), 16));
-      }
-      if (code.startsWith('#')) return String.fromCodePoint(Number(code.slice(1)));
-      return ENTITIES[code] ?? whole;
-    })
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/** A catalog name as people write it: 'Pinkerton, John, 1758-1826' is 'John Pinkerton'. */
-export function personName(name: string): string {
-  const bare = name.replace(/,\s*(c\.\s*)?[\d?]{3,4}\s*[-–]\s*[\d?]{0,4}\s*$/, '').trim();
-  const inverted = /^([^,]+),\s*([^,]+)$/.exec(bare);
-  return inverted ? `${inverted[2]} ${inverted[1]}` : bare;
-}
-
-/**
- * The image card's one-line credit from Commons' Artist, Credit and LicenseShortName values:
- * the artists (each list item a name), or failing that the credit, then the license.
- */
-export function creditLine(artistHtml: string, creditHtml: string, license: string): string {
-  const names = artistHtml
-    .split(/<\/(?:dd|li)>/i)
-    .map((part) => personName(plainText(part)))
-    .filter((name) => name.length > 0);
-  const who = names.length > 0 ? names.join(', ') : plainText(creditHtml);
-  return [who, plainText(license)].filter((part) => part.length > 0).join(' · ');
 }
 
 /** Typographer's quotes for straight ones: "like fire" becomes “like fire”, Tambora's Tambora’s. */
