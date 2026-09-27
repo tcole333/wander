@@ -15,7 +15,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import type { ModeraRelease, Release, SurfaceRelease } from '../src/data/release.ts';
+import type { MediaRelease, ModeraRelease, Release, SurfaceRelease } from '../src/data/release.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import { localRelease, OUTPUT_DIR, profileBuild, ReleaseError, REPO_ROOT } from './release.ts';
@@ -49,6 +49,7 @@ export interface Section {
 export function releaseSections(release: Release, root: string): Section[] {
   const sections = [surfaceSection(release.surface, root)];
   if (release.modera) sections.push(moderaSection(release.modera, root));
+  sections.push(mediaSection(release.media, root));
   return sections;
 }
 
@@ -98,6 +99,18 @@ function moderaSection(modera: ModeraRelease, root: string): Section {
     return object;
   });
   return { prefix, objects };
+}
+
+/** The stories' images under img/, each baked by the media stage into this output root. */
+function mediaSection(media: MediaRelease, root: string): Section {
+  const missing = media.images.filter((key) => !existsSync(join(root, key)));
+  if (missing.length > 0) {
+    throw new PublishError(
+      `${root} lacks ${missing.length} images the stories' locks name, ${missing[0]} first: ` +
+        'run `uv run prebuild media --story <id>` in pipeline/ with the same --profile',
+    );
+  }
+  return { prefix: 'img/', objects: media.images.map((key) => localObject(root, key)) };
 }
 
 function keysUnder(root: string, prefix: string): string[] {

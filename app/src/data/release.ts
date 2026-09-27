@@ -32,6 +32,14 @@ export interface ModeraRelease {
   bytes: { mean: Record<string, number>; spread: Record<string, number>; annual: number };
 }
 
+/**
+ * release.json's `media`: every key the stories' committed locks name (streaming.md 3.9), sorted,
+ * so publish-data uploads them and check-release reads one.
+ */
+export interface MediaRelease {
+  images: string[];
+}
+
 /** The part of release.json built so far: every stage adds its section. */
 export interface Release {
   id: string;
@@ -40,4 +48,5 @@ export interface Release {
   surface: SurfaceRelease;
   /** Present once the build has run the modera stage. */
   modera?: ModeraRelease;
+  media: MediaRelease;
 }

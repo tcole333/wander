@@ -1,6 +1,10 @@
-// The release's surface section (streaming.md 3.8) from the coverage and surface records (7.2).
+// The release's surface section (streaming.md 3.8) from the coverage and surface records (7.2),
+// and its media section from the stories' locks (3.9).
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { surfaceRelease } from './release';
+import { mediaRelease, surfaceRelease } from './release';
 
 const coverage = { qLand: [39.09375, 2], c200: [-5, -100], avail: 'Pw==' };
 const surface = { ver: '4359ef83', maxLevel: 1, avail: 'Pw==', bounds: 'surf/4359ef83/bounds.bin' };
@@ -27,5 +31,35 @@ describe('surfaceRelease', () => {
     expect(() => surfaceRelease({ ...coverage, qLand: [39.09375] }, surface)).toThrow(
       /one entry per level 0-1/,
     );
+  });
+});
+
+describe('mediaRelease', () => {
+  test("lists every locked image's files once, sorted, and skips a story with no lock", () => {
+    const stories = mkdtempSync(join(tmpdir(), 'wander-stories-'));
+    const file = (key: string) => ({ key, w: 1, h: 1, bytes: 1 });
+    const locks: Record<string, string[][]> = {
+      one: [
+        ['img/bb-1024.jpg', 'img/bb-256.jpg'],
+        ['img/aa-1024.jpg', 'img/aa-256.jpg'],
+      ],
+      two: [['img/bb-1024.jpg', 'img/bb-256.jpg']],
+    };
+    for (const [story, images] of Object.entries(locks)) {
+      mkdirSync(join(stories, story));
+      const lock = { images: images.map((keys) => ({ files: keys.map(file) })) };
+      writeFileSync(join(stories, story, 'story.lock.json'), JSON.stringify(lock));
+    }
+    mkdirSync(join(stories, 'unbaked'));
+    try {
+      expect(mediaRelease(stories).images).toEqual([
+        'img/aa-1024.jpg',
+        'img/aa-256.jpg',
+        'img/bb-1024.jpg',
+        'img/bb-256.jpg',
+      ]);
+    } finally {
+      rmSync(stories, { recursive: true, force: true });
+    }
   });
 });
