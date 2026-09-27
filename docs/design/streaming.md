@@ -1015,6 +1015,28 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
   Hovering a story plaque for `hoverQueue` queues that story's core and beat-1 critical set at the head
   of next; hovering another plaque cancels it.
+
+  In milestone 1 (`app/src/lobby/`) the production entry boots into the lobby on every fresh load,
+  and a reload returns to it:
+  - **Opening (~4 s):** it starts once the precompile is done and the streamer is idle at world
+    view, or after 4 s, and the room crossfades into it. The lamp comes up out of the dark room,
+    both rings swing into place from nearly edge-on, and the globe settles from a spin of 24° with a
+    small overshoot, the gears following it. One progress value gives the whole pose (`opening.ts`):
+    the scene's `lamp` and ring-swing params and the view's longitude, so the opening needs no
+    program of its own. Any press, key or wheel runs the rest of it in 250 ms.
+  - **Lobby:** the instrument turns eastward at 1° of longitude a second at world view, as the Earth
+    does, stops at any input and turns on after 5 s without one; dragging and the wheel work as in
+    the walk. The plaques stand in a column at the left, and the lens shifts right by half the
+    column's reach, which centers the instrument beside it. Tambora is the only plaque; no plaque
+    stands for a story not yet built. Until the event index exists, the ambient events are
+    Meanwhile's 24 stand-in entries: soft ember points with a slow twinkle, additive and unlit, in
+    three's built-in points material, compiled in the precompile. There is no hover queue yet; the
+    dive's readiness gate covers beat 1.
+  - **Credits:** an engraved link in the lobby, and the card's Credits link in the walk, open the
+    PRD's Credits panel in place: the credits page's own sheet (`app/credits.html`, one source for
+    both) in the card's brass frame. `/credits` stays for direct links and new tabs.
+  - A way back to the lobby from a story, deep links (the Continue plate) and reduced motion wait
+    for milestone 4 or later.
 - **Dive (~3 s):**
 
   | Time | On screen | Loading |
@@ -1022,6 +1044,14 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   | 0 s (click) | rings swing open; unlock sound | the AudioContext resumes in the click handler; beat-1 core and critical move to now |
   | 0.4-2.6 s | flight into beat 1; the ruler slides to the story date | beat-1 core, critical, then desired |
   | 2.2-3.0 s | the title plate engraves in once `document.fonts.load()` resolves (fallback after `titleFontWait`); the text card slides in | beat 2 enters next |
+
+  In milestone 1 the dive is the walk's own flight into beat 1 (`createWalk` with `arrive: 'fly'`),
+  through its readiness gate, from wherever the visitor left the lobby's view. The walk starts in
+  the click that chose the plaque, so all it starts, its sound too, starts inside the visitor's
+  gesture. The plaques slide away, the turn and the glows stop, the time ruler rises from below the
+  page during the flight, the lens eases from the column's shift to the card's, and the card and
+  Meanwhile come in at the landing. The rings do not swing open; the camera passes through them as
+  on any flight.
 
 - **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years, snapshot
   index and meta) are resident and prepared, N's critical surface and overlay tiles are uploaded, and the

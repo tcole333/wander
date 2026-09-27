@@ -3,8 +3,8 @@
 // mounted like a museum card (a mat, a brass bevel and a caption line for the credit), sized so
 // all of it shows without scrolling. The image is the story's crop, baked by the media stage and
 // read from the data host; its credit comes from the story's lock (../lock.ts). The sources fold
-// into a footnote at its foot, with the credits page beside them. The story's controls live on the
-// time ruler.
+// into a footnote at its foot, with the Credits link beside them, which opens the Credits panel.
+// The story's controls live on the time ruler.
 import type { WalkState } from '../contract';
 import type { LockedFile } from '../lock';
 import type { StoryBeat, StoryImage } from '../story';

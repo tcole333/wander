@@ -11,9 +11,10 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 Milestone 1 (the Tambora slice) is under way. The surface core (issue #3) is complete: the
 prebuild's profiles, cube conventions, `.wst` codec, committed excerpts and `fetch`, `excerpts`,
 `coverage` and `surface` stages; the region bake and its check; the decoder and the GPU pools.
-The production entry (`app/index.html`, `app/src/main.ts`) plays the Tambora walk from the bundled
-release, `app/src/generated/release.json`, with its credits page at `app/credits.html`; it goes live
-once that release's data is on R2 (`npm run check-release`). The dev page
+The production entry (`app/index.html`, `app/src/main.ts`) opens on the lobby and plays the Tambora
+walk from the bundled release, `app/src/generated/release.json`; its Credits panel shows the
+credits page's sheet (`app/credits.html`, also served at `/credits`). It goes live once that
+release's data is on R2 (`npm run check-release`). The dev page
 `app/prototype.html?story=tambora` boots the same walk (`app/src/walk/boot.ts`) under a tuning
 panel. Hosting and CI are live.
 
@@ -26,9 +27,10 @@ Paths in the docs are relative to the repo root, except the measurement citation
   relies on version-specific three.js APIs), with a plain-DOM UI and no React: the approved walk is
   plain three.js, and its bundle is smaller (`docs/design/streaming.md`, owner decision 20).
   Tunables live in `app/src/config/tunables.ts`. The walk's modules live in `app/src/` (`walk/`,
-  `view/`, `stream/`, `look/`, `scene/`, `story/`, the walk's material tokens in
+  `lobby/`, `view/`, `stream/`, `look/`, `scene/`, `story/`, the walk's material tokens in
   `story/ui/tokens.css`); `app/src/page/` holds the production page's room, failure plates, data
-  override and credits styles; `app/src/prototype/` holds only the dev pages' shells and harnesses.
+  override, Credits panel and credits styles; `app/src/prototype/` holds only the dev pages' shells
+  and harnesses.
 - `pipeline/`: the uv project for the Python prebuild (`uv run prebuild`, under Commands), which
   turns raw sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
