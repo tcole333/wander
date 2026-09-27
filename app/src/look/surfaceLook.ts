@@ -220,6 +220,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     dispose() {
       material.dispose();
       depthMaterial.dispose();
+      climate.lookClimateField.value.dispose();
     },
   };
 };
