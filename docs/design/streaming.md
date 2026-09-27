@@ -535,8 +535,14 @@ pages are built from the same JSON.
              "bytes":{"mean":{"1815":…}, "spread":{…}, "annual":…}},
   "fx": {"<name>":{"key","kind","epochDay","bbox","w","h","bytes"}},
   "minerals":"pt/<sha16>.json", "labels":"lb/<sha16>.json",
-  "fonts": {"display":"fn/<sha16>.woff2", "labels":"fn/<sha16>.woff"} }
+  "fonts": {"display":"fn/<sha16>.woff2", "labels":"fn/<sha16>.woff"},
+  "media": {"images":["img/<sha16>-1024.jpg", "img/<sha16>-256.jpg", …]} }
 ```
+
+`media` lists every key the stories' committed locks name (3.9), sorted, so `publish-data` uploads
+the images and `npm run check-release` reads one. It comes from the locks rather than a stage
+record, because the lock is what the app bundles: the release names exactly the images the
+bundled stories show.
 
 The availability bitmap is 131,070 bits at L7 (16 KB raw) and sparse, so it compresses well inside the
 bundle. At run time a node uses its parent's height bounds until its own tile loads.
@@ -561,7 +567,9 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   - `camera`: `target` [lon, lat] in degrees; `viewKm`, the visible width at the target; `tilt` in
     degrees from nadir; `heading` in degrees clockwise from north; `drift`, none or slow
   - `focal`: `{qid, at?, date?}` (overrides Wikidata)
-  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt}`
+  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?}`. `credit` names the makers
+    when Commons' Artist field names an uploader instead (the Internet Archive's Flickr account
+    for a book's engraving); otherwise the credit comes from Commons.
   - `layers`: the listed layers are on and anything omitted is off. The canonical order, which is also
     the `?l=` bit order: relief, bathymetry, coastline, landSea, water, graticule, labels, borders,
     ecoregions, petroleum, mountains, minerals, climate, events. `climate` may carry
@@ -581,8 +589,16 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
 - **Meanwhile, auto:** the top `meanwhileCount` events by score inside the beat window that lie more
   than `meanwhileMinKm` from the target, at most one per macro-region.
 - **Lock** (`stories/<story>/story.lock.json`, written by the media stage, committed):
-  `{eventsVer, images: [{key, bytes, w, h, credit, license, source}], audio: [{key, bytes, loopStart,
-  loopEnd}], events: {qid: {label, t, at}}, meanwhile: {beatId: [qid, …]}}`.
+  `{eventsVer, images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, license,
+  source}], audio: [{key, bytes, loopStart, loopEnd}], events: {qid: {label, t, at}}, meanwhile:
+  {beatId: [qid, …]}}`. An image's entry is found by its sha1 and crop, so a recrop needs a new
+  bake. `credit` is the makers: the Artist field's names (a catalog's 'Pinkerton, John, 1758-1826'
+  as 'John Pinkerton'), else Commons' Credit, else the story's own; `license` is Commons'
+  LicenseShortName as it stands; `source` is the file's page. The media stage writes `images` so
+  far; `eventsVer`, `events` and `meanwhile` join with the events build and `audio` with the first
+  CC0 sample. Until `npm run stories` compiles the story, the app joins the lock to the parsed
+  story itself (`app/src/story/lock.ts`), and the card reads its image from the data host and its
+  credit from the lock, so a visitor's browser never calls Commons.
 
 ---
 
@@ -598,7 +614,7 @@ ev/<ver8>/overview.wev | all.wev | pNN.wev | long.wev | details/<n>.json
 fd/modera/<ver8>/mean/<year>.bin | spread/<year>.bin | annual.bin
 fx/<sha16>.bin | fx/<sha16>.json                        story datasets
 pt/<sha16>.json  lb/<sha16>.json                        minerals, curated labels
-img/<sha16>-256.avif | -1024.avif | -1024.jpg
+img/<sha16>-1024.jpg | -256.jpg                         story images (AVIF deferred)
 aud/<sha16>.m4a    fn/<sha16>.woff | .woff2
 lic/<sha16>.txt                                         GPL-3.0 text, source commit, build-script link, attributions (owner decision 6)
 rel/<id>.json                                           immutable copy of each release.json
@@ -1129,7 +1145,7 @@ defaults to min(8, CPUs), with spawn-context worker processes.
 | `events` | pinned exports in `pipeline/queries/` → `.wev` + details | build < 1 min [E] | local |
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
-| `media --story <id>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
+| `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points, and focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
 | `npm run poster` | Deferred past milestone 1, whose poster is the CSS room (owner decision 21). Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
 | `npm run publish-data` | stage records → `release.json`; uploads (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
@@ -1162,7 +1178,8 @@ defaults to min(8, CPUs), with spawn-context worker processes.
 Every stage writes its profile's output root in the exact R2 key layout, plus a record at
 `build/stages/<profile>/<stage>.json`, outside the tree `publish-data` uploads, so records never
 become R2 keys. `fetch`, `excerpts` and `media` write no record: `media` lists what it wrote in the
-committed lock (3.9), which `npm run stories` reads, and `release.json` has no media section.
+committed lock (3.9), which `npm run stories` reads, and the release's `media` section lists
+every key the locks name (3.8).
 
 | Stage | Record |
 |---|---|
@@ -1232,8 +1249,10 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   samples, 3.0 item 9) in `build/stages/fixture/expect/`. It skips `modera` for now: the ModE-RA
   excerpt listed above joins the fixture with the rest of #7's excerpts, and until then a pytest
   covers the climate codec and the stage on synthetic NetCDFs.
-  `uv run prebuild --profile fixture media --story _fixture --offline` writes
-  `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
+  The fixture bakes no story images. `media --offline` reads the committed test image and the
+  metadata Commons would give it (`pipeline/tests/data/media/`), and pytest runs the stage that
+  way on a one-beat story, touching neither Commons nor R2. The smoke test answers the fixture data
+  host's `img/` keys with the same test image and fails on any request to a Wikimedia host.
 - **Release selection:** the app bundles `app/src/generated/release.json`. A page served from
   loopback may name a local data server instead, with `?data=<origin>` or
   `?data=fixture|region|global`, and reads that server's `/release.json`
