@@ -558,7 +558,7 @@ async function copySettings(press: HTMLButtonElement): Promise<void> {
     sheet.addEventListener('click', () => sheet.remove());
     root.append(sheet);
     getSelection()?.selectAllChildren(sheet);
-    press.textContent = 'Shown';
+    press.textContent = 'Copy by hand';
   }
   setTimeout(() => (press.textContent = 'Copy settings'), 1600);
 }
