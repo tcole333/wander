@@ -22,3 +22,15 @@ export function meanwhileFromJson(json: Record<string, MeanwhileJsonEntry[]>): M
   }
   return byBeat;
 }
+
+/** The `count` entries nearest `day`, from every beat's, nearest first. */
+export function nearestEntries(
+  byBeat: MeanwhileByBeat,
+  day: number,
+  count: number,
+): MeanwhileEntry[] {
+  return Object.values(byBeat)
+    .flat()
+    .sort((a, b) => Math.abs(a.day - day) - Math.abs(b.day - day))
+    .slice(0, count);
+}
