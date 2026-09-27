@@ -1,8 +1,8 @@
 // The beats' cues (streaming.md 3.9: a beat's `audio: {cues: [...]}`), by name, on the cue bus.
 // Each plays by its nature: rain, wind and ashfall are textures that hold for the beat; cannon-far
 // is a few distant booms, spaced; rumble-far is low grumbles now and then; the eruption is one
-// blast, then a roar that settles and holds. Textures loop noise of prime lengths behind swaying
-// filters, as the bed does (bed.ts), and every event jitters its pitch, level and filters.
+// blast, then a roar that settles and sinks low. Textures loop noise of prime lengths behind
+// swaying filters, as the bed does (bed.ts), and every event jitters its pitch, level and filters.
 import type { SoundEngine } from './engine';
 import { gainOf } from './mix';
 import {
@@ -59,14 +59,15 @@ export const CUES = {
     play(engine, out, at, sources) {
       blast(engine, out, at);
       const ctx = engine.ctx;
-      // The roar: rising behind the blast as the column climbs, then settling over some seconds
-      // to a held level.
+      // The roar: rising behind the blast as the column climbs, settling over some seconds, then
+      // sinking lower through the next half minute, so the beat is not read inside a roar.
       const roar = new GainNode(ctx, { gain: 0 });
       const rise = at + rand(0.25, 0.45);
       roar.gain.setValueAtTime(0, rise);
       roar.gain.linearRampToValueAtTime(0.25, rise + 0.8);
       roar.gain.linearRampToValueAtTime(0.85, rise + 3);
       roar.gain.setTargetAtTime(0.4, rise + 3.5, 3.5);
+      roar.gain.setTargetAtTime(0.15, rise + 12, 8);
       roar.connect(out);
       for (const [side, seconds, rate] of [
         [-1, 9.7, 0.0831],
