@@ -113,6 +113,14 @@ describe('the walk', () => {
     expect(control.current.lon).toBeCloseTo(beat(0).camera.target[0], 6);
   });
 
+  it('tells when the camera flies, to a Meanwhile entry as to a beat', () => {
+    const { walk, run } = setup();
+    walk.flyTo([2.35, 48.86], 1500);
+    expect(walk.state()).toMatchObject({ flying: true, flight: null });
+    run(6);
+    expect(walk.state().flying).toBe(false);
+  });
+
   it('scrubs to whole days, as the date plate reads them', () => {
     const { walk } = setup();
     walk.scrub(beat(3).day - 0.25);

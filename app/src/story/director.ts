@@ -136,6 +136,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     beat,
     mode,
     flight: leg && leg.beat !== null ? Math.min(1, leg.clock / leg.durationS) : null,
+    flying: leg !== null,
     day,
     advanceIn,
   });
