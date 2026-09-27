@@ -7,9 +7,10 @@
 //   npm run data -- --profile fixture|region|global [--port N]
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { extname, join, resolve, sep } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { objectHeaders } from './objectHeaders.ts';
 import { localRelease } from './release.ts';
 
 /** Each profile's port, so the fixture and region servers can run side by side. */
@@ -25,26 +26,8 @@ const REBUILD: Record<Profile, string> = {
   global: 'run `uv run prebuild` in pipeline/',
 };
 
-/** The Content-Type each object gets at upload (4.2); nothing else is served. */
-const CONTENT_TYPES: Record<string, string> = {
-  '.wst': 'application/octet-stream',
-  '.wot': 'application/octet-stream',
-  '.wev': 'application/octet-stream',
-  '.bin': 'application/octet-stream',
-  '.json': 'application/json',
-  '.avif': 'image/avif',
-  '.jpg': 'image/jpeg',
-  '.m4a': 'audio/mp4',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-};
-
-// The zone's Transform Rule and the objects' own headers (4.2).
-const DATA_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Timing-Allow-Origin': '*',
-  'Cache-Control': 'public, max-age=31536000, immutable',
-};
+// The zone's Transform Rule (4.2); each object's own headers come from objectHeaders.ts.
+const ZONE_HEADERS = { 'Access-Control-Allow-Origin': '*', 'Timing-Allow-Origin': '*' };
 
 export interface DataServerOptions {
   profile: Profile;
@@ -113,8 +96,7 @@ function serve(req: IncomingMessage, res: ServerResponse, root: string, release:
   if (path === '/release.json') {
     const body = release();
     res.writeHead(200, {
-      'Access-Control-Allow-Origin': '*',
-      'Timing-Allow-Origin': '*',
+      ...ZONE_HEADERS,
       'Cache-Control': 'no-store',
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(body),
@@ -124,10 +106,10 @@ function serve(req: IncomingMessage, res: ServerResponse, root: string, release:
 
   // Only files under the root, with an extension R2 serves, and never a path that climbs out.
   const file = resolve(root, `.${path}`);
-  const type = CONTENT_TYPES[extname(file)];
-  const stat = file.startsWith(root + sep) && type ? statOrNull(file) : null;
-  if (!type || !stat?.isFile()) return send(res, 404, 'not found');
-  res.writeHead(200, { ...DATA_HEADERS, 'Content-Type': type, 'Content-Length': stat.size });
+  const headers = objectHeaders(file);
+  const stat = file.startsWith(root + sep) && headers ? statOrNull(file) : null;
+  if (!headers || !stat?.isFile()) return send(res, 404, 'not found');
+  res.writeHead(200, { ...ZONE_HEADERS, ...headers, 'Content-Length': stat.size });
   if (req.method === 'HEAD') return res.end();
   createReadStream(file)
     .on('error', () => res.destroy())
