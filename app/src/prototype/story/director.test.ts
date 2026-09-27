@@ -61,6 +61,25 @@ describe('the walk', () => {
     expect(took).toBeLessThan((flight?.plannedS ?? 0) + 0.4 + 0.05);
   });
 
+  it('turns a drifting beat and closes in on the others while they are read', () => {
+    const { control, walk, run, land } = setup();
+    run(5);
+    expect(control.current.lon).toBeCloseTo(beat(0).camera.target[0] + 2, 1);
+    walk.goTo(2);
+    land();
+    run(readingSeconds(beat(2)) + 1);
+    expect(control.current.viewKm).toBeCloseTo(beat(2).camera.viewKm * 0.95, 6);
+  });
+
+  it('lands on a spread at its window start and plays it out to the beat date', () => {
+    const { walk, run, land } = setup();
+    walk.goTo(4);
+    land();
+    expect(walk.state().day).toBe(beat(4).window?.[0]);
+    run(8.1);
+    expect(walk.state().day).toBe(beat(4).day);
+  });
+
   it('plays on after the reading time and stops on the last beat', () => {
     const { walk, run, land } = setup();
     walk.togglePlay();
