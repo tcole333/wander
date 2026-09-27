@@ -118,7 +118,7 @@ export function applyQuery(params: Params, query: URLSearchParams): void {
 /**
  * Hides `gui` behind a small engraved gear at the page's top right, for a page whose own UI fills
  * the screen (a story): the gear shows the panel, open, and hides it again. Styled as .wu-gear by
- * the walk's stylesheet.
+ * prototype.html.
  */
 export function tuckAway(gui: GUI): HTMLButtonElement {
   gui.hide();
