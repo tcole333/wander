@@ -12,6 +12,13 @@ import {
 } from '../globe/surfaceVertex.glsl';
 import { ASH_FRAGMENT_APPLY, ASH_FRAGMENT_PARS, createAshUniforms, registerAsh } from './ashHook';
 import {
+  CLIMATE_FRAGMENT_APPLY,
+  CLIMATE_FRAGMENT_PARS,
+  CLOISONNE_DEFINE,
+  createClimateUniforms,
+  registerClimate,
+} from './climateHook';
+import {
   LOOK_FRAGMENT_COLOR,
   LOOK_FRAGMENT_METALNESS,
   LOOK_FRAGMENT_NORMAL,
@@ -105,6 +112,10 @@ export function defaultLookParams(): Params {
     coarseRelief: 0.85,
     // 0 the look, 1 height, 2 shore/water/L1 fields, 3 normals, 4 source level.
     debugView: 0,
+    // The climate palette's saturation either side of the average, K, and its style: 0 the frost
+    // and verdigris wash, 1 the cloisonné alternate (dev only; switching recompiles the look).
+    climateRangeK: tunables.climateRangeK,
+    climateStyle: 0,
     ...PALETTE,
   };
 }
@@ -126,13 +137,16 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   for (const uniform of Object.values(SCALAR_UNIFORMS)) look[uniform] = { value: 0 };
   const camLocal = new Vector3();
   look.lookCamLocal = { value: camLocal };
-  // The walk's illustrative ashfall (ashHook.ts), off until its effects set a strength.
+  // The walk's illustrative ashfall (ashHook.ts) and its climate (climateHook.ts), off until its
+  // effects set a strength.
   const ash = createAshUniforms();
-  const uniforms: Uniforms = { ...vertex, ...look, ...ash };
+  const climate = createClimateUniforms();
+  const uniforms: Uniforms = { ...vertex, ...look, ...ash, ...climate };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
   material.name = 'wander-surface-look';
   registerAsh(material, ash);
+  registerClimate(material, climate);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule needs the camera in the globe frame: the mesh's local frame.
   const toLocal = new Matrix4();
@@ -144,8 +158,14 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = injectVertex(shader.vertexShader, chunk, true);
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
-      ['#include <common>', `#include <common>\n${LOOK_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}`],
-      ['#include <color_fragment>', `${LOOK_FRAGMENT_COLOR}\n${ASH_FRAGMENT_APPLY}`],
+      [
+        '#include <common>',
+        `#include <common>\n${LOOK_FRAGMENT_PARS}\n${CLIMATE_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}`,
+      ],
+      [
+        '#include <color_fragment>',
+        `${LOOK_FRAGMENT_COLOR}\n${CLIMATE_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}`,
+      ],
       ['#include <roughnessmap_fragment>', LOOK_FRAGMENT_ROUGHNESS],
       ['#include <metalnessmap_fragment>', LOOK_FRAGMENT_METALNESS],
       ['#include <normal_fragment_maps>', LOOK_FRAGMENT_NORMAL],
@@ -180,6 +200,14 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       if (!target || colors.get(name) === hex) continue;
       colors.set(name, hex);
       (target.value as Color).set(hex);
+    }
+    climate.lookClimateRange.value = Math.max(0.5, Number(params.climateRangeK));
+    const cloisonne = Number(params.climateStyle) === 1;
+    const defines = (material.defines ??= {});
+    if (cloisonne !== CLOISONNE_DEFINE in defines) {
+      if (cloisonne) defines[CLOISONNE_DEFINE] = '';
+      else delete defines[CLOISONNE_DEFINE];
+      material.needsUpdate = true;
     }
   };
   update();

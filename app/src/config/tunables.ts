@@ -104,8 +104,9 @@ export const tunables = {
   climateMonthlySpan: 20,
   climatePrefetchYears: 2,
   climateSwitchFade: 300,
-  // Kelvin at which the diverging climate palette saturates, either side of zero.
-  climateRangeK: 6,
+  // Kelvin at which the diverging climate palette saturates, either side of zero: 1816's summer
+  // runs 2-5 K under the average in Europe and New England, which ±4 K spreads over the palette.
+  climateRangeK: 4,
   detents: { maxPerSecond: 25, scheduleAhead: 50 },
   loopCrossfade: 50,
   bedCrossfade: 750,
