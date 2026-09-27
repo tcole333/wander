@@ -109,7 +109,7 @@ Borders come from the historical snapshot nearest the current date, and the snap
 always shown.
 
 Several layers are present-day data (coastlines, rivers and lakes, ecoregions, petroleum provinces,
-mountain ranges, critical-mineral deposits). The credits page lists each source and its date once;
+mountain ranges, critical-mineral deposits). The Credits panel lists each source and its date once;
 the rest of the interface stays free of caveats.
 
 ### Effects
@@ -140,8 +140,7 @@ title and blurb.
 
 ### Credits
 
-One page, `/credits`, lists every data source with its attribution and date, and every image with
-its credit.
+One panel lists every data source with its attribution and date, and every image with its credit.
 
 ## Visual direction
 
