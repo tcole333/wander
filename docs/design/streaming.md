@@ -443,6 +443,27 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 - **Monthly or annual:** monthly frames are drawn when the ruler's visible span is at most
   `climateMonthlySpan` and the cursor year's file is resident; otherwise annual, crossfading over
   `climateSwitchFade`. The legend reads "Annual mean" whenever annual data is drawn.
+- **Milestone 1** draws monthly means only, on the beats whose layers carry
+  `{climate: {mode: monthly}}` (`app/src/story/effects/climate.ts`). The walk loads the years those
+  beats reach, from the beat before each (a flight sweeps story time from its date) to the end of
+  the beat's window, and a year a scrub reaches beyond them when first asked for. Each month's frame
+  stands at its middle day; the CPU blends the two around the story day into one 192 × 96 RG16F
+  field (anomaly × coverage, coverage), uploaded only when the blend changes, and the look samples
+  it with a B-spline, mapping latitude to rows by a straight line through the Gaussian latitudes
+  (within 0.03° of them). The ring, the annual arrays, the latitude LUT, the span switch and the
+  prefetch come with explore mode. The layer eases in and out over 0.5 s as beats change; the
+  look's program always holds it, so the walk's precompile builds it at strength 0. Without a
+  `modera` section, or once a file fails, the walk logs once and draws no climate.
+- **Look** (owner decision 22): a frost and verdigris wash on the metal
+  (`app/src/look/climateHook.ts`). Cold land takes a pale blue-green patina, lightened from
+  verdigris (#47746b) and cooled so the warm lamp does not turn it khaki, and loses its polish
+  (rougher, less metallic); warm land takes a muted copper blush; the sea's lacquer takes a third of
+  either. It saturates at `climateRangeK`. Where the climate is drawn, the illustrative veil gives
+  way to it, keyed on the data being drawn rather than on the beat's layers.
+- **Legend:** a small plate of Meanwhile's cast brass over the ruler's right end while climate is
+  drawn: the month ("July 1816"), an enamel strip in the look's colors as the key lamp shows them,
+  "Colder" and "Warmer" at its ends, ticks at 0, ±½ and ±1 of the range (±2 and ±4 °C), and "than
+  the 1901–2000 average".
 
 ### 3.6 Effect data
 
@@ -1306,8 +1327,9 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        GL error. All 419 scenarios on both tiers take about 16 s on SwiftShader and 13 s on Metal
        on the M5.
   7. `npm run check-release` (`app/scripts/checkRelease.ts`): HEAD `rel/<id>.json` on the data
-     host and, once it answers, GET `bounds.bin` and the six L0 tiles with the app's `Origin`,
-     checking R2's headers (4.2). It runs as its own job on every pull request and push, so a page
+     host and, once it answers, GET `bounds.bin`, the six L0 tiles and, when the release has a
+     `modera` section, `fd/modera/<ver>/mean/1816.bin` with the app's `Origin`, checking R2's
+     headers (4.2). It runs as its own job on every pull request and push, so a page
      naming data that is not live cannot merge, and the Pages deploy of the tested build on `main`
      waits for it; the deployment is then checked for `/`, `/credits` and a real 404.
 - **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
@@ -1580,7 +1602,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `restoreTimeout` | 3 s | context-loss restore before reload | E3 |
 | `labelSyncTimeout` | 3 s | troika label sync before logging | E1 |
 | `climateMonthlySpan`, `climatePrefetchYears` | 20 years, ±2 years | monthly vs annual; prefetch | eye |
-| `climateSwitchFade`, `climateRangeK` | 300 ms, ±6 K | switch crossfade; palette saturation | eye |
+| `climateSwitchFade`, `climateRangeK` | 300 ms, ±4 K | switch crossfade; palette saturation | eye |
 | `detents` | ≤ 25/s, scheduled 50 ms ahead | scrub detent sounds | ear |
 | `loopCrossfade`, `bedCrossfade` | 50 ms, 750 ms | loop joins; bed changes | ear |
 | `hideRamp`, `showFade` | 100 ms, 300 ms | tab hide and show audio | ear |
@@ -1680,3 +1702,16 @@ Decided at go-live (issues #6 and #13), 2026-09-27:
     shows the card if the context is lost again within five minutes. The CSS room with the Wander
     mark is the poster. Credits are a page, `/credits`, opened in a new tab from the beat card, until
     the PRD's brass Credits panel arrives with the lobby.
+
+Decided for the climate layer (issue #7), 2026-09-27:
+
+22. **Climate look:** the frost and verdigris wash (3.5), saturating at ±4 K, where 1816's summer
+    runs 2-5 K under the average in Europe and New England. Two alternates stay in the dev shell for
+    a later choice: saturation at ±6 K (`?climateRangeK=6`), and cloisonné, translucent blue and
+    garnet enamel with isotherms engraved at whole degrees (`?climateStyle=1`, a define the
+    production program never holds).
+23. **Data replaces illustration:** wherever ModE-RA's climate is drawn, the illustrative veil fades
+    out, so the beats that promise the real 1816 cold show it.
+24. **No climate over Yunnan:** ModE-RA shows no distinct 1816-1817 cold there (JJA 1816 is
+    −0.07 K against the neighbouring summers), so the Yunnan and Bengal beat drops its annual
+    climate layer; the famine stays in its text and sources.
