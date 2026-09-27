@@ -1,9 +1,11 @@
 // The walk's director (issue #4, checkpoint 2): it flies between the story's beats (flight.ts),
 // sweeping story time with each flight, holds a late landing briefly for the tiles, plays on by
 // itself after each beat's reading time, and lets the visitor break out to explore and resume. It
-// drives the camera by setting the ViewControl's view every frame of a flight.
+// drives the camera by setting the ViewControl's view every frame of a flight, and while a beat is
+// read it keeps the camera moving: a slow turn on a 'drift: slow' beat, a slow push in on the rest.
+// A beat that spreads an effect lands at its window's start and plays the spread out to its date.
 import { isFormField, type ViewControl } from '../app/viewControl';
-import { mixViews, type ViewState } from '../app/viewState';
+import { mixViews, wrap180, type ViewState } from '../app/viewState';
 import type { Walk, WalkMode, WalkOptions, WalkState } from './contract';
 import { flightEase, flightPath, flightSeconds, MAX_LEAD, type FlightPath } from './flight';
 import type { LonLat, Story, StoryBeat } from './story';
@@ -25,6 +27,16 @@ const PACE_S = 0.05;
 /** Play's pause on a beat: seconds per word of its text, plus a moment. */
 const READ_S_PER_WORD = 0.28;
 const READ_EXTRA_S = 3;
+/** The least wait when Play is pressed on a beat already read. */
+const MIN_ADVANCE_S = 4;
+/**
+ * While a beat is read: a 'drift: slow' beat turns the globe this many degrees of longitude a
+ * second, eastward so the ground slides west as the veil did; the others close in by this share.
+ */
+const DRIFT_DEG_PER_S = 0.4;
+const PUSH_IN = 0.05;
+/** How long a spread (ash, veil) plays out after landing, in seconds. */
+const SPREAD_S = 8;
 
 /** A flight's timings, for scripts. */
 export interface FlightRecord {
@@ -74,6 +86,26 @@ export function beatView(beat: StoryBeat): ViewState {
   return { lon: target[0], lat: target[1], viewKm, tilt, heading };
 }
 
+/** The beat's view `seconds` after landing: turning or closing in until it has been read. */
+export function dwellView(beat: StoryBeat, seconds: number): ViewState {
+  const view = beatView(beat);
+  const reading = readingSeconds(beat);
+  const s = Math.min(seconds, reading);
+  if (beat.camera.drift === 'slow')
+    return { ...view, lon: wrap180(view.lon + DRIFT_DEG_PER_S * s) };
+  return { ...view, viewKm: view.viewKm * (1 - (PUSH_IN * s) / reading) };
+}
+
+/**
+ * The day a flight from `from` lands on: the beat's date, or on a beat that spreads an effect, its
+ * window's start when coming from before it, so the spread plays out after landing.
+ */
+export function landingDay(beat: StoryBeat, from: number): number {
+  const spreads = beat.effects.some((e) => e.kind === 'spread');
+  if (!spreads || !beat.window) return beat.day;
+  return Math.min(beat.day, Math.max(from, beat.window[0]));
+}
+
 export function createWalk(story: Story, control: ViewControl, options: WalkOptions): DirectedWalk {
   const beats = story.beats;
   const first = beats[0];
@@ -86,6 +118,9 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
   /** The mode a break-out left, which resume() restores. */
   let resumeMode: 'paused' | 'playing' = 'paused';
   let day = first.day;
+  /** Seconds since landing on the beat, and the day landed on, where a spread starts. */
+  let dwelt = 0;
+  let landedOn = first.day;
   let advanceIn: number | null = null;
   let leg: Leg | null = null;
   /** After a retarget, the old course, blended out over RETARGET_BLEND_S. */
@@ -170,7 +205,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
       clock: 0,
       rate: 1,
       beat: target,
-      days: target === null ? null : [day, beatAt(target).day],
+      days: target === null ? null : [day, landingDay(beatAt(target), day)],
       // Free flights go wherever the visitor points, so they never wait on tiles.
       gate: target === null ? 'passed' : 'ahead',
       record,
@@ -196,6 +231,8 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     const landed = leg?.beat ?? null;
     end('landed');
     fading = null;
+    dwelt = 0;
+    landedOn = day;
     if (landed === null || mode !== 'playing') return;
     if (beat === last) {
       mode = 'paused';
@@ -252,7 +289,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
         advanceIn = null;
       } else if (leg || beat < last) {
         mode = 'playing';
-        if (!leg) advanceIn = readingSeconds(beatAt(beat));
+        if (!leg) advanceIn = Math.max(MIN_ADVANCE_S, readingSeconds(beatAt(beat)) - dwelt);
       }
       changed();
     },
@@ -282,9 +319,18 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
         leg.record.peakKm = Math.max(leg.record.peakKm, control.current.viewKm);
         if (leg.days) day = leg.days[0] + (leg.days[1] - leg.days[0]) * e;
         if (leg.clock >= leg.durationS) land();
-      } else if (mode === 'playing' && advanceIn !== null) {
-        advanceIn = Math.max(0, advanceIn - dtS);
-        if (advanceIn === 0) goTo(beat + 1);
+      } else if (mode !== 'breakout') {
+        dwelt += dtS;
+        const shown = beatAt(beat);
+        control.go(dwellView(shown, dwelt), true);
+        day =
+          dwelt >= SPREAD_S
+            ? shown.day
+            : landedOn + (shown.day - landedOn) * ease(dwelt / SPREAD_S);
+        if (mode === 'playing' && advanceIn !== null) {
+          advanceIn = Math.max(0, advanceIn - dtS);
+          if (advanceIn === 0) goTo(beat + 1);
+        }
       }
       changed();
     },
@@ -301,6 +347,10 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     },
     flights: () => records,
   };
+}
+
+function ease(t: number): number {
+  return t * t * (3 - 2 * t);
 }
 
 /**
