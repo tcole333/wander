@@ -1,11 +1,12 @@
 // Screenshots and a video of the lobby (the production entry, index.html) on this Mac's GPU:
 // Chromium on Metal at 1440x900. The first run shoots the opening at 0 to 4 s after it starts, the
 // settled lobby, the plaque hovered, the Credits panel over the lobby, the dive at a few moments
-// on its way, the landing on beat 1 and the Credits panel over the walk. The second run records
-// the opening and the dive to video, untouched by screenshots. Writes <out>/*.png, <out>/lobby.webm
-// and <out>/lobby.json (each shot's time, fonts and any console errors). The page's data-lobby
-// attribute names the lobby's phase (lobby/lobby.ts). Plain Node, run from app/ with the Vite dev
-// server and a data server up:
+// on its way, the landing on beat 1 with the sound knob, the Credits panel over the walk, and the
+// Europe beat with the climate legend. The second run records the opening and the dive to video,
+// untouched by screenshots. Writes <out>/*.png, <out>/lobby.webm and <out>/lobby.json (each shot's
+// time, fonts, the sound's state after the dive, any request to Wikimedia and any console errors).
+// The page's data-lobby attribute names the lobby's phase (lobby/lobby.ts). Plain Node, run from
+// app/ with the Vite dev server (or vite preview) and a data server up:
 //
 //   node scripts/lobbyShots.ts --url http://127.0.0.1:5430 --out <dir> [--query 'data=global']
 import { chromium, type BrowserContext, type Page } from '@playwright/test';
@@ -17,6 +18,8 @@ import { parseArgs } from 'node:util';
 const OPENING_AT = [0, 1, 2, 3, 4];
 /** The dive's frames, in ms after the plaque is chosen. */
 const DIVE_AT = [500, 1100, 1700, 2300];
+/** The Europe beat, the first the climate draws on: its place in the story, 0-based. */
+const EUROPE = 5;
 /** Long enough for the lobby's turn to be under way, and for fades to finish. */
 const SETTLE_MS = 3000;
 const FADE_MS = 1500;
@@ -36,12 +39,27 @@ mkdirSync(out, { recursive: true });
 const timeoutMs = Number(values.timeout) * 1000;
 const entry = `${values.url}/${values.query ? `?${values.query}` : ''}`;
 
-const browser = await chromium.launch({ args: ['--use-angle=metal'] });
+// Sound waits for a gesture, as in the browsers the visitor uses.
+const browser = await chromium.launch({
+  args: ['--use-angle=metal', '--autoplay-policy=user-gesture-required'],
+});
 const problems: string[] = [];
+const wikimedia: string[] = [];
 const shots: { name: string; atMs: number | null }[] = [];
 
 try {
   const shooting = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
+  // The page's AudioContexts, to tell whether the plaque's press started sound.
+  await shooting.addInitScript(() => {
+    const heard = window as unknown as { contexts: AudioContext[] };
+    heard.contexts = [];
+    window.AudioContext = class extends AudioContext {
+      constructor(options?: AudioContextOptions) {
+        super(options);
+        heard.contexts.push(this);
+      }
+    };
+  });
   const page = await open(shooting);
   const shoot = async (name: string, atMs: number | null = null) => {
     const png = join(out, `${name}.png`);
@@ -80,11 +98,19 @@ try {
   const landedMs = Date.now() - chosen;
   await page.waitForTimeout(FADE_MS + 1000);
   await shoot('beat-1');
+  const sound = await page.evaluate(() =>
+    (window as unknown as { contexts: AudioContext[] }).contexts.map((ctx) => ctx.state),
+  );
 
   await page.click('.wu-card-credits');
   await page.waitForTimeout(700);
   await shoot('credits-walk');
   await page.keyboard.press('Escape');
+
+  for (let beat = 0; beat < EUROPE; beat += 1) await page.keyboard.press('ArrowRight');
+  await page.waitForSelector('.wu-legend.is-shown', { timeout: timeoutMs });
+  await page.waitForTimeout(FADE_MS);
+  await shoot('europe');
 
   const report = await page.evaluate(() => ({
     fonts: {
@@ -115,9 +141,10 @@ try {
 
   writeFileSync(
     join(out, 'lobby.json'),
-    JSON.stringify({ ...report, landedMs, shots, problems }, null, 2),
+    JSON.stringify({ ...report, landedMs, sound, shots, wikimedia, problems }, null, 2),
   );
   for (const problem of problems) console.log(`  ${problem}`);
+  for (const url of wikimedia) console.log(`  requested from Wikimedia: ${url}`);
 } finally {
   await browser.close();
 }
@@ -131,6 +158,10 @@ async function open(context: BrowserContext): Promise<Page> {
     }
   });
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
+  page.on('request', (request) => {
+    if (/(^|\.)wikimedia\.org$/.test(new URL(request.url()).hostname))
+      wikimedia.push(request.url());
+  });
   await page.goto(entry);
   return page;
 }
