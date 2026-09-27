@@ -37,7 +37,7 @@ export type Unable = 'cannot-draw' | 'lost-twice' | 'stopped';
 
 const NOTES: Record<Unable, string> = {
   'cannot-draw':
-    'This browser cannot draw the globe: it needs WebGL 2 with hardware acceleration on, as current Chrome, Safari and Firefox have.',
+    'This browser cannot draw the globe. It needs WebGL 2 with hardware acceleration turned on, as in current Chrome, Safari or Firefox.',
   'lost-twice':
     'The graphics card reset twice in a few minutes. Close other heavy tabs, then reload.',
   stopped: 'The globe stopped before it was ready. Reload to try again.',
@@ -48,7 +48,7 @@ export function dataPlate(): HTMLElement {
   const plate = el('section', 'plate plate-brass wu-brass wu-lit');
   plate.setAttribute('role', 'alert');
   plate.append(
-    el('h1', 'plate-head', 'The map did not arrive'),
+    el('h1', 'plate-head', 'The globe did not arrive'),
     el('p', 'plate-text', 'The connection broke before the globe’s relief came through.'),
     reload(),
   );
