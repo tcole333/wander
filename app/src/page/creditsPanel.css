@@ -33,6 +33,17 @@
   animation: cp-dim 0.4s ease-out backwards;
 }
 
+/* Over the walk, its card and Meanwhile fall back into the dark with the room, so no second
+   vellum sheet reads beside the panel's frame. */
+.wu > .wu-card,
+.wu > .wu-meanwhile {
+  transition: opacity 0.4s ease-out;
+}
+
+body:has(> .cp[open]) .wu > :is(.wu-card, .wu-meanwhile) {
+  opacity: 0.4;
+}
+
 @supports (overlay: auto) {
   .cp,
   .cp::backdrop {
