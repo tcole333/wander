@@ -109,7 +109,7 @@ Borders come from the historical snapshot nearest the current date, and the snap
 always shown.
 
 Several layers are present-day data (coastlines, rivers and lakes, ecoregions, petroleum provinces,
-mountain ranges, critical-mineral deposits). The Credits panel lists each source and its date once;
+mountain ranges, critical-mineral deposits). The credits page lists each source and its date once;
 the rest of the interface stays free of caveats.
 
 ### Effects
@@ -135,11 +135,13 @@ synthesis falls short. A music score and narration are candidates for after v1.
 
 Every story is also readable as a plain illustrated article: the same text, images, dates, and
 sources on a normal web page. It is linkable and shareable, and it is what visitors see when WebGL
-is unavailable.
+is unavailable. It arrives in milestone 4; until then those visitors get the story's card, its
+title and blurb.
 
 ### Credits
 
-One panel lists every data source with its attribution and date, and every image with its credit.
+One page, `/credits`, lists every data source with its attribution and date, and every image with
+its credit.
 
 ## Visual direction
 
