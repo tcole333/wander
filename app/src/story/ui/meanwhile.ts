@@ -3,7 +3,7 @@
 // vellum slips in a dark cast-brass panel. Each entry has an engraved compass rose whose needle
 // points from the view's center toward it (turned with the view's heading, so it points the way to
 // look on screen), and the compass point it lies at. Choosing one flies there.
-import { arcKm, type ViewState } from '../../app/viewState';
+import { arcKm, type ViewState } from '../../view/viewState';
 import type { MeanwhileByBeat, MeanwhileEntry, Walk, WalkState } from '../contract';
 import { nearestEntries } from '../meanwhile';
 import { el, onPress, svg } from './dom';

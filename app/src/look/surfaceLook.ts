@@ -3,13 +3,13 @@
 // spike's baked look from the surface pools, per fragment. A MeshDepthMaterial with the same vertex
 // stage lets the displaced globe cast its own shadows.
 import { Color, Matrix4, MeshDepthMaterial, MeshStandardMaterial, Vector3 } from 'three';
-import { tunables } from '../../config/tunables';
+import { tunables } from '../config/tunables';
+import type { CreateSurfaceLook, Params } from '../contract';
 import {
   createSurfaceVertexUniforms,
   surfaceVertexChunk,
   type SurfaceVertexChunk,
-} from '../../globe/surfaceVertex.glsl';
-import type { CreateSurfaceLook, Params } from '../contract';
+} from '../globe/surfaceVertex.glsl';
 import { ASH_FRAGMENT_APPLY, ASH_FRAGMENT_PARS, createAshUniforms, registerAsh } from './ashHook';
 import {
   LOOK_FRAGMENT_COLOR,

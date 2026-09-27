@@ -12,8 +12,8 @@ import {
   WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { MuseumScene } from '../contract';
-import { createMuseumScene } from './museumScene';
+import type { MuseumScene } from '../../contract';
+import { createMuseumScene } from '../../scene/museumScene';
 
 const DEG = Math.PI / 180;
 

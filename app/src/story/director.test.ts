@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ViewControl } from '../app/viewControl';
+import { ViewControl } from '../view/viewControl';
 import { beatView, createWalk, readingSeconds } from './director';
 import { parseStory } from './story';
 
 const story = parseStory(
-  readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
 const beat = (i: number) => story.beats[i] ?? story.beats[0]!;
 

@@ -11,8 +11,8 @@ import {
   Sphere,
   Vector3,
 } from 'three';
-import { INSTANCE_WORDS } from '../../globe/instances';
-import { buildTileGrid, type Segments } from '../../globe/tileGrid';
+import { INSTANCE_WORDS } from '../globe/instances';
+import { buildTileGrid, type Segments } from '../globe/tileGrid';
 
 /** Radius past any displaced vertex at kLand up to 16 (Everest is 0.022). */
 const BOUNDS_RADIUS = 1.05;

@@ -28,10 +28,10 @@ import { ancestorAt } from '../../globe/seamFlags';
 import { buildTileGrid, type TileGrid } from '../../globe/tileGrid';
 import { tileKey, type Tile } from '../../surface/cube';
 import { decodeTiles } from '../../workers/decodeTiles';
-import type { Params, SurfaceLook } from '../contract';
+import type { Params, SurfaceLook } from '../../contract';
 import { closeCover } from './closeCover';
 import { createSpikeStage } from './spikeStage';
-import { createSurfaceLook } from './surfaceLook';
+import { createSurfaceLook } from '../../look/surfaceLook';
 
 const DEG = Math.PI / 180;
 const TAMBORA: [number, number] = [118.0, -8.25];

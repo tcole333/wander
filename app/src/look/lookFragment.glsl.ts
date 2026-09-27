@@ -2,7 +2,7 @@
 // albedo, roughness, metalness and stylized relief it baked per texel, computed here from the
 // surface pools. The relief is evaluated at the fragment and four taps around it, and its
 // gradient perturbs the normal, as the spike's normal map did.
-import { glslFaceTable, SURFACE_LEVELS } from '../../globe/surfaceVertex.glsl';
+import { glslFaceTable, SURFACE_LEVELS } from '../globe/surfaceVertex.glsl';
 
 /** Global declarations and functions, after three's `#include <common>` in the fragment. */
 export const LOOK_FRAGMENT_PARS = /* glsl */ `

@@ -16,16 +16,16 @@ import {
   WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import type { StreamerStats } from '../../contract';
 import type { Release } from '../../data/release';
 import { loadSurfaceLayer } from '../../data/surfaceLayer';
 import { ClearanceField } from '../../globe/clearance';
 import { EARTH_RADIUS_KM, viewPose, type View } from '../../globe/viewCamera';
 import { nearestRank, summarizeFrames, type FrameSummary } from '../../perf/frameStats';
 import { GpuTimer } from '../../perf/gpuTimer';
+import { createSurfaceStreamer, type StreamerDetails } from '../../stream/streamer';
 import type { Vec3 } from '../../surface/cube';
-import type { StreamerStats } from '../contract';
 import { COLOR_MODES, createDebugMaterial, type ColorMode } from './debugMaterial';
-import { createSurfaceStreamer, type StreamerDetails } from './streamer';
 
 const DATA_HOSTS = { region: 'http://127.0.0.1:8792', global: 'http://127.0.0.1:8793' };
 const FOV = 30;

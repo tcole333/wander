@@ -2,9 +2,9 @@
 // three seconds that sweep story time between beats, play that advances after a dwell, break-out,
 // scrub, Meanwhile flights and resume. The view it reports moves with its flights, for Meanwhile's
 // bearings. The real director is built separately.
-import { easeInOut, flightAt, flightRise, type ViewState } from '../../app/viewState';
-import type { Walk, WalkMode, WalkState } from '../contract';
-import type { LonLat, Story, StoryBeat } from '../story';
+import type { Walk, WalkMode, WalkState } from '../../../story/contract';
+import type { LonLat, Story, StoryBeat } from '../../../story/story';
+import { easeInOut, flightAt, flightRise, type ViewState } from '../../../view/viewState';
 
 const FLIGHT_MS = 3000;
 const DWELL_S = 8;

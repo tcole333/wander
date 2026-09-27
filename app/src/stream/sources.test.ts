@@ -2,8 +2,8 @@
 // touch differ in source by at most one level, so seamFlags accepts the set.
 import { Vector3 } from 'three';
 import { describe, expect, test } from 'vitest';
-import { ancestorAt, checkCover } from '../../globe/seamFlags';
-import { lonLatToDir, tileKey, toThree, type Tile } from '../../surface/cube';
+import { ancestorAt, checkCover } from '../globe/seamFlags';
+import { lonLatToDir, tileKey, toThree, type Tile } from '../surface/cube';
 import { NodeSelector } from './selectNodes';
 import { assignSources } from './sources';
 

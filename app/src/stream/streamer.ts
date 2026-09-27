@@ -12,25 +12,20 @@ import {
   type PerspectiveCamera,
   type WebGLRenderer,
 } from 'three';
-import { tunables } from '../../config/tunables';
-import type { Release } from '../../data/release';
-import { fetchData, loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
-import {
-  flagsNeedUp,
-  INSTANCE_WORDS,
-  packInstance,
-  type InstanceState,
-} from '../../globe/instances';
-import { ancestorAt, CoverError, seamFlags, type DrawnNode } from '../../globe/seamFlags';
-import { GRID_SEGMENTS } from '../../globe/tileGrid';
-import { FIXED_SLOTS, SlotTable } from '../../gpu/slotTable';
-import { createSurfacePools, surfaceParts } from '../../gpu/surfaceUploads';
-import { UploadQueue, type StopReason, type UploadRun } from '../../gpu/uploadQueue';
-import { nodeIndex, tileKey, type Tile } from '../../surface/cube';
-import type { DecodedWst } from '../../surface/wst';
-import { DecodePool } from '../../workers/decodePool';
-import { decodeTiles } from '../../workers/decodeTiles';
+import { tunables } from '../config/tunables';
 import type { CreateSurfaceStreamer, SurfaceStreamer } from '../contract';
+import type { Release } from '../data/release';
+import { fetchData, loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
+import { flagsNeedUp, INSTANCE_WORDS, packInstance, type InstanceState } from '../globe/instances';
+import { ancestorAt, CoverError, seamFlags, type DrawnNode } from '../globe/seamFlags';
+import { GRID_SEGMENTS } from '../globe/tileGrid';
+import { FIXED_SLOTS, SlotTable } from '../gpu/slotTable';
+import { createSurfacePools, surfaceParts } from '../gpu/surfaceUploads';
+import { UploadQueue, type StopReason, type UploadRun } from '../gpu/uploadQueue';
+import { nodeIndex, tileKey, type Tile } from '../surface/cube';
+import type { DecodedWst } from '../surface/wst';
+import { DecodePool } from '../workers/decodePool';
+import { decodeTiles } from '../workers/decodeTiles';
 import { createInstanceGeometry } from './instanceGeometry';
 import { NodeSelector } from './selectNodes';
 import { assignSources } from './sources';

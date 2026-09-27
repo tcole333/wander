@@ -12,8 +12,8 @@ import type {
   Scene,
   WebGLRenderer,
 } from 'three';
-import type { Release, SurfaceRelease } from '../data/release';
-import type { SurfacePools } from '../gpu/surfaceUploads';
+import type { Release, SurfaceRelease } from './data/release';
+import type { SurfacePools } from './gpu/surfaceUploads';
 
 export type Params = Record<string, number | boolean | string>;
 

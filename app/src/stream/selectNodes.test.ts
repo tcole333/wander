@@ -2,9 +2,9 @@
 // maxLevel and at the available tiles, and culled behind the horizon.
 import { Vector3 } from 'three';
 import { describe, expect, test } from 'vitest';
-import { checkCover } from '../../globe/seamFlags';
-import { EARTH_RADIUS_KM } from '../../globe/viewCamera';
-import { lonLatToDir, toThree, type Tile } from '../../surface/cube';
+import { checkCover } from '../globe/seamFlags';
+import { EARTH_RADIUS_KM } from '../globe/viewCamera';
+import { lonLatToDir, toThree, type Tile } from '../surface/cube';
 import { NodeSelector, type LodData, type LodView } from './selectNodes';
 import { assignSources } from './sources';
 

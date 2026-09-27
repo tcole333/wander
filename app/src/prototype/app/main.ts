@@ -22,25 +22,30 @@ import {
   type Material,
   type Object3D,
 } from 'three';
+import type { MuseumScene, Params, StreamerStats, SurfaceLook } from '../../contract';
 import type { Release } from '../../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
 import { ClearanceField } from '../../globe/clearance';
+import { createSurfaceLook } from '../../look/surfaceLook';
 import { summarizeFrames } from '../../perf/frameStats';
+import { createMuseumScene } from '../../scene/museumScene';
+import type { MeanwhileByBeat, WalkEffects, WalkState, WalkUi } from '../../story/contract';
+import {
+  bindWalkKeys,
+  createWalk,
+  type DirectedWalk,
+  type FlightRecord,
+} from '../../story/director';
+import { createWalkEffects } from '../../story/effects/walkEffects';
+import { meanwhileFromJson } from '../../story/meanwhile';
+import { parseStory, type LonLat, type Story } from '../../story/story';
+import { createWalkUi } from '../../story/ui/walkUi';
+import { createSurfaceStreamer } from '../../stream/streamer';
 import { faceOf, faceSt, lonLatToDir, tileOf } from '../../surface/cube';
-import type { MuseumScene, Params, StreamerStats, SurfaceLook } from '../contract';
-import { createSurfaceStreamer } from '../globe/streamer';
-import { createSurfaceLook } from '../look/surfaceLook';
-import { createMuseumScene } from '../scene/museumScene';
-import type { MeanwhileByBeat, WalkEffects, WalkState, WalkUi } from '../story/contract';
-import { bindWalkKeys, createWalk, type DirectedWalk, type FlightRecord } from '../story/director';
-import { createWalkEffects } from '../story/effects/walkEffects';
-import { meanwhileFromJson } from '../story/meanwhile';
-import { parseStory, type LonLat, type Story } from '../story/story';
-import { createWalkUi } from '../story/ui/walkUi';
-import { CameraRig, maxViewKm, type Relief } from './cameraRig';
+import { CameraRig, maxViewKm, type Relief } from '../../view/cameraRig';
+import { ViewControl } from '../../view/viewControl';
+import { drawnView, reliefForWidth, type ViewState } from '../../view/viewState';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
-import { ViewControl } from './viewControl';
-import { drawnView, reliefForWidth, type ViewState } from './viewState';
 
 /** The local bakes' data servers by name (npm run data); ?data= may name any other origin. */
 const DATA_HOSTS: Record<string, string> = {
@@ -80,7 +85,7 @@ const STORIES: Record<string, () => Promise<StorySource>> = {
   tambora: async () => {
     const [text, meanwhile] = await Promise.all([
       import('../../../../stories/tambora/story.md?raw'),
-      import('../story/meanwhile.tambora.json'),
+      import('../../story/meanwhile.tambora.json'),
     ]);
     return { story: parseStory(text.default), meanwhile: meanwhileFromJson(meanwhile.default) };
   },
