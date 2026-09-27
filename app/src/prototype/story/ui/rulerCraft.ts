@@ -23,7 +23,7 @@
 // drawn once per resize into layers of its own; a frame moves the playhead, plaque and gears, and
 // engraves the band again only while its span changes.
 import './rulerCraft.css';
-import { KEY_LAMP_CSS, LENS } from '../../scene/lens';
+import { KEY_LAMP, KEY_LAMP_CSS, LENS } from '../../scene/lens';
 import { civilFromDay, formatDay, monthName, yearLabel, type Precision } from '../dates';
 import type { Walk, WalkState } from '../contract';
 import type { Story } from '../story';
@@ -90,6 +90,15 @@ const NEEDLE_TIP = JEWEL_AT + BAND + 1;
 
 /** The canvas's vignette (scene/lens.ts), at this share of its strength so the engraving reads. */
 const VIGNETTE = LENS.vignette * 0.55;
+/**
+ * The key lamp as polished brass reflects it: metal tints its own highlights, so they roll off
+ * warm, as the globe's do under the canvas's tone mapping, instead of clipping to lemon white.
+ */
+const BRASS_REFLECTANCE = [0.95, 0.86, 0.68];
+const SHINE = BRASS_REFLECTANCE.map((reflects, i) =>
+  Math.round(((KEY_LAMP >> (16 - 8 * i)) & 255) * reflects),
+);
+const SHINE_CSS = `rgb(${SHINE.join(' ')})`;
 /** Gears turn this many degrees per story day; the knobs' knurl turns a third as much. */
 const GEAR_DEG_PER_DAY = 0.45;
 
@@ -837,9 +846,9 @@ interface FilterSpec {
 
 /**
  * A filter that lights a flat brass shape as raised metal under the lamp: the shape's alpha,
- * blurred by `bevel`, is its height, roughened by `texture`, lit diffusely and specularly from
- * the upper left in the key lamp's warm color; a cloudy tarnish ages it, a fine grain lies over
- * it as over the canvas, and its brightest edges bloom past it a little.
+ * blurred by `bevel`, is its height, roughened by `texture`, lit from the upper left, diffusely
+ * and with a highlight in the lamp's light as brass reflects it; a cloudy tarnish ages it, a
+ * fine grain lies over it as over the canvas, and its brightest edges bloom past it a little.
  */
 function brassFilter(id: string, spec: FilterSpec): string {
   const { bevel, relief, texture, amount, shine = 1, bloom = 0.5, patina = 0 } = spec;
@@ -849,13 +858,13 @@ function brassFilter(id: string, spec: FilterSpec): string {
 <feTurbulence type="fractalNoise" baseFrequency="${texture}" numOctaves="2" seed="7" result="tex"/>
 <feComposite in="tex" in2="hump" operator="arithmetic" k2="${amount}" k3="1" result="height"/>
 <feDiffuseLighting in="height" surfaceScale="${relief}" diffuseConstant="1.05" lighting-color="#fff2e0" result="diffuse"><feDistantLight azimuth="225" elevation="50"/></feDiffuseLighting>
-<feSpecularLighting in="height" surfaceScale="${relief}" specularConstant="${shine}" specularExponent="16" lighting-color="${KEY_LAMP_CSS}" result="spec"><feDistantLight azimuth="225" elevation="35"/></feSpecularLighting>
+<feSpecularLighting in="height" surfaceScale="${relief}" specularConstant="${shine}" specularExponent="16" lighting-color="${SHINE_CSS}" result="spec"><feDistantLight azimuth="225" elevation="35"/></feSpecularLighting>
 <feComposite in="SourceGraphic" in2="diffuse" operator="arithmetic" k1="1.25" result="lit"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.006 0.03" numOctaves="3" seed="21" result="cloud"/>
 <feColorMatrix in="cloud" type="matrix" values="${k} 0 0 0 ${b} ${k} 0 0 0 ${b} ${k} 0 0 0 ${b} 0 0 0 0 1" result="tarnish"/>
 <feBlend in="lit" in2="tarnish" mode="multiply" result="aged"/>
 <feComposite in="spec" in2="SourceAlpha" operator="in" result="shine"/>
-<feComposite in="aged" in2="shine" operator="arithmetic" k2="1" k3="0.85" result="metal"/>
+<feComposite in="aged" in2="shine" operator="arithmetic" k2="1" k3="0.45" result="metal"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="3" result="n"/>
 <feColorMatrix in="n" type="matrix" values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1" result="grain"/>
 <feComposite in="grain" in2="metal" operator="arithmetic" k2="0.16" k3="1" k4="-0.08" result="grained"/>
@@ -918,12 +927,12 @@ function sharedDefs(): string {
   <stop offset="1" stop-color="#1c2640"/>
 </linearGradient>
 <radialGradient id="rc-sheen" r="0.5">
-  <stop offset="0" stop-color="rgb(255 240 205 / 0.5)"/><stop offset="1" stop-color="rgb(255 240 205 / 0)"/>
+  <stop offset="0" stop-color="${KEY_LAMP_CSS}" stop-opacity="0.3"/><stop offset="1" stop-color="${KEY_LAMP_CSS}" stop-opacity="0"/>
 </radialGradient>
 ${brassFilter('rc-lit-band', { bevel: 6, relief: 4, texture: '0.005 0.8', amount: 0.06, bloom: 0.5, patina: 0.4 })}
 ${brassFilter('rc-lit-rail', { bevel: 3, relief: 3, texture: '0.11', amount: 0.3, shine: 0.6, bloom: 0.2, patina: 0.3 })}
 ${brassFilter('rc-lit-base', { bevel: 3, relief: 2.5, texture: '0.05', amount: 0.1, shine: 0.35, bloom: 0.1, patina: 0.3 })}
-${brassFilter('rc-lit-lip', { bevel: 0.8, relief: 2, texture: '0.01 0.5', amount: 0.03, shine: 1.2, bloom: 0.9 })}
+${brassFilter('rc-lit-lip', { bevel: 0.8, relief: 2, texture: '0.01 0.5', amount: 0.03, shine: 0.6, bloom: 0.9 })}
 ${brassFilter('rc-lit-teeth', { bevel: 1, relief: 2.5, texture: '0.5', amount: 0.05, bloom: 0.4 })}
 ${brassFilter('rc-lit-dome', { bevel: 8, relief: 5, texture: '0.08', amount: 0.08, bloom: 0.45, patina: 0.15 })}
 ${brassFilter('rc-lit-plate', { bevel: 2, relief: 3, texture: '0.01 0.6', amount: 0.05, bloom: 0.6, patina: 0.1 })}
