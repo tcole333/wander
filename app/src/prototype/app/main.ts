@@ -83,6 +83,13 @@ const RELIEF_BY_ZOOM = ['reliefByZoom', 'reliefNear', 'reliefFar'];
 /** The level whose tiles zoomFloorKm is the floor over; each coarser level doubles it. */
 const FLOOR_LEVEL = 7;
 
+/**
+ * How far right a story shifts the lens, as a share of the card's reach from the left edge: 0.5
+ * would center the view in the space right of the card, but Meanwhile covers its top right, and
+ * a beat's neighbors (Makassar on the sound beat, Yunnan on the last) would slip under it.
+ */
+const LENS_SHIFT = 0.35;
+
 /** Frames the HUD and the ready check look back over. */
 const FRAMES = 120;
 /** How long the streamer must stay idle before a screenshot. */
@@ -228,9 +235,20 @@ async function main(): Promise<void> {
     const name = Object.keys(PRESETS)[PRESET_KEYS.indexOf(event.key)];
     if (name) go(name);
   });
+  // In a story the card covers the view's left, so the lens shifts right by LENS_SHIFT of the
+  // card's reach: each beat's place lands right of the card, and what lies around it clears both
+  // the card and Meanwhile. The streamer and the plaques read the shifted projection.
+  const frameLens = () => {
+    const card = story ? document.querySelector('.wu-card') : null;
+    const shift = card ? LENS_SHIFT * card.getBoundingClientRect().right : 0;
+    if (shift === 0) return;
+    camera.setViewOffset(innerWidth, innerHeight, -shift, 0, innerWidth, innerHeight);
+  };
+  frameLens();
   addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
+    frameLens();
     museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
   });
 
