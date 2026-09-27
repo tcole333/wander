@@ -20,6 +20,8 @@ const FILES: Record<string, number> = {
   'fd/modera/cccc3333/mean/1816.bin': 90,
   'fd/modera/cccc3333/spread/1816.bin': 60,
   'fd/modera/cccc3333/annual.bin': 400,
+  'img/cccc3333cccc3333-1024.jpg': 400,
+  'img/cccc3333cccc3333-256.jpg': 40,
 };
 const MODERA = {
   ver: 'cccc3333',
@@ -29,6 +31,7 @@ const MODERA = {
   dlon: 90,
   bytes: { mean: { '1816': 90 }, spread: { '1816': 60 }, annual: 400 },
 };
+const IMAGES = ['img/cccc3333cccc3333-1024.jpg', 'img/cccc3333cccc3333-256.jpg'];
 
 let root: string;
 
@@ -42,9 +45,10 @@ beforeAll(() => {
 
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
-function release(avail: string): Release {
+function release(avail: string, images = IMAGES): Release {
   const surface = { ver: 'aaaa1111', maxLevel: 1, qLand: [1, 1], c200: [0, 0], avail };
-  return { id: '0', built: '', dataHost: '', surface: { ...surface, bounds: BOUNDS } };
+  const media = { images };
+  return { id: '0', built: '', dataHost: '', surface: { ...surface, bounds: BOUNDS }, media };
 }
 
 /** R2 as a listing of the keys it holds, with their sizes. */
@@ -75,6 +79,20 @@ describe('releaseSections', () => {
   test('refuses a climate file of another size than the modera section gives', () => {
     const modera = { ...MODERA, bytes: { ...MODERA.bytes, annual: 401 } };
     expect(() => releaseSections({ ...release(SEVEN), modera }, root)).toThrow(/400 B, not/);
+  });
+
+  test("names the stories' images under img/, with their sizes", () => {
+    const [, media] = releaseSections(release(SEVEN), root);
+    expect(media?.prefix).toBe('img/');
+    expect(media?.objects.map(({ key, size }) => [key, size])).toEqual([
+      [IMAGES[0], 400],
+      [IMAGES[1], 40],
+    ]);
+  });
+
+  test('refuses an image the build lacks, naming the media stage', () => {
+    const images = [...IMAGES, 'img/dddd4444dddd4444-256.jpg'];
+    expect(() => releaseSections(release(SEVEN, images), root)).toThrow(/prebuild media --story/);
   });
 });
 
