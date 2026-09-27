@@ -58,8 +58,10 @@ export const tunables = {
   queueDrop: 300,
   // Fraction of a superseded body already received above which it is allowed to finish.
   finishIfReceived: 0.7,
-  stallBytes: 2500,
-  stallHeaders: 4000,
+  // Generous while one queue serves every request: an abort throws away what the body has
+  // delivered, so only a request that has plainly stopped is aborted (5.2).
+  stallBytes: 10_000,
+  stallHeaders: 10_000,
   // Applied with jitter.
   retryDelays: [500, 2000, 8000],
   degradeFor: 60_000,
