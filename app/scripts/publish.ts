@@ -15,7 +15,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import type { Release, SurfaceRelease } from '../src/data/release.ts';
+import type { ModeraRelease, Release, SurfaceRelease } from '../src/data/release.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import { localRelease, OUTPUT_DIR, profileBuild, ReleaseError, REPO_ROOT } from './release.ts';
@@ -47,7 +47,9 @@ export interface Section {
  * release gains (overlays, events, climate years, story media) adds its entry here.
  */
 export function releaseSections(release: Release, root: string): Section[] {
-  return [surfaceSection(release.surface, root)];
+  const sections = [surfaceSection(release.surface, root)];
+  if (release.modera) sections.push(moderaSection(release.modera, root));
+  return sections;
 }
 
 /** The canary: bounds.bin and the six L0 tiles, the first objects any page asks for. */
@@ -71,6 +73,31 @@ function surfaceSection(surface: SurfaceRelease, root: string): Section {
     throw new PublishError(`${folder} holds ${tiles.length} tiles, not the ${available} available`);
   }
   return { prefix, objects: [surface.bounds, ...tiles].map((key) => localObject(root, key)) };
+}
+
+/**
+ * Every climate file the modera record lists: the mean and spread years and annual.bin under
+ * fd/modera/<ver>/, each the size the record gives it.
+ */
+function moderaSection(modera: ModeraRelease, root: string): Section {
+  const prefix = `fd/modera/${modera.ver}/`;
+  const sized: [key: string, bytes: number][] = [
+    ...(['mean', 'spread'] as const).flatMap((variable) =>
+      Object.entries(modera.bytes[variable]).map(([year, bytes]): [string, number] => [
+        `${prefix}${variable}/${year}.bin`,
+        bytes,
+      ]),
+    ),
+    [`${prefix}annual.bin`, modera.bytes.annual],
+  ];
+  const objects = sized.map(([key, bytes]) => {
+    const object = localObject(root, key);
+    if (object.size !== bytes) {
+      throw new PublishError(`${object.path} holds ${object.size} B, not the record's ${bytes} B`);
+    }
+    return object;
+  });
+  return { prefix, objects };
 }
 
 function keysUnder(root: string, prefix: string): string[] {
