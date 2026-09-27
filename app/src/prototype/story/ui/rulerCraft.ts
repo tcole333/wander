@@ -1,15 +1,20 @@
 // The time ruler as part of the instrument: a curved band of engraved, aged brass along the foot
 // of the view, between two knurled knobs with gearwork behind them, drawn in SVG over the canvas.
+// Its geometry and scale are rulerScale.ts's.
 //
-// It keeps TimeRuler's behavior (ruler.ts): the band zooms to each beat's own time (beatSpan),
-// easing from span to span during flights, engraved with years, months and, once wide enough,
-// days; a garnet playhead marks story time on the band, under a raised brass plaque that names the
-// date (sliding to stay on the rule at its ends); a brass stud on the rail beneath marks each beat,
-// those in the span at their dates (fanned out where they crowd, with a leader to each one's
-// date), the rest dimmed at the ends, and flies there when clicked. Pressing or dragging the band,
-// or dragging the plaque, scrubs. The story's controls are on it too: the left knob plays and
-// pauses (its glyph shows which, a garnet arc counts down to the next beat), levers either side
-// of the plaque step back and on, and the right knob counts the beats.
+// The band zooms to each beat's own time (beatSpan), easing from span to span during flights,
+// engraved with years, months and, once wide enough, days. A garnet playhead marks story time:
+// the jewel hangs under a raised brass plaque that names the date, and a blued needle runs from
+// it down through the day numbers to the band's foot. The span is kept clear of the ends by the
+// plaque's width, so the plaque always rides over the playhead; labels of the upper row move
+// aside for it. A brass stud on the rail beneath marks each beat in the span at its date (fanned
+// out where they crowd, with a leader to each one's date), and flies there when clicked. On the
+// base plate below, the story tier shows the whole story in whole years, a burnished window over
+// the stretch the band shows, and a dot for every beat. Pressing or dragging the band, dragging
+// the plaque, or pressing the tier scrubs. The story's controls are on it too: the left knob
+// plays and pauses (its glyph shows which, a garnet arc counts down to the next beat), levers
+// either side of the plaque step back and on, and the right knob counts the beats and, while the
+// visitor has broken out, glows and resumes the story.
 //
 // The lamp is warm and at the upper left, as in the museum scene: the brass is lit from there
 // (a specular bevel whose brightest edges bloom a little), engravings are cut dark with their
@@ -18,76 +23,73 @@
 // drawn once per resize into layers of its own; a frame moves the playhead, plaque and gears, and
 // engraves the band again only while its span changes.
 import './rulerCraft.css';
-import {
-  civilFromDay,
-  dayFromCivil,
-  formatDay,
-  monthName,
-  yearLabel,
-  type Precision,
-} from '../dates';
+import { KEY_LAMP_CSS, LENS } from '../../scene/lens';
+import { civilFromDay, formatDay, monthName, yearLabel, type Precision } from '../dates';
 import type { Walk, WalkState } from '../contract';
 import type { Story } from '../story';
 import { button, el, onPress, svg } from './dom';
-import { beatSpan, mixSpans, monthAbbrev, monthsIn, spreadPips, type Span } from './format';
+import { beatSpan, mixSpans, spreadPips, type Span } from './format';
+import {
+  along,
+  anchored,
+  arcFor,
+  at,
+  BAND,
+  BASE,
+  deg,
+  engraveScale,
+  engraveTier,
+  f,
+  HEIGHT,
+  KNOB_FOOT,
+  KNOB_R,
+  KNOB_SIDE,
+  LIP,
+  NUMERAL_ROW,
+  RAIL_FOOT,
+  RAIL_TOP,
+  roman,
+  sector,
+  storyYears,
+  STUD_AT,
+  TICK_KINDS,
+  TIER_REACH,
+  TIER_RULE,
+  tierAngle,
+  type Arc,
+  type Label,
+  type TickKind,
+} from './rulerScale';
 
-/** The ruler's box: the view's width, this tall, on the view's foot. */
-const HEIGHT = 170;
-/** The knobs: radius to the knurl's tips, and their centers from the side and the foot. */
-const KNOB_R = 50;
-const KNOB_SIDE = 86;
-const KNOB_FOOT = 64;
 /** Each knob is drawn in a square this wide, centered on the knob. */
 const KNOB_BOX = 2 * (KNOB_R + 8);
-/** How far the band's middle rises above its ends. */
-const SAG = 22;
-/**
- * Radial offsets from the band's center line, up positive: the band's half width, the rows of
- * its engraving (baselines), and the rail's edges.
- */
-const BAND = 22;
-/** The band's top face, above it, catching the lamp. */
-const LIP = 4.5;
-const UPPER_ROW = 5;
-const LOWER_ROW = -15;
-const RAIL_TOP = -25;
-const RAIL_FOOT = -57;
-/** On the rail: the studs' centers, and the baseline of each one's numeral beneath it. */
-const STUD_AT = -35;
-const NUMERAL_ROW = -52;
-/** The base plate under the rail runs this far below it, past the view's foot. */
-const BASE = 60;
-/** The rule stops this far short of each knob's rim. */
-const RULE_MARGIN = 22;
-
-/** Studs' least spacing along the rail, px. */
+/** Studs' least spacing along the rail, and the story tier's dots' along its rule, px. */
 const STUD_GAP = 24;
-/** The least widths, px, for a day's tick, a day's number, a month's name, and a year's. */
-const DAY_TICK_PX = 6;
-const DAY_LABEL_PX = 19;
-const MONTH_LABEL_PX = 46;
-const YEAR_LABEL_PX = 44;
-/** A month named with its year needs this much of it on the rule. */
-const MONTH_YEAR_LABEL_PX = 110;
-/** Where every day's number would crowd, every fifth, tenth or fifteenth is numbered, this far apart. */
-const DAY_STEPS = [5, 10, 15];
-const DAY_STEP_PX = 42;
+const DOT_GAP = 12;
 
-/** The plaque: its size, the tab under it, and how far it may overhang the rule's ends. */
+/** The plaque: its size, the tab under its middle, and its levers. */
 const PLATE_W = 150;
 const PLATE_H = 46;
 const PLATE_TAB = 6;
-const LEVER_W = 38;
-const LEVER_H = 32;
-const PLATE_OVERHANG = 18;
-/** The plaque's foot and the jewel's center, as radial offsets. */
-const PLATE_FOOT = 0;
-const JEWEL_AT = -12;
+const LEVER_W = 44;
+const LEVER_H = 36;
+/** How far each lever tucks under the plaque's side, and the clear space kept past its tip. */
+const LEVER_TUCK = 7;
+const LEVER_CLEAR = 14;
+/** How far the plaque reaches along the rule from its middle, levers and clear space included. */
+const PLATE_REACH = PLATE_W / 2 + LEVER_W - LEVER_TUCK + LEVER_CLEAR;
+/** Upper-row labels keep this far from the plaque's levers, px. */
+const PLATE_GAP = 6;
+/**
+ * The plaque's foot and the jewel's center, as radial offsets: the jewel hangs from the plaque
+ * over the upper row, clear of the lower, and its needle runs down to the band's foot.
+ */
+const PLATE_FOOT = 2;
+const JEWEL_AT = -1;
+const NEEDLE_TIP = JEWEL_AT + BAND + 1;
 
-/** The canvas's vignette (museumScene.ts: 0.72, from 0.28 to 1.05 of the view's height), eased. */
-const VIGNETTE = 0.72 * 0.55;
-const VIGNETTE_FROM = 0.28;
-const VIGNETTE_TO = 1.05;
+/** The canvas's vignette (scene/lens.ts), at this share of its strength so the engraving reads. */
+const VIGNETTE = LENS.vignette * 0.55;
 /** Gears turn this many degrees per story day; the knobs' knurl turns a third as much. */
 const GEAR_DEG_PER_DAY = 0.45;
 
@@ -96,33 +98,42 @@ const PAUSE = 'M-10 -12 H-3 V12 H-10 Z M3 -12 H10 V12 H3 Z';
 const RING_R = 41.5;
 const RING_C = 2 * Math.PI * RING_R;
 
-/** The band's circle: center, center-line radius, and the half-angles of the rule and of the band. */
-interface Arc {
-  width: number;
-  cx: number;
-  cy: number;
-  r: number;
-  reach: number;
-  end: number;
+/** A label cut on the band: its element, what it names, and where an upper-row one is shown. */
+interface Cut {
+  element: SVGTextElement;
+  label: Label;
+  /** Half its length, px, measured when first needed (and again once its face has loaded). */
+  half: number;
+  /** The angle it is shown at, null while it has no room beside the plaque, NaN until placed. */
+  shown: number | null;
 }
+
+type ScrubFrom = 'band' | 'plate' | 'tier';
 
 export class CraftRuler {
   readonly element = el('div', 'rc');
   readonly #walk: Walk;
   readonly #story: Story;
+  /** The story's whole years, which the tier on the base plate shows. */
+  readonly #years: Span;
   readonly #body = svg('svg', { class: 'rc-body', 'aria-hidden': 'true' });
   readonly #engraving = svg('svg', { class: 'rc-engraving', 'aria-hidden': 'true' });
   /** The band's ticks, each kind drawn twice: its lit lip, then the cut. */
   readonly #ticks = new Map<TickKind, SVGPathElement[]>();
   readonly #labelGroup = svg('g', { class: 'rc-labels' });
   /** The labels engraved, by what they name, so a zoom moves them rather than cutting anew. */
-  #labels = new Map<string, SVGTextElement>();
+  #cuts = new Map<string, Cut>();
   readonly #leaders: SVGPathElement[];
   readonly #numerals: SVGTextElement[];
+  /** The tier's burnished window over the stretch of the story the band shows, and its bracket. */
+  readonly #window = svg('path', { class: 'rc-window' });
+  readonly #bracket: SVGPathElement[];
   readonly #hit = svg('path', { class: 'rc-hit' });
+  readonly #tierHit = svg('path', { class: 'rc-hit' });
   readonly #finish = svg('svg', { class: 'rc-finish', 'aria-hidden': 'true' });
   readonly #gears: { element: SVGSVGElement; turn: number; side: -1 | 1; big: boolean }[] = [];
   readonly #studs: HTMLButtonElement[];
+  readonly #dots: HTMLButtonElement[];
   readonly #playhead = el('div', 'rc-playhead');
   readonly #plate = el('div', 'rc-plate');
   readonly #plateLines: SVGTextElement[][];
@@ -131,33 +142,43 @@ export class CraftRuler {
   readonly #play: HTMLButtonElement;
   readonly #glyph = svg('path', { id: 'rc-glyph', d: PLAY });
   readonly #ring = svg('circle', { class: 'rc-ring', r: RING_R });
-  readonly #count = el('div', 'rc-knob rc-count');
+  readonly #count: HTMLButtonElement;
   readonly #countLines: SVGTextElement[][];
-  readonly #knurls: SVGSVGElement[] = [];
+  readonly #status = el('span', 'rc-status');
+  /** Each knob's knurl, which turns, and its light, which turns back so the lamp stays put. */
+  readonly #knurls: { teeth: SVGPathElement; light: SVGLinearGradientElement }[] = [];
   #arc: Arc = arcFor(1440);
+  /** The share of the rule kept clear at each end, so the plaque over the playhead fits on it. */
+  #margin = 0.1;
   /**
    * The span drawn; the one a flight eases from, with the playhead's share of it then; and the
    * beat's own.
    */
   #span: Span;
-  #from: { span: Span; at: number };
+  #from: { span: Span; share: number };
   #to: Span;
   #flying = false;
   #beat = -1;
   #laidOut = false;
   #plateText = '';
   #playing: boolean | null = null;
+  #away: boolean | null = null;
   #advanceFrom: number | null = null;
   #turnDay = NaN;
   #placed = '';
-  readonly #onResize = () => this.#build();
+  #resizeFrame = 0;
+  readonly #onResize = () => {
+    cancelAnimationFrame(this.#resizeFrame);
+    this.#resizeFrame = requestAnimationFrame(() => this.#build());
+  };
 
   constructor(walk: Walk, story: Story) {
     this.#walk = walk;
     this.#story = story;
+    this.#years = storyYears(story.beats);
     const first = story.beats[walk.state().beat] ?? story.beats[0];
     this.#span = this.#to = first ? beatSpan(first) : { start: 0, end: 1 };
-    this.#from = { span: this.#span, at: 0.5 };
+    this.#from = { span: this.#span, share: 0.5 };
 
     for (const side of [-1, 1] as const) {
       for (const big of [true, false]) {
@@ -167,8 +188,9 @@ export class CraftRuler {
     }
 
     // The band's ticks are cut twice, a light copy a hair down and right (the lip of the cut
-    // catching the lamp) under the dark cut; its labels' lips are text shadows. On the dark rail,
-    // the leaders and the beats' numerals are gilt inlay over their shadow.
+    // catching the lamp) under the dark cut; its labels' lips are text shadows. On the dark rail
+    // and base plate, the leaders, the beats' numerals and the window's bracket are gilt inlay
+    // over their shadow.
     const lip = svg('g', { class: 'rc-cut-lip', transform: 'translate(0.6 0.9)' });
     const cut = svg('g', { class: 'rc-cut' });
     for (const kind of TICK_KINDS) {
@@ -178,25 +200,36 @@ export class CraftRuler {
       this.#ticks.set(kind, pair);
     }
     cut.append(this.#labelGroup);
-    this.#leaders = [
-      svg('path', { class: 'rc-leaders rc-gilt-shadow', transform: 'translate(0.6 0.9)' }),
-      svg('path', { class: 'rc-leaders rc-gilt' }),
-    ];
+    this.#leaders = gilt('rc-leaders');
+    this.#bracket = gilt('rc-bracket');
     this.#numerals = story.beats.map((_, i) => {
       const numeral = svg('text', { class: 'rc-numeral rc-gilt', 'text-anchor': 'middle' });
       numeral.textContent = roman(i + 1);
       return numeral;
     });
-    this.#engraving.append(lip, cut, ...this.#leaders, ...this.#numerals, this.#hit);
+    this.#engraving.append(
+      lip,
+      cut,
+      ...this.#leaders,
+      ...this.#numerals,
+      this.#window,
+      ...this.#bracket,
+      this.#hit,
+      this.#tierHit,
+    );
 
-    this.#studs = story.beats.map((beat, i) => {
-      const stud = el('button', 'rc-stud');
-      stud.type = 'button';
-      stud.title = `${roman(i + 1)}. ${beat.title}, ${formatDay(beat.day, beat.precision)}`;
-      stud.setAttribute('aria-label', stud.title);
-      onPress(stud, () => this.#walk.goTo(i));
-      return stud;
-    });
+    const markButton = (className: string, i: number) => {
+      const beat = story.beats[i];
+      const mark = el('button', className);
+      mark.type = 'button';
+      if (beat)
+        mark.title = `${roman(i + 1)}. ${beat.title}, ${formatDay(beat.day, beat.precision)}`;
+      mark.setAttribute('aria-label', mark.title);
+      onPress(mark, () => this.#walk.goTo(i));
+      return mark;
+    };
+    this.#studs = story.beats.map((_, i) => markButton('rc-stud', i));
+    this.#dots = story.beats.map((_, i) => markButton('rc-dot', i));
 
     this.#playhead.innerHTML = JEWEL_SVG;
 
@@ -208,8 +241,9 @@ export class CraftRuler {
     ] as const) {
       lever.title = side < 0 ? 'Back' : 'Next';
       lever.innerHTML = leverSvg(side);
-      // Each lever tucks a few px under the plaque's side.
-      place(lever, side < 0 ? -PLATE_W / 2 - LEVER_W + 6 : PLATE_W / 2 - 6, -PLATE_H / 2 - 17);
+      // Each lever tucks under the plaque's side, level with its middle.
+      const left = side < 0 ? -PLATE_W / 2 - LEVER_W + LEVER_TUCK : PLATE_W / 2 - LEVER_TUCK;
+      place(lever, left, -PLATE_H / 2 - LEVER_H / 2);
     }
     const plateBody = svg('svg', {
       class: 'rc-plate-body',
@@ -247,34 +281,45 @@ export class CraftRuler {
     this.#ring.setAttribute('stroke-dasharray', String(RING_C));
     this.#ring.style.opacity = '0';
     ring.append(this.#ring);
-    this.#play.append(...this.#knob(), mark, ring);
+    this.#play.append(...this.#knob(0), mark, ring);
 
+    this.#count = button('rc-knob rc-count', 'Resume story', () => this.#walk.resume());
     const countMark = knobLayer('rc-knob-mark');
     this.#countLines = [
       engraved(countMark, 'rc-count-num', 0, 6),
       engraved(countMark, 'rc-count-of', 0, 22),
     ];
-    this.#count.append(...this.#knob(), countMark);
-    this.#count.setAttribute('role', 'status');
+    const glow = knobLayer('rc-knob-glow');
+    glow.innerHTML = `<circle r="${KNOB_R - 1}" fill="none" stroke="rgb(255 188 104)" stroke-width="6" filter="url(#rc-soft)"/>`;
+    this.#count.append(glow, ...this.#knob(1), countMark);
     for (const knob of [this.#play, this.#count]) {
       place(knob, -KNOB_BOX / 2, -KNOB_BOX / 2);
       knob.style.width = knob.style.height = `${KNOB_BOX}px`;
     }
+    this.#status.setAttribute('role', 'status');
 
     this.element.append(
       ...this.#gears.map((gear) => gear.element),
       this.#body,
       this.#engraving,
       ...this.#studs,
+      ...this.#dots,
       this.#finish,
-      this.#playhead,
       this.#plate,
+      this.#playhead,
       this.#play,
       this.#count,
+      this.#status,
     );
-    this.#scrubOn(this.#hit, false);
-    this.#scrubOn(this.#plate, true);
+    this.#scrubOn(this.#hit, 'band');
+    this.#scrubOn(this.#plate, 'plate');
+    this.#scrubOn(this.#tierHit, 'tier');
     addEventListener('resize', this.#onResize);
+    // Labels are measured again once their faces have loaded.
+    void document.fonts.ready.then(() => {
+      for (const cut of this.#cuts.values()) [cut.half, cut.shown] = [0, NaN];
+      this.#placed = '';
+    });
     this.#build();
   }
 
@@ -284,14 +329,15 @@ export class CraftRuler {
     if (state.beat !== this.#beat || (flying && !this.#flying)) {
       if (state.beat !== this.#beat) this.#showBeat(state);
       const { start, end } = this.#span;
-      this.#from = { span: this.#span, at: (state.day - start) / (end - start) };
+      this.#from = { span: this.#span, share: (state.day - start) / (end - start) };
       const beat = state.story.beats[state.beat];
       if (beat) this.#to = beatSpan(beat);
     }
     this.#flying = flying;
     const t = state.flight ?? 1;
-    const { span: from, at } = this.#from;
-    const span = mixSpans(from, this.#to, at, state.day, t * t * (3 - 2 * t));
+    const { span: from, share } = this.#from;
+    const mixed = mixSpans(from, this.#to, share, state.day, t * t * (3 - 2 * t));
+    const span = anchored(mixed, state.day, this.#margin);
     if (!this.#laidOut || span.start !== this.#span.start || span.end !== this.#span.end) {
       this.#span = span;
       this.#engrave();
@@ -302,35 +348,49 @@ export class CraftRuler {
       this.#place(state);
     }
     this.#showPlay(state);
+    this.#showAway(state);
     this.#turn(state.day);
   }
 
   dispose(): void {
     removeEventListener('resize', this.#onResize);
+    cancelAnimationFrame(this.#resizeFrame);
     this.element.remove();
   }
 
-  /** A knob's body: the knurled rim, which turns with story time, and the face over it. */
-  #knob(): SVGSVGElement[] {
+  /**
+   * A knob's body: the knurled rim, which turns with story time under a light that turns back so
+   * the lamp stays at the upper left, and the face over it.
+   */
+  #knob(index: number): SVGSVGElement[] {
     const knurl = knobLayer('rc-knurl');
-    knurl.innerHTML = `<path d="${teeth(80, KNOB_R - 4.5, KNOB_R, 0.2, 0.55)}" fill="url(#rc-knurl-fill)" filter="url(#rc-lit-teeth)"/>`;
-    this.#knurls.push(knurl);
+    const id = `rc-knurl-light-${index}`;
+    knurl.innerHTML =
+      `<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="-38" y1="-38" x2="38" y2="38">` +
+      `<stop offset="0" stop-color="#f2d596"/><stop offset="0.45" stop-color="#b08642"/>` +
+      `<stop offset="1" stop-color="#4a3416"/></linearGradient></defs>` +
+      `<path d="${teeth(80, KNOB_R - 4.5, KNOB_R, 0.2, 0.55)}" fill="url(#${id})" stroke="#1c1207" stroke-width="0.5"/>`;
+    const light = knurl.querySelector('linearGradient');
+    const path = knurl.querySelector('path');
+    if (light && path) this.#knurls.push({ teeth: path, light });
     const face = knobLayer('rc-face');
     face.innerHTML = KNOB_FACE_SVG;
     return [knurl, face];
   }
 
   #showBeat(state: WalkState): void {
-    this.#studs[this.#beat]?.classList.remove('is-current');
-    this.#studs[state.beat]?.classList.add('is-current');
+    for (const marks of [this.#studs, this.#dots]) {
+      marks[this.#beat]?.classList.remove('is-current');
+      marks[state.beat]?.classList.add('is-current');
+    }
     this.#beat = state.beat;
     const beats = state.story.beats;
     this.#back.disabled = state.beat <= 0;
     this.#next.disabled = state.beat >= beats.length - 1;
     setEngraved(this.#countLines[0], roman(state.beat + 1));
     setEngraved(this.#countLines[1], `of ${roman(beats.length)}`);
-    this.#count.setAttribute('aria-label', `Beat ${state.beat + 1} of ${beats.length}`);
-    this.#count.title = beats[state.beat]?.title ?? '';
+    const title = beats[state.beat]?.title ?? '';
+    this.#status.textContent = `Beat ${state.beat + 1} of ${beats.length}: ${title}`;
   }
 
   #showPlay(state: WalkState): void {
@@ -354,27 +414,44 @@ export class CraftRuler {
     this.#ring.setAttribute('stroke-dashoffset', (RING_C * (1 - run)).toFixed(1));
   }
 
+  /** While the visitor explores on their own, the count knob glows and resumes the story. */
+  #showAway(state: WalkState): void {
+    const away = state.mode === 'breakout';
+    if (away === this.#away) return;
+    this.#away = away;
+    this.#count.disabled = !away;
+    this.#count.classList.toggle('is-away', away);
+    this.#count.title = away ? 'Resume story' : '';
+  }
+
   /** The gears and the knobs' knurl turn with story time, so time visibly winds through them. */
   #turn(day: number): void {
     if (day === this.#turnDay) return;
     this.#turnDay = day;
-    const turn = (share: number) => `${((day * GEAR_DEG_PER_DAY * share) % 360).toFixed(2)}deg`;
-    for (const gear of this.#gears) gear.element.style.rotate = turn(gear.turn);
-    for (const knurl of this.#knurls) knurl.style.rotate = turn(1 / 3);
+    const turn = (share: number) => (day * GEAR_DEG_PER_DAY * share) % 360;
+    for (const gear of this.#gears) gear.element.style.rotate = `${f(turn(gear.turn), 2)}deg`;
+    const knurl = turn(1 / 3);
+    for (const { teeth, light } of this.#knurls) {
+      teeth.setAttribute('transform', `rotate(${f(knurl, 2)})`);
+      light.setAttribute('gradientTransform', `rotate(${f(-knurl, 2)})`);
+    }
   }
 
-  /** The playhead at the day on the band; the plaque above it, kept on the rule. */
+  /** The playhead at the day on the band, and the plaque over it. */
   #place(state: WalkState): void {
     const arc = this.#arc;
     const angle = this.#angle(state.day);
     const [x, y] = at(arc, angle, JEWEL_AT);
     this.#playhead.style.transform = `translate(${f(x)}px, ${f(y)}px) rotate(${f(deg(angle), 2)}deg)`;
     setShade(this.#playhead, shadeAt(x, y));
-    const half = (PLATE_W / 2 + LEVER_W - PLATE_OVERHANG) / arc.r;
+    // The span keeps the playhead clear of the ends, so the plaque rides over it; the plaque is
+    // held on the rule besides, for a view too narrow for that.
+    const half = PLATE_REACH / arc.r;
     const plateAngle = Math.min(arc.reach - half, Math.max(-arc.reach + half, angle));
     const [px, py] = at(arc, plateAngle, PLATE_FOOT);
     this.#plate.style.transform = `translate(${f(px)}px, ${f(py)}px) rotate(${f(deg(plateAngle), 2)}deg)`;
     setShade(this.#plate, shadeAt(px, py - PLATE_H / 2));
+    this.#clearPlate(plateAngle);
 
     const precision = platePrecision(state);
     const text = formatDay(state.day, precision);
@@ -393,6 +470,38 @@ export class CraftRuler {
     for (const line of bottom ?? []) line.setAttribute('y', upper ? '38.5' : '31');
   }
 
+  /**
+   * Moves the upper row's labels out from under the plaque and its levers: each goes to whichever
+   * side is nearer while it still stands over its month or year on the rule; else it waits unseen.
+   */
+  #clearPlate(plateAngle: number): void {
+    const r = this.#arc.r;
+    const half = (PLATE_W / 2 + LEVER_W - LEVER_TUCK + PLATE_GAP) / r;
+    const [b0, b1] = [plateAngle - half, plateAngle + half];
+    for (const cut of this.#cuts.values()) {
+      const { label } = cut;
+      if (label.from === undefined || label.to === undefined) continue;
+      if (cut.half === 0) cut.half = cut.element.getComputedTextLength() / 2;
+      const w = cut.half / (r + label.row);
+      let shown: number | null = label.angle;
+      if (shown + w > b0 && shown - w < b1) {
+        const slack = 6 / r;
+        const [lo, hi] = [label.from - slack + w, label.to + slack - w];
+        const sides = [Math.min(shown, b0 - w), Math.max(shown, b1 + w)];
+        const nearest = sides
+          .filter((a) => a >= lo && a <= hi)
+          .sort((p, q) => Math.abs(p - label.angle) - Math.abs(q - label.angle));
+        shown = nearest[0] ?? null;
+      }
+      if (shown === cut.shown) continue;
+      cut.shown = shown;
+      cut.element.classList.toggle('is-covered', shown === null);
+      if (shown !== null) {
+        cut.element.setAttribute('transform', labelTransform(this.#arc, shown, label.row));
+      }
+    }
+  }
+
   /** The band's angle for a day: the span maps onto the rule, clamped to its ends. */
   #angle(day: number): number {
     const { start, end } = this.#span;
@@ -400,9 +509,18 @@ export class CraftRuler {
     return (2 * t - 1) * this.#arc.reach;
   }
 
+  /** The day at an angle on the band, kept as clear of the ends as the span keeps the playhead. */
   #dayAtAngle(angle: number): number {
-    const t = Math.min(1, Math.max(0, (angle / this.#arc.reach + 1) / 2));
-    return this.#span.start + t * (this.#span.end - this.#span.start);
+    const t = (angle / this.#arc.reach + 1) / 2;
+    const kept = Math.min(1 - this.#margin, Math.max(this.#margin, t));
+    return this.#span.start + kept * (this.#span.end - this.#span.start);
+  }
+
+  /** The day at an angle on the story tier. */
+  #dayOnTier(angle: number): number {
+    const { start, end } = this.#years;
+    const t = Math.min(1, Math.max(0, (angle / (this.#arc.reach * TIER_REACH) + 1) / 2));
+    return Math.min(end - 1, start + t * (end - start));
   }
 
   #angleAt(clientX: number, clientY: number): number {
@@ -412,10 +530,14 @@ export class CraftRuler {
   }
 
   /**
-   * Scrubs from `target`: pressing the band scrubs to the day under the pointer; the plaque, which
-   * shows the day already, scrubs only once dragged, and by as far as it is dragged.
+   * Scrubs from `target`: pressing the band scrubs to the day under the pointer, and pressing the
+   * base plate to the day under it on the story tier; the plaque, which shows the day already,
+   * scrubs only once dragged, and by as far as it is dragged.
    */
-  #scrubOn(target: Element, relative: boolean): void {
+  #scrubOn(target: Element, from: ScrubFrom): void {
+    const relative = from === 'plate';
+    const dayAt = (angle: number) =>
+      from === 'tier' ? this.#dayOnTier(angle) : this.#dayAtAngle(angle);
     let offset = 0;
     let startX = 0;
     let moved = false;
@@ -429,35 +551,41 @@ export class CraftRuler {
       offset = relative ? this.#angle(this.#walk.state().day) - angle : 0;
       startX = e.clientX;
       moved = !relative;
-      if (!relative) this.#walk.scrub(this.#dayAtAngle(angle));
+      if (!relative) this.#walk.scrub(dayAt(angle));
     });
     target.addEventListener('pointermove', (event) => {
       const e = event as PointerEvent;
       if (!target.hasPointerCapture(e.pointerId)) return;
       if (!moved && Math.abs(e.clientX - startX) < 3) return;
       moved = true;
-      this.#walk.scrub(this.#dayAtAngle(this.#angleAt(e.clientX, e.clientY) + offset));
+      this.#walk.scrub(dayAt(this.#angleAt(e.clientX, e.clientY) + offset));
     });
     const end = () => this.element.classList.remove('is-scrubbing');
     target.addEventListener('pointerup', end);
     target.addEventListener('pointercancel', end);
   }
 
-  /** Draws what depends only on the view's size: the band's body, gears, knobs and finish. */
+  /**
+   * Draws what depends only on the view's size: the band's body with the story tier, the gears,
+   * the knobs and the finish; and sets the tier's dots.
+   */
   #build(): void {
     const width = innerWidth;
     const arc = (this.#arc = arcFor(width));
+    this.#margin = Math.min(0.4, PLATE_REACH / (2 * arc.reach * arc.r));
     for (const layer of [this.#body, this.#engraving, this.#finish]) {
       layer.setAttribute('width', String(width));
       layer.setAttribute('height', String(HEIGHT));
       layer.setAttribute('viewBox', `0 0 ${width} ${HEIGHT}`);
     }
-    this.#body.innerHTML = bodySvg(arc);
+    this.#body.innerHTML = bodySvg(arc, this.#years);
     this.#finish.innerHTML = finishSvg(arc);
     this.#hit.setAttribute(
       'd',
       sector(arc, -arc.reach - 0.004, arc.reach + 0.004, RAIL_FOOT, BAND),
     );
+    // The base plate takes every press, so none reaches the globe, and scrubs on the tier.
+    this.#tierHit.setAttribute('d', sector(arc, -arc.end, arc.end, RAIL_FOOT - BASE, RAIL_FOOT));
 
     const knobY = HEIGHT - KNOB_FOOT;
     for (const [knob, x] of [
@@ -481,11 +609,20 @@ export class CraftRuler {
       setShade(gear.element, shadeAt(x, y));
       gear.element.innerHTML = gearSvg(r, n);
     }
+
+    const beats = this.#story.beats;
+    const trueS = beats.map((beat) => tierAngle(arc, this.#years, beat.day) * arc.r);
+    const reachS = arc.reach * TIER_REACH * arc.r;
+    const dotS = spreadPips(trueS, DOT_GAP, -reachS, reachS);
+    this.#dots.forEach((dot, i) => {
+      const [x, y] = at(arc, (dotS[i] ?? 0) / arc.r, TIER_RULE);
+      dot.style.transform = `translate(${f(x)}px, ${f(y)}px)`;
+    });
     this.#laidOut = false;
     this.#placed = '';
   }
 
-  /** Engraves the span's scale on the band, and sets the studs on the rail. */
+  /** Engraves the span's scale on the band, sets the studs on the rail, and the tier's window. */
   #engrave(): void {
     this.#laidOut = true;
     const arc = this.#arc;
@@ -496,21 +633,29 @@ export class CraftRuler {
     }
     this.#setLabels(scale.labels);
 
-    const inRule = (day: number) => day >= span.start && day <= span.end;
+    // Only the beats in the span have studs on the rail; the tier shows them all.
     const beats = this.#story.beats;
+    const inside = beats.map((beat) => beat.day >= span.start && beat.day <= span.end);
     const trueS = beats.map((beat) => this.#angle(beat.day) * arc.r);
-    const inside = beats.map((beat) => inRule(beat.day));
     const reachS = arc.reach * arc.r;
-    const studS = spreadPips(trueS, STUD_GAP, -reachS + 8, reachS - 8);
+    const shown = beats.flatMap((_, i) => (inside[i] ? [i] : []));
+    const spread = spreadPips(
+      shown.map((i) => trueS[i] ?? 0),
+      STUD_GAP,
+      -reachS + 8,
+      reachS - 8,
+    );
+    const studS = trueS.slice();
+    shown.forEach((i, k) => (studS[i] = spread[k] ?? 0));
     let leaders = '';
     this.#studs.forEach((stud, i) => {
       const a = (studS[i] ?? 0) / arc.r;
       const [x, y] = at(arc, a, STUD_AT);
       stud.style.transform = `translate(${f(x)}px, ${f(y)}px)`;
       stud.classList.toggle('is-off', !inside[i]);
-      const [nx, ny] = at(arc, a, NUMERAL_ROW);
+      stud.tabIndex = inside[i] ? 0 : -1;
       const numeral = this.#numerals[i];
-      numeral?.setAttribute('transform', `translate(${f(nx)} ${f(ny)}) rotate(${f(deg(a), 2)})`);
+      numeral?.setAttribute('transform', labelTransform(arc, a, NUMERAL_ROW));
       numeral?.classList.toggle('is-off', !inside[i]);
       if (!inside[i]) return;
       const b = (trueS[i] ?? 0) / arc.r;
@@ -520,200 +665,60 @@ export class CraftRuler {
       leaders += `M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`;
     });
     for (const path of this.#leaders) path.setAttribute('d', leaders);
+
+    // The tier's window: the span's stretch of the story, at least a few px wide.
+    const years = this.#years;
+    const [s0, s1] = [tierAngle(arc, years, span.start), tierAngle(arc, years, span.end)];
+    const least = 2 / arc.r;
+    const [w0, w1] = [Math.min(s0, (s0 + s1) / 2 - least), Math.max(s1, (s0 + s1) / 2 + least)];
+    this.#window.setAttribute('d', sector(arc, w0, w1, TIER_RULE - 8, TIER_RULE + 2.5));
+    const [x0, y0] = at(arc, w0, TIER_RULE - 9);
+    const [x1, y1] = at(arc, w1, TIER_RULE - 9);
+    const rim = along(arc, w0, w1, TIER_RULE + 2.5).slice(1);
+    for (const path of this.#bracket) {
+      path.setAttribute('d', `M${f(x0)} ${f(y0)}L${rim}L${f(x1)} ${f(y1)}`);
+    }
   }
 
   /** Moves the labels still on the rule, cuts the new ones, and removes those gone. */
   #setLabels(labels: Label[]): void {
-    const kept = new Map<string, SVGTextElement>();
-    for (const { key, angle, row, text, cls } of labels) {
-      let t = this.#labels.get(key);
-      if (t) {
-        this.#labels.delete(key);
+    const kept = new Map<string, Cut>();
+    for (const label of labels) {
+      let cut = this.#cuts.get(label.key);
+      if (cut) {
+        this.#cuts.delete(label.key);
+        cut.label = label;
       } else {
-        t = svg('text', { class: cls, 'text-anchor': 'middle' });
-        t.textContent = text;
-        this.#labelGroup.append(t);
+        const element = svg('text', { class: label.cls, 'text-anchor': 'middle' });
+        element.textContent = label.text;
+        this.#labelGroup.append(element);
+        cut = { element, label, half: 0, shown: NaN };
       }
-      const [x, y] = at(this.#arc, angle, row);
-      t.setAttribute('transform', `translate(${f(x)} ${f(y)}) rotate(${f(deg(angle), 2)})`);
-      kept.set(key, t);
-    }
-    for (const gone of this.#labels.values()) gone.remove();
-    this.#labels = kept;
-  }
-}
-
-type TickKind = 'full' | 'major' | 'minor';
-const TICK_KINDS: TickKind[] = ['full', 'major', 'minor'];
-
-/** A label on the band: what it names (its key), where, and in which face. */
-interface Label {
-  key: string;
-  angle: number;
-  row: number;
-  text: string;
-  cls: string;
-}
-
-interface Scale extends Record<TickKind, string> {
-  labels: Label[];
-}
-
-/**
- * The span's scale in calendar terms, for the unit that fits: days, months or years, each ticked
- * and numbered or named in the lower row, and the unit above (a month with its year, a year)
- * named in the upper row over the part of it the rule shows.
- */
-function engraveScale(arc: Arc, span: Span, angle: (day: number) => number): Scale {
-  const scale: Scale = { full: '', major: '', minor: '', labels: [] };
-  const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
-  const inRule = (day: number) => day >= span.start && day <= span.end;
-  const edges = (a: number, length: number) =>
-    radial(arc, a, BAND - 1, BAND - 1 - length) + radial(arc, a, -BAND + 1, -BAND + 1 + length);
-  /** Names the stretch [from, to) at the middle of the part of it on the rule, if that is wide enough. */
-  const name = (
-    key: string,
-    from: number,
-    to: number,
-    row: number,
-    text: string,
-    cls: string,
-    least: number,
-  ) => {
-    const a0 = angle(Math.max(from, span.start));
-    const a1 = angle(Math.min(to, span.end));
-    if ((a1 - a0) * arc.r >= least)
-      scale.labels.push({ key, angle: (a0 + a1) / 2, row, text, cls });
-  };
-
-  const months = monthsIn(span);
-  for (const month of months) {
-    if (!inRule(month.start)) continue;
-    if (month.month === 1) scale.full += radial(arc, angle(month.start), -BAND + 1, BAND - 1);
-    else if (pxPerDay * 28 >= 4) scale.major += edges(angle(month.start), 7);
-  }
-  if (pxPerDay >= DAY_TICK_PX) {
-    // Days, numbered as often as they fit, under each month named with its year.
-    const step =
-      pxPerDay >= DAY_LABEL_PX ? 1 : (DAY_STEPS.find((s) => s * pxPerDay >= DAY_STEP_PX) ?? 30);
-    for (let day = Math.ceil(span.start); day < span.end; day += 1) {
-      const date = civilFromDay(day).day;
-      const numbered =
-        step === 1 || (date === 1 && step >= 5) || (date % step === 0 && date <= 30 - step / 2);
-      if (date !== 1) scale.minor += edges(angle(day), numbered && step > 1 ? 6 : 4);
-      if (numbered && inRule(day + 0.5)) {
-        const text = String(date);
-        scale.labels.push({
-          key: `d${day}`,
-          angle: angle(day + 0.5),
-          row: LOWER_ROW,
-          text,
-          cls: 'rc-day',
-        });
+      // The upper row's labels are placed with the plaque (#clearPlate).
+      if (label.from === undefined) {
+        cut.element.setAttribute('transform', labelTransform(this.#arc, label.angle, label.row));
+      } else {
+        cut.shown = NaN;
       }
+      kept.set(label.key, cut);
     }
-    for (const month of months) {
-      const text = `${monthName(month.month)} ${yearLabel(month.year)}`.toUpperCase();
-      name(
-        `u${month.start}`,
-        month.start,
-        month.end,
-        UPPER_ROW,
-        text,
-        'rc-upper',
-        MONTH_YEAR_LABEL_PX,
-      );
-    }
-  } else if (pxPerDay * 28 * 3 >= MONTH_LABEL_PX) {
-    // Months, each with a fine tick at its middle and named, or where that crowds, every third
-    // (January, April, July, October), under each year.
-    const every = pxPerDay * 30 >= MONTH_LABEL_PX ? 1 : 3;
-    for (const month of months) {
-      const mid = (month.start + month.end) / 2;
-      if (inRule(mid)) scale.minor += edges(angle(mid), 4);
-      if ((month.month - 1) % every !== 0) continue;
-      const text = monthAbbrev(month.month).toUpperCase();
-      const least = Math.min(MONTH_LABEL_PX, 28);
-      name(`m${month.start}`, month.start, month.end, LOWER_ROW, text, 'rc-month', least);
-    }
-    for (const year of yearsIn(span)) {
-      const text = yearLabel(year.year);
-      name(
-        `u${year.start}`,
-        year.start,
-        year.end,
-        UPPER_ROW - 3,
-        text,
-        'rc-upper is-year',
-        YEAR_LABEL_PX,
-      );
-    }
-  } else {
-    for (const year of yearsIn(span)) {
-      const text = yearLabel(year.year);
-      name(`y${year.start}`, year.start, year.end, LOWER_ROW, text, 'rc-year', YEAR_LABEL_PX);
-    }
+    for (const gone of this.#cuts.values()) gone.element.remove();
+    this.#cuts = kept;
   }
-  return scale;
 }
 
-/** Every year the span touches, with its first day and the next year's. */
-function yearsIn(span: Span): { year: number; start: number; end: number }[] {
-  const years = [];
-  const last = civilFromDay(span.end).year;
-  for (let year = civilFromDay(span.start).year; year <= last; year += 1) {
-    const start = dayFromCivil({ year, month: 1, day: 1 });
-    years.push({ year, start, end: dayFromCivil({ year: year + 1, month: 1, day: 1 }) });
-  }
-  return years;
+/** Where a label along the band stands: at its angle on its row, turned with the band. */
+function labelTransform(arc: Arc, angle: number, row: number): string {
+  const [x, y] = at(arc, angle, row);
+  return `translate(${f(x)} ${f(y)}) rotate(${f(deg(angle), 2)})`;
 }
 
-function arcFor(width: number): Arc {
-  const half = width / 2 - KNOB_SIDE;
-  const r = (half * half + SAG * SAG) / (2 * SAG);
-  const apexY = HEIGHT - KNOB_FOOT - SAG;
-  return {
-    width,
-    cx: width / 2,
-    cy: apexY + r,
-    r,
-    reach: Math.asin((half - KNOB_R - RULE_MARGIN) / r),
-    end: Math.asin(half / r),
-  };
-}
-
-/** The point at `angle` on the circle `dr` above the band's center line. */
-function at(arc: Arc, angle: number, dr = 0): [number, number] {
-  const r = arc.r + dr;
-  return [arc.cx + r * Math.sin(angle), arc.cy - r * Math.cos(angle)];
-}
-
-/** The ring's stretch from a0 to a1 between the radial offsets `inner` and `outer`. */
-function sector(arc: Arc, a0: number, a1: number, inner: number, outer: number): string {
-  const [x0, y0] = at(arc, a0, outer);
-  const [x1, y1] = at(arc, a1, outer);
-  const [x2, y2] = at(arc, a1, inner);
-  const [x3, y3] = at(arc, a0, inner);
-  const [ro, ri] = [arc.r + outer, arc.r + inner];
-  return (
-    `M${f(x0)} ${f(y0)}A${f(ro)} ${f(ro)} 0 0 1 ${f(x1)} ${f(y1)}` +
-    `L${f(x2)} ${f(y2)}A${f(ri)} ${f(ri)} 0 0 0 ${f(x3)} ${f(y3)}Z`
-  );
-}
-
-/** An arc along the band from a0 to a1, `dr` above its center line. */
-function along(arc: Arc, a0: number, a1: number, dr: number): string {
-  const [x0, y0] = at(arc, a0, dr);
-  const [x1, y1] = at(arc, a1, dr);
-  const r = arc.r + dr;
-  return `M${f(x0)} ${f(y0)}A${f(r)} ${f(r)} 0 0 1 ${f(x1)} ${f(y1)}`;
-}
-
-/** A tick across the band at `angle`, from one radial offset to another. */
-function radial(arc: Arc, angle: number, from: number, to: number): string {
-  const [x0, y0] = at(arc, angle, from);
-  const [x1, y1] = at(arc, angle, to);
-  return `M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}`;
+/** A gilt inlay path over its shadow, a hair down and right. */
+function gilt(className: string): SVGPathElement[] {
+  return [
+    svg('path', { class: `${className} rc-gilt-shadow`, transform: 'translate(0.6 0.9)' }),
+    svg('path', { class: `${className} rc-gilt` }),
+  ];
 }
 
 /** A line of text engraved in `parent` at (x, y): the lit lip of the cut, then the cut. */
@@ -723,13 +728,13 @@ function engraved(
   x: number,
   y: number,
 ): SVGTextElement[] {
-  const at = { x, y, 'text-anchor': 'middle' };
+  const spot = { x, y, 'text-anchor': 'middle' };
   const lip = svg('text', {
-    ...at,
+    ...spot,
     class: `${className} rc-cut-lip`,
     transform: 'translate(0.6 0.9)',
   });
-  const cut = svg('text', { ...at, class: `${className} rc-cut` });
+  const cut = svg('text', { ...spot, class: `${className} rc-cut` });
   parent.append(lip, cut);
   return [lip, cut];
 }
@@ -830,7 +835,7 @@ interface FilterSpec {
 /**
  * A filter that lights a flat brass shape as raised metal under the lamp: the shape's alpha,
  * blurred by `bevel`, is its height, roughened by `texture`, lit diffusely and specularly from
- * the upper left in the key light's warm color; a cloudy tarnish ages it, a fine grain lies over
+ * the upper left in the key lamp's warm color; a cloudy tarnish ages it, a fine grain lies over
  * it as over the canvas, and its brightest edges bloom past it a little.
  */
 function brassFilter(id: string, spec: FilterSpec): string {
@@ -841,7 +846,7 @@ function brassFilter(id: string, spec: FilterSpec): string {
 <feTurbulence type="fractalNoise" baseFrequency="${texture}" numOctaves="2" seed="7" result="tex"/>
 <feComposite in="tex" in2="hump" operator="arithmetic" k2="${amount}" k3="1" result="height"/>
 <feDiffuseLighting in="height" surfaceScale="${relief}" diffuseConstant="1.05" lighting-color="#fff2e0" result="diffuse"><feDistantLight azimuth="225" elevation="50"/></feDiffuseLighting>
-<feSpecularLighting in="height" surfaceScale="${relief}" specularConstant="${shine}" specularExponent="16" lighting-color="#ffd6a8" result="spec"><feDistantLight azimuth="225" elevation="35"/></feSpecularLighting>
+<feSpecularLighting in="height" surfaceScale="${relief}" specularConstant="${shine}" specularExponent="16" lighting-color="${KEY_LAMP_CSS}" result="spec"><feDistantLight azimuth="225" elevation="35"/></feSpecularLighting>
 <feComposite in="SourceGraphic" in2="diffuse" operator="arithmetic" k1="1.25" result="lit"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.006 0.03" numOctaves="3" seed="21" result="cloud"/>
 <feColorMatrix in="cloud" type="matrix" values="${k} 0 0 0 ${b} ${k} 0 0 0 ${b} ${k} 0 0 0 ${b} 0 0 0 0 1" result="tarnish"/>
@@ -886,9 +891,6 @@ function sharedDefs(): string {
   <stop offset="0" stop-color="#a47d40"/><stop offset="0.5" stop-color="#6e5027"/>
   <stop offset="1" stop-color="#3f2c13"/>
 </linearGradient>
-<linearGradient id="rc-knurl-fill" x1="0" x2="1" y1="0" y2="1">
-  <stop offset="0" stop-color="#c49a55"/><stop offset="1" stop-color="#6e5027"/>
-</linearGradient>
 <radialGradient id="rc-face-fill" cx="0.4" cy="0.36" r="0.75">
   <stop offset="0" stop-color="#d8b471"/><stop offset="0.55" stop-color="#b28845"/>
   <stop offset="1" stop-color="#6b4d26"/>
@@ -908,6 +910,10 @@ function sharedDefs(): string {
   <stop offset="0" stop-color="#f6dea4"/><stop offset="0.5" stop-color="#b88e4b"/>
   <stop offset="1" stop-color="#5a411f"/>
 </linearGradient>
+<linearGradient id="rc-steel" x1="0" x2="1" y1="0" y2="0">
+  <stop offset="0" stop-color="#141c30"/><stop offset="0.45" stop-color="#6f8cc0"/>
+  <stop offset="1" stop-color="#1c2640"/>
+</linearGradient>
 <radialGradient id="rc-sheen" r="0.5">
   <stop offset="0" stop-color="rgb(255 240 205 / 0.5)"/><stop offset="1" stop-color="rgb(255 240 205 / 0)"/>
 </radialGradient>
@@ -923,10 +929,11 @@ ${brassFilter('rc-lit-plate', { bevel: 2, relief: 3, texture: '0.01 0.6', amount
 }
 
 /**
- * The band, its lit upper lip and its rail, seated into the knobs' sockets, with the engraving
- * that never changes: the band's border rules and the rail's beaded edges.
+ * The band, its lit upper lip and its rail, seated into the knobs' sockets, and the base plate
+ * under them, with the engraving that never changes: the band's border rules, the rail's beaded
+ * edges, and the story tier's years in gilt.
  */
-function bodySvg(arc: Arc): string {
+function bodySvg(arc: Arc, years: Span): string {
   const [a0, a1] = [-arc.end, arc.end];
   const knobY = HEIGHT - KNOB_FOOT;
   const sockets = [KNOB_SIDE, arc.width - KNOB_SIDE]
@@ -936,7 +943,15 @@ function bodySvg(arc: Arc): string {
     .map((dr) => along(arc, -arc.reach - 0.008, arc.reach + 0.008, dr))
     .join('');
   const beads = along(arc, a0, a1, RAIL_TOP - 3.5);
-  const baseRule = along(arc, a0, a1, RAIL_FOOT - 4);
+  const tier = engraveTier(arc, years);
+  const tierReach = arc.reach * TIER_REACH;
+  const tierRule = along(arc, -tierReach, tierReach, TIER_RULE);
+  const tierYears = tier.labels
+    .map((label) => {
+      const spot = labelTransform(arc, label.angle, label.row);
+      return `<text class="${label.cls}" text-anchor="middle" transform="${spot}">${label.text}</text>`;
+    })
+    .join('');
   return `${sharedDefs()}
 <g fill="#000" filter="url(#rc-soft)">
   <path d="${sector(arc, a0, a1, RAIL_FOOT - BASE, BAND + LIP + 5)}" opacity="0.6"/>
@@ -954,8 +969,16 @@ function bodySvg(arc: Arc): string {
   <path d="${rules}" stroke="rgb(43 28 12 / 0.8)" stroke-width="0.8"/>
   <path d="${beads}" stroke="rgb(0 0 0 / 0.6)" stroke-width="2.6" stroke-dasharray="0 6" transform="translate(0.5 0.9)"/>
   <path d="${beads}" stroke="rgb(236 200 132 / 0.75)" stroke-width="2" stroke-dasharray="0 6"/>
-  <path d="${baseRule}" stroke="rgb(0 0 0 / 0.5)" stroke-width="0.8" transform="translate(0.5 0.9)"/>
-  <path d="${baseRule}" stroke="rgb(214 176 108 / 0.3)" stroke-width="0.8"/>
+</g>
+<g class="rc-tier">
+  <g transform="translate(0.6 0.9)" class="rc-gilt-shadow">
+    <path d="${tierRule}${tier.years}${tier.months}"/>${tierYears}
+  </g>
+  <g class="rc-gilt">
+    <path d="${tierRule}" stroke-width="0.8"/>
+    <path d="${tier.years}" stroke-width="1"/>
+    <path d="${tier.months}" stroke-width="0.6" opacity="0.7"/>${tierYears}
+  </g>
 </g>`;
 }
 
@@ -964,19 +987,19 @@ function finishSvg(arc: Arc): string {
   const vh = innerHeight;
   const stops: string[] = [];
   for (let k = 0; k <= 10; k += 1) {
-    const r = VIGNETTE_FROM + ((VIGNETTE_TO - VIGNETTE_FROM) * k) / 10;
+    const r = LENS.from + ((LENS.to - LENS.from) * k) / 10;
     const dark = 1 - vignetteAt(r);
     stops.push(
-      `<stop offset="${(r / VIGNETTE_TO).toFixed(3)}" stop-color="#000" stop-opacity="${dark.toFixed(3)}"/>`,
+      `<stop offset="${(r / LENS.to).toFixed(3)}" stop-color="#000" stop-opacity="${dark.toFixed(3)}"/>`,
     );
   }
-  return `<defs><radialGradient id="rc-vignette" gradientUnits="userSpaceOnUse" cx="${f(arc.cx)}" cy="${f(HEIGHT - vh / 2)}" r="${f(VIGNETTE_TO * vh)}">${stops.join('')}</radialGradient></defs>
+  return `<defs><radialGradient id="rc-vignette" gradientUnits="userSpaceOnUse" cx="${f(arc.cx)}" cy="${f(HEIGHT - vh / 2)}" r="${f(LENS.to * vh)}">${stops.join('')}</radialGradient></defs>
 <path d="${sector(arc, -arc.end - 0.02, arc.end + 0.02, RAIL_FOOT - BASE, BAND + LIP)}" fill="url(#rc-vignette)"/>`;
 }
 
 /** The canvas's vignette as a brightness, `r` view heights from the view's center. */
 function vignetteAt(r: number): number {
-  const t = Math.min(1, Math.max(0, (r - VIGNETTE_FROM) / (VIGNETTE_TO - VIGNETTE_FROM)));
+  const t = Math.min(1, Math.max(0, (r - LENS.from) / (LENS.to - LENS.from)));
   const v = 1 - t * t * (3 - 2 * t);
   return 1 - VIGNETTE + VIGNETTE * v;
 }
@@ -999,16 +1022,21 @@ const KNOB_FACE_SVG = `
 <ellipse cx="-13" cy="-15" rx="16" ry="9" fill="url(#rc-sheen)" transform="rotate(-40 -13 -15)"/>
 <path d="M-45 -10 A46 46 0 0 1 -10 -45" stroke="rgb(255 236 190 / 0.3)" stroke-width="5" fill="none" stroke-linecap="round" filter="url(#rc-soft)"/>`;
 
-const JEWEL_SVG = `<svg viewBox="-24 -24 48 72" width="48" height="72" aria-hidden="true">
-<circle r="20" fill="url(#rc-garnet-glow)"/>
-<path d="M-3.4 8 L3.4 8 L0.9 ${JEWEL_AT - STUD_AT - 8} L-0.9 ${JEWEL_AT - STUD_AT - 8} Z" fill="url(#rc-bezel)" stroke="#2a1a0a" stroke-width="0.7"/>
-<circle r="11" fill="#1c1208" transform="translate(1 1.6)" opacity="0.6"/>
-<circle r="10.5" fill="url(#rc-bezel)" stroke="#2a1a0a" stroke-width="0.8"/>
-<circle r="8.6" fill="none" stroke="rgb(40 25 8 / 0.6)" stroke-width="1.6" stroke-dasharray="1.1 1.6"/>
-<circle r="7.2" fill="url(#rc-garnet)" stroke="#2a0710" stroke-width="0.6"/>
-<path d="M-7 0 L0 -7 L7 0 L0 7 Z M-3.6 -3.6 L3.6 3.6 M3.6 -3.6 L-3.6 3.6" fill="none" stroke="rgb(255 200 210 / 0.16)" stroke-width="0.6"/>
-<ellipse cx="-2.6" cy="-3" rx="2.4" ry="1.4" fill="#fff6f0" opacity="0.92" transform="rotate(-38 -2.6 -3)"/>
-<circle cx="3" cy="3.4" r="0.9" fill="#ffd9de" opacity="0.6"/>
+/**
+ * The playhead: a garnet in a beaded bezel, hanging from the plaque, and a blued steel needle
+ * from it down to the band's foot. Its y runs down the band, toward the circle's center.
+ */
+const JEWEL_SVG = `<svg viewBox="-16 -16 32 ${f(NEEDLE_TIP + 20)}" width="32" height="${f(NEEDLE_TIP + 20)}" aria-hidden="true">
+<circle r="13" fill="url(#rc-garnet-glow)"/>
+<path d="M-1.5 5.5 L1.5 5.5 L0.45 ${f(NEEDLE_TIP)} L-0.45 ${f(NEEDLE_TIP)} Z" fill="#000" opacity="0.45" transform="translate(0.8 1.2)"/>
+<path d="M-1.5 5.5 L1.5 5.5 L0.45 ${f(NEEDLE_TIP)} L-0.45 ${f(NEEDLE_TIP)} Z" fill="url(#rc-steel)" stroke="#0b1020" stroke-width="0.4"/>
+<circle r="8.9" fill="#1c1208" transform="translate(1 1.6)" opacity="0.6"/>
+<circle r="8.5" fill="url(#rc-bezel)" stroke="#2a1a0a" stroke-width="0.8"/>
+<circle r="7" fill="none" stroke="rgb(40 25 8 / 0.6)" stroke-width="1.3" stroke-dasharray="1 1.4"/>
+<circle r="5.8" fill="url(#rc-garnet)" stroke="#2a0710" stroke-width="0.6"/>
+<path d="M-5.7 0 L0 -5.7 L5.7 0 L0 5.7 Z M-2.9 -2.9 L2.9 2.9 M2.9 -2.9 L-2.9 2.9" fill="none" stroke="rgb(255 200 210 / 0.16)" stroke-width="0.6"/>
+<ellipse cx="-2.1" cy="-2.5" rx="2" ry="1.15" fill="#fff6f0" opacity="0.92" transform="rotate(-38 -2.1 -2.5)"/>
+<circle cx="2.5" cy="2.8" r="0.8" fill="#ffd9de" opacity="0.6"/>
 </svg>`;
 
 /** The plaque: a dark bronze frame round a raised face of bright brass, with an engraved border. */
@@ -1020,13 +1048,17 @@ const PLATE_SVG = `
 <path d="${cartouche(7.5, 7.5, PLATE_W - 15, PLATE_H - 15, 3, 0)}" fill="none" stroke="rgb(255 244 210 / 0.55)" stroke-width="0.7" transform="translate(0.5 0.8)"/>
 <path d="${cartouche(7.5, 7.5, PLATE_W - 15, PLATE_H - 15, 3, 0)}" fill="none" stroke="rgb(58 38 14 / 0.65)" stroke-width="0.7"/>`;
 
-/** A lever beside the plaque, pointing back (-1) or on (1), with an engraved arrow and grip. */
+/** A lever beside the plaque, pointing back (-1) or on (1): a brass ear with a cut arrow and grip. */
 function leverSvg(side: -1 | 1): string {
   // Drawn pointing back, then mirrored point by point for Next, so the lamp lights both alike.
   const x = (v: number) => (side < 0 ? v : LEVER_W - v);
-  const shape = `M${x(LEVER_W)} 5 H${x(15)} Q${x(12)} 5 ${x(10)} 7 L${x(3)} 15 L${x(10)} 23 Q${x(12)} 25 ${x(15)} 25 H${x(LEVER_W)} Z`;
-  const arrow = `M${x(10)} 15 L${x(19)} 9.5 V20.5 Z`;
-  const grip = `M${x(24)} 9 V21 M${x(28)} 9 V21`;
+  const mid = LEVER_H / 2 - 1;
+  const [top, foot] = [3, LEVER_H - 5];
+  const shape =
+    `M${x(LEVER_W)} ${top} H${x(17)} Q${x(13)} ${top} ${x(10)} ${top + 3} L${x(2)} ${mid}` +
+    ` L${x(10)} ${foot - 3} Q${x(13)} ${foot} ${x(17)} ${foot} H${x(LEVER_W)} Z`;
+  const arrow = `M${x(9)} ${mid} L${x(22)} ${mid - 8} V${mid + 8} Z`;
+  const grip = `M${x(28)} ${mid - 8} V${mid + 8} M${x(32)} ${mid - 8} V${mid + 8}`;
   return `<svg viewBox="-1 -1 ${LEVER_W + 2} ${LEVER_H}" width="${LEVER_W + 2}" height="${LEVER_H}" aria-hidden="true">
 <path d="${shape}" fill="#000" opacity="0.6" transform="translate(1 2)" filter="url(#rc-soft)"/>
 <path d="${shape}" fill="url(#rc-plate-fill)" stroke="#3a2710" stroke-width="1" filter="url(#rc-lit-plate)"/>
@@ -1054,39 +1086,4 @@ function platePrecision(state: WalkState): Precision {
   const beat = state.story.beats[state.beat];
   const landed = state.flight === null && state.mode !== 'breakout';
   return beat && landed && Math.abs(state.day - beat.day) < 0.5 ? beat.precision : 'day';
-}
-
-const ROMAN: [number, string][] = [
-  [1000, 'M'],
-  [900, 'CM'],
-  [500, 'D'],
-  [400, 'CD'],
-  [100, 'C'],
-  [90, 'XC'],
-  [50, 'L'],
-  [40, 'XL'],
-  [10, 'X'],
-  [9, 'IX'],
-  [5, 'V'],
-  [4, 'IV'],
-  [1, 'I'],
-];
-
-function roman(n: number): string {
-  let out = '';
-  for (const [value, numeral] of ROMAN) {
-    while (n >= value) {
-      out += numeral;
-      n -= value;
-    }
-  }
-  return out;
-}
-
-function deg(angle: number): number {
-  return (angle * 180) / Math.PI;
-}
-
-function f(x: number, digits = 1): string {
-  return x.toFixed(digits);
 }

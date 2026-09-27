@@ -61,7 +61,15 @@
 }
 
 .rc-labels text {
+  stroke: var(--cut);
+  stroke-width: 0.25px;
   text-shadow: 0.6px 0.9px 0 var(--lip);
+  transition: opacity 0.2s;
+}
+
+/* An upper-row label with no room beside the plaque waits under it, unseen. */
+.rc-labels text.is-covered {
+  opacity: 0;
 }
 
 .rc-tick {
@@ -101,9 +109,14 @@
   font: 400 12.5px/1 var(--display);
 }
 
-.rc-leaders {
+path.rc-leaders,
+path.rc-bracket {
   fill: none;
   stroke-width: 0.8;
+}
+
+path.rc-bracket {
+  stroke-width: 1.1;
 }
 
 /* Gilt inlay on the dark rail. */
@@ -122,8 +135,35 @@
   text-shadow: 0.6px 0.9px 0 rgb(0 0 0 / 0.7);
 }
 
+.rc-numeral {
+  transition: opacity 0.3s;
+}
+
 .rc-numeral.is-off {
-  opacity: 0.45;
+  opacity: 0;
+}
+
+/* The story tier on the base plate: the whole story in gilt, and the window the band shows. */
+
+.rc-tier path {
+  fill: none;
+}
+
+.rc-tier text {
+  stroke: none;
+}
+
+.rc-tier .rc-gilt-shadow text {
+  fill: rgb(0 0 0 / 0.6);
+}
+
+.rc-tier-year {
+  font: 400 10px/1 var(--display);
+  letter-spacing: 0.12em;
+}
+
+.rc-window {
+  fill: rgb(246 214 150 / 0.16);
 }
 
 .rc-hit {
@@ -164,7 +204,8 @@
     1px 2px 3px rgb(0 0 0 / 0.75);
   transition:
     filter 0.15s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    opacity 0.3s;
 }
 
 .rc-stud::before {
@@ -183,11 +224,8 @@
 }
 
 .rc-stud.is-off {
-  filter: brightness(0.6) saturate(0.75);
-}
-
-.rc-stud.is-off:hover {
-  filter: brightness(0.95);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .rc-stud.is-current {
@@ -206,10 +244,49 @@
     0 0 10px 2px rgb(255 206 130 / 0.5);
 }
 
+/* The beats' dots on the story tier */
+
+.rc-dot {
+  z-index: 1;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: pointer;
+  background: radial-gradient(circle at 36% 32%, #fff0c4 0 10%, #d8b16a 40%, #7a5827 90%);
+  box-shadow:
+    0 0 0 1px rgb(16 10 3 / 0.9),
+    1px 1px 2px rgb(0 0 0 / 0.7);
+  transition: filter 0.15s;
+}
+
+.rc-dot::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+}
+
+.rc-dot:hover {
+  filter: brightness(1.3) drop-shadow(0 0 3px rgb(255 206 130 / 0.7));
+}
+
+.rc-dot.is-current {
+  background: radial-gradient(circle at 36% 32%, #ffc2ca 0 12%, #d0405a 40%, #6a1022 92%);
+  box-shadow:
+    0 0 0 1px rgb(16 10 3 / 0.9),
+    0 0 0 2px rgb(236 200 132 / 0.6),
+    0 0 6px 1px rgb(230 70 90 / 0.5);
+}
+
 /* The playhead and the plaque */
 
 .rc-playhead {
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   transform-origin: 0 0;
   will-change: transform;
@@ -218,13 +295,13 @@
 
 .rc-playhead svg {
   position: absolute;
-  left: -24px;
-  top: -24px;
+  left: -16px;
+  top: -16px;
   overflow: visible;
 }
 
 .rc-plate {
-  z-index: 3;
+  z-index: 2;
   width: 0;
   height: 0;
   pointer-events: auto;
@@ -354,6 +431,42 @@
   transition: opacity 0.3s;
 }
 
+/* The count knob resumes the story while the visitor explores: its rim glows, and it lifts to the hand. */
+
+.rc-count {
+  transition: filter 0.2s;
+}
+
+.rc-count.is-away {
+  cursor: pointer;
+}
+
+.rc-count.is-away:hover {
+  filter: brightness(calc(var(--shade, 1) * 1.16));
+}
+
+.rc-count.is-away:active {
+  filter: brightness(calc(var(--shade, 1) * 0.95));
+}
+
+.rc-knob-glow {
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.rc-count.is-away .rc-knob-glow {
+  opacity: 0.85;
+}
+
+.rc-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .rc-count-num {
   font: 400 25px/1 var(--display);
   letter-spacing: 0.04em;
@@ -363,10 +476,4 @@
   font: 600 8.5px/1 var(--reading);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-}
-
-/* The Resume plaque stands clear of the plaque at the band's crest. */
-
-.wu .wu-resume {
-  bottom: 152px;
 }
