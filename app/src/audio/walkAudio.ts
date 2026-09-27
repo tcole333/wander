@@ -68,6 +68,11 @@ export class WalkScore {
   readonly #bed: Bed | null;
   #beat: number;
   #day: number;
+  /**
+   * Whether the walk stands on its beat, where the beat's cues play: a beat's flight leaves it,
+   * and landing, not breaking out of the flight, arrives.
+   */
+  #onBeat: boolean;
   /** The beat whose cues play, once landed on, and the cues. */
   #cueBeat: number | null = null;
   #cues: CueHandle[] = [];
@@ -84,6 +89,7 @@ export class WalkScore {
     this.#beat = from.beat;
     this.#day = from.day;
     this.#bedDay = from.day;
+    this.#onBeat = landed(from);
     this.#bed = BEDS[from.story.id]?.(engine, from.day, at) ?? null;
   }
 
@@ -97,13 +103,16 @@ export class WalkScore {
       }
     }
 
-    // The beat left: its cues fade. Landed on one: its cues start.
+    if (state.flight !== null) this.#onBeat = false;
+    else if (landed(state)) this.#onBeat = true;
+
+    // The beat left: its cues fade. Standing on one: its cues start.
     if (this.#cueBeat !== null && this.#cueBeat !== state.beat) {
       for (const cue of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
       this.#cues = [];
       this.#cueBeat = null;
     }
-    if (this.#cueBeat === null && state.flight === null) {
+    if (this.#cueBeat === null && this.#onBeat) {
       this.#cueBeat = state.beat;
       const names = state.story.beats[state.beat]?.audioCues ?? [];
       this.#cues = names.filter(isCueName).map((name) => startCue(engine, name, at));
@@ -145,6 +154,11 @@ export class WalkScore {
     for (const cue of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
     this.#whir?.stop(at);
   }
+}
+
+/** Whether the walk has landed on its beat: no flight under way, nor broken out. */
+function landed(state: WalkState): boolean {
+  return state.flight === null && !state.flying && state.mode !== 'breakout';
 }
 
 /** The walk's sound in the page, and its mute switch. */
