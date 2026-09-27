@@ -3,9 +3,10 @@
 // center first, decodes them in the workers, uploads them into the surface pools within the frame's
 // byte budget, and packs the drawn instances with their sources and seam flags. One request queue,
 // rebuilt every frame, so requests nobody wants any more simply drop; no request classes or byte
-// cache. fetchData aborts a stalled request and retries a failed one; a tile that still fails draws
-// from its ancestors for `degradeFor`, then is wanted again; one the data host lacks (a 404), or
-// whose bytes do not decode, never is.
+// cache. fetchData aborts a stalled request and retries a failed one, but a started request whose
+// tile nobody wants any more gives up instead of retrying. A tile that still fails draws from its
+// ancestors for `degradeFor`, then is wanted again; one the data host lacks (a 404), or whose
+// bytes do not decode, never is.
 import {
   Frustum,
   Matrix4,
@@ -349,7 +350,7 @@ export const createSurfaceStreamer = (async (
       if (inFlight.size >= IN_FLIGHT || pending() >= PIPELINE || room <= 0) break;
       room -= 1;
       inFlight.add(key);
-      fetchData(layer.url(tile)).then(
+      fetchData(layer.url(tile), () => !disposed && wanted.has(key)).then(
         (buf) => {
           inFlight.delete(key);
           if (disposed) return;
@@ -362,7 +363,7 @@ export const createSurfaceStreamer = (async (
         },
         (error: unknown) => {
           inFlight.delete(key);
-          fail(key, error, error instanceof MissingError);
+          if (wanted.has(key)) fail(key, error, error instanceof MissingError);
         },
       );
     }
