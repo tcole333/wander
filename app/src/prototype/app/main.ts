@@ -2,8 +2,9 @@
 // in the museum scene's gimbal, with a camera that flies from the whole instrument down to a few
 // tens of km. The gimbal turns the view center toward the lamp and the camera, as the spike's did.
 //
-// Query: ?data=region|global (global when its server answers), ?view=<preset>, ?ui=0 (no panel or
-// HUD, for screenshots), and any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
+// Query: ?data=region|global|<origin> (a local bake's server by name, or any data server's origin;
+// global when its server answers), ?view=<preset>, ?ui=0 (no panel or HUD, for screenshots), and
+// any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
 // ?story=tambora walks the story instead of the presets: the director flies between its beats
@@ -41,8 +42,11 @@ import { addParams, applyQuery, GUI, tuckAway } from './panel';
 import { ViewControl } from './viewControl';
 import { drawnView, reliefForWidth, type ViewState } from './viewState';
 
-const DATA_HOSTS = { region: 'http://127.0.0.1:8792', global: 'http://127.0.0.1:8793' };
-type DataName = keyof typeof DATA_HOSTS;
+/** The local bakes' data servers by name (npm run data); ?data= may name any other origin. */
+const DATA_HOSTS: Record<string, string> = {
+  region: 'http://127.0.0.1:8792',
+  global: 'http://127.0.0.1:8793',
+};
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
 const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 };
@@ -105,7 +109,7 @@ const IDLE_MS = 1000;
 const IDLE_FRAMES = 5;
 
 export interface ProtoStats extends StreamerStats {
-  data: DataName;
+  data: string;
   view: ViewState;
   preset: string;
   fps: number;
@@ -148,7 +152,8 @@ async function main(): Promise<void> {
   const showUi = query.get('ui') !== '0';
   const source = await loadStory(query.get('story'));
   const data = await pickData(query.get('data'));
-  const release = (await (await fetch(`${DATA_HOSTS[data]}/release.json`)).json()) as Release;
+  const dataHost = DATA_HOSTS[data] ?? data;
+  const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
 
   const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   renderer.shadowMap.enabled = true;
@@ -589,8 +594,9 @@ function showText(text: string): void {
   box.focus();
 }
 
-async function pickData(asked: string | null): Promise<DataName> {
-  if (asked === 'region' || asked === 'global') return asked;
+/** A bake's name or a data server's origin: the one asked for, else global when it answers. */
+async function pickData(asked: string | null): Promise<string> {
+  if (asked !== null && (asked in DATA_HOSTS || URL.canParse(asked))) return asked;
   try {
     const response = await fetch(`${DATA_HOSTS.global}/release.json`);
     if (response.ok) return 'global';
