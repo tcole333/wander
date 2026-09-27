@@ -190,13 +190,19 @@ export function createWalkAudio(): WalkAudio {
   let last: WalkState | null = null;
   let lastView: ViewState | null = null;
   let unlockedFrom: WalkState | null = null;
+  /** Whether the gesture under way is the one that unlocked sound. */
+  let unlocking = false;
   let suspending: ReturnType<typeof setTimeout> | undefined;
   const listeners = new AbortController();
   const gestures = new AbortController();
   const { signal } = listeners;
 
   // Heard while capturing, so a control that keeps its gesture to itself still unlocks sound; the
-  // walk as it stood before the gesture is kept, so the step a key takes sounds its clunk.
+  // walk as it stood before the gesture is kept, so the step a key takes sounds its clunk. A press
+  // or a key begins a gesture, ahead of the unlock.
+  for (const type of ['pointerdown', 'keydown'] as const) {
+    addEventListener(type, () => (unlocking = false), { capture: true, signal });
+  }
   const unlock = () => {
     // A touch's start is not yet a gesture the browser unlocks sound for; its end is.
     if (navigator.userActivation?.isActive === false) return;
@@ -204,6 +210,7 @@ export function createWalkAudio(): WalkAudio {
     if (engine !== sound) {
       sound.setMuted(muted);
       unlockedFrom = last;
+      unlocking = true;
     }
     engine = sound;
     if (sound.ctx.state === 'running') gestures.abort();
@@ -212,7 +219,7 @@ export function createWalkAudio(): WalkAudio {
     addEventListener(type, unlock, { capture: true, signal: gestures.signal });
   }
 
-  const toggle = () => {
+  const flip = () => {
     muted = !muted;
     engine?.setMuted(muted);
     writeMuted(muted);
@@ -222,7 +229,7 @@ export function createWalkAudio(): WalkAudio {
     (event) => {
       if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
       if (isFormField(event.target) || event.key.toLowerCase() !== 'm') return;
-      toggle();
+      flip();
       event.preventDefault();
     },
     { signal },
@@ -251,7 +258,11 @@ export function createWalkAudio(): WalkAudio {
     get muted() {
       return muted;
     },
-    toggle,
+    // The knob's press that unlocks sound brings it, rather than muting what was never heard.
+    toggle() {
+      if (unlocking) unlocking = false;
+      else flip();
+    },
     update(state, unit, view, dtS) {
       if (engine && engine.ctx.state === 'running') {
         const at = engine.soon();
