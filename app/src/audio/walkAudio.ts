@@ -109,12 +109,14 @@ export class WalkScore {
       this.#cues = names.filter(isCueName).map((name) => startCue(engine, name, at));
     }
 
-    // The marks the playhead passed since the last frame, spread over that frame's time.
+    // The marks the playhead passed since the last frame, spread over that frame's time, though
+    // never before the clock (a long first frame on a fresh context would reach back past 0).
     const from = this.#day;
     const to = state.day;
     if (to !== from) {
       for (const mark of marksPassed(from, to, unit)) {
-        this.#detents.play(mark.weight, at - dt + (dt * (mark.day - from)) / (to - from));
+        const passed = at - dt + (dt * (mark.day - from)) / (to - from);
+        this.#detents.play(mark.weight, Math.max(engine.ctx.currentTime, passed));
       }
       this.#day = to;
     }
