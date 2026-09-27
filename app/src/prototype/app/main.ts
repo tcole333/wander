@@ -111,8 +111,10 @@ async function main(): Promise<void> {
   const showUi = query.get('ui') !== '0';
   const source = await loadStory(query.get('story'));
   const data = await pickData(query.get('data'));
-  const dataHost = DATA_HOSTS[data] ?? data;
-  const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
+  const releaseUrl = `${DATA_HOSTS[data] ?? data}/release.json`;
+  const response = await fetch(releaseUrl);
+  if (!response.ok) throw new Error(`${releaseUrl}: HTTP ${response.status}`);
+  const release = (await response.json()) as Release;
 
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
