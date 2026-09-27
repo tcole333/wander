@@ -60,7 +60,11 @@ async function litFraction(page: Page): Promise<number> {
   const hide = await page.addStyleTag({
     content: '.wu, .walk-labels { visibility: hidden !important; }',
   });
-  const png = await page.locator('canvas').screenshot();
+  // A page shot clipped to the canvas, not an element shot: an element shot first waits for two
+  // steady frames, and CI's software renderer draws the walk seconds apart.
+  const box = await page.locator('canvas').boundingBox();
+  if (!box) throw new Error('the canvas has no box');
+  const png = await page.screenshot({ clip: box });
   await hide.evaluate((style) => style.parentNode?.removeChild(style));
   return page.evaluate(async (b64) => {
     const image = new Image();
@@ -81,8 +85,12 @@ async function litFraction(page: Page): Promise<number> {
   }, png.toString('base64'));
 }
 
+// Small, so CI's software renderer, which draws the walk seconds apart on its few cores, fills
+// fewer pixels a frame.
+test.use({ viewport: { width: 640, height: 400 } });
+
 test('plays the Tambora walk from the fixture and links its credits', async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -93,7 +101,7 @@ test('plays the Tambora walk from the fixture and links its credits', async ({ p
   await page.goto(`/?data=${DATA_URL.fixture}`);
   // The room is the poster until the first live frame, then fades out of the way.
   await expect(page.locator('#room')).toBeHidden({ timeout: 60_000 });
-  await expect.poll(() => litFraction(page), { timeout: 20_000 }).toBeGreaterThan(0.05);
+  await expect.poll(() => litFraction(page), { timeout: 90_000 }).toBeGreaterThan(0.05);
 
   const title = page.locator('.wu-card .wu-title');
   await expect(title).toHaveText(story.beats[0]?.title ?? '');
