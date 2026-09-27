@@ -104,15 +104,15 @@ class Baked:
 type Originals = Callable[[StoryImage], Original]
 
 
-def run(ctx: Context, originals: Originals | None = None) -> None:
+def run(ctx: Context) -> None:
     if ctx.story is None:
         raise MediaError("name the story: `uv run prebuild media --story <id>`")
     started = time.perf_counter()
     story_md = ctx.repo / "stories" / ctx.story / "story.md"
     images = story_images(story_md.read_text(encoding="utf-8"))
-    if originals is None:
-        offline = committed_originals(excerpts_dir(ctx.repo) / "media")
-        originals = offline if ctx.offline else commons_originals(ctx.cache / "commons")
+    # The committed sources live in this checkout, whichever repo the stage builds.
+    offline = committed_originals(excerpts_dir() / "media")
+    originals = offline if ctx.offline else commons_originals(ctx.cache / "commons")
     entries: list[dict[str, Any]] = []
     seen: set[tuple[str, Crop]] = set()
     for image in images:

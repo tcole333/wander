@@ -60,7 +60,7 @@ def test_the_stage_writes_both_keys_and_locks_them_with_the_credit_and_license(t
     story.parent.mkdir(parents=True)
     story.write_text(STORY, encoding="utf-8")
     ctx = make_context(Profile.FIXTURE, 1, tmp_path, story="test", offline=True)
-    media.run(ctx, media.committed_originals(SOURCES))
+    media.run(ctx)
 
     lock = json.loads((story.parent / "story.lock.json").read_text(encoding="utf-8"))
     [image] = lock["images"]
