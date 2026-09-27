@@ -1053,14 +1053,14 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
   In milestone 1 the dive is the walk's own flight into beat 1 (`createWalk` with `arrive: 'fly'`),
   through its readiness gate, from wherever the visitor left the lobby's view. The walk starts in
-  the click that chose the plaque, and the boot creates and resumes the AudioContext in that
-  click's handler first (`walk/boot.ts`), since the walk's sound, made in the click, hears only the
-  gestures after it. The whir carries the flight; the bed and beat 1's cues come in at the landing.
-  The plaques slide away, the turn stops, the glows go as the story's ember and pulses come up, the
-  time ruler rises from below the page during the flight with its plate on beat 1's date as the
-  card gives it, the lens eases from the column's shift to the card's, and the card, and Meanwhile
-  with the sound knob over it, come in at the landing. The rings do not swing open; the camera
-  passes through them as on any flight.
+  the click that chose the plaque, and the boot creates and resumes the AudioContext in that click's
+  handler first (`walk/boot.ts`), since the walk's sound, made in the click, hears only the gestures
+  after it, and suspends it again if the story does not start. The whir carries the flight; the bed
+  and beat 1's cues come in at the landing. The plaques slide away, the turn stops, the glows go as
+  the story's ember and pulses come up, the time ruler rises from below the page during the flight
+  with its plate on beat 1's date as the card gives it, the lens eases from the column's shift to
+  the card's, and the card, and Meanwhile with the sound knob over it, come in at the landing. The
+  rings do not swing open; the camera passes through them as on any flight.
 
 - **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years, snapshot
   index and meta) are resident and prepared, N's critical surface and overlay tiles are uploaded, and the
