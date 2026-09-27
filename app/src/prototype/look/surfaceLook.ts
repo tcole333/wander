@@ -10,6 +10,7 @@ import {
   type SurfaceVertexChunk,
 } from '../../globe/surfaceVertex.glsl';
 import type { CreateSurfaceLook, Params } from '../contract';
+import { ASH_FRAGMENT_APPLY, ASH_FRAGMENT_PARS, createAshUniforms, registerAsh } from './ashHook';
 import {
   LOOK_FRAGMENT_COLOR,
   LOOK_FRAGMENT_METALNESS,
@@ -125,10 +126,13 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   for (const uniform of Object.values(SCALAR_UNIFORMS)) look[uniform] = { value: 0 };
   const camLocal = new Vector3();
   look.lookCamLocal = { value: camLocal };
-  const uniforms: Uniforms = { ...vertex, ...look };
+  // The walk's illustrative ashfall (ashHook.ts), off until its effects set a strength.
+  const ash = createAshUniforms();
+  const uniforms: Uniforms = { ...vertex, ...look, ...ash };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
   material.name = 'wander-surface-look';
+  registerAsh(material, ash);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule needs the camera in the globe frame: the mesh's local frame.
   const toLocal = new Matrix4();
@@ -140,8 +144,8 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = injectVertex(shader.vertexShader, chunk, true);
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
-      ['#include <common>', `#include <common>\n${LOOK_FRAGMENT_PARS}`],
-      ['#include <color_fragment>', LOOK_FRAGMENT_COLOR],
+      ['#include <common>', `#include <common>\n${LOOK_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}`],
+      ['#include <color_fragment>', `${LOOK_FRAGMENT_COLOR}\n${ASH_FRAGMENT_APPLY}`],
       ['#include <roughnessmap_fragment>', LOOK_FRAGMENT_ROUGHNESS],
       ['#include <metalnessmap_fragment>', LOOK_FRAGMENT_METALNESS],
       ['#include <normal_fragment_maps>', LOOK_FRAGMENT_NORMAL],
