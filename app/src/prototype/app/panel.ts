@@ -115,4 +115,44 @@ export function applyQuery(params: Params, query: URLSearchParams): void {
   }
 }
 
+/**
+ * Hides `gui` behind a small engraved gear at the page's top right, for a page whose own UI fills
+ * the screen (a story): the gear shows the panel, open, and hides it again. Styled as .wu-gear by
+ * the walk's stylesheet.
+ */
+export function tuckAway(gui: GUI): HTMLButtonElement {
+  gui.hide();
+  const gear = document.createElement('button');
+  gear.type = 'button';
+  gear.className = 'wu-gear';
+  gear.title = 'Look settings';
+  gear.setAttribute('aria-label', 'Look settings');
+  gear.setAttribute('aria-expanded', 'false');
+  gear.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="${gearPath()}"/></svg>`;
+  gear.addEventListener('click', () => {
+    const open = gear.getAttribute('aria-expanded') !== 'true';
+    gui.show(open);
+    if (open) gui.open();
+    gear.setAttribute('aria-expanded', String(open));
+    gear.blur();
+  });
+  document.body.append(gear);
+  return gear;
+}
+
+/** A gear of eight teeth, 24 units across, with a hole at its hub. */
+function gearPath(): string {
+  const teeth = 8;
+  const at = (r: number, a: number) =>
+    `${(12 + r * Math.sin(a)).toFixed(2)} ${(12 - r * Math.cos(a)).toFixed(2)}`;
+  const rim: string[] = [];
+  for (let k = 0; k < teeth; k += 1) {
+    const a = (k * 2 * Math.PI) / teeth;
+    const [root, flank] = [0.3, 0.17];
+    rim.push(at(8, a - root), at(11.2, a - flank), at(11.2, a + flank), at(8, a + root));
+  }
+  const hole = 'M12 8.6a3.4 3.4 0 1 0 0.01 0Z';
+  return `M${rim.join('L')}Z${hole}`;
+}
+
 export { GUI };
