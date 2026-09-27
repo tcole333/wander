@@ -12,13 +12,21 @@
 // first beat; Left and Right step beats, Space plays or pauses, and Escape resumes after the
 // visitor breaks out to explore. The panel starts closed. window.__walk serves scripts
 // (scripts/walkShots.ts).
-import { Mesh, PerspectiveCamera, WebGLRenderer, type Object3D } from 'three';
+import {
+  Mesh,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  WebGLRenderer,
+  WebGLRenderTarget,
+  type Material,
+  type Object3D,
+} from 'three';
 import type { Release } from '../../data/release';
 import { loadSurfaceLayer, type SurfaceLayer } from '../../data/surfaceLayer';
 import { ClearanceField } from '../../globe/clearance';
 import { summarizeFrames } from '../../perf/frameStats';
 import { faceOf, faceSt, lonLatToDir, tileOf } from '../../surface/cube';
-import type { Params, StreamerStats, SurfaceLook } from '../contract';
+import type { MuseumScene, Params, StreamerStats, SurfaceLook } from '../contract';
 import { createSurfaceStreamer } from '../globe/streamer';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { createMuseumScene } from '../scene/museumScene';
@@ -222,7 +230,10 @@ async function main(): Promise<void> {
         return s.inFlight + s.decoding + s.uploading === 0;
       })
     : null;
-  if (story) applyQuery(story.effects.params, query);
+  if (story) {
+    applyQuery(story.effects.params, query);
+    await precompile(renderer, museum, camera, story.effects.group);
+  }
   if (showUi) {
     buildUi({ museum, look, streamer, cameraParams, control, go, settings, story });
   } else {
@@ -378,6 +389,43 @@ function startStory(
   globeMount.add(effects.group);
   const ui = createWalkUi(document.body, walk, meanwhile);
   return { walk, effects, ui };
+}
+
+/**
+ * Readies every shader the walk draws before it starts, so no flight stalls on one. The scene's
+ * materials compile, hidden ones too (the plume, the veil, every beat's pulses), and the
+ * instrument's brass also as it draws while fading out near the globe (transparent), against a
+ * render target as the composer draws them (no tone mapping, linear output). Then one frame is
+ * drawn with every effect shown, as the GPU finishes some programs only at their first draw; the
+ * effects' first update hides them again.
+ */
+async function precompile(
+  renderer: WebGLRenderer,
+  museum: MuseumScene,
+  camera: PerspectiveCamera,
+  effects: Object3D,
+): Promise<void> {
+  const brass = new Set<Material>();
+  museum.scene.traverse((object) => {
+    if (!(object instanceof Mesh)) return;
+    for (const material of [object.material as Material | Material[]].flat()) {
+      if (material instanceof MeshStandardMaterial && !material.transparent) brass.add(material);
+    }
+  });
+  const target = new WebGLRenderTarget(1, 1);
+  renderer.setRenderTarget(target);
+  const opaque = renderer.compileAsync(museum.scene, camera);
+  for (const material of brass) material.transparent = true;
+  const fading = renderer.compileAsync(museum.scene, camera);
+  for (const material of brass) {
+    material.transparent = false;
+    material.needsUpdate = true;
+  }
+  renderer.setRenderTarget(null);
+  await Promise.all([opaque, fading]);
+  target.dispose();
+  effects.traverse((object) => (object.visible = true));
+  museum.render(camera);
 }
 
 /** window.__walk, for scripts: `ready` is the page's own check that the streamer is idle. */
