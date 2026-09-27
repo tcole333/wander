@@ -163,12 +163,17 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
-  // The streamer is released once made, even when the layer fails to load first.
-  const streaming = createSurfaceStreamer(renderer, release);
-  made.push(() => {
-    streaming.then((streamer) => streamer.dispose()).catch(() => {});
-  });
-  const [streamer, layer] = await Promise.all([streaming, loadSurfaceLayer(release)]);
+  // Both settle before the boot goes on, so a streamer made beside a layer that failed is released
+  // in turn with the rest, before the renderer whose textures it holds.
+  const [streaming, loading] = await Promise.allSettled([
+    createSurfaceStreamer(renderer, release),
+    loadSurfaceLayer(release),
+  ]);
+  if (streaming.status === 'fulfilled') made.push(() => streaming.value.dispose());
+  if (streaming.status === 'rejected') throw streaming.reason;
+  if (loading.status === 'rejected') throw loading.reason;
+  const streamer = streaming.value;
+  const layer = loading.value;
   const look = createSurfaceLook(streamer.pools, release.surface);
   made.push(() => look.dispose());
   const rig = new CameraRig(new ClearanceField(layer));
