@@ -1,11 +1,12 @@
 // The eruption plume: seeded, analytic puffs of ash in three families. The column rises from the
-// summit, widening and leaning downwind, its foot lit by the ember; the umbrella cloud spreads from
-// its top, farthest downwind and streaked along the wind, settling as it goes; glowing ash flows
-// run down the flanks at the climax. Where each puff sits is a function of story time (timeline.ts
-// plumeState); only its slow rise and drift through the column and cloud, and its turning, follow
-// the clock. Heights are exaggerated with the relief, capped to a share of the view so the column
-// reads at every beat. Each puff is a cluster of lit balls on a camera-facing quad, sorted back to
-// front each frame.
+// summit, widening and leaning downwind, its lower half lit by the fire (three columns of flame at
+// the climax, merging high up); the umbrella cloud spreads from its top, farthest downwind and
+// streaked along the wind, settling as it goes; glowing ash flows run down the flanks at the
+// climax. Where each puff sits is a function of story time (timeline.ts plumeState); only its slow
+// rise and drift through the column and cloud, and its turning, follow the clock. Heights are
+// exaggerated with the relief, capped to a share of the view so the column reads at every beat.
+// Each puff is a cluster of lit balls on a camera-facing quad, softened toward a wisp so the puffs
+// blend into billows, sorted back to front each frame.
 import {
   Color,
   DataTexture,
@@ -162,7 +163,8 @@ void main() {
   vec3 n = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
   float light = 0.12 + 0.88 * max(dot(n, uLampView), 0.0);
   vec3 color = mix(uShadow, uLit, light) * vLook.x;
-  color += uEmber * vLook.y * (0.35 + 0.65 * max(dot(n, uDownView), 0.0));
+  // The fire lights the ash from within, most on its underside.
+  color += uEmber * vLook.y * (0.6 + 0.4 * max(dot(n, uDownView), 0.0));
   gl_FragColor = vec4(color, min(a, 1.0));
 }
 `;
@@ -249,9 +251,10 @@ export class Plume {
         uWind: { value: this.#downwind.clone() },
         uLampView: { value: new Vector3(0, 0, 1) },
         uDownView: { value: new Vector3(0, -1, 0) },
-        // Ash grey warmed by the museum lamp, its shadow side near black, and the ember's glow.
-        uLit: { value: new Color('#86776a') },
-        uShadow: { value: new Color('#110e0c') },
+        // Dark ash warmed by the museum lamp, its shadow side a warm near black, and the ember's
+        // glow.
+        uLit: { value: new Color('#6e5e4f') },
+        uShadow: { value: new Color('#1a130d') },
         uEmber: { value: new Color('#e8662c').multiplyScalar(3.5) },
         uOpacity: { value: 1 },
       },
@@ -281,9 +284,9 @@ export class Plume {
     const lampLen = Math.hypot(lampE, lampN) || 1;
 
     const heightKm = this.#effect.heightKm;
-    // Exaggerated with the relief, but never taller than a fifth of the view, so a close view
-    // keeps the umbrella in frame.
-    const scale = Math.max(1, Math.min(kLand, (0.2 * viewKm) / heightKm));
+    // Exaggerated with the relief, but never taller than a seventh of the view, so a close,
+    // tilted view keeps the umbrella in frame.
+    const scale = Math.max(1, Math.min(kLand, (0.14 * viewKm) / heightKm));
     const top = heightKm * state.column * scale;
     const topR = 2 + 0.135 * top;
     const baseKm = (kLand * VENT_M) / 1000;
@@ -314,14 +317,18 @@ export class Plume {
         const f = u ** 0.85;
         z = top * f;
         const r = 2 + 0.025 * top + 0.11 * z;
-        x = 0.1 * top * f * f + puff.a * r * 0.45;
-        y = puff.b * r * 0.45;
+        // At the climax it rises as three columns of flame from the crater, merging high up.
+        const apart = 0.12 * top * state.flows * (1 - smoothstep(0.05, 0.45, f));
+        const stream = Math.floor((3 * puff.spin) / (2 * Math.PI)) * ((2 * Math.PI) / 3) + 0.4;
+        x = 0.1 * top * f * f + puff.a * r * 0.45 + apart * Math.cos(stream);
+        y = puff.b * r * 0.45 + apart * Math.sin(stream);
         size = r * (1.1 + 0.7 * puff.size);
         const side =
           (puff.a * lampE + puff.b * lampN) / lampLen / Math.max(1, Math.hypot(puff.a, puff.b));
         bright *= (0.3 + 0.4 * f) * (0.7 + 0.4 * side);
-        glow = frame.heat * (1 - smoothstep(0, 0.35, f)) ** 2;
-        soft = 0.8 * waning;
+        // The fire runs half way up the column.
+        glow = frame.heat * (1 - smoothstep(0.05, 0.6, f)) ** 1.5;
+        soft = Math.max(0.45, 0.8 * waning);
         alpha =
           (0.95 - 0.4 * waning) *
           Math.min(1, state.activity * 1.6) *
@@ -338,7 +345,7 @@ export class Plume {
         y = (halfWidth * puff.a) / Math.PI;
         const out = Math.max(0, x) / trail;
         z = top * (0.86 - 0.32 * out + 0.05 * puff.b);
-        soft = Math.max(smoothstep(0.1, 0.55, out), waning);
+        soft = Math.max(0.4, smoothstep(0.1, 0.55, out), waning);
         size = (0.55 * head + 0.1 * Math.max(0, x)) * (0.75 + 0.5 * puff.size) * (1 - 0.3 * soft);
         stretch = 1 + 2.4 * soft;
         turn = 0.3 * (puff.spin / Math.PI - 1) * soft + puff.spin * (1 - soft);
