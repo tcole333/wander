@@ -22,6 +22,7 @@ import {
   type Material,
   type Object3D,
 } from 'three';
+import { unlockSound } from '../audio/engine';
 import { createWalkAudio, type WalkAudio } from '../audio/walkAudio';
 import type { MuseumScene, Params, StreamerStats, SurfaceLook, SurfaceStreamer } from '../contract';
 import type { Release } from '../data/release';
@@ -310,7 +311,17 @@ async function assemble(
           museum,
           control,
           ready,
-          enter: () => begin('fly'),
+          // The press that chose the plaque is the visitor's first gesture: sound unlocks in its
+          // handler, since the walk's sound, made in it, hears only the gestures after it. Audio
+          // that fails leaves silence, never the story unstarted (streaming.md 5.9).
+          enter: () => {
+            try {
+              unlockSound();
+            } catch (error) {
+              console.warn('Sound did not start:', error);
+            }
+            return begin('fly');
+          },
           fail: onFail,
         })
       : null;
