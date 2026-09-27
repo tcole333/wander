@@ -2,9 +2,9 @@
 // effects are built separately and joined by prototype.html?story=tambora. Story time is a day
 // number (dates.ts); the story itself comes from stories/tambora/story.md (story.ts).
 import type { Object3D, PerspectiveCamera } from 'three';
-import type { ViewControl } from '../app/viewControl';
-import type { ViewState } from '../app/viewState';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';
+import type { ViewControl } from '../view/viewControl';
+import type { ViewState } from '../view/viewState';
 import type { LonLat, Story } from './story';
 
 /** Playing advances by itself after each landing; breakout means the visitor is exploring. */

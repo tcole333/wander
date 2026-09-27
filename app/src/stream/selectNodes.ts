@@ -6,8 +6,8 @@
 // inherit its corner bound: a diagonal node is at most two levels coarser (dN <= 2).
 // Everything here is in the globe frame: three.js axes, Earth radius 1.
 import { Frustum, Sphere, Vector3 } from 'three';
-import { ancestorAt } from '../../globe/seamFlags';
-import { EDGES, neighbor, stToDir, toThree, type Tile } from '../../surface/cube';
+import { ancestorAt } from '../globe/seamFlags';
+import { EDGES, neighbor, stToDir, toThree, type Tile } from '../surface/cube';
 
 /** The relief exaggeration the bounds allow for, land and sea. */
 export const K_MAX = 16;

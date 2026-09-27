@@ -4,8 +4,8 @@
 // drives the camera by setting the ViewControl's view every frame of a flight, and while a beat is
 // read it keeps the camera moving: a slow turn on a 'drift: slow' beat, a slow push in on the rest.
 // A beat that spreads an effect lands at its window's start and plays the spread out to its date.
-import { isFormField, type ViewControl } from '../app/viewControl';
-import { mixViews, wrap180, type ViewState } from '../app/viewState';
+import { isFormField, type ViewControl } from '../view/viewControl';
+import { mixViews, wrap180, type ViewState } from '../view/viewState';
 import type { Walk, WalkMode, WalkOptions, WalkState } from './contract';
 import { flightEase, flightPath, flightSeconds, MAX_LEAD, type FlightPath } from './flight';
 import type { LonLat, Story, StoryBeat } from './story';

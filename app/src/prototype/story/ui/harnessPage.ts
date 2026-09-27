@@ -5,11 +5,11 @@
 // Keys: Space plays or pauses, the arrows step, B breaks out. Query: ?beat=<n> starts at beat n
 // (1-8). window.__walkUi serves scripts: jump(beat) lands at once, walk is the stub director.
 import storyText from '../../../../../stories/tambora/story.md?raw';
-import { meanwhileFromJson } from '../meanwhile';
-import tambora from '../meanwhile.tambora.json';
-import { parseStory } from '../story';
+import { meanwhileFromJson } from '../../../story/meanwhile';
+import tambora from '../../../story/meanwhile.tambora.json';
+import { parseStory } from '../../../story/story';
+import { createWalkUi } from '../../../story/ui/walkUi';
 import { HarnessWalk } from './harnessWalk';
-import { createWalkUi } from './walkUi';
 
 declare global {
   interface Window {

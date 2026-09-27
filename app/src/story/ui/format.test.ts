@@ -15,7 +15,7 @@ import {
 } from './format';
 
 const story = parseStory(
-  readFileSync(new URL('../../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
 
 describe('the walk UI', () => {

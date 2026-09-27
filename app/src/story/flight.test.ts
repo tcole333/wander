@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { arcKm, type ViewState } from '../app/viewState';
+import { arcKm, type ViewState } from '../view/viewState';
 import { flightEase, flightPath, flightSeconds, MAX_LEAD } from './flight';
 
 const view = (lon: number, lat: number, viewKm: number, tilt = 0): ViewState => ({

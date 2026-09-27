@@ -15,7 +15,7 @@ import {
 } from './rulerScale';
 
 const story = parseStory(
-  readFileSync(new URL('../../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
 const arc = arcFor(1440);
 

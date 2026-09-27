@@ -2,8 +2,8 @@
 // touch at an edge or only at a corner differ in source by at most one level (streaming.md 5.6
 // rule 1: demote the finer source). A level is usable when its tile is resident and, above L0, so
 // is that tile's parent, which a seam may read as the up tile.
-import { ancestorAt, DrawnGroups, LATTICE, type DrawnNode } from '../../globe/seamFlags';
-import type { Tile } from '../../surface/cube';
+import { ancestorAt, DrawnGroups, LATTICE, type DrawnNode } from '../globe/seamFlags';
+import type { Tile } from '../surface/cube';
 
 export function assignSources(
   tiles: readonly Tile[],

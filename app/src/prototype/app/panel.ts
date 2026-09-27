@@ -1,7 +1,7 @@
 // The prototype's lil-gui panel: a folder per module built from its params (numbers as sliders,
 // booleans as checkboxes, '#rrggbb' strings as colors), and query overrides for any param.
 import GUI from 'three/addons/libs/lil-gui.module.min.js';
-import type { Params } from '../contract';
+import type { Params } from '../../contract';
 
 /** [min, max, step] per param name; others get a range from their default. */
 const RANGES: Record<string, [number, number, number?]> = {

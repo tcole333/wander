@@ -29,7 +29,7 @@ describe('story dates', () => {
 
 describe('the Tambora story', () => {
   const markdown = readFileSync(
-    new URL('../../../../stories/tambora/story.md', import.meta.url),
+    new URL('../../../stories/tambora/story.md', import.meta.url),
     'utf8',
   );
   const story = parseStory(markdown);

@@ -3,8 +3,8 @@
 // onto the destination. The view center follows the great circle: u is the distance along it and
 // w the view's width, both in km, as the path needs them in one unit. Tilt and heading ease
 // alongside. The caller eases time into the path's parameter.
-import { EARTH_RADIUS_KM } from '../../globe/viewCamera';
-import { arcKm, mixViews, type ViewState } from '../app/viewState';
+import { EARTH_RADIUS_KM } from '../globe/viewCamera';
+import { arcKm, mixViews, type ViewState } from '../view/viewState';
 
 /** How strongly the path trades zooming out for panning. */
 export const RHO = 1.42;

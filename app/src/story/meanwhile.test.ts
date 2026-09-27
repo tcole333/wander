@@ -24,7 +24,7 @@ describe('Meanwhile entries', () => {
 
   it('cover every beat of the Tambora story', () => {
     const story = parseStory(
-      readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
+      readFileSync(new URL('../../../stories/tambora/story.md', import.meta.url), 'utf8'),
     );
     const byBeat = meanwhileFromJson(tambora);
     expect(Object.keys(byBeat)).toEqual(story.beats.map((beat) => beat.id));

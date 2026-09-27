@@ -2,8 +2,8 @@
 // 5.7) in the globe frame, carried into the world through globeMount; far out it blends into the
 // spike's world framing, which shows the whole instrument off-center (spike main.js composition).
 import { MathUtils, Vector3, type Object3D, type PerspectiveCamera } from 'three';
-import type { ClearanceField } from '../../globe/clearance';
-import { EARTH_RADIUS_KM, viewPose, type CameraPose } from '../../globe/viewCamera';
+import type { ClearanceField } from '../globe/clearance';
+import { EARTH_RADIUS_KM, viewPose, type CameraPose } from '../globe/viewCamera';
 import type { ViewState } from './viewState';
 
 /** The spike's world camera: its distance from the globe's center at 1440x900, and composition. */
