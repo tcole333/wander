@@ -20,7 +20,7 @@ import { dataPlate, Room, storyPlate } from './page/room';
 import meanwhile from './story/meanwhile.tambora.json';
 import { meanwhileFromJson } from './story/meanwhile';
 import { parseStory, type Story } from './story/story';
-import { bootWalk, DrawError, type WalkPage } from './walk/boot';
+import { bootWalk, DrawError } from './walk/boot';
 
 async function main(): Promise<void> {
   const roomElement = document.getElementById('room');
@@ -28,30 +28,40 @@ async function main(): Promise<void> {
   const room = new Room(roomElement);
   const story = parseStory(storyText);
 
-  let walk: WalkPage;
-  try {
-    const release = await readRelease();
-    walk = await bootWalk(document.body, release, {
-      story: { story, meanwhile: meanwhileFromJson(meanwhile) },
-    });
-  } catch (error) {
-    console.error(error);
-    room.fail(failurePlate(error, story));
-    return;
-  }
-
-  walk.canvas.addEventListener(
+  // Watched from before the boot, whose warm-up can lose the context too. The event does not
+  // bubble, but it passes through the window on its way to the canvas.
+  let lost = false;
+  let dispose = () => {};
+  addEventListener(
     'webglcontextlost',
     () => {
+      lost = true;
       if (afterContextLoss(() => sessionStorage, Date.now()) === 'reload') {
         location.reload();
         return;
       }
-      walk.dispose();
+      dispose();
       room.fail(storyPlate(story, 'lost-twice'));
     },
-    { once: true },
+    { capture: true, once: true },
   );
+
+  try {
+    const release = await readRelease();
+    const walk = await bootWalk(document.body, release, {
+      story: { story, meanwhile: meanwhileFromJson(meanwhile) },
+    });
+    dispose = () => walk.dispose();
+  } catch (error) {
+    console.error(error);
+    // A loss mid-boot fails it too; the loss has its own answer.
+    if (!lost) room.fail(failurePlate(error, story));
+    return;
+  }
+  if (lost) {
+    dispose();
+    return;
+  }
   // The frame loop draws before this callback's frame ends, so the next one follows a live frame.
   requestAnimationFrame(() => requestAnimationFrame(() => room.open()));
 }
