@@ -2,15 +2,16 @@
 // with presets to fly between, a HUD, a lil-gui panel over every part's params, and hooks for
 // scripts.
 //
-// Query: ?data=region|global|<origin> (a local bake's server by name, or any data server's origin;
-// global when its server answers), ?view=<preset>, ?ui=0 (no panel or HUD, for screenshots), and
-// any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
+// Query: ?data=fixture|region|global|<origin> (a local bake's server by name, or any data server's
+// origin; global when its server answers), ?view=<preset>, ?ui=0 (no panel or HUD, for
+// screenshots), and any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1).
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
 // ?story=tambora walks the story instead of the presets, as the boot plays it. The panel hides
 // behind a small gear at the top right. window.__walk serves scripts (scripts/walkShots.ts).
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
+import { DATA_SERVERS } from '../../page/dataOrigin';
 import type { WalkState } from '../../story/contract';
 import type { DirectedWalk, FlightRecord } from '../../story/director';
 import { meanwhileFromJson } from '../../story/meanwhile';
@@ -25,12 +26,6 @@ import {
   type WalkStats,
 } from '../../walk/boot';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
-
-/** The local bakes' data servers by name (npm run data); ?data= may name any other origin. */
-const DATA_HOSTS: Record<string, string> = {
-  region: 'http://127.0.0.1:8792',
-  global: 'http://127.0.0.1:8793',
-};
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
 
@@ -111,7 +106,7 @@ async function main(): Promise<void> {
   const showUi = query.get('ui') !== '0';
   const source = await loadStory(query.get('story'));
   const data = await pickData(query.get('data'));
-  const releaseUrl = `${DATA_HOSTS[data] ?? data}/release.json`;
+  const releaseUrl = `${DATA_SERVERS[data] ?? data}/release.json`;
   const response = await fetch(releaseUrl);
   if (!response.ok) throw new Error(`${releaseUrl}: HTTP ${response.status}`);
   const release = (await response.json()) as Release;
@@ -322,13 +317,13 @@ function showText(text: string): void {
  */
 async function pickData(asked: string | null): Promise<string> {
   if (asked !== null) {
-    if (Object.hasOwn(DATA_HOSTS, asked)) return asked;
+    if (Object.hasOwn(DATA_SERVERS, asked)) return asked;
     const url = URL.canParse(asked) ? new URL(asked) : null;
     if (url?.protocol === 'http:' || url?.protocol === 'https:') return url.origin;
     throw new Error(`no data server '${asked}'`);
   }
   try {
-    const response = await fetch(`${DATA_HOSTS.global}/release.json`);
+    const response = await fetch(`${DATA_SERVERS.global}/release.json`);
     if (response.ok) return 'global';
   } catch {
     // The global bake is not being served; the region bake is.
