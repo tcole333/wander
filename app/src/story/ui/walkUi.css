@@ -966,8 +966,7 @@
 }
 
 /* A numeral under a tick cut down from the bezel. */
-.wu-legend-tick,
-.wu-legend-unit {
+.wu-legend-tick {
   position: absolute;
   top: 5px;
   font: 400 10px/1 var(--reading);
@@ -975,9 +974,6 @@
   color: #cbb488;
   text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.8);
   white-space: nowrap;
-}
-
-.wu-legend-tick {
   translate: -50% 0;
 }
 
@@ -992,8 +988,11 @@
   box-shadow: 1px 0 0 rgb(0 0 0 / 0.6);
 }
 
+/* The unit follows the warm end's numeral, as "+4 °C", outside the numeral's centering. */
 .wu-legend-unit {
-  left: calc(100% + 12px);
+  position: absolute;
+  left: 100%;
+  padding-left: 0.3em;
 }
 
 .wu-legend-note {
