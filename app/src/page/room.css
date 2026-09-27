@@ -1,0 +1,263 @@
+/* The room (room.ts): the museum's dark room as the canvas draws it, the scene's backdrop after
+   tone mapping (scene/museumScene.ts), near black with the lamp's warm pool falling off above the
+   center, under the canvas's lens at full strength and a faint grain. The Wander mark hangs in the
+   pool, cut in gilt as the walk's mark is (walkUi.css). It is the page's poster until the first
+   live frame, and the ground the failure plates stand on. No image files: gradients and the
+   grain's SVG noise filter only. The credits page stands in the same room. */
+
+:root {
+  /* The backdrop's #2a2016, #17110b and #050403 as ACES at the scene's exposure gives them back.
+     The canvas stretches the backdrop's circle over the view, so here it is an ellipse. */
+  --room: radial-gradient(ellipse 68% 109% at 54% 40%, #160d06, #050301 35%, #000);
+  /* The canvas's vignette at its full strength (scene/lens.ts): 0.72 by smoothstep(0.28, 1.05) of
+     the distance from the view's center in view heights. */
+  --room-lens: radial-gradient(
+    circle 105vh at 50% 50%,
+    transparent 26.7%,
+    rgb(0 0 0 / 0.047) 38.1%,
+    rgb(0 0 0 / 0.143) 47.6%,
+    rgb(0 0 0 / 0.27) 57.1%,
+    rgb(0 0 0 / 0.408) 66.7%,
+    rgb(0 0 0 / 0.541) 76.2%,
+    rgb(0 0 0 / 0.647) 85.7%,
+    rgb(0 0 0 / 0.72) 100%
+  );
+}
+
+.room-page {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+.room {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 46px;
+  box-sizing: border-box;
+  padding: 24px 16px 6vh;
+  background: var(--room-lens), var(--room);
+  font-family: var(--reading);
+  color: var(--ivory);
+  -webkit-font-smoothing: antialiased;
+  transition:
+    opacity 0.9s ease,
+    visibility 0s;
+}
+
+/* Open: the live canvas shows through as the room fades, and the room stops taking presses. */
+.room.is-open {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.9s ease,
+    visibility 0s 0.9s;
+}
+
+.room > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The grain, lifted a little off the black as the canvas's grain lifts its darks. */
+.room::before,
+.room::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.room::before {
+  background: var(--grain);
+  mix-blend-mode: screen;
+  opacity: 0.05;
+}
+
+/* The lamp comes up. */
+.room::after {
+  background: #000;
+  animation: room-lamp 1.6s ease-out both;
+}
+
+@keyframes room-lamp {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The mark, larger than the walk's and hung in the lamp's pool. */
+
+.room-mark {
+  width: 440px;
+  max-width: 100%;
+  text-align: center;
+  filter: drop-shadow(1px 2px 1px rgb(0 0 0 / 0.85)) drop-shadow(2px 5px 12px rgb(0 0 0 / 0.6));
+  animation: room-rise 1.3s ease-out 0.3s both;
+}
+
+@keyframes room-rise {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+.room-mark .wu-mark-word {
+  font-size: 62px;
+}
+
+.room-mark .wu-mark-rule {
+  gap: 11px;
+  margin: 12px 0 11px;
+  font-size: 14px;
+}
+
+.room-mark .wu-mark-sub {
+  font-size: 12px;
+}
+
+/* The plates: fade up under the mark. */
+
+.plate {
+  position: relative;
+  box-sizing: border-box;
+  animation: room-rise 0.6s ease-out both;
+}
+
+/* Cast brass: gilt heading, ivory text and a riveted Reload plaque. */
+
+.plate-brass {
+  width: 440px;
+  max-width: 100%;
+  padding: 30px 38px 32px;
+  text-align: center;
+}
+
+.plate-head {
+  margin: 0;
+  font: 400 22px/1.25 var(--display);
+  background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1.5px 0.5px rgb(0 0 0 / 0.9));
+}
+
+.plate-text {
+  margin: 14px 0 0;
+  font: italic 400 16px/1.5 var(--reading);
+  color: rgb(232 220 197 / 0.84);
+  text-wrap: balance;
+}
+
+/* The Reload plaque, cast as the walk's Resume plaque is. */
+.plate-button {
+  margin-top: 24px;
+  padding: 11px 38px 10px;
+  cursor: pointer;
+  font: 400 12px/1 var(--display);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #3b2910;
+  text-shadow:
+    0.5px 1px 0 rgb(255 238 190 / 0.6),
+    -0.5px -0.5px 0 rgb(40 24 8 / 0.35);
+  border: 0;
+  border-radius: 2px;
+  background:
+    var(--rivet) left 10px center / 6px 6px no-repeat,
+    var(--rivet) right 10px center / 6px 6px no-repeat,
+    radial-gradient(120% 160% at 18% 0%, rgb(255 240 200 / 0.5), transparent 60%),
+    var(--brushed),
+    linear-gradient(#e7ca8a, #c39b58 42%, #9a7536 78%, #6f5027);
+  outline: 1px solid rgb(90 62 26 / 0.5);
+  outline-offset: -5px;
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near),
+    5px 9px 16px rgb(0 0 0 / 0.5);
+  transition:
+    filter 0.3s,
+    box-shadow 0.3s;
+}
+
+.plate-button:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 246 214 / 0.9),
+    inset -1px -1px 0 rgb(50 30 8 / 0.8),
+    0 0 0 1px #20150a,
+    var(--cast-near),
+    5px 9px 16px rgb(0 0 0 / 0.5),
+    0 0 22px 4px rgb(255 190 110 / 0.4);
+}
+
+.plate-button:focus-visible {
+  outline: 1px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+
+/* The story's card, standing in the room instead of beside the globe. */
+
+.plate-card.wu-card {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 480px;
+  max-width: 100%;
+  max-height: none;
+}
+
+.plate-card .wu-card-head {
+  padding-top: 24px;
+}
+
+.plate-blurb {
+  margin: 0;
+  padding: 0 28px;
+  font: 400 17px/1.55 var(--reading);
+  color: var(--ink);
+}
+
+.plate-foot {
+  margin: 18px 28px 0;
+  padding: 12px 0 22px;
+  text-align: center;
+  background:
+    linear-gradient(
+        90deg,
+        transparent,
+        rgb(74 53 24 / 0.5) 20%,
+        rgb(74 53 24 / 0.5) 80%,
+        transparent
+      )
+      top / 100% 1px no-repeat,
+    linear-gradient(
+        90deg,
+        transparent,
+        rgb(255 247 222 / 0.6) 20%,
+        rgb(255 247 222 / 0.6) 80%,
+        transparent
+      )
+      0 1px / 100% 1px no-repeat;
+}
+
+.plate-note {
+  margin: 0;
+  font: italic 400 13.5px/1.5 var(--reading);
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+
+.plate-foot .plate-button {
+  margin-top: 16px;
+}
