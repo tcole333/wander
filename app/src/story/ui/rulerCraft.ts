@@ -37,6 +37,7 @@ import {
   BAND,
   BASE,
   deg,
+  engravedUnit,
   engraveScale,
   engraveTier,
   f,
@@ -166,6 +167,8 @@ export class CraftRuler {
   #span: Span;
   #from: { span: Span; share: number };
   #to: Span;
+  /** The finest unit the band engraves now. */
+  #unit: Precision = 'day';
   #flying = false;
   #beat = -1;
   #laidOut = false;
@@ -359,6 +362,11 @@ export class CraftRuler {
     this.#showPlay(state);
     this.#showAway(state);
     this.#turn(state.day);
+  }
+
+  /** The finest unit the band engraves now: days, months or years. */
+  get unit(): Precision {
+    return this.#unit;
   }
 
   dispose(): void {
@@ -636,6 +644,7 @@ export class CraftRuler {
     this.#laidOut = true;
     const arc = this.#arc;
     const span = this.#span;
+    this.#unit = engravedUnit(arc, span);
     const scale = engraveScale(arc, span, (day) => this.#angle(day));
     for (const kind of TICK_KINDS) {
       for (const path of this.#ticks.get(kind) ?? []) path.setAttribute('d', scale[kind]);
