@@ -1,0 +1,220 @@
+{
+  "images": [
+    {
+      "commons": "File:(Composite of) The World on Mercator's projection. Drawn under the direction of Mr. Pinkerton by L. Hebert. Neele sculpt. 352 (IA dr composite-of-the-world-on-mercators-projection-drawn-under-the-directio-00374032).jpg",
+      "sha1": "c88a5aa67af1f833c8ce86f5cd14ac437c026722",
+      "crop": [
+        0.01,
+        0.02,
+        0.99,
+        0.965
+      ],
+      "files": [
+        {
+          "key": "img/e751bd21f5f6504c-1024.jpg",
+          "w": 1024,
+          "h": 721,
+          "bytes": 193315
+        },
+        {
+          "key": "img/e751bd21f5f6504c-256.jpg",
+          "w": 256,
+          "h": 180,
+          "bytes": 13840
+        }
+      ],
+      "credit": "John Pinkerton, L. Hebert, Samuel John Neele",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:(Composite_of)_The_World_on_Mercator%27s_projection._Drawn_under_the_direction_of_Mr._Pinkerton_by_L._Hebert._Neele_sculpt._352_(IA_dr_composite-of-the-world-on-mercators-projection-drawn-under-the-directio-00374032).jpg"
+    },
+    {
+      "commons": "File:East India Isles. Drawn under the direction of Mr. Pinkerton by L. Hebert. Neele sculpt. 352 Strand. London- published April (IA dr east-india-isles-drawn-under-the-direction-of-mr-pinkerton-by-l-hebert-00364021).jpg",
+      "sha1": "b5f82f9d02c8e96651f4d01fd0d9ba1da889228d",
+      "crop": [
+        0.38,
+        0.42,
+        0.86,
+        0.89
+      ],
+      "files": [
+        {
+          "key": "img/95f36e9a47256597-1024.jpg",
+          "w": 1024,
+          "h": 603,
+          "bytes": 186206
+        },
+        {
+          "key": "img/95f36e9a47256597-256.jpg",
+          "w": 256,
+          "h": 151,
+          "bytes": 13341
+        }
+      ],
+      "credit": "John Pinkerton, L. Hebert, Samuel John Neele",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:East_India_Isles._Drawn_under_the_direction_of_Mr._Pinkerton_by_L._Hebert._Neele_sculpt._352_Strand._London-_published_April_(IA_dr_east-india-isles-drawn-under-the-direction-of-mr-pinkerton-by-l-hebert-00364021).jpg"
+    },
+    {
+      "commons": "File:ETH-Bib RAR 5880 Karte der Insel Sumbawa und Tambora 1855.jpg",
+      "sha1": "89111424ccbbe629dc375d90d431c5189c732b72",
+      "crop": [
+        0.395,
+        0.02,
+        0.6,
+        0.48
+      ],
+      "files": [
+        {
+          "key": "img/348f893f47acf3d5-1024.jpg",
+          "w": 1024,
+          "h": 838,
+          "bytes": 283103
+        },
+        {
+          "key": "img/348f893f47acf3d5-256.jpg",
+          "w": 256,
+          "h": 210,
+          "bytes": 13667
+        }
+      ],
+      "credit": "Rudolf Leuzinger / Jakob Melchior Ziegler",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:ETH-Bib_RAR_5880_Karte_der_Insel_Sumbawa_und_Tambora_1855.jpg"
+    },
+    {
+      "commons": "File:Asiatic Archipelago, by J. Arrowsmith. London, pubd. 15 Feby. 1832 by J. Arrowsmith, 35 Essex Street, Strand. (IA dr asiatic-archipelago-by-j-arrowsmith-london-pubd-15-feby-1832-by-j-ar-0036034).jpg",
+      "sha1": "a8877be3a365e17d97e65968380eb010246b70dc",
+      "crop": [
+        0.405,
+        0.63,
+        0.56,
+        0.81
+      ],
+      "files": [
+        {
+          "key": "img/14b19ed1e3530254-1024.jpg",
+          "w": 1024,
+          "h": 872,
+          "bytes": 241064
+        },
+        {
+          "key": "img/14b19ed1e3530254-256.jpg",
+          "w": 256,
+          "h": 218,
+          "bytes": 19391
+        }
+      ],
+      "credit": "John Arrowsmith",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Asiatic_Archipelago,_by_J._Arrowsmith._London,_pubd._15_Feby._1832_by_J._Arrowsmith,_35_Essex_Street,_Strand._(IA_dr_asiatic-archipelago-by-j-arrowsmith-london-pubd-15-feby-1832-by-j-ar-0036034).jpg"
+    },
+    {
+      "commons": "File:Joseph Mallord William Turner - The Decline of the Carthaginian Empire - WGA23169.jpg",
+      "sha1": "055b31adb1fdbcaa56ecf0322f35ec21cdafa15b",
+      "crop": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "files": [
+        {
+          "key": "img/1706506d6a0e0726-1024.jpg",
+          "w": 1024,
+          "h": 727,
+          "bytes": 132222
+        },
+        {
+          "key": "img/1706506d6a0e0726-256.jpg",
+          "w": 256,
+          "h": 182,
+          "bytes": 11815
+        }
+      ],
+      "credit": "J. M. W. Turner",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Joseph_Mallord_William_Turner_-_The_Decline_of_the_Carthaginian_Empire_-_WGA23169.jpg"
+    },
+    {
+      "commons": "File:Ravensburg suppenkueche 1817.jpg",
+      "sha1": "41b59c909ed29425c3a77cc619228ca8ad3ab707",
+      "crop": [
+        0.012,
+        0.035,
+        0.988,
+        0.975
+      ],
+      "files": [
+        {
+          "key": "img/fb5212e57e9b3a9b-1024.jpg",
+          "w": 1024,
+          "h": 679,
+          "bytes": 248550
+        },
+        {
+          "key": "img/fb5212e57e9b3a9b-256.jpg",
+          "w": 256,
+          "h": 170,
+          "bytes": 16849
+        }
+      ],
+      "credit": "J.A.Gradmann",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Ravensburg_suppenkueche_1817.jpg"
+    },
+    {
+      "commons": "File:Recollections of a lifetime - or men and things I have seen - in a series of familiar letters to a friend - historical, biographical, anecdotical, and descriptive (1856) (14740173686).jpg",
+      "sha1": "688583b7c4ac9f95461867b48dd311dce9299924",
+      "crop": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "files": [
+        {
+          "key": "img/010fe3b3020920ee-1024.jpg",
+          "w": 1024,
+          "h": 1623,
+          "bytes": 460861
+        },
+        {
+          "key": "img/010fe3b3020920ee-256.jpg",
+          "w": 256,
+          "h": 406,
+          "bytes": 34790
+        }
+      ],
+      "credit": "Lossing & Barritt, for S. G. Goodrich",
+      "license": "No restrictions",
+      "source": "https://commons.wikimedia.org/wiki/File:Recollections_of_a_lifetime_-_or_men_and_things_I_have_seen_-_in_a_series_of_familiar_letters_to_a_friend_-_historical,_biographical,_anecdotical,_and_descriptive_(1856)_(14740173686).jpg"
+    },
+    {
+      "commons": "File:Carte indiquant la marche du choléra-morbus depuis l'Inde jusqu'en Europe, 1831 - btv1b84409876.jpg",
+      "sha1": "46aeb506e3aa0ed8cba6f807f00fb37ebc5ccc82",
+      "crop": [
+        0.48,
+        0.32,
+        0.93,
+        0.7
+      ],
+      "files": [
+        {
+          "key": "img/fd46bea844ec7827-1024.jpg",
+          "w": 1024,
+          "h": 669,
+          "bytes": 163091
+        },
+        {
+          "key": "img/fd46bea844ec7827-256.jpg",
+          "w": 256,
+          "h": 167,
+          "bytes": 13033
+        }
+      ],
+      "credit": "Bibliothèque nationale de France",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Carte_indiquant_la_marche_du_chol%C3%A9ra-morbus_depuis_l%27Inde_jusqu%27en_Europe,_1831_-_btv1b84409876.jpg"
+    }
+  ]
+}
