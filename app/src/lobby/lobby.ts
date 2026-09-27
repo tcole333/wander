@@ -1,5 +1,5 @@
 // The lobby (PRD, "First visit: the lobby"; streaming.md 5.7): the instrument at world view in the
-// lamp-lit room, the stories' plaques at its left (plaques.ts) and faint glows on the globe
+// lamp-lit room, the story's plaque at its left (plaques.ts) and faint glows on the globe
 // (glows.ts). Once the shaders are compiled and the streamer has settled at world view, or after
 // OPEN_WAIT_S, the opening plays (opening.ts) and the room's poster gives way to it; any press,
 // key or wheel runs the rest of it in SKIP_S. Then the instrument turns slowly eastward, as the
@@ -38,20 +38,21 @@ const ARRIVE_MS = 800;
  * Waiting for the streamer, the opening, the turning lobby, the dive into a story, and gone once
  * the walk has landed.
  */
-export type LobbyPhase = 'waiting' | 'opening' | 'idle' | 'diving' | 'gone';
+type LobbyPhase = 'waiting' | 'opening' | 'idle' | 'diving' | 'gone';
 
 export interface LobbyParts {
   /** Where the lobby's layer goes, and where the walk's UI arrives. */
   host: HTMLElement;
-  stories: Story[];
+  /** The story its plaque stands for: milestone 1 has the one. */
+  story: Story;
   /** Where the ambient glows are. */
   places: LonLat[];
   museum: MuseumScene;
   control: ViewControl;
   /** True once the view has settled and the streamer has been idle for a while. */
   ready: () => boolean;
-  /** Starts the walk on `story`, flying in from the view, inside the press that chose it. */
-  enter: (story: Story) => Walk;
+  /** Starts the story's walk, flying in from the view, inside the press that chose its plaque. */
+  enter: () => Walk;
 }
 
 export interface Lobby {
@@ -59,7 +60,6 @@ export interface Lobby {
   readonly glows: Object3D;
   /** Resolves as the opening starts, when the room's poster should give way to the canvas. */
   readonly opened: Promise<void>;
-  phase(): LobbyPhase;
   /** One frame, before the view steps; `camera` stands where the last frame drew from. */
   update(nowMs: number, dtS: number, camera: PerspectiveCamera): void;
   /**
@@ -86,7 +86,7 @@ export function createLobby(parts: LobbyParts): Lobby {
 
   const glows = new Glows(parts.places);
   museum.globeMount.add(glows.points);
-  const plaques = new Plaques(parts.stories, (story) => choose(story));
+  const plaques = new Plaques(parts.story, () => choose());
   host.append(plaques.element);
   let reach = plaques.reach();
 
@@ -125,13 +125,13 @@ export function createLobby(parts: LobbyParts): Lobby {
   };
   control.go({ ...rest, lon: wrap180(rest.lon + pose().spin) }, true);
 
-  const choose = (story: Story) => {
+  const choose = () => {
     if (phase !== 'opening' && phase !== 'idle') return;
     skip();
     become('diving');
     host.classList.add('lobby-dive', 'lobby-veiled', 'lobby-ruler-down');
     void plaques.leave().then(() => plaques.dispose());
-    const walk = parts.enter(story);
+    const walk = parts.enter();
     // The ruler mounts below the page, then rises.
     requestAnimationFrame(() =>
       requestAnimationFrame(() => host.classList.remove('lobby-ruler-down')),
@@ -154,7 +154,6 @@ export function createLobby(parts: LobbyParts): Lobby {
   return {
     glows: glows.points,
     opened,
-    phase: () => phase,
 
     update(nowMs, dtS, camera) {
       elapsed += dtS;
