@@ -881,17 +881,17 @@
   outline-offset: 3px;
 }
 
-/* The climate legend: a small plate of Meanwhile's dark cast brass over the ruler's right end, its
-   month engraved in gilt over an enamel strip set in a brass bezel, the strip's ends named and its
-   degrees cut under it. It rises into view as a flight lands and fades with the layer
-   (climateLegend.ts). */
+/* The climate legend: a small plate of Meanwhile's dark cast brass in Meanwhile's column, over the
+   ruler's right end, its month engraved in gilt over an enamel strip set in a brass bezel, the
+   strip's ends named and its degrees cut under it. It rises into view as a flight lands and fades
+   with the layer (climateLegend.ts). */
 
 .wu-legend {
   position: absolute;
   box-sizing: border-box;
   right: 26px;
   bottom: calc(var(--ruler-reach) + 16px);
-  width: 300px;
+  width: 330px;
   padding: 11px 16px 10px;
   opacity: 0;
   pointer-events: none;
