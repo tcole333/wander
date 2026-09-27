@@ -15,8 +15,14 @@ export default defineConfig({
   // The pool smoke test's page (e2e/gpu-pool.html) imports three on the dev server. Bundling it
   // at startup keeps a cold server from re-optimizing and reloading that page mid-test.
   optimizeDeps: { include: ['three'] },
-  // The app ships as one entry bundle with no lazy chunks (streaming design, section 2), so
-  // Vite's code-splitting hint does not apply; section 6 budgets the entry at 500 KB compressed.
-  build: { chunkSizeWarningLimit: 1500 },
+  build: {
+    // The app ships as one entry bundle with no lazy chunks (streaming design, section 2), so
+    // Vite's code-splitting hint does not apply; section 6 budgets the entry at 500 KB compressed.
+    chunkSizeWarningLimit: 1500,
+    // The credits page is a second page of plain HTML and CSS, sharing the app's hashed fonts.
+    rolldownOptions: { input: { main: 'index.html', credits: 'credits.html' } },
+    // The bundled packages' licenses, which the credits page links to.
+    license: { fileName: 'licenses.txt' },
+  },
   test: { include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'] },
 });
