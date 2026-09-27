@@ -54,6 +54,12 @@ async function main(): Promise<void> {
     const walk = await bootWalk(document.body, release, {
       story: { story, meanwhile: meanwhileFromJson(meanwhile) },
       lobby: true,
+      // The story that does not start from its plaque brings the card, as a boot that stops does.
+      onFail: (error) => {
+        console.error(error);
+        dispose();
+        room.fail(failurePlate(error, story));
+      },
     });
     dispose = () => walk.dispose();
     opened = walk.lobby?.opened;
