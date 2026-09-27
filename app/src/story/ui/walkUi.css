@@ -394,15 +394,13 @@
   display: none;
 }
 
-.wu-foot {
-  position: relative;
+/* The sources toggle and the credits page, engraved on one line and one baseline. */
+.wu-foot-line {
+  display: flex;
+  align-items: baseline;
 }
 
-/* The credits page, engraved at the right of the sources' line. */
 .wu-card-credits {
-  position: absolute;
-  top: 9px;
-  right: 0;
   font: 400 10px/1 var(--display);
   letter-spacing: 0.26em;
   margin-right: -0.26em;
@@ -417,10 +415,10 @@
 }
 
 .wu-sources-toggle {
+  flex: 1;
   display: flex;
   align-items: baseline;
   gap: 9px;
-  width: 100%;
   padding: 9px 0 1px;
   border: 0;
   background: none;
@@ -707,31 +705,6 @@
 
 .wu-compass.is-here .wu-needle-g {
   opacity: 0;
-}
-
-/* The credits page, engraved in gilt as the mark's line is, at the top beside Meanwhile: always
-   in reach, whatever the beat. */
-
-.wu-credits {
-  position: absolute;
-  top: 43px;
-  right: 378px;
-  padding: 4px 0;
-  font: 400 10px/1 var(--display);
-  letter-spacing: 0.32em;
-  margin-right: -0.32em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #a98b58;
-  filter: drop-shadow(1px 2px 1px rgb(0 0 0 / 0.85)) drop-shadow(2px 4px 8px rgb(0 0 0 / 0.6));
-  transition:
-    color 0.2s,
-    filter 0.2s;
-}
-
-.wu-credits:hover {
-  color: #e3c486;
-  filter: drop-shadow(1px 2px 1px rgb(0 0 0 / 0.85)) drop-shadow(0 0 6px rgb(255 190 110 / 0.45));
 }
 
 /* The Resume plaque: a small cast brass plaque, riveted at its ends, its lettering cut in. */

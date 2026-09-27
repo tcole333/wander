@@ -40,7 +40,9 @@ export class BeatCard {
     const fold = el('div', 'wu-sources-fold');
     fold.append(this.#sources);
     fold.addEventListener('transitionend', () => this.#checkOverflow());
-    this.#foot.append(this.#sourcesToggle, creditsLink('wu-card-credits'), fold);
+    const line = el('div', 'wu-foot-line');
+    line.append(this.#sourcesToggle, creditsLink('wu-card-credits'));
+    this.#foot.append(line, fold);
 
     const sheet = el('div', 'wu-sheet');
     sheet.append(head, this.#body, this.#foot);
