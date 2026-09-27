@@ -89,6 +89,8 @@ export interface WalkStats extends StreamerStats {
 
 /** A booted walk: the parts the dev shell's panel and hooks reach into, and its checks. */
 export interface WalkPage {
+  /** The renderer's canvas, whose context loss the production entry watches. */
+  canvas: HTMLCanvasElement;
   museum: MuseumScene;
   look: SurfaceLook;
   streamer: SurfaceStreamer;
@@ -105,12 +107,30 @@ export interface WalkPage {
 
 /**
  * Builds the renderer, the museum scene, the streamer, the look, the camera and its controls in
- * `host`, starts the story if given, readies its shaders and runs the frame loop.
+ * `host`, starts the story if given, readies its shaders and runs the frame loop. When any step
+ * throws (no WebGL, data that does not arrive, a shader that will not compile), what the earlier
+ * steps made is released, its DOM and keys too, before the error goes on.
  */
 export async function bootWalk(
   host: HTMLElement,
   release: Release,
-  { story: source = null, view = WORLD, tune = () => {} }: BootOptions = {},
+  options: BootOptions = {},
+): Promise<WalkPage> {
+  const made: (() => void)[] = [];
+  try {
+    return await assemble(host, release, options, made);
+  } catch (error) {
+    for (const undo of made.reverse()) undo();
+    throw error;
+  }
+}
+
+/** The boot's steps, each pushing onto `made` what releases the part it made. */
+async function assemble(
+  host: HTMLElement,
+  release: Release,
+  { story: source = null, view = WORLD, tune = () => {} }: BootOptions,
+  made: (() => void)[],
 ): Promise<WalkPage> {
   const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   renderer.shadowMap.enabled = true;
@@ -118,14 +138,23 @@ export async function bootWalk(
   const labels = document.createElement('div');
   labels.className = 'walk-labels';
   host.prepend(renderer.domElement, labels);
+  made.push(() => {
+    renderer.dispose();
+    renderer.domElement.remove();
+    labels.remove();
+  });
   const museum = createMuseumScene(renderer);
+  made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
-  const [streamer, layer] = await Promise.all([
-    createSurfaceStreamer(renderer, release),
-    loadSurfaceLayer(release),
-  ]);
+  // The streamer is released once made, even when the layer fails to load first.
+  const streaming = createSurfaceStreamer(renderer, release);
+  made.push(() => {
+    streaming.then((streamer) => streamer.dispose()).catch(() => {});
+  });
+  const [streamer, layer] = await Promise.all([streaming, loadSurfaceLayer(release)]);
   const look = createSurfaceLook(streamer.pools, release.surface);
+  made.push(() => look.dispose());
   const rig = new CameraRig(new ClearanceField(layer));
 
   const globe = new Mesh(streamer.geometry, look.material);
@@ -164,7 +193,7 @@ export async function bootWalk(
   };
   limitZoom();
   control.go(control.goal, true);
-  const detach = control.attach(renderer.domElement);
+  made.push(control.attach(renderer.domElement));
 
   // A story's page steps through its beats. The walk flies the camera, and holds a late landing
   // until the streamer has nothing in hand.
@@ -174,6 +203,7 @@ export async function bootWalk(
         return s.inFlight + s.decoding + s.uploading === 0;
       })
     : [null, () => {}];
+  made.push(endStory);
   if (story) {
     museum.globeMount.add(story.effects.group);
     tune(story.effects.params);
@@ -192,6 +222,7 @@ export async function bootWalk(
   };
   frameLens();
   const listeners = new AbortController();
+  made.push(() => listeners.abort());
   addEventListener(
     'resize',
     () => {
@@ -207,6 +238,7 @@ export async function bootWalk(
   let last = performance.now();
   let idleSince = Infinity;
   let idleFrames = 0;
+  made.push(() => renderer.setAnimationLoop(null));
   renderer.setAnimationLoop((now: number) => {
     const dt = Math.min(0.1, (now - last) / 1000);
     deltas.push(now - last);
@@ -258,6 +290,7 @@ export async function bootWalk(
   });
 
   return {
+    canvas: renderer.domElement,
     museum,
     look,
     streamer,
@@ -277,16 +310,7 @@ export async function bootWalk(
     },
     ready: () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS,
     dispose() {
-      renderer.setAnimationLoop(null);
-      listeners.abort();
-      endStory();
-      detach();
-      streamer.dispose();
-      look.dispose();
-      museum.dispose();
-      renderer.dispose();
-      renderer.domElement.remove();
-      labels.remove();
+      for (const undo of made.splice(0).reverse()) undo();
     },
   };
 }
