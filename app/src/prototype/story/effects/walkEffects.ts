@@ -3,7 +3,9 @@
 // shows the right state. The plume, ash and veil belong to the story: any beat that lists them
 // turns them on for every beat, and story time alone shows or hides them, so they never vanish as
 // a flight leaves the beat that lists them. Pulses and plaques come from the beat's effect list,
-// and its layers switch the look's lines and bathymetry. `group` hangs from the museum's globeMount (the globe frame, radius 1).
+// and its layers switch the look's lines and bathymetry. Every mesh is made up front, the story's
+// pulses too, so their shaders compile before the walk starts (main.ts). `group` hangs from the
+// museum's globeMount (the globe frame, radius 1).
 import {
   Group,
   MathUtils,
@@ -82,6 +84,10 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
   const ashOn = spreads(story, 'ash-1815');
   const veilOn = spreads(story, 'veil-1815');
 
+  const allPulses = story.beats.flatMap((beat) =>
+    beat.effects.filter((e): e is PulseEffect => e.kind === 'pulse').map((e) => new PulseDisc(e)),
+  );
+  for (const pulse of allPulses) group.add(pulse.mesh);
   let shown = -1;
   let pulses: PulseDisc[] = [];
   let lamp: SpotLight | null | undefined;
@@ -92,14 +98,8 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
   const place = new Vector3();
 
   const show = (beat: StoryBeat) => {
-    for (const pulse of pulses) {
-      group.remove(pulse.mesh);
-      pulse.dispose();
-    }
-    pulses = beat.effects
-      .filter((e): e is PulseEffect => e.kind === 'pulse')
-      .map((e) => new PulseDisc(e));
-    for (const pulse of pulses) group.add(pulse.mesh);
+    pulses = allPulses.filter((pulse) => beat.effects.includes(pulse.effect));
+    for (const pulse of allPulses) pulse.mesh.visible = false;
     callouts.set(beat.effects.flatMap((e) => (e.kind === 'callout' ? [e] : [])));
     for (const [layer, param, off] of LAYERS) {
       if (!(param in look.params)) continue;
@@ -200,7 +200,7 @@ export const createWalkEffects: CreateWalkEffects = (story, look, labelRoot) => 
       if (ash) ash.lookAshStrength.value = 0;
       for (const [param, value] of defaults) if (value !== undefined) look.params[param] = value;
       plume?.draw.dispose();
-      for (const pulse of pulses) pulse.dispose();
+      for (const pulse of allPulses) pulse.dispose();
       ember.dispose();
       veil.dispose();
       callouts.clear();
