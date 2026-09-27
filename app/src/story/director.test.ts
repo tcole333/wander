@@ -113,7 +113,13 @@ describe('the walk', () => {
     expect(control.current.lon).toBeCloseTo(beat(0).camera.target[0], 6);
   });
 
-  it('tells when the camera flies, to a Meanwhile entry as to a beat', () => {
+  it('tells when the camera flies to a beat', () => {
+    const { walk } = setup();
+    walk.next();
+    expect(walk.state().flying).toBe(true);
+  });
+
+  it('tells when the camera flies to a Meanwhile entry, and when it lands', () => {
     const { walk, run } = setup();
     walk.flyTo([2.35, 48.86], 1500);
     expect(walk.state()).toMatchObject({ flying: true, flight: null });
