@@ -264,7 +264,7 @@ id: yunnan-bengal-1817
 date: "1817-08-28"
 precision: day
 window: "1815-10-01..1817-12-31"
-camera: {target: [95.0, 24.0], viewKm: 5000, tilt: 15, heading: 0, drift: none}
+camera: {target: [97.5, 26.0], viewKm: 5000, tilt: 15, heading: 0, drift: none}
 focal: {qid: Q2646216, at: [89.2167, 23.1667]}
 image:
   commons: "File:Carte indiquant la marche du choléra-morbus depuis l'Inde jusqu'en Europe, 1831 - btv1b84409876.jpg"
