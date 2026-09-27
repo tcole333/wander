@@ -229,8 +229,8 @@
 }
 
 /* The walk's UI arriving from the lobby: the ruler waits below the page and rises during the
-   dive, and the card and Meanwhile come in at the landing. Only the walk's layer: the Credits
-   panel's sheet is a .wu-card too. */
+   dive, and the card, and Meanwhile with the sound knob over it, come in at the landing. Only the
+   walk's layer: the Credits panel's sheet is a .wu-card too. */
 
 .lobby-dive .wu .rc {
   transition: translate 1.6s cubic-bezier(0.22, 0.8, 0.3, 1) 0.35s;
@@ -242,7 +242,8 @@
 }
 
 .lobby-dive .wu > .wu-card,
-.lobby-dive .wu > .wu-meanwhile {
+.lobby-dive .wu > .wu-meanwhile,
+.lobby-dive .wu > .wu-sound {
   transition:
     opacity 0.7s ease,
     translate 0.7s ease,
@@ -250,7 +251,8 @@
 }
 
 .lobby-veiled .wu > .wu-card,
-.lobby-veiled .wu > .wu-meanwhile {
+.lobby-veiled .wu > .wu-meanwhile,
+.lobby-veiled .wu > .wu-sound {
   opacity: 0;
   visibility: hidden;
   transition: none;
@@ -260,6 +262,7 @@
   translate: -18px 0;
 }
 
-.lobby-veiled .wu > .wu-meanwhile {
+.lobby-veiled .wu > .wu-meanwhile,
+.lobby-veiled .wu > .wu-sound {
   translate: 18px 0;
 }
