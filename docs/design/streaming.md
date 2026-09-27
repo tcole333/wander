@@ -1189,8 +1189,8 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
   samples, 3.0 item 9) in `build/stages/fixture/expect/`. It skips `modera` for now: the ModE-RA
-  excerpt and the climate checks join CI once the owner has picked the climate layer's look, and
-  until then a pytest round-trips the climate codec on a synthetic array.
+  excerpt listed above joins the fixture with the rest of #7's excerpts, and until then a pytest
+  covers the climate codec and the stage on synthetic NetCDFs.
   `uv run prebuild --profile fixture media --story _fixture --offline` writes
   `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
 - **Release selection:** the app imports the release through a Vite alias chosen by
