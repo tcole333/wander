@@ -98,6 +98,11 @@ export interface WalkUi {
   update(state: WalkState, view: ViewState, climate?: ClimateShown | null): void;
   /** The finest unit the time ruler engraves now, whose marks the detents sound. */
   rulerUnit(): Precision;
+  /**
+   * How far right of the page's left edge the beat card reaches where it is laid out, in CSS px,
+   * whatever slides it for a moment (the lobby's veil).
+   */
+  cardReach(): number;
   dispose(): void;
 }
 

@@ -249,8 +249,7 @@ async function assemble(
   let shift = 0;
   let drawnShift = NaN;
   const measureLens = () => {
-    const card = story ? host.querySelector('.wu-card') : null;
-    cardShift = card ? LENS_SHIFT * card.getBoundingClientRect().right : 0;
+    cardShift = story ? LENS_SHIFT * story.ui.cardReach() : 0;
   };
 
   // A story's effects hang in the globe frame from the start, so the precompile readies their
