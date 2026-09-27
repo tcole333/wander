@@ -19,13 +19,12 @@ import type { LonLat, Story } from '../story/story';
 import type { ViewControl } from '../view/viewControl';
 import { wrap180 } from '../view/viewState';
 import { Glows } from './glows';
-import { OPENING_S, openingPose, SKIP_S } from './opening';
+import { OPENING_S, openingPose, SKIP_S, TURN_DEG_S } from './opening';
 import { Plaques } from './plaques';
 
 /** The longest the opening waits for the streamer to settle at world view, in seconds. */
 const OPEN_WAIT_S = 4;
-/** The turn: degrees of longitude a second at world view, eased up to over TURN_EASE_S. */
-const TURN_DEG_S = 1;
+/** The turn (TURN_DEG_S) eases up to its pace over this long after input, in seconds. */
 const TURN_EASE_S = 1.5;
 /** How long the lobby waits after the visitor's last input before it turns again, in seconds. */
 const TURN_IDLE_S = 5;
@@ -182,7 +181,11 @@ export function createLobby(parts: LobbyParts): Lobby {
 
       if (phase === 'opening') {
         control.go({ ...rest, lon: wrap180(rest.lon + at.spin) }, true);
-        if (progress >= 1) become('idle');
+        if (progress >= 1) {
+          become('idle');
+          // Untouched, the turn carries on at the pace the spin ended at.
+          if (performance.now() - lastInput >= TURN_IDLE_S * 1000) turn = 1;
+        }
       } else if (phase === 'idle') {
         // Held at once by input; eased back up to speed once the view has been still a while.
         const still = performance.now() - lastInput >= TURN_IDLE_S * 1000 && control.settled;
