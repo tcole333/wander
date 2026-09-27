@@ -59,6 +59,9 @@ describe('fetchData', () => {
   test('retries a failure after a backoff and returns the bytes that finally arrive', async () => {
     const fetch = network(status(503), lost, () => Promise.resolve(body(3, 10)));
     const bytes = fetchData(TILE);
+    // The shortest first backoff, with the least jitter.
+    await vi.advanceTimersByTimeAsync(tunables.retryDelays[0] * 0.5 - 1);
+    expect(fetch).toHaveBeenCalledTimes(1);
     await vi.runAllTimersAsync();
     expect([...new Uint8Array(await bytes)]).toEqual([1, 2, 3]);
     expect(fetch).toHaveBeenCalledTimes(3);
