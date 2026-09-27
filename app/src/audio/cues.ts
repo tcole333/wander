@@ -258,13 +258,17 @@ export function startCue(engine: SoundEngine, name: CueName, at = engine.soon())
   if (cue.fadeIn > 0) out.gain.setTargetAtTime(level, at, cue.fadeIn / 3);
   else out.gain.setValueAtTime(level, at);
   cue.play(engine, out, at, sources);
+  // Changes take effect no earlier than `at`, where the cue's coming in would override them, and a
+  // stop cancels the coming in, so a cue stopped before it sounds stays silent.
   return {
     setLevel(db, when = ctx.currentTime) {
-      out.gain.setTargetAtTime(gainOf(db), when, 0.05);
+      out.gain.setTargetAtTime(gainOf(db), Math.max(when, at), 0.05);
     },
     stop(when = ctx.currentTime, fade = 1.5) {
-      out.gain.setTargetAtTime(0, when, fade / 4);
-      sources.stop(when + fade * 1.5);
+      const t = Math.max(when, at);
+      out.gain.cancelScheduledValues(t);
+      out.gain.setTargetAtTime(0, t, fade / 4);
+      sources.stop(t + fade * 1.5);
     },
   };
 }
