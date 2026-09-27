@@ -68,8 +68,8 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **GPU pools** | Fixed pools allocated at boot and written through three's public `copyTextureToTexture`, one call per mip (recipe in 5.5). No private three fields. | It keeps one instanced draw, hardware mipmapping and exact `surfaceHeight()` on documented API [S three 0.186.1]. |
 | **Quality tiers** | Two tiers, lite and full, fixed before a story starts, plus a render-scale governor (5.8). | No program compiles after the lobby. |
 | **Anti-aliasing** | Canvas `antialias: false`; SMAA in the composer; MSAA only on full, and only if E1 shows headroom. | An antialiased canvas plus three's 4-sample output target would add ~60 MiB at 1440×900 [S three 0.186.1 `WebGLOutput.js`]. |
-| **Context loss, deploys** | In-place restore by re-running the boot GPU init from the byte cache, with a reload as fallback (5.9). Nothing is fetched from Pages after boot. R2 keys are never overwritten or deleted in v1. `release.json` is bundled, with an immutable copy on R2. | With three-managed pools, restore is the boot path again, and it avoids the extra click a reload needs for audio. Old tabs can live for days. |
-| **Fonts and labels** | Source Serif 4, the reading face (latin + italic, woff2), on Pages, preloaded. Libre Baskerville, the display face, and the troika label face (`.woff`, subset to exactly the characters used) load from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One pass reads every label's position and then writes them all, so layout never interleaves. |
+| **Context loss, deploys** | In-place restore by re-running the boot GPU init from the byte cache, with a reload as fallback (5.9); milestone 1 reloads once, then shows the story's card (owner decision 21). Nothing is fetched from Pages after boot. R2 keys are never overwritten or deleted in v1. `release.json` is bundled, with an immutable copy on R2. | With three-managed pools, restore is the boot path again, and it avoids the extra click a reload needs for audio. Old tabs can live for days. |
+| **Fonts and labels** | Source Serif 4, the reading face (latin + italic), and Libre Baskerville, the display face, as woff2 on Pages; the display face is preloaded, since the poster's mark is cut in it. The troika label face (`.woff`, subset to exactly the characters used) loads from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One pass reads every label's position and then writes them all, so layout never interleaves. |
 
 ---
 
@@ -954,7 +954,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   its chain. If that view is not ready when the gesture ends, inertia eases over the last one or two
   levels.
 - **Lobby:**
-  1. The inline poster paints.
+  1. The poster paints (in milestone 1, the CSS room with the mark; owner decision 21).
   2. The live instrument crossfades in once programs are compiled and L0 is resident.
   3. The globe refines from L0 to L1 to L2.
 
@@ -1022,11 +1022,14 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   a log line, failed audio leaves silence, and a label whose troika sync has not resolved within
   `labelSyncTimeout` is logged and skipped.
 - **Unusable renderer:** no WebGL2, or `failIfMajorPerformanceCaveat` failing, sends the visitor to the
-  article pages. `?gl=software` overrides this for CI.
+  article pages. `?gl=software` overrides this for CI. Milestone 1 has no article pages: a browser
+  that gives no WebGL 2 context, or a shader that does not link, gets the story's card in the room
+  (owner decision 21).
 - **Context loss:** call `preventDefault`, then show the instrument backdrop with the story text still
   readable. On `webglcontextrestored`, re-run the boot GPU init (pools, programs, roots and the current
   view) from the byte cache, which keeps audio, story, camera, time and layers. With no restore within
-  `restoreTimeout`, reload to the URL state.
+  `restoreTimeout`, reload to the URL state. Milestone 1, which has no byte cache, reloads once
+  instead, and a second loss within five minutes brings the story's card (owner decision 21).
 - **Tab hidden:** ramp the ui and cue buses to 0 over `hideRamp`, duck the bed, then suspend the
   AudioContext. Pause the story clock and stop decoding and uploading; fetches continue into the bounded
   byte cache.
@@ -1046,7 +1049,7 @@ story above them.
 
 | Budget | Number | Basis |
 |---|---|---|
-| **Before the first live frame** | **~0.99 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 326 KB, 6 tiles at 54.3 KB mean [M `work/surface-bake/region-bake-v2.json`]. The instrument and environment are procedural; there is no transcoder. |
+| **Before the first live frame** | **~0.99 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + poster ≤ 50 KB (inline AVIF; in milestone 1 the CSS room, owner decision 21); one JS entry ≤ 500 KB br (three, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 326 KB, 6 tiles at 54.3 KB mean [M `work/surface-bake/region-bake-v2.json`]. The instrument and environment are procedural; there is no transcoder. |
 | **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.99 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
 | **Lobby settle** (background) | ≤ 3 MB before L2 | L1 1.29 MB, 24 tiles [M `work/surface-bake/region-bake-v2.json`]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
@@ -1056,7 +1059,7 @@ story above them.
 | **Reading pace** | the next beat hides behind reading | a beat takes at least 15 s to read, so the full next beat needs 1.2 Mbps at the median and 3.4 Mbps at the maximum [D] |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **227**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **166**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
-| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread walk and UI ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
+| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year (12 × 18 KB) uploaded per frame; border previews crossfade with no fetch |
 
 ---
@@ -1089,7 +1092,7 @@ defaults to min(8, CPUs), with spawn-context worker processes.
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
-| `npm run poster` | Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
+| `npm run poster` | Deferred past milestone 1, whose poster is the CSS room (owner decision 21). Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
 | `npm run publish-data` | stage records → `release.json`; uploads (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
 
@@ -1653,3 +1656,11 @@ Decided at go-live (issues #6 and #13), 2026-09-27:
 20. **Plain three.js:** the app is three.js with a plain-DOM UI; React, react-three-fiber, drei and
     Zustand are no longer planned. The approved walk is plain three.js, and its bundle is smaller
     without them.
+21. **Milestone 1 goes live early, with plain failures:** the article pages (and with them the
+    no-WebGL redirect and `?gl=software`) wait for milestone 4, and in-place context restore, which
+    needs the byte cache, and the AVIF poster (`npm run poster`) are deferred. Until then a browser
+    that cannot draw the globe (no WebGL 2 context, or a shader that does not link) gets the story's
+    card, its title and blurb, in the room; data that does not arrive gets a brass plate with
+    Reload; any other failed boot gets the card with Reload; and a lost context reloads once, then
+    shows the card if the context is lost again within five minutes. The CSS room with the Wander
+    mark is the poster.
