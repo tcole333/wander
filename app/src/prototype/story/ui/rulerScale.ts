@@ -224,7 +224,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
     for (const year of yearsIn(span)) {
       const text = yearLabel(year.year);
       name(
-        `u${year.start}`,
+        `Y${year.start}`,
         year.start,
         year.end,
         UPPER_ROW - 3,
