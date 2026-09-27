@@ -1,6 +1,7 @@
 // Screenshots of the Tambora walk (prototype.html?story=tambora) on this Mac's GPU: Chromium on
 // Metal at 1440x900. It steps through the story as a visitor would and shoots each beat once the
-// flight has landed, the streamer has been idle for a second and the card's image has loaded (or
+// flight has landed, the streamer has been idle for a second, story time has come to rest (the ash
+// and veil beats play their spread out after landing) and the card's image has loaded (or
 // failed); three flights halfway; the ruler scrubbed to 11 April 1815 on the ash beat; and a
 // break-out, a Meanwhile entry chosen, with the Resume plaque. Writes <out>/*.png and
 // <out>/walk.json (flight timings, fonts and any console errors). Plain Node, run from app/ with
@@ -23,6 +24,8 @@ interface WalkApi {
 interface WalkWindow {
   __walk?: WalkApi;
   __proto?: { ready(): boolean; error?: string };
+  /** Story time at the last poll, to tell when it has come to rest. */
+  __lastDay?: number;
 }
 
 /** The beats' ids, in story order, for the files' names. */
@@ -151,12 +154,26 @@ try {
   await browser.close();
 }
 
-/** Waits for the landing, the streamer's idle second and the card's image, then the fades. */
+/**
+ * Waits for the landing, the streamer's idle second, story time at rest and the card's image,
+ * then the fades.
+ */
 async function settle(page: Page): Promise<void> {
   await page.waitForFunction(() => (window as WalkWindow).__walk?.landed() ?? false, null, {
     timeout: timeoutMs,
     polling: 250,
   });
+  await page.waitForFunction(
+    () => {
+      const w = window as WalkWindow;
+      const day = w.__walk?.state().day;
+      const still = day === w.__lastDay;
+      w.__lastDay = day;
+      return still;
+    },
+    null,
+    { timeout: timeoutMs, polling: 250 },
+  );
   await page.waitForFunction(
     () => {
       const frame = document.querySelector('.wu-figure:not([hidden]) .wu-frame');
