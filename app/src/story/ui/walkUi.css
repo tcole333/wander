@@ -612,8 +612,16 @@
   display: none;
 }
 
-.wu-sound.is-muted .wu-sound-body {
-  filter: brightness(0.68);
+.wu-sound.is-muted {
+  filter: brightness(0.62) saturate(0.8);
+}
+
+.wu-sound.is-muted:hover {
+  filter: brightness(0.75) saturate(0.8) drop-shadow(0 0 6px rgb(255 206 130 / 0.25));
+}
+
+.wu-sound.is-muted:active {
+  filter: brightness(0.58) saturate(0.8);
 }
 
 /* Meanwhile: vellum slips in dark cast brass, each with its engraved compass rose, under the
