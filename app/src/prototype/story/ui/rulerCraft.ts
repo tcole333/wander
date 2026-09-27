@@ -699,6 +699,12 @@ export class CraftRuler {
       let cut = this.#cuts.get(label.key);
       if (cut) {
         this.#cuts.delete(label.key);
+        // A key names one label; should its words or face change anyway, the cut is recut.
+        if (cut.label.text !== label.text || cut.label.cls !== label.cls) {
+          cut.element.textContent = label.text;
+          cut.element.setAttribute('class', label.cls);
+          cut.half = 0;
+        }
         cut.label = label;
       } else {
         const element = svg('text', { class: label.cls, 'text-anchor': 'middle' });

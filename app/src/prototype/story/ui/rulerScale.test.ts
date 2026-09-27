@@ -90,6 +90,19 @@ describe('the crafted ruler', () => {
     }
   });
 
+  it('gives each key one label, so a label kept through a zoom never keeps stale words', () => {
+    const newYear = dayFromIso('1816-01-01');
+    const around = (days: number) => ({ start: newYear - days / 2, end: newYear + days / 2 });
+    const named = new Map<string, string>();
+    for (const span of [...SPANS, around(60), around(300), around(3000)]) {
+      for (const label of engrave(span)) {
+        const face = `${label.text} / ${label.cls}`;
+        expect(named.get(label.key) ?? face, label.key).toBe(face);
+        named.set(label.key, face);
+      }
+    }
+  });
+
   it('moves the span only as far as it must to keep the playhead off the ends', () => {
     const span = { start: 0, end: 100 };
     expect(anchored(span, 50, 0.1)).toBe(span);
