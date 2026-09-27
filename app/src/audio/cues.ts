@@ -99,18 +99,19 @@ export const CUES = {
     play(engine, out, at, sources) {
       const ctx = engine.ctx;
       // Ash sifting down: sparse dry grains, a few larger among them, a different loop in each
-      // ear, drifting in and out.
+      // ear, drifting in and out, soft at the top so it settles rather than sizzles.
       for (const [side, seconds, rate] of [
         [-1, 5.3, 0.0709],
         [1, 6.7, 0.0547],
       ] as const) {
-        const fine = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 3800 * jitter(0.1) });
+        const fine = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 2400 * jitter(0.1) });
         fine.Q.value = 0.7;
         const drift = new GainNode(ctx, { gain: 0.7 });
         lfo(engine, fine.frequency, rate, 600, at, sources);
         lfo(engine, drift.gain, rate * 1.707, 0.3, at, sources);
         grainLoop(engine, seconds, { perSecond: 260, decay: [0.0003, 0.0015] }, at, sources)
           .connect(new BiquadFilterNode(ctx, { type: 'highpass', frequency: 1500 }))
+          .connect(new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 6000 }))
           .connect(fine)
           .connect(drift)
           .connect(new StereoPannerNode(ctx, { pan: side * 0.6 }))

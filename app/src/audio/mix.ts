@@ -27,7 +27,7 @@ export const mix: Mix = {
     'rumble-far': -27,
     'cannon-far': -29,
     eruption: -16,
-    ashfall: -12,
+    ashfall: -17,
     rain: -27,
     'wind-cold': -28,
   },
