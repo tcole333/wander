@@ -1,17 +1,18 @@
-// publish-data's local half (streaming.md 4.2, 4.3): the keys a release names in an output root, and
-// the headers each object is uploaded with. Nothing here reaches the network.
+// publish-data's decisions (streaming.md 4.3): the keys a release names in an output root, and
+// which of them an upload sends given R2's listing. Nothing here reaches the network.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { Release } from '../src/data/release';
-import { objectHeaders } from './objectHeaders';
-import { releaseSections } from './publish';
+import { plan, releaseSections } from './publish';
+import type { R2Bucket } from './r2';
 
 // Bits 0-6: the six L0 nodes and L1 node 6 (face 0, x 0, y 0).
 const SEVEN = 'fwAAAA==';
+const BOUNDS = 'surf/aaaa1111/bounds.bin';
 const FILES: Record<string, number> = {
-  'surf/aaaa1111/bounds.bin': 12,
+  [BOUNDS]: 12,
   ...Object.fromEntries([0, 1, 2, 3, 4, 5].map((f) => [`surf/aaaa1111/0/${f}/0/0.wst`, 100 + f])),
   'surf/aaaa1111/1/0/0/0.wst': 200,
   // An older bake's version, left in the same output root.
@@ -31,9 +32,14 @@ beforeAll(() => {
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
 function release(avail: string): Release {
-  const bounds = 'surf/aaaa1111/bounds.bin';
-  const surface = { ver: 'aaaa1111', maxLevel: 1, qLand: [1, 1], c200: [0, 0], avail, bounds };
-  return { id: '0', built: '', dataHost: '', surface };
+  const surface = { ver: 'aaaa1111', maxLevel: 1, qLand: [1, 1], c200: [0, 0], avail };
+  return { id: '0', built: '', dataHost: '', surface: { ...surface, bounds: BOUNDS } };
+}
+
+/** R2 as a listing of the keys it holds, with their sizes. */
+function holding(held: Record<string, number>): Pick<R2Bucket, 'list'> {
+  const keys = Object.entries(held);
+  return { list: (prefix) => Promise.resolve(new Map(keys.filter(([k]) => k.startsWith(prefix)))) };
 }
 
 describe('releaseSections', () => {
@@ -49,19 +55,16 @@ describe('releaseSections', () => {
   });
 });
 
-describe('objectHeaders', () => {
-  test.each(['.wst', '.wot', '.wev', '.bin'])('%s is an immutable octet stream', (extension) => {
-    expect(objectHeaders(`surf/aaaa1111/x${extension}`)).toEqual({
-      'Cache-Control': 'public, max-age=31536000, immutable',
-      'Content-Type': 'application/octet-stream',
-    });
+describe('plan', () => {
+  test('leaves out the keys R2 already holds at their size', async () => {
+    const sections = releaseSections(release(SEVEN), root);
+    const [surface] = await plan(holding({ [BOUNDS]: 12 }), sections);
+    const others = surface?.objects.map(({ key }) => key).filter((key) => key !== BOUNDS);
+    expect(surface?.missing.map(({ key }) => key)).toEqual(others);
   });
 
-  test('.json is immutable JSON', () => {
-    expect(objectHeaders('rel/0123456789abcdef.json')?.['Content-Type']).toBe('application/json');
-  });
-
-  test('an extension R2 never holds has none', () => {
-    expect(objectHeaders('lic/notes.txt')).toBeUndefined();
+  test('stops on a key R2 holds at another size, before anything is uploaded', async () => {
+    const sections = releaseSections(release(SEVEN), root);
+    await expect(plan(holding({ [BOUNDS]: 13 }), sections)).rejects.toThrow(/13 B, not 12 B/);
   });
 });
