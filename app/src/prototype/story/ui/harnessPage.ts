@@ -1,14 +1,15 @@
 // The walk UI's harness (prototype-walk-ui.html, dev only): the real Tambora story and the walk's
 // UI over a dark stand-in for the globe, driven by a stub director on timers. An ember marks where
 // the beat's focal place falls on screen, to check the card never covers it. The card's images come
-// from the bundled release's data host, or a local data server's with ?data= (page/dataOrigin.ts).
+// from the global bake's local data server (npm run data -- --profile global), or another with
+// ?data= (page/dataOrigin.ts), never the live data host, whose edge would keep a 404 for hours for
+// an image not yet published.
 //
 // Keys: Space plays or pauses, the arrows step, B breaks out. Query: ?beat=<n> starts at beat n
 // (1-8). window.__walkUi serves scripts: jump(beat) lands at once, walk is the stub director.
 import storyText from '../../../../../stories/tambora/story.md?raw';
 import storyLock from '../../../../../stories/tambora/story.lock.json';
-import bundled from '../../../generated/release.json';
-import { dataOverride } from '../../../page/dataOrigin';
+import { DATA_SERVERS, dataOverride } from '../../../page/dataOrigin';
 import { withLock } from '../../../story/lock';
 import { meanwhileFromJson } from '../../../story/meanwhile';
 import tambora from '../../../story/meanwhile.tambora.json';
@@ -34,7 +35,7 @@ const sound = {
     this.muted = !this.muted;
   },
 };
-const dataHost = dataOverride(location) ?? bundled.dataHost;
+const dataHost = dataOverride(location) ?? DATA_SERVERS.global ?? '';
 const ui = createWalkUi(document.body, walk, meanwhile, sound, dataHost);
 window.__walkUi = { walk, jump: (beat) => walk.jump(beat) };
 
