@@ -131,4 +131,5 @@ folder.
 - Docs state goals, decisions, and the reason for each, plainly. No approval steps, receipts, or
   hedging boilerplate.
 - User-facing copy is plain, vivid history in the present tense. It never describes what the app
-  does or does not show.
+  does or does not show, except on failure plates, which say plainly what went wrong and how to
+  fix it.
