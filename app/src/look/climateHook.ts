@@ -32,9 +32,9 @@ export const CLIMATE_LOOK = {
    */
   frost: '#8cbccf',
   frostMix: 0.85,
-  /** A muted copper. */
-  copper: '#b0654a',
-  copperMix: 0.7,
+  /** A muted, rosy copper: the warm lamp alone turns a plain copper hot orange. */
+  copper: '#a8665a',
+  copperMix: 0.55,
   /** The sea's share of the land's wash. */
   seaShare: 1 / 3,
   /** Where full cold takes the metal's roughness and metalness. */
