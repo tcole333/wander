@@ -1,0 +1,232 @@
+// The look's climate hook (streaming.md 3.5): ModE-RA's temperature anomaly for one month, a
+// 192 x 96 field on the source's grid that the walk's effects fill (story/effects/climate.ts), as a
+// frost and verdigris wash on the metal. Cold lands take a pale blue-green patina and lose their
+// polish; warm lands blush a muted copper; the sea's lacquer takes a third of either. The palette
+// saturates at the look's climateRangeK either side of the 1901-2000 average, and the field is
+// sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
+// default, the look is unchanged; the walk compiles it at 0 before it starts.
+//
+// A dev-only alternate, cloisonné (the look's climateStyle 1, which the dev shell sets): translucent
+// enamel fired over the metal, blue where colder and garnet where warmer, with isotherms engraved at
+// whole degrees. It is a define, so the production program never holds it.
+import {
+  ClampToEdgeWrapping,
+  DataTexture,
+  HalfFloatType,
+  LinearFilter,
+  RepeatWrapping,
+  RGFormat,
+  Vector4,
+  type Material,
+} from 'three';
+import { KEY_LAMP_CSS } from '../scene/lens';
+
+/** The source's grid, which the field matches: 192 columns of 1.875 degrees, 96 Gaussian rows. */
+export const CLIMATE_GRID = { nlon: 192, nlat: 96 } as const;
+
+/** The wash's colors and how far each pulls the metal at full saturation. */
+export const CLIMATE_LOOK = {
+  /**
+   * Verdigris (#47746b) lightened, and cooled so that under the warm lamp it still reads as a pale
+   * blue-green patina, not khaki: frost on a patinated bronze.
+   */
+  frost: '#8cbccf',
+  frostMix: 0.85,
+  /** A muted copper. */
+  copper: '#b0654a',
+  copperMix: 0.7,
+  /** The sea's share of the land's wash. */
+  seaShare: 1 / 3,
+  /** Where full cold takes the metal's roughness and metalness. */
+  coldRoughness: 0.82,
+  coldMetalness: 0.35,
+  /** The cloisonné alternate's enamels. */
+  enamelCold: '#2f6a9c',
+  enamelWarm: '#8c2f3c',
+} as const;
+
+export type ClimateStyle = 'wash' | 'cloisonne';
+
+export interface ClimateUniforms {
+  /** 0 leaves the look as it is. */
+  lookClimateStrength: { value: number };
+  /** RG16F: the anomaly in K times its coverage, and the coverage (0 where the source has none). */
+  lookClimateField: { value: DataTexture };
+  /** Column 0's longitude, the column step, row 0's latitude and the row step southward, degrees. */
+  lookClimateGrid: { value: Vector4 };
+  /** K at which the palette saturates. */
+  lookClimateRange: { value: number };
+}
+
+export function createClimateUniforms(): ClimateUniforms {
+  const { nlon, nlat } = CLIMATE_GRID;
+  const field = new DataTexture(
+    new Uint16Array(nlon * nlat * 2),
+    nlon,
+    nlat,
+    RGFormat,
+    HalfFloatType,
+  );
+  field.wrapS = RepeatWrapping;
+  field.wrapT = ClampToEdgeWrapping;
+  field.minFilter = field.magFilter = LinearFilter;
+  field.needsUpdate = true;
+  return {
+    lookClimateStrength: { value: 0 },
+    lookClimateField: { value: field },
+    lookClimateGrid: { value: new Vector4(-180, 360 / nlon, 88.572169, 1.864677) },
+    lookClimateRange: { value: 4 },
+  };
+}
+
+const registry = new WeakMap<Material, ClimateUniforms>();
+
+export function registerClimate(material: Material, uniforms: ClimateUniforms): void {
+  registry.set(material, uniforms);
+}
+
+/** The climate uniforms of a surface look's material, if it has the hook. */
+export function climateUniformsOf(material: Material): ClimateUniforms | undefined {
+  return registry.get(material);
+}
+
+/** The define that swaps the wash for the cloisonné alternate. */
+export const CLOISONNE_DEFINE = 'LOOK_CLIMATE_CLOISONNE';
+
+/** An sRGB hex color in linear RGB, as three's color management turns a Color uniform. */
+export function linearRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  const lin = (c: number) => {
+    const v = c / 255;
+    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return [lin((n >> 16) & 255), lin((n >> 8) & 255), lin(n & 255)];
+}
+
+function srgbHex([r, g, b]: [number, number, number]): string {
+  const enc = (v: number) => {
+    const c = Math.min(1, Math.max(0, v));
+    const s = c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055;
+    return Math.round(s * 255)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${enc(r)}${enc(g)}${enc(b)}`;
+}
+
+const mix3 = (a: number[], b: number[], t: number): [number, number, number] => [
+  (a[0] ?? 0) + ((b[0] ?? 0) - (a[0] ?? 0)) * t,
+  (a[1] ?? 0) + ((b[1] ?? 0) - (a[1] ?? 0)) * t,
+  (a[2] ?? 0) + ((b[2] ?? 0) - (a[2] ?? 0)) * t,
+];
+
+/** The cloisonné enamel's opacity at |t|, the anomaly as a share of the range. */
+function enamelOpacity(at: number): number {
+  const s = Math.min(1, Math.max(0, (at - 0.05) / 0.25));
+  return (0.15 + 0.75 * at) * s * s * (3 - 2 * s);
+}
+
+const luminance = ([r, g, b]: number[]) =>
+  0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
+
+/** A linear color under the museum's warm key lamp (scene/lens.ts), at the same luminance. */
+function underLamp(rgb: [number, number, number]): [number, number, number] {
+  const [lr, lg, lb] = linearRgb(KEY_LAMP_CSS);
+  const lit: [number, number, number] = [rgb[0] * lr, rgb[1] * lg, rgb[2] * lb];
+  const gain = luminance(rgb) / Math.max(luminance(lit), 1e-6);
+  return [lit[0] * gain, lit[1] * gain, lit[2] * gain];
+}
+
+/**
+ * The color the shader gives land of albedo `base` (sRGB hex) at `k` K, fully shown, as sRGB hex:
+ * the legend's ramp, mixed in linear light as the shader mixes it and seen under the key lamp, as
+ * the globe is, so the strip and the globe agree.
+ */
+export function climateSwatch(
+  base: string,
+  k: number,
+  rangeK: number,
+  style: ClimateStyle,
+): string {
+  const t = Math.min(1, Math.max(-1, k / rangeK));
+  const bronze = linearRgb(base);
+  if (style === 'cloisonne') {
+    const enamel = linearRgb(t < 0 ? CLIMATE_LOOK.enamelCold : CLIMATE_LOOK.enamelWarm);
+    return srgbHex(underLamp(mix3(bronze, enamel, enamelOpacity(Math.abs(t)))));
+  }
+  const [tint, pull] =
+    t < 0
+      ? [CLIMATE_LOOK.frost, CLIMATE_LOOK.frostMix]
+      : [CLIMATE_LOOK.copper, CLIMATE_LOOK.copperMix];
+  return srgbHex(underLamp(mix3(bronze, linearRgb(tint), pull * Math.abs(t))));
+}
+
+const f = (x: number) => x.toFixed(6);
+const vec3 = (hex: string) => `vec3(${linearRgb(hex).map(f).join(', ')})`;
+
+/** After the look's pars: the uniforms and lookClimate(), which reads lookDirAt and LookSurface. */
+export const CLIMATE_FRAGMENT_PARS = /* glsl */ `
+uniform float lookClimateStrength;
+uniform sampler2D lookClimateField;
+uniform vec4 lookClimateGrid;
+uniform float lookClimateRange;
+
+// The field at a longitude and latitude in degrees: (anomaly K · coverage, coverage), B-spline
+// smooth from four bilinear taps (as lookShoreSmooth), wrapping around the dateline.
+vec2 lookClimateAt(vec2 ll) {
+  vec2 size = vec2(textureSize(lookClimateField, 0));
+  vec2 t = vec2((ll.x - lookClimateGrid.x) / lookClimateGrid.y, (lookClimateGrid.z - ll.y) / lookClimateGrid.w);
+  vec2 fr = fract(t);
+  t -= fr;
+  vec4 xc = lookCubic(fr.x);
+  vec4 yc = lookCubic(fr.y);
+  vec4 s = vec4(xc.xz + xc.yw, yc.xz + yc.yw);
+  vec4 o = (t.xxyy + vec2(-0.5, 1.5).xyxy + vec4(xc.yw, yc.yw) / s) / size.xxyy;
+  vec2 s0 = textureLod(lookClimateField, o.xz, 0.0).rg;
+  vec2 s1 = textureLod(lookClimateField, o.yz, 0.0).rg;
+  vec2 s2 = textureLod(lookClimateField, o.xw, 0.0).rg;
+  vec2 s3 = textureLod(lookClimateField, o.yw, 0.0).rg;
+  float sx = s.x / (s.x + s.y);
+  float sy = s.z / (s.z + s.w);
+  return mix(mix(s3, s2, sx), mix(s1, s0, sx), sy);
+}
+
+void lookClimate(inout LookSurface s) {
+  if (lookClimateStrength <= 0.0 || lookDebug != 0) return;
+  vec2 field = lookClimateAt(lookLonLat(lookDirAt(vLookSt)));
+  float cover = clamp(field.y, 0.0, 1.0);
+  float k = field.x / max(field.y, 1e-3);
+  float t = clamp(k / lookClimateRange, -1.0, 1.0);
+  float a = lookClimateStrength * cover * mix(${f(CLIMATE_LOOK.seaShare)}, 1.0, s.land);
+#ifdef ${CLOISONNE_DEFINE}
+  // Enamel over the metal, clear near the average: the metal's own sheen shows through it, a
+  // little glossier where it lies thick.
+  vec3 enamel = t < 0.0 ? ${vec3(CLIMATE_LOOK.enamelCold)} : ${vec3(CLIMATE_LOOK.enamelWarm)};
+  float e = a * (0.15 + 0.75 * abs(t)) * smoothstep(0.05, 0.3, abs(t));
+  s.albedo = mix(s.albedo, enamel, e);
+  s.roughness = mix(s.roughness, 0.45, e * 0.5);
+  s.metalness = mix(s.metalness, 0.6, e * 0.5);
+  // Isotherms engraved at whole degrees, about a pixel and a half wide.
+  float off = abs(fract(k + 0.5) - 0.5) / max(fwidth(k), 1e-4);
+  float line = (1.0 - smoothstep(0.5, 1.3, off)) * a;
+  s.albedo *= 1.0 - 0.65 * line;
+  s.roughness = mix(s.roughness, 0.9, line);
+#else
+  if (t < 0.0) {
+    // Frost and verdigris: a pale blue-green patina that dulls the metal's polish.
+    float c = -t * a;
+    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.frost)}, c * ${f(CLIMATE_LOOK.frostMix)});
+    s.roughness = mix(s.roughness, ${f(CLIMATE_LOOK.coldRoughness)}, c * s.land);
+    s.metalness = mix(s.metalness, ${f(CLIMATE_LOOK.coldMetalness)}, c * s.land);
+  } else {
+    // A muted copper blush.
+    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.copper)}, t * a * ${f(CLIMATE_LOOK.copperMix)});
+  }
+#endif
+}
+`;
+
+/** After the look's color chunk has computed lookS, before the ash hook lays its dust over it. */
+export const CLIMATE_FRAGMENT_APPLY = /* glsl */ `
+  lookClimate(lookS);
+`;
