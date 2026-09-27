@@ -625,10 +625,12 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      data host with the app's `Origin` (7.3)
    - uploads the rest of what R2 lacks, 24 at a time. Every PUT sends `If-None-Match: *`, which R2
      refuses with 412 when the key exists, so nothing is overwritten; a 412 is checked by size.
-   - runs the publish check: GET 20 random new objects twice; expect `HIT` on the second (from this
-     machine), a byte-exact sha, CORS and the right Content-Type
-   - warms the cache (4.4)
    - writes `release.json` and uploads `rel/<id>.json` last
+
+   The publish check (GET 20 random new objects twice, expecting `HIT` on the second, a byte-exact
+   sha, CORS and the right Content-Type) and the one-shot warm (4.4) are deferred past go-live, which
+   comes early: the canary and `npm run check-release` cover the headers and liveness a first release
+   needs, and a warm reaches only the owner's nearest data center and the upper tier.
 
    `--dry-run` lists R2 and reports the keys and bytes an upload would send, writing nothing.
 4. Commit and push. CI tests, compiles the stories, builds, checks with a HEAD request that
@@ -646,10 +648,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 ### 4.4 Warming and cost
 
-- **One-shot warm in `publish-data`** (~200-300 MB [D]): surface L0-L4 (2,046 tiles); every story's
-  core and per-beat critical and desired sets for both tiers at 1440×900, 1536×864 and 1920×1080 CSS
-  (computed by `lod.ts` in Node from `bounds.bin`); overlay L0-L2 for every layer; border previews,
-  indexes and metas; events; the climate years stories use.
+- **One-shot warm in `publish-data`** (deferred past go-live, 4.3; ~200-300 MB [D]): surface L0-L4
+  (2,046 tiles); every story's core and per-beat critical and desired sets for both tiers at
+  1440×900, 1536×864 and 1920×1080 CSS (computed by `lod.ts` in Node from `bounds.bin`); overlay
+  L0-L2 for every layer; border previews, indexes and metas; events; the climate years stories use.
 - **What warming covers:** the owner's nearest Cloudflare data center and the Smart Tiered upper tier
   only [S `work/cloudflare/tiered.md`]. Visitors elsewhere miss their local data center and pay the round
   trip to the upper tier. The flight hold and prefetch are sized against a fill (E4's ~500 ms break
@@ -1084,7 +1086,7 @@ so it needs no raw data. `--jobs` defaults to min(8, CPUs), with spawn-context w
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons files by name + sha1, crop, AVIF 256w and 1024w + JPEG 1024w; mono AAC with loop points; focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock. `--offline` reads committed fixture sources instead. | minutes per story | local |
 | `npm run poster` | Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
-| `npm run publish-data` | stage records → `release.json`; uploads, publish check, warm (4.3) | minutes | local |
+| `npm run publish-data` | stage records → `release.json`; uploads (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
 
 - **`npm run stories` fails** with "run `uv run prebuild media --story <id>`" when the Markdown
