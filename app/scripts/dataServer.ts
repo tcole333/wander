@@ -18,9 +18,14 @@ export const DATA_PORTS = { fixture: 8791, region: 8792, global: 8793 } as const
 export type Profile = keyof typeof DATA_PORTS;
 
 /** Each profile's output root under build/ (streaming.md 7.1): the global profile writes build/out/. */
-const OUTPUT_DIR: Record<Profile, string> = { fixture: 'fixture', region: 'region', global: 'out' };
+export const OUTPUT_DIR: Record<Profile, string> = {
+  fixture: 'fixture',
+  region: 'region',
+  global: 'out',
+};
 
-const REBUILD: Record<Profile, string> = {
+/** The command that makes each profile's build, for the error when it is missing. */
+export const REBUILD: Record<Profile, string> = {
   fixture: 'run `npm run fixture` in app/',
   region: 'run `uv run prebuild --profile region` in pipeline/',
   global: 'run `uv run prebuild` in pipeline/',
@@ -43,7 +48,7 @@ export interface DataServer {
   close(): Promise<void>;
 }
 
-const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+export const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 export class DataServerError extends Error {
   override name = 'DataServerError';

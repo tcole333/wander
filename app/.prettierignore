@@ -2,3 +2,5 @@ dist
 playwright-report
 test-results
 package-lock.json
+# Written by npm run publish-data in the one form the app bundles and R2 keeps (streaming.md 3.8).
+src/generated/release.json
