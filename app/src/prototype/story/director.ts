@@ -297,7 +297,8 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     resume,
     scrub(target: number) {
       if (mode !== 'breakout') breakOut();
-      day = target;
+      // Whole days, as the date plate reads them: an effect dated to a day is on from its start.
+      day = Math.floor(target);
     },
     flyTo(target: LonLat, viewKm: number) {
       enterBreakout();
