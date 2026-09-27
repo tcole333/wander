@@ -30,7 +30,15 @@ export class HarnessWalk implements Walk {
     const first = story.beats[beat] ?? story.beats[0];
     if (!first) throw new Error('the story has no beats');
     this.view = beatView(first);
-    this.#state = { story, beat, mode: 'paused', flight: null, day: first.day, advanceIn: null };
+    this.#state = {
+      story,
+      beat,
+      mode: 'paused',
+      flight: null,
+      flying: false,
+      day: first.day,
+      advanceIn: null,
+    };
   }
 
   state(): WalkState {
@@ -50,7 +58,7 @@ export class HarnessWalk implements Walk {
     if (!target) return;
     const mode = this.#state.mode === 'breakout' ? this.#left : this.#state.mode;
     this.#fly(beatView(target), [this.#state.day, target.day]);
-    this.#set({ beat, mode, flight: 0, advanceIn: null });
+    this.#set({ beat, mode, flight: 0, flying: true, advanceIn: null });
   }
 
   togglePlay(): void {
@@ -68,7 +76,7 @@ export class HarnessWalk implements Walk {
   breakOut(): void {
     if (this.#state.mode !== 'breakout') this.#left = this.#state.mode;
     this.#flight = null;
-    this.#set({ mode: 'breakout', flight: null, advanceIn: null });
+    this.#set({ mode: 'breakout', flight: null, flying: false, advanceIn: null });
   }
 
   resume(): void {
@@ -83,6 +91,7 @@ export class HarnessWalk implements Walk {
   flyTo(target: LonLat, viewKm: number): void {
     this.breakOut();
     this.#fly({ lon: target[0], lat: target[1], viewKm, tilt: 0, heading: 0 }, null);
+    this.#set({ flying: true });
   }
 
   /** Lands on a beat at once, for screenshots. */
@@ -91,7 +100,14 @@ export class HarnessWalk implements Walk {
     if (!target) return;
     this.#flight = null;
     this.view = beatView(target);
-    this.#set({ beat, mode: 'paused', flight: null, day: target.day, advanceIn: null });
+    this.#set({
+      beat,
+      mode: 'paused',
+      flight: null,
+      flying: false,
+      day: target.day,
+      advanceIn: null,
+    });
   }
 
   update(nowMs: number, dtS: number): void {
@@ -106,6 +122,7 @@ export class HarnessWalk implements Walk {
       }
       if (t >= 1) {
         this.#flight = null;
+        this.#set({ flying: false });
         if (flight.days) {
           const playing = this.#state.mode === 'playing';
           this.#set({ flight: null, advanceIn: playing ? DWELL_S : null });

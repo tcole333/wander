@@ -17,6 +17,8 @@ export interface WalkState {
   mode: WalkMode;
   /** The flight's progress to `beat`, 0 to 1, or null once landed. */
   flight: number | null;
+  /** Whether the camera is on a flight: to a beat, back to one, or to a Meanwhile entry. */
+  flying: boolean;
   /** Story time, a day number: it sweeps between beats' dates during flights and follows scrubs. */
   day: number;
   /** Seconds until play advances, while playing and landed; null otherwise. */

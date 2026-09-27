@@ -186,8 +186,8 @@ async function loadStory(name: string | null): Promise<StorySource | null> {
 function serveWalk(walk: DirectedWalk, ready: () => boolean): void {
   window.__walk = {
     state: () => {
-      const { beat, mode, flight, day, advanceIn } = walk.state();
-      return { beat, mode, flight, day, advanceIn };
+      const { beat, mode, flight, flying, day, advanceIn } = walk.state();
+      return { beat, mode, flight, flying, day, advanceIn };
     },
     next: () => walk.next(),
     back: () => walk.back(),
