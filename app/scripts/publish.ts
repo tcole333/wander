@@ -283,6 +283,14 @@ function scaled(bytes: number): string {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // npm keeps a flag written before `--` as its own config and runs the script without it, so
+  // `npm run publish-data --dry-run` would upload everything: a flag npm kept stops the run.
+  const kept = ['dry-run', 'canary-only', 'profile'].filter(
+    (flag) => process.env[`npm_config_${flag.replace('-', '_')}`] !== undefined,
+  );
+  if (kept.length > 0) {
+    throw new PublishError(`npm kept --${kept.join(' and --')}: put the flags after \`--\``);
+  }
   const { values } = parseArgs({
     options: {
       profile: { type: 'string', default: 'global' },
