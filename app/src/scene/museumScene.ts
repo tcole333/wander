@@ -5,7 +5,9 @@
 // The gimbal keeps the spike's arrangement: the yoke, outer ring, gears and pedestal stay put; a
 // tilting group carries the meridian ring and globeMount; globeMount turns about the polar axis.
 // params.lat and params.lon name the globe point the gimbal turns to face +Z, where the camera
-// usually sits (both 0 leave the globe frame unturned).
+// usually sits (both 0 leave the globe frame unturned). params.lamp dims the room from lit (1) to
+// dark (0), and the swing params turn each ring about its upright axis away from its place: the
+// lobby's opening (lobby/opening.ts) brings both in, with no program of its own.
 import {
   ACESFilmicToneMapping,
   BackSide,
@@ -47,6 +49,12 @@ import { KEY_LAMP, LENS } from './lens';
 
 const DEG = Math.PI / 180;
 const MAX_PIXEL_RATIO = 2;
+/**
+ * With the lamp out: the exposure's share that remains, so the room stays the poster's dark room,
+ * and the fill's and reflections' share, so the brass keeps a faint glint of it.
+ */
+const DARK_EXPOSURE = 0.55;
+const DARK_FILL = 0.12;
 /** The pixel ratio from which the scene renders without MSAA. */
 const MSAA_OFF_RATIO = 1.5;
 
@@ -211,6 +219,11 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
     /** The globe point the gimbal turns toward +Z, in degrees. */
     lat: 15,
     lon: 75,
+    /** How far the lamp has come up: 0 leaves the instrument in the dark room, 1 lights it. */
+    lamp: 1,
+    /** How far each ring stands turned from its place about its upright axis, in degrees. */
+    meridianSwing: 0,
+    outerSwing: 0,
     /** A part fades out as the camera comes within fadeFar of it, and is gone at fadeNear. */
     fadeNear: 0.25,
     fadeFar: 0.8,
@@ -250,6 +263,7 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
   tiltGroup.add(instrument.tilting, globeMount);
   scene.add(instrument.fixed, tiltGroup);
   const faders = instrument.fadeParts.map((part) => new Fader(part));
+  const outerRest = instrument.outer.rotation.y;
 
   const size = renderer.getSize(new Vector2());
   const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
@@ -308,12 +322,14 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
     params,
 
     update(camera, elapsedS) {
-      renderer.toneMappingExposure = params.exposure;
-      key.intensity = params.keyIntensity;
+      const lamp = Math.min(1, Math.max(0, params.lamp));
+      const fill = DARK_FILL + (1 - DARK_FILL) * lamp;
+      renderer.toneMappingExposure = params.exposure * (DARK_EXPOSURE + (1 - DARK_EXPOSURE) * lamp);
+      key.intensity = params.keyIntensity * lamp;
       key.castShadow = params.shadows;
-      rim.intensity = params.rimIntensity;
-      hemi.intensity = params.hemiIntensity;
-      scene.environmentIntensity = params.envIntensity;
+      rim.intensity = params.rimIntensity * lamp;
+      hemi.intensity = params.hemiIntensity * fill;
+      scene.environmentIntensity = params.envIntensity * fill;
       bloom.strength = params.bloomStrength;
       bloom.radius = params.bloomRadius;
       bloom.threshold = params.bloomThreshold;
@@ -325,6 +341,8 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
       // (driven from the spike's spin angle, so they sit as in its screenshots).
       tiltGroup.rotation.x = params.lat * DEG;
       globeMount.rotation.y = -params.lon * DEG;
+      instrument.meridian.rotation.y = params.meridianSwing * DEG;
+      instrument.outer.rotation.y = outerRest + params.outerSwing * DEG;
       const drive = -(params.lon + 90) * DEG * 0.35 + tiltGroup.rotation.x;
       for (const gear of instrument.gears) gear.mesh.rotation.z = drive * gear.ratio;
 
