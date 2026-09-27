@@ -19,7 +19,8 @@ const CORE_PX = 18;
 const CORE_MIN_KM = 7;
 const HALO_SCALE = 7;
 
-function glowTexture(stops: [number, string][]): CanvasTexture {
+/** A round glow, 128 px across, from its color stops out from the center (the lobby's glows too). */
+export function glowTexture(stops: [number, string][]): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 128;
   const g2d = canvas.getContext('2d');
