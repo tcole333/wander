@@ -5,10 +5,11 @@
 // read from the data host; its credit comes from the story's lock (../lock.ts). The sources fold
 // into a footnote at its foot, with the Credits link beside them, which opens the Credits panel.
 // The story's controls live on the time ruler.
+import { creditsLink } from '../../page/creditsPanel';
 import type { WalkState } from '../contract';
 import type { LockedFile } from '../lock';
 import type { StoryBeat, StoryImage } from '../story';
-import { button, creditsLink, el, onPress } from './dom';
+import { button, el, onPress } from './dom';
 import { curlyQuotes, dateLine } from './format';
 
 /** The frame's width, CSS px, when the card has not been laid out to measure it. */

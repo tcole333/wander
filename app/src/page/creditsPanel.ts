@@ -11,6 +11,7 @@ import '../story/ui/walkUi.css';
 import './room.css';
 import './creditsSheet.css';
 import './creditsPanel.css';
+import { el } from '../story/ui/dom';
 
 interface Panel {
   dialog: HTMLDialogElement;
@@ -34,8 +35,8 @@ export function openCredits(returnTo: HTMLElement | null = null): void {
  * A link to the credits page that opens the panel in place instead. A click meant for a new tab
  * or window still follows the link.
  */
-export function creditsLink(className: string, text = 'Credits'): HTMLAnchorElement {
-  const link = make('a', className, text);
+export function creditsLink(className: string): HTMLAnchorElement {
+  const link = el('a', className, 'Credits');
   link.href = '/credits';
   link.addEventListener('click', (event) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
@@ -55,7 +56,7 @@ function buildPanel(): Panel {
   if (!source) throw new Error('credits.html has no credits sheet');
   const sheet = document.importNode(source, true) as HTMLElement;
 
-  const dialog = make('dialog', 'cp');
+  const dialog = el('dialog', 'cp');
   const title = sheet.querySelector('.wu-title');
   if (title) {
     title.id = 'cp-title';
@@ -64,19 +65,19 @@ function buildPanel(): Panel {
   const close = () => dialog.close();
   const back = sheet.querySelector('.credits-back');
   if (back) {
-    const button = make('button', 'credits-back', back.textContent?.trim() ?? 'Close');
+    const button = el('button', 'credits-back', back.textContent?.trim() ?? 'Close');
     button.type = 'button';
     button.addEventListener('click', close);
     back.replaceWith(button);
   }
-  const scroll = make('div', 'cp-scroll');
+  const scroll = el('div', 'cp-scroll');
   scroll.append(...sheet.childNodes);
-  const corner = make('button', 'cp-close', '✕');
+  const corner = el('button', 'cp-close', '✕');
   corner.type = 'button';
   corner.setAttribute('aria-label', 'Close');
   corner.addEventListener('click', close);
   sheet.append(corner, scroll);
-  const card = make('article', 'cp-card wu-card wu-lit credits-card');
+  const card = el('article', 'cp-card wu-card wu-lit credits-card');
   card.append(sheet);
   dialog.append(card);
   document.body.append(dialog);
@@ -99,15 +100,4 @@ function buildPanel(): Panel {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
   return made;
-}
-
-function make<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className: string,
-  text?: string,
-): HTMLElementTagNameMap[K] {
-  const element = document.createElement(tag);
-  element.className = className;
-  if (text !== undefined) element.textContent = text;
-  return element;
 }
