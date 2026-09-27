@@ -32,7 +32,7 @@ from prebuild.config import load_water
 from prebuild.constants import FORMATS
 from prebuild.cube import Tile, available_nodes, node_count, node_from_index, node_index
 from prebuild.expect import write_surface_expectations
-from prebuild.hashing import layer_version, sha256_bytes
+from prebuild.hashing import sha256_bytes
 from prebuild.height import height_source
 from prebuild.layers import publish, staging_folder
 from prebuild.natural_earth import load_vectors
@@ -70,8 +70,7 @@ def run(ctx: Context) -> None:
         stored = bounds_bin(avail, max_level, ranges)
         (staging / BOUNDS).write_bytes(stored)
         digests[BOUNDS] = sha256_bytes(stored)
-        ver = layer_version(digests)
-        publish(staging, layer / ver)
+        ver = publish(staging, layer, digests)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
     record = {
