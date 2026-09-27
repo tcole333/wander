@@ -22,6 +22,16 @@ export function onPress(element: HTMLElement, action: (event: MouseEvent) => voi
   });
 }
 
+/** The credits page (credits.html), in a tab of its own so the walk keeps its place. */
+export function creditsLink(className: string): HTMLAnchorElement {
+  const link = el('a', className, 'Credits');
+  link.href = '/credits';
+  link.target = '_blank';
+  link.rel = 'noopener';
+  onPress(link, () => {});
+  return link;
+}
+
 export function button(className: string, label: string, action: () => void): HTMLButtonElement {
   const b = el('button', className);
   b.type = 'button';

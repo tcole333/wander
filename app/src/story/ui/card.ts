@@ -1,12 +1,12 @@
 // The beat card: a sheet of aged vellum in a thin riveted brass frame at the left, with the date
 // line, the title in engraved capitals over a hairline rule, the beat's text, and its image from
 // Commons mounted like a museum card (a mat, a brass bevel and a caption line for the credit),
-// sized so all of it shows without scrolling. The sources fold into a footnote at its foot. The
-// story's controls live on the time ruler.
+// sized so all of it shows without scrolling. The sources fold into a footnote at its foot, with
+// the credits page beside them. The story's controls live on the time ruler.
 import type { WalkState } from '../contract';
 import type { StoryBeat, StoryImage } from '../story';
 import { commonsImage } from './commons';
-import { button, el, onPress } from './dom';
+import { button, creditsLink, el, onPress } from './dom';
 import { curlyQuotes, dateLine } from './format';
 
 /** The frame's shape until Commons says what the image's is. */
@@ -40,7 +40,7 @@ export class BeatCard {
     const fold = el('div', 'wu-sources-fold');
     fold.append(this.#sources);
     fold.addEventListener('transitionend', () => this.#checkOverflow());
-    this.#foot.append(this.#sourcesToggle, fold);
+    this.#foot.append(this.#sourcesToggle, creditsLink('wu-card-credits'), fold);
 
     const sheet = el('div', 'wu-sheet');
     sheet.append(head, this.#body, this.#foot);
