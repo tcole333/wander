@@ -1,15 +1,15 @@
 // Pulses drawn on the globe: a disc of the sphere around the place, on a shell just above the
-// land's exaggerated heights there. rumble: faint rings welling out; sound: one bright ring racing
+// land's exaggerated heights there. rumble: faint warm waves welling out; sound: one wave racing
 // out to its reach, or the reach alone once the day is past; contagion: a smoky stain of dried
-// blood seeping out over the land. The ring and stain sizes come from story time (timeline.ts
+// blood seeping out over the land. The wave and stain sizes come from story time (timeline.ts
 // pulseState); the racing and the smoke's billowing are presentation. A pulse smaller than a few
 // percent of the view is drawn at that size, so it still reads.
 //
-// The rings are light, added over the globe. The stain is no light of its own: it multiplies the
-// globe's color under it, as a dye would, so it takes the lamp and the relief's shading from the
-// land it lies on and has no edge to draw.
+// Neither is paint laid over the globe; both multiply the globe's color under them, so they take
+// the lamp and the relief's shading from the land they lie on and have no edge to draw. A wave is
+// a soft swell, tens of km across, that lets the land gleam brighter as it passes, as if the lamp
+// caught it; the stain is a dye that drinks the light.
 import {
-  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -32,6 +32,8 @@ const DISC_REACH = [1.2, 1.2, 1.4];
 const GRAIN = 0.4;
 /** The light the stain passes where it is densest: dried blood. */
 const STAIN = new Color('#944a3e');
+/** How much the land's color is scaled up at a wave's crest, less one, at full strength. */
+const GLEAM = 2.6;
 
 /** A disc of the sphere as a polar grid: position.x the radius 0 to 1, position.y the angle. */
 function discGeometry(rings = 48, spokes = 128): BufferGeometry {
@@ -100,11 +102,10 @@ varying vec2 vCurl;
 
 ${SMOKE_NOISE}
 
-// A line widthPx wide around radius r, with a softer glow glowPx wide.
-float ring(float d, float r, float widthPx, float glowPx) {
-  float px = max(fwidth(d), 1e-4);
-  float x = abs(d - r) / px;
-  return 1.0 - smoothstep(0.5 * widthPx - 0.5, 0.5 * widthPx + 0.5, x) + 0.3 * exp(-x / glowPx);
+// A soft swell of light about radius r, w km to either side: no line and no hard core.
+float swell(float d, float r, float w) {
+  float x = (d - r) / max(w, 1e-3);
+  return exp(-x * x);
 }
 
 // The stain's density, 0 to 1: densest at the source and thinning out to about R. The curl
@@ -136,26 +137,26 @@ void main() {
   }
   float a = 0.0;
   if (uStyle == 0) {
-    // Rings welling out from the mountain, fading as they go.
+    // Waves welling out from the mountain, fading as they go.
     for (int k = 0; k < 3; k++) {
       float f = fract(uTime / 3.2 + float(k) / 3.0);
-      a += ring(d, f * R, 1.4, 5.0) * pow(1.0 - f, 1.3) * smoothstep(0.0, 0.08, f);
+      a += swell(d, f * R, 0.08 * R) * pow(1.0 - f, 1.3) * smoothstep(0.0, 0.08, f);
     }
-    a *= 0.55;
   } else if (uRacing) {
     // One report racing out, a faint wash behind it; then the next.
     float f = fract(uTime / 4.5);
     float r = R * (1.0 - (1.0 - f) * (1.0 - f));
-    // Outside the ring the wash is 0; exp() of the distance there overflows to infinity, and
+    // Outside the wave the wash is 0; exp() of the distance there overflows to infinity, and
     // 0 times infinity is NaN, which the bloom spreads over the whole frame.
     float behind = d <= r ? exp(-(r - d) / max(0.08 * r, 1.0)) : 0.0;
-    a = (ring(d, r, 2.2, 7.0) + 0.12 * behind) * (1.0 - 0.6 * f);
+    a = (swell(d, r, 0.05 * R) + 0.12 * behind) * (1.0 - 0.6 * f);
   } else {
-    a = 0.6 * ring(d, R, 1.2, 4.0);
+    a = 0.6 * swell(d, R, 0.05 * R);
   }
   a *= uStrength;
   if (a < 0.002) discard;
-  gl_FragColor = vec4(uColor * a, a);
+  // The land under the wave gleams: its own color, scaled up.
+  gl_FragColor = vec4(1.0 + uColor * a, 1.0);
 }
 `;
 
@@ -170,10 +171,10 @@ export class PulseDisc {
     this.#style = style;
     const { east, north } = tangents(effect.at);
     const stained = style === 2;
-    // Rumble in the ember's color, sound in lit brass; the stain as the light it takes away.
+    // Rumble gleams in the ember's color, sound in lit brass; the stain as the light it takes away.
     const color = stained
       ? new Vector3(-Math.log(STAIN.r), -Math.log(STAIN.g), -Math.log(STAIN.b))
-      : new Color(['#e8662c', '#e8c889'][style]).multiplyScalar(1.6);
+      : new Color(['#e8662c', '#e8c889'][style]).multiplyScalar(GLEAM);
     const material = new ShaderMaterial({
       uniforms: {
         uUp: { value: dirOf(effect.at) },
@@ -193,8 +194,9 @@ export class PulseDisc {
       fragmentShader: FRAGMENT,
       transparent: true,
       depthWrite: false,
-      // Rings are added as light; the stain multiplies what lies under it.
-      blending: stained ? MultiplyBlending : AdditiveBlending,
+      // Each scales the color of what lies under it (the scene's target is half float, so a
+      // wave's factor over 1 is kept).
+      blending: MultiplyBlending,
       premultipliedAlpha: true,
     });
     // The stain's disc is finer, for its curl found at the vertices.
