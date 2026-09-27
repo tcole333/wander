@@ -53,6 +53,8 @@ export interface LobbyParts {
   ready: () => boolean;
   /** Starts the story's walk, flying in from the view, inside the press that chose its plaque. */
   enter: () => Walk;
+  /** Called when enter() throws: the lobby has gone, and the page brings its plate. */
+  fail: (error: unknown) => void;
 }
 
 export interface Lobby {
@@ -131,7 +133,13 @@ export function createLobby(parts: LobbyParts): Lobby {
     become('diving');
     host.classList.add('lobby-dive', 'lobby-veiled', 'lobby-ruler-down');
     void plaques.leave().then(() => plaques.dispose());
-    const walk = parts.enter();
+    let walk: Walk;
+    try {
+      walk = parts.enter();
+    } catch (error) {
+      parts.fail(error);
+      return;
+    }
     // The ruler mounts below the page, then rises.
     requestAnimationFrame(() =>
       requestAnimationFrame(() => host.classList.remove('lobby-ruler-down')),

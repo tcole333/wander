@@ -80,6 +80,11 @@ export interface BootOptions {
   /** Where the view starts. */
   view?: ViewState;
   /**
+   * Called when the story does not start from the lobby's plaque, after the boot has resolved, so
+   * the page can bring its plate. Without it, the error goes on uncaught.
+   */
+  onFail?: (error: unknown) => void;
+  /**
    * Called with each part's params (the look's, the scene's, the streamer's, the camera's, and a
    * story's effects') before anything reads them: the dev shell's query overrides.
    */
@@ -149,7 +154,15 @@ export async function bootWalk(
 async function assemble(
   host: HTMLElement,
   release: Release,
-  { story: source = null, lobby: inLobby = false, view = WORLD, tune = () => {} }: BootOptions,
+  {
+    story: source = null,
+    lobby: inLobby = false,
+    view = WORLD,
+    tune = () => {},
+    onFail = (error) => {
+      throw error;
+    },
+  }: BootOptions,
   made: (() => void)[],
 ): Promise<WalkPage> {
   const renderer = createRenderer();
@@ -284,6 +297,7 @@ async function assemble(
           control,
           ready,
           enter: () => begin('fly'),
+          fail: onFail,
         })
       : null;
   if (lobby) made.push(() => lobby.dispose());
@@ -422,7 +436,8 @@ function createRenderer(): WebGLRenderer {
  * globe breaking out and the arrow keys stepping beats instead of panning; the story's `effects`,
  * shown from now on; the card, ruler, Meanwhile, climate legend and sound knob over them in
  * `root`, the card's images from `dataHost`; and the sound. With them, what ends the story (the
- * effects end with the boot, which made them).
+ * effects end with the boot, which made them). The sound and UI are made before the keys and the
+ * view are taken, so a story that throws leaves them as they were.
  */
 function startStory(
   { story, meanwhile }: StorySource,
@@ -434,13 +449,19 @@ function startStory(
   ready: () => boolean,
 ): [StoryParts, () => void] {
   const walk = createWalk(story, control, { ready, arrive });
+  const sound = createWalkAudio();
+  let ui: WalkUi;
+  try {
+    ui = createWalkUi(root, walk, meanwhile, sound, dataHost);
+  } catch (error) {
+    sound.dispose();
+    walk.dispose();
+    throw error;
+  }
   control.arrowKeys = false;
   control.onInput = () => walk.breakOut();
   const unbindKeys = bindWalkKeys(walk);
-
   effects.group.visible = true;
-  const sound = createWalkAudio();
-  const ui = createWalkUi(root, walk, meanwhile, sound, dataHost);
   const end = () => {
     unbindKeys();
     sound.dispose();
