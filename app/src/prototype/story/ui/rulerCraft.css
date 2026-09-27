@@ -31,6 +31,13 @@
   filter: brightness(var(--shade, 1));
 }
 
+/* Painted brass swallows presses, so a click on the band's lip or a gear never turns the globe
+   and breaks out of the story. */
+.rc-body,
+.rc-gear {
+  pointer-events: visiblePainted;
+}
+
 .rc-finish {
   pointer-events: none;
 }
