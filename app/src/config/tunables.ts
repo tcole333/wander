@@ -64,7 +64,7 @@ export const tunables = {
   stallHeaders: 10_000,
   // Applied with jitter.
   retryDelays: [500, 2000, 8000],
-  degradeFor: 60_000,
+  degradeFor: 30_000,
   motionLodRate: { screensPerSecond: 1, levelsPerSecond: 1 },
   uploadAnimated: { lite: 256 * KiB, full: 512 * KiB },
   uploadIdle: { lite: 1 * MiB, full: 2 * MiB },
