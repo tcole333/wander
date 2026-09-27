@@ -238,17 +238,13 @@ async function assemble(
   let idleFrames = 0;
   const ready = () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS;
 
-  // A story's effects hang in the globe frame from the start, so the precompile readies their
-  // programs. Its page steps through its beats: the walk flies the camera, and holds a late
-  // landing until the streamer has nothing in hand. It starts on its first beat, or in the lobby,
-  // which starts it when its plaque is chosen.
   let story: StoryParts | null = null;
 
-  // What stands at the left shifts the lens right, and the streamer and the plaques read the
-  // shifted projection. In the lobby, the plaques: by half their reach, which centers the
-  // instrument in the room beside them. In a story, the card: by LENS_SHIFT of its reach, so each
-  // beat's place lands right of it and what lies around it clears both the card and Meanwhile. The
-  // lens eases from one to the other during the dive.
+  // What stands at the left shifts the lens right, and the streamer and the callout plaques read
+  // the shifted projection. In the lobby, the story plaques: by half their reach, which centers
+  // the instrument in the room beside them. In a story, the card: by LENS_SHIFT of its reach, so
+  // each beat's place lands right of it and what lies around it clears both the card and
+  // Meanwhile. The lens eases from one to the other during the dive.
   let cardShift = 0;
   let shift = 0;
   let drawnShift = NaN;
@@ -257,6 +253,11 @@ async function assemble(
     cardShift = card ? LENS_SHIFT * card.getBoundingClientRect().right : 0;
   };
 
+  // A story's effects hang in the globe frame from the start, so the precompile readies their
+  // programs, the climate's too, whose files come from the release's data host. Its page steps
+  // through its beats: the walk flies the camera, and holds a late landing until the streamer has
+  // nothing in hand. It starts on its first beat, or in the lobby, which starts it in the press
+  // that chooses its plaque.
   const effects = source && createWalkEffects(source.story, look, labels, release);
   if (effects) {
     made.push(() => effects.dispose());
