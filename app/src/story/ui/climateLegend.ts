@@ -1,9 +1,9 @@
 // The climate legend, at the bottom right over the ruler's end: a small plate of dark cast brass
 // like Meanwhile's, shown while the globe draws ModE-RA's temperatures. Its month is engraved in
 // gilt over an enamel strip in the look's own colors (look/climateHook.ts climateSwatch), with the
-// strip's ends named and its degrees engraved under it. It waits for a flight to land, since a
-// flight sweeps story time through months the ruler's date plate already names, then rises into
-// view like the Resume plaque, and fades as the layer eases out.
+// strip's ends named and its degrees engraved under it, the warm end's with the unit. It waits for
+// a flight to land, since a flight sweeps story time through months the ruler's date plate already
+// names, then rises into view like the Resume plaque, and fades as the layer eases out.
 import { climateSwatch } from '../../look/climateHook';
 import { monthName } from '../dates';
 import type { ClimateShown } from '../contract';
@@ -76,9 +76,10 @@ export class ClimateLegend {
       ...TICKS.map((share) => {
         const tick = el('span', 'wu-legend-tick', degrees(share * rangeK));
         tick.style.left = `${50 + 50 * share}%`;
+        // The warm end's numeral carries the unit, trailing it so the numeral stays on its tick.
+        if (share === 1) tick.append(el('span', 'wu-legend-unit', '°C'));
         return tick;
       }),
-      el('span', 'wu-legend-unit', '°C'),
     );
   }
 }
