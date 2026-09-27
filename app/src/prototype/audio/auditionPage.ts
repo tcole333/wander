@@ -202,7 +202,7 @@ function mechanismDrawer(): HTMLElement {
   return drawer;
 }
 
-/** The Tambora bed: start and stop, story time on a small ruler, the rumble's dial and levels. */
+/** The Tambora bed: start and stop, story time on a small ruler, the rumble's chart and levels. */
 function bedDrawer(): HTMLElement {
   const drawer = drawerOf('The Tambora bed', 'bed');
   let bed: Bed | undefined;
@@ -259,7 +259,6 @@ function bedDrawer(): HTMLElement {
   }
   ruler.append(rail, input, moments);
 
-  const dial = rumbleDial();
   const chart = rumbleChart();
   const setDay = (next: number) => {
     day = next;
@@ -268,15 +267,13 @@ function bedDrawer(): HTMLElement {
     plate.style.setProperty('--p', String(share(day)));
     plateText.textContent = formatDay(day);
     input.setAttribute('aria-valuetext', formatDay(day));
-    dial.set(rumbleLevel(day));
     chart.set(day);
   };
   input.addEventListener('input', () => setDay(Number(input.value)));
   setDay(day);
 
-  const levels = el('div', 'au-slip au-bed-levels');
-  const sliders = el('div', 'au-bed-sliders');
-  sliders.append(
+  const levels = el('div', 'au-slip');
+  levels.append(
     level(
       'Room',
       () => mix.bed.room,
@@ -288,7 +285,6 @@ function bedDrawer(): HTMLElement {
       (db) => (mix.bed.rumble = db),
     ),
   );
-  levels.append(dial.element, sliders);
   const chartSlip = slip('The mountain', 'Its rumble through the years, 1812 to 1818', []);
   chartSlip.append(chart.element);
   drawer.append(bedSlip, ruler, chartSlip, levels);
@@ -482,37 +478,6 @@ function speakerFace(): SVGSVGElement {
     );
   }
   return face;
-}
-
-/** The rumble's dial: an engraved arc from still to the eruption, and a blued needle. */
-function rumbleDial(): { element: HTMLElement; set(level: number): void } {
-  const element = el('div', 'au-dial');
-  const face = svg('svg', { viewBox: '-50 -46 100 58', 'aria-hidden': 'true' });
-  const arc = (r: number, deg: number) => {
-    const a = (deg * Math.PI) / 180;
-    return `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`;
-  };
-  let ticks = '';
-  for (let k = 0; k <= 10; k += 1) {
-    const deg = -60 + 12 * k;
-    const inner = k % 5 === 0 ? 30 : 33;
-    ticks += `M${arc(inner, deg)}L${arc(37, deg)}`;
-  }
-  face.innerHTML =
-    `<path d="M${arc(38, -60)}A38 38 0 0 1 ${arc(38, 60)}" class="au-dial-arc"/>` +
-    `<path d="${ticks}" class="au-dial-ticks"/>` +
-    `<path d="M${arc(38, 36)}A38 38 0 0 1 ${arc(38, 60)}" class="au-dial-red"/>` +
-    `<g class="au-needle"><path d="M-1.4 0 L0 -35 L1.4 0 Z" class="au-needle-steel"/></g>` +
-    `<circle r="3.2" class="au-dial-pin"/>`;
-  const needle = face.querySelector('.au-needle');
-  element.append(face, el('span', 'au-dial-label', 'Rumble'));
-  return {
-    element,
-    set(level) {
-      needle?.setAttribute('transform', `rotate(${(-60 + 120 * level).toFixed(1)})`);
-      element.title = `Rumble ${Math.round(level * 100)}% of the eruption's`;
-    },
-  };
 }
 
 /**
