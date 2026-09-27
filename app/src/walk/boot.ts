@@ -1,11 +1,12 @@
 // The walk's boot: the streamed globe in the surface look, hung in the museum scene's gimbal, with
 // a camera that flies from the whole instrument down to a few tens of km. The gimbal turns the
 // view center toward the lamp and the camera, as the spike's did. Given a story, the walk plays
-// over it: the director flies between its beats (story/director.ts), the card, time ruler and
-// Meanwhile sit over the globe (story/ui/), the ember, plume, plaques, ash and veil follow story
-// time (story/effects/), and its sound follows the walk from the visitor's first gesture
-// (audio/walkAudio.ts). It starts paused on the first beat; Left and Right step beats, Space plays
-// or pauses, Escape resumes after the visitor breaks out to explore, and M mutes.
+// over it: the director flies between its beats (story/director.ts), the card, time ruler,
+// Meanwhile and climate legend sit over the globe (story/ui/), the ember, plume, plaques, ash, veil
+// and climate follow story time (story/effects/), and its sound follows the walk from the
+// visitor's first gesture (audio/walkAudio.ts). It starts paused on the first beat; Left and Right
+// step beats, Space plays or pauses, Escape resumes after the visitor breaks out to explore, and M
+// mutes.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
@@ -222,7 +223,7 @@ async function assemble(
   // A story's page steps through its beats. The walk flies the camera, and holds a late landing
   // until the streamer has nothing in hand.
   const [story, endStory] = source
-    ? startStory(source, control, look, labels, host, () => {
+    ? startStory(source, release, control, look, labels, host, () => {
         const s = streamer.stats();
         return s.inFlight + s.decoding + s.uploading === 0;
       })
@@ -303,7 +304,7 @@ async function assemble(
     museum.render(camera);
     if (story) {
       const state = story.walk.state();
-      story.ui.update(state, drawn);
+      story.ui.update(state, drawn, story.effects.climate());
       story.sound.update(state, story.ui.rulerUnit(), drawn, dt);
     }
 
@@ -355,12 +356,13 @@ function createRenderer(): WebGLRenderer {
 
 /**
  * The story mode's parts: the director, with input on the globe breaking out and the arrow keys
- * stepping beats instead of panning; the effects, with their plaques in `labels`; the card,
- * ruler, Meanwhile and the sound knob over them in `root`; and the sound. With them, what ends
- * the story.
+ * stepping beats instead of panning; the effects, with their plaques in `labels` and the climate
+ * from the release's data host; the card, ruler, Meanwhile, climate legend and sound knob over
+ * them in `root`; and the sound. With them, what ends the story.
  */
 function startStory(
   { story, meanwhile }: StorySource,
+  release: Release,
   control: ViewControl,
   look: SurfaceLook,
   labels: HTMLElement,
@@ -372,7 +374,7 @@ function startStory(
   control.onInput = () => walk.breakOut();
   const unbindKeys = bindWalkKeys(walk);
 
-  const effects = createWalkEffects(story, look, labels);
+  const effects = createWalkEffects(story, look, labels, release);
   const sound = createWalkAudio();
   const ui = createWalkUi(root, walk, meanwhile, sound);
   const end = () => {

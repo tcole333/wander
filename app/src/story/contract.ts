@@ -3,9 +3,11 @@
 // number (dates.ts); the story itself comes from stories/tambora/story.md (story.ts).
 import type { Object3D, PerspectiveCamera } from 'three';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';
+import type { ClimateStyle } from '../look/climateHook';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Precision } from './dates';
+import type { ClimateSource } from './effects/climate';
 import type { LonLat, Story } from './story';
 
 /** Playing advances by itself after each landing; breakout means the visitor is exploring. */
@@ -67,10 +69,30 @@ export interface MeanwhileEntry {
 /** Keyed by beat id. */
 export type MeanwhileByBeat = Record<string, MeanwhileEntry[]>;
 
-/** The card, the time ruler, Meanwhile, the Resume plaque and the story's controls, in the DOM. */
+/** The climate the globe draws: the month, the palette it is drawn in, and how strongly. */
+export interface ClimateShown {
+  year: number;
+  /** 1-12. */
+  month: number;
+  /** K at which the palette saturates, either side of the 1901-2000 average. */
+  rangeK: number;
+  style: ClimateStyle;
+  /** The land's color at the average, sRGB hex: the palette's middle. */
+  base: string;
+  /** 0 to 1, easing in and out with the layer. */
+  strength: number;
+}
+
+/**
+ * The card, the time ruler, Meanwhile, the Resume plaque, the climate legend and the story's
+ * controls, in the DOM.
+ */
 export interface WalkUi {
-  /** Every frame: the state and the drawn view (for Meanwhile's compass bearings). */
-  update(state: WalkState, view: ViewState): void;
+  /**
+   * Every frame: the state, the drawn view (for Meanwhile's compass bearings) and the climate the
+   * globe draws, if any.
+   */
+  update(state: WalkState, view: ViewState, climate?: ClimateShown | null): void;
   /** The finest unit the time ruler engraves now, whose marks the detents sound. */
   rulerUnit(): Precision;
   dispose(): void;
@@ -90,9 +112,10 @@ export type CreateWalkUi = (
 ) => WalkUi;
 
 /**
- * The ember, plume, pulses, callout labels, and illustrative ash and veil, as functions of story
- * time: scrubbing backward shows the right state. `group` hangs from the museum's globeMount (the
- * globe frame, radius 1); labels go into `labelRoot`. Ash tints the surface through the look.
+ * The ember, plume, pulses, callout labels, illustrative ash and veil, and the real climate, as
+ * functions of story time: scrubbing backward shows the right state. `group` hangs from the
+ * museum's globeMount (the globe frame, radius 1); labels go into `labelRoot`. Ash and climate tint
+ * the surface through the look; climate reads its files from `climate`'s data host.
  */
 export interface WalkEffects {
   group: Object3D;
@@ -104,6 +127,8 @@ export interface WalkEffects {
     viewport: ViewportCss,
     elapsedS: number,
   ): void;
+  /** The climate drawn, for its legend; null while none is. */
+  climate(): ClimateShown | null;
   dispose(): void;
 }
 
@@ -111,4 +136,5 @@ export type CreateWalkEffects = (
   story: Story,
   look: SurfaceLook,
   labelRoot: HTMLElement,
+  climate?: ClimateSource,
 ) => WalkEffects;
