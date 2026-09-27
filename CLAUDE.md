@@ -11,20 +11,24 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 Milestone 1 (the Tambora slice) is under way. The surface core (issue #3) is complete: the
 prebuild's profiles, cube conventions, `.wst` codec, committed excerpts and `fetch`, `excerpts`,
 `coverage` and `surface` stages; the region bake and its check; the decoder and the GPU pools.
-The Tambora walk plays on the dev page `app/prototype.html?story=tambora`, booted from production
-modules by `app/src/walk/boot.ts`; the production entry is still a placeholder. Hosting and CI are
-live.
+The production entry (`app/index.html`, `app/src/main.ts`) plays the Tambora walk from the bundled
+release, `app/src/generated/release.json`, with its credits page at `app/credits.html`; it goes live
+once that release's data is on R2 (`npm run check-release`). The dev page
+`app/prototype.html?story=tambora` boots the same walk (`app/src/walk/boot.ts`) under a tuning
+panel. Hosting and CI are live.
 
 ## Layout
 
 Paths in the docs are relative to the repo root, except the measurement citations in
 `docs/design/streaming.md`, which are relative to `docs/design/measurements/`.
 
-- `app/`: the npm project. TypeScript, Vite, React, react-three-fiber, three.js pinned to an exact
-  version (the renderer relies on version-specific three.js APIs). drei and Zustand join with the
-  globe runtime. Tunables live in `app/src/config/tunables.ts`. The walk's modules live in
-  `app/src/` (`walk/`, `view/`, `stream/`, `look/`, `scene/`, `story/`); `app/src/prototype/`
-  holds only the dev pages' shells and harnesses.
+- `app/`: the npm project. TypeScript, Vite and three.js pinned to an exact version (the renderer
+  relies on version-specific three.js APIs), with a plain-DOM UI and no React: the approved walk is
+  plain three.js, and its bundle is smaller (`docs/design/streaming.md`, owner decision 20).
+  Tunables live in `app/src/config/tunables.ts`. The walk's modules live in `app/src/` (`walk/`,
+  `view/`, `stream/`, `look/`, `scene/`, `story/`, the walk's material tokens in
+  `story/ui/tokens.css`); `app/src/page/` holds the production page's room, failure plates, data
+  override and credits styles; `app/src/prototype/` holds only the dev pages' shells and harnesses.
 - `pipeline/`: the uv project for the Python prebuild (`uv run prebuild`, under Commands), which
   turns raw sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
@@ -40,7 +44,8 @@ Paths in the docs are relative to the repo root, except the measurement citation
 Run npm commands in `app/` and uv commands in `pipeline/`.
 
 - `npm ci`, then `npm run dev`: the app on Vite's dev server, reading production data from
-  `wander-data.traviscole.xyz`.
+  `wander-data.traviscole.xyz`. On a page served from loopback, `?data=fixture|region|global` or
+  `?data=<origin>` reads a local data server's release instead (`app/src/page/dataOrigin.ts`).
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
 - `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
   uv) into `build/fixture/` and `build/stages/fixture/`. Vitest checks against it and fails,
@@ -49,11 +54,15 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `npm run data -- --profile fixture|region`: serves `build/fixture/` on :8791 or `build/region/` on
   :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
   7.3).
+- `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
+  its `bounds.bin` and L0 tiles and checks R2's headers. CI runs it on every pull request and before
+  the Pages deploy; it fails, naming `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
-  The smoke test runs against that build in `app/dist/` (it does not rebuild); the other tests run
-  test-only pages on the Vite dev server, reading the fixture from its data server, so none of it
-  reaches the build. Run `npx playwright install chromium` once first.
+  The smoke tests run against that build in `app/dist/` (it does not rebuild), on the fixture's
+  data server through `?data=` and with Commons stubbed; the other tests run test-only pages on
+  the Vite dev server, reading the fixture from its data server, so none of it reaches the build.
+  Run `npx playwright install chromium` once first.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only. It is the start of the GPU matrix
   (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and

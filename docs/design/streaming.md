@@ -5,8 +5,9 @@ review. It is written for whoever builds milestone 1 and what follows. It works 
 decisions: every layer independently toggleable; an all-eras event index built for explore in v1;
 desktop only; audio in v1; a museum-exhibit stance with exaggerated relief; beat stories with
 break-out; framed image cards; borders from the nearest historical-basemaps snapshot with its year
-shown; TypeScript, Vite, React, r3f, drei, Zustand; a Python (uv) offline prebuild; Pages at
-`wander.traviscole.xyz` and R2 at `wander-data.traviscole.xyz`; a public GitHub repo with Actions CI.
+shown; TypeScript, Vite and plain three.js with a DOM UI (owner decision 20); a Python (uv) offline
+prebuild; Pages at `wander.traviscole.xyz` and R2 at `wander-data.traviscole.xyz`; a public GitHub
+repo with Actions CI.
 
 Tags: **[M]** measured (file or source named; **[M proxy]** when the machine, browser or format differs
 from the target), **[S]** docs or source code, **[D]** arithmetic from [M]/[S], **[model]** output of
@@ -66,9 +67,9 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Scheduling** | Main-thread fetches (so preloads apply) in three classes, with a stall watchdog and no throughput estimator. 2 decode workers and 1 event worker. Uploads admitted by bytes (5.2, 5.4). | At 150 ms RTT six streams of ~45 KB objects top out near 14 Mbps [D], so 12 fetches run at once. Flights gate on readiness, so an estimator would only add false alarms. |
 | **GPU pools** | Fixed pools allocated at boot and written through three's public `copyTextureToTexture`, one call per mip (recipe in 5.5). No private three fields. | It keeps one instanced draw, hardware mipmapping and exact `surfaceHeight()` on documented API [S three 0.186.1]. |
 | **Quality tiers** | Two tiers, lite and full, fixed before a story starts, plus a render-scale governor (5.8). | No program compiles after the lobby. |
-| **Anti-aliasing** | Canvas `antialias: false`; SMAA in the composer; MSAA only on full, and only if E1 shows headroom. | r3f's default `antialias: true` plus three's 4-sample output target would add ~60 MiB at 1440×900 [S r3f 9.8.1, three 0.186.1 `WebGLOutput.js`]. |
+| **Anti-aliasing** | Canvas `antialias: false`; SMAA in the composer; MSAA only on full, and only if E1 shows headroom. | An antialiased canvas plus three's 4-sample output target would add ~60 MiB at 1440×900 [S three 0.186.1 `WebGLOutput.js`]. |
 | **Context loss, deploys** | In-place restore by re-running the boot GPU init from the byte cache, with a reload as fallback (5.9). Nothing is fetched from Pages after boot. R2 keys are never overwritten or deleted in v1. `release.json` is bundled, with an immutable copy on R2. | With three-managed pools, restore is the boot path again, and it avoids the extra click a reload needs for audio. Old tabs can live for days. |
-| **Fonts and labels** | Source Serif 4, the reading face (latin + italic, woff2), on Pages, preloaded. Libre Baskerville, the display face, and the troika label face (`.woff`, subset to exactly the characters used) load from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One drei `<Html>` per label creates its own React root [M]. |
+| **Fonts and labels** | Source Serif 4, the reading face (latin + italic, woff2), on Pages, preloaded. Libre Baskerville, the display face, and the troika label face (`.woff`, subset to exactly the characters used) load from R2 after the first frame. troika's `unicodeFontsURL` points at a same-origin 404, and the labels stage checks glyph coverage. Event labels are one DOM layer placed in one rAF pass. | troika reads `.woff` but not `.woff2` and otherwise fetches fallbacks from jsDelivr; a missing glyph would hang its label silently [S troika 0.52.5 `FontResolver.js`]. One pass reads every label's position and then writes them all, so layout never interleaves. |
 
 ---
 
@@ -675,15 +676,15 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 | Thread | Owns |
 |---|---|
-| Main | `lod.ts` (≤ 0.5 ms), the scheduler and every `fetch`, the byte cache, GPU uploads, instance buffers, event-label placement, R3F and React |
+| Main | `lod.ts` (≤ 0.5 ms), the scheduler and every `fetch`, the byte cache, GPU uploads, instance buffers, event-label placement, the DOM UI |
 | Decode workers × 2 | stateless: inflate and decode `.wst`, `.wot`, `.bin` and climate files; results and the compressed buffer come back as transferables |
 | Event worker × 1 | parses `.wev` into typed arrays, holds the resident pages, runs the detail-budget and Meanwhile queries |
 | Audio render thread | beds and synthesized UI sounds |
 
 - **Worker boundary:** worker `onmessage` handlers only push to a ready queue, which the frame loop
   drains.
-- **React:** holds discrete state only. The camera, date and ruler update through transient Zustand
-  subscriptions that write straight to uniforms and the DOM.
+- **UI:** plain DOM. Each frame the walk's UI reads the walk's state and writes only what changed;
+  the camera, date and ruler write straight to uniforms and the DOM.
 - **Idle work:** budgeted queues run inside rAF and yield through `MessageChannel`, because Safari
   lacks `requestIdleCallback` and `scheduler.postTask` [M `e1/results/browser-features-safari.json`:
   Safari 26.5].
@@ -1045,7 +1046,7 @@ story above them.
 
 | Budget | Number | Basis |
 |---|---|---|
-| **Before the first live frame** | **~0.99 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, r3f, drei subset, zustand, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 326 KB, 6 tiles at 54.3 KB mean [M `work/surface-bake/region-bake-v2.json`]. The instrument and environment are procedural; there is no transcoder. |
+| **Before the first live frame** | **~0.99 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + inline AVIF poster ≤ 50 KB; one JS entry ≤ 500 KB br (three, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 326 KB, 6 tiles at 54.3 KB mean [M `work/surface-bake/region-bake-v2.json`]. The instrument and environment are procedural; there is no transcoder. |
 | **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.99 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
 | **Lobby settle** (background) | ≤ 3 MB before L2 | L1 1.29 MB, 24 tiles [M `work/surface-bake/region-bake-v2.json`]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
@@ -1054,8 +1055,8 @@ story above them.
 | **Per story** | reported above 35 MiB (full) / 18 MiB (lite) | model tiles 15.8-23.3 MB full, 7.5-11.3 MB lite [model], ×1.3 for mountains; images ~1.2 MB; audio ≤ 0.32 MiB; overlays and effects 0.5-2 MB. Worst case 33.8 / 18.2 MB [D]. |
 | **Reading pace** | the next beat hides behind reading | a beat takes at least 15 s to read, so the full next beat needs 1.2 Mbps at the median and 3.4 Mbps at the maximum [D] |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **227**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **166**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
-| **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: React/three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
-| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread R3F/React ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
+| **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
+| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread walk and UI ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year (12 × 18 KB) uploaded per frame; border previews crossfade with no fetch |
 
 ---
@@ -1192,8 +1193,12 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
   covers the climate codec and the stage on synthetic NetCDFs.
   `uv run prebuild --profile fixture media --story _fixture --offline` writes
   `stories/_fixture/story.lock.json` and touches neither Commons nor R2.
-- **Release selection:** the app imports the release through a Vite alias chosen by
-  `WANDER_RELEASE=fixture|prod`, and `npm run stories` compiles against the same release.
+- **Release selection:** the app bundles `app/src/generated/release.json`. A page served from
+  loopback may name a local data server instead, with `?data=<origin>` or
+  `?data=fixture|region|global`, and reads that server's `/release.json`
+  (`app/src/page/dataOrigin.ts`); the public page ignores the query and never probes localhost. So
+  one build serves both the public page and the smoke test, which reads the fixture this way.
+  `npm run stories` compiles against the bundled release.
 - **Dev:** `npm ci && npm run dev` runs against production data (CORS `*`), so a fresh clone needs no
   download. `npm run dev:fixture` builds the fixture and serves `build/fixture` on :8791 with production
   headers.
@@ -1282,7 +1287,11 @@ committed lock (3.9), which `npm run stories` reads, and `release.json` has no m
        the built-in gl_VertexID and gl_InstanceID the readback reads, which take no slot), and no
        GL error. All 419 scenarios on both tiers take about 16 s on SwiftShader and 13 s on Metal
        on the M5.
-  7. On `main`, HEAD `rel/<id>.json` on the data host, then deploy the tested build to Pages.
+  7. `npm run check-release` (`app/scripts/checkRelease.ts`): HEAD `rel/<id>.json` on the data
+     host and, once it answers, GET `bounds.bin` and the six L0 tiles with the app's `Origin`,
+     checking R2's headers (4.2). It runs on every pull request, so a page naming data that is not
+     live cannot merge, and on `main` again just before the tested build deploys to Pages; the
+     deployment is then checked for `/`, `/credits` and a real 404.
 - **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
   every tile in `build/region/` and checks, with the fixture's seam code:
   - within a face, mip 0-2 border identity for every pair of available neighbors; across a face
@@ -1638,3 +1647,9 @@ spike's look:
 19. **Relief follows the zoom:** kLand and kSea are ×8 at 3,000 km across and wider and ×2 at
     100 km and closer, log-linear between (the PRD's "especially when zoomed out"). A constant ×8
     turns close views into bronze walls tens of kilometers high.
+
+Decided at go-live (issues #6 and #13), 2026-09-27:
+
+20. **Plain three.js:** the app is three.js with a plain-DOM UI; React, react-three-fiber, drei and
+    Zustand are no longer planned. The approved walk is plain three.js, and its bundle is smaller
+    without them.
