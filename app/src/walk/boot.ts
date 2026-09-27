@@ -313,14 +313,21 @@ async function assemble(
           ready,
           // The press that chose the plaque is the visitor's first gesture: sound unlocks in its
           // handler, since the walk's sound, made in it, hears only the gestures after it. Audio
-          // that fails leaves silence, never the story unstarted (streaming.md 5.9).
+          // that fails leaves silence, never the story unstarted (streaming.md 5.9); a story that
+          // does not start leaves no sound running behind its plate.
           enter: () => {
+            let ctx: AudioContext | undefined;
             try {
-              unlockSound();
+              ctx = unlockSound().ctx as AudioContext;
             } catch (error) {
               console.warn('Sound did not start:', error);
             }
-            return begin('fly');
+            try {
+              return begin('fly');
+            } catch (error) {
+              void ctx?.suspend();
+              throw error;
+            }
           },
           fail: onFail,
         })
