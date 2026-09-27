@@ -122,7 +122,7 @@ export class WalkClimate {
     }
     const target = wanted && this.#blend ? 1 : 0;
     const step = dtS / EASE_S;
-    this.#shown = Math.min(1, Math.max(0, this.#shown + (target > this.#shown ? step : -step)));
+    this.#shown += Math.max(-step, Math.min(step, target - this.#shown));
     uniforms.lookClimateStrength.value = this.drawn * strength;
   }
 
