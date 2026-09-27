@@ -273,8 +273,12 @@ export function startCue(engine: SoundEngine, name: CueName, at = engine.soon())
   };
 }
 
-/** Events from `at` on: `next` sounds one at `t` and returns when the one after it falls. */
-function every(
+/**
+ * Events from `at` on: `next` sounds one at `t` and returns when the one after it falls. Events a
+ * late pump has missed (a stalled page, a hidden tab's slowed timers) are skipped, not sounded all
+ * at once.
+ */
+export function every(
   engine: SoundEngine,
   at: number,
   sources: Sources,
@@ -283,6 +287,7 @@ function every(
   let t = at;
   sources.onStop(
     engine.schedule((horizon) => {
+      t = Math.max(t, engine.soon());
       while (t < horizon) t = next(t);
     }),
   );
