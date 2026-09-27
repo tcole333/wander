@@ -41,7 +41,8 @@ const OVERSHOOT = 8;
 export function openingPose(progress: number): OpeningPose {
   const p = clamp01(progress);
   return {
-    lamp: smooth(stretch(p, 0.06, 0.55)),
+    // Up from the start, quickly at first, so the room's poster dissolves into the rising lamp.
+    lamp: 1 - (1 - stretch(p, 0, 0.55)) ** 2,
     outer: OUTER_FROM * (1 - settle(stretch(p, 0.04, 0.72))),
     meridian: MERIDIAN_FROM * (1 - settle(stretch(p, 0.14, 0.84))),
     spin: coast(p),
