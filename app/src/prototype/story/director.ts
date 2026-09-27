@@ -306,6 +306,8 @@ export function bindWalkKeys(walk: Walk): () => void {
   const onKey = (event: KeyboardEvent) => {
     if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
     if (isFormField(event.target)) return;
+    // A focused button or link takes Space itself; the walk does not act on it twice.
+    if (event.key === ' ' && isControl(event.target)) return;
     if (event.key === 'ArrowRight') walk.next();
     else if (event.key === 'ArrowLeft') walk.back();
     else if (event.key === ' ') walk.togglePlay();
@@ -315,4 +317,9 @@ export function bindWalkKeys(walk: Walk): () => void {
   };
   addEventListener('keydown', onKey);
   return () => removeEventListener('keydown', onKey);
+}
+
+/** A button, link or disclosure, which the browser presses with Space. */
+function isControl(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest('button, a, summary') !== null;
 }
