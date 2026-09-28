@@ -55,9 +55,8 @@ export class UploadQueue {
     return this.#queue.length;
   }
 
-  /** Bytes still to write. */
+  /** Bytes the queued jobs hold, parts already written included, until each job's last part lands. */
   get retainedBytes(): number {
-    // Already-written parts remain in the job until its last part lands.
     return this.#queue.reduce(
       (sum, { job }) => sum + job.parts.reduce((n, part) => n + part.bytes, 0),
       0,
