@@ -18,7 +18,6 @@ import {
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { StreamerStats } from '../../contract';
 import type { Release } from '../../data/release';
-import { loadSurfaceLayer } from '../../data/surfaceLayer';
 import { ClearanceField } from '../../globe/clearance';
 import { EARTH_RADIUS_KM, viewPose, type View } from '../../globe/viewCamera';
 import { nearestRank, summarizeFrames, type FrameSummary } from '../../perf/frameStats';
@@ -71,7 +70,7 @@ async function main(): Promise<void> {
   document.body.prepend(renderer.domElement);
 
   const streamer = await createSurfaceStreamer(renderer, release);
-  const field = new ClearanceField(await loadSurfaceLayer(release));
+  const field = new ClearanceField(streamer.layer);
   const look = createDebugMaterial(streamer.pools, release.surface);
 
   const scene = new Scene();
