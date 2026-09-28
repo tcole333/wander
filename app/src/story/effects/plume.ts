@@ -410,6 +410,20 @@ export class Plume {
       geometry.getAttribute(name).needsUpdate = true;
   }
 
+  inspectMemory(account: import('../../perf/memory').MemoryAccount): void {
+    for (const array of [
+      this.#center,
+      this.#shape,
+      this.#look,
+      this.#place,
+      this.#form,
+      this.#tone,
+      this.#depth,
+    ]) {
+      account.array('effects.plumeArrays', array);
+    }
+  }
+
   dispose(): void {
     this.mesh.geometry.dispose();
     (this.mesh.material.uniforms.uPuff?.value as DataTexture | undefined)?.dispose();

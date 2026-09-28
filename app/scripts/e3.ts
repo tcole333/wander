@@ -22,7 +22,7 @@
 //     heap and the DOM's counts. This one drives the headless shell over a bare CDP connection:
 //     Playwright keeps the Network domain on, whose agent holds response bodies in the renderer.
 //
-// The production page has no hooks, so an init script logs what the DOM shows on the page's own
+// The public production page has no hooks, so an init script logs what the DOM shows on the page's own
 // clock: the room opening, the lobby's phase (data-lobby, 'gone' at the dive's landing), a beat's
 // callouts fading in (they wait for the landing) and the time ruler's engraving, which comes to
 // rest at the landing on a beat that spreads nothing. The planned flights come from the director
@@ -33,6 +33,8 @@
 //   node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results \
 //     [--url https://wander.traviscole.xyz] [--name live-<today>] [--only cold,walk,context,leak] \
 //     [--runs 3] [--walks 10]
+// A loopback --url may include ?data=global. The leak check adds ?memory=1 there to collect the
+// app's optional account, with no Network domain or polling of that account during the walk.
 import {
   chromium,
   type Browser,
@@ -50,6 +52,7 @@ import type { Release } from '../src/data/release.ts';
 import type { Story } from '../src/story/story.ts';
 import type { ViewControl } from '../src/view/viewControl.ts';
 import type { ViewState } from '../src/view/viewState.ts';
+import { dataOverride } from '../src/page/dataOrigin.ts';
 
 /** What the init script logs, each entry at performance.now() on the page's clock. */
 interface E3Log {
@@ -114,13 +117,20 @@ mkdirSync(out, { recursive: true });
 mkdirSync(resultsDir, { recursive: true });
 const timeoutMs = Number(values.timeout) * 1000;
 const only = new Set(values.only.split(','));
-const entry = values.url.replace(/\/$/, '') + '/';
+const entry = new URL(values.url).href;
 const APP_HOST = new URL(entry).host;
 
 const appRoot = resolve(import.meta.dirname, '..');
-const release = JSON.parse(
+const bundledRelease = JSON.parse(
   readFileSync(join(appRoot, 'src/generated/release.json'), 'utf8'),
 ) as Release;
+const override = dataOverride(new URL(entry));
+const release = override
+  ? await fetch(`${override}/release.json`).then(async (response) => {
+      if (!response.ok) throw new Error(`local release: HTTP ${response.status}`);
+      return (await response.json()) as Release;
+    })
+  : bundledRelease;
 const DATA_HOST = new URL(release.dataHost).host;
 
 // The story and the director, as the page runs them.
@@ -665,7 +675,10 @@ async function leakSession(): Promise<Record<string, unknown>> {
   try {
     const { page } = bare;
     const blank = await sample(bare);
-    await bare.send('Page.navigate', { url: entry }, page);
+    const leakUrl = new URL(entry);
+    if (['127.0.0.1', 'localhost', '[::1]'].includes(leakUrl.hostname))
+      leakUrl.searchParams.set('memory', '1');
+    await bare.send('Page.navigate', { url: leakUrl.href }, page);
     await bare.until('window.__e3?.open != null');
     await bare.until("document.body.dataset.lobby === 'idle'");
     await bare.click('.lobby-plaque');
@@ -729,6 +742,11 @@ async function leakSession(): Promise<Record<string, unknown>> {
     };
     return {
       driver: 'bare CDP, no Network domain',
+      url: leakUrl.href,
+      cpuBudget: {
+        limitMiB: 256,
+        passed: samples.filter((s) => s.walks > 0).every((s) => s.rendererMB <= 256),
+      },
       samples,
       growth: { walks3to6: growth(3, 6), walks6toLast: growth(6, walks) },
       landingsUnthrottled: {
@@ -790,8 +808,11 @@ async function sample(bare: Bare) {
   const gpu = processInfo.filter((p) => p.type === 'GPU').map((p) => footprint(p.id));
   const dump = await bare.memoryDump();
   const parts = (renderer && dump[renderer.pid]) ?? {};
+  // Sample last, so allocating/serializing the account cannot inflate this allocator dump.
+  const memoryAccount = await bare.evaluate<unknown>('window.__wanderMemory?.() ?? null');
   const mb = (bytes: number) => Math.round((bytes / 2 ** 20) * 10) / 10;
   return {
+    memoryAccount,
     jsHeapUsedMB: mb(heap.usedSize),
     jsHeapTotalMB: mb(heap.totalSize),
     nodes: dom.nodes,

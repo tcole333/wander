@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { dataOverride } from './dataOrigin';
+import { dataOverride, memoryRequested } from './dataOrigin';
+
+describe('memoryRequested', () => {
+  it('requires an explicit opt-in on an exact loopback hostname', () => {
+    for (const hostname of ['localhost', '127.0.0.1', '[::1]']) {
+      expect(memoryRequested({ hostname, search: '?data=global&memory=1' })).toBe(true);
+      for (const search of ['', '?data=global', '?memory', '?memory=0']) {
+        expect(memoryRequested({ hostname, search })).toBe(false);
+      }
+    }
+    for (const hostname of ['wander.traviscole.xyz', 'localhost.example.com', '192.168.1.1']) {
+      expect(memoryRequested({ hostname, search: '?memory=1' })).toBe(false);
+    }
+  });
+});
 
 describe('dataOverride', () => {
   it('ignores ?data= on the public page', () => {

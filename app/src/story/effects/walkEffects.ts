@@ -251,6 +251,10 @@ export const createWalkEffects: CreateWalkEffects = (
     },
 
     borders: () => borders.shown,
+    inspectMemory(account) {
+      climate.inspectMemory(account);
+      plume?.draw.inspectMemory(account);
+    },
 
     dispose() {
       if (ash) ash.lookAshStrength.value = 0;

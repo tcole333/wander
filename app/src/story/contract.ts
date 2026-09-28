@@ -159,6 +159,7 @@ export type CreateWalkUi = (
  * read their files from `source`'s data host.
  */
 export interface WalkEffects {
+  inspectMemory?(account: import('../perf/memory').MemoryAccount): void;
   group: Object3D;
   params: Params;
   update(

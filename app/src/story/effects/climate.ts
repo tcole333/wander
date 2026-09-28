@@ -29,6 +29,7 @@ import type { WalkState } from '../contract';
 import { civilFromDay } from '../dates';
 import type { Story, StoryBeat } from '../story';
 import { smoothstep } from './timeline';
+import type { MemoryAccount } from '../../perf/memory';
 
 /** Where the climate files are: the release's data host and its modera section, if it has one. */
 export interface ClimateSource {
@@ -101,6 +102,16 @@ export class WalkClimate {
     const { lat, lon0, dlon } = modera;
     const [north = 90, south = -90] = [lat[0], lat[lat.length - 1]];
     uniforms?.lookClimateGrid.value.set(lon0, dlon, north, (north - south) / (lat.length - 1));
+  }
+
+  /** Starts loading the years the story's climate beats reach. */
+  inspectMemory(account: MemoryAccount): void {
+    account.array('climate.blendScratch', this.#field);
+    for (const [year, file] of this.#years) {
+      if (!file) continue;
+      for (const array of [file.codes, file.scale, file.offset])
+        account.array(`climate.year.${year}`, array);
+    }
   }
 
   /** Starts loading the years the story's climate beats reach. */

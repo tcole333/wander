@@ -20,6 +20,15 @@ const PUMP_EVERY = 0.2;
 const GLIDE = 0.05;
 
 export class SoundEngine {
+  inspectMemory(account: import('../perf/memory').MemoryAccount): void {
+    for (const [key, buffer] of this.#noise) account.audio(`audio.noise.${key}`, buffer);
+    account.details.audio = {
+      sampleRate: this.ctx.sampleRate,
+      state: this.ctx.state,
+      cachedNoiseBuffers: this.#noise.size,
+    };
+  }
+
   readonly ctx: BaseAudioContext;
   readonly bus: Record<Bus, GainNode>;
   #mix: Mix;

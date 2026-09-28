@@ -72,6 +72,7 @@ export interface PoolSpec<A extends PoolArray> {
 }
 
 export interface GpuPool<A extends PoolArray> {
+  inspectMemory?(account: import('../perf/memory').MemoryAccount, owner: string): void;
   texture: DataArrayTexture;
   spec: PoolSpec<A>;
   bytesPerSlot: number;
@@ -179,6 +180,18 @@ export function createGpuPool<A extends PoolArray>(
     texture,
     spec,
     bytesPerSlot: poolBytesPerSlot(spec),
+    inspectMemory(account, owner) {
+      account.texture(`${owner}.cpuMirror`, texture);
+      for (const source of staging) account.texture(`${owner}.staging`, source);
+      account.details[owner] = {
+        width,
+        height,
+        levels,
+        slots,
+        bytesPerSlot: poolBytesPerSlot(spec),
+        gpuBytes: slots * poolBytesPerSlot(spec),
+      };
+    },
 
     write(slot, level, texels) {
       requireInteger('slot', slot, 0, slots - 1);
