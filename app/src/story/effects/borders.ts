@@ -3,7 +3,7 @@
 // borders. Its field loads in the background once the room is open: fetched from the data host,
 // inflated as it arrives and uploaded one face a frame, so no frame hitches. Once every face is in,
 // the look's groove eases in and out over borderFade as beats change, and fades as the view closes
-// in below about 300 km across, where one of the field's texels spans tens of pixels. Without a
+// in from 400 to 220 km across, where one of the field's texels spans tens of pixels. Without a
 // borders section in the release, or once the file fails, it logs once and draws no borders: the
 // walk never breaks over them.
 import { tunables } from '../../config/tunables';
