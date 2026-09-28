@@ -2,7 +2,7 @@
 // Chromium on Metal at 1440x900. The first run shoots the opening at 0 to 4 s after it starts, the
 // settled lobby, the plaque hovered, the Credits panel over the lobby, the dive at a few moments
 // on its way, the landing on beat 1 with the sound knob, the Credits panel over the walk, and the
-// Europe beat with the climate legend, the return, and a muted second dive. The second run
+// Europe beat with the climate legend, the return, Magellan’s first two beats, and a fresh Tambora. The second run
 // records the opening, dive, return and re-entry to video,
 // untouched by screenshots. Writes <out>/*.png, <out>/lobby.webm and <out>/lobby.json (each shot's
 // time, fonts, the sound's state after the dive, any request to Wikimedia and any console errors).
@@ -79,9 +79,12 @@ try {
   await phase(page, 'idle');
   await page.waitForTimeout(SETTLE_MS);
   await shoot('lobby');
-  await page.hover('.lobby-plaque');
+  await page.hover('.lobby-plaque[data-story="tambora"]');
   await page.waitForTimeout(600);
   await shoot('lobby-hover');
+  await page.hover('.lobby-plaque[data-story="magellan"]');
+  await page.waitForTimeout(600);
+  await shoot('lobby-magellan-hover');
 
   await page.click('.lobby-credits');
   await page.waitForTimeout(700);
@@ -89,7 +92,7 @@ try {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
 
-  await page.click('.lobby-plaque');
+  await page.click('.lobby-plaque[data-story="tambora"]');
   const chosen = Date.now();
   for (const ms of DIVE_AT) {
     await page.waitForTimeout(Math.max(0, chosen + ms - Date.now()));
@@ -124,7 +127,23 @@ try {
   await shoot('lobby-returned');
   await page.click('.wu-sound');
   await shoot('lobby-muted');
-  await page.click('.lobby-plaque');
+  await page.click('.lobby-plaque[data-story="magellan"]');
+  await phase(page, 'gone');
+  await page.waitForTimeout(FADE_MS + 1000);
+  await shoot('magellan-beat-1');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(
+    () => document.querySelector('.rc-plate-top')?.textContent === '13 DECEMBER',
+    undefined,
+    { timeout: timeoutMs },
+  );
+  await page.waitForTimeout(FADE_MS);
+  await shoot('magellan-beat-2');
+  await page.keyboard.press('Escape');
+  await phase(page, 'idle');
+  await page.waitForTimeout(FADE_MS);
+  await shoot('lobby-after-magellan');
+  await page.click('.lobby-plaque[data-story="tambora"]');
   await phase(page, 'gone');
   await page.waitForTimeout(FADE_MS);
   await shoot('beat-1-muted-again');
@@ -149,9 +168,9 @@ try {
   const filmed = await open(recording);
   await phase(filmed, 'idle');
   await filmed.waitForTimeout(SETTLE_MS);
-  await filmed.hover('.lobby-plaque');
+  await filmed.hover('.lobby-plaque[data-story="tambora"]');
   await filmed.waitForTimeout(1000);
-  await filmed.click('.lobby-plaque');
+  await filmed.click('.lobby-plaque[data-story="tambora"]');
   await phase(filmed, 'gone');
   await filmed.waitForTimeout(FADE_MS + 1500);
   await filmed.keyboard.press('ArrowRight');
@@ -160,7 +179,9 @@ try {
   await phase(filmed, 'idle');
   await filmed.waitForTimeout(FADE_MS);
   await filmed.click('.wu-sound');
-  await filmed.click('.lobby-plaque');
+  await filmed.hover('.lobby-plaque[data-story="magellan"]');
+  await filmed.waitForTimeout(1000);
+  await filmed.click('.lobby-plaque[data-story="magellan"]');
   await phase(filmed, 'gone');
   await filmed.waitForTimeout(FADE_MS);
   const video = filmed.video();
