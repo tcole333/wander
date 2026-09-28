@@ -28,7 +28,7 @@ export interface SeaName {
   lat: number;
   /** The em, in degrees of arc. */
   size: number;
-  /** Space added between letters, in ems. */
+  /** Space added between letters, in ems; TRACKING's for its style when not given. */
   tracking?: number;
   /** The baseline's direction, degrees counterclockwise from east. */
   angle?: number;
@@ -127,6 +127,8 @@ const PAD = 16;
 const ATLAS_WIDTH = 2048;
 /** Line spacing, in ems. */
 const LEADING = 1.25;
+/** Space added between letters, in ems, by style. */
+const TRACKING = { ocean: 0.55, sea: 0.12 } as const;
 const FONTS = {
   ocean: `400 ${EM_TEXELS}px "Libre Baskerville"`,
   sea: `italic 400 ${EM_TEXELS}px "Source Serif 4"`,
@@ -212,7 +214,7 @@ export class SeaNameLayer {
     // Each line's letters stand where the text before them ends, kerning kept, plus the tracking.
     const lettersOf = (name: SeaName) => {
       ctx.font = FONTS[name.style];
-      const track = (name.tracking ?? 0) * EM_TEXELS;
+      const track = (name.tracking ?? TRACKING[name.style]) * EM_TEXELS;
       return upper(name)
         .split('\n')
         .map((line) => {

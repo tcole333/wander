@@ -23,7 +23,6 @@
     "lon": 114.5,
     "lat": -10.5,
     "size": 0.6,
-    "tracking": 0.55,
     "style": "ocean",
     "minKm": 2400,
     "maxKm": 8000
@@ -33,7 +32,6 @@
     "lon": 115.2,
     "lat": -10.6,
     "size": 0.26,
-    "tracking": 0.55,
     "style": "ocean",
     "maxKm": 2400
   },
@@ -42,7 +40,6 @@
     "lon": -42,
     "lat": 30,
     "size": 3.4,
-    "tracking": 0.55,
     "style": "ocean",
     "minKm": 8000
   },
@@ -51,7 +48,6 @@
     "lon": -18,
     "lat": -24,
     "size": 3.4,
-    "tracking": 0.55,
     "style": "ocean",
     "minKm": 8000
   },
@@ -60,7 +56,6 @@
     "lon": -20,
     "lat": 46,
     "size": 0.9,
-    "tracking": 0.55,
     "style": "ocean",
     "minKm": 2400,
     "maxKm": 8000
@@ -79,7 +74,6 @@
     "lon": -160,
     "lat": 26,
     "size": 3.4,
-    "tracking": 0.55,
     "style": "ocean",
     "minKm": 8000
   },
@@ -88,7 +82,6 @@
     "lon": -128,
     "lat": -26,
     "size": 3.4,
-    "tracking": 0.55,
     "style": "ocean",
     "minKm": 8000
   },
@@ -97,7 +90,6 @@
     "lon": 111.5,
     "lat": -4.9,
     "size": 0.62,
-    "tracking": 0.12,
     "style": "sea",
     "minKm": 2400
   },
@@ -106,7 +98,6 @@
     "lon": 112.4,
     "lat": -5.6,
     "size": 0.22,
-    "tracking": 0.12,
     "style": "sea",
     "maxKm": 2400
   },
@@ -115,7 +106,6 @@
     "lon": 115.9,
     "lat": -7.45,
     "size": 0.16,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -123,7 +113,6 @@
     "lon": 121,
     "lat": -7.2,
     "size": 0.5,
-    "tracking": 0.12,
     "style": "sea",
     "minKm": 2400
   },
@@ -132,7 +121,6 @@
     "lon": 119.2,
     "lat": -7.6,
     "size": 0.16,
-    "tracking": 0.12,
     "style": "sea",
     "minKm": 700,
     "maxKm": 2400
@@ -142,7 +130,6 @@
     "lon": 117.4,
     "lat": -8.0,
     "size": 0.045,
-    "tracking": 0.12,
     "style": "sea",
     "maxKm": 700
   },
@@ -151,7 +138,6 @@
     "lon": 117.93,
     "lat": -8.58,
     "size": 0.035,
-    "tracking": 0.12,
     "style": "sea",
     "maxKm": 700
   },
@@ -160,7 +146,6 @@
     "lon": 122,
     "lat": -9.55,
     "size": 0.3,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -168,7 +153,6 @@
     "lon": 127.5,
     "lat": -5.6,
     "size": 0.6,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -176,7 +160,6 @@
     "lon": 127,
     "lat": -11.6,
     "size": 0.62,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -184,7 +167,6 @@
     "lon": 136,
     "lat": -9.6,
     "size": 0.8,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -192,7 +174,6 @@
     "lon": 118.3,
     "lat": -2.2,
     "size": 0.3,
-    "tracking": 0.12,
     "angle": 72,
     "style": "sea"
   },
@@ -201,7 +182,6 @@
     "lon": 122,
     "lat": 3.8,
     "size": 0.6,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -209,7 +189,6 @@
     "lon": 115,
     "lat": 13.5,
     "size": 1.0,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -217,7 +196,6 @@
     "lon": 101.6,
     "lat": 9.6,
     "size": 0.45,
-    "tracking": 0.12,
     "angle": -50,
     "style": "sea"
   },
@@ -226,7 +204,6 @@
     "lon": 96.3,
     "lat": 11.5,
     "size": 0.6,
-    "tracking": 0.12,
     "angle": -80,
     "style": "sea"
   },
@@ -235,7 +212,6 @@
     "lon": 134,
     "lat": 18,
     "size": 1.2,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -243,7 +219,6 @@
     "lon": 155,
     "lat": -16,
     "size": 1.1,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -251,7 +226,6 @@
     "lon": 129.3,
     "lat": -35.3,
     "size": 0.75,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -259,7 +233,6 @@
     "lon": 87.8,
     "lat": 14.5,
     "size": 1.4,
-    "tracking": 0.12,
     "style": "sea",
     "minKm": 8000
   },
@@ -268,7 +241,6 @@
     "lon": 89,
     "lat": 18,
     "size": 0.75,
-    "tracking": 0.12,
     "style": "sea",
     "maxKm": 8000
   },
@@ -277,7 +249,6 @@
     "lon": 62.5,
     "lat": 14,
     "size": 1.4,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -285,7 +256,6 @@
     "lon": 38.6,
     "lat": 20,
     "size": 0.8,
-    "tracking": 0.12,
     "angle": -58,
     "style": "sea"
   },
@@ -294,7 +264,6 @@
     "lon": 40.8,
     "lat": -18.5,
     "size": 0.6,
-    "tracking": 0.12,
     "angle": 68,
     "style": "sea"
   },
@@ -303,7 +272,6 @@
     "lon": 34.5,
     "lat": 43.2,
     "size": 0.8,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -311,7 +279,6 @@
     "lon": 18,
     "lat": 34.2,
     "size": 1.1,
-    "tracking": 0.12,
     "style": "sea",
     "minKm": 8000
   },
@@ -320,7 +287,6 @@
     "lon": 4.2,
     "lat": 38.1,
     "size": 0.42,
-    "tracking": 0.12,
     "style": "sea",
     "maxKm": 8000
   },
@@ -329,7 +295,6 @@
     "lon": 12.4,
     "lat": 39.9,
     "size": 0.32,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -337,7 +302,6 @@
     "lon": 18.8,
     "lat": 37.4,
     "size": 0.38,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -345,7 +309,6 @@
     "lon": 15.6,
     "lat": 42.9,
     "size": 0.32,
-    "tracking": 0.12,
     "angle": -37,
     "style": "sea"
   },
@@ -354,7 +317,6 @@
     "lon": 3.4,
     "lat": 56,
     "size": 0.7,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -362,7 +324,6 @@
     "lon": 19.2,
     "lat": 56.2,
     "size": 0.5,
-    "tracking": 0.12,
     "angle": 48,
     "style": "sea"
   },
@@ -371,7 +332,6 @@
     "lon": -4.6,
     "lat": 45.3,
     "size": 0.4,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -379,7 +339,6 @@
     "lon": -8,
     "lat": 50.3,
     "size": 0.3,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -387,7 +346,6 @@
     "lon": -1.6,
     "lat": 50.15,
     "size": 0.2,
-    "tracking": 0.12,
     "angle": 12,
     "style": "sea"
   },
@@ -396,7 +354,6 @@
     "lon": -5.0,
     "lat": 53.7,
     "size": 0.2,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -404,7 +361,6 @@
     "lon": -68.4,
     "lat": 43.1,
     "size": 0.26,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -412,7 +368,6 @@
     "lon": -72.9,
     "lat": 41.1,
     "size": 0.08,
-    "tracking": 0.12,
     "angle": 10,
     "style": "sea"
   },
@@ -421,7 +376,6 @@
     "lon": -90,
     "lat": 25,
     "size": 1.0,
-    "tracking": 0.12,
     "style": "sea"
   },
   {
@@ -429,7 +383,6 @@
     "lon": -75,
     "lat": 15,
     "size": 1.1,
-    "tracking": 0.12,
     "style": "sea"
   }
 ]
