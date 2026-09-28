@@ -12,13 +12,15 @@ export function el<K extends keyof HTMLElementTagNameMap>(
 }
 
 /**
- * Runs `action` on click and gives up focus, so Space and the arrow keys stay with the director
- * rather than pressing or scrolling whatever was clicked last.
+ * Runs `action` on click. A pointer's click gives up focus, so Space and the arrow keys stay with
+ * the director rather than pressing or scrolling whatever was clicked last; a click the keyboard
+ * made (Enter or Space, with no pointer detail) keeps it, so a keyboard visitor stays where they
+ * were.
  */
 export function onPress(element: HTMLElement, action: (event: MouseEvent) => void): void {
   element.addEventListener('click', (event) => {
     action(event);
-    element.blur();
+    if (event.detail > 0) element.blur();
   });
 }
 
