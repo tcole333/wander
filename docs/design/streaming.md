@@ -1177,8 +1177,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     stands for a story not yet built. The ambient events are the lock's glows (3.9): small
     pinpricks of lit brass with a slow, shallow breath, additive and unlit, in three's built-in
     points material, compiled in the precompile. They stay faint and apart, since ember orange
-    belongs to the chosen story. There is no hover queue yet;
-    the dive's readiness gate covers beat 1.
+    belongs to the chosen story. There is no hover queue yet; the dive's readiness gate covers
+    beat 1.
   - **Credits:** an engraved link in the lobby, and the card's Credits link in the walk, open the
     PRD's Credits panel in place: the credits page's own sheet (`app/credits.html`, one source for
     both) in the card's brass frame, on the room darkened as if the lamp had turned to the sheet.
