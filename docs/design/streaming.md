@@ -559,28 +559,36 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
 ### 3.9 Story source
 
 - **`stories/<story>/story.md`:** front matter (id, title, blurb, credits), then per beat one H2, one
-  fenced YAML block tagged `beat`, and 60-120 words of text.
+  fenced YAML block tagged `beat`, and 60-120 words of text. The folder's name is the story's id.
+- **Schema:** until `npm run stories` compiles stories, `parseStory` (`app/src/story/story.ts`)
+  holds the schema below, and Vitest runs it over every `stories/*/story.md`. A key the schema does
+  not name fails, anywhere in a beat, so a misspelled field is caught rather than read as its
+  default. Beat ids are unique within a story.
 - **Beat fields:**
   - `id`
-  - `date`: ISO-8601, proleptic Gregorian, astronomical years (for example `-0099-03-01`); optional
-    `window: <start>..<end>` and `precision`
+  - `date`: ISO-8601, proleptic Gregorian, astronomical years (for example `-0099-03-01`);
+    `window: <start>..<end>`, the stretch of time the beat covers, which holds its date; optional
+    `precision`: day (the default), month or year
   - `camera`: `target` [lon, lat] in degrees; `viewKm`, the visible width at the target; `tilt` in
     degrees from nadir; `heading` in degrees clockwise from north; `drift`, none or slow
   - `focal`: `{qid, at?, date?}` (overrides Wikidata)
-  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?, license?}`. `credit` names
-    the makers where Commons' Artist field names an uploader instead (the Internet Archive's Flickr
-    account for a book's engraving) or spells a name otherwise than the credits page ('J.A.Gradmann'
-    for J. A. Gradmann); `license` gives the source's own rights statement where Commons gives only
-    its template's short name ('No restrictions' for No known copyright restrictions). Otherwise
-    both come from Commons.
+  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?, license?}`, on every beat, with
+    alt text that describes the image for a reader who cannot see it. `credit` names the makers
+    where Commons' Artist field names an uploader instead (the Internet Archive's Flickr account for
+    a book's engraving) or spells a name otherwise than the credits page ('J.A.Gradmann' for J. A.
+    Gradmann); `license` gives the source's own rights statement where Commons gives only its
+    template's short name ('No restrictions' for No known copyright restrictions). Otherwise both
+    come from Commons.
   - `layers`: the listed layers are on and anything omitted is off. The canonical order, which is also
     the `?l=` bit order: relief, bathymetry, coastline, landSea, water, graticule, labels, borders,
-    ecoregions, petroleum, mountains, minerals, climate, events. `climate` may carry
-    `{mode: monthly | annual}`.
+    ecoregions, petroleum, mountains, minerals, climate, events. The schema takes the names and
+    their order from `shared/constants.json`. `climate` may carry `{mode: monthly | annual}`.
   - `effects`: a list of `{plume | spread | route | pulse | callout: params}`; spread and route take
     `{dataset, wDays, style}`
   - `audio: {cues: [...]}`
   - `meanwhile: auto | [qids]`
+  - `sources`: a list of `{title, author?, publisher?, year?, url}`, at least one of them with an
+    https link, since the card's sources are the beat's grounding
 - **Datasets:** `stories/<story>/data/<name>.geojson`, with kind, epoch and grid in top-level properties
   that Python reads. A spread is isochrone polygons, each with a `by` date. A route is a LineString with
   a per-vertex date array.
