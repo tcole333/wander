@@ -1,6 +1,6 @@
 // The beat card: a sheet of aged vellum in a thin riveted brass frame at the left, with the date
 // line, the title in engraved capitals over a hairline rule, the beat's text, and its image
-// mounted like a museum card (a mat, a brass bevel and a caption line for the credit), sized so
+// mounted like a museum card (a mat, a brass bevel and a caption for the credit), sized so
 // all of it shows without scrolling. The image is the story's crop, baked by the media stage and
 // read from the data host; its credit comes from the story's lock (../lock.ts). The sources fold
 // into a footnote at its foot, with the Credits link beside them, which opens the Credits panel.
@@ -110,10 +110,12 @@ export class BeatCard {
 
   /**
    * The image in its mount: a brass bevel around a mat, and the baked crop filling the mat's
-   * window, with the credit as the caption below. The small file shows first, blurred, and the
-   * sharp one, at the width the browser picks for the frame, fades in over it; should the sharp one
-   * fail, the small one sharpens in its place. With neither, or with no baked crop in the lock, the
-   * frame becomes a plate across the text column, its label the image's whole description.
+   * window, with the credit as the caption below: the makers and the license on one line, and
+   * under them, in full, the credit line of a collection that asks for one. The small file shows
+   * first, blurred, and the sharp one, at the width the browser picks for the frame, fades in over
+   * it; should the sharp one fail, the small one sharpens in its place. With neither, or with no
+   * baked crop in the lock, the frame becomes a plate across the text column, its label the
+   * image's whole description.
    */
   #showImage(image: StoryImage): void {
     this.#figure.replaceChildren();
@@ -142,11 +144,21 @@ export class BeatCard {
       plate();
       return;
     }
-    const { credit: makers, license, source } = image.locked;
+    const { credit: makers, collection, license, source } = image.locked;
     mount.style.setProperty('--ar', String(large.w / large.h));
     const line = [makers, license].filter((part) => part.length > 0).join(' · ');
-    credit.textContent = line;
+    credit.replaceChildren(el('span', 'wu-credit-line', line));
     credit.title = line;
+    if (collection) {
+      // The collection's names stay whole, so its line breaks only after a comma.
+      const held = el('span', 'wu-credit-collection');
+      for (const [i, name] of collection.split(', ').entries()) {
+        if (i > 0) held.append(', ');
+        held.append(el('span', undefined, name));
+      }
+      credit.append(held);
+      credit.title = `${line}\n${collection}`;
+    }
     credit.href = source;
 
     const url = (file: LockedFile) => `${this.#dataHost}/${file.key}`;
