@@ -9,6 +9,9 @@
 // mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing the story's plaque starts the
 // walk and flies into its first beat.
 //
+// The first frame follows the roots (L0-L1) and the precompile, and in the lobby the opening starts
+// on it: the finer tiles stream in as the lamp comes up.
+//
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
 // (prototype/app/main.ts) boot it.
@@ -302,7 +305,6 @@ async function assemble(
           places: Object.values(source.meanwhile).flatMap((entries) => entries.map((e) => e.at)),
           museum,
           control,
-          ready,
           // The press that chose the plaque is the visitor's first gesture: sound unlocks in its
           // handler, since the walk's sound, made in it, hears only the gestures after it. Audio
           // that fails leaves silence, never the story unstarted (streaming.md 5.9); a story that
@@ -371,7 +373,7 @@ async function assemble(
     if (renderer.getPixelRatio() !== cameraParams.pixelRatio) {
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
-    lobby?.update(now, dt, camera);
+    lobby?.update(dt, camera);
     riseEffects(dt);
     story?.walk.update(now, dt);
     control.step(now, dt);
