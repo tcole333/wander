@@ -100,3 +100,11 @@ def test_an_entry_gives_its_date_with_its_precision():
         "date": "1817-11-01",
         "precision": "month",
     }
+
+
+def test_a_written_date_and_place_stand_in_for_the_index_s():
+    rising = event("Q5010928", 2.0, (18.0, -33.0), "1815-01-01", until="1815-12-31", precision=9)
+    written = {"line": "On the Cape frontier…", "date": "1815-11-18", "at": [25.8, -32.8]}
+    moved = m.as_written(rising, written)
+    assert (moved.date, moved.precision, moved.at) == (m.iso_day("1815-11-18"), 11, (25.8, -32.8))
+    assert moved.dated == (moved.date, moved.date)

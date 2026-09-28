@@ -1,7 +1,8 @@
 # Meanwhile's written lines (docs/design/streaming.md 3.9): for each event a beat's Meanwhile
 # shows, the line the panel prints, in the story's voice, and the source it rests on. `date` gives
-# the source's date where it differs from Wikidata's. `uv run prebuild meanwhile --story tambora`
-# merges them into story.lock.json.
+# the day the source dates it to where Wikidata's differs, and `at` [lon, lat] its place where
+# Wikidata's is its location's middle (a country, a colony, a sea). The rule picks by both.
+# `uv run prebuild meanwhile --story tambora` merges them into story.lock.json.
 
 Q3538392:
   line: Kandy's chiefs depose their king and cede his kingdom to Britain
@@ -28,6 +29,7 @@ Q1359641:
 
 Q298864:
   line: Murat's war ends, and Naples returns to its Bourbon king
+  at: [14.2, 41.18]
   source: {title: Neapolitan War (Wikipedia), url: "https://en.wikipedia.org/wiki/Neapolitan_War"}
 
 Q46362:
@@ -40,6 +42,8 @@ Q48314:
 
 Q5010928:
   line: On the Cape frontier, Boer farmers rise against British rule
+  date: "1815-11-18"
+  at: [25.8, -32.8]
   source: {title: Slachter's Nek Rebellion (Wikipedia), url: "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"}
 
 Q233688:
