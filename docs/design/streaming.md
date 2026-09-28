@@ -1326,9 +1326,10 @@ one story, named with `--story <id>`. A bare run builds the global profile (owne
 Each profile has its own output root: `build/out/` for global, `build/region/` for the
 milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the same
 `--profile` (4.3). The fixture profile skips `fetch`, `wikidata` and `excerpts`, so it needs no
-raw data, and `events`, `modera` and `meanwhile`, which reads the events, until their layers have
-excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-context worker processes. `media`
-also takes `--offline`.
+raw data, and `borders`, whose tests use synthetic snapshots. It runs `events` and `modera` on
+committed excerpts (7.3). `meanwhile` stays disabled until a fixture story has its own lock, so
+the fixture cannot rewrite Tambora's global-build lock. `--jobs` defaults to min(8, CPUs), with
+spawn-context worker processes. `media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
@@ -1400,20 +1401,27 @@ release's `media` section lists every key the locks name (3.8).
   coverage `inputs` to match each other and the working tree, so after a coverage rerun on changed
   code the bake stays stale until a surface run completes. The fixture build also writes
   `build/stages/fixture/stamp.json`, a hash over the same paths plus `pipeline/tests/data`, which
-  the Vitest fixture loader checks (7.3).
+  the Vitest fixture loader checks (7.3). The fixture's events record also hashes its excerpt TSV
+  and sidecar in `inputs`, so it cannot be mistaken for an index of the full export.
 
 ### 7.3 Fixture, dev and CI
 
 - **Excerpts** (committed, ≤ 3 MB, `pipeline/tests/data/`): GEBCO source pyramids at Sumbawa (an
   L2-L7 chain: 4' over L2-L3, 1' over L4-L5, 15" over L6-L7) and at the Kirkuk corner, where three
   faces meet (4' over L3-L4, 1' over L5-L6, 15" over L7; owner decision 15); the 0.5° global grid;
-  NE land polygons (tiered), minor islands, lakes and rivers; borders 1815 and 1878; an ecoregion
-  sample; ModE-RA mean for 1815-07 to 1816-06 (crossing a year boundary) and 2 months of spread, as
-  float32; 200 events covering deep time (−15 Myr), BCE, prehistoric, year-precision, parent/child
-  and inherited-location cases; and a 3-beat mini story in `stories/_fixture/` (laid out as in 3.9)
-  with one small public-domain JPEG, one CC0 WAV, a route and a spread field. The surface excerpts
-  take about 1.8 MB [E]. Rasters are int16 gzip and vectors gzipped WKB, each with a JSON sidecar;
-  FlatGeobuf output is not deterministic.
+  NE land polygons (tiered), minor islands, lakes and rivers; ModE-RA monthly mean and spread for
+  all of 1815-1817; and a slice of the pinned Wikidata export. ModE-RA keeps the original float32
+  cells centered inside 15°W–35°E, 35–65°N on its 96 × 192 native grid, marking other cells
+  missing. Its excerpts are gzipped NetCDF classic files, so the stage uses the same NetCDF
+  reader, quantizer and annual means as a global build. The events excerpt keeps every statement
+  of events with any date in 1815-1817, and all their ancestors present in the export, in source
+  order: 394 statements for 239 events. The source pins, licenses, credits and selection rules
+  sit in JSON sidecars. Both new excerpts together take 139 KB; all excerpts take 1.98 MB [M].
+  GEBCO rasters are int16 gzip and NE vectors gzipped WKB, each with a JSON sidecar; FlatGeobuf
+  output is not deterministic. Borders keep synthetic snapshots in pytest; their GPL source stays
+  out of the repo. An ecoregion sample, the deep-time/BCE event cases and the 3-beat mini story
+  in `stories/_fixture/` (3.9), with a public-domain JPEG, CC0 WAV, route and spread, remain later
+  fixture work. Deep-time and BCE dates are currently tested on synthetic inputs.
 - **Fixture sources and tiles:** `pipeline/config/fixture.yaml` gives the fixture its own source
   per level and window: L0-L1 and the Kirkuk L2 tiles from the 0.5° grid, and the pyramids above
   elsewhere. Only the sources differ from 3.1's rule; the real encoder runs. It lists 55 tiles: all
@@ -1446,9 +1454,12 @@ release's `media` section lists every key the locks name (3.8).
   since below L1 it bakes only the nested Kirkuk and Sumbawa chains.
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
-  samples, 3.0 item 9) in `build/stages/fixture/expect/`. It skips `modera` for now: the ModE-RA
-  excerpt listed above joins the fixture with the rest of #7's excerpts, and until then a pytest
-  covers the climate codec and the stage on synthetic NetCDFs.
+  samples, 3.0 item 9) in `build/stages/fixture/expect/`. It runs `coverage`, `surface`, `events`
+  and `modera`. Pytest checks the real excerpts' cold European summer of 1816, monthly and annual
+  climate output, Waterloo's date, place, score and parents, and a curated date correction; Vitest
+  decodes and blends the built climate. Synthetic tests still cover edge cases. `meanwhile`
+  remains disabled until the fixture has a story and lock of its own and the stage validates
+  excerpt inputs; Tambora's committed lock changes only from its global build.
   Until the fixture story lands (#9), the fixture bakes no story images; it will bake them with
   `media --story _fixture --offline`. `--offline` reads the committed test image and the metadata
   Commons would give it (`pipeline/tests/data/media/`), and pytest runs the stage that way on a
@@ -1698,10 +1709,12 @@ Tambora walk:
   step; `npm run stories` comes with the article pages.
 - **Publish:** `publish-data` signs R2's S3 API with aws4fetch (4.3), and CI's `check-release`
   gates the deploy; the publish check and the one-shot warm are deferred past go-live (4.3, 4.4).
-- **Fixture and CI:** the fixture has no story, events, climate or borders excerpt yet, and there
-  is no `npm run dev:fixture` (`npm run data -- --profile fixture` with `?data=fixture` serves the
-  fixture to the app). CI's Playwright runs the smoke tests, the pool smoke test and the vertex
-  readback; 7.3's other checks come with what they test.
+- **Fixture and CI:** the fixture builds surface, real ModE-RA mean and spread over Europe for
+  1815-1817, and the scored events slice with its exported ancestors (7.3). Meanwhile awaits a
+  fixture story and lock of its own; borders keep synthetic snapshots, with the GPL source out
+  of the repo. There is no `npm run dev:fixture` (`npm run data -- --profile fixture` with
+  `?data=fixture` serves the fixture to the app). CI's Playwright runs the smoke tests, the pool
+  smoke test and the vertex readback; 7.3's other checks come with what they test.
 - **Later** (owner decision 30): reduced motion, the article view with the no-WebGL redirect, URL
   state and deep links, and a way back to the lobby.
 
