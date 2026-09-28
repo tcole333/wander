@@ -12,6 +12,13 @@ import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
+declare global {
+  interface Window {
+    /** When #room took is-open, on the page's clock. */
+    roomOpenedAt?: number;
+  }
+}
+
 const story = parseStory(
   readFileSync(new URL('../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
@@ -70,6 +77,34 @@ async function litFraction(page: Page): Promise<number> {
   }, png.toString('base64'));
 }
 
+/**
+ * Marks the moment the room opens on the page's own clock, which a poll from the test would see
+ * late, and keeps every resource entry from then on.
+ */
+async function markOpening(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    performance.setResourceTimingBufferSize(100_000);
+    const watch = new MutationObserver(() => {
+      if (!document.getElementById('room')?.classList.contains('is-open')) return;
+      window.roomOpenedAt = performance.now();
+      watch.disconnect();
+    });
+    watch.observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  });
+}
+
+/** What the page has fetched from `origin` since the room opened. */
+function fetchedSinceOpening(page: Page, origin: string): Promise<string[]> {
+  return page.evaluate((from) => {
+    const opened = window.roomOpenedAt;
+    if (opened === undefined) throw new Error('the room never opened');
+    return performance
+      .getEntriesByType('resource')
+      .filter((entry) => entry.startTime >= opened && new URL(entry.name).origin === from)
+      .map((entry) => entry.name);
+  }, origin);
+}
+
 // Small, so CI's software renderer, which draws the walk seconds apart on its few cores, fills
 // fewer pixels a frame.
 test.use({ viewport: { width: 640, height: 400 } });
@@ -84,14 +119,13 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   const requested: string[] = [];
   page.on('request', (request) => requested.push(request.url()));
   await serveImages(page);
+  await markOpening(page);
 
   await page.goto(`/?data=${DATA_URL.fixture}`);
   // The room is the poster until the lobby's opening starts, then fades out of the way. Any key
   // runs the rest of the opening, which CI's software renderer would otherwise draw many slow
   // frames of.
-  await expect(page.locator('#room')).toHaveClass(/\bis-open\b/, { timeout: 60_000 });
-  const opened = requested.length;
-  await expect(page.locator('#room')).toBeHidden({ timeout: 30_000 });
+  await expect(page.locator('#room')).toBeHidden({ timeout: 60_000 });
   await page.keyboard.press('Shift');
   await expect.poll(() => litFraction(page), { timeout: 90_000 }).toBeGreaterThan(0.05);
 
@@ -123,7 +157,7 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   await expect(sheet).toBeVisible();
   await panel.getByRole('button', { name: 'Close' }).click();
   await expect(panel).toBeHidden({ timeout: 30_000 });
-  const fromApp = requested.slice(opened).filter((url) => new URL(url).origin === PREVIEW_URL);
+  const fromApp = await fetchedSinceOpening(page, PREVIEW_URL);
 
   const credits = await page.goto('/credits');
   expect(credits?.status()).toBe(200);
