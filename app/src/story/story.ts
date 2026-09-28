@@ -204,14 +204,15 @@ function parseWindow(value: unknown, where: string): [number, number] {
 }
 
 /**
- * The layers on, each one shared/constants.json lists, in its order; `climate` may carry its mode
- * as `{climate: {mode: monthly | annual}}`.
+ * The layers on, each one shared/constants.json lists, in its order; `climate` names its mode, as
+ * `{climate: {mode: monthly | annual}}`, since a climate layer without one draws nothing.
  */
 function parseLayers(value: unknown, where: string): Pick<StoryBeat, 'layers' | 'climate'> {
   let climate: StoryBeat['climate'];
   const named = list(value ?? [], `${where} layers`).map((entry) => {
     if (typeof entry === 'string') {
       if (!LAYERS.includes(entry)) throw new StoryError(`${where}: unknown layer '${entry}'`);
+      if (entry === 'climate') throw new StoryError(`${where}: climate needs its mode`);
       return entry;
     }
     const layer = record(entry, `${where} layer`);

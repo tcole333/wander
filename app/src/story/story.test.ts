@@ -94,6 +94,7 @@ sources:
     ['a key it does not name', `${BEAT}\nmood: grim`, /unknown key 'mood'/],
     ['a misspelled camera field', BEAT.replace('viewKm', 'viewkm'), /unknown key 'viewkm'/],
     ['a layer the constants do not list', BEAT.replace('labels', 'rivers'), /layer 'rivers'/],
+    ['climate without its mode', BEAT.replace('labels', 'climate'), /climate needs its mode/],
     [
       'a precision of a week',
       BEAT.replace('precision: day', 'precision: week'),
