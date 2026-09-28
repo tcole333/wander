@@ -20,6 +20,9 @@ const FILES: Record<string, number> = {
   'fd/modera/cccc3333/mean/1816.bin': 90,
   'fd/modera/cccc3333/spread/1816.bin': 60,
   'fd/modera/cccc3333/annual.bin': 400,
+  'fd/borders/eeee5555/1815.bin': 700,
+  'lic/1111222233334444.txt': 20,
+  'lic/5555666677778888.geojson': 900,
   'img/cccc3333cccc3333-1024.jpg': 400,
   'img/cccc3333cccc3333-256.jpg': 40,
 };
@@ -30,6 +33,19 @@ const MODERA = {
   lon0: -180,
   dlon: 90,
   bytes: { mean: { '1816': 90 }, spread: { '1816': 60 }, annual: 400 },
+};
+const BORDERS = {
+  ver: 'eeee5555',
+  stems: ['1815'],
+  years: [1815],
+  files: {
+    '1815': {
+      key: 'fd/borders/eeee5555/1815.bin',
+      bytes: 700,
+      notice: 'lic/1111222233334444.txt',
+      source: 'lic/5555666677778888.geojson',
+    },
+  },
 };
 const IMAGES = ['img/cccc3333cccc3333-1024.jpg', 'img/cccc3333cccc3333-256.jpg'];
 
@@ -79,6 +95,19 @@ describe('releaseSections', () => {
   test('refuses a climate file of another size than the modera section gives', () => {
     const modera = { ...MODERA, bytes: { ...MODERA.bytes, annual: 401 } };
     expect(() => releaseSections({ ...release(SEVEN), modera }, root)).toThrow(/400 B, not/);
+  });
+
+  test('names each border field, and its notice and source under lic/, with their sizes', () => {
+    const [, fields, licenses] = releaseSections({ ...release(SEVEN), borders: BORDERS }, root);
+    expect(fields?.prefix).toBe('fd/borders/eeee5555/');
+    expect(fields?.objects.map(({ key, size }) => [key, size])).toEqual([
+      ['fd/borders/eeee5555/1815.bin', 700],
+    ]);
+    expect(licenses?.prefix).toBe('lic/');
+    expect(licenses?.objects.map(({ key, size }) => [key, size])).toEqual([
+      ['lic/1111222233334444.txt', 20],
+      ['lic/5555666677778888.geojson', 900],
+    ]);
   });
 
   test("names the stories' images under img/, with their sizes", () => {

@@ -10,6 +10,8 @@ export const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.wev': 'application/octet-stream',
   '.bin': 'application/octet-stream',
   '.json': 'application/json',
+  '.geojson': 'application/geo+json',
+  '.txt': 'text/plain; charset=utf-8',
   '.avif': 'image/avif',
   '.jpg': 'image/jpeg',
   '.m4a': 'audio/mp4',

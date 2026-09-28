@@ -33,6 +33,20 @@ export interface ModeraRelease {
 }
 
 /**
+ * release.json's `borders` in milestone 1 (3.3): one field of distances to the borders per
+ * historical-basemaps snapshot under fd/borders/<ver>/, each with its GPL notice and its corrected
+ * source under lic/ (owner decision 6).
+ */
+export interface BordersRelease {
+  ver: string;
+  /** The snapshots' stems ('1815', 'bc123000') and astronomical years, oldest first. */
+  stems: string[];
+  years: number[];
+  /** By stem: the field's key and stored bytes, and the keys of its notice and its source. */
+  files: Record<string, { key: string; bytes: number; notice: string; source: string }>;
+}
+
+/**
  * release.json's `media`: every key the stories' committed locks name (streaming.md 3.9), sorted,
  * so publish-data uploads them and check-release reads one.
  */
@@ -48,5 +62,7 @@ export interface Release {
   surface: SurfaceRelease;
   /** Present once the build has run the modera stage. */
   modera?: ModeraRelease;
+  /** Present once the build has run the borders stage. */
+  borders?: BordersRelease;
   media: MediaRelease;
 }

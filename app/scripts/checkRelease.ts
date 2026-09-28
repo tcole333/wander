@@ -2,11 +2,11 @@
 // will read it? It HEADs rel/<id>.json (never a GET: the edge caches a 404 for hours), which
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
 // its six L0 tiles, the climate years the walk loads as it starts when the release has a modera
-// section, and the first of the stories' images, as the page fetches them, cross-origin from the
-// app's origin, so it never leaves a 404 cached for a key about to be uploaded, and checks each
-// answers 200 with R2's headers and its Content-Type (streaming.md 4.2). CI runs it as its own
-// job, which the Pages deploy waits for, so the app never ships naming data that is not there.
-// Plain Node:
+// section, the 1815 border field when it has a borders section, and the first of the stories'
+// images, as the page fetches them, cross-origin from the app's origin, so it never leaves a 404
+// cached for a key about to be uploaded, and checks each answers 200 with R2's headers and its
+// Content-Type (streaming.md 4.2). CI runs it as its own job, which the Pages deploy waits for, so
+// the app never ships naming data that is not there. Plain Node:
 //
 //   npm run check-release
 import { readFileSync } from 'node:fs';
@@ -32,9 +32,13 @@ function expected(key: string): Record<string, string> {
  */
 export const CLIMATE_YEARS = [1815, 1816, 1817];
 
+/** The border snapshot the check reads: the one every Tambora date falls nearest (3.0). */
+export const BORDER_STEM = '1815';
+
 /**
  * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
- * section the climate's mean for each of CLIMATE_YEARS, and the first image.
+ * section the climate's mean for each of CLIMATE_YEARS, with a borders section the field of
+ * BORDER_STEM, and the first image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -43,8 +47,13 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
   const climate = modera
     ? CLIMATE_YEARS.map((year) => `fd/modera/${modera.ver}/mean/${year}.bin`)
     : [];
+  const border = release.borders?.files[BORDER_STEM]?.key;
+  const borders = border ? [border] : [];
   const image = release.media.images.slice(0, 1);
-  return { copy: `rel/${release.id}.json`, data: [bounds, ...roots, ...climate, ...image] };
+  return {
+    copy: `rel/${release.id}.json`,
+    data: [bounds, ...roots, ...climate, ...borders, ...image],
+  };
 }
 
 /** What is wrong with the release's data on its host; empty when it is all live. */
