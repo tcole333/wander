@@ -1,11 +1,16 @@
+import csv
 import gzip
 import json
 import math
+from dataclasses import replace
 
 import pytest
 
 from prebuild import events
 from prebuild.config import load_event_classes
+from prebuild.excerpts import select_events
+from prebuild.hashing import sha256_file
+from prebuild.paths import excerpts_dir
 from prebuild.profiles import Profile, make_context
 from prebuild.records import read_record
 from prebuild.sources import Source, SourceFile
@@ -175,3 +180,61 @@ def test_the_stage_writes_the_table_in_score_order_with_its_record(monkeypatch, 
     }
     assert record["bytes"] == (ctx.out / events.KEY).stat().st_size
     assert record["inputs"] == events.inputs("wikidata-events-20260927")
+
+
+def test_excerpt_keeps_all_statements_and_exported_ancestors_in_source_order():
+    lines = [
+        HEADER + "\n",
+        *[
+            r + "\n"
+            for r in (
+                row("Q1", "P580", "1800-01-01T00:00:00Z", 9, parents="Q2"),
+                row("Q1", "P582", "1815-06-18T00:00:00Z", 11, cls=WAR),
+                row("Q2", "P585", "1790-01-01T00:00:00Z", 9, parents="Q3 Q99"),
+                row("Q3", "P585", "1780-01-01T00:00:00Z", 9, parents="Q1"),
+                row("Q4", "P585", "1900-01-01T00:00:00Z", 9),
+            )
+        ],
+    ]
+    assert select_events(lines, (1815, 1817)) == lines[:-1]
+
+
+def test_fixture_scores_real_events_with_dates_places_classes_and_parents(tmp_path):
+    ctx = replace(
+        make_context(Profile.FIXTURE, 1), out=tmp_path / "out", stages_dir=tmp_path / "stages"
+    )
+    events.run(ctx)
+    with gzip.open(ctx.out / events.KEY, "rt", encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream, delimiter="\t"))
+    by_qid = {row["qid"]: row for row in rows}
+    waterloo = by_qid["Q48314"]
+    assert (waterloo["date"], waterloo["precision"], waterloo["class"]) == (
+        "1815-06-18",
+        "11",
+        "battle",
+    )
+    assert (float(waterloo["lon"]), float(waterloo["lat"])) == pytest.approx((4.41222, 50.67806))
+    assert waterloo["inherited"] == "0"
+    assert waterloo["parents"] == "Q18643473"
+    assert by_qid["Q18643473"]["parents"] == "Q199955"
+    assert float(waterloo["score"]) == pytest.approx(math.log2(95) * 0.55 + 1.5, abs=0.00005)
+    # Its war's start is outside the date slice; keep it and the complete span anyway.
+    napoleonic = by_qid["Q78994"]
+    assert (napoleonic["t0"], napoleonic["t1"], napoleonic["inherited"]) == (
+        "1803-01-01",
+        "1815-12-31",
+        "1",
+    )
+    # A real curated correction replaces the bad source date even though it leaves the slice.
+    roble = by_qid["Q4870957"]
+    assert roble["date"] == roble["t0"] == roble["t1"] == "1813-10-17"
+    assert [float(row["score"]) for row in rows] == sorted(
+        (float(row["score"]) for row in rows), reverse=True
+    )
+    record = read_record(ctx, events.STAGE)
+    assert record["export"] == "wikidata-events-20260928"
+    assert record["rows"] == len(rows) == sum(record["classes"].values())
+    assert record["inputs"][events.TABLE] == sha256_file(excerpts_dir() / "events" / events.TABLE)
+    before = (ctx.out / events.KEY).read_bytes()
+    events.run(ctx)
+    assert (ctx.out / events.KEY).read_bytes() == before

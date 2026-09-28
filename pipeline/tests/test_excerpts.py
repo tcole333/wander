@@ -188,3 +188,34 @@ def test_clipped_tiers_keep_each_features_attributes():
 def test_the_excerpts_stage_never_runs_under_the_fixture_profile(tmp_path):
     with pytest.raises(SourceUnavailable):
         run(make_context(Profile.FIXTURE, 1, tmp_path))
+
+
+@pytest.mark.parametrize(
+    ("sidecar", "source_id", "filename", "license_id"),
+    [
+        (
+            "modera/mean.json",
+            "mode-ra-temp2",
+            "ModE-RA_ensmean_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
+            "CC-BY-4.0",
+        ),
+        (
+            "modera/spread.json",
+            "mode-ra-temp2",
+            "ModE-RA_ensstd_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
+            "CC-BY-4.0",
+        ),
+        ("events/export.json", "wikidata-events-20260928", "events.tsv.gz", "CC0-1.0"),
+    ],
+)
+def test_climate_and_events_excerpts_carry_the_pinned_sources_and_credits(
+    sidecar, source_id, filename, license_id
+):
+    meta = json.loads((excerpts_dir() / sidecar).read_text(encoding="utf-8"))
+    source = load_sources()[source_id]
+    pin = pinned_file(source, filename)
+    assert (meta["source"], meta["file"], meta["sha256"]) == (source_id, pin.path, pin.sha256)
+    assert meta["license"] == source.license == license_id
+    assert meta["license_url"] == source.license_url
+    assert meta["attribution"] == source.attribution
+    assert meta["years"] == [1815, 1817]

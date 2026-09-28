@@ -1,4 +1,5 @@
 import gzip
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -75,3 +76,51 @@ def test_the_record_gives_every_files_bytes(built):
         for name in ("mean", "spread")
     }
     assert record["bytes"] == {**sizes, "annual": (layer / "annual.bin").stat().st_size}
+
+
+@pytest.fixture(scope="module")
+def real_built(tmp_path_factory):
+    folder = tmp_path_factory.mktemp("real-modera")
+    ctx = replace(
+        make_context(Profile.FIXTURE, 1), out=folder / "out", stages_dir=folder / "stages"
+    )
+    modera.run(ctx)
+    record = read_record(ctx, modera.STAGE)
+    return ctx, ctx.out / modera.LAYER / record["ver"], record
+
+
+def test_real_1816_summer_is_cold_over_central_europe(real_built):
+    _, layer, record = real_built
+    year = modera.from_file((layer / "mean/1816.bin").read_bytes())
+    assert record["years"] == [1815, 1817]
+    assert (year.first_year, year.codes.shape) == (1816, (12, 96, 192))
+    lat = np.asarray(record["lat"])
+    lon = record["lon0"] + np.arange(192) * record["dlon"]
+    europe = ((lat >= 45) & (lat <= 55))[:, None] & ((lon >= 0) & (lon <= 20))[None, :]
+    # June, July and August, against ModE-RA's 1901-2000 baseline, not a synthetic cold patch.
+    summer = year.values()[5:8, europe]
+    assert np.isfinite(summer).all()
+    assert np.all(summer.mean(axis=1) < -1.0)
+    assert np.isnan(year.values()[:, 0, 0]).all()  # beyond the spatial excerpt
+
+
+@pytest.mark.parametrize("name", ["mean", "spread"])
+def test_real_monthly_cells_survive_quantization_and_annual_means_keep_the_years(real_built, name):
+    ctx, layer, record = real_built
+    with modera.open_source(ctx, name) as source:
+        frames = np.ma.filled(source["temp2"][:].astype(np.float64), np.nan)
+    for i, year in enumerate(range(1815, 1818)):
+        decoded = modera.from_file((layer / name / f"{year}.bin").read_bytes())
+        expected = frames[i * 12 : (i + 1) * 12]
+        np.testing.assert_array_equal(np.isnan(decoded.values()), np.isnan(expected))
+        error = np.abs(decoded.values() - expected)
+        assert np.all((error <= decoded.scale[:, None, None] / 2 + 1e-6) | np.isnan(expected))
+        assert record["bytes"][name][str(year)] == (layer / name / f"{year}.bin").stat().st_size
+    if name == "spread":
+        assert np.nanmin(frames) > 0
+    else:
+        annual = modera.from_file((layer / "annual.bin").read_bytes())
+        assert (annual.variable, annual.first_year, annual.codes.shape) == (2, 1815, (3, 96, 192))
+        expected = frames.reshape(3, 12, 96, 192).mean(axis=1)
+        error = np.abs(annual.values() - expected)
+        assert np.all((error <= annual.scale[:, None, None] / 2 + 1e-6) | np.isnan(expected))

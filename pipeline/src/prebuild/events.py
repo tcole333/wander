@@ -26,7 +26,8 @@ the first `MAX_ROWS` events are kept. Columns: qid, label, enwiki, class, date, 
 lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in
 astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
 precision: 9 year, 10 month, 11 day. Milestone 1 publishes none of it: the `.wev` files (3.4) come
-with the globe's events layer. The fixture skips the stage, since it reads raw data.
+with the globe's events layer. The fixture reads a committed slice of the export, retaining all
+statements of events dated in 1815-1817 and their exported ancestors.
 """
 
 import gzip
@@ -47,7 +48,8 @@ from prebuild.config import (
     load_event_dates,
 )
 from prebuild.hashing import sha256_file
-from prebuild.profiles import Context
+from prebuild.paths import excerpts_dir
+from prebuild.profiles import Context, Profile
 from prebuild.records import write_record
 from prebuild.sources import Source, SourcesError, load_sources, verified_path
 from prebuild.wikidata import COLUMNS as EXPORT_COLUMNS
@@ -129,14 +131,23 @@ class Event:
 def run(ctx: Context) -> None:
     started = time.perf_counter()
     source = export_source(load_sources())
-    meta = json.loads(verified_path(ctx, source.id, META).read_text(encoding="utf-8"))
+    fixture = ctx.profile is Profile.FIXTURE
+    paths = {
+        name: excerpts_dir(ctx.repo) / STAGE / name
+        if fixture
+        else verified_path(ctx, source.id, name)
+        for name in (META, TABLE)
+    }
+    meta = json.loads(paths[META].read_text(encoding="utf-8"))
+    if fixture and meta["source"] != source.id:
+        raise EventsError("the fixture names another export: run `uv run prebuild excerpts`")
     classes = load_event_classes()
     missing = [c.name for c in classes if c.qid not in meta["rows"]]
     if missing:
         raise EventsError(
             f"{source.id} lacks the classes {', '.join(missing)}: run `uv run prebuild wikidata`"
         )
-    with gzip.open(verified_path(ctx, source.id, TABLE), "rt", encoding="utf-8") as stream:
+    with gzip.open(paths[TABLE], "rt", encoding="utf-8") as stream:
         events = index(read_export(stream), classes, load_event_boosts(), load_event_dates())
     payload = encode(events)
     stored = gzip.compress(payload, compresslevel=9, mtime=0)
@@ -158,6 +169,8 @@ def run(ctx: Context) -> None:
         "classes": by_class,
         "inputs": inputs(source.id),
     }
+    if fixture:
+        record["inputs"].update({name: sha256_file(path) for name, path in paths.items()})
     write_record(ctx, STAGE, record)
     seconds = time.perf_counter() - started
     print(

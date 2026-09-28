@@ -16,8 +16,8 @@ as `fd/modera/<ver8>/` once hashed (layers.py).
 Per frame, offset is the frame's lowest value and scale max(0.1 K, range / 254), so no value clips
 and every value decodes within half a step. Each stored file is gzip level 9 with mtime 0.
 
-The fixture profile skips this stage for now, since it reads raw data: the ModE-RA excerpt joins the
-fixture with the rest of issue #7's excerpts (streaming.md 7.3).
+The fixture reads gzipped NetCDF excerpts for 1815-1817: Europe's original float32 cells on the
+native grid, with the rest marked missing. The same reader, quantizer and annual means run on both.
 """
 
 import gzip
@@ -33,7 +33,8 @@ import numpy.typing as npt
 from prebuild.constants import FORMATS, SENTINELS
 from prebuild.hashing import sha256_bytes
 from prebuild.layers import publish, staging_folder
-from prebuild.profiles import Context
+from prebuild.paths import excerpts_dir
+from prebuild.profiles import Context, Profile
 from prebuild.records import write_record
 from prebuild.sources import verified_path
 
@@ -49,6 +50,7 @@ FILES = {
 VARIABLE = "temp2"
 FIRST_YEAR = 1421
 LAST_YEAR = 2008
+EXCERPT_YEARS = (1815, 1817)
 MONTHS = 12
 
 MEAN, SPREAD, ANNUAL = 0, 1, 2  # the header's variable
@@ -84,7 +86,7 @@ class Climate:
 
 def run(ctx: Context) -> None:
     started = time.perf_counter()
-    paths = {name: verified_path(ctx, SOURCE, filename) for name, filename in FILES.items()}
+    first, last = EXCERPT_YEARS if ctx.profile is Profile.FIXTURE else (FIRST_YEAR, LAST_YEAR)
     layer = ctx.out / LAYER
     staging = staging_folder(layer)
     digests: dict[str, str] = {}
@@ -101,16 +103,19 @@ def run(ctx: Context) -> None:
 
     try:
         with (
-            netCDF4.Dataset(paths["mean"]) as mean_nc,
-            netCDF4.Dataset(paths["spread"]) as spread_nc,
+            open_source(ctx, "mean") as mean_nc,
+            open_source(ctx, "spread") as spread_nc,
         ):
             lat, lon0, dlon = _grid(mean_nc)
             if _grid(spread_nc) != (lat, lon0, dlon):
                 raise ModeraError("the mean and spread files lie on different grids")
-            sources = {"mean": _temp2(mean_nc), "spread": _temp2(spread_nc)}
+            sources = {
+                "mean": _temp2(mean_nc, first, last),
+                "spread": _temp2(spread_nc, first, last),
+            }
             annual: list[FloatArray] = []
-            for year in range(FIRST_YEAR, LAST_YEAR + 1):
-                months = slice((year - FIRST_YEAR) * MONTHS, (year - FIRST_YEAR + 1) * MONTHS)
+            for year in range(first, last + 1):
+                months = slice((year - first) * MONTHS, (year - first + 1) * MONTHS)
                 for name, variable in (("mean", MEAN), ("spread", SPREAD)):
                     frames = _read(sources[name], months)
                     climate = quantize(frames, variable, year)
@@ -120,13 +125,13 @@ def run(ctx: Context) -> None:
                         largest[name] = (float(climate.scale[month]), f"{year}-{month + 1:02d}")
                     if variable == MEAN:
                         annual.append(frames.mean(axis=0))
-            annual_bytes = write("annual.bin", quantize(np.stack(annual), ANNUAL, FIRST_YEAR))
+            annual_bytes = write("annual.bin", quantize(np.stack(annual), ANNUAL, first))
         ver = publish(staging, layer, digests)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
     record = {
         "ver": ver,
-        "years": [FIRST_YEAR, LAST_YEAR],
+        "years": [first, last],
         "lat": [round(value, LAT_DIGITS) for value in lat],
         "lon0": lon0,
         "dlon": dlon,
@@ -208,13 +213,21 @@ def _grid(dataset: netCDF4.Dataset) -> tuple[list[float], float, float]:
     return lat, float(lon[0]), dlon
 
 
-def _temp2(dataset: netCDF4.Dataset) -> netCDF4.Variable:
+def open_source(ctx: Context, name: str) -> netCDF4.Dataset:
+    """The raw NetCDF, or its committed excerpt in memory; both use the same NetCDF reader."""
+    if ctx.profile is Profile.FIXTURE:
+        path = excerpts_dir(ctx.repo) / STAGE / f"{name}.nc.gz"
+        return netCDF4.Dataset(f"{name}.nc", memory=gzip.decompress(path.read_bytes()))
+    return netCDF4.Dataset(verified_path(ctx, SOURCE, FILES[name]))
+
+
+def _temp2(dataset: netCDF4.Dataset, first: int, last: int) -> netCDF4.Variable:
     variable = dataset[VARIABLE]
-    expected = (LAST_YEAR - FIRST_YEAR + 1) * MONTHS
+    expected = (last - first + 1) * MONTHS
     if variable.dimensions != ("time", "latitude", "longitude") or variable.shape[0] != expected:
         raise ModeraError(
             f"{VARIABLE} is {variable.dimensions} {variable.shape}, not {expected} months of "
-            f"{FIRST_YEAR}-{LAST_YEAR} on (time, latitude, longitude)"
+            f"{first}-{last} on (time, latitude, longitude)"
         )
     return variable
 

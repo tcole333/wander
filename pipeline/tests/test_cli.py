@@ -37,7 +37,7 @@ def planned(*argv: str) -> list[str]:
     [
         ((), ["fetch", "coverage", "surface", "borders", "events", "modera"]),
         (("--profile", "region"), ["fetch", "coverage", "surface", "borders", "events", "modera"]),
-        (("--profile", "fixture"), ["coverage", "surface"]),
+        (("--profile", "fixture"), ["coverage", "surface", "events", "modera"]),
         (("surface", "coverage"), ["coverage", "surface"]),
         (("coverage", "coverage"), ["coverage"]),
         (("excerpts",), ["excerpts"]),
@@ -45,6 +45,7 @@ def planned(*argv: str) -> list[str]:
         (("--profile", "region", "media", "--story", "tambora"), ["media"]),
         (("meanwhile", "media", "--story", "tambora"), ["media", "meanwhile"]),
         (("--profile", "fixture", "surface"), ["surface"]),
+        (("--profile", "fixture", "modera", "events"), ["events", "modera"]),
     ],
 )
 def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages):
@@ -57,10 +58,8 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("no-such-stage",),
         ("--profile", "fixture", "fetch"),
         ("--profile", "fixture", "excerpts"),
-        ("--profile", "fixture", "modera"),
         ("--profile", "fixture", "borders"),
         ("--profile", "fixture", "wikidata"),
-        ("--profile", "fixture", "events"),
         ("--profile", "moon"),
         ("--jobs", "0"),
         ("--jobs", "many"),
@@ -142,7 +141,7 @@ def test_a_full_fixture_build_writes_the_sidecars_and_stamp(tmp_path):
     stages = recording_stages(ran)
     ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
     run(ctx, names, stages)
-    assert ran == ["coverage", "surface"]
+    assert ran == ["coverage", "surface", "events", "modera"]
     assert (ctx.stages_dir / "expect" / "cube-samples.json").is_file()
     assert "inputs" in json.loads((ctx.stages_dir / "stamp.json").read_text())
 
@@ -159,8 +158,9 @@ def test_a_partial_fixture_build_clears_the_stamp(tmp_path, fail):
     assert not (ctx.stages_dir / "stamp.json").exists()
 
 
-def test_a_failed_fixture_build_leaves_no_stamp(tmp_path):
-    stages = recording_stages([], fail="surface")
+@pytest.mark.parametrize("fail", ["surface", "events", "modera"])
+def test_a_failed_fixture_build_leaves_no_stamp(tmp_path, fail):
+    stages = recording_stages([], fail=fail)
     ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
     ctx.stages_dir.mkdir(parents=True)
     (ctx.stages_dir / "stamp.json").write_text('{"inputs": "old"}')

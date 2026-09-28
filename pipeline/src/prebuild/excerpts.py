@@ -10,16 +10,27 @@ named, never under the fixture profile, and writes no stage record.
   the L5-L7 tiles; minor islands only around the L2 tiles, in full; lakes and rivers only around
   the L2 tiles, at 0.01° there and in full around the L5-L7 tiles. Each keeps only the columns the
   loader reads, and the loader prepares the excerpts exactly as it prepares the zips.
+- ModE-RA: 1815-1817 mean and spread, Europe's float32 cells on the native grid, missing elsewhere;
+  NetCDF classic (no timestamps), gzip level 9 with mtime 0, plus provenance and attribution.
+- Events: all statements of events dated in 1815-1817, plus their exported ancestors, in export
+  order. The TSV terms stay untouched; its sidecar keeps the export metadata and selection rule.
 """
 
+import gzip
+import json
 import math
+import warnings
+from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
+import netCDF4
 import numpy as np
 import shapely
 
+from prebuild import events, modera
 from prebuild.codes import round_half_away
 from prebuild.config import FixtureConfig, load_fixture
 from prebuild.cube import BORDER, TILE, Tile, corner, dir_to_lonlat, st_to_dir
@@ -48,6 +59,7 @@ from prebuild.profiles import Context
 from prebuild.sources import Source, SourceUnavailable, load_sources, pinned_file, verified_path
 
 CAP_BYTES = 3_000_000  # the committed excerpts, all of pipeline/tests/data (streaming.md 7.3)
+MODERA_BOUNDS = (-15, 35, 35, 65)  # west, south, east, north; cell centers included
 FIELD_TEXELS = BORDER + MARGIN_TEXELS  # texels a tile's fields rasterize past each edge
 # Past fields.clip_boxes' pad at the levels cut here (widest at L2: 0.16° in latitude) up to
 # about 70° latitude, where the pad's longitude part, which grows as 1/cos(latitude), is 0.25°.
@@ -75,10 +87,128 @@ def run(ctx: Context) -> None:
     folder = excerpts_dir(ctx.repo)
     write_gebco_excerpts(ctx, fixture, registry, folder / "gebco")
     write_ne_excerpts(ctx, fixture, registry, folder / "ne")
+    write_modera_excerpts(ctx, registry, folder / "modera")
+    write_events_excerpt(ctx, registry, folder / "events")
     total = sum(path.stat().st_size for path in folder.rglob("*") if path.is_file())
     if total > CAP_BYTES:
         raise ValueError(f"{folder} holds {total} bytes, past the {CAP_BYTES}-byte cap")
     print(f"excerpts: {folder} holds {total} bytes (cap {CAP_BYTES})", flush=True)
+
+
+def attribution(source: Source, filename: str) -> dict[str, Any]:
+    """The same source pin as the surface sidecars, with the credit carried beside the cut."""
+    pin = pinned_file(source, filename)
+    return {
+        "source": source.id,
+        "file": pin.path,
+        "sha256": pin.sha256,
+        "license": source.license,
+        "license_url": source.license_url,
+        "attribution": source.attribution,
+        "landing_page": source.landing_page,
+    }
+
+
+def write_modera_excerpts(ctx: Context, registry: dict[str, Source], folder: Path) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    first, last = modera.EXCERPT_YEARS
+    months = slice((first - modera.FIRST_YEAR) * 12, (last - modera.FIRST_YEAR + 1) * 12)
+    west, south, east, north = MODERA_BOUNDS
+    for name, filename in modera.FILES.items():
+        path = verified_path(ctx, modera.SOURCE, filename, registry)
+        with TemporaryDirectory(dir=folder) as scratch, netCDF4.Dataset(path) as source:
+            nc = Path(scratch) / f"{name}.nc"
+            lat, lon = source["latitude"][:], source["longitude"][:]
+            keep = ((lat >= south) & (lat <= north))[:, None] & ((lon >= west) & (lon <= east))[
+                None, :
+            ]
+            with netCDF4.Dataset(nc, "w", format="NETCDF3_CLASSIC") as excerpt:
+                excerpt.setncatts({key: source.getncattr(key) for key in source.ncattrs()})
+                excerpt.createDimension("time", (last - first + 1) * 12)
+                excerpt.createDimension("latitude", len(lat))
+                excerpt.createDimension("longitude", len(lon))
+                for key in ("time", "latitude", "longitude", modera.VARIABLE):
+                    original = source[key]
+                    options = (
+                        {"fill_value": netCDF4.default_fillvals["f4"]}
+                        if key == modera.VARIABLE
+                        else {}
+                    )
+                    variable = excerpt.createVariable(
+                        key, original.dtype, original.dimensions, **options
+                    )
+                    variable.setncatts(
+                        {a: original.getncattr(a) for a in original.ncattrs() if a != "_FillValue"}
+                    )
+                    values = original[months] if "time" in original.dimensions else original[:]
+                    if key == modera.VARIABLE:
+                        values = np.ma.array(values, mask=np.ma.getmaskarray(values) | ~keep)
+                    with warnings.catch_warnings():
+                        # netCDF4 1.7.4 sets array.shape on writes, deprecated by numpy 2.5.
+                        warnings.filterwarnings("ignore", "Setting the shape", DeprecationWarning)
+                        variable[:] = values
+            stored = gzip.compress(nc.read_bytes(), compresslevel=9, mtime=0)
+        (folder / f"{name}.nc.gz").write_bytes(stored)
+        meta = {
+            **attribution(registry[modera.SOURCE], filename),
+            "years": [first, last],
+            "bounds": list(MODERA_BOUNDS),
+            "selection": "Original float32 cells with centers inside bounds; missing elsewhere. "
+            "All 12 months per year, in source order, on the full native latitude/longitude grid.",
+        }
+        (folder / f"{name}.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+        print(f"excerpts: modera/{name} {first}-{last}, {len(stored)} bytes", flush=True)
+
+
+def select_events(lines: list[str], years: tuple[int, int]) -> list[str]:
+    """Keep whole events, not just their in-span statements, and close over exported parents."""
+    statements = events.read_export(lines)
+    parents: dict[str, set[str]] = {}
+    for line in lines[1:]:
+        fields = line.rstrip("\n").split("\t")
+        qid = events.term(fields[1]).removeprefix(events.ENTITY)
+        parents.setdefault(qid, set()).update(events.term(fields[-1]).split())
+    selected = {s.qid for s in statements if years[0] <= s.day[0] <= years[1]}
+    pending = list(selected)
+    while pending:
+        for parent in parents[pending.pop()]:
+            if parent in parents and parent not in selected:
+                selected.add(parent)
+                pending.append(parent)
+    return [
+        lines[0],
+        *(
+            line
+            for line in lines[1:]
+            if events.term(line.split("\t", 2)[1]).removeprefix(events.ENTITY) in selected
+        ),
+    ]
+
+
+def write_events_excerpt(ctx: Context, registry: dict[str, Source], folder: Path) -> None:
+    source = events.export_source(registry)
+    with gzip.open(
+        verified_path(ctx, source.id, events.TABLE, registry), "rt", encoding="utf-8"
+    ) as stream:
+        lines = select_events(stream.readlines(), modera.EXCERPT_YEARS)
+    meta = json.loads(
+        verified_path(ctx, source.id, events.META, registry).read_text(encoding="utf-8")
+    )
+    counts = Counter(line.split("\t", 1)[0] for line in lines[1:])
+    meta.update(
+        {
+            **attribution(source, events.TABLE),
+            "rows": {cls: counts[cls] for cls in meta["rows"]},
+            "years": list(modera.EXCERPT_YEARS),
+            "selection": "All statements of events with any date in these years, plus all their "
+            "ancestors present in the export, retaining original row order and TSV terms.",
+        }
+    )
+    folder.mkdir(parents=True, exist_ok=True)
+    stored = gzip.compress("".join(lines).encode("utf-8"), compresslevel=9, mtime=0)
+    (folder / events.TABLE).write_bytes(stored)
+    (folder / events.META).write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    print(f"excerpts: events {len(lines) - 1} statements, {len(stored)} bytes", flush=True)
 
 
 def excerpt_window(fixture: FixtureConfig, name: str) -> Window:
