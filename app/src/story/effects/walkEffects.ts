@@ -103,7 +103,13 @@ export const createWalkEffects: CreateWalkEffects = (
   const ash = ashUniformsOf(look.material);
   const climate = new WalkClimate(story, source, climateUniformsOf(look.material));
   const borders = new WalkBorders(story, source, borderUniformsOf(look.material));
-  const routes = new WalkRoutes(story, source, routeUniformsOf(look.material));
+  const routes = new WalkRoutes(
+    story,
+    source,
+    routeUniformsOf(look.material),
+    undefined,
+    labelRoot,
+  );
   /** How strongly climate is drawn, under the dev shell's climate param. */
   const climateShown = () => Math.min(1, climate.drawn * Math.max(0, Number(params.climate)));
   let lastS: number | null = null;
@@ -230,7 +236,13 @@ export const createWalkEffects: CreateWalkEffects = (
 
       // Climate and the dated routes, through the look.
       climate.update(state, dtS, strength('climate'));
-      routes.update(state, dtS, strength('routes'));
+      routes.update(state, dtS, strength('routes'), {
+        camera: cam,
+        cameraLocal: camera,
+        globe,
+        viewport,
+        elapsedS: t,
+      });
 
       // Borders and the veil, by the view's width under the camera. The veil gives way where
       // climate data is drawn.
@@ -273,6 +285,7 @@ export const createWalkEffects: CreateWalkEffects = (
       if (ash) ash.lookAshStrength.value = 0;
       climate.hide();
       borders.hide();
+      routes.hide();
       for (const [param, value] of defaults) if (value !== undefined) look.params[param] = value;
     },
     inspectMemory(account) {

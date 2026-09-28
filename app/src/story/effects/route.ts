@@ -8,6 +8,7 @@ import { setRouteData, type RouteUniforms } from '../../look/routeHook';
 import type { WalkState } from '../contract';
 import type { Story } from '../story';
 import { dirOf } from './geo';
+import { FleetShip, type ShipView } from './ship';
 import { smoothstep } from './timeline';
 
 export interface RouteSource {
@@ -71,6 +72,7 @@ interface LoadedRoute {
   data: RouteData;
   shown: number;
   wDays: number;
+  ship?: FleetShip;
 }
 
 export class WalkRoutes {
@@ -78,6 +80,7 @@ export class WalkRoutes {
   readonly #source: RouteSource;
   readonly #uniforms: RouteUniforms | undefined;
   readonly #fetch: (url: string) => Promise<ArrayBuffer>;
+  readonly #labelRoot: HTMLElement | undefined;
   #loading?: Promise<void>;
   #routes: LoadedRoute[] = [];
   #disposed = false;
@@ -87,11 +90,13 @@ export class WalkRoutes {
     source: RouteSource,
     uniforms: RouteUniforms | undefined,
     load = fetchData,
+    labelRoot?: HTMLElement,
   ) {
     this.#story = story;
     this.#source = source;
     this.#uniforms = uniforms;
     this.#fetch = load;
+    this.#labelRoot = labelRoot;
   }
 
   load(): Promise<void> {
@@ -127,13 +132,21 @@ export class WalkRoutes {
     );
     if (this.#disposed) return;
     this.#routes = loaded.filter((route): route is LoadedRoute => route !== null);
+    if (this.#labelRoot) {
+      for (const route of this.#routes) route.ship = new FleetShip(this.#labelRoot);
+    }
     setRouteData(
       this.#uniforms,
       this.#routes.map((route) => route.data),
     );
   }
 
-  update(state: WalkState, dtS: number, strength: number): void {
+  /** The director reads only resident data; a missing route keeps the ordinary flight. */
+  data(name: string): RouteData | undefined {
+    return this.#routes.find((route) => route.name === name)?.data;
+  }
+
+  update(state: WalkState, dtS: number, strength: number, view?: ShipView): void {
     if (this.#disposed || !this.#uniforms || this.#routes.length === 0) return;
     const field = this.#uniforms.lookRouteState.value;
     const data = field.image.data as Float32Array;
@@ -148,6 +161,7 @@ export class WalkRoutes {
       route.shown += Math.max(-step, Math.min(step, wanted - route.shown));
       const frame = routeFrame(route.data, state.day, route.wDays);
       const alpha = frame.fleet ? smoothstep(0, 1, route.shown) * strength : 0;
+      if (view) route.ship?.update(route.data, frame, state.day, alpha, view);
       visible ||= alpha > 0;
       data.set([frame.head.index, frame.head.fraction, route.wDays, alpha], i * 8);
       data.set(
@@ -164,8 +178,17 @@ export class WalkRoutes {
     field.needsUpdate = true;
   }
 
+  hide(): void {
+    for (const route of this.#routes) {
+      route.shown = 0;
+      route.ship?.hide();
+    }
+    if (this.#uniforms) this.#uniforms.lookRouteCount.value = 0;
+  }
+
   dispose(): void {
     this.#disposed = true;
+    for (const route of this.#routes) route.ship?.dispose();
     this.#routes = [];
     if (this.#uniforms) setRouteData(this.#uniforms, []);
   }
