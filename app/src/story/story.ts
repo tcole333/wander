@@ -46,6 +46,8 @@ export interface StoryImage {
   /** Fractions of the image: x0, y0, x1, y1. */
   crop: [number, number, number, number];
   alt: string;
+  /** The holding collection's credit line, where the beat names one, as the lock keeps it. */
+  collection?: string;
   /** The baked crop on the data host and its credit, from the story's lock (lock.ts). */
   locked?: LockedImage;
 }
@@ -242,6 +244,11 @@ function parseImage(image: Record<string, unknown>, where: string): StoryImage {
   );
   const alt = text(image.alt, `${where} image alt`).trim();
   if (alt === '') throw new StoryError(`${where} image needs alt text`);
+  const words = (key: string) =>
+    image[key] === undefined ? undefined : text(image[key], `${where} image ${key}`);
+  // The media stage locks the credit and license as story.md words them.
+  words('credit');
+  words('license');
   const crop = list(image.crop ?? [0, 0, 1, 1], `${where} crop`).map((c) => num(c, 'crop'));
   if (crop.length !== 4) throw new StoryError(`${where} crop needs four numbers`);
   return {
@@ -249,6 +256,7 @@ function parseImage(image: Record<string, unknown>, where: string): StoryImage {
     sha1: text(image.sha1 ?? '', `${where} image sha1`),
     crop: [crop[0] ?? 0, crop[1] ?? 0, crop[2] ?? 1, crop[3] ?? 1],
     alt,
+    collection: words('collection'),
   };
 }
 
