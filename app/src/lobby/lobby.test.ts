@@ -182,6 +182,9 @@ describe('the lobby round trip', () => {
   it('gives the dev page a lobby and lets a closer consume Escape first', () => {
     const s = setup('story');
     expect(s.host.dataset.lobby).toBe('gone');
+    s.lobby.back();
+    expect(s.leave).not.toHaveBeenCalled(); // Before boot's first frame, no story can leave yet.
+    s.tick();
     s.key(true);
     expect(s.leave).not.toHaveBeenCalled();
     s.walk().breakOut();

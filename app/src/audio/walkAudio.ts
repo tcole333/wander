@@ -241,6 +241,7 @@ export function createWalkAudio(): WalkAudio {
   let lastView: ViewState | null = null;
   let unlockedFrom: WalkState | null = null;
   let suspending: ReturnType<typeof setTimeout> | undefined;
+  let warned = false;
   const listeners = new AbortController();
   const { signal } = listeners;
 
@@ -250,12 +251,17 @@ export function createWalkAudio(): WalkAudio {
     if (!active || engine?.ctx.state === 'running') return;
     // A touch's start is not yet a gesture the browser unlocks sound for; its end is.
     if (navigator.userActivation?.isActive === false) return;
-    const sound = unlockSound(undefined, muted);
-    if (engine !== sound) {
-      sound.setMuted(muted);
-      unlockedFrom = last;
+    try {
+      const sound = unlockSound(undefined, muted);
+      if (engine !== sound) {
+        sound.setMuted(muted);
+        unlockedFrom = last;
+      }
+      engine = sound;
+    } catch (error) {
+      if (!warned) console.warn('Sound did not start:', error);
+      warned = true;
     }
-    engine = sound;
   };
   for (const type of GESTURES) {
     addEventListener(type, unlock, { capture: true, signal });
@@ -305,13 +311,7 @@ export function createWalkAudio(): WalkAudio {
     toggle: flip,
     start(inGesture = false) {
       active = true;
-      if (inGesture) {
-        try {
-          unlock();
-        } catch (error) {
-          console.warn('Sound did not start:', error);
-        }
-      }
+      if (inGesture) unlock();
     },
     leave() {
       active = false;

@@ -67,6 +67,7 @@ export function createLobby(parts: LobbyParts): Lobby {
   let glow = 0;
   let elapsed = 0;
   let shown = startsOnBeat;
+  let firstFrame = true;
   let arriving = 0;
   let rulerFrames = 0;
   let stopDive: (() => void) | null = null;
@@ -80,7 +81,6 @@ export function createLobby(parts: LobbyParts): Lobby {
   chrome.lobby(!startsOnBeat);
   if (startsOnBeat) {
     plaques.leave();
-    chrome.show();
   }
 
   let open = () => {};
@@ -155,7 +155,7 @@ export function createLobby(parts: LobbyParts): Lobby {
   };
 
   const back = () => {
-    if (phase !== 'gone' && phase !== 'diving') return;
+    if (firstFrame || (phase !== 'gone' && phase !== 'diving')) return;
     clearTransition();
     become('returning');
     progress = 1;
@@ -194,6 +194,10 @@ export function createLobby(parts: LobbyParts): Lobby {
     back,
 
     update(dtS, camera) {
+      if (firstFrame) {
+        firstFrame = false;
+        if (startsOnBeat) chrome.show();
+      }
       elapsed += dtS;
       if (rulerFrames > 0 && --rulerFrames === 0) host.classList.remove('lobby-ruler-down');
       if (arriving > 0) {
