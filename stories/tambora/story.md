@@ -56,7 +56,7 @@ image:
   collection: "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries"
   crop: [0.38, 0.42, 0.86, 0.89]
   alt: "A hand-colored map of the East India Isles, published in London in 1813: Java and the chain of islands east of it to Timor, Sumbawa among them, with Borneo, Celebes and the Moluccas to the north."
-layers: [relief, bathymetry, coastline, landSea, water, labels, borders, events]
+layers: [relief, bathymetry, coastline, landSea, water, labels, events]
 effects:
   - plume: {at: [118.0, -8.25], start: "1815-04-05", peak: "1815-04-10", end: "1815-07-15", heightKm: 43, drift: [-0.7, 0.7], seed: 1815}
   - pulse: {at: [118.0, -8.25], start: "1815-04-05", end: "1815-04-06", radiusKm: 1400, style: sound}
