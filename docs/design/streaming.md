@@ -1717,6 +1717,18 @@ acceptance).**
   - at 5/150, every landing is on ancestors with no holes
 - **If it fails:** grow the story core (for example, with beats 1-2 critical tiles). If the pools
   overflow under tilt, drop N+1 critical to desired−2. Move any fetch that breaks across a deploy to R2.
+- **Milestone 1's run (2026-09-28):** `app/scripts/e3.ts` ran on the live site at release
+  9b3f8312bae73f83, over the eight-beat Tambora walk rather than the three-beat setup above. Cold
+  at 25/50, the room opens 1.24 s after navigation (4.5 s at 5/150), after 2.20 MB, since the
+  first frame waits for L0-L1. At 5/150 every beat lands whole, on coarser ancestors where its
+  tiles are still arriving. The gate holds every flight about its full 0.4 s and never longer.
+  Hostile input, a dropped connection and two context losses leave the card and the globe
+  whole, or bring the card as decided (owner decision 21). An old tab walks on across a deploy,
+  nothing is fetched from Pages after the room opens, and ten walks leave memory flat [M
+  `e3/results/live-2026-09-28.json`]. Reported past their lines: beats 1, 2, 6 and 7 fetch
+  8.3-9.5 MiB each, the story 47.8 MiB, and the renderer holds 270-288 MiB against the CPU
+  budget's 256. Frame times, the lite tier, tilt, overlays and the app's own GPU memory wait for
+  the pre-launch checks.
 
 **E4. Cold-edge retention and fill latency on a low-traffic domain.**
 - **Setup:** the infrastructure from 8.1 step 0. Upload 200 × 40 KB gzip-in-file objects under `_e4/`
