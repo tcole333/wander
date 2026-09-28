@@ -48,7 +48,7 @@ export const tunables = {
   // Route flights: mostly sailed distance, with enough calendar time to pass ports continuously.
   voyageDistanceWeight: 0.9,
   // Following width is this share of the leg's sailed km, clamped in km.
-  voyageWidth: { ofDistance: 0.55, min: 1200, max: 6500 },
+  voyageWidth: { ofDistance: 0.8, min: 1500, max: 6500 },
   // Base lift/settle time plus sailed km / kmPerSecond; durations are milliseconds.
   voyageDuration: { base: 4000, kmPerSecond: 1200, min: 6000, max: 18000 },
   // Share of the path used at each end to blend between the beat and following views.
