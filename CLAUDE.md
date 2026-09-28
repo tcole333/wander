@@ -52,7 +52,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `?data=<origin>` reads a local data server's release instead (`app/src/page/dataOrigin.ts`).
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
 - `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
-  uv) into `build/fixture/` and `build/stages/fixture/`. Vitest checks against it and fails,
+  uv) into `build/fixture/` and `build/stages/fixture/`: surface, ModE-RA's 1815-1817 Europe
+  excerpt and the scored events excerpt. Meanwhile awaits a fixture story and lock of its own;
+  borders use synthetic snapshots in pytest. Vitest checks against the build and fails,
   naming this command, when it is missing or was built from other pipeline code, shared constants
   or excerpts than the working tree holds.
 - `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
@@ -95,10 +97,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `wikidata`, `excerpts`, `media` and `meanwhile`; the fixture profile
-  also skips `fetch`, `borders` (its tests draw synthetic snapshots, since the GPL source is never
-  committed), and `events` and `modera` until their layers have excerpts.
+  also skips `fetch` and `borders` (its tests draw synthetic snapshots, since the GPL source is
+  never committed). It keeps `meanwhile` disabled so it cannot rewrite Tambora's lock.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
-  2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA whatever the profile, and
+  2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile, and
   30 s for `borders`, the whole 1815 field).
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
