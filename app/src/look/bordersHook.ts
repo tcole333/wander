@@ -15,6 +15,11 @@ export const BORDER_LOOK = {
   /** How much it darkens the metal, and how much rougher it leaves it. */
   darken: 0.6,
   roughen: 0.2,
+  /**
+   * Field texels a pixel over which it fades out as the view widens: past about 5, the field's
+   * reach (8 texels) no longer spans the line, and every texel beyond it would read as a border.
+   */
+  fadeTexPx: [4, 5],
 } as const;
 
 export interface BorderUniforms {
@@ -97,7 +102,9 @@ void lookBorders(inout LookSurface s) {
   if (lookBorderStrength <= 0.0 || lookDebug != 0) return;
   float texPx = max(max(length(dFdx(vLookSt)), length(dFdy(vLookSt))) * ${f(INTERIOR / 2)}, 1e-4);
   float d = lookBorderDist(vLookSt, vLookFace);
-  float groove = lookLine(abs(d) / texPx, ${f(BORDER_LOOK.widthPx)}) * s.ground * lookBorderStrength;
+  float wide = 1.0 - smoothstep(${f(BORDER_LOOK.fadeTexPx[0])}, ${f(BORDER_LOOK.fadeTexPx[1])}, texPx);
+  float line = lookLine(abs(d) / texPx, ${f(BORDER_LOOK.widthPx)}) * wide;
+  float groove = line * s.ground * lookBorderStrength;
   s.albedo *= 1.0 - ${f(BORDER_LOOK.darken)} * groove;
   s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughen)} * groove);
 }
