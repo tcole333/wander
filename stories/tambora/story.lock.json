@@ -323,8 +323,8 @@
           "date": "1815-05-20",
           "precision": "day",
           "at": [
-            12.5,
-            42.5
+            14.2,
+            41.18
           ],
           "line": "Murat's war ends, and Naples returns to its Bourbon king",
           "source": {
@@ -429,11 +429,11 @@
         {
           "qid": "Q5010928",
           "label": "Slachter's Nek Rebellion",
-          "date": "1815-01-01",
-          "precision": "year",
+          "date": "1815-11-18",
+          "precision": "day",
           "at": [
-            18.0,
-            -33.0
+            25.8,
+            -32.8
           ],
           "line": "On the Cape frontier, Boer farmers rise against British rule",
           "source": {
@@ -739,8 +739,8 @@
           "date": "1815-05-20",
           "precision": "day",
           "at": [
-            12.5,
-            42.5
+            14.2,
+            41.18
           ],
           "source": {
             "title": "Neapolitan War (Wikipedia)",
@@ -940,6 +940,20 @@
       ],
       "1815-09": [
         {
+          "qid": "Q4870957",
+          "label": "Battle of El Roble",
+          "date": "1815-10-17",
+          "precision": "day",
+          "at": [
+            -72.41338,
+            -36.75627
+          ],
+          "source": {
+            "title": "Battle of El Roble (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_El_Roble"
+          }
+        },
+        {
           "qid": "Q115663901",
           "label": "Pronunciamiento of Porlier",
           "date": "1815-09-17",
@@ -966,37 +980,9 @@
             "title": "Battle of Venta y Media (Wikidata)",
             "url": "https://www.wikidata.org/wiki/Q6394693"
           }
-        },
-        {
-          "qid": "Q16848306",
-          "label": "Invasion of Guadeloupe",
-          "date": "1815-08-10",
-          "precision": "day",
-          "at": [
-            -61.5,
-            16.25
-          ],
-          "source": {
-            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
-          }
         }
       ],
       "1815-10": [
-        {
-          "qid": "Q4870957",
-          "label": "Battle of El Roble",
-          "date": "1815-10-17",
-          "precision": "day",
-          "at": [
-            -72.41338,
-            -36.75627
-          ],
-          "source": {
-            "title": "Battle of El Roble (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_El_Roble"
-          }
-        },
         {
           "qid": "Q4871304",
           "label": "Battle of Jaithak",
@@ -1024,9 +1010,7 @@
             "title": "Batalla de Santa Bárbara (Wikidata)",
             "url": "https://www.wikidata.org/wiki/Q26160634"
           }
-        }
-      ],
-      "1815-11": [
+        },
         {
           "qid": "Q233688",
           "label": "Treaty of Paris",
@@ -1039,6 +1023,22 @@
           "source": {
             "title": "Treaty of Paris (1815) (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"
+          }
+        }
+      ],
+      "1815-11": [
+        {
+          "qid": "Q5010928",
+          "label": "Slachter's Nek Rebellion",
+          "date": "1815-11-18",
+          "precision": "day",
+          "at": [
+            25.8,
+            -32.8
+          ],
+          "source": {
+            "title": "Slachter's Nek Rebellion (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
           }
         },
         {
@@ -1083,6 +1083,20 @@
           "source": {
             "title": "Treaty of Paris (1815) (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"
+          }
+        },
+        {
+          "qid": "Q5010928",
+          "label": "Slachter's Nek Rebellion",
+          "date": "1815-11-18",
+          "precision": "day",
+          "at": [
+            25.8,
+            -32.8
+          ],
+          "source": {
+            "title": "Slachter's Nek Rebellion (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
           }
         },
         {
@@ -2000,17 +2014,17 @@
       ],
       "1817-11": [
         {
-          "qid": "Q4871633",
-          "label": "Battle of Mahidpur",
-          "date": "1817-12-21",
+          "qid": "Q617210",
+          "label": "Third Anglo-Maratha War",
+          "date": "1817-11-05",
           "precision": "day",
           "at": [
-            75.65722,
-            23.48722
+            75.71389,
+            19.75148
           ],
           "source": {
-            "title": "Battle of Mahidpur (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Mahidpur"
+            "title": "Battle of Khadki (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Khadki"
           }
         },
         {

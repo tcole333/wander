@@ -2,8 +2,11 @@
 drawn from the event index (`ev/events.tsv.gz`, which the events stage writes into the profile's
 output root) into the story's committed lock.
 
-`uv run prebuild meanwhile --story <id>` reads the beats of `stories/<id>/story.md` and picks, for
-each, `COUNT` events happening elsewhere at the beat's time:
+`uv run prebuild meanwhile --story <id>` reads the beats of `stories/<id>/story.md` and the lines
+written for their events in `stories/<id>/meanwhile.yaml` (qid -> {line, date?, at?, source:
+{title, url}}), whose `date` (one day) and `at` ([lon, lat]) stand in for the index's where the
+source dates or places the event otherwise. For each beat it picks `COUNT` events happening
+elsewhere at the beat's time:
 
 - dated inside the beat's window, widened where needed to `PAD_DAYS` either side of the beat's
   date (a date of year or month precision counts as its whole year or month), and spanning no
@@ -22,13 +25,10 @@ keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The 
 scrubs: the month's window, the target of the beat dated nearest it, none of the story's
 focal events, and no event any beat hides.
 
-A beat's entries carry the lines the story's writers give them in `stories/<id>/meanwhile.yaml`
-(qid -> {line, date?, source: {title, url}}), with the date the source gives where it differs
-from Wikidata's; a month's show the Wikidata label, and cite the event's written source where it
-has one (taking its date too), else its Wikipedia article. The
-lobby's glows are the `GLOW_COUNT` best-scored events of every era with a place of their own (an
-inherited place is often a continent's or an ocean's middle), each at least `GLOW_MIN_KM` from the
-others.
+A beat's entries show their written lines; a month's show the Wikidata label, and cite the
+event's written source where it has one, else its Wikipedia article. The lobby's glows are the
+`GLOW_COUNT` best-scored events of every era with a place of their own (an inherited place is
+often a continent's or an ocean's middle), each at least `GLOW_MIN_KM` from the others.
 
 The stage refuses an event index built from another export or other configs than the current
 ones (the events record's `inputs`). It rewrites the lock's `meanwhile` and `glows` and keeps
@@ -40,7 +40,7 @@ import math
 import time
 import urllib.parse
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -140,9 +140,9 @@ def run(ctx: Context) -> None:
             f"{table} was built from another export or other configs: "
             f"run `uv run prebuild --profile {ctx.profile} events`"
         )
-    with gzip.open(table, "rt", encoding="utf-8") as stream:
-        index = read_table(stream)
     lines = read_lines(folder / "meanwhile.yaml")
+    with gzip.open(table, "rt", encoding="utf-8") as stream:
+        index = [as_written(e, lines.get(e.qid)) for e in read_table(stream)]
     by_beat = beat_lists(beats, index)
     by_month = month_lists(beats, index)
     unwritten = sorted({e.qid for chosen in by_beat.values() for e in chosen} - set(lines))
@@ -388,7 +388,7 @@ def story_beats(markdown: str) -> list[Beat]:
 
 
 def read_lines(path: Path) -> dict[str, dict[str, Any]]:
-    """The written lines, by qid: {line, date?, source: {title, url}}."""
+    """The written lines, by qid: {line, date?, at?, source: {title, url}}."""
     if not path.exists():
         return {}
     lines = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -398,7 +398,30 @@ def read_lines(path: Path) -> dict[str, dict[str, Any]]:
             raise MeanwhileError(f"{path.name}: {qid} needs a line and a source's title and url")
         if "date" in written:
             iso_day(str(written["date"]))
+        at = written.get("at", [0, 0])
+        if not (
+            isinstance(at, list)
+            and len(at) == 2
+            and all(isinstance(v, int | float) for v in at)
+            and -180 <= at[0] <= 180
+            and -90 <= at[1] <= 90
+        ):
+            raise MeanwhileError(f"{path.name}: {qid}'s at is [lon, lat] in degrees")
     return lines
+
+
+def as_written(event: Event, written: Mapping[str, Any] | None) -> Event:
+    """The event with its written line's date, a single day, and place, where the line gives
+    them."""
+    if written is None:
+        return event
+    if "date" in written:
+        day = iso_day(str(written["date"]))
+        event = replace(event, date=day, precision=events.DAY, t0=day, t1=day)
+    if "at" in written:
+        lon, lat = written["at"]
+        event = replace(event, at=(float(lon), float(lat)), inherited=False)
+    return event
 
 
 def read_table(lines: Iterable[str]) -> list[Event]:
@@ -436,16 +459,12 @@ def entry(
 ) -> dict[str, Any]:
     """An entry as the lock gives it: the label with its first letter capitalized, the date and
     its precision, the place, the source, and for a beat's entry (`line`) its written line. Where
-    the event has a written line, the entry cites its source, and takes the date the source gives
-    where that differs from Wikidata's."""
-    day, precision = event.date, event.precision
-    if written is not None and "date" in written:
-        day, precision = iso_day(str(written["date"])), events.DAY
+    the event has a written line, the entry cites its source."""
     fields: dict[str, Any] = {
         "qid": event.qid,
         "label": event.label[:1].upper() + event.label[1:],
-        "date": events.iso(civil(day)),
-        "precision": precision_name(precision),
+        "date": events.iso(civil(event.date)),
+        "precision": precision_name(event.precision),
         "at": list(event.at),
     }
     if written is not None and line:
