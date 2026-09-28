@@ -8,15 +8,15 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 
 ## Status
 
-Milestone 1 (the Tambora slice) is under way. The surface core (issue #3) is complete: the
-prebuild's profiles, cube conventions, `.wst` codec, committed excerpts and `fetch`, `excerpts`,
-`coverage` and `surface` stages; the region bake and its check; the decoder and the GPU pools.
-The production entry (`app/index.html`, `app/src/main.ts`) opens on the lobby and plays the Tambora
-walk from the bundled release, `app/src/generated/release.json`; its Credits panel shows the
-credits page's sheet (`app/credits.html`, also served at `/credits`). It goes live once that
-release's data is on R2 (`npm run check-release`). The dev page
-`app/prototype.html?story=tambora` boots the same walk (`app/src/walk/boot.ts`) under a tuning
-panel. Hosting and CI are live.
+Milestone 1, the Tambora slice, is complete and live at `wander.traviscole.xyz`, accepted by E3 on
+2026-09-28 (`docs/design/streaming.md` 8.1 lists where it departs from the design, and 8.2 what
+the experiments settled). The site opens on the lobby, whose plaque dives into the eight-beat
+Tambora walk: the global surface bake, ModE-RA's 1816 cold on two beats, the 1815 borders under
+their year plate, engraved sea names, Meanwhile and the lobby's glows from the all-eras Wikidata
+index, synthesized sound, and the Credits panel. The production entry (`app/index.html`,
+`app/src/main.ts`) plays it from the bundled release, `app/src/generated/release.json`, whose data
+is on R2; the dev page `app/prototype.html?story=tambora` boots the same walk
+(`app/src/walk/boot.ts`) under a tuning panel. Next is milestone 2, Magellan (`docs/PRD.md`).
 
 ## Layout
 
@@ -35,7 +35,8 @@ Paths in the docs are relative to the repo root, except the measurement citation
   turns raw sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
   both projects.
-- `stories/<story>/`: one folder per story: `story.md`, its datasets, audio and `story.lock.json`.
+- `stories/<story>/`: one folder per story: `story.md`, `meanwhile.yaml` (Meanwhile's written
+  lines) and `story.lock.json`, plus its datasets and audio once a story has them.
 - `build/`: generated output (git-ignored): the prebuild's roots, one per profile in the R2 key
   layout (`build/out/` for global, `build/region/`, `build/fixture/`), stage records in
   `build/stages/<profile>/` and caches in `build/cache/`; and lab reports in `build/lab/`.
@@ -53,9 +54,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   uv) into `build/fixture/` and `build/stages/fixture/`. Vitest checks against it and fails,
   naming this command, when it is missing or was built from other pipeline code, shared constants
   or excerpts than the working tree holds.
-- `npm run data -- --profile fixture|region`: serves `build/fixture/` on :8791 or `build/region/` on
-  :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
-  7.3).
+- `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
+  `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
+  `/release.json` (`docs/design/streaming.md` 7.3); `?data=fixture|region|global` points a page
+  served from loopback at it.
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
   its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field and the
   first story image, and checks R2's headers. CI runs it as its own job, which the Pages deploy
@@ -80,6 +82,15 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   on one page with its level. Every level lives in `app/src/audio/mix.ts`; Copy settings copies the
   mix as JSON to paste over it. With the dev server up, `node scripts/renderSounds.ts --out <dir>`
   renders every sound to WAV with its peak and RMS.
+- `node scripts/walkShots.ts` and `node scripts/lobbyShots.ts --url <dev server> --out <dir>`, with
+  the Vite dev server and a data server up: every beat, flights, scrubs and a break-out, and the
+  lobby's opening, dive and Credits panel (with a video), on this Mac's GPU at 1440x900, with any
+  console errors. Each file's header gives its flags.
+- `node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results`: E3,
+  milestone 1's acceptance, against the live site in headless Chromium on Metal: cold loads at
+  25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
+  to Pages and repeated walks for leaks (`docs/design/streaming.md` 8.2). Local only, about 20
+  minutes, with nothing else on the GPU.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
@@ -142,10 +153,10 @@ Raw sources live outside the repo in the raw-data folder `~/projects/wander-data
 `README.md` and `manifest.json`); not to be confused with the R2 bucket of the same name. The
 prebuild reads that folder from `$WANDER_DATA`, defaulting to `~/projects/wander-data`, and
 `pipeline/sources.toml` is the registry that pins each input; the build does not read
-`manifest.json`. Raw data (about 13 GB, with GEBCO unzipped) is never committed. Tests (and
-`npm run dev:fixture`, planned in `docs/design/streaming.md` 7.3) run on small excerpts committed
-to the repo, and `npm run dev` reads production data, so a fresh clone works without the raw-data
-folder.
+`manifest.json`. Raw data (about 13 GB, with GEBCO unzipped) is never committed. Tests run on small
+excerpts committed to the repo (`npm run fixture`, then `npm run data -- --profile fixture` and
+`?data=fixture` walks the app on them), and `npm run dev` reads production data, so a fresh clone
+works without the raw-data folder.
 
 ## Working here
 
