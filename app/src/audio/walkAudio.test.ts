@@ -34,6 +34,10 @@ vi.mock('./voices', () => ({
   },
 }));
 vi.mock('./bed', () => ({
+  museumBed() {
+    heard.started.push('museum');
+    return { setDay() {}, toRoom: () => heard.rooms++, stop: () => heard.stopped.push('museum') };
+  },
   tamboraBed() {
     heard.started.push('bed');
     return {
@@ -121,6 +125,32 @@ describe("the walk's score", () => {
       ['eruption', mix.cues.eruption - 12],
       ['eruption', mix.cues.eruption],
     ]);
+  });
+
+  it('gives Magellan room tone on a first visit and crossfades beds when stories change', () => {
+    const { walk, score, engine } = setup();
+    const magellan = parseStory(
+      readFileSync(new URL('../../../stories/magellan/story.md', import.meta.url), 'utf8'),
+    );
+    const state = { ...walk.state(), story: magellan, day: magellan.beats[0]!.day };
+    const first = new WalkScore(engine as unknown as SoundEngine, state, engine.soon());
+    expect(heard.started).toEqual(['bed', 'museum']);
+    const fromTambora = score.toRoom(engine.soon());
+    const next = new WalkScore(engine as unknown as SoundEngine, state, engine.soon(), fromTambora);
+    expect(heard.stopped).toEqual(['bed']);
+    expect(heard.started).toEqual(['bed', 'museum', 'museum']);
+    // A return to Tambora restores the rumble's voice, not Magellan's room-only bed.
+    const fromMagellan = next.toRoom(engine.soon());
+    const again = new WalkScore(
+      engine as unknown as SoundEngine,
+      walk.state(),
+      engine.soon(),
+      fromMagellan,
+    );
+    expect(heard.stopped).toEqual(['bed', 'museum']);
+    expect(heard.started.at(-1)).toBe('bed');
+    first.stop(engine.soon());
+    again.stop(engine.soon());
   });
 
   it('fades cues to the room and reuses the same bed after another dive', () => {

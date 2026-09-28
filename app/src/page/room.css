@@ -42,6 +42,7 @@
   gap: 46px;
   box-sizing: border-box;
   padding: 24px 16px 6vh;
+  overflow-y: auto;
   background: var(--room-lens), var(--room);
   font-family: var(--reading);
   color: var(--ivory);
@@ -63,6 +64,11 @@
 .room > * {
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+}
+
+.room:has(.plate) {
+  justify-content: safe center;
 }
 
 /* The grain, lifted a little off the black as the canvas's grain lifts its darks. */

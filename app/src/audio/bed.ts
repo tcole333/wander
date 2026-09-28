@@ -56,7 +56,16 @@ function rumbleGain(mix: Mix, level: number): number {
   return gainOf(mix.bed.rumble) * level ** 1.5;
 }
 
+/** The shared museum ambience, with no story rumble. */
+export function museumBed(engine: SoundEngine, _day: number, at = engine.ctx.currentTime): Bed {
+  return makeBed(engine, null, at);
+}
+
 export function tamboraBed(engine: SoundEngine, day: number, at = engine.ctx.currentTime): Bed {
+  return makeBed(engine, day, at);
+}
+
+function makeBed(engine: SoundEngine, day: number | null, at: number): Bed {
   const ctx = engine.ctx;
   const sources = new Sources();
   const out = new GainNode(ctx, { gain: 0 });
@@ -90,40 +99,43 @@ export function tamboraBed(engine: SoundEngine, day: number, at = engine.ctx.cur
     .connect(hushGain)
     .connect(room);
 
-  // The mountain: brown noise under 100 Hz, its color and weight drifting on slow cycles.
-  const rumble = new GainNode(ctx, { gain: rumbleGain(engine.mix, rumbleLevel(day)) });
-  rumble.connect(out);
-  const deep = loop(engine, engine.noise('brown', 11.3), at, sources);
-  const body = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 85, Q: 0.9 });
-  const swell = new GainNode(ctx, { gain: 0.8 });
-  lfo(engine, body.frequency, 0.0371 * jitter(0.1), 22, at, sources);
-  lfo(engine, swell.gain, 0.0613 * jitter(0.1), 0.18, at, sources);
-  lfo(engine, swell.gain, 0.0983 * jitter(0.1), 0.1, at, sources);
-  deep.connect(body).connect(swell).connect(rumble);
-  // Its floor: a second loop lower still.
-  const floor = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 42, Q: 0.7 });
-  loop(engine, engine.noise('brown', 12.7), at, sources)
-    .connect(floor)
-    .connect(new GainNode(ctx, { gain: 0.9 }))
-    .connect(rumble);
-  // And a trace of it higher up, where small speakers reach.
-  const trace = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 150, Q: 1.3 });
-  const traceGain = new GainNode(ctx, { gain: 0.14 });
-  lfo(engine, traceGain.gain, 0.0437 * jitter(0.1), 0.05, at, sources);
-  deep.connect(trace).connect(traceGain).connect(rumble);
+  let rumble: GainNode | null = null;
+  if (day !== null) {
+    // The mountain: brown noise under 100 Hz, its color and weight drifting on slow cycles.
+    rumble = new GainNode(ctx, { gain: rumbleGain(engine.mix, rumbleLevel(day)) });
+    rumble.connect(out);
+    const deep = loop(engine, engine.noise('brown', 11.3), at, sources);
+    const body = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 85, Q: 0.9 });
+    const swell = new GainNode(ctx, { gain: 0.8 });
+    lfo(engine, body.frequency, 0.0371 * jitter(0.1), 22, at, sources);
+    lfo(engine, swell.gain, 0.0613 * jitter(0.1), 0.18, at, sources);
+    lfo(engine, swell.gain, 0.0983 * jitter(0.1), 0.1, at, sources);
+    deep.connect(body).connect(swell).connect(rumble);
+    // Its floor: a second loop lower still.
+    const floor = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 42, Q: 0.7 });
+    loop(engine, engine.noise('brown', 12.7), at, sources)
+      .connect(floor)
+      .connect(new GainNode(ctx, { gain: 0.9 }))
+      .connect(rumble);
+    // And a trace of it higher up, where small speakers reach.
+    const trace = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 150, Q: 1.3 });
+    const traceGain = new GainNode(ctx, { gain: 0.14 });
+    lfo(engine, traceGain.gain, 0.0437 * jitter(0.1), 0.05, at, sources);
+    deep.connect(trace).connect(traceGain).connect(rumble);
+  }
 
   let current = day;
   return {
     setDay(next, when = ctx.currentTime) {
       current = next;
-      rumble.gain.setTargetAtTime(rumbleGain(engine.mix, rumbleLevel(next)), when, 0.4);
+      rumble?.gain.setTargetAtTime(rumbleGain(engine.mix, rumbleLevel(next)), when, 0.4);
     },
     setMix(mix, when = ctx.currentTime) {
       room.gain.setTargetAtTime(gainOf(mix.bed.room), when, 0.05);
-      rumble.gain.setTargetAtTime(rumbleGain(mix, rumbleLevel(current)), when, 0.05);
+      rumble?.gain.setTargetAtTime(rumbleGain(mix, rumbleLevel(current ?? 0)), when, 0.05);
     },
     toRoom(when = ctx.currentTime) {
-      rumble.gain.setTargetAtTime(0, when, tunables.bedCrossfade / 3000);
+      rumble?.gain.setTargetAtTime(0, when, tunables.bedCrossfade / 3000);
     },
     stop(when = ctx.currentTime, fade = tunables.bedCrossfade / 1000) {
       out.gain.setTargetAtTime(0, when, fade / 4);

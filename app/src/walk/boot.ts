@@ -33,6 +33,7 @@ import type { Release } from '../data/release';
 import type { SurfaceLayer } from '../data/surfaceLayer';
 import { ClearanceField } from '../globe/clearance';
 import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
+import { lobbyPlaces } from '../lobby/places';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { summarizeFrames } from '../perf/frameStats';
 import type { MemoryAccount } from '../perf/memory';
@@ -79,11 +80,12 @@ export interface StorySource {
 }
 
 export interface BootOptions {
-  /** The story to walk; without one, the globe is the visitor's to explore. */
+  /** The story to start on directly; without one, starts in the lobby if stories are supplied. */
   story?: StorySource | null;
+  /** The lobby's stories, in plaque order. Defaults to the direct story alone. */
+  stories?: readonly StorySource[];
   /**
-   * Starts in the lobby, where choosing the story's plaque starts it, rather than on its first
-   * beat. Needs a story.
+   * Starts in the lobby, where choosing a plaque starts its story. Needs at least one story.
    */
   lobby?: boolean;
   /** Where the view starts. */
@@ -92,7 +94,9 @@ export interface BootOptions {
    * Called when the story does not start from the lobby's plaque, after the boot has resolved, so
    * the page can bring its plate. Without it, the error goes on uncaught.
    */
-  onFail?: (error: unknown) => void;
+  onFail?: (error: unknown, story: Story) => void;
+  /** The chosen story, including during its dive; null once the lobby has returned. */
+  onStory?: (story: Story | null) => void;
   /**
    * Called with each part's params (the look's, the scene's, the streamer's, the camera's, and a
    * story's effects') before anything reads them: the dev shell's query overrides.
@@ -166,12 +170,14 @@ async function assemble(
   release: Release,
   {
     story: source = null,
-    lobby: inLobby = false,
+    stories: sources = source ? [source] : [],
+    lobby: inLobby = source === null,
     view = WORLD,
     tune = () => {},
     onFail = (error) => {
       throw error;
     },
+    onStory = () => {},
   }: BootOptions,
   made: (() => void)[],
 ): Promise<WalkPage> {
@@ -202,9 +208,12 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
-  // The faces load beside the roots, for every character of the story, Meanwhile and the credits.
-  const faces = source
-    ? loadFaces(JSON.stringify(source.story) + JSON.stringify(source.meanwhile) + creditsPage)
+  // Every story's faces load with the roots: switching plaques never fetches another font.
+  const faces = sources.length
+    ? loadFaces(
+        sources.map(({ story, meanwhile }) => JSON.stringify({ story, meanwhile })).join('') +
+          creditsPage,
+      )
     : null;
   const streamer = await createSurfaceStreamer(renderer, release);
   made.push(() => streamer.dispose());
@@ -237,7 +246,7 @@ async function assemble(
     // Device pixels per CSS pixel, the display's up to 2, as the spike drew. From 1.5 the scene
     // drops MSAA, so a Retina display holds 60 fps on the M5 at 2. A story draws at most 1.5:
     // at 2 the plume's overlapping puffs and the flights miss frames on a Retina display.
-    pixelRatio: Math.min(devicePixelRatio, source ? 1.5 : 2),
+    pixelRatio: Math.min(devicePixelRatio, sources.length ? 1.5 : 2),
   };
   for (const params of [look.params, museum.params, streamer.params, cameraParams]) tune(params);
 
@@ -262,7 +271,7 @@ async function assemble(
   let endStory: (() => void) | null = null;
   let leaveStory = () => {};
   made.push(() => endStory?.());
-  const sound = source ? createWalkAudio() : null;
+  const sound = sources.length ? createWalkAudio() : null;
   if (sound) made.push(() => sound.dispose());
   const chrome = sound ? new WalkChrome(host, sound, () => lobby?.back()) : null;
   if (chrome) made.push(() => chrome.dispose());
@@ -285,17 +294,23 @@ async function assemble(
   // through its beats: the walk flies the camera, and holds a late landing until the streamer has
   // nothing in hand. It starts on its first beat, or in the lobby, which starts it in the press
   // that chooses its plaque.
-  const effects = source && createWalkEffects(source.story, look, labels, release);
-  if (effects) {
-    made.push(() => effects.dispose());
-    museum.globeMount.add(effects.group);
-    tune(effects.params);
-  }
+  const prepared = new Map(
+    sources.map((source) => {
+      const effects = createWalkEffects(source.story, look, labels, release);
+      made.push(() => effects.dispose());
+      museum.globeMount.add(effects.group);
+      tune(effects.params);
+      return [source.story.id, { source, effects }] as const;
+    }),
+  );
   // The effects are compiled once and reused. A separate fade leaves the tuned params intact
   // and starts from zero on every dive, including one after a return in mid-flight.
   let effectsStrength = 0;
-  const begin = (arrive: 'jump' | 'fly'): Walk => {
-    if (!source || !effects || !sound) throw new Error('the page has no story to begin');
+  const begin = (chosen: Story, arrive: 'jump' | 'fly'): Walk => {
+    onStory(chosen);
+    const entry = prepared.get(chosen.id);
+    if (!entry || !sound) throw new Error(`the page has no story '${chosen.id}' to begin`);
+    const { source, effects } = entry;
     const [parts, end, leave] = startStory(
       source,
       effects,
@@ -321,22 +336,23 @@ async function assemble(
     endStory?.();
     endStory = null;
     leaveStory = () => {};
+    story?.effects.hide();
     story = null;
     effectsStrength = 0;
-    effects?.hide();
+    onStory(null);
     measureLens();
   };
   const lobby =
-    source && chrome
+    sources.length && chrome
       ? createLobby({
           host,
-          story: source.story,
-          places: source.glows,
+          stories: sources.map(({ story }) => story),
+          places: lobbyPlaces(sources.map(({ glows }) => glows)),
           museum,
           control,
           chrome,
           initial: inLobby ? 'lobby' : 'story',
-          enter: () => begin('fly'),
+          enter: (chosen) => begin(chosen, 'fly'),
           leave: () => leaveStory(),
           finish: finishStory,
           fail: onFail,
@@ -345,18 +361,24 @@ async function assemble(
   if (lobby) made.push(() => lobby.dispose());
   // The sea names are lettered before the first frame, in faces loaded now, so none pops in.
   await look.ready;
-  if (effects) {
-    await precompile(
-      renderer,
-      museum,
-      camera,
-      lobby ? [effects.group, lobby.glows] : [effects.group],
-    );
+  for (const { effects } of prepared.values()) effects.group.visible = false;
+  if (prepared.size) {
+    // Compile with one story's lights present, as the walk draws them. Compiling every story
+    // together would warm a different light count and leave the first dive to compile again.
+    for (const { effects } of prepared.values()) {
+      effects.group.visible = true;
+      await precompile(
+        renderer,
+        museum,
+        camera,
+        lobby ? [effects.group, lobby.glows] : [effects.group],
+      );
+      effects.hide();
+    }
     // precompile drew every program once, and three checks each link at its first use.
     if (unlinked > 0) throw new DrawError(`${unlinked} shaders did not link`);
   }
-  if (inLobby && effects) effects.hide();
-  else if (source) begin('jump');
+  if (!inLobby && source) begin(source.story, 'jump');
   let effectsLoading = false;
   await faces;
 
@@ -394,7 +416,7 @@ async function assemble(
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
     lobby?.update(dt, camera);
-    effects?.background();
+    for (const { effects } of prepared.values()) effects.background();
     if (story) {
       effectsStrength = Math.max(
         0,
@@ -459,9 +481,9 @@ async function assemble(
       idleSince = Math.min(idleSince, now);
       idleFrames += 1;
     }
-    if (effects && !effectsLoading && ready()) {
+    if (!effectsLoading && ready()) {
       effectsLoading = true;
-      effects.load();
+      for (const { effects } of prepared.values()) effects.load();
     }
   });
 
@@ -490,11 +512,11 @@ async function assemble(
     inspectMemory(account) {
       streamer.inspectMemory?.(account);
       look.inspectMemory?.(account);
-      effects?.inspectMemory?.(account);
+      for (const { effects } of prepared.values()) effects.inspectMemory?.(account);
       sound?.inspectMemory?.(account);
       // Count specialized owners first, then the remaining instrument and lobby resources.
       account.geometry('surface.gridAndInstances', streamer.geometry);
-      if (effects) account.object('effects', effects.group);
+      for (const { effects } of prepared.values()) account.object('effects', effects.group);
       if (lobby) account.object('lobby', lobby.glows);
       account.object('instrument', museum.scene);
       if (museum.scene.background && 'isTexture' in museum.scene.background) {
@@ -509,7 +531,7 @@ async function assemble(
       };
       account.details.streamer = streamer.stats();
       account.details.cardFiles =
-        source?.story.beats.flatMap((beat) => beat.image.locked?.files ?? []) ?? [];
+        story?.walk.state().story.beats.flatMap((beat) => beat.image.locked?.files ?? []) ?? [];
     },
     dispose() {
       for (const undo of made.splice(0).reverse()) undo();

@@ -1,16 +1,19 @@
-import { readFileSync } from 'node:fs';
 import { Group, PerspectiveCamera } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { MuseumScene } from '../contract';
 import { createWalk, type DirectedWalk } from '../story/director';
-import { parseStory } from '../story/story';
+import { stories, storyNamed } from '../story/catalog';
+import type { Story } from '../story/story';
 import type { WalkChrome } from '../story/ui/chrome';
 import { ViewControl } from '../view/viewControl';
 import { createLobby } from './lobby';
 
 // The real director, camera control, flights and lobby clock, with only the DOM and GPU replaced.
 const drawn = vi.hoisted(() => ({
-  choose: () => {},
+  choose: (id = 'tambora'): void => {
+    throw new Error(`No plaque for ${id}`);
+  },
+  ids: [] as string[],
   plaques: 0,
   glows: 0,
   shown: false,
@@ -20,8 +23,9 @@ const drawn = vi.hoisted(() => ({
 vi.mock('./plaques', () => ({
   Plaques: class {
     element = {};
-    constructor(_story: unknown, choose: () => void) {
-      drawn.choose = choose;
+    constructor(stories: readonly Story[], choose: (story: Story) => void) {
+      drawn.ids = stories.map((story) => story.id);
+      drawn.choose = (id = 'tambora') => choose(stories.find((story) => story.id === id)!);
       drawn.plaques++;
     }
     reach = () => 386;
@@ -47,9 +51,7 @@ vi.mock('./glows', async () => {
   };
 });
 
-const story = parseStory(
-  readFileSync(new URL('../../../stories/tambora/story.md', import.meta.url), 'utf8'),
-);
+const story = storyNamed('tambora')!.story;
 const DT = 1 / 60;
 
 function setup(initial: 'lobby' | 'story' = 'lobby') {
@@ -70,8 +72,8 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
   const control = new ViewControl({ lon: 75, lat: 15, viewKm: 30000, tilt: 0, heading: 0 });
   control.maxKm = 30000;
   let walk: DirectedWalk | null = null;
-  const begin = () => {
-    walk = createWalk(story, control, { arrive: 'fly', ready: () => true });
+  const begin = (chosen: Story) => {
+    walk = createWalk(chosen, control, { arrive: 'fly', ready: () => true });
     return walk;
   };
   const leave = vi.fn(() => walk?.breakOut());
@@ -82,7 +84,7 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
   const chrome = { lobby: vi.fn(), show: vi.fn(), focus: vi.fn(), mark: {} };
   const lobby = createLobby({
     host: host as unknown as HTMLElement,
-    story,
+    stories: stories.map(({ story }) => story),
     places: [],
     museum: { params: {}, globeMount: new Group() } as unknown as MuseumScene,
     control,
@@ -162,6 +164,36 @@ describe('the lobby round trip', () => {
     expect([drawn.plaques, drawn.glows, drawn.disposed]).toEqual([1, 1, 0]);
     s.lobby.dispose();
     expect(drawn.disposed).toBe(2);
+  });
+
+  it('chooses either story after a return, with its own date and camera on a fresh beat 1', () => {
+    const s = setup();
+    s.until(() => s.host.dataset.lobby === 'idle');
+    expect(drawn.ids).toEqual(['tambora', 'magellan']);
+    for (const id of ['magellan', 'tambora', 'magellan']) {
+      const chosen = storyNamed(id)!.story;
+      const first = chosen.beats[0]!;
+      drawn.choose(id);
+      expect(s.walk().state()).toMatchObject({
+        story: chosen,
+        beat: 0,
+        day: first.day,
+        mode: 'paused',
+      });
+      s.until(() => s.host.dataset.lobby === 'gone');
+      expect(s.control.current).toMatchObject({
+        lon: first.camera.target[0],
+        lat: first.camera.target[1],
+        viewKm: first.camera.viewKm,
+      });
+      s.walk().next();
+      s.until(() => s.walk().state().flight === null);
+      expect(s.walk().state().day).toBe(chosen.beats[1]!.day);
+      s.key();
+      s.until(() => s.host.dataset.lobby === 'idle');
+    }
+    expect(s.finish).toHaveBeenCalledTimes(3);
+    s.lobby.dispose();
   });
 
   it('can return before the dive draws, without a late arrival revealing the old walk', () => {
