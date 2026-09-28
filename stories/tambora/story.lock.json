@@ -219,5 +219,2835 @@
       "license": "Public domain",
       "source": "https://commons.wikimedia.org/wiki/File:Carte_indiquant_la_marche_du_chol%C3%A9ra-morbus_depuis_l%27Inde_jusqu%27en_Europe,_1831_-_btv1b84409876.jpg"
     }
+  ],
+  "meanwhile": {
+    "beats": {
+      "world-1815": [
+        {
+          "qid": "Q1359641",
+          "label": "Battle of Tolentino",
+          "date": "1815-05-03",
+          "dateLabel": "3 May 1815",
+          "at": [
+            13.29111,
+            43.21361
+          ],
+          "line": "Austria routs Murat's Neapolitan army at Tolentino",
+          "source": {
+            "title": "Battle of Tolentino (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tolentino"
+          }
+        },
+        {
+          "qid": "Q3538392",
+          "label": "Kandyan Convention",
+          "date": "1815-03-02",
+          "dateLabel": "2 March 1815",
+          "at": [
+            80.64139,
+            7.29361
+          ],
+          "line": "The chiefs of Kandy cede their kingdom to the British Crown",
+          "source": {
+            "title": "Kandyan Convention (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Kandyan_Convention"
+          }
+        },
+        {
+          "qid": "Q54322416",
+          "label": "Treaty of Nicolls' Outpost",
+          "date": "1815-03-10",
+          "dateLabel": "10 March 1815",
+          "at": [
+            -84.8568,
+            30.7006
+          ],
+          "line": "A British colonel promises Creek refugees the Crown's protection",
+          "source": {
+            "title": "Treaty of Nicolls' Outpost (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Nicolls%27_Outpost"
+          }
+        }
+      ],
+      "sunda": [
+        {
+          "qid": "Q14833923",
+          "label": "Takovo Meeting",
+          "date": "1815-04-23",
+          "dateLabel": "23 April 1815",
+          "at": [
+            20.37328,
+            44.04343
+          ],
+          "line": "At Takovo, Miloš Obrenović raises the Serbs against Ottoman rule",
+          "source": {
+            "title": "Takovo Meeting (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Takovo_Meeting"
+          }
+        },
+        {
+          "qid": "Q25412993",
+          "label": "New Granadan Siege of Cartagena de Indias",
+          "date": "1815-03-26",
+          "dateLabel": "26 March 1815",
+          "at": [
+            -75.52528,
+            10.42361
+          ],
+          "line": "Bolívar besieges Cartagena, held by his patriot rival Castillo",
+          "source": {
+            "title": "Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia)",
+            "url": "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"
+          }
+        },
+        {
+          "qid": "Q3538392",
+          "label": "Kandyan Convention",
+          "date": "1815-03-02",
+          "dateLabel": "2 March 1815",
+          "at": [
+            80.64139,
+            7.29361
+          ],
+          "line": "The chiefs of Kandy cede their kingdom to the British Crown",
+          "source": {
+            "title": "Kandyan Convention (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Kandyan_Convention"
+          }
+        }
+      ],
+      "sumbawa": [
+        {
+          "qid": "Q298864",
+          "label": "Neapolitan War",
+          "date": "1815-05-20",
+          "dateLabel": "20 May 1815",
+          "at": [
+            12.5,
+            42.5
+          ],
+          "line": "Murat's war ends, and Naples returns to its Bourbon king",
+          "source": {
+            "title": "Neapolitan War (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Neapolitan_War"
+          }
+        },
+        {
+          "qid": "Q54322416",
+          "label": "Treaty of Nicolls' Outpost",
+          "date": "1815-03-10",
+          "dateLabel": "10 March 1815",
+          "at": [
+            -84.8568,
+            30.7006
+          ],
+          "line": "A British colonel promises Creek refugees the Crown's protection",
+          "source": {
+            "title": "Treaty of Nicolls' Outpost (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Nicolls%27_Outpost"
+          }
+        },
+        {
+          "qid": "Q3538392",
+          "label": "Kandyan Convention",
+          "date": "1815-03-02",
+          "dateLabel": "2 March 1815",
+          "at": [
+            80.64139,
+            7.29361
+          ],
+          "line": "The chiefs of Kandy cede their kingdom to the British Crown",
+          "source": {
+            "title": "Kandyan Convention (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Kandyan_Convention"
+          }
+        }
+      ],
+      "ash": [
+        {
+          "qid": "Q46362",
+          "label": "Congress of Vienna",
+          "date": "1815-01-01",
+          "dateLabel": "1815",
+          "at": [
+            16.36381,
+            48.2085
+          ],
+          "line": "The Congress of Vienna redraws the map of Europe",
+          "source": {
+            "title": "Congress of Vienna (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Congress_of_Vienna"
+          }
+        },
+        {
+          "qid": "Q3248484",
+          "label": "Argentine Declaration of Independence",
+          "date": "1816-07-09",
+          "dateLabel": "9 July 1816",
+          "at": [
+            -65.20333,
+            -26.83333
+          ],
+          "line": "At Tucumán, Argentina declares its independence from Spain",
+          "source": {
+            "title": "Argentine Declaration of Independence (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
+          }
+        },
+        {
+          "qid": "Q1757487",
+          "label": "Battle of Seven Oaks",
+          "date": "1816-06-19",
+          "dateLabel": "19 June 1816",
+          "at": [
+            -97.121,
+            49.932
+          ],
+          "line": "At Seven Oaks, Métis fighters kill Governor Semple and twenty men",
+          "source": {
+            "title": "Battle of Seven Oaks (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"
+          }
+        }
+      ],
+      "veil": [
+        {
+          "qid": "Q48314",
+          "label": "Battle of Waterloo",
+          "date": "1815-06-18",
+          "dateLabel": "18 June 1815",
+          "at": [
+            4.41222,
+            50.67806
+          ],
+          "line": "Wellington and Blücher defeat Napoleon at Waterloo",
+          "source": {
+            "title": "Battle of Waterloo (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Waterloo"
+          }
+        },
+        {
+          "qid": "Q5010928",
+          "label": "Slachter's Nek Rebellion",
+          "date": "1815-01-01",
+          "dateLabel": "1815",
+          "at": [
+            18.0,
+            -33.0
+          ],
+          "line": "On the Cape's eastern frontier, Boer farmers rise against British rule",
+          "source": {
+            "title": "Slachter's Nek Rebellion (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
+          }
+        },
+        {
+          "qid": "Q2890016",
+          "label": "Battle of Sipe-Sipe",
+          "date": "1815-11-28",
+          "dateLabel": "28 November 1815",
+          "at": [
+            -66.34781,
+            -17.45613
+          ],
+          "line": "Spain's royalists crush the army of Buenos Aires at Sipe-Sipe",
+          "source": {
+            "title": "Battle of Viluma (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
+          }
+        }
+      ],
+      "europe-1816": [
+        {
+          "qid": "Q3248484",
+          "label": "Argentine Declaration of Independence",
+          "date": "1816-07-09",
+          "dateLabel": "9 July 1816",
+          "at": [
+            -65.20333,
+            -26.83333
+          ],
+          "line": "At Tucumán, Argentina declares its independence from Spain",
+          "source": {
+            "title": "Argentine Declaration of Independence (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
+          }
+        },
+        {
+          "qid": "Q1757487",
+          "label": "Battle of Seven Oaks",
+          "date": "1816-06-19",
+          "dateLabel": "19 June 1816",
+          "at": [
+            -97.121,
+            49.932
+          ],
+          "line": "At Seven Oaks, Métis fighters kill Governor Semple and twenty men",
+          "source": {
+            "title": "Battle of Seven Oaks (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"
+          }
+        },
+        {
+          "qid": "Q2890524",
+          "label": "Battle of Cuchilla del Tambo",
+          "date": "1816-06-29",
+          "dateLabel": "29 June 1816",
+          "at": [
+            -76.8178,
+            2.45417
+          ],
+          "line": "Near Popayán, Spain's victory ends New Granada's first republic",
+          "source": {
+            "title": "Battle of Cuchilla del Tambo (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cuchilla_del_Tambo"
+          }
+        }
+      ],
+      "new-england-1816": [
+        {
+          "qid": "Q1425658",
+          "label": "Battle of Chacabuco",
+          "date": "1817-02-12",
+          "dateLabel": "12 February 1817",
+          "at": [
+            -70.68389,
+            -32.99306
+          ],
+          "line": "Across the Andes, San Martín's army beats Spain's at Chacabuco",
+          "source": {
+            "title": "Battle of Chacabuco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Chacabuco"
+          }
+        },
+        {
+          "qid": "Q7837193",
+          "label": "Treaty of Poona",
+          "date": "1817-06-13",
+          "dateLabel": "13 June 1817",
+          "at": [
+            73.85528,
+            18.52111
+          ],
+          "line": "The Peshwa signs away lands to the East India Company at Pune",
+          "source": {
+            "title": "Treaty of Poona (1817) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Poona_(1817)"
+          }
+        },
+        {
+          "qid": "Q7165306",
+          "label": "Pentrich Rising",
+          "date": "1817-06-09",
+          "dateLabel": "9 June 1817",
+          "at": [
+            -1.42,
+            53.07
+          ],
+          "line": "Hungry Derbyshire workers march on Nottingham with pikes and scythes",
+          "source": {
+            "title": "Pentrich rising (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Pentrich_rising"
+          }
+        }
+      ],
+      "yunnan-bengal-1817": [
+        {
+          "qid": "Q617210",
+          "label": "Third Anglo-Maratha War",
+          "date": "1817-11-05",
+          "dateLabel": "5 November 1817",
+          "at": [
+            75.71389,
+            19.75148
+          ],
+          "line": "The Peshwa's army attacks the British at Pune",
+          "source": {
+            "title": "Third Anglo-Maratha War (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Third_Anglo-Maratha_War"
+          }
+        },
+        {
+          "qid": "Q233688",
+          "label": "Treaty of Paris",
+          "date": "1815-11-20",
+          "dateLabel": "20 November 1815",
+          "at": [
+            2.35222,
+            48.85667
+          ],
+          "line": "In Paris, France signs a peace that costs it 700 million francs",
+          "source": {
+            "title": "Treaty of Paris (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"
+          }
+        },
+        {
+          "qid": "Q3248484",
+          "label": "Argentine Declaration of Independence",
+          "date": "1816-07-09",
+          "dateLabel": "9 July 1816",
+          "at": [
+            -65.20333,
+            -26.83333
+          ],
+          "line": "At Tucumán, Argentina declares its independence from Spain",
+          "source": {
+            "title": "Argentine Declaration of Independence (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
+          }
+        }
+      ]
+    },
+    "months": {
+      "1815-01": [
+        {
+          "qid": "Q1324198",
+          "label": "Treaty of Ghent",
+          "date": "1814-12-24",
+          "dateLabel": "24 December 1814",
+          "at": [
+            3.72167,
+            51.05167
+          ],
+          "source": {
+            "title": "Treaty of Ghent (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Ghent"
+          }
+        },
+        {
+          "qid": "Q41894",
+          "label": "Battle of New Orleans",
+          "date": "1815-01-08",
+          "dateLabel": "8 January 1815",
+          "at": [
+            -89.99083,
+            29.9425
+          ],
+          "source": {
+            "title": "Battle of New Orleans (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_New_Orleans"
+          }
+        },
+        {
+          "qid": "Q5723109",
+          "label": "Battle of Urica",
+          "date": "1814-12-05",
+          "dateLabel": "5 December 1814",
+          "at": [
+            -64.008,
+            9.714
+          ],
+          "source": {
+            "title": "Battle of Urica (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Urica"
+          }
+        }
+      ],
+      "1815-02": [
+        {
+          "qid": "Q4871048",
+          "label": "Battle of Fort Peter",
+          "date": "1815-01-13",
+          "dateLabel": "13 January 1815",
+          "at": [
+            -81.51667,
+            30.75694
+          ],
+          "source": {
+            "title": "Battle of Fort Peter (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Fort_Peter"
+          }
+        },
+        {
+          "qid": "Q25412993",
+          "label": "New Granadan Siege of Cartagena de Indias",
+          "date": "1815-03-26",
+          "dateLabel": "26 March 1815",
+          "at": [
+            -75.52528,
+            10.42361
+          ],
+          "source": {
+            "title": "Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia)",
+            "url": "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"
+          }
+        },
+        {
+          "qid": "Q65150830",
+          "label": "Battle of Montélimar",
+          "date": "1815-03-30",
+          "dateLabel": "30 March 1815",
+          "at": [
+            4.75083,
+            44.55806
+          ],
+          "source": {
+            "title": "Battle of Montélimar (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q65150830"
+          }
+        }
+      ],
+      "1815-03": [
+        {
+          "qid": "Q3538392",
+          "label": "Kandyan Convention",
+          "date": "1815-03-02",
+          "dateLabel": "2 March 1815",
+          "at": [
+            80.64139,
+            7.29361
+          ],
+          "source": {
+            "title": "Kandyan Convention (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Kandyan_Convention"
+          }
+        },
+        {
+          "qid": "Q14833923",
+          "label": "Takovo Meeting",
+          "date": "1815-04-23",
+          "dateLabel": "23 April 1815",
+          "at": [
+            20.37328,
+            44.04343
+          ],
+          "source": {
+            "title": "Takovo Meeting (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Takovo_Meeting"
+          }
+        },
+        {
+          "qid": "Q54322416",
+          "label": "Treaty of Nicolls' Outpost",
+          "date": "1815-03-10",
+          "dateLabel": "10 March 1815",
+          "at": [
+            -84.8568,
+            30.7006
+          ],
+          "source": {
+            "title": "Treaty of Nicolls' Outpost (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Nicolls%27_Outpost"
+          }
+        }
+      ],
+      "1815-04": [
+        {
+          "qid": "Q298864",
+          "label": "Neapolitan War",
+          "date": "1815-05-20",
+          "dateLabel": "20 May 1815",
+          "at": [
+            12.5,
+            42.5
+          ],
+          "source": {
+            "title": "Neapolitan War (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Neapolitan_War"
+          }
+        },
+        {
+          "qid": "Q25412993",
+          "label": "New Granadan Siege of Cartagena de Indias",
+          "date": "1815-03-26",
+          "dateLabel": "26 March 1815",
+          "at": [
+            -75.52528,
+            10.42361
+          ],
+          "source": {
+            "title": "Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia)",
+            "url": "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"
+          }
+        },
+        {
+          "qid": "Q3538392",
+          "label": "Kandyan Convention",
+          "date": "1815-03-02",
+          "dateLabel": "2 March 1815",
+          "at": [
+            80.64139,
+            7.29361
+          ],
+          "source": {
+            "title": "Kandyan Convention (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Kandyan_Convention"
+          }
+        }
+      ],
+      "1815-05": [
+        {
+          "qid": "Q233505",
+          "label": "Second Barbary War",
+          "date": "1815-06-17",
+          "dateLabel": "17 June 1815",
+          "at": [
+            17.0,
+            38.0
+          ],
+          "source": {
+            "title": "Second Barbary War (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Second_Barbary_War"
+          }
+        },
+        {
+          "qid": "Q4873014",
+          "label": "Battle of the Sink Hole",
+          "date": "1815-05-24",
+          "dateLabel": "24 May 1815",
+          "at": [
+            -90.68707,
+            38.93338
+          ],
+          "source": {
+            "title": "Battle of the Sink Hole (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"
+          }
+        }
+      ],
+      "1815-06": [
+        {
+          "qid": "Q48314",
+          "label": "Battle of Waterloo",
+          "date": "1815-06-18",
+          "dateLabel": "18 June 1815",
+          "at": [
+            4.41222,
+            50.67806
+          ],
+          "source": {
+            "title": "Battle of Waterloo (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Waterloo"
+          }
+        },
+        {
+          "qid": "Q16825552",
+          "label": "Capture of East India Company ship Nautilus",
+          "date": "1815-06-30",
+          "dateLabel": "30 June 1815",
+          "at": [
+            105.76972,
+            -5.97028
+          ],
+          "source": {
+            "title": "Capture of East India Company ship Nautilus (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Capture_of_East_India_Company_ship_Nautilus"
+          }
+        },
+        {
+          "qid": "Q613183",
+          "label": "Battle of the Palo River",
+          "date": "1815-07-05",
+          "dateLabel": "5 July 1815",
+          "at": [
+            -76.40778,
+            3.03556
+          ],
+          "source": {
+            "title": "Battle of the Palo River (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
+          }
+        }
+      ],
+      "1815-07": [
+        {
+          "qid": "Q233505",
+          "label": "Second Barbary War",
+          "date": "1815-06-17",
+          "dateLabel": "17 June 1815",
+          "at": [
+            17.0,
+            38.0
+          ],
+          "source": {
+            "title": "Second Barbary War (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Second_Barbary_War"
+          }
+        },
+        {
+          "qid": "Q2888313",
+          "label": "Battle of Châteauneuf-du-Faou",
+          "date": "1815-07-01",
+          "dateLabel": "1 July 1815",
+          "at": [
+            -3.81306,
+            48.1875
+          ],
+          "source": {
+            "title": "Battle of Châteauneuf-du-Faou (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q2888313"
+          }
+        },
+        {
+          "qid": "Q16848306",
+          "label": "Invasion of Guadeloupe",
+          "date": "1815-08-10",
+          "dateLabel": "10 August 1815",
+          "at": [
+            -61.5,
+            16.25
+          ],
+          "source": {
+            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
+          }
+        }
+      ],
+      "1815-08": [
+        {
+          "qid": "Q4871288",
+          "label": "Battle of Issy",
+          "date": "1815-07-03",
+          "dateLabel": "3 July 1815",
+          "at": [
+            2.27,
+            48.8239
+          ],
+          "source": {
+            "title": "Battle of Issy (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Issy"
+          }
+        },
+        {
+          "qid": "Q613183",
+          "label": "Battle of the Palo River",
+          "date": "1815-07-05",
+          "dateLabel": "5 July 1815",
+          "at": [
+            -76.40778,
+            3.03556
+          ],
+          "source": {
+            "title": "Battle of the Palo River (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
+          }
+        },
+        {
+          "qid": "Q4871304",
+          "label": "Battle of Jaithak",
+          "date": "1815-09-25",
+          "dateLabel": "25 September 1815",
+          "at": [
+            77.3372,
+            30.59593
+          ],
+          "source": {
+            "title": "Battle of Jaithak (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Jaithak"
+          }
+        }
+      ],
+      "1815-09": [
+        {
+          "qid": "Q115663901",
+          "label": "Pronunciamiento of Porlier",
+          "date": "1815-09-17",
+          "dateLabel": "17 September 1815",
+          "at": [
+            -8.39611,
+            43.37111
+          ],
+          "source": {
+            "title": "Pronunciamiento of Porlier (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q115663901"
+          }
+        },
+        {
+          "qid": "Q6394693",
+          "label": "Battle of Venta y Media",
+          "date": "1815-10-20",
+          "dateLabel": "20 October 1815",
+          "at": [
+            -67.66667,
+            -18.66667
+          ],
+          "source": {
+            "title": "Battle of Venta y Media (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q6394693"
+          }
+        },
+        {
+          "qid": "Q16848306",
+          "label": "Invasion of Guadeloupe",
+          "date": "1815-08-10",
+          "dateLabel": "10 August 1815",
+          "at": [
+            -61.5,
+            16.25
+          ],
+          "source": {
+            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
+          }
+        }
+      ],
+      "1815-10": [
+        {
+          "qid": "Q4870957",
+          "label": "Battle of El Roble",
+          "date": "1815-10-17",
+          "dateLabel": "17 October 1815",
+          "at": [
+            -72.41338,
+            -36.75627
+          ],
+          "source": {
+            "title": "Battle of El Roble (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_El_Roble"
+          }
+        },
+        {
+          "qid": "Q4871304",
+          "label": "Battle of Jaithak",
+          "date": "1815-09-25",
+          "dateLabel": "25 September 1815",
+          "at": [
+            77.3372,
+            30.59593
+          ],
+          "source": {
+            "title": "Battle of Jaithak (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Jaithak"
+          }
+        },
+        {
+          "qid": "Q26160634",
+          "label": "Batalla de Santa Bárbara",
+          "date": "1815-10-07",
+          "dateLabel": "7 October 1815",
+          "at": [
+            -60.64972,
+            -16.87917
+          ],
+          "source": {
+            "title": "Batalla de Santa Bárbara (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q26160634"
+          }
+        }
+      ],
+      "1815-11": [
+        {
+          "qid": "Q233688",
+          "label": "Treaty of Paris",
+          "date": "1815-11-20",
+          "dateLabel": "20 November 1815",
+          "at": [
+            2.35222,
+            48.85667
+          ],
+          "source": {
+            "title": "Treaty of Paris (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"
+          }
+        },
+        {
+          "qid": "Q2890016",
+          "label": "Battle of Sipe-Sipe",
+          "date": "1815-11-28",
+          "dateLabel": "28 November 1815",
+          "at": [
+            -66.34781,
+            -17.45613
+          ],
+          "source": {
+            "title": "Battle of Viluma (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
+          }
+        },
+        {
+          "qid": "Q4870957",
+          "label": "Battle of El Roble",
+          "date": "1815-10-17",
+          "dateLabel": "17 October 1815",
+          "at": [
+            -72.41338,
+            -36.75627
+          ],
+          "source": {
+            "title": "Battle of El Roble (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_El_Roble"
+          }
+        }
+      ],
+      "1815-12": [
+        {
+          "qid": "Q233688",
+          "label": "Treaty of Paris",
+          "date": "1815-11-20",
+          "dateLabel": "20 November 1815",
+          "at": [
+            2.35222,
+            48.85667
+          ],
+          "source": {
+            "title": "Treaty of Paris (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"
+          }
+        },
+        {
+          "qid": "Q2890016",
+          "label": "Battle of Sipe-Sipe",
+          "date": "1815-11-28",
+          "dateLabel": "28 November 1815",
+          "at": [
+            -66.34781,
+            -17.45613
+          ],
+          "source": {
+            "title": "Battle of Viluma (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
+          }
+        }
+      ],
+      "1816-01": [
+        {
+          "qid": "Q4872303",
+          "label": "Battle of Santa Ana",
+          "date": "1816-02-22",
+          "dateLabel": "22 February 1816",
+          "at": [
+            -53.15,
+            -29.75
+          ],
+          "source": {
+            "title": "Battle of Santa Ana (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Santa_Ana_(1816)"
+          }
+        },
+        {
+          "qid": "Q109236872",
+          "label": "1816 North Atlantic earthquake",
+          "date": "1816-02-02",
+          "dateLabel": "2 February 1816",
+          "at": [
+            -19.8,
+            37.8
+          ],
+          "source": {
+            "title": "1816 North Atlantic earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_North_Atlantic_earthquake"
+          }
+        },
+        {
+          "qid": "Q2888225",
+          "label": "Battle of Cachirí",
+          "date": "1816-02-22",
+          "dateLabel": "22 February 1816",
+          "at": [
+            -72.98611,
+            7.53833
+          ],
+          "source": {
+            "title": "Battle of Cachirí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cachir%C3%AD"
+          }
+        }
+      ],
+      "1816-02": [
+        {
+          "qid": "Q118143703",
+          "label": "Battle of Ceja Alta del Cancán",
+          "date": "1816-03-18",
+          "dateLabel": "18 March 1816",
+          "at": [
+            -75.56667,
+            6.68333
+          ],
+          "source": {
+            "title": "Battle of Ceja Alta del Cancán (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q118143703"
+          }
+        },
+        {
+          "qid": "Q4872303",
+          "label": "Battle of Santa Ana",
+          "date": "1816-02-22",
+          "dateLabel": "22 February 1816",
+          "at": [
+            -53.15,
+            -29.75
+          ],
+          "source": {
+            "title": "Battle of Santa Ana (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Santa_Ana_(1816)"
+          }
+        },
+        {
+          "qid": "Q109236872",
+          "label": "1816 North Atlantic earthquake",
+          "date": "1816-02-02",
+          "dateLabel": "2 February 1816",
+          "at": [
+            -19.8,
+            37.8
+          ],
+          "source": {
+            "title": "1816 North Atlantic earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_North_Atlantic_earthquake"
+          }
+        }
+      ],
+      "1816-03": [
+        {
+          "qid": "Q2888225",
+          "label": "Battle of Cachirí",
+          "date": "1816-02-22",
+          "dateLabel": "22 February 1816",
+          "at": [
+            -72.98611,
+            7.53833
+          ],
+          "source": {
+            "title": "Battle of Cachirí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cachir%C3%AD"
+          }
+        },
+        {
+          "qid": "Q2518869",
+          "label": "Treaty of Munich (1816)",
+          "date": "1816-04-14",
+          "dateLabel": "14 April 1816",
+          "at": [
+            11.575,
+            48.1375
+          ],
+          "source": {
+            "title": "Treaty of Munich (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Munich_(1816)"
+          }
+        },
+        {
+          "qid": "Q4872303",
+          "label": "Battle of Santa Ana",
+          "date": "1816-02-22",
+          "dateLabel": "22 February 1816",
+          "at": [
+            -53.15,
+            -29.75
+          ],
+          "source": {
+            "title": "Battle of Santa Ana (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Santa_Ana_(1816)"
+          }
+        }
+      ],
+      "1816-04": [
+        {
+          "qid": "Q41790626",
+          "label": "Appin massacre",
+          "date": "1816-04-17",
+          "dateLabel": "17 April 1816",
+          "at": [
+            150.742,
+            -34.23
+          ],
+          "source": {
+            "title": "Appin massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Appin_massacre"
+          }
+        },
+        {
+          "qid": "Q118143703",
+          "label": "Battle of Ceja Alta del Cancán",
+          "date": "1816-03-18",
+          "dateLabel": "18 March 1816",
+          "at": [
+            -75.56667,
+            6.68333
+          ],
+          "source": {
+            "title": "Battle of Ceja Alta del Cancán (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q118143703"
+          }
+        },
+        {
+          "qid": "Q2518869",
+          "label": "Treaty of Munich (1816)",
+          "date": "1816-04-14",
+          "dateLabel": "14 April 1816",
+          "at": [
+            11.575,
+            48.1375
+          ],
+          "source": {
+            "title": "Treaty of Munich (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Munich_(1816)"
+          }
+        }
+      ],
+      "1816-05": [
+        {
+          "qid": "Q1757487",
+          "label": "Battle of Seven Oaks",
+          "date": "1816-06-19",
+          "dateLabel": "19 June 1816",
+          "at": [
+            -97.121,
+            49.932
+          ],
+          "source": {
+            "title": "Battle of Seven Oaks (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"
+          }
+        },
+        {
+          "qid": "Q2518869",
+          "label": "Treaty of Munich (1816)",
+          "date": "1816-04-14",
+          "dateLabel": "14 April 1816",
+          "at": [
+            11.575,
+            48.1375
+          ],
+          "source": {
+            "title": "Treaty of Munich (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Munich_(1816)"
+          }
+        },
+        {
+          "qid": "Q2890524",
+          "label": "Battle of Cuchilla del Tambo",
+          "date": "1816-06-29",
+          "dateLabel": "29 June 1816",
+          "at": [
+            -76.8178,
+            2.45417
+          ],
+          "source": {
+            "title": "Battle of Cuchilla del Tambo (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cuchilla_del_Tambo"
+          }
+        }
+      ],
+      "1816-06": [
+        {
+          "qid": "Q25230631",
+          "label": "1816 Guatemala earthquake",
+          "date": "1816-07-22",
+          "dateLabel": "22 July 1816",
+          "at": [
+            -91.5,
+            15.5
+          ],
+          "source": {
+            "title": "1816 Guatemala earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
+          }
+        },
+        {
+          "qid": "Q3248484",
+          "label": "Argentine Declaration of Independence",
+          "date": "1816-07-09",
+          "dateLabel": "9 July 1816",
+          "at": [
+            -65.20333,
+            -26.83333
+          ],
+          "source": {
+            "title": "Argentine Declaration of Independence (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
+          }
+        },
+        {
+          "qid": "Q1757487",
+          "label": "Battle of Seven Oaks",
+          "date": "1816-06-19",
+          "dateLabel": "19 June 1816",
+          "at": [
+            -97.121,
+            49.932
+          ],
+          "source": {
+            "title": "Battle of Seven Oaks (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"
+          }
+        }
+      ],
+      "1816-07": [
+        {
+          "qid": "Q2890524",
+          "label": "Battle of Cuchilla del Tambo",
+          "date": "1816-06-29",
+          "dateLabel": "29 June 1816",
+          "at": [
+            -76.8178,
+            2.45417
+          ],
+          "source": {
+            "title": "Battle of Cuchilla del Tambo (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cuchilla_del_Tambo"
+          }
+        },
+        {
+          "qid": "Q4871874",
+          "label": "Negro Fort",
+          "date": "1816-07-27",
+          "dateLabel": "27 July 1816",
+          "at": [
+            -85.01127,
+            29.93824
+          ],
+          "source": {
+            "title": "Negro Fort (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Negro_Fort"
+          }
+        },
+        {
+          "qid": "Q3248484",
+          "label": "Argentine Declaration of Independence",
+          "date": "1816-07-09",
+          "dateLabel": "9 July 1816",
+          "at": [
+            -65.20333,
+            -26.83333
+          ],
+          "source": {
+            "title": "Argentine Declaration of Independence (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
+          }
+        }
+      ],
+      "1816-08": [
+        {
+          "qid": "Q28433158",
+          "label": "Treaty of St. Louis",
+          "date": "1816-08-24",
+          "dateLabel": "24 August 1816",
+          "at": [
+            -90.3431,
+            38.9264
+          ],
+          "source": {
+            "title": "Treaty of St. Louis (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_St._Louis_(1816)"
+          }
+        },
+        {
+          "qid": "Q25230631",
+          "label": "1816 Guatemala earthquake",
+          "date": "1816-07-22",
+          "dateLabel": "22 July 1816",
+          "at": [
+            -91.5,
+            15.5
+          ],
+          "source": {
+            "title": "1816 Guatemala earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
+          }
+        },
+        {
+          "qid": "Q137845888",
+          "label": "Arichuna mutiny",
+          "date": "1816-09-16",
+          "dateLabel": "16 September 1816",
+          "at": [
+            -67.1201,
+            7.7148
+          ],
+          "source": {
+            "title": "Arichuna mutiny (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q137845888"
+          }
+        }
+      ],
+      "1816-09": [
+        {
+          "qid": "Q4870666",
+          "label": "Battle of Carumbé",
+          "date": "1816-10-27",
+          "dateLabel": "27 October 1816",
+          "at": [
+            -53.15,
+            -29.75
+          ],
+          "source": {
+            "title": "Battle of Carumbé (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Carumb%C3%A9"
+          }
+        },
+        {
+          "qid": "Q12241904",
+          "label": "Al-Jawazi massacre",
+          "date": "1816-09-05",
+          "dateLabel": "5 September 1816",
+          "at": [
+            20.06667,
+            32.11667
+          ],
+          "source": {
+            "title": "Al-Jawazi massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
+          }
+        },
+        {
+          "qid": "Q28433158",
+          "label": "Treaty of St. Louis",
+          "date": "1816-08-24",
+          "dateLabel": "24 August 1816",
+          "at": [
+            -90.3431,
+            38.9264
+          ],
+          "source": {
+            "title": "Treaty of St. Louis (1816) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_St._Louis_(1816)"
+          }
+        }
+      ],
+      "1816-10": [
+        {
+          "qid": "Q5722534",
+          "label": "Battle of Ibiraocaí",
+          "date": "1816-10-19",
+          "dateLabel": "19 October 1816",
+          "at": [
+            -53.15,
+            -29.75
+          ],
+          "source": {
+            "title": "Battle of Ibiraocaí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
+          }
+        },
+        {
+          "qid": "Q137845888",
+          "label": "Arichuna mutiny",
+          "date": "1816-09-16",
+          "dateLabel": "16 September 1816",
+          "at": [
+            -67.1201,
+            7.7148
+          ],
+          "source": {
+            "title": "Arichuna mutiny (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q137845888"
+          }
+        },
+        {
+          "qid": "Q12241904",
+          "label": "Al-Jawazi massacre",
+          "date": "1816-09-05",
+          "dateLabel": "5 September 1816",
+          "at": [
+            20.06667,
+            32.11667
+          ],
+          "source": {
+            "title": "Al-Jawazi massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
+          }
+        }
+      ],
+      "1816-11": [
+        {
+          "qid": "Q2887992",
+          "label": "Battle of India Muerta",
+          "date": "1816-11-18",
+          "dateLabel": "18 November 1816",
+          "at": [
+            -54.295,
+            -34.09389
+          ],
+          "source": {
+            "title": "Battle of India Muerta (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_India_Muerta"
+          }
+        },
+        {
+          "qid": "Q5722449",
+          "label": "Batalla de El Pari",
+          "date": "1816-11-21",
+          "dateLabel": "21 November 1816",
+          "at": [
+            -63.19217,
+            -17.79809
+          ],
+          "source": {
+            "title": "Batalla de El Pari (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q5722449"
+          }
+        }
+      ],
+      "1816-12": [
+        {
+          "qid": "Q5723296",
+          "label": "Battle of Catalán",
+          "date": "1817-01-04",
+          "dateLabel": "4 January 1817",
+          "at": [
+            -56.32444,
+            -30.53139
+          ],
+          "source": {
+            "title": "Battle of Catalán (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Catal%C3%A1n"
+          }
+        },
+        {
+          "qid": "Q5722350",
+          "label": "Battle of Clarines",
+          "date": "1817-01-09",
+          "dateLabel": "9 January 1817",
+          "at": [
+            -65.16611,
+            9.94333
+          ],
+          "source": {
+            "title": "Battle of Clarines (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Clarines"
+          }
+        }
+      ],
+      "1817-01": [
+        {
+          "qid": "Q5722190",
+          "label": "Battle of Angostura",
+          "date": "1817-01-18",
+          "dateLabel": "18 January 1817",
+          "at": [
+            -63.54827,
+            8.13793
+          ],
+          "source": {
+            "title": "First Battle of Angostura (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/First_Battle_of_Angostura"
+          }
+        },
+        {
+          "qid": "Q5722200",
+          "label": "Battle of Arapey",
+          "date": "1817-01-03",
+          "dateLabel": "3 January 1817",
+          "at": [
+            -57.9339,
+            -31.39063
+          ],
+          "source": {
+            "title": "Battle of Arapey (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Arapey"
+          }
+        }
+      ],
+      "1817-02": [
+        {
+          "qid": "Q1425658",
+          "label": "Battle of Chacabuco",
+          "date": "1817-02-12",
+          "dateLabel": "12 February 1817",
+          "at": [
+            -70.68389,
+            -32.99306
+          ],
+          "source": {
+            "title": "Battle of Chacabuco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Chacabuco"
+          }
+        },
+        {
+          "qid": "Q5722350",
+          "label": "Battle of Clarines",
+          "date": "1817-01-09",
+          "dateLabel": "9 January 1817",
+          "at": [
+            -65.16611,
+            9.94333
+          ],
+          "source": {
+            "title": "Battle of Clarines (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Clarines"
+          }
+        },
+        {
+          "qid": "Q44533886",
+          "label": "1817 Arnedo and Prejano earthquake",
+          "date": "1817-03-18",
+          "dateLabel": "18 March 1817",
+          "at": [
+            -2.1715,
+            42.2002
+          ],
+          "source": {
+            "title": "1817 Arnedo and Prejano earthquake (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q44533886"
+          }
+        }
+      ],
+      "1817-03": [
+        {
+          "qid": "Q4872823",
+          "label": "Battle of Tarija",
+          "date": "1817-04-14",
+          "dateLabel": "14 April 1817",
+          "at": [
+            -64.73428,
+            -21.53392
+          ],
+          "source": {
+            "title": "Battle of la Tablada de Tolomosa (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_la_Tablada_de_Tolomosa"
+          }
+        },
+        {
+          "qid": "Q47808370",
+          "label": "Siege of Barcelona",
+          "date": "1817-02-07",
+          "dateLabel": "7 February 1817",
+          "at": [
+            -64.68333,
+            10.13333
+          ],
+          "source": {
+            "title": "Siege of Barcelona (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q47808370"
+          }
+        },
+        {
+          "qid": "Q44533886",
+          "label": "1817 Arnedo and Prejano earthquake",
+          "date": "1817-03-18",
+          "dateLabel": "18 March 1817",
+          "at": [
+            -2.1715,
+            42.2002
+          ],
+          "source": {
+            "title": "1817 Arnedo and Prejano earthquake (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q44533886"
+          }
+        }
+      ],
+      "1817-04": [
+        {
+          "qid": "Q5722885",
+          "label": "Battle of San Félix",
+          "date": "1817-04-11",
+          "dateLabel": "11 April 1817",
+          "at": [
+            -62.6221,
+            8.31764
+          ],
+          "source": {
+            "title": "Battle of San Félix (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_San_F%C3%A9lix"
+          }
+        },
+        {
+          "qid": "Q4870816",
+          "label": "Battle of Curapalihue",
+          "date": "1817-04-04",
+          "dateLabel": "4 April 1817",
+          "at": [
+            -72.7158,
+            -36.8656
+          ],
+          "source": {
+            "title": "Battle of Curapalihue (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Curapalihue"
+          }
+        },
+        {
+          "qid": "Q44533886",
+          "label": "1817 Arnedo and Prejano earthquake",
+          "date": "1817-03-18",
+          "dateLabel": "18 March 1817",
+          "at": [
+            -2.1715,
+            42.2002
+          ],
+          "source": {
+            "title": "1817 Arnedo and Prejano earthquake (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q44533886"
+          }
+        }
+      ],
+      "1817-05": [
+        {
+          "qid": "Q6123581",
+          "label": "Second Battle of Angostura",
+          "date": "1817-05-02",
+          "dateLabel": "2 May 1817",
+          "at": [
+            -63.54827,
+            8.13793
+          ],
+          "source": {
+            "title": "Second Battle of Angostura (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Second_Battle_of_Angostura"
+          }
+        },
+        {
+          "qid": "Q545795",
+          "label": "Battle of Valle de Maíz",
+          "date": "1817-06-18",
+          "dateLabel": "18 June 1817",
+          "at": [
+            -99.6,
+            22.4
+          ],
+          "source": {
+            "title": "Battle of Valle de Maíz (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q545795"
+          }
+        },
+        {
+          "qid": "Q4872823",
+          "label": "Battle of Tarija",
+          "date": "1817-04-14",
+          "dateLabel": "14 April 1817",
+          "at": [
+            -64.73428,
+            -21.53392
+          ],
+          "source": {
+            "title": "Battle of la Tablada de Tolomosa (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_la_Tablada_de_Tolomosa"
+          }
+        }
+      ],
+      "1817-06": [
+        {
+          "qid": "Q7837193",
+          "label": "Treaty of Poona",
+          "date": "1817-06-13",
+          "dateLabel": "13 June 1817",
+          "at": [
+            73.85528,
+            18.52111
+          ],
+          "source": {
+            "title": "Treaty of Poona (1817) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Poona_(1817)"
+          }
+        },
+        {
+          "qid": "Q7165306",
+          "label": "Pentrich Rising",
+          "date": "1817-06-09",
+          "dateLabel": "9 June 1817",
+          "at": [
+            -1.42,
+            53.07
+          ],
+          "source": {
+            "title": "Pentrich rising (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Pentrich_rising"
+          }
+        },
+        {
+          "qid": "Q16531744",
+          "label": "Battle of Pagallos",
+          "date": "1817-07-08",
+          "dateLabel": "8 July 1817",
+          "at": [
+            -61.0,
+            8.53
+          ],
+          "source": {
+            "title": "Battle of Pagallos (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Pagallos"
+          }
+        }
+      ],
+      "1817-07": [
+        {
+          "qid": "Q6394358",
+          "label": "Battle of Apósteles",
+          "date": "1817-07-02",
+          "dateLabel": "2 July 1817",
+          "at": [
+            -55.76667,
+            -27.91667
+          ],
+          "source": {
+            "title": "Battle of Apóstoles (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ap%C3%B3stoles"
+          }
+        },
+        {
+          "qid": "Q545795",
+          "label": "Battle of Valle de Maíz",
+          "date": "1817-06-18",
+          "dateLabel": "18 June 1817",
+          "at": [
+            -99.6,
+            22.4
+          ],
+          "source": {
+            "title": "Battle of Valle de Maíz (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q545795"
+          }
+        },
+        {
+          "qid": "Q5024088",
+          "label": "Treaty of Madrid",
+          "date": "1817-08-11",
+          "dateLabel": "11 August 1817",
+          "at": [
+            -3.70333,
+            40.41694
+          ],
+          "source": {
+            "title": "Treaty of Madrid (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q5024088"
+          }
+        }
+      ],
+      "1817-08": [
+        {
+          "qid": "Q16531744",
+          "label": "Battle of Pagallos",
+          "date": "1817-07-08",
+          "dateLabel": "8 July 1817",
+          "at": [
+            -61.0,
+            8.53
+          ],
+          "source": {
+            "title": "Battle of Pagallos (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Pagallos"
+          }
+        },
+        {
+          "qid": "Q1713044",
+          "label": "Treaty of Fort Meigs",
+          "date": "1817-09-29",
+          "dateLabel": "29 September 1817",
+          "at": [
+            -83.65167,
+            41.55278
+          ],
+          "source": {
+            "title": "Treaty of Fort Meigs (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"
+          }
+        },
+        {
+          "qid": "Q6394358",
+          "label": "Battle of Apósteles",
+          "date": "1817-07-02",
+          "dateLabel": "2 July 1817",
+          "at": [
+            -55.76667,
+            -27.91667
+          ],
+          "source": {
+            "title": "Battle of Apóstoles (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ap%C3%B3stoles"
+          }
+        }
+      ],
+      "1817-09": [
+        {
+          "qid": "Q5024088",
+          "label": "Treaty of Madrid",
+          "date": "1817-08-11",
+          "dateLabel": "11 August 1817",
+          "at": [
+            -3.70333,
+            40.41694
+          ],
+          "source": {
+            "title": "Treaty of Madrid (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q5024088"
+          }
+        },
+        {
+          "qid": "Q1713044",
+          "label": "Treaty of Fort Meigs",
+          "date": "1817-09-29",
+          "dateLabel": "29 September 1817",
+          "at": [
+            -83.65167,
+            41.55278
+          ],
+          "source": {
+            "title": "Treaty of Fort Meigs (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"
+          }
+        }
+      ],
+      "1817-10": [
+        {
+          "qid": "Q4871419",
+          "label": "Battle of Khadki",
+          "date": "1817-11-05",
+          "dateLabel": "5 November 1817",
+          "at": [
+            73.851,
+            18.564
+          ],
+          "source": {
+            "title": "Battle of Khadki (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Khadki"
+          }
+        },
+        {
+          "qid": "Q1713044",
+          "label": "Treaty of Fort Meigs",
+          "date": "1817-09-29",
+          "dateLabel": "29 September 1817",
+          "at": [
+            -83.65167,
+            41.55278
+          ],
+          "source": {
+            "title": "Treaty of Fort Meigs (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"
+          }
+        }
+      ],
+      "1817-11": [
+        {
+          "qid": "Q4871633",
+          "label": "Battle of Mahidpur",
+          "date": "1817-12-21",
+          "dateLabel": "21 December 1817",
+          "at": [
+            75.65722,
+            23.48722
+          ],
+          "source": {
+            "title": "Battle of Mahidpur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Mahidpur"
+          }
+        },
+        {
+          "qid": "Q54322448",
+          "label": "Battle of Ocheesee",
+          "date": "1817-12-15",
+          "dateLabel": "15 December 1817",
+          "at": [
+            -84.9775,
+            29.72667
+          ],
+          "source": {
+            "title": "Battle of Ocheesee (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ocheesee"
+          }
+        },
+        {
+          "qid": "Q6130149",
+          "label": "Siege of Talcahuano",
+          "date": "1817-12-05",
+          "dateLabel": "5 December 1817",
+          "at": [
+            -73.1141,
+            -36.7145
+          ],
+          "source": {
+            "title": "Siege of Talcahuano (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q6130149"
+          }
+        }
+      ],
+      "1817-12": [
+        {
+          "qid": "Q3630511",
+          "label": "Battle of Koregaon",
+          "date": "1818-01-01",
+          "dateLabel": "1 January 1818",
+          "at": [
+            74.05917,
+            18.64556
+          ],
+          "source": {
+            "title": "Battle of Koregaon (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Koregaon"
+          }
+        },
+        {
+          "qid": "Q123746470",
+          "label": "Dhurma Massacre",
+          "date": "1818-01-01",
+          "dateLabel": "January 1818",
+          "at": [
+            46.22558,
+            24.61726
+          ],
+          "source": {
+            "title": "Battle of Dhurma (1818) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Dhurma_(1818)"
+          }
+        },
+        {
+          "qid": "Q6130149",
+          "label": "Siege of Talcahuano",
+          "date": "1817-12-05",
+          "dateLabel": "5 December 1817",
+          "at": [
+            -73.1141,
+            -36.7145
+          ],
+          "source": {
+            "title": "Siege of Talcahuano (Wikidata)",
+            "url": "https://www.wikidata.org/wiki/Q6130149"
+          }
+        }
+      ]
+    }
+  },
+  "glows": [
+    {
+      "qid": "Q178810",
+      "label": "Syrian Civil War",
+      "at": [
+        38.0,
+        35.0
+      ]
+    },
+    {
+      "qid": "Q48249",
+      "label": "Falklands War",
+      "at": [
+        -59.0,
+        -51.75
+      ]
+    },
+    {
+      "qid": "Q81545",
+      "label": "Libyan Civil War",
+      "at": [
+        16.52141,
+        31.19562
+      ]
+    },
+    {
+      "qid": "Q620735",
+      "label": "Russo-Georgian War",
+      "at": [
+        44.41778,
+        41.98944
+      ]
+    },
+    {
+      "qid": "Q170850",
+      "label": "Anglo-Zanzibar War",
+      "at": [
+        39.33655,
+        -6.14056
+      ]
+    },
+    {
+      "qid": "Q470596",
+      "label": "Year of the Four Emperors",
+      "at": [
+        12.5,
+        41.9
+      ]
+    },
+    {
+      "qid": "Q1413732",
+      "label": "Kashmir conflict",
+      "at": [
+        74.6667,
+        34.0333
+      ]
+    },
+    {
+      "qid": "Q165058",
+      "label": "Holodomor",
+      "at": [
+        32.0,
+        49.0
+      ]
+    },
+    {
+      "qid": "Q213394",
+      "label": "Sri Lankan civil war",
+      "at": [
+        81.0,
+        7.0
+      ]
+    },
+    {
+      "qid": "Q638530",
+      "label": "Texas Revolution",
+      "at": [
+        -100.0,
+        31.0
+      ]
+    },
+    {
+      "qid": "Q223126",
+      "label": "Chaco War",
+      "at": [
+        -59.73667,
+        -21.32722
+      ]
+    },
+    {
+      "qid": "Q475678",
+      "label": "Mexican drug war",
+      "at": [
+        -99.1456,
+        19.4194
+      ]
+    },
+    {
+      "qid": "Q134301",
+      "label": "Katyn massacre",
+      "at": [
+        31.78889,
+        54.77333
+      ]
+    },
+    {
+      "qid": "Q322607",
+      "label": "War of Attrition",
+      "at": [
+        33.83333,
+        29.5
+      ]
+    },
+    {
+      "qid": "Q736268",
+      "label": "Finnish War",
+      "at": [
+        22.96667,
+        62.0
+      ]
+    },
+    {
+      "qid": "Q1127302",
+      "label": "Estonian War of Independence",
+      "at": [
+        26.03111,
+        57.77694
+      ]
+    },
+    {
+      "qid": "Q163891",
+      "label": "St. Bartholomew's Day massacre",
+      "at": [
+        2.3522,
+        48.8567
+      ]
+    },
+    {
+      "qid": "Q170334",
+      "label": "Srebrenica massacre",
+      "at": [
+        19.3,
+        44.1
+      ]
+    },
+    {
+      "qid": "Q2946372",
+      "label": "Mali War",
+      "at": [
+        -8.00056,
+        12.65
+      ]
+    },
+    {
+      "qid": "Q31944",
+      "label": "Mahdist War",
+      "at": [
+        32.0,
+        15.0
+      ]
+    },
+    {
+      "qid": "Q2002975",
+      "label": "Nepalese Civil War",
+      "at": [
+        84.0,
+        28.0
+      ]
+    },
+    {
+      "qid": "Q257724",
+      "label": "Ethiopian Civil War",
+      "at": [
+        40.0,
+        9.0
+      ]
+    },
+    {
+      "qid": "Q1676845",
+      "label": "Boer Wars",
+      "at": [
+        24.0,
+        -29.0
+      ]
+    },
+    {
+      "qid": "Q832273",
+      "label": "Eritrean–Ethiopian War",
+      "at": [
+        39.0,
+        15.0
+      ]
+    },
+    {
+      "qid": "Q1044829",
+      "label": "Polish–Muscovite War",
+      "at": [
+        19.93,
+        50.05
+      ]
+    },
+    {
+      "qid": "Q1616064",
+      "label": "Mithridatic Wars",
+      "at": [
+        35.0,
+        39.0
+      ]
+    },
+    {
+      "qid": "Q127912",
+      "label": "United States Declaration of Independence",
+      "at": [
+        -75.15,
+        39.9489
+      ]
+    },
+    {
+      "qid": "Q1282732",
+      "label": "Guatemalan Civil War",
+      "at": [
+        -90.5,
+        14.63333
+      ]
+    },
+    {
+      "qid": "Q385676",
+      "label": "Ōnin War",
+      "at": [
+        135.8006,
+        34.8819
+      ]
+    },
+    {
+      "qid": "Q2885072",
+      "label": "Cambodian genocide",
+      "at": [
+        105.6,
+        12.25
+      ]
+    },
+    {
+      "qid": "Q193245",
+      "label": "Carnation Revolution",
+      "at": [
+        -9.0,
+        39.0
+      ]
+    },
+    {
+      "qid": "Q696389",
+      "label": "Soviet–Japanese border conflicts",
+      "at": [
+        118.59,
+        47.7303
+      ]
+    },
+    {
+      "qid": "Q15353665",
+      "label": "South Sudanese Civil War",
+      "at": [
+        30.0,
+        7.0
+      ]
+    },
+    {
+      "qid": "Q165136",
+      "label": "Swabian War",
+      "at": [
+        8.23197,
+        46.79856
+      ]
+    },
+    {
+      "qid": "Q85125",
+      "label": "population transfer in the Soviet Union",
+      "at": [
+        90.0,
+        65.0
+      ]
+    },
+    {
+      "qid": "Q164983",
+      "label": "Gallipoli Campaign",
+      "at": [
+        26.2775,
+        40.2375
+      ]
+    },
+    {
+      "qid": "Q184637",
+      "label": "Ten Years' War",
+      "at": [
+        -80.0,
+        21.5
+      ]
+    },
+    {
+      "qid": "Q1064335",
+      "label": "Pig War",
+      "at": [
+        -123.00661,
+        48.46164
+      ]
+    },
+    {
+      "qid": "Q85754778",
+      "label": "persecution of Uyghurs in China",
+      "at": [
+        87.61379,
+        43.8253
+      ]
+    },
+    {
+      "qid": "Q617321",
+      "label": "Anglo-Mysore wars",
+      "at": [
+        77.0,
+        13.0
+      ]
+    },
+    {
+      "qid": "Q36204",
+      "label": "2011 Tōhoku earthquake and tsunami",
+      "at": [
+        142.369,
+        38.322
+      ]
+    },
+    {
+      "qid": "Q130754",
+      "label": "2004 Indian Ocean earthquake",
+      "at": [
+        95.982,
+        3.295
+      ]
+    },
+    {
+      "qid": "Q979845",
+      "label": "Naxalite–Maoist insurgency",
+      "at": [
+        85.8167,
+        22.5667
+      ]
+    },
+    {
+      "qid": "Q43777",
+      "label": "2010 Haiti earthquake",
+      "at": [
+        -72.44519,
+        18.45139
+      ]
+    },
+    {
+      "qid": "Q68478",
+      "label": "Peruvian War of Independence",
+      "at": [
+        -77.0375,
+        -12.06
+      ]
+    },
+    {
+      "qid": "Q517578",
+      "label": "King George's War",
+      "at": [
+        -100.0,
+        50.0
+      ]
+    },
+    {
+      "qid": "Q3411181",
+      "label": "Central African Republic Civil War",
+      "at": [
+        20.9,
+        6.7
+      ]
+    },
+    {
+      "qid": "Q133574091",
+      "label": "2025 Myanmar earthquake",
+      "at": [
+        95.922,
+        22.013
+      ]
+    },
+    {
+      "qid": "Q1474893",
+      "label": "Cleomenean War",
+      "at": [
+        22.3522,
+        37.3497
+      ]
+    },
+    {
+      "qid": "Q1341539",
+      "label": "Saur Revolution",
+      "at": [
+        69.17833,
+        34.52528
+      ]
+    },
+    {
+      "qid": "Q217981",
+      "label": "Allied invasion of Sicily",
+      "at": [
+        14.43333,
+        36.88333
+      ]
+    },
+    {
+      "qid": "Q188371",
+      "label": "Great Irish Famine",
+      "at": [
+        -7.921,
+        53.351
+      ]
+    },
+    {
+      "qid": "Q150939",
+      "label": "Operation Weserübung",
+      "at": [
+        10.73333,
+        59.91667
+      ]
+    },
+    {
+      "qid": "Q171328",
+      "label": "Charter of the United Nations",
+      "at": [
+        -122.4164,
+        37.7775
+      ]
+    },
+    {
+      "qid": "Q580961",
+      "label": "Agacher Strip War",
+      "at": [
+        -0.4,
+        14.9
+      ]
+    },
+    {
+      "qid": "Q2656995",
+      "label": "Northwest Indian War",
+      "at": [
+        -86.0,
+        41.0
+      ]
+    },
+    {
+      "qid": "Q191293",
+      "label": "1556 Shaanxi earthquake",
+      "at": [
+        109.7,
+        34.5
+      ]
+    },
+    {
+      "qid": "Q122351413",
+      "label": "2023 Marrakesh-Safi earthquake",
+      "at": [
+        -8.44001,
+        31.11009
+      ]
+    },
+    {
+      "qid": "Q217145",
+      "label": "Guadalcanal campaign",
+      "at": [
+        160.0,
+        -9.41667
+      ]
+    },
+    {
+      "qid": "Q170170",
+      "label": "Ramsar Convention",
+      "at": [
+        50.6481,
+        36.9181
+      ]
+    },
+    {
+      "qid": "Q151187",
+      "label": "Potsdam Conference",
+      "at": [
+        13.07083,
+        52.41917
+      ]
+    },
+    {
+      "qid": "Q2350166",
+      "label": "War of Canudos",
+      "at": [
+        -39.16389,
+        -9.96389
+      ]
+    },
+    {
+      "qid": "Q152033",
+      "label": "2008 Sichuan earthquake",
+      "at": [
+        103.367,
+        31.021
+      ]
+    },
+    {
+      "qid": "Q140352499",
+      "label": "2026 Venezuela earthquakes",
+      "at": [
+        -67.217,
+        10.605
+      ]
+    },
+    {
+      "qid": "Q151835",
+      "label": "2010 Chile earthquake",
+      "at": [
+        -72.733,
+        -35.909
+      ]
+    },
+    {
+      "qid": "Q462195",
+      "label": "1976 Tangshan earthquake",
+      "at": [
+        118.401,
+        39.664
+      ]
+    },
+    {
+      "qid": "Q529723",
+      "label": "Anfal campaign",
+      "at": [
+        43.0,
+        33.0
+      ]
+    },
+    {
+      "qid": "Q1354920",
+      "label": "Djiboutian–Eritrean border conflict",
+      "at": [
+        43.13333,
+        12.70833
+      ]
+    },
+    {
+      "qid": "Q2606574",
+      "label": "Acre War",
+      "at": [
+        -73.80111,
+        -7.11417
+      ]
+    },
+    {
+      "qid": "Q3063789",
+      "label": "Colombian War of Independence",
+      "at": [
+        -73.4303,
+        5.4504
+      ]
+    },
+    {
+      "qid": "Q3082702",
+      "label": "Brazilian War of Independence",
+      "at": [
+        -53.0,
+        -14.0
+      ]
+    },
+    {
+      "qid": "Q2092033",
+      "label": "Conquest of Mecca",
+      "at": [
+        39.82333,
+        21.4225
+      ]
+    },
+    {
+      "qid": "Q696462",
+      "label": "Philippines Campaign",
+      "at": [
+        121.0,
+        15.0
+      ]
+    },
+    {
+      "qid": "Q1150973",
+      "label": "1931 China floods",
+      "at": [
+        114.273,
+        30.5812
+      ]
+    },
+    {
+      "qid": "Q188532",
+      "label": "Bretton Woods system",
+      "at": [
+        -71.44787,
+        44.25436
+      ]
+    },
+    {
+      "qid": "Q541369",
+      "label": "Anglo-Soviet invasion of Iran",
+      "at": [
+        53.0,
+        32.0
+      ]
+    },
+    {
+      "qid": "Q84055514",
+      "label": "COVID-19 pandemic in India",
+      "at": [
+        77.0,
+        22.0
+      ]
+    },
+    {
+      "qid": "Q852365",
+      "label": "Tunisia campaign",
+      "at": [
+        9.0,
+        34.0
+      ]
+    },
+    {
+      "qid": "Q105570",
+      "label": "20 July plot",
+      "at": [
+        21.49639,
+        54.08056
+      ]
+    },
+    {
+      "qid": "Q772814",
+      "label": "Caste War of Yucatán",
+      "at": [
+        -87.984,
+        19.5857
+      ]
+    },
+    {
+      "qid": "Q6165880",
+      "label": "Soviet invasion of Manchuria",
+      "at": [
+        125.0,
+        49.0
+      ]
+    },
+    {
+      "qid": "Q135502884",
+      "label": "2025 Kamchatka earthquake",
+      "at": [
+        160.261,
+        52.51
+      ]
+    },
+    {
+      "qid": "Q151850",
+      "label": "February 2011 Christchurch earthquake",
+      "at": [
+        172.701,
+        -43.5834
+      ]
+    },
+    {
+      "qid": "Q249708",
+      "label": "Aleutian Islands Campaign",
+      "at": [
+        173.0725,
+        52.8325
+      ]
+    },
+    {
+      "qid": "Q1763834",
+      "label": "Azov campaigns",
+      "at": [
+        39.417,
+        47.1
+      ]
+    },
+    {
+      "qid": "Q501866",
+      "label": "1983 Invasion of Grenada",
+      "at": [
+        -61.75,
+        12.05
+      ]
+    },
+    {
+      "qid": "Q84166704",
+      "label": "COVID-19 pandemic in Spain",
+      "at": [
+        -3.0,
+        40.0
+      ]
+    },
+    {
+      "qid": "Q125289722",
+      "label": "2024 Hualien earthquake",
+      "at": [
+        121.666,
+        23.77
+      ]
+    },
+    {
+      "qid": "Q592550",
+      "label": "British expedition to Tibet",
+      "at": [
+        89.27694,
+        26.08889
+      ]
+    },
+    {
+      "qid": "Q10360270",
+      "label": "Bougainville conflict",
+      "at": [
+        155.0,
+        -6.0
+      ]
+    },
+    {
+      "qid": "Q749811",
+      "label": "Mutiny on the Bounty",
+      "at": [
+        179.05,
+        -47.75
+      ]
+    },
+    {
+      "qid": "Q2238546",
+      "label": "Gilbert and Marshall Islands Campaign",
+      "at": [
+        168.662,
+        6.926
+      ]
+    },
+    {
+      "qid": "Q269442",
+      "label": "2010 eruptions of Eyjafjallajökull",
+      "at": [
+        -19.6,
+        63.63333
+      ]
+    },
+    {
+      "qid": "Q21175521",
+      "label": "Hurricane Patricia",
+      "at": [
+        -104.6,
+        20.2
+      ]
+    },
+    {
+      "qid": "Q625798",
+      "label": "Western Desert campaign",
+      "at": [
+        28.95,
+        30.83333
+      ]
+    },
+    {
+      "qid": "Q1052780",
+      "label": "Sherman's March to the Sea",
+      "at": [
+        -81.15191,
+        32.1287
+      ]
+    },
+    {
+      "qid": "Q1816561",
+      "label": "Palestinian Declaration of Independence",
+      "at": [
+        3.0586,
+        36.7764
+      ]
+    },
+    {
+      "qid": "Q749610",
+      "label": "1964 Alaska great earthquake and tsunami",
+      "at": [
+        -147.65,
+        61.02
+      ]
+    },
+    {
+      "qid": "Q56768333",
+      "label": "2018 Sulawesi earthquake and tsunami",
+      "at": [
+        119.85,
+        -0.18
+      ]
+    },
+    {
+      "qid": "Q60042839",
+      "label": "2018 Sunda Strait tsunami",
+      "at": [
+        105.423,
+        -6.103
+      ]
+    },
+    {
+      "qid": "Q84098939",
+      "label": "COVID-19 pandemic in Russia",
+      "at": [
+        100.0,
+        62.0
+      ]
+    },
+    {
+      "qid": "Q722051",
+      "label": "Anglo-Ashanti wars",
+      "at": [
+        -0.97,
+        5.45
+      ]
+    },
+    {
+      "qid": "Q139236054",
+      "label": "Ngogo chimpanzee war",
+      "at": [
+        30.38333,
+        0.43333
+      ]
+    },
+    {
+      "qid": "Q1773984",
+      "label": "Battle of Chamdo",
+      "at": [
+        97.1775,
+        31.13722
+      ]
+    },
+    {
+      "qid": "Q698421",
+      "label": "Italian invasion of Egypt",
+      "at": [
+        30.0,
+        26.0
+      ]
+    },
+    {
+      "qid": "Q23835355",
+      "label": "2016 Ecuador earthquake",
+      "at": [
+        -79.94,
+        0.371
+      ]
+    },
+    {
+      "qid": "Q83872398",
+      "label": "COVID-19 pandemic in South Korea",
+      "at": [
+        128.0,
+        36.0
+      ]
+    },
+    {
+      "qid": "Q86847911",
+      "label": "COVID-19 pandemic in Austria",
+      "at": [
+        14.0,
+        48.0
+      ]
+    },
+    {
+      "qid": "Q110567218",
+      "label": "2022 Hunga Tonga–Hunga Haʻapai eruption and tsunami",
+      "at": [
+        -175.39,
+        -20.546
+      ]
+    },
+    {
+      "qid": "Q500067",
+      "label": "Treaty of Bucharest",
+      "at": [
+        26.09778,
+        44.41336
+      ]
+    },
+    {
+      "qid": "Q27058656",
+      "label": "Hurricane Matthew",
+      "at": [
+        -75.1,
+        34.9
+      ]
+    },
+    {
+      "qid": "Q122971939",
+      "label": "2023 Herat earthquakes",
+      "at": [
+        61.924,
+        34.61
+      ]
+    },
+    {
+      "qid": "Q83873580",
+      "label": "COVID-19 pandemic in Canada",
+      "at": [
+        -109.0,
+        56.0
+      ]
+    },
+    {
+      "qid": "Q2632175",
+      "label": "Dunmore's War",
+      "at": [
+        -80.8048,
+        39.918
+      ]
+    },
+    {
+      "qid": "Q16512674",
+      "label": "Herero Wars",
+      "at": [
+        17.0,
+        -22.0
+      ]
+    },
+    {
+      "qid": "Q192055",
+      "label": "Nanjing Massacre",
+      "at": [
+        118.7375,
+        32.0375
+      ]
+    },
+    {
+      "qid": "Q140119396",
+      "label": "2026 Mindanao earthquake",
+      "at": [
+        124.98,
+        5.57
+      ]
+    },
+    {
+      "qid": "Q827212",
+      "label": "Gadsden Purchase",
+      "at": [
+        -110.6,
+        33.1
+      ]
+    },
+    {
+      "qid": "Q700937",
+      "label": "Crimean Campaign",
+      "at": [
+        34.1,
+        44.9333
+      ]
+    },
+    {
+      "qid": "Q2391429",
+      "label": "1948 Ashgabat earthquake",
+      "at": [
+        58.32,
+        37.95
+      ]
+    }
   ]
 }
