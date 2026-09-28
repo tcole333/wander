@@ -9,11 +9,9 @@
 // mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing the story's plaque starts the
 // walk and flies into its first beat.
 //
-// The first frame follows the roots (L0-L1) and the precompile, and in the lobby the opening starts
-// on it: the finer tiles stream in as the lamp comes up. Every face the page draws loads beside the
-// roots (story/ui/fonts.ts), so nothing comes from the app's host after the boot. The climate's
-// years, which only the 1816 beats draw, load once the opening has started, after everything the
-// first frame needs.
+// The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
+// precompile; in the lobby the opening starts on it. The climate's years load once the opening has
+// started, or at once without a lobby.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
