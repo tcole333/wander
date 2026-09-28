@@ -1,10 +1,33 @@
 // A story's source (streaming.md 3.9: stories/<story>/story.md) read straight into the walk: front
 // matter, then per beat an H2 title, a fenced YAML block tagged `beat`, and the beat's text. This
-// is the walk's stand-in for `npm run stories` (issue #9): it parses and checks shapes, and dates
-// become day numbers (dates.ts).
+// is the walk's stand-in for `npm run stories` (issue #9) and holds the story schema: it rejects a
+// key the schema does not name, a layer shared/constants.json does not list and a precision other
+// than day, month or year, and it needs every beat to have a window holding its date, an image
+// with alt text and a source with an https link. Dates become day numbers (dates.ts).
+import constants from '@shared/constants.json' with { type: 'json' };
 import { parse } from 'yaml';
 import { dayFromIso, type Precision } from './dates';
 import type { LockedImage } from './lock';
+
+/** The layers a beat may name, in the canonical order, which is also the `?l=` bit order. */
+const LAYERS: readonly string[] = constants.layers;
+const PRECISIONS = ['day', 'month', 'year'] as const;
+const DRIFTS = ['none', 'slow'] as const;
+const CLIMATE_MODES = ['monthly', 'annual'] as const;
+const BEAT_KEYS = [
+  'id',
+  'date',
+  'precision',
+  'window',
+  'camera',
+  'focal',
+  'image',
+  'layers',
+  'effects',
+  'audio',
+  'meanwhile',
+  'sources',
+];
 
 export type LonLat = [lon: number, lat: number];
 
@@ -58,13 +81,13 @@ export type StoryEffect =
 export interface StoryBeat {
   id: string;
   title: string;
-  /** The beat's date as a day number, and its window when it spans time. */
+  /** The beat's date as a day number, and the window of time around it, which holds it. */
   day: number;
-  window?: [number, number];
+  window: [number, number];
   precision: Precision;
   camera: StoryCamera;
   focal: { qid: string; at?: LonLat; day?: number };
-  image?: StoryImage;
+  image: StoryImage;
   /** The layers on, in the canonical order; `climate` carries its mode separately. */
   layers: string[];
   climate?: 'monthly' | 'annual';
@@ -94,12 +117,16 @@ export function parseStory(markdown: string): Story {
   const body = markdown.slice(front[0].length);
   const sections = body.split(/^## /m).slice(1);
   if (sections.length === 0) throw new StoryError('story.md has no beats (## headings)');
+  const beats = sections.map(parseBeat);
+  const ids = beats.map((beat) => beat.id);
+  const repeated = ids.find((id, i) => ids.indexOf(id) !== i);
+  if (repeated !== undefined) throw new StoryError(`two beats have the id '${repeated}'`);
   return {
     id: text(meta.id, 'id'),
     title: text(meta.title, 'title'),
     blurb: text(meta.blurb, 'blurb'),
     credits: list(meta.credits ?? [], 'credits').map((c) => text(c, 'credit')),
-    beats: sections.map(parseBeat),
+    beats,
   };
 }
 
@@ -111,70 +138,132 @@ function parseBeat(section: string): StoryBeat {
   const b = record(parse(block[1]), `beat '${title}'`);
   const id = text(b.id, `beat '${title}' id`);
   const where = `beat '${id}'`;
+  known(b, BEAT_KEYS, where);
   const prose = section.slice(block.index + block[0].length);
   const paragraphs = prose
     .split(/\n\s*\n/)
     .map((p) => p.replace(/\s*\n\s*/g, ' ').trim())
     .filter((p) => p.length > 0);
 
-  const windowText = b.window === undefined ? undefined : text(b.window, `${where} window`);
-  const window = windowText?.split('..').map((d) => dayFromIso(d));
+  const day = isoDay(b.date, `${where} date`);
+  const window = parseWindow(b.window, where);
+  if (day < window[0] || day > window[1]) {
+    throw new StoryError(`${where} date falls outside its window`);
+  }
   const camera = record(b.camera, `${where} camera`);
+  known(camera, ['target', 'viewKm', 'tilt', 'heading', 'drift'], `${where} camera`);
   const focal = record(b.focal, `${where} focal`);
-  let climate: StoryBeat['climate'];
-  const layers = list(b.layers ?? [], `${where} layers`).map((entry) => {
-    if (typeof entry === 'string') return entry;
-    const mode = record(record(entry, `${where} layer`).climate, `${where} climate`).mode;
-    climate = mode === 'annual' ? 'annual' : 'monthly';
-    return 'climate';
-  });
+  known(focal, ['qid', 'at', 'date'], `${where} focal`);
   const audio = b.audio === undefined ? {} : record(b.audio, `${where} audio`);
+  known(audio, ['cues'], `${where} audio`);
+  checkMeanwhile(b.meanwhile, where);
+  const sources = list(b.sources, `${where} sources`).map((s) => parseSource(s, where));
+  if (!sources.some((source) => /^https:\/\/\S+$/.test(source.url))) {
+    throw new StoryError(`${where} needs a source with an https link`);
+  }
   return {
     id,
     title,
-    day: dayFromIso(text(b.date, `${where} date`)),
-    window: window?.length === 2 ? [window[0] ?? NaN, window[1] ?? NaN] : undefined,
-    precision: b.precision === 'month' || b.precision === 'year' ? b.precision : 'day',
+    day,
+    window,
+    precision:
+      b.precision === undefined ? 'day' : oneOf(b.precision, PRECISIONS, `${where} precision`),
     camera: {
       target: lonLat(camera.target, `${where} camera target`),
       viewKm: num(camera.viewKm, `${where} viewKm`),
       tilt: num(camera.tilt ?? 0, `${where} tilt`),
       heading: num(camera.heading ?? 0, `${where} heading`),
-      drift: camera.drift === 'slow' ? 'slow' : 'none',
+      drift: oneOf(camera.drift ?? 'none', DRIFTS, `${where} camera drift`),
     },
     focal: {
       qid: text(focal.qid, `${where} focal qid`),
       at: focal.at === undefined ? undefined : lonLat(focal.at, `${where} focal at`),
-      day: focal.date === undefined ? undefined : dayFromIso(text(focal.date, `${where} focal`)),
+      day: focal.date === undefined ? undefined : isoDay(focal.date, `${where} focal date`),
     },
-    image: b.image === undefined ? undefined : parseImage(record(b.image, `${where} image`), where),
-    layers,
-    climate,
+    image: parseImage(record(b.image, `${where} image`), where),
+    ...parseLayers(b.layers, where),
     effects: list(b.effects ?? [], `${where} effects`).map((e) => parseEffect(e, where)),
     audioCues: list(audio.cues ?? [], `${where} audio cues`).map((c) => text(c, 'cue')),
-    sources: list(b.sources ?? [], `${where} sources`).map((s) => parseSource(s, where)),
+    sources,
     paragraphs,
   };
 }
 
+/** `<start>..<end>`, two ISO dates in order, as day numbers. */
+function parseWindow(value: unknown, where: string): [number, number] {
+  const [start, end, ...more] = text(value, `${where} window`).split('..');
+  if (start === undefined || end === undefined || more.length > 0) {
+    throw new StoryError(`${where} window must be <start>..<end>`);
+  }
+  const window: [number, number] = [
+    isoDay(start, `${where} window`),
+    isoDay(end, `${where} window`),
+  ];
+  if (window[1] < window[0]) throw new StoryError(`${where} window ends before it starts`);
+  return window;
+}
+
+/**
+ * The layers on, each one shared/constants.json lists, in its order; `climate` may carry its mode
+ * as `{climate: {mode: monthly | annual}}`.
+ */
+function parseLayers(value: unknown, where: string): Pick<StoryBeat, 'layers' | 'climate'> {
+  let climate: StoryBeat['climate'];
+  const named = list(value ?? [], `${where} layers`).map((entry) => {
+    if (typeof entry === 'string') {
+      if (!LAYERS.includes(entry)) throw new StoryError(`${where}: unknown layer '${entry}'`);
+      return entry;
+    }
+    const layer = record(entry, `${where} layer`);
+    known(layer, ['climate'], `${where} layer`);
+    const mode = record(layer.climate, `${where} climate`);
+    known(mode, ['mode'], `${where} climate`);
+    climate = oneOf(mode.mode, CLIMATE_MODES, `${where} climate mode`);
+    return 'climate';
+  });
+  const repeated = named.find((layer, i) => named.indexOf(layer) !== i);
+  if (repeated !== undefined) throw new StoryError(`${where} names the layer '${repeated}' twice`);
+  return { layers: LAYERS.filter((layer) => named.includes(layer)), climate };
+}
+
+/**
+ * Meanwhile's list for the beat: `auto`, or the entries it pins and hides. Read loosely here, as
+ * the walk still takes its entries from meanwhile.<story>.json.
+ */
+function checkMeanwhile(value: unknown, where: string): void {
+  if (value === undefined || value === 'auto' || Array.isArray(value)) return;
+  if (typeof value !== 'object' || value === null) {
+    throw new StoryError(`${where} meanwhile must be auto, or lists to pin and hide`);
+  }
+  const lists = value as Record<string, unknown>;
+  known(lists, ['pin', 'hide'], `${where} meanwhile`);
+  for (const key of ['pin', 'hide']) list(lists[key] ?? [], `${where} meanwhile ${key}`);
+}
+
 function parseImage(image: Record<string, unknown>, where: string): StoryImage {
+  known(image, ['commons', 'sha1', 'crop', 'alt', 'credit', 'license'], `${where} image`);
+  const alt = text(image.alt, `${where} image alt`).trim();
+  if (alt === '') throw new StoryError(`${where} image needs alt text`);
   const crop = list(image.crop ?? [0, 0, 1, 1], `${where} crop`).map((c) => num(c, 'crop'));
   if (crop.length !== 4) throw new StoryError(`${where} crop needs four numbers`);
   return {
     commons: text(image.commons, `${where} image commons`),
     sha1: text(image.sha1 ?? '', `${where} image sha1`),
     crop: [crop[0] ?? 0, crop[1] ?? 0, crop[2] ?? 1, crop[3] ?? 1],
-    alt: text(image.alt ?? '', `${where} image alt`),
+    alt,
   };
 }
 
 function parseEffect(entry: unknown, where: string): StoryEffect {
   const e = record(entry, `${where} effect`);
-  const [kind] = Object.keys(e);
+  const [kind, ...more] = Object.keys(e);
+  if (more.length > 0) throw new StoryError(`${where}: an effect names one kind`);
   const p = record(e[kind ?? ''], `${where} ${kind} effect`);
-  const day = (key: string) => dayFromIso(text(p[key], `${where} ${kind} ${key}`));
+  const day = (key: string) => isoDay(p[key], `${where} ${kind} ${key}`);
+  const keys = (...names: string[]) => known(p, names, `${where} ${kind}`);
   switch (kind) {
     case 'plume': {
+      keys('at', 'start', 'peak', 'end', 'heightKm', 'drift', 'seed');
       const drift = list(p.drift ?? [0, 0], 'drift').map((d) => num(d, 'drift'));
       return {
         kind,
@@ -188,6 +277,7 @@ function parseEffect(entry: unknown, where: string): StoryEffect {
       };
     }
     case 'pulse':
+      keys('at', 'start', 'end', 'radiusKm', 'style');
       return {
         kind,
         at: lonLat(p.at, `${where} pulse at`),
@@ -197,8 +287,10 @@ function parseEffect(entry: unknown, where: string): StoryEffect {
         style: text(p.style ?? 'pulse', 'style'),
       };
     case 'callout':
+      keys('at', 'text');
       return { kind, at: lonLat(p.at, `${where} callout at`), text: text(p.text, 'callout text') };
     case 'spread':
+      keys('dataset', 'wDays', 'style');
       return {
         kind,
         dataset: text(p.dataset, 'dataset'),
@@ -212,6 +304,7 @@ function parseEffect(entry: unknown, where: string): StoryEffect {
 
 function parseSource(entry: unknown, where: string): StorySource {
   const s = record(entry, `${where} source`);
+  known(s, ['title', 'author', 'publisher', 'year', 'url'], `${where} source`);
   const year = s.year;
   return {
     title: text(s.title, `${where} source title`),
@@ -220,6 +313,28 @@ function parseSource(entry: unknown, where: string): StorySource {
     year: typeof year === 'number' || typeof year === 'string' ? year : null,
     url: text(s.url, `${where} source url`),
   };
+}
+
+/** Throws on a key outside `keys`, so a misspelled field fails rather than falling back. */
+function known(value: Record<string, unknown>, keys: readonly string[], where: string): void {
+  const unknown = Object.keys(value).find((key) => !keys.includes(key));
+  if (unknown !== undefined) throw new StoryError(`${where}: unknown key '${unknown}'`);
+}
+
+function oneOf<T extends string>(value: unknown, choices: readonly T[], where: string): T {
+  const choice = choices.find((c) => c === value);
+  if (choice === undefined) throw new StoryError(`${where} must be one of ${choices.join(', ')}`);
+  return choice;
+}
+
+/** An ISO date (dates.ts) as a day number. */
+function isoDay(value: unknown, where: string): number {
+  const iso = text(value, where);
+  try {
+    return dayFromIso(iso);
+  } catch {
+    throw new StoryError(`${where} must be an ISO date, not '${iso}'`);
+  }
 }
 
 function record(value: unknown, where: string): Record<string, unknown> {
