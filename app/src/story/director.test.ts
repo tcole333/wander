@@ -85,7 +85,7 @@ describe('the walk', () => {
     const { walk, run, land } = setup();
     walk.goTo(4);
     land();
-    expect(walk.state().day).toBe(beat(4).window?.[0]);
+    expect(walk.state().day).toBe(beat(4).window[0]);
     run(8.1);
     expect(walk.state().day).toBe(beat(4).day);
   });

@@ -115,10 +115,8 @@ export class BeatCard {
    * fail, the small one sharpens in its place. With neither, or with no baked crop in the lock, the
    * frame becomes a plate across the text column, its label the image's whole description.
    */
-  #showImage(image: StoryImage | undefined): void {
+  #showImage(image: StoryImage): void {
     this.#figure.replaceChildren();
-    this.#figure.hidden = !image;
-    if (!image) return;
     const mount = el('div', 'wu-mount');
     const mat = el('div', 'wu-mat');
     const frame = el('div', 'wu-frame is-loading');

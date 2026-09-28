@@ -19,7 +19,7 @@ const DASH = '–';
  * 1816'). Long windows (an aftermath, a season of famine) fall back to the beat's own date.
  */
 export function dateLine(beat: StoryBeat): string {
-  const [start, end] = beat.window ?? [beat.day, beat.day];
+  const [start, end] = beat.window;
   if (beat.precision === 'day' && end > start && end - start <= 31) return dayRange(start, end);
   if (beat.precision === 'month' && wholeMonths(start, end)) return monthRange(start, end);
   return formatDay(beat.day, beat.precision);
@@ -75,13 +75,11 @@ export interface Span {
 const MIN_SPAN_DAYS = 40;
 
 /**
- * A beat's stretch of the ruler: its window and date with a tenth of their length either side,
- * and at least MIN_SPAN_DAYS, so each beat shows its own time in days, months or years.
+ * A beat's stretch of the ruler: its window with a tenth of its length either side, and at least
+ * MIN_SPAN_DAYS, so each beat shows its own time in days, months or years.
  */
 export function beatSpan(beat: StoryBeat): Span {
-  const [from, to] = beat.window ?? [beat.day, beat.day];
-  const first = Math.min(from, beat.day);
-  const last = Math.max(to, beat.day);
+  const [first, last] = beat.window;
   const width = Math.max(MIN_SPAN_DAYS, 1.2 * (last - first));
   const center = (first + last) / 2;
   return { start: center - width / 2, end: center + width / 2 };

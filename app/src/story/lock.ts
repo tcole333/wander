@@ -39,9 +39,9 @@ export function lockedImage(lock: StoryLock, image: StoryImage): LockedImage | u
 
 /** The story with each beat's image joined to its lock entry, where the lock has one. */
 export function withLock(story: Story, lock: StoryLock): Story {
-  const beats = story.beats.map((beat) => {
-    if (!beat.image) return beat;
-    return { ...beat, image: { ...beat.image, locked: lockedImage(lock, beat.image) } };
-  });
+  const beats = story.beats.map((beat) => ({
+    ...beat,
+    image: { ...beat.image, locked: lockedImage(lock, beat.image) },
+  }));
   return { ...story, beats };
 }

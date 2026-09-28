@@ -102,7 +102,7 @@ export function dwellView(beat: StoryBeat, seconds: number): ViewState {
  */
 export function landingDay(beat: StoryBeat, from: number): number {
   const spreads = beat.effects.some((e) => e.kind === 'spread');
-  if (!spreads || !beat.window) return beat.day;
+  if (!spreads) return beat.day;
   return Math.min(beat.day, Math.max(from, beat.window[0]));
 }
 
