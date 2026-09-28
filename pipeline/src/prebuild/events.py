@@ -324,10 +324,10 @@ def _last_day(s: Statement) -> Day:
     year, month, _ = s.day
     if s.precision == YEAR:
         return year, 12, 31
-    return (year, month, _month_days(year, month)) if s.precision == MONTH else s.day
+    return (year, month, month_days(year, month)) if s.precision == MONTH else s.day
 
 
-def _month_days(year: int, month: int) -> int:
+def month_days(year: int, month: int) -> int:
     """Days in a month of the proleptic Gregorian calendar, astronomical years."""
     if month == 2:
         return 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
