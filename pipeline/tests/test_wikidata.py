@@ -1,7 +1,10 @@
+import http.client
 import tomllib
+import urllib.request
 
 import pytest
 
+from prebuild import wikidata
 from prebuild.wikidata import (
     QUERY,
     WikidataError,
@@ -44,3 +47,19 @@ def test_an_export_is_appended_after_every_other_source():
 def test_an_export_waits_until_the_last_is_unpinned_by_hand():
     with pytest.raises(WikidataError, match="wikidata-events-20260101"):
         check_unpinned(OTHERS + "\n" + OLD)
+
+
+def test_a_dropped_connection_is_waited_out_and_asked_again(monkeypatch):
+    answers = iter([http.client.RemoteDisconnected("closed"), TimeoutError(), "?event\n"])
+
+    def answer(request):
+        given = next(answers)
+        if isinstance(given, Exception):
+            raise given
+        return given
+
+    waits = []
+    monkeypatch.setattr(wikidata, "_answer", answer)
+    monkeypatch.setattr(wikidata.time, "sleep", waits.append)
+    assert wikidata._retried(urllib.request.Request(wikidata.ENDPOINT)) == "?event\n"
+    assert waits == list(wikidata.BUSY_WAITS_S[:2])
