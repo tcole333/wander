@@ -1,0 +1,178 @@
+{
+ "what": "The non-owner face-edge crease (streaming.md 5.6 rule 3): |h(the profile code the vertex takes) - h(the non-owner tile's own 2D corner mean at the vertex mip)|, per level, at the face-edge vertices of every available same-level pair drawn at d = 0 on the full tier (vertex mip 2), once per point and non-owner face. Meters before exaggeration; percentiles are nearest-rank.",
+ "px": "meters * k * 1440 / 30000: a 30 km wide view at 1440 px, the exaggerated offset seen side-on at the target",
+ "ver8": "78f401c3",
+ "profile": "global",
+ "tiles": 15740,
+ "creaseGatedLevels": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "levels": [
+  {
+   "level": 0,
+   "points": 388,
+   "p50": 39.1,
+   "p95": 156.4,
+   "max": 469.1,
+   "px": {
+    "x8": {
+     "p95": 60.05,
+     "max": 180.14
+    },
+    "x16": {
+     "p95": 120.1,
+     "max": 360.29
+    }
+   },
+   "ownGridLandSplits": 5
+  },
+  {
+   "level": 1,
+   "points": 772,
+   "p50": 19.5,
+   "p95": 97.7,
+   "max": 410.5,
+   "px": {
+    "x8": {
+     "p95": 37.53,
+     "max": 157.63
+    },
+    "x16": {
+     "p95": 75.06,
+     "max": 315.25
+    }
+   },
+   "ownGridLandSplits": 3
+  },
+  {
+   "level": 2,
+   "points": 1540,
+   "p50": 9.8,
+   "p95": 68.5,
+   "max": 352.1,
+   "px": {
+    "x8": {
+     "p95": 26.29,
+     "max": 135.22
+    },
+    "x16": {
+     "p95": 52.58,
+     "max": 270.43
+    }
+   },
+   "ownGridLandSplits": 2
+  },
+  {
+   "level": 3,
+   "points": 3076,
+   "p50": 7.3,
+   "p95": 53.8,
+   "max": 337.5,
+   "px": {
+    "x8": {
+     "p95": 20.66,
+     "max": 129.58
+    },
+    "x16": {
+     "p95": 41.32,
+     "max": 259.16
+    }
+   },
+   "ownGridLandSplits": 1
+  },
+  {
+   "level": 4,
+   "points": 6148,
+   "p50": 4.9,
+   "p95": 44.2,
+   "max": 345.9,
+   "px": {
+    "x8": {
+     "p95": 16.96,
+     "max": 132.82
+    },
+    "x16": {
+     "p95": 33.91,
+     "max": 265.64
+    }
+   },
+   "ownGridLandSplits": 2
+  },
+  {
+   "level": 5,
+   "points": 4941,
+   "p50": 2,
+   "p95": 26.4,
+   "max": 217.3,
+   "px": {
+    "x8": {
+     "p95": 10.14,
+     "max": 83.46
+    },
+    "x16": {
+     "p95": 20.28,
+     "max": 166.92
+    }
+   },
+   "ownGridLandSplits": 1
+  },
+  {
+   "level": 6,
+   "points": 8973,
+   "p50": 1,
+   "p95": 17.7,
+   "max": 117.4,
+   "px": {
+    "x8": {
+     "p95": 6.78,
+     "max": 45.09
+    },
+    "x16": {
+     "p95": 13.57,
+     "max": 90.17
+    }
+   },
+   "ownGridLandSplits": 4
+  }
+ ],
+ "mirror": {
+  "pairs": {
+   "inFace": [
+    0,
+    24,
+    144,
+    672,
+    2880,
+    5350,
+    19217,
+    25
+   ],
+   "faceEdge": [
+    12,
+    24,
+    48,
+    96,
+    192,
+    154,
+    280,
+    0
+   ]
+  },
+  "points": [
+   396,
+   1584,
+   6336,
+   25344,
+   101376,
+   181632,
+   643401,
+   825
+  ],
+  "mismatches": 0,
+  "landSplits": 0
+ }
+}

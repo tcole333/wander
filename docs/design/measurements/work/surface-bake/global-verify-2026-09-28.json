@@ -1,0 +1,72 @@
+{
+  "date": "2026-09-28",
+  "command": "npm run verify:bake -- global",
+  "profile": "global",
+  "ver8": "78f401c3",
+  "tiles": 15740,
+  "counts": [
+    6,
+    24,
+    96,
+    384,
+    1536,
+    3095,
+    10581,
+    18
+  ],
+  "sweepSeconds": 149.1,
+  "vitestSeconds": 152.41,
+  "tests": {
+    "passed": 30,
+    "failed": 1,
+    "total": 31
+  },
+  "failedCheck": "across a face edge, border texels map into neighbor column k, near the codes there",
+  "crossFaceBound": {
+    "absoluteCodes": 2,
+    "fractionOfNeighborRange": 0.3333333333333333,
+    "shoreSplitException": true
+  },
+  "misses": [
+    "5/0/31/24 E k=3 along=81: 592 vs 568..584",
+    "5/1/27/31 N k=0 along=239: -9 vs -4..1",
+    "5/1/28/31 N k=1 along=79: 10 vs -5..1",
+    "5/3/27/0 S k=1 along=233: -99 vs -84..-46",
+    "5/4/31/31 E k=0 along=244: 102 vs 49..86",
+    "5/4/31/31 E k=2 along=82: 67 vs 0..45",
+    "5/5/20/0 S k=3 along=69: 27 vs -18..9",
+    "6/3/43/0 S k=0 along=104: 40 vs 0..23",
+    "6/4/63/62 E k=1 along=163: 36 vs -11..2",
+    "6/4/63/62 E k=1 along=164: 38 vs -6..3",
+    "6/4/63/62 E k=2 along=162: 26 vs -7..10",
+    "6/4/63/62 E k=3 along=165: 70 vs 0..49"
+  ],
+  "affectedTiles": [
+    "5/0/31/24",
+    "5/1/27/31",
+    "5/1/28/31",
+    "5/3/27/0",
+    "5/4/31/31",
+    "5/5/20/0",
+    "6/3/43/0",
+    "6/4/63/62"
+  ],
+  "mirrorPairs": 29118,
+  "mirrorPoints": 960894,
+  "mirrorMismatches": 0,
+  "landSplits": 0,
+  "region": {
+    "command": "npm run verify:bake",
+    "ver8": "ee095df5",
+    "tiles": 2649,
+    "vitestSeconds": 33.38,
+    "testsPassed": 31
+  },
+  "limits": [
+    "The terrain-bound failures are left for bake investigation; they do not establish a visible crack.",
+    "Global L5-L6 creases are measured, without a regional regression limit, because coverage and quantization differ.",
+    "The CPU mirror checks available same-level pairs at d=0 on the full grid. Mixed levels, motion, GPU behavior and visual shading are outside this run.",
+    "Owner means are checked only where the owner tile is baked. L7 at Sumbawa has no face-edge pairs.",
+    "Source pins are compared with the records; raw source files are not rehashed or reread."
+  ]
+}

@@ -1,4 +1,4 @@
-// `npm run verify:bake`: the checks on the region bake in build/region (src/**/*.verify.ts), kept
+// `npm run verify:bake -- [region|global]`: the bake checks (src/**/*.verify.ts), kept
 // apart from `npm test` because the bake needs the raw data, so they run only locally.
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';

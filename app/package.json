@@ -14,7 +14,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "verify:bake": "vitest run --config vitest.bake.config.ts",
+    "verify:bake": "node scripts/verifyBake.ts",
     "data": "node scripts/dataServer.ts",
     "publish-data": "node scripts/publish.ts",
     "check-release": "node scripts/checkRelease.ts",

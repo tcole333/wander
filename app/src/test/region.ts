@@ -1,25 +1,22 @@
-// Reads the region bake (streaming.md 7.3, Bake check): the stage records in
-// build/stages/region/ and the surface layer in build/region/, but only after checking that the
-// bake is complete and was built from the prebuild code, configs and pinned sources the working
-// tree holds. A missing or stale bake fails loudly, naming the command that rebuilds it.
+// Reads either real surface bake (streaming.md 7.3), after checking its records, surface code,
+// profile configs and pinned sources. A missing or stale bake names the command that rebuilds it.
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { tileKey, type Tile } from '../surface/cube';
 import { decodeWst, type DecodedWst } from '../surface/wst';
 import { REPO_ROOT, type SurfaceRecord } from './fixture';
+import { matchesSurfaceCode } from './bakeInputs';
 import { treeSha } from './stamp';
 
-// The paths CODE_PATHS names in pipeline/src/prebuild/hashing.py, whose tree hash the coverage
-// record keeps as inputs.code.
-const CODE_PATHS = [
-  'pipeline/src',
-  'pipeline/config',
-  'pipeline/pyproject.toml',
-  'pipeline/uv.lock',
-  'shared/constants.json',
-];
-const REBUILD = 'run `uv run prebuild --profile region` in pipeline/';
+export type BakeProfile = 'region' | 'global';
+const OUTPUT = { region: 'region', global: 'out' };
+// pipeline/src/prebuild/coverage.py CONFIGS: the global bake never reads the region cutouts.
+const CONFIGS = {
+  region: ['l7.yaml', 'regions-milestone1.yaml', 'water.yaml'],
+  global: ['l7.yaml', 'water.yaml'],
+};
 
 /** What the coverage stage read, as sha256s (streaming.md 7.2). */
 export interface StageInputs {
@@ -46,9 +43,10 @@ export interface RegionSurfaceRecord extends SurfaceRecord {
 }
 
 export interface RegionBake {
+  profile: BakeProfile;
   coverage: CoverageRecord;
   surface: RegionSurfaceRecord;
-  /** The surface layer's folder, build/region/surf/<ver8>/. */
+  /** The surface layer's folder under this profile's output root. */
   layer: string;
 }
 
@@ -62,12 +60,22 @@ export class StaleRegionBake extends Error {
  * tree. Throws a StaleRegionBake naming the command to run otherwise.
  */
 export function readRegionBake(repo: string = REPO_ROOT): RegionBake {
-  const stages = join(repo, 'build', 'stages', 'region');
+  return readBake('region', repo);
+}
+
+/** A real bake, with region remaining the default for the lab's existing readers. */
+export function readBake(profile: BakeProfile = 'region', repo: string = REPO_ROOT): RegionBake {
+  const stale = (reason: string) =>
+    new StaleRegionBake(
+      `build/${OUTPUT[profile]} is missing or stale (${reason}): ` +
+        `run \`uv run prebuild --profile ${profile}\` in pipeline/`,
+    );
+  const stages = join(repo, 'build', 'stages', profile);
   const coverage = readJson<CoverageRecord>(join(stages, 'coverage.json'));
   const surface = readJson<RegionSurfaceRecord>(join(stages, 'surface.json'));
   if (coverage === null || surface === null) throw stale('it has no coverage or surface record');
-  const layer = join(repo, 'build', 'region', 'surf', surface.ver);
-  if (!existsSync(layer)) throw stale(`build/region/surf/${surface.ver}/ is missing`);
+  const layer = join(repo, 'build', OUTPUT[profile], 'surf', surface.ver);
+  if (!existsSync(layer)) throw stale(`build/${OUTPUT[profile]}/surf/${surface.ver}/ is missing`);
   if (surface.avail !== coverage.avail) {
     throw stale('the surface record was built from another coverage record');
   }
@@ -75,15 +83,27 @@ export function readRegionBake(repo: string = REPO_ROOT): RegionBake {
     throw stale('the surface layer was built from other inputs than the coverage record holds');
   }
   const { inputs } = coverage;
-  if (inputs?.code !== treeSha(CODE_PATHS, repo)) {
-    throw stale('it was built from other prebuild code, configs or shared constants');
+  if (!inputs || !matchesSurfaceCode(inputs.code, repo)) {
+    throw stale('its surface code, dependencies or shared constants differ or cannot be verified');
+  }
+  const configs = Object.fromEntries(
+    CONFIGS[profile].map((name) => {
+      const path = join(repo, 'pipeline', 'config', name);
+      return [
+        name,
+        existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : null,
+      ];
+    }),
+  );
+  if (!isDeepStrictEqual(inputs.configs, configs)) {
+    throw stale('its surface configs differ from this profile’s current configs');
   }
   const pinned = readFileSync(join(repo, 'pipeline', 'sources.toml'), 'utf8');
   const read = [inputs.gebco, ...Object.values(inputs.ne)];
   if (!read.every((sha256) => pinned.includes(`"${sha256}"`))) {
     throw stale('it read other sources than pipeline/sources.toml pins');
   }
-  return { coverage, surface, layer };
+  return { profile, coverage, surface, layer };
 }
 
 /** Keys (`L/f/x/y`) of the .wst files in the layer, and its other files, by layer-relative path. */
@@ -110,10 +130,6 @@ export function readLayerFile(bake: RegionBake, path: string): Uint8Array<ArrayB
 /** Decode a tile of the layer, as the decode worker does. */
 export function loadRegionTile(bake: RegionBake, t: Tile): Promise<DecodedWst> {
   return decodeWst(readLayerFile(bake, `${tileKey(t)}.wst`).buffer, t);
-}
-
-function stale(reason: string): StaleRegionBake {
-  return new StaleRegionBake(`build/region is missing or stale (${reason}): ${REBUILD}`);
 }
 
 function readJson<T>(path: string): T | null {
