@@ -21,8 +21,8 @@ Wikipedia edition. Per event it takes:
 
 The table is UTF-8 TSV with a header line, gzip level 9 with mtime 0, in score order, then by qid;
 the first `MAX_ROWS` events are kept. Columns: qid, label, enwiki, class, date, precision, t0, t1,
-lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO
-days in astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
+lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in
+astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
 precision: 9 year, 10 month, 11 day. Milestone 1 publishes none of it: the `.wev` files (3.4) come
 with the globe's events layer. The fixture skips the stage, since it reads raw data.
 """
