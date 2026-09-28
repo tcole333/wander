@@ -2,17 +2,22 @@
 // will read it? It HEADs rel/<id>.json (never a GET: the edge caches a 404 for hours), which
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
 // its six L0 tiles, the climate years the walk loads as it starts when the release has a modera
-// section, the 1815 border field when it has a borders section, and the first of the stories'
-// images, as the page fetches them, cross-origin from the app's origin, so it never leaves a 404
+// section, the 1815 border field when it has a borders section, and each story's first image,
+// as the page fetches them, cross-origin from the app's origin, so it never leaves a 404
 // cached for a key about to be uploaded, and checks each answers 200 with R2's headers and its
 // Content-Type (streaming.md 4.2). CI runs it as its own job, which the Pages deploy waits for, so
 // the app never ships naming data that is not there. Plain Node:
 //
 //   npm run check-release
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { parse } from 'yaml';
 import type { Release } from '../src/data/release.ts';
+import { lockedImage, type StoryLock } from '../src/story/lock.ts';
+import type { StoryImage } from '../src/story/story.ts';
 import { objectHeaders } from './objectHeaders.ts';
+import { REPO_ROOT } from './release.ts';
 
 /** The origin the deployed page fetches from, which R2's CORS rule must answer. */
 export const APP_ORIGIN = 'https://wander.traviscole.xyz';
@@ -32,10 +37,31 @@ function expected(key: string): Record<string, string> {
  */
 export const CLIMATE_YEARS = [1815, 1816, 1817];
 
+/** Join each story's opening beat to its lock and probe its small JPEG, as the card's preview. */
+export function firstStoryImages(): string[] {
+  const root = join(REPO_ROOT, 'stories');
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map(({ name }) => {
+      const lock = JSON.parse(
+        readFileSync(join(root, name, 'story.lock.json'), 'utf8'),
+      ) as StoryLock;
+      const text = readFileSync(join(root, name, 'story.md'), 'utf8');
+      const block = /^```beat\s*\n([\s\S]*?)^```/m.exec(text)?.[1];
+      if (!block) throw new Error(`${name}: no opening beat`);
+      const beat = parse(block) as { image: StoryImage };
+      const image = lockedImage(lock, beat.image)?.files.find(
+        (file) => file.w === 256 && file.key.endsWith('.jpg'),
+      );
+      if (!image) throw new Error(`${name}: the first image has no 256w JPEG in its lock`);
+      return image.key;
+    });
+}
+
 /**
  * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
  * section the climate's mean for each of CLIMATE_YEARS, with a borders section the field of its
- * one snapshot (the walk's, 3.3), and the first image.
+ * one snapshot (the walk's, 3.3), and each story's first image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -47,10 +73,10 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
   const stem = release.borders?.stems[0];
   const border = stem === undefined ? undefined : release.borders?.files[stem]?.key;
   const borders = border ? [border] : [];
-  const image = release.media.images.slice(0, 1);
+  const images = firstStoryImages();
   return {
     copy: `rel/${release.id}.json`,
-    data: [bounds, ...roots, ...climate, ...borders, ...image],
+    data: [bounds, ...roots, ...climate, ...borders, ...new Set(images)],
   };
 }
 
@@ -58,6 +84,11 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
 export async function checkRelease(release: Release): Promise<string[]> {
   const { copy, data } = releaseKeys(release);
   const problems: string[] = [];
+  for (const key of firstStoryImages()) {
+    if (!release.media.images.includes(key))
+      problems.push(`${key}: the release omits a story's first image`);
+  }
+  if (problems.length > 0) return problems;
   const url = (key: string) => `${release.dataHost}/${key}`;
   const ask = async (key: string, method: 'HEAD' | 'GET'): Promise<Response | null> => {
     try {
