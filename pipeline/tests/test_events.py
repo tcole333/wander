@@ -72,6 +72,19 @@ def test_a_war_dated_at_its_end_still_spans_its_years():
     assert (war.day, war.t0, war.t1) == ((1918, 11, 11), (1914, 7, 28), (1918, 11, 11))
 
 
+def test_a_curated_date_stands_in_for_wikidata_s_and_the_span_widens_to_hold_it():
+    statements = events.read_export(
+        [
+            HEADER,
+            row("Q3656338", "P580", "1817-09-29T00:00:00Z", 11, cls=WAR),
+            row("Q3656338", "P582", "1818-09-09T00:00:00Z", 11, cls=WAR),
+        ]
+    )
+    [nejd] = events.index(statements, load_event_classes(), {}, {"Q3656338": "1816-09-30"})
+    assert (nejd.day, nejd.precision) == ((1816, 9, 30), 11)
+    assert (nejd.t0, nejd.t1) == ((1816, 9, 30), (1818, 9, 9))
+
+
 def test_of_several_dates_the_most_precise_wins_then_the_earliest():
     kept = indexed(
         row("Q1", "P585", "1816-06-01T00:00:00Z", 10),
