@@ -1644,7 +1644,69 @@ release's `media` section lists every key the locks name (3.8).
 6. **Publish:** `publish-data`, `release.json` and the Pages deploy. E3 on the real hostname is
    milestone 1's acceptance test.
 
-After milestone 1: E6 with the other thematic layers, the global L5-L6 bake, then the other four stories.
+After milestone 1: E6 with the other thematic layers, then the other four stories.
+
+#### Milestone 1 as shipped
+
+Milestone 1 went live on 27 September 2026 and passed E3, its acceptance, on 28 September (8.2).
+Where it departs from the design, a simpler piece carried the Tambora walk:
+
+- **Surface:** the global bake (15,740 tiles: L5-L6 on all land and shelf, L7 at Sumbawa), not the
+  region bake, since the look prototype had baked it and a break-out can reach anywhere.
+- **E1 and E2:** re-scoped to the look prototype (owner decision 27); what shipped answers them,
+  and their formal runs move to the pre-launch checks (8.2).
+- **Heavy runtime** (owner decision 30): `lod.ts`'s per-beat plans, request classes and
+  cancellation, the byte cache, quality tiers and the governor, hover prefetch, zoom prediction
+  and 5.6's reveals wait. `stream/selectNodes.ts` picks the drawn nodes each frame, one queue of
+  12 fetches what they want, coarsest and nearest the view center first, and a tile draws once it
+  is uploaded. At 5/150 every beat still lands whole on ancestors (E3).
+- **Readiness gate:** at 0.9 of the flight, holding at most 0.4 s until the streamer has been idle
+  for 1 s (`story/director.ts`), not `gateAt` and `holdMax` against a critical set: without
+  per-beat plans the streamer finishes only near the destination's view, where a short hold reads
+  as a slower settle rather than a stall in mid-air.
+- **One tier:** the full tier's pools and grid, with the pixel ratio capped at 1.5 in a story and
+  2 in the lobby, since at 2 the plume and the flights miss frames on a Retina display. Tiers wait
+  for the lower-end machines.
+- **Anti-aliasing:** MSAA 4× on the composer's input below a pixel ratio of 1.5 and none from 1.5
+  up, with no SMAA or FXAA: at Retina ratios the pixels are fine enough, and MSAA's fill of
+  targets that large costs the frame rate.
+- **Frame loop:** it draws every frame, since the lobby's turn, a beat's drift and its effects
+  keep something moving.
+- **First frame:** the CSS room is the poster (owner decision 21), and it opens once L0-L1 and the
+  page's faces are in, with L2 streaming during the lamp-up. There are no Early Hints or preloads
+  for the L0 tiles, only a preconnect, since the room already opens 1.24 s after navigation cold
+  at 25/50.
+- **Context loss:** a reload, then the story's card (owner decision 21), since in-place restore
+  needs the byte cache.
+- **Borders:** one six-face distance field for the one 1815 snapshot (3.3), not `.wot` tiles, 54
+  previews and crossfades: 1815 is the nearest snapshot to every Tambora date, and one 1.27 MB
+  field loaded in the lobby draws it wherever the walk goes.
+- **Sea names:** inlaid by the look from a bundled list (section 2; owner decision 25), not troika
+  labels from a `labels` stage: at sea level they never bend with relief, take the lamp, ash and
+  climate as the lacquer does, and cost nothing to fetch. Polity and range names wait for the
+  labels stage.
+- **Events and Meanwhile:** the `events` stage writes one scored table (3.4), and the `meanwhile`
+  stage compiles each beat's and month's entries and the lobby's glows into the story's lock
+  (3.9). No `.wev` is built and there is no event worker, since milestone 1's lists are short and
+  fixed, and only the globe's events layer queries the index at run time.
+- **Climate:** monthly means on the 1816 beats, blended on the CPU into one small field (3.5); the
+  ring, the annual arrays and the span switch come with scrubbing across years.
+- **Effects:** the plume, ash and veil are functions of story time in the app (`story/effects/`,
+  `look/ashHook.ts`), illustrative as the story's credits say, so there is no `fx` stage yet; the
+  spread datasets the story names wait for the first effect drawn from data.
+- **Story:** no compiler. The app bundles `story.md`, parses it with a strict schema (`parseStory`,
+  which Vitest runs over every story) and joins the lock itself, since one story needs no compile
+  step; `npm run stories` comes with the article pages.
+- **Publish:** `publish-data` runs in Node, signing R2's S3 API with aws4fetch, not rclone: its
+  headers come from the table the data server serves, R2 itself refuses an overwrite, and the Mac
+  needs no rclone or AWS profile. CI's `check-release` gates the deploy; the publish check and the
+  warm wait (4.3, 4.4).
+- **Fixture and CI:** the fixture has no story, events, climate or borders excerpt yet, and there
+  is no `npm run dev:fixture` (`npm run data -- --profile fixture` with `?data=fixture` serves the
+  fixture to the app). CI's Playwright runs the smoke tests, the pool smoke test and the vertex
+  readback; 7.3's other checks come with what they test.
+- **Later** (owner decision 30): reduced motion, the article view with the no-WebGL redirect, URL
+  state and deep links, and a way back to the lobby.
 
 ### 8.2 Experiments
 
