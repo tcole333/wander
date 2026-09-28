@@ -38,6 +38,13 @@ describe('credits.html', () => {
     expect(wrong).toEqual([]);
   });
 
+  it('names in full the collection its lock credits, wherever the lock names one', () => {
+    const wrong = entries.filter(
+      (entry, i) => !entry.text.includes(lock.images[i]?.collection ?? ''),
+    );
+    expect(wrong).toEqual([]);
+  });
+
   it('holds its sheet in the card the Credits panel shows over the globe', () => {
     expect(credits).toMatch(/<main class="[^"]*\bcredits-card\b[^"]*">\s*<div class="wu-sheet">/);
     expect(credits).toMatch(/class="credits-back"/);
