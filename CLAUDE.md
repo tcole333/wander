@@ -49,7 +49,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 
 - `npm ci`, then `npm run dev`: the app on Vite's dev server, reading production data from
   `wander-data.traviscole.xyz`. On a page served from loopback, `?data=fixture|region|global` or
-  `?data=<origin>` reads a local data server's release instead (`app/src/page/dataOrigin.ts`).
+  `?data=<origin>` reads a local data server's release instead (`app/src/page/dataOrigin.ts`),
+  and `?memory=1` installs `window.__wanderMemory()`, the app's account of the CPU memory it keeps,
+  by owner (`app/src/perf/memoryHook.ts`), which E3's leak check records beside Chromium's dump.
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
 - `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
   uv) into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for
