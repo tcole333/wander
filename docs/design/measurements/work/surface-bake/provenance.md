@@ -6,10 +6,9 @@ The region layer `ee095df5` and the global layer `78f401c3` record the same `inp
 `hashing.py`'s SHA-256 lines rule. Both coverage and surface records hold it. Neither record holds
 individual code-file hashes, so their code hash cannot simply be reduced to the surface files.
 
-The 28 September 2026 global run used the working tree based on `6154f13`, with a one-off
-freshness allowance subsequently committed in `2a4f59f` (rebased as `dba5e5b`). It checked the
-shipped bake against the reviewed surface code at that commit. The comparison with `3aca3c2`
-found these changes:
+The 28 September 2026 global run used the pipeline code of `cb2acd4` on `main`, with a one-off
+freshness allowance that its pull request added and then removed. It checked the shipped bake
+against the surface code at that commit. The comparison with `3aca3c2` found these changes:
 
 - `borders.py`, `events.py`, `meanwhile.py`, `media.py`, `modera.py` and `wikidata.py`, and their
   configs, add independent stages. They do not produce the surface tiles or their coverage.
@@ -37,6 +36,6 @@ with `uv run prebuild --profile global coverage surface` in `pipeline/`.
 The comparison can be read with:
 
 ```sh
-git diff 3aca3c2a21a8a28f829c9f7c76d9105b125db6ee 6154f13 -- \
+git diff 3aca3c2a21a8a28f829c9f7c76d9105b125db6ee cb2acd4 -- \
   pipeline/src pipeline/config pipeline/pyproject.toml pipeline/uv.lock shared/constants.json
 ```
