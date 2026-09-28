@@ -10,8 +10,8 @@
 // walk and flies into its first beat.
 //
 // The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
-// precompile; in the lobby the opening starts on it. The climate's years load once the opening has
-// started, or at once without a lobby.
+// precompile; in the lobby the opening starts on it. The climate's years load the first time the
+// view settles with the streamer idle, after the tiles in view.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
@@ -346,7 +346,7 @@ async function assemble(
   }
   if (lobby && effects) effects.group.visible = false;
   else if (source) begin('jump');
-  if (effects) void (lobby?.opened ?? Promise.resolve()).then(() => effects.load());
+  let effectsLoading = false;
   await faces;
 
   const frameLens = (dtS: number) => {
@@ -427,6 +427,10 @@ async function assemble(
     } else {
       idleSince = Math.min(idleSince, now);
       idleFrames += 1;
+    }
+    if (effects && !effectsLoading && ready()) {
+      effectsLoading = true;
+      effects.load();
     }
   });
 
