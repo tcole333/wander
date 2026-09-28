@@ -2,7 +2,8 @@
 `<layer>/.tmp-<pid>/` and, once every file is hashed, renames that folder to `<layer>/<ver8>/`. A
 layer that already exists is kept, after a byte-for-byte comparison, since its version names its
 bytes. A staging folder that no longer holds every file the build hashed, as when a second run of
-the stage cleared it midway, is never published."""
+the stage cleared it midway, is never published. A single content-addressed key (an image, a
+license notice) is written alike: kept when it holds the same bytes, never overwritten."""
 
 import filecmp
 import os
@@ -14,8 +15,8 @@ from prebuild.hashing import layer_version
 
 
 class LayerConflict(RuntimeError):
-    """A layer folder already holds other bytes than the build made for the same version, or the
-    staging folder lost files the build wrote."""
+    """A layer folder or key already holds other bytes than the build made for it, or the staging
+    folder lost files the build wrote."""
 
 
 def staging_folder(layer: Path) -> Path:
@@ -49,6 +50,18 @@ def publish(staging: Path, layer: Path, digests: Mapping[str, str]) -> str:
     if not same:
         raise LayerConflict(f"{target} already holds other bytes than this build made")
     return ver
+
+
+def write_object(path: Path, data: bytes) -> None:
+    """Write a key's file, or keep the one there when it holds the same bytes."""
+    if path.exists():
+        if path.read_bytes() != data:
+            raise LayerConflict(f"{path} already holds other bytes, and keys are never overwritten")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    partial.write_bytes(data)
+    partial.replace(path)
 
 
 def _files(root: Path) -> list[str]:

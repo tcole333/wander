@@ -56,7 +56,7 @@ from prebuild.constants import FORMATS
 from prebuild.cube import FACES, dir_to_lonlat, face_st, lonlat_to_dir, st_to_dir
 from prebuild.fields import SUBPIXELS, Grid, fill
 from prebuild.hashing import sha256_bytes
-from prebuild.layers import publish, staging_folder
+from prebuild.layers import publish, staging_folder, write_object
 from prebuild.natural_earth import SEGMENT_DEG, parts_of_dimension
 from prebuild.profiles import Context
 from prebuild.records import write_record
@@ -403,16 +403,9 @@ def from_file(data: bytes) -> tuple[int, npt.NDArray[np.uint8]]:
 
 
 def write_license_file(out: Path, data: bytes, extension: str) -> str:
-    """Writes `lic/<sha16>.<extension>` under the output root, keeping one already there with the
-    same bytes, and returns its key."""
+    """Writes `lic/<sha16>.<extension>` under the output root and returns its key."""
     key = f"{LICENSES}/{sha256_bytes(data)[:16]}.{extension}"
-    path = out / key
-    if path.is_file() and path.read_bytes() == data:
-        return key
-    path.parent.mkdir(parents=True, exist_ok=True)
-    partial = path.with_name(f".{path.name}.tmp")
-    partial.write_bytes(data)
-    partial.replace(path)
+    write_object(out / key, data)
     return key
 
 

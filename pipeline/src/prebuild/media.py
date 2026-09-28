@@ -49,6 +49,7 @@ import yaml
 from PIL import Image, ImageOps
 
 from prebuild.hashing import lines_sha, sha256_bytes
+from prebuild.layers import write_object
 from prebuild.paths import excerpts_dir
 from prebuild.profiles import Context
 
@@ -219,18 +220,6 @@ def image_keys(baked: dict[int, Baked]) -> dict[int, str]:
     """Each width's key: `img/<sha16>-<width>.jpg`, the sha16 naming every width's bytes."""
     sha16 = lines_sha({f"{w}.jpg": sha256_bytes(b.data) for w, b in baked.items()})[:16]
     return {width: f"img/{sha16}-{width}.jpg" for width in baked}
-
-
-def write_object(path: Path, data: bytes) -> None:
-    """Write a key's file, or keep the one there when it holds the same bytes."""
-    if path.exists():
-        if path.read_bytes() != data:
-            raise MediaError(f"{path} already holds other bytes, and keys are never overwritten")
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    partial = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    partial.write_bytes(data)
-    partial.replace(path)
 
 
 def lock_entry(
