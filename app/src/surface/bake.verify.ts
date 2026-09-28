@@ -1,5 +1,5 @@
-// The region bake (streaming.md 7.3, Bake check), after `uv run prebuild --profile region`:
-// `npm run verify:bake` decodes every tile of build/region as the app decodes it and checks seams
+// The real bakes (streaming.md 7.3, Bake check): `npm run verify:bake -- [region|global]`
+// decodes every tile of build/region or build/out as the app decodes it and checks seams
 // within faces and on face edges with the fixture's checks (../test/seams.ts): border texels, the
 // edge profiles at every mip, where they meet and what their owners hold. The vertex mirror then
 // draws every same-level pair of neighbors, proves their shared vertices identical and gates the
@@ -16,13 +16,7 @@ import { nearestRank } from '../perf/frameStats';
 import { REPO_ROOT, surfaceAvailability } from '../test/fixture';
 import { mirrorPair, type CreaseSample, type PairSeams } from '../test/mirrorPair';
 import { DATELINE_GEBCO, TAMBORA_GEBCO_MAX, TAMBORA_TEXEL_M } from '../test/places';
-import {
-  layerFiles,
-  layerVersion,
-  loadRegionTile,
-  readLayerFile,
-  readRegionBake,
-} from '../test/region';
+import { layerFiles, layerVersion, loadRegionTile, readLayerFile, readBake } from '../test/region';
 import {
   MIPS,
   REGION_CROSS_FACE,
@@ -92,7 +86,16 @@ const CREASE_SLACK = 1.1;
 const VIEW = { widthPx: 1440, widthM: 30_000 };
 const EXAGGERATIONS = [8, 16] as const;
 
-const bake = readRegionBake();
+const profile = process.env.WANDER_BAKE_PROFILE ?? 'region';
+if (profile !== 'region' && profile !== 'global')
+  throw new Error(`Unknown bake profile: ${profile}`);
+const bake = readBake(profile);
+// Only L0-L4 share the region measurement's coverage and quantization. Global L5-L6 have more
+// terrain and different qLand, so record their crease for E2 without imposing the region's bound.
+const creaseMeasured = CREASE_MEASURED.slice(
+  0,
+  profile === 'global' ? EVERY_TILE_BELOW : undefined,
+);
 const avail = surfaceAvailability(bake.surface);
 const available: Tile[] = [];
 for (let k = 0; k < nodeCount(bake.surface.maxLevel); k += 1) {
@@ -132,9 +135,15 @@ let bounds: Map<number, [number, number]>;
 let findings: Findings;
 
 beforeAll(async () => {
+  const started = performance.now();
   const raw = await inflate(readLayerFile(bake, 'bounds.bin').buffer, BOUNDS_BYTES);
   bounds = parseSurfaceBounds(raw.slice().buffer, avail);
   findings = await sweep();
+  console.log(
+    `${profile} ${bake.surface.ver}: checked ${available.length} tiles in ` +
+      `${((performance.now() - started) / 1000).toFixed(2)} s; L0-L${bake.surface.maxLevel}: ` +
+      bake.coverage.counts.join(', '),
+  );
 });
 
 /** A decoded tile of the bake, kept among the CACHE_TILES most recently asked for. */
@@ -316,7 +325,7 @@ function creaseLevels(): CreaseLevel[] {
   });
 }
 
-/** The crease per level and the mirror's pair counts, in build/lab/crease.json. */
+/** The crease per level and the mirror's pair counts, in build/lab/crease-<profile>.json. */
 function writeCreaseReport(creases: CreaseLevel[]): void {
   const dir = join(REPO_ROOT, 'build', 'lab');
   mkdirSync(dir, { recursive: true });
@@ -331,6 +340,9 @@ function writeCreaseReport(creases: CreaseLevel[]): void {
       `meters * k * ${VIEW.widthPx} / ${VIEW.widthM}: a ${VIEW.widthM / 1000} km wide view at ` +
       `${VIEW.widthPx} px, the exaggerated offset seen side-on at the target`,
     ver8: bake.surface.ver,
+    profile,
+    tiles: available.length,
+    creaseGatedLevels: [...creaseMeasured.keys()],
     levels: creases,
     mirror: {
       pairs: findings.mirrorPairs,
@@ -339,7 +351,7 @@ function writeCreaseReport(creases: CreaseLevel[]): void {
       landSplits: findings.landSplits.length,
     },
   };
-  writeFileSync(join(dir, 'crease.json'), `${JSON.stringify(report, null, 1)}\n`);
+  writeFileSync(join(dir, `crease-${profile}.json`), `${JSON.stringify(report, null, 1)}\n`);
 }
 
 /** The tile at `level` holding (lon, lat), and the stored index of the texel there. */
@@ -389,7 +401,7 @@ function greatCircleKm([lon1, lat1]: [number, number], [lon2, lat2]: [number, nu
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(a));
 }
 
-describe('the region bake', () => {
+describe(`the ${profile} bake`, () => {
   it('decodes every available tile', () => {
     expect(failures(findings.undecoded)).toEqual(NONE);
   });
@@ -463,19 +475,21 @@ describe('the vertex mirror on every same-level pair at d = 0', () => {
     expect(failures(findings.landSplits)).toEqual(NONE);
   });
 
-  it("keeps each level's non-owner crease within 10% over its measured p95 and max", () => {
+  it("keeps comparable levels' non-owner crease within 10% over the region's measured p95 and max", () => {
     const creases = creaseLevels();
     writeCreaseReport(creases);
     expect(creases.map(({ level }) => level)).toEqual([...CREASE_MEASURED.keys()]);
-    const over = creases.flatMap(({ level, p95, max }) => {
-      const [p95Measured = NaN, maxMeasured = NaN] = CREASE_MEASURED[level] ?? [];
-      const p95Over = p95 > p95Measured * CREASE_SLACK || Number.isNaN(p95Measured);
-      const maxOver = max > maxMeasured * CREASE_SLACK || Number.isNaN(maxMeasured);
-      return [
-        ...(p95Over ? [`L${level} p95 ${p95} m, measured ${p95Measured}`] : []),
-        ...(maxOver ? [`L${level} max ${max} m, measured ${maxMeasured}`] : []),
-      ];
-    });
+    const over = creases
+      .filter(({ level }) => level < creaseMeasured.length)
+      .flatMap(({ level, p95, max }) => {
+        const [p95Measured = NaN, maxMeasured = NaN] = creaseMeasured[level] ?? [];
+        const p95Over = p95 > p95Measured * CREASE_SLACK || Number.isNaN(p95Measured);
+        const maxOver = max > maxMeasured * CREASE_SLACK || Number.isNaN(maxMeasured);
+        return [
+          ...(p95Over ? [`L${level} p95 ${p95} m, measured ${p95Measured}`] : []),
+          ...(maxOver ? [`L${level} max ${max} m, measured ${maxMeasured}`] : []),
+        ];
+      });
     expect(over).toEqual([]);
   });
 });

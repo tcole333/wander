@@ -118,10 +118,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   (`docs/design/streaming.md` 3.9). A beat's `meanwhile: {pin: [...], hide: [...]}` in `story.md`
   overrides the rule; the stage names any beat entry still lacking a written line, and stops when
   the table was built from another export or other event configs.
-- `npm run verify:bake`, after the region bake: decodes every tile of `build/region/` and checks
-  its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
-  7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake
-  is missing or was built from other pipeline code, configs or pinned sources.
+- `npm run verify:bake -- [region|global]`: decodes every tile of `build/region/` (the default)
+  or `build/out/`, reading `build/stages/<profile>/`, and checks its seams, headers, `bounds.bin`,
+  availability and known places (`docs/design/streaming.md` 7.3). Local only, since building the
+  bake needs the raw data; verification reads it without rebuilding. It fails, naming the command,
+  when the bake is missing or its surface code, configs or pinned sources differ.
 - `npm run publish-data -- [--profile global|region] [--dry-run]`: uploads the keys the build's
   release names that R2 lacks, canary first and never overwriting a key, then writes
   `app/src/generated/release.json` (commit it) and `rel/<id>.json` (`docs/design/streaming.md`
