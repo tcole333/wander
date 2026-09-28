@@ -51,7 +51,7 @@ def indexed(*rows: str) -> dict[str, events.Event]:
     return {e.qid: e for e in events.index(statements, load_event_classes(), {})}
 
 
-def test_an_event_takes_its_heaviest_class_and_its_point_in_time_over_its_span():
+def test_an_event_takes_its_heaviest_class_and_its_point_in_time_within_its_span():
     tambora = indexed(
         row("Q3591483", "P580", "1813-04-07T00:00:00Z", 11),
         row("Q3591483", "P585", "1815-01-01T00:00:00Z", 9),
@@ -59,8 +59,17 @@ def test_an_event_takes_its_heaviest_class_and_its_point_in_time_over_its_span()
         row("Q3591483", "P585", "1815-01-01T00:00:00Z", 9, cls=WAR),
     )["Q3591483"]
     assert (tambora.cls, tambora.day, tambora.precision) == ("war", (1815, 1, 1), 9)
-    assert (tambora.end, tambora.end_precision) == ((1815, 7, 15), 11)
+    assert (tambora.t0, tambora.t1) == ((1813, 4, 7), (1815, 12, 31))
     assert tambora.score == pytest.approx(math.log2(11) * 1.0)
+
+
+def test_a_war_dated_at_its_end_still_spans_its_years():
+    war = indexed(
+        row("Q361", "P580", "1914-07-28T00:00:00Z", 11, cls=WAR),
+        row("Q361", "P585", "1918-11-11T00:00:00Z", 11, cls=WAR),
+        row("Q361", "P582", "1918-11-11T00:00:00Z", 11, cls=WAR),
+    )["Q361"]
+    assert (war.day, war.t0, war.t1) == ((1918, 11, 11), (1914, 7, 28), (1918, 11, 11))
 
 
 def test_of_several_dates_the_most_precise_wins_then_the_earliest():
@@ -123,8 +132,8 @@ def test_the_stage_writes_the_table_in_score_order_with_its_record(monkeypatch, 
     assert table[1].split("\t")[4:] == [
         "1815-06-18",
         "11",
-        "",
-        "",
+        "1815-06-18",
+        "1815-06-18",
         "4.41222",
         "50.67806",
         "0",

@@ -9,15 +9,18 @@ Wikipedia edition. Per event it takes:
 
 - the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`);
 - the date: its point in time (P585), else its start (P580), else its end (P582); among several of
-  one property, the most precise, then the earliest. `end` is its end time, when the date is not;
+  one property, the most precise, then the earliest;
+- the span `t0`-`t1` it covers: from the earliest of its date and start times to the latest of its
+  date and end times, each widened to its precision (a year runs 1 January to 31 December), so a
+  war with a point in time still spans its years;
 - the place: its own coordinates, else those of its location (`inherited` 1);
 - the score: log2(1 + Wikipedia editions) times the class's weight, plus any boost in
   `pipeline/config/events-curated.yaml`;
 - its part-of parents (P361) as Wikidata gives them, whether or not they are in the index.
 
 The table is UTF-8 TSV with a header line, gzip level 9 with mtime 0, in score order, then by qid;
-the first `MAX_ROWS` events are kept. Columns: qid, label, enwiki, class, date, precision, end,
-endPrecision, lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO
+the first `MAX_ROWS` events are kept. Columns: qid, label, enwiki, class, date, precision, t0, t1,
+lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO
 days in astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
 precision: 9 year, 10 month, 11 day. Milestone 1 publishes none of it: the `.wev` files (3.4) come
 with the globe's events layer. The fixture skips the stage, since it reads raw data.
@@ -42,7 +45,7 @@ from prebuild.wikidata import META, SOURCE_PREFIX, TABLE
 STAGE = "events"
 KEY = "ev/events.tsv.gz"
 MAX_ROWS = 100_000  # streaming.md 3.4's bound for one events file
-YEAR = 9  # Wikidata's precision for a year; month is 10, day 11
+YEAR, MONTH = 9, 10  # Wikidata's precisions; day is 11
 DATE_ORDER = ("P585", "P580", "P582")  # point in time, start time, end time
 COLUMNS = (
     "qid",
@@ -51,8 +54,8 @@ COLUMNS = (
     "class",
     "date",
     "precision",
-    "end",
-    "endPrecision",
+    "t0",
+    "t1",
     "lon",
     "lat",
     "inherited",
@@ -102,8 +105,8 @@ class Event:
     cls: str  # the class's name
     day: Day
     precision: int
-    end: Day | None
-    end_precision: int | None
+    t0: Day
+    t1: Day
     lon: float
     lat: float
     inherited: bool
@@ -217,9 +220,9 @@ def index(
         if not label or not editions or lon_lat is None:
             continue
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
-        dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), *_precise_then_earliest(s)))
-        ends = [s for s in group if s.prop == "P582" and s.day >= dated.day]
-        end = min(ends, key=_precise_then_earliest) if dated.prop != "P582" and ends else None
+        dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
+        starts = [dated, *(s for s in group if s.prop == "P580")]
+        ends = [dated, *(s for s in group if s.prop == "P582")]
         events.append(
             Event(
                 qid=qid,
@@ -228,8 +231,8 @@ def index(
                 cls=cls.name,
                 day=dated.day,
                 precision=dated.precision,
-                end=end.day if end else None,
-                end_precision=end.precision if end else None,
+                t0=min(_first_day(s) for s in starts),
+                t1=max(_last_day(s) for s in ends),
                 lon=lon_lat[0],
                 lat=lon_lat[1],
                 inherited=coord is None,
@@ -253,8 +256,8 @@ def encode(events: Iterable[Event]) -> bytes:
             e.cls,
             iso(e.day),
             str(e.precision),
-            iso(e.end) if e.end else "",
-            str(e.end_precision or ""),
+            iso(e.t0),
+            iso(e.t1),
             _decimal(e.lon, 5),
             _decimal(e.lat, 5),
             "1" if e.inherited else "0",
@@ -292,8 +295,25 @@ def iso(day: Day) -> str:
     return f"{sign}{abs(year):04d}-{month:02d}-{date:02d}"
 
 
-def _precise_then_earliest(s: Statement) -> tuple[int, Day]:
-    return -s.precision, s.day
+def _first_day(s: Statement) -> Day:
+    year, month, _ = s.day
+    if s.precision == YEAR:
+        return year, 1, 1
+    return (year, month, 1) if s.precision == MONTH else s.day
+
+
+def _last_day(s: Statement) -> Day:
+    year, month, _ = s.day
+    if s.precision == YEAR:
+        return year, 12, 31
+    return (year, month, _month_days(year, month)) if s.precision == MONTH else s.day
+
+
+def _month_days(year: int, month: int) -> int:
+    """Days in a month of the proleptic Gregorian calendar, astronomical years."""
+    if month == 2:
+        return 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
+    return 30 if month in (4, 6, 9, 11) else 31
 
 
 def _day(text: str) -> Day | None:
