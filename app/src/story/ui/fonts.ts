@@ -20,13 +20,11 @@ const FACES = [
 ];
 
 /**
- * Loads every face's subsets that `text` reaches, Latin always. A face that fails is logged and
- * left to its fallback, since the page reads without it.
+ * Loads every face's subsets that `text` reaches. A face that fails is logged and left to its
+ * fallback, since the page reads without it.
  */
 export async function loadFaces(text: string): Promise<void> {
-  const loads = await Promise.allSettled(
-    FACES.map((face) => document.fonts.load(face, `A${text}`)),
-  );
+  const loads = await Promise.allSettled(FACES.map((face) => document.fonts.load(face, text)));
   for (const load of loads) {
     if (load.status === 'rejected') console.warn('A face did not load:', load.reason);
   }
