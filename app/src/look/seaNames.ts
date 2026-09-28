@@ -16,6 +16,7 @@ import {
   type Texture,
   type Vector3,
 } from 'three';
+import { tunables } from '../config/tunables';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
 import list from './seaNames.json';
@@ -199,12 +200,17 @@ export class SeaNameLayer {
   /** Loads the faces, letters every name into one canvas and makes it the atlas. */
   async #letter(): Promise<void> {
     const upper = (name: SeaName) => (name.style === 'ocean' ? name.text.toUpperCase() : name.text);
-    await Promise.all(
+    const faces = Promise.all(
       (Object.keys(FONTS) as SeaName['style'][]).map((style) => {
         const text = SEA_NAMES.filter((n) => n.style === style).map(upper);
         return document.fonts.load(FONTS[style], text.join(''));
       }),
     );
+    // A face that stalls or fails never holds the story back: the names are lettered in what the
+    // page has by then.
+    const stalled = new Promise<false>((done) => setTimeout(done, tunables.stallHeaders, false));
+    const loaded = await Promise.race([faces.then(() => true).catch(() => false), stalled]);
+    if (!loaded) console.warn('The sea names are lettered before their faces loaded.');
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('no 2D canvas');
