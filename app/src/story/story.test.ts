@@ -120,9 +120,38 @@ sources:
     [
       'Meanwhile of neither kind',
       BEAT.replace('meanwhile: auto', 'meanwhile: often'),
-      /auto or a list/,
+      /auto or \{pin/,
+    ],
+    [
+      'Meanwhile as a bare list of qids',
+      BEAT.replace('meanwhile: auto', 'meanwhile: [Q48314]'),
+      /auto or \{pin/,
+    ],
+    [
+      'Meanwhile naming a key other than pin and hide',
+      BEAT.replace('meanwhile: auto', 'meanwhile: {pin: [Q48314], show: [Q46362]}'),
+      /unknown key 'show'/,
+    ],
+    [
+      'a pin that is not a list',
+      BEAT.replace('meanwhile: auto', 'meanwhile: {pin: Q48314}'),
+      /meanwhile pin must be a list/,
+    ],
+    [
+      'a hide that is not a qid',
+      BEAT.replace('meanwhile: auto', 'meanwhile: {hide: [Waterloo]}'),
+      /'Waterloo' is not a Wikidata qid/,
     ],
   ])('rejects %s', (_, beat, message) => {
     expect(() => parseStory(storyWith(beat))).toThrow(message);
+  });
+
+  it.each([
+    ['pins and hides', 'meanwhile: {pin: [Q48314], hide: [Q46362, Q1757487]}'],
+    ['hides alone', 'meanwhile: {hide: [Q46362]}'],
+    ['no Meanwhile key, which means auto', ''],
+  ])('reads Meanwhile given as %s, as the meanwhile stage does', (_, meanwhile) => {
+    const [beat] = parseStory(storyWith(BEAT.replace('meanwhile: auto', meanwhile))).beats;
+    expect(beat?.id).toBe('one');
   });
 });

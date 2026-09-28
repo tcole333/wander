@@ -1,9 +1,10 @@
 // A story's source (streaming.md 3.9: stories/<story>/story.md) read straight into the walk: front
 // matter, then per beat an H2 title, a fenced YAML block tagged `beat`, and the beat's text. This
 // is the walk's stand-in for `npm run stories` (issue #9) and holds the story schema: it rejects a
-// key the schema does not name, a layer shared/constants.json does not list and a precision other
-// than day, month or year, and it needs every beat to have a window holding its date, an image
-// with alt text and sources, each with an https link. Dates become day numbers (dates.ts).
+// key the schema does not name, a layer shared/constants.json does not list, a precision other
+// than day, month or year and Meanwhile other than the meanwhile stage reads, and it needs every
+// beat to have a window holding its date, an image with alt text and sources, each with an https
+// link. Dates become day numbers (dates.ts).
 import constants from '@shared/constants.json' with { type: 'json' };
 import { parse } from 'yaml';
 import { dayFromIso, isoFromDay, type Precision } from './dates';
@@ -228,12 +229,24 @@ function parseLayers(value: unknown, where: string): Pick<StoryBeat, 'layers' | 
 }
 
 /**
- * Meanwhile's list for the beat: `auto`, or a list of qids. Read loosely here, as the walk still
- * takes its entries from meanwhile.<story>.json.
+ * Meanwhile's picks for the beat as the meanwhile stage reads them: `auto`, the default, or
+ * `{pin: [qids], hide: [qids]}`, either list left out when empty. The walk takes the entries
+ * themselves from the lock.
  */
 function checkMeanwhile(value: unknown, where: string): void {
-  if (value === undefined || value === 'auto' || Array.isArray(value)) return;
-  throw new StoryError(`${where} meanwhile must be auto or a list of qids`);
+  if (value === undefined || value === 'auto') return;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new StoryError(`${where} meanwhile must be auto or {pin: [qids], hide: [qids]}`);
+  }
+  const chosen = value as Record<string, unknown>;
+  known(chosen, ['pin', 'hide'], `${where} meanwhile`);
+  for (const key of ['pin', 'hide'] as const) {
+    for (const qid of list(chosen[key] ?? [], `${where} meanwhile ${key}`)) {
+      if (typeof qid !== 'string' || !/^Q[1-9][0-9]*$/.test(qid)) {
+        throw new StoryError(`${where} meanwhile ${key}: '${String(qid)}' is not a Wikidata qid`);
+      }
+    }
+  }
 }
 
 function parseImage(image: Record<string, unknown>, where: string): StoryImage {
