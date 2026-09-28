@@ -29,11 +29,13 @@ export function onPress(element: HTMLElement, action: (event: MouseEvent) => voi
 }
 
 /**
- * Hands the keyboard's focus from a control going out of reach to `heir`, when the control has
- * it, so a keyboard visitor keeps their place rather than holding a control no one can see.
+ * Hands the keyboard's focus from a control going out of reach, or from anything inside a part of
+ * the page that is, to `heir`, when `from` holds it, so a keyboard visitor keeps their place
+ * rather than holding a control no one can see.
  */
 export function passFocus(from: HTMLElement, heir: HTMLElement): void {
-  if (from.ownerDocument.activeElement === from) heir.focus();
+  const held = from.ownerDocument.activeElement;
+  if (held && from.contains(held)) heir.focus();
 }
 
 export function button(className: string, label: string, action: () => void): HTMLButtonElement {
