@@ -14,7 +14,8 @@ Wikipedia edition. Per event it takes:
   `pipeline/config/events-curated.yaml` gives it, where a better source dates it otherwise;
 - the span `t0`-`t1` it covers: from the earliest of its date and start times to the latest of its
   date and end times, each widened to its precision (a year runs 1 January to 31 December), so a
-  war with a point in time still spans its years;
+  war with a point in time still spans its years; a curated day leaves out the statement it
+  corrects, so a one-day battle Wikidata dates two years late spans its one day;
 - the place: its own coordinates, else those of its location (`inherited` 1);
 - the score: log2(1 + Wikipedia editions) times the class's weight, plus any boost in
   `pipeline/config/events-curated.yaml`;
@@ -226,7 +227,7 @@ def index(
     dates: Mapping[str, str] | None = None,
 ) -> list[Event]:
     """The cleaned, scored events, in score order, then by qid, at most `MAX_ROWS`. A curated
-    date (`dates`, an ISO day by qid) stands in for Wikidata's, and the span widens to hold it."""
+    date (`dates`, an ISO day by qid) stands in for Wikidata's, in the span as well as the date."""
     by_qid = {c.qid: c for c in classes}
     grouped: dict[str, list[Statement]] = {}
     for s in statements:
@@ -243,10 +244,13 @@ def index(
             continue
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
-        starts = [dated, *(s for s in group if s.prop == "P580")]
-        ends = [dated, *(s for s in group if s.prop == "P582")]
         curated = _day(f"{dates[qid]}T") if dates and qid in dates else None
         day, precision = (curated, DAY) if curated else (dated.day, dated.precision)
+        # A curated day corrects the statement Wikidata dates the event by, in its span as well.
+        corrected = (dated.prop, dated.day, dated.precision) if curated else None
+        spanning = [s for s in group if (s.prop, s.day, s.precision) != corrected]
+        starts = [s for s in spanning if s is dated or s.prop == "P580"]
+        ends = [s for s in spanning if s is dated or s.prop == "P582"]
         events.append(
             Event(
                 qid=qid,
@@ -255,8 +259,8 @@ def index(
                 cls=cls.name,
                 day=day,
                 precision=precision,
-                t0=min(day, *(_first_day(s) for s in starts)),
-                t1=max(day, *(_last_day(s) for s in ends)),
+                t0=min([day, *(_first_day(s) for s in starts)]),
+                t1=max([day, *(_last_day(s) for s in ends)]),
                 lon=lon_lat[0],
                 lat=lon_lat[1],
                 inherited=coord is None,

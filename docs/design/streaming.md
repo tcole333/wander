@@ -476,14 +476,15 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   is its point in time, else its start, else its end, the most precise and then the earliest, or
   the day `events-curated.yaml` gives where a better source shows Wikidata's wrong; and its span
   `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and ends,
-  widened to their precision, so a war dated at its armistice still spans its years. In
-  milestone 1 the span only keeps a long event out of a short window's Meanwhile (3.9). Its score
-  is `log2(1 + editions)` times the class weight plus any curated boost, unscaled. Parents stay as
-  Wikidata gives them. The table is TSV with a header line, in score order, at most 100K rows,
-  with the columns qid, label, enwiki, class, date, precision, t0, t1, lon, lat, inherited,
-  editions, score and parents; dates are ISO days in astronomical years, as `dates.ts` reads them.
-  The `.wev` files, their era bins, macro-regions, percentile score, details and display parents
-  come with the globe's events layer, since only that layer queries the index at run time.
+  widened to their precision, so a war dated at its armistice still spans its years, leaving out
+  the statement a curated day corrects. In milestone 1 the span only keeps a long event out of a
+  short window's Meanwhile (3.9). Its score is `log2(1 + editions)` times the class weight plus
+  any curated boost, unscaled. Parents stay as Wikidata gives them. The table is TSV with a header
+  line, in score order, at most 100K rows, with the columns qid, label, enwiki, class, date,
+  precision, t0, t1, lon, lat, inherited, editions, score and parents; dates are ISO days in
+  astronomical years, as `dates.ts` reads them. The `.wev` files, their era bins, macro-regions,
+  percentile score, details and display parents come with the globe's events layer, since only
+  that layer queries the index at run time.
 - **Cleaning (build):**
   - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
     go to `details/<n>.json` (built in v1, loaded in v1.1).

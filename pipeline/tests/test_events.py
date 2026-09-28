@@ -85,6 +85,18 @@ def test_a_curated_date_stands_in_for_wikidata_s_and_the_span_widens_to_hold_it(
     assert (nejd.t0, nejd.t1) == ((1816, 9, 30), (1818, 9, 9))
 
 
+def test_a_curated_date_leaves_the_date_it_corrects_out_of_the_span():
+    statements = events.read_export(
+        [
+            HEADER,
+            row("Q4870957", "P585", "1815-10-17T00:00:00Z", 11),
+            row("Q4870957", "P585", "1815-10-17T00:00:00Z", 11, cls=WAR),
+        ]
+    )
+    [roble] = events.index(statements, load_event_classes(), {}, {"Q4870957": "1813-10-17"})
+    assert (roble.day, roble.t0, roble.t1) == ((1813, 10, 17), (1813, 10, 17), (1813, 10, 17))
+
+
 def test_of_several_dates_the_most_precise_wins_then_the_earliest():
     kept = indexed(
         row("Q1", "P585", "1816-06-01T00:00:00Z", 10),
