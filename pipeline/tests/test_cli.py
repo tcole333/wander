@@ -23,6 +23,7 @@ STAND_INS = {
         "events",
         "modera",
         "media",
+        "meanwhile",
     )
 }
 
@@ -42,6 +43,7 @@ def planned(*argv: str) -> list[str]:
         (("excerpts",), ["excerpts"]),
         (("events", "wikidata"), ["wikidata", "events"]),
         (("--profile", "region", "media", "--story", "tambora"), ["media"]),
+        (("meanwhile", "media", "--story", "tambora"), ["media", "meanwhile"]),
         (("--profile", "fixture", "surface"), ["surface"]),
     ],
 )
@@ -63,7 +65,10 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("--jobs", "0"),
         ("--jobs", "many"),
         ("media",),
+        ("meanwhile",),
         ("surface", "--story", "tambora"),
+        ("--profile", "fixture", "meanwhile", "--story", "tambora"),
+        ("meanwhile", "--story", "tambora", "--offline"),
     ],
 )
 def test_plan_rejects_bad_arguments_with_exit_code_2(argv):
@@ -199,6 +204,7 @@ def test_the_stages_that_have_landed_are_registered_in_order():
         "events",
         "modera",
         "media",
+        "meanwhile",
     ]
 
 

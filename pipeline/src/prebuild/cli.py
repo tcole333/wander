@@ -5,7 +5,18 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from prebuild import borders, coverage, events, excerpts, fetch, media, modera, surface, wikidata
+from prebuild import (
+    borders,
+    coverage,
+    events,
+    excerpts,
+    fetch,
+    meanwhile,
+    media,
+    modera,
+    surface,
+    wikidata,
+)
 from prebuild.expect import clear_stamp, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
@@ -24,15 +35,20 @@ STAGES: dict[str, Runner] = {
     "events": events.run,
     "modera": modera.run,
     "media": media.run,
+    "meanwhile": meanwhile.run,
 }
 
 # A run with no stage named leaves these out: wikidata and excerpts rewrite committed files, and
-# media builds the one story named with --story.
-NAMED_ONLY = frozenset({"wikidata", "excerpts", "media"})
+# media and meanwhile build the one story named with --story.
+NAMED_ONLY = frozenset({"wikidata", "excerpts", "media", "meanwhile"})
+# Each builds the story named with --story.
+STORY_STAGES = frozenset({"media", "meanwhile"})
 # The fixture reads only committed excerpts, so it never runs the stages that read raw data.
-# events and modera have no excerpt yet (events.py, modera.py); the borders tests draw synthetic
-# snapshots (borders.py).
-RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "borders", "events", "modera"})
+# events and modera have no excerpt yet (events.py, modera.py), and meanwhile reads the events; the
+# borders tests draw synthetic snapshots (borders.py).
+RAW_DATA_ONLY = frozenset(
+    {"fetch", "wikidata", "excerpts", "borders", "events", "modera", "meanwhile"}
+)
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
@@ -57,10 +73,13 @@ def plan(
             parser.error(f"unknown stage {name!r} (stages: {_listed(stages)})")
         if profile is Profile.FIXTURE and name in RAW_DATA_ONLY:
             parser.error(f"the fixture profile reads no raw data, so it does not run {name}")
-    if "media" in named and args.story is None:
-        parser.error("media builds one story: name it with --story <id>")
-    if (args.story is not None or args.offline) and "media" not in named:
-        parser.error("--story and --offline go with the media stage")
+    for name in STORY_STAGES & set(named):
+        if args.story is None:
+            parser.error(f"{name} builds one story: name it with --story <id>")
+    if args.story is not None and not STORY_STAGES & set(named):
+        parser.error("--story goes with the media and meanwhile stages")
+    if args.offline and "media" not in named:
+        parser.error("--offline goes with the media stage")
     names = [name for name in stages if name in named] if named else default_stages(profile, stages)
     ctx = make_context(profile, args.jobs, repo, story=args.story, offline=args.offline)
     return ctx, names
@@ -99,8 +118,8 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         description="Turn Wander's raw sources into web-ready assets (streaming.md 7.1).",
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
-            "wikidata, excerpts and media; the fixture profile also skips fetch, borders, events "
-            "and modera."
+            "wikidata, excerpts, media and meanwhile; the fixture profile also skips fetch, "
+            "borders, events and modera."
         ),
     )
     parser.add_argument(
@@ -116,7 +135,9 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         metavar="N",
         help="worker processes (default: min(8, CPUs))",
     )
-    parser.add_argument("--story", metavar="ID", help="the story media builds: stories/<ID>/")
+    parser.add_argument(
+        "--story", metavar="ID", help="the story media and meanwhile build: stories/<ID>/"
+    )
     parser.add_argument(
         "--offline",
         action="store_true",
