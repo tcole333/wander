@@ -83,12 +83,12 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
-  every stage in order except `wikidata`, `excerpts` and `media`; the fixture profile also skips
-  `fetch`, `borders` (its tests draw synthetic snapshots, since the GPL source is never committed),
-  and `events` and `modera` until their layers have excerpts. `uv run prebuild --profile region`
-  bakes the milestone-1 region into `build/region/` (about 2.5 min on the M5, plus 50 s for
-  `modera`, which writes all of ModE-RA whatever the profile, and 30 s for `borders`, the whole
-  1815 field).
+  every stage in order except `wikidata`, `excerpts`, `media` and `meanwhile`; the fixture profile
+  also skips `fetch`, `borders` (its tests draw synthetic snapshots, since the GPL source is never
+  committed), and `events`, `modera` and `meanwhile` until their layers have excerpts.
+  `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
+  2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA whatever the profile, and
+  30 s for `borders`, the whole 1815 field).
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
@@ -96,6 +96,12 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   profile's root needs its own run: until `uv run prebuild --profile region media --story <id>`,
   the region bake's cards show plates (in the dev shell and `walkShots`) and
   `npm run publish-data -- --profile region` stops, naming the command.
+- `uv run prebuild meanwhile --story <id>`, after `events`: picks Meanwhile's three entries for
+  each beat and each month of the story's years from `ev/events.tsv.gz`, joins the lines written
+  in `stories/<id>/meanwhile.yaml`, and writes them with the lobby's glows into
+  `stories/<id>/story.lock.json` (commit it), keeping the media stage's images
+  (`docs/design/streaming.md` 3.9). A beat's `meanwhile: {pin: [...], hide: [...]}` in `story.md`
+  overrides the rule; the stage names any beat entry still lacking a written line.
 - `npm run verify:bake`, after the region bake: decodes every tile of `build/region/` and checks
   its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
   7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake

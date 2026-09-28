@@ -674,7 +674,8 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   - `effects`: a list of `{plume | spread | route | pulse | callout: params}`; spread and route take
     `{dataset, wDays, style}`
   - `audio: {cues: [...]}`
-  - `meanwhile: auto | [qids]`
+  - `meanwhile: auto | {pin: [qids], hide: [qids]}`: `auto`, the default, takes the rule's picks;
+    pins come first whatever the rule says, and hides stay out
   - `sources`: a list of `{title, author?, publisher?, year?, url}`, at least one, each with an
     https link, since the card's sources are the beat's grounding and the card links every one
 - **Datasets:** `stories/<story>/data/<name>.geojson`, with kind, epoch and grid in top-level properties
@@ -685,21 +686,39 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   a sound. `stories/<story>/audio/bed.json` (`{synth: {...}, loops: [{src, gain}], oneShots: [...]}`,
   with the CC0 WAV sources committed beside it) and the lock's `audio` entries arrive with the first
   CC0 sample.
-- **Meanwhile, auto:** the top `meanwhileCount` events by score inside the beat window that lie more
-  than `meanwhileMinKm` from the target, at most one per macro-region.
-- **Lock** (`stories/<story>/story.lock.json`, written by the media stage, committed):
-  `{eventsVer, images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?,
-  license, source}], audio: [{key, bytes, loopStart, loopEnd}], events: {qid: {label, t, at}},
-  meanwhile: {beatId: [qid, …]}}`. An image's entry is found by its sha1 and crop, so a recrop needs
-  a new bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the
-  Artist field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else
-  Commons' Credit; `collection` is the story's own, when the beat names one; `license` is the
-  story's own `license` when the beat gives one, else Commons' LicenseShortName as it stands;
-  `source` is the file's page. The media stage writes `images` so far; `eventsVer`, `events` and
-  `meanwhile` join with the events build and `audio` with the first CC0 sample. Until
-  `npm run stories` compiles the story, the app joins the lock to the parsed story itself
-  (`app/src/story/lock.ts`), and the card reads its image from the data host and its credit from
-  the lock, so a visitor's browser never calls Commons.
+- **Meanwhile, auto:** the `meanwhile` stage (7.1) picks three events per beat from the event
+  index (3.4): dated inside the beat's window, widened where needed to 45 days either side of the
+  beat's date (a date of year or month precision counts as its whole year or month); spanning no
+  longer than the window or 92 days, whichever is longer, so a decade's war does not stand for a
+  month of it; more than 2,000 km from the beat's target; never the beat's focal event or its
+  part-of relatives, and never a parent with its child; then greedy by score, each 2,000 km from
+  those taken. While enough others qualify, a beat shows none of the previous beat's, nor any the
+  next beat would show that is dated nearer to it, so Waterloo goes to the beat of late June 1815,
+  not the April one whose window also holds it. The same rule picks three per month from January
+  1815 to December 1817 for scrubbing: the month's window, the target of the beat dated nearest
+  it, none of the story's focal events and nothing a beat hides.
+- **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
+  present-tense line in the story's voice and its source (`qid: {line, date?, source: {title,
+  url}}`), with the source's date where it differs from Wikidata's. A month's entries show the
+  Wikidata label, its first letter capitalized, and cite the written source where the event has
+  one (taking its date too), else its Wikipedia article. The stage
+  names any beat entry without a line.
+- **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages, committed):
+  `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?, license, source}], audio:
+  [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry, …]}, months: {"YYYY-MM":
+  [entry, …]}}, glows: [{qid, label, at}]}`, an entry being `{qid, label, date, dateLabel, at,
+  line?, source: {title, url}}` with `dateLabel` at the date's precision ('18 June 1815', 'June
+  1815', '1816'). Each stage rewrites its own sections and keeps the rest. An image's entry is found by its sha1 and crop, so a recrop needs a new
+  bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the Artist
+  field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else Commons'
+  Credit; `collection` is the story's own, when the beat names one; `license` is the story's own `license` when the beat gives one, else Commons'
+  LicenseShortName as it stands; `source` is the file's page. `glows` are the lobby's: the 120
+  best-scored events of every era with a place of their own (an inherited place is often a
+  continent's or an ocean's middle), each 450 km from the others. `audio` joins with the first CC0
+  sample. Until `npm run stories` compiles the story, the app joins the lock to the parsed
+  story itself (`app/src/story/lock.ts`), and the card reads its image from the data host and its
+  credit from the lock, so a visitor's browser never calls Commons; Meanwhile and the lobby's
+  glows read the lock too (`app/src/story/meanwhile.ts`).
 
 ---
 
@@ -887,7 +906,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   more than an incumbent to displace it. Fades take `eventFade`.
 - **References:** story JSON and the lock name events by qid; the worker builds a qid → row map on load.
 - **Meanwhile panel:** while a beat is showing, its compiled list. During break-out, the worker runs the
-  same rule (3.9) on the ruler window and the view center.
+  same rule (3.9) on the ruler window and the view center. Until the events layer brings the worker,
+  a break-out scrubbed off the beat's date shows the lock's list for the month scrubbed to, or the
+  nearest month it holds.
 
 ### 5.4 Uploads per frame
 
@@ -1140,8 +1161,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     does, stops at any input and turns on after 5 s without one; dragging and the wheel work as in
     the walk. The plaques stand in a column at the left, and the lens shifts right by half the
     column's reach, which centers the instrument beside it. Tambora is the only plaque; no plaque
-    stands for a story not yet built. Until the event index exists, the ambient events are
-    Meanwhile's 24 stand-in entries: small pinpricks of lit brass with a slow, shallow breath,
+    stands for a story not yet built. The ambient events are the lock's glows (3.9): small pinpricks of lit brass with a slow, shallow breath,
     additive and unlit, in three's built-in points material, compiled in the precompile. They stay
     faint and apart, since ember orange belongs to the chosen story. There is no hover queue yet;
     the dive's readiness gate covers beat 1.
@@ -1276,13 +1296,14 @@ story above them.
 
 `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or,
 when none is named, every prebuild stage from `fetch` to `minerals` in the order below except
-`wikidata`, `excerpts` and `media`, which run only when named: `wikidata` and `excerpts` because
-they rewrite committed files, and `media` because it builds one story, named with `--story <id>`.
+`wikidata`, `excerpts`, `media` and `meanwhile`, which run only when named: `wikidata` and
+`excerpts` because they rewrite committed files, and `media` and `meanwhile` because each builds
+one story, named with `--story <id>`.
 A bare run builds the global profile (owner decision 17). Each profile has its own output root:
 `build/out/` for global, `build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for
 the fixture (7.3); `publish-data` takes the same `--profile` (4.3). The fixture profile skips
-`fetch`, `wikidata` and `excerpts`, so it needs no raw data, and `events` and `modera` until their
-layers have excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-context worker processes.
+`fetch`, `wikidata` and `excerpts`, so it needs no raw data, and `events`, `modera` and
+`meanwhile`, which reads the events, until their layers have excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-context worker processes.
 `media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
@@ -1298,7 +1319,8 @@ layers have excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-contex
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → in milestone 1 the scored table `ev/events.tsv.gz` (3.4); `.wev` + details with the globe's events layer | 1 s for 29,649 events [M] | local |
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
-| `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points, and focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
+| `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points and focal resolution against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
+| `meanwhile --story <id>` | the story's beats + `ev/events.tsv.gz` in the profile's output root + `stories/<id>/meanwhile.yaml` → the lock's `meanwhile` (each beat's three entries and each month's from 1815 to 1817) and `glows` (3.9) | 1 s [M] | local |
 | `npm run poster` | Deferred past milestone 1, whose poster is the CSS room (owner decision 21). Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
 | `npm run publish-data` | stage records → `release.json`; uploads (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
@@ -1761,7 +1783,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `declutterPerCell` | 2 per 64 px cell | event declutter | eye |
 | `hysteresisScore` | 20 on the 0-1000 score scale | margin to displace an incumbent | eye |
 | `eventFade` | 300 ms | event fades | eye |
-| `meanwhileCount`, `meanwhileMinKm` | 6, 2,000 km, one per macro-region | Meanwhile rule | eye |
+| `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries | Meanwhile rule; in milestone 1 the `meanwhile` stage's constants | eye |
 | `placeLabelsMax` | 30 | place labels shown | eye |
 | `flightDuration` | `clamp(S/1.2, 1.6, 4.5)` s, ρ = 1.42 | flight length | eye |
 | `gateAt`, `holdMax` | 0.7 of the flight, 1.5 s | readiness gate and hold | E3, E4 |
