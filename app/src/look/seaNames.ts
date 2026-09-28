@@ -3,8 +3,8 @@
 // Libre Baskerville's tracked capitals and the seas in Source Serif 4's italic, both bundled and
 // loaded before anything is drawn, so nothing is fetched later. The look inlays them at sea level,
 // as it does the graticule, so relief never bends them (lookFragment.glsl.ts, lookSeaNamesAt).
-// Each frame the look picks the names whose letters stand between about 7 and 48 px on screen,
-// fading each in and out by that size and by its view widths, and hands the SEA_NAMES_MAX
+// Each frame the look picks the names in the view whose letters stand between about 7 and 48 px on
+// screen, fading each in and out by that size and by its view widths, and hands the SEA_NAMES_MAX
 // strongest to the shader.
 import {
   DataTexture,
@@ -13,6 +13,7 @@ import {
   RedFormat,
   Vector3,
   Vector4,
+  type Matrix4,
   type Texture,
 } from 'three';
 import { tunables } from '../config/tunables';
@@ -72,8 +73,11 @@ export interface SeaNameView {
   camera: Vector3;
   /** CSS px a length spans at the same distance in front of the camera. */
   pxPerUnit: number;
-  /** The viewport's width in CSS px. */
+  /** The viewport's width and height in CSS px. */
   width: number;
+  height: number;
+  /** The globe frame to clip space: the camera's view and its projection, lens offset included. */
+  toClip: Matrix4;
 }
 
 /** A name on the globe: its direction and its reach from there, radians. */
@@ -83,10 +87,13 @@ export interface PlacedName {
   reach: number;
 }
 
+const clip = new Vector4();
+
 /**
  * The names to inlay and how strongly, strongest first and at most SEA_NAMES_MAX: those at least
- * partly on the camera's side of the globe, faded by their em on screen and the view's width at
- * them.
+ * partly on the camera's side of the globe and in the view, faded by their em on screen and the
+ * view's width at them. Names beyond the view's edges take no slot, so none on screen waits for
+ * one.
  */
 export function pickSeaNames(
   names: readonly PlacedName[],
@@ -100,6 +107,11 @@ export function pickSeaNames(
     const off = Math.acos(Math.min(1, Math.max(-1, dir.dot(view.camera) / r)));
     if (off > horizon + reach) return;
     const distance = view.camera.distanceTo(dir);
+    const reachPx = (reach * view.pxPerUnit) / distance;
+    clip.set(dir.x, dir.y, dir.z, 1).applyMatrix4(view.toClip);
+    if (clip.w <= 0) return;
+    if (Math.abs(clip.x) > clip.w * (1 + (2 * reachPx) / view.width)) return;
+    if (Math.abs(clip.y) > clip.w * (1 + (2 * reachPx) / view.height)) return;
     const emPx = (name.size * DEG * view.pxPerUnit) / distance;
     const viewKm = (distance / view.pxPerUnit) * view.width * EARTH_KM;
     const alpha = seaNameFade(name, emPx, viewKm);
