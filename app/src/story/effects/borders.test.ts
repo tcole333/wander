@@ -49,13 +49,18 @@ function aSecondOn(borders: WalkBorders, state: WalkState, viewKm = 3000): void 
   for (let frame = 0; frame < 30; frame += 1) borders.update(state, 1 / 30, viewKm, 1);
 }
 
-/** Frames from the room's opening until every face is uploaded; how many that took. */
+/**
+ * Frames from the room's opening until every face is uploaded; how many that took. Inflating the
+ * 24 MiB field takes real time, several times longer on CI's runners, so time bounds the wait, not
+ * a frame count.
+ */
 async function loaded(borders: WalkBorders): Promise<number> {
   let frames = 0;
-  while (!borders.ready && frames < 200) {
+  const giveUp = Date.now() + 10_000;
+  while (!borders.ready && Date.now() < giveUp) {
     borders.background();
     frames += 1;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   }
   return frames;
 }
