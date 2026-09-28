@@ -1,6 +1,7 @@
 // Building blocks for the voices, the bed and the cues: noise that loops without a seam, slow
 // LFOs, envelopes, and the jitter that makes every trigger a little different from the last.
 import type { SoundEngine } from './engine';
+import { tunables } from '../config/tunables';
 import { gainOf } from './mix';
 
 export type NoiseColor = 'white' | 'pink' | 'brown';
@@ -113,7 +114,7 @@ export function toBuffer(ctx: BaseAudioContext, samples: Float32Array): AudioBuf
 /** The sources a long sound starts, and what else to undo, to stop them all at once. */
 export class Sources {
   inspectMemory(account: import('../perf/memory').MemoryAccount): void {
-    for (const node of this.#nodes) {
+    for (const node of this.#nodes.keys()) {
       if ('buffer' in node) {
         const buffer = (node as AudioBufferSourceNode).buffer;
         if (buffer) account.audio('audio.activeCueBuffers', buffer);
@@ -121,11 +122,19 @@ export class Sources {
     }
   }
 
-  readonly #nodes: AudioScheduledSourceNode[] = [];
+  readonly #nodes = new Map<AudioScheduledSourceNode, number>();
   readonly #undo: ((at: number) => void)[] = [];
+  readonly #release: (() => void)[] = [];
+  #stopped = false;
 
-  add<T extends AudioScheduledSourceNode>(node: T): T {
-    this.#nodes.push(node);
+  /** `end` is a one-shot's natural end; stopping the group must never lengthen it. */
+  add<T extends AudioScheduledSourceNode>(node: T, end = Infinity): T {
+    this.#nodes.set(node, end);
+    node.addEventListener('ended', () => {
+      node.disconnect();
+      this.#nodes.delete(node);
+      this.#releaseIfEnded();
+    });
     return node;
   }
 
@@ -134,11 +143,26 @@ export class Sources {
     this.#undo.push(undo);
   }
 
+  /** Releases retained data after the last source has actually ended, including a stop's tail. */
+  onEnded(release: () => void): void {
+    this.#release.push(release);
+    this.#releaseIfEnded();
+  }
+
   stop(at: number): void {
-    for (const node of this.#nodes) node.stop(at);
+    if (this.#stopped) return;
+    this.#stopped = true;
+    // A scheduler may finish placing events before this stop; include those in the stop too.
     for (const undo of this.#undo) undo(at);
-    this.#nodes.length = 0;
     this.#undo.length = 0;
+    for (const [node, end] of this.#nodes) node.stop(Math.min(at, end));
+    this.#releaseIfEnded();
+  }
+
+  #releaseIfEnded(): void {
+    if (!this.#stopped || this.#nodes.size > 0) return;
+    for (const release of this.#release) release();
+    this.#release.length = 0;
   }
 }
 
@@ -152,6 +176,71 @@ export function loop(
   const node = sources.add(new AudioBufferSourceNode(engine.ctx, { buffer, loop: true }));
   node.start(at);
   return node;
+}
+
+/**
+ * Overlap successive reads of a shared buffer over `loopCrossfade`, with equal-power joins.
+ * No copied or decoded samples: only sources and gain envelopes. Start partway into the first
+ * read so two users of the same room/noise buffer don't sound in phase. Tambora keeps its
+ * approved native loops; Magellan uses these joins for its more exposed surf and rigging.
+ */
+export function crossfadeLoop(
+  engine: SoundEngine,
+  buffer: AudioBuffer,
+  at: number,
+  sources: Sources,
+): AudioNode {
+  const out = new GainNode(engine.ctx);
+  const fade = Math.min(tunables.loopCrossfade / 1000, buffer.duration / 4);
+  const up = Float32Array.from({ length: 33 }, (_, i) => Math.sin((i / 32) * Math.PI * 0.5));
+  const down = Float32Array.from(up).reverse();
+  let next = at;
+  let offset = rand(0, buffer.duration * 0.5);
+  const pump = (horizon: number) => {
+    // Hidden tabs and stalled frames skip missed reads, rather than bunching them on resuming.
+    if (next < engine.ctx.currentTime) next = engine.soon();
+    while (next < horizon) {
+      const end = next + buffer.duration - offset;
+      const node = sources.add(new AudioBufferSourceNode(engine.ctx, { buffer }), end);
+      const gain = new GainNode(engine.ctx, { gain: 0 });
+      gain.gain.setValueCurveAtTime(up, next, fade);
+      gain.gain.setValueCurveAtTime(down, end - fade, fade);
+      node.connect(gain).connect(out);
+      node.start(next, offset);
+      node.stop(end);
+      releaseOnEnd(node, gain);
+      next = end - fade;
+      offset = 0;
+    }
+  };
+  const unschedule = engine.schedule(pump);
+  sources.onStop((end) => {
+    unschedule();
+    pump(end);
+  });
+  return out;
+}
+
+/**
+ * Events from `at` on: `next` sounds one at `t` and returns when the one after it falls. A late
+ * pump skips missed events; a stop set ahead keeps those due before it, then unschedules.
+ */
+export function every(
+  engine: SoundEngine,
+  at: number,
+  sources: Sources,
+  next: (t: number) => number,
+): void {
+  let t = at;
+  const pump = (horizon: number) => {
+    t = Math.max(t, engine.soon());
+    while (t < horizon) t = next(t);
+  };
+  const unschedule = engine.schedule(pump);
+  sources.onStop((end) => {
+    unschedule();
+    pump(end);
+  });
 }
 
 /**

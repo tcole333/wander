@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseStory } from '../story/story';
-import { every, isCueName } from './cues';
+import { isCueName } from './cues';
 import type { Pump, SoundEngine } from './engine';
-import { Sources } from './synth';
+import { every, Sources } from './synth';
 
 const stories = new URL('../../../stories/', import.meta.url);
 
