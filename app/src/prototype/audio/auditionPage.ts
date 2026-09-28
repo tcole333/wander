@@ -1,7 +1,7 @@
 // The sound audition (prototype-audio.html, dev only): every sound in src/audio/ on one page for
 // the owner's first listen, in the walk's materials (tokens.css, walkUi.css): dark cast brass drawers holding
 // vellum slips, engraved small caps, brass plaques and knurled knobs. Begin is the gesture that
-// unlocks audio. Then each voice, the Tambora bed with story time on a small ruler, and each cue
+// unlocks audio. Then each voice, both story beds (Tambora with time on a small ruler), and each cue
 // play from their slips, each with its level, and Copy settings copies the mix as JSON to paste
 // over src/audio/mix.ts. window.__sound serves scripts/renderSounds.ts, which renders every sound
 // offline from this page.
@@ -13,7 +13,8 @@ import '../../story/ui/tokens.css';
 import '../../story/ui/walkUi.css';
 import './audition.css';
 import storyText from '../../../../stories/tambora/story.md?raw';
-import { rumbleLevel, tamboraBed, type Bed } from '../../audio/bed';
+import magellanText from '../../../../stories/magellan/story.md?raw';
+import { magellanBed, rumbleLevel, tamboraBed, type Bed } from '../../audio/bed';
 import { CUE_NAMES, startCue, type CueHandle, type CueName } from '../../audio/cues';
 import { unlockSound, type SoundEngine } from '../../audio/engine';
 import { mix as tunedMix, type Mix } from '../../audio/mix';
@@ -35,12 +36,14 @@ declare global {
 }
 
 const mix: Mix = structuredClone(tunedMix);
-const story = parseStory(storyText);
+const stories = [parseStory(storyText), parseStory(magellanText)];
 const FIRST = dayFromIso('1815-01-01');
 const LAST = dayFromIso('1817-12-31');
 
 /** The cues' names on their slips. */
 const CUE_TITLES: Record<CueName, string> = {
+  'ship-bell': "Ship's bell",
+  'surf-shallows': 'Surf in the shallows',
   'rumble-far': 'Far rumble',
   'cannon-far': 'Far cannon fire',
   eruption: 'Eruption',
@@ -66,7 +69,7 @@ function mixChanged(): void {
 const root = el('div', 'wu au is-locked');
 const drawers = el('main', 'au-drawers');
 drawers.inert = true;
-drawers.append(mechanismDrawer(), bedDrawer(), cuesDrawer());
+drawers.append(mechanismDrawer(), bedDrawer(), magellanDrawer(), cuesDrawer());
 const head = el('header', 'au-head');
 head.append(mark(), consolePanel());
 root.append(head, drawers);
@@ -329,11 +332,54 @@ function bedDrawer(): HTMLElement {
   return drawer;
 }
 
+/** The ocean bed's layers, held long enough to hear the swells and occasional creaks. */
+function magellanDrawer(): HTMLElement {
+  const drawer = drawerOf('The Magellan bed', 'bed');
+  let bed: Bed | undefined;
+  const day = dayFromIso('1519-09-20');
+  const bedSlip = slip('Surf and timber', 'Open water under a wooden hull, wind in the rigging', [
+    trigger('Start', (jewel) => {
+      bed ??= magellanBed(sound(), day);
+      bed.setDay(day);
+      jewel.classList.add('is-lit');
+    }),
+    trigger('Room', (jewel) => {
+      bed?.toRoom();
+      jewel.classList.remove('is-lit');
+    }),
+    trigger('Stop', (jewel) => {
+      bed?.stop();
+      bed = undefined;
+      jewel.classList.remove('is-lit');
+    }),
+  ]);
+  const levels = el('div', 'au-slip');
+  for (const [name, title] of [
+    ['room', 'Room'],
+    ['surf', 'Surf'],
+    ['timber', 'Timber'],
+    ['rigging', 'Rigging'],
+  ] as const) {
+    levels.append(
+      level(
+        title,
+        () => mix.bed[name],
+        (db) => (mix.bed[name] = db),
+      ),
+    );
+  }
+  remix.push(() => bed?.setMix(mix));
+  drawer.append(bedSlip, levels);
+  return drawer;
+}
+
 /** Each cue a story names, with the beats that name it. */
 function cuesDrawer(): HTMLElement {
   const drawer = drawerOf('The cues', 'cue');
   for (const name of CUE_NAMES) {
-    const beats = story.beats.filter((b) => b.audioCues.includes(name)).map((b) => b.title);
+    const beats = stories.flatMap((story) =>
+      story.beats.filter((b) => b.audioCues.includes(name)).map((b) => b.title),
+    );
     let playing: CueHandle | undefined;
     const cueSlip = slip(CUE_TITLES[name], beats.join(', '), [
       trigger('Start', (jewel) => {
@@ -454,6 +500,11 @@ function level(
     set(Number(input.value));
     show();
     mixChanged();
+  });
+  // Room and bed-bus controls occur in both story drawers; keep their readouts in agreement.
+  remix.push(() => {
+    input.value = String(get());
+    show();
   });
   show();
   row.append(el('span', 'au-level-name', label), input, readout);

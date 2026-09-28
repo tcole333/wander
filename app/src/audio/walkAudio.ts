@@ -18,7 +18,7 @@ import type { Precision } from '../story/dates';
 import type { SoundSwitch, WalkState } from '../story/contract';
 import { isFormField } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
-import { museumBed, tamboraBed, type Bed } from './bed';
+import { magellanBed, museumBed, tamboraBed, type Bed } from './bed';
 import { isCueName, startCue, type CueHandle, type CueName } from './cues';
 import { unlockedSound, unlockSound, type SoundEngine } from './engine';
 import { marksPassed } from './marks';
@@ -27,6 +27,7 @@ import { clunk, Detents, whir, type Whir } from './voices';
 /** Each story's bed, by story id. */
 const BEDS: Record<string, (engine: SoundEngine, day: number, at: number) => Bed> = {
   tambora: tamboraBed,
+  magellan: magellanBed,
 };
 
 /** A retained bed and the voice that made it; another voice crossfades at the next landing. */
