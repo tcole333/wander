@@ -100,6 +100,7 @@ sources:
       BEAT.replace('precision: day', 'precision: week'),
       /day, month, year/,
     ],
+    ['a day the calendar lacks', BEAT.replace('1815-04-10', '1815-02-30'), /not '1815-02-30'/],
     [
       'a date outside its window',
       BEAT.replace('1815-04-05..', '1815-04-11..'),

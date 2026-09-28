@@ -6,7 +6,7 @@
 // with alt text and a source with an https link. Dates become day numbers (dates.ts).
 import constants from '@shared/constants.json' with { type: 'json' };
 import { parse } from 'yaml';
-import { dayFromIso, type Precision } from './dates';
+import { dayFromIso, isoFromDay, type Precision } from './dates';
 import type { LockedImage } from './lock';
 
 /** The layers a beat may name, in the canonical order, which is also the `?l=` bit order. */
@@ -327,14 +327,16 @@ function oneOf<T extends string>(value: unknown, choices: readonly T[], where: s
   return choice;
 }
 
-/** An ISO date (dates.ts) as a day number. */
+/** An ISO date (dates.ts) as a day number; a day the calendar lacks, such as 1815-02-30, fails. */
 function isoDay(value: unknown, where: string): number {
   const iso = text(value, where);
   try {
-    return dayFromIso(iso);
+    const day = dayFromIso(iso);
+    if (isoFromDay(day) === iso.trim()) return day;
   } catch {
-    throw new StoryError(`${where} must be an ISO date, not '${iso}'`);
+    // Not an ISO date at all, which fails below as a day the calendar lacks does.
   }
+  throw new StoryError(`${where} must be an ISO date, not '${iso}'`);
 }
 
 function record(value: unknown, where: string): Record<string, unknown> {
