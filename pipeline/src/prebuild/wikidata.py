@@ -4,7 +4,8 @@ export in `pipeline/sources.toml`.
 
 The step runs `pipeline/queries/events.rq` once for each class in
 `pipeline/config/event-classes.yaml`, one request at a time with a pause between them, backing off
-for minutes whenever the endpoint answers that it is busy or failed (429 or 5xx), and writes:
+for minutes whenever the endpoint answers that it is busy or failed (429 or 5xx) or the connection
+fails, and writes:
 
 - `events.tsv.gz`: the endpoint's TSV rows under one header, each led by its class's qid
   (gzip level 9, mtime 0);
@@ -18,6 +19,7 @@ since it rewrites `sources.toml`. Wikidata is CC0; the requests name the project
 """
 
 import gzip
+import http.client
 import json
 import os
 import re
@@ -41,6 +43,8 @@ TIMEOUT_S = 600  # the largest class takes about 30 s
 PAUSE_S = 5.0  # between requests
 BUSY_WAITS_S = (60, 180, 600)  # after each busy or failed answer, unless it names a wait
 BUSY = frozenset({429, 500, 502, 503, 504})  # answers another try may not get
+# Failures another try may not meet: no connection, a dropped one, a timeout.
+DROPPED = (urllib.error.URLError, TimeoutError, ConnectionError, http.client.HTTPException)
 QUERY = REPO_ROOT / "pipeline" / "queries" / "events.rq"
 SOURCE_PREFIX = "wikidata-events-"  # the source id is this plus the export's date, YYYYMMDD
 TABLE = "events.tsv.gz"
@@ -125,8 +129,7 @@ def class_rows(text: str) -> list[str]:
 def endpoint_index() -> str:
     """The name QLever gives its Wikidata index, which names the dump it was built from."""
     request = urllib.request.Request(f"{ENDPOINT}?cmd=stats", headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
-        return str(json.load(response)["name-index"])
+    return str(json.loads(_retried(request))["name-index"])
 
 
 def source_entry(source_id: str, exported: str, index: str, files: dict[str, bytes]) -> str:
@@ -186,6 +189,11 @@ def _post(query: str) -> str:
             "User-Agent": USER_AGENT,
         },
     )
+    return _retried(request)
+
+
+def _retried(request: urllib.request.Request) -> str:
+    """The endpoint's answer, waiting and asking again while it is busy or the connection fails."""
     for wait in BUSY_WAITS_S:
         try:
             return _answer(request)
@@ -194,8 +202,11 @@ def _post(query: str) -> str:
                 raise
             retry_after = error.headers.get("Retry-After", "")
             seconds = int(retry_after) if retry_after.isdigit() else wait
-            print(f"wikidata: the endpoint answered {error.code}; waiting {seconds} s", flush=True)
-            time.sleep(seconds)
+            why = f"answered {error.code}"
+        except DROPPED as error:
+            seconds, why = wait, f"failed ({error})"
+        print(f"wikidata: the endpoint {why}; waiting {seconds} s", flush=True)
+        time.sleep(seconds)
     return _answer(request)
 
 
