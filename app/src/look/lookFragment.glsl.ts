@@ -42,7 +42,7 @@ uniform int lookDebug;
 #define LOOK_SEA_NAMES_MAX ${SEA_NAMES_MAX}
 uniform int lookSeaCount;
 uniform vec4 lookSeaPlace[LOOK_SEA_NAMES_MAX];
-uniform vec4 lookSeaFrame[LOOK_SEA_NAMES_MAX];
+uniform vec3 lookSeaFrame[LOOK_SEA_NAMES_MAX];
 uniform vec4 lookSeaBox[LOOK_SEA_NAMES_MAX];
 uniform sampler2D lookSeaAtlas;
 
@@ -272,7 +272,7 @@ float lookGraticuleAt(vec2 lonlat, float degPx) {
 
 // The sea names' ink at a sea-level direction and its longitude and latitude, 0 to 1. Each name
 // lies in its own frame: degrees east along its center's parallel and north of it, turned to its
-// baseline's angle and bent along an arc, then scaled into its box in the atlas. The atlas is read
+// baseline's angle, then scaled into its box in the atlas. The atlas is read
 // with the frame's own gradients, so a name stays sharp however the view tilts. Names fade toward
 // the limb, where they would crowd into slivers.
 float lookSeaNamesAt(vec3 dir, vec2 ll) {
@@ -285,18 +285,13 @@ float lookSeaNamesAt(vec3 dir, vec2 ll) {
   for (int i = 0; i < LOOK_SEA_NAMES_MAX; i++) {
     if (i >= lookSeaCount) break;
     vec4 place = lookSeaPlace[i];
-    vec4 frame = lookSeaFrame[i];
+    vec3 frame = lookSeaFrame[i];
     vec4 box = lookSeaBox[i];
     mat2 turn = mat2(frame.x, -frame.y, frame.y, frame.x);
     float east = (fract((ll.x - place.x) / 360.0 + 0.5) - 0.5) * 360.0 * place.z;
-    vec2 p = turn * vec2(east, ll.y - place.y);
-    if (frame.z != 0.0) {
-      vec2 q = vec2(frame.z * p.x, 1.0 + frame.z * p.y);
-      p = vec2(atan(q.x, q.y), length(q) - 1.0) / frame.z;
-    }
-    vec2 t = p * frame.w;
+    vec2 t = turn * vec2(east, ll.y - place.y) * frame.z;
     if (abs(t.x) > box.z || abs(t.y) > box.w) continue;
-    vec2 scale = vec2(frame.w, -frame.w) / atlas;
+    vec2 scale = vec2(frame.z, -frame.z) / atlas;
     vec2 gx = turn * (dll.xy * vec2(place.z, 1.0)) * scale;
     vec2 gy = turn * (dll.zw * vec2(place.z, 1.0)) * scale;
     float a = textureGrad(lookSeaAtlas, (box.xy + vec2(t.x, -t.y)) / atlas, gx, gy).r;
