@@ -40,6 +40,20 @@
         "year": 2022,
         "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/",
         "use": "Modern coastline reference only: checked the authored channel and offshore joins against the land polygons, not evidence for historical dates or anchorages."
+      },
+      "stanley-1874": {
+        "title": "The First Voyage Round the World, by Magellan: Chronology of the First Voyage Round the World",
+        "author": "Lord Stanley of Alderley, editor",
+        "publisher": "Hakluyt Society, London",
+        "year": 1874,
+        "url": "https://archive.org/details/firstvoyageround00piga/page/n71/mode/2up"
+      },
+      "robertson-1906-i": {
+        "title": "Magellan’s Voyage Around the World, vol. 1, note 179",
+        "author": "James Alexander Robertson, editor and translator of Antonio Pigafetta",
+        "publisher": "The Arthur H. Clark Company, Cleveland",
+        "year": 1906,
+        "url": "https://archive.org/details/magellansvoyagea01piga/page/247/mode/2up"
       }
     },
     "vesselChange": {
@@ -271,6 +285,10 @@
           {
             "source": "albo-1874",
             "pages": "213"
+          },
+          {
+            "source": "stanley-1874",
+            "pages": "lix"
           }
         ],
         "note": "Bay entrance, not an exact anchorage."
@@ -283,6 +301,10 @@
           {
             "source": "albo-1874",
             "pages": "213"
+          },
+          {
+            "source": "stanley-1874",
+            "pages": "lix"
           }
         ],
         "note": "Albo dates departure to 27 December; Stanley’s introductory chronology gives 26 December."
@@ -965,6 +987,10 @@
           {
             "source": "pigafetta-1874",
             "pages": "68"
+          },
+          {
+            "source": "robertson-1906-i",
+            "pages": "247, note 179"
           }
         ],
         "note": "Illustrative approach south of Guam to its western waters; no recorded fix for this day."
@@ -977,6 +1003,10 @@
           {
             "source": "pigafetta-1874",
             "pages": "68–71"
+          },
+          {
+            "source": "robertson-1906-i",
+            "pages": "247, note 179"
           }
         ],
         "note": "Approximate west-coast landfall, not a claim to a particular landing beach."
@@ -989,6 +1019,10 @@
           {
             "source": "albo-1874",
             "pages": "224"
+          },
+          {
+            "source": "robertson-1906-i",
+            "pages": "247, note 179"
           }
         ]
       },
@@ -1205,7 +1239,7 @@
         "citations": [
           {
             "source": "pigafetta-1874",
-            "pages": "104–106"
+            "pages": "103–106"
           }
         ]
       },
