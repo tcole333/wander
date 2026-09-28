@@ -237,6 +237,7 @@ def test_a_beat_s_meanwhile_is_auto_or_its_pins_and_hides(meanwhile, pins, hides
         "meanwhile: [Q48314]",
         "meanwhile: {pin: [Q48314], show: [Q46362]}",
         "meanwhile: {pin: Q48314}",
+        "meanwhile: {pin: null}",
         "meanwhile: {hide: [Waterloo]}",
     ],
 )
