@@ -13,6 +13,7 @@ import type {
   WebGLRenderer,
 } from 'three';
 import type { Release, SurfaceRelease } from './data/release';
+import type { SurfaceLayer } from './data/surfaceLayer';
 import type { SurfacePools } from './gpu/surfaceUploads';
 
 export type Params = Record<string, number | boolean | string>;
@@ -35,6 +36,8 @@ export interface StreamerStats {
 /** Selects, fetches, decodes and uploads surface tiles, and packs the drawn instances. */
 export interface SurfaceStreamer {
   release: Release;
+  /** The layer it streams: availability and each node's bounds, which the camera's clearance reads. */
+  layer: SurfaceLayer;
   pools: SurfacePools;
   /**
    * The shared tile grid (position = (k, l, role), normal) with the instanced uvec4 attributes

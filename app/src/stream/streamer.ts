@@ -429,6 +429,7 @@ export const createSurfaceStreamer = (async (
 
   return {
     release,
+    layer,
     pools,
     geometry: instances.geometry,
     params,

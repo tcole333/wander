@@ -26,7 +26,7 @@ import { unlockSound } from '../audio/engine';
 import { createWalkAudio, type WalkAudio } from '../audio/walkAudio';
 import type { MuseumScene, Params, StreamerStats, SurfaceLook, SurfaceStreamer } from '../contract';
 import type { Release } from '../data/release';
-import { loadSurfaceLayer, type SurfaceLayer } from '../data/surfaceLayer';
+import type { SurfaceLayer } from '../data/surfaceLayer';
 import { ClearanceField } from '../globe/clearance';
 import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
 import { createSurfaceLook } from '../look/surfaceLook';
@@ -193,17 +193,9 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
-  // Both settle before the boot goes on, so a streamer made beside a layer that failed is released
-  // in turn with the rest, before the renderer whose textures it holds.
-  const [streaming, loading] = await Promise.allSettled([
-    createSurfaceStreamer(renderer, release),
-    loadSurfaceLayer(release),
-  ]);
-  if (streaming.status === 'fulfilled') made.push(() => streaming.value.dispose());
-  if (streaming.status === 'rejected') throw streaming.reason;
-  if (loading.status === 'rejected') throw loading.reason;
-  const streamer = streaming.value;
-  const layer = loading.value;
+  const streamer = await createSurfaceStreamer(renderer, release);
+  made.push(() => streamer.dispose());
+  const layer = streamer.layer;
   const look = createSurfaceLook(streamer.pools, release.surface);
   made.push(() => look.dispose());
   const rig = new CameraRig(new ClearanceField(layer));
