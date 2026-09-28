@@ -1721,8 +1721,8 @@ pre-launch checks or a later milestone:
 | **E2** | Re-scoped likewise and answered by construction: every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of the region bake by `npm run verify:bake` (the shipped global bake shares its code but has not been through `verify:bake`, which checks `build/region/`), and on the GPU by the readback on SwiftShader and Metal. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, and upload timing on the target machines. |
 | **E3** | Passed on the live site except CPU memory (below) [M `e3/results/`]: the renderer holds 270-288 MiB against the 256 MiB line (section 6). The GPU cap and the lite tier were not measured, since the GPU process's ~1.0 GB footprint and 750 MB of graphics memory cannot be split into the app's share. In a run by hand, with no record in the repo, headless WebKit 26.6 and Firefox 155 walked the live lobby, dive and beats 1-3 on WebGL 2 with no console error or failed request. | For the pre-launch checks: the renderer's memory against the CPU line, frame times, the lite tier, tilt, GPU memory, the overlay pool peak (after E6), in-place restore, reload with URL state, and the loop seams by ear in Safari and Firefox. |
 | **E4** | At 24 h and 72 h after the warm, all 50 first reads of each cohort hit at the Boston edge: wait p50 27 ms, TTFB p90 128 and 79 ms, far under the 500 ms break point [M `e4/results/`]. No re-warm and no quad packs so far. The 1 h cohort was not read, and HTTP/3 (the probe runs over HTTP/2), browser revisits and Class B charges were not measured. | The 7 d cohort, due on 2 October; it decides the scheduled re-warm (section 9). |
-| **E5** | The light answer below: 29,649 events in 1.18 MB, parsed in 31-39 ms, so the whole corpus fits one `all.wev`. | The query benchmark, with the globe's events layer (milestone 3). |
-| **E6** | Not run. | With the thematic layers (milestone 3). |
+| **E5** | The light answer below: 29,649 events in 1.18 MB, parsed in 31-39 ms, so the whole corpus fits one `all.wev`. | The query benchmark, with the globe's events layer in a later milestone (owner decision 26). |
+| **E6** | Not run. | With the other thematic layers, before the other stories (8.1). |
 
 **E1. Surface shader cost, on the target machines, with a real GEBCO Sumbawa patch.**
 - **Setup:** port `surface.js` to the `onBeforeCompile` material. Render the same cameras, lights and
@@ -2045,8 +2045,8 @@ Decided at milestone 1's close (issues #4, #11 and #14), 2026-09-27 and 2026-09-
     names are engraved in the lacquer (section 2); polity and range names wait for the labels
     stage.
 26. **Later in v1, not in milestone 1:** the layers panel, polity names, Read more, the globe's
-    events layer, and the ruler's centuries and deep-time zoom. The PRD's milestones name where
-    each lands.
+    events layer, and the ruler's centuries and deep-time zoom. Their milestones are not yet
+    chosen.
 28. **Tambora text:** approved as it stands on the live site.
 29. **No headed frame-time run in milestone 1:** presented-frame p95 stays unmeasured until the
     pre-launch checks.
