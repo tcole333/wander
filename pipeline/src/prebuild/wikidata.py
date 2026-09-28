@@ -11,9 +11,10 @@ for minutes whenever the endpoint answers that it is busy or failed (429 or 5xx)
 - `export.json`: when the export ran, the endpoint and the Wikidata dump its index holds, the
   query's sha256 and the rows each class gave.
 
-It then pins both files verify-only in `sources.toml`, in place of the previous export's entry, so
-the events stage reads the new export and `fetch` checks it. It runs only when named, since it
-rewrites `sources.toml`. Wikidata is CC0; the requests name the project and nothing else.
+It then appends the export's entry to `sources.toml`, pinning both files verify-only, so the
+events stage reads the new export and `fetch` checks it. It refuses to start while `sources.toml`
+pins an earlier export: the maintainer deletes that entry by hand first. It runs only when named,
+since it rewrites `sources.toml`. Wikidata is CC0; the requests name the project and nothing else.
 """
 
 import gzip
@@ -21,6 +22,7 @@ import json
 import os
 import re
 import time
+import tomllib
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -56,7 +58,6 @@ COLUMNS = (
     "?parents",
 )
 CLASS_LINE = re.compile(r"VALUES \?class \{ wd:Q[0-9]+ \}")
-TABLE_HEADER = re.compile(r"^\[\[?([a-z0-9-]+)[.\]]")
 
 
 class WikidataError(RuntimeError):
@@ -67,6 +68,7 @@ def run(ctx: Context) -> None:
     if ctx.data is None:
         raise SourceUnavailable(f"the {ctx.profile} profile reads no raw data, so it exports none")
     started = time.perf_counter()
+    check_unpinned(SOURCES_TOML.read_text(encoding="utf-8"))
     template = QUERY.read_text(encoding="utf-8")
     exported = datetime.now(UTC).replace(microsecond=0)
     index = endpoint_index()
@@ -131,8 +133,8 @@ def source_entry(source_id: str, exported: str, index: str, files: dict[str, byt
     """The export's entry in sources.toml: its files, verify-only."""
     lines = [
         "# Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's",
-        "# endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry, and",
-        "# its next export replaces it.",
+        "# endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;",
+        "# delete it by hand before the next export.",
         f"[{source_id}]",
         'name = "Wikidata events, exported class by class with pipeline/queries/events.rq"',
         f"version = {_toml_string(f'exported {exported} from QLever: {index}')}",
@@ -153,33 +155,19 @@ def source_entry(source_id: str, exported: str, index: str, files: dict[str, byt
     return "\n".join(lines) + "\n"
 
 
+def check_unpinned(text: str) -> None:
+    """Refuse `sources.toml`'s text while it pins an export: one export is pinned at a time."""
+    pinned = [key for key in tomllib.loads(text) if key.startswith(SOURCE_PREFIX)]
+    if pinned:
+        raise WikidataError(
+            f"sources.toml pins {', '.join(pinned)}: delete its entry, then export again"
+        )
+
+
 def pin(text: str, entry: str) -> str:
-    """`sources.toml`'s text with `entry` in place of the tables of any earlier export, and the
-    comment lines just above them; appended when there is none. Comments and blank lines after an
-    export's last key lead the next table, so they stay."""
-    lines = text.splitlines(keepends=True)
-    owners: list[str | None] = []
-    owner = None
-    for line in lines:
-        header = TABLE_HEADER.match(line)
-        if header:
-            owner = header[1]
-        owners.append(owner)
-    ours = [i for i, o in enumerate(owners) if o is not None and o.startswith(SOURCE_PREFIX)]
-    if not ours:
-        return text.rstrip("\n") + "\n\n" + entry
-    first, last = ours[0], ours[-1]
-    if ours != list(range(first, last + 1)):
-        raise WikidataError("sources.toml has other tables among the export's: edit it by hand")
-    while last > first and _loose(lines[last]):
-        last -= 1
-    while first > 0 and lines[first - 1].startswith("#"):
-        first -= 1
-    return "".join(lines[:first]) + entry + "".join(lines[last + 1 :])
-
-
-def _loose(line: str) -> bool:
-    return not line.strip() or line.startswith("#")
+    """`sources.toml`'s text with the export's entry appended."""
+    check_unpinned(text)
+    return text.rstrip("\n") + "\n\n" + entry
 
 
 def _toml_string(value: str) -> str:

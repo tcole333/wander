@@ -109,8 +109,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   the commands, until origin holds it.
 - `uv run prebuild wikidata` exports the event index's classes (`pipeline/config/event-classes.yaml`)
   from QLever's public Wikidata endpoint into `sources/wikidata-events-<date>/` in the raw-data
-  folder, one class at a time, and pins the export in `pipeline/sources.toml` in place of the last
-  one (commit it). The `events` stage turns the pinned export into the scored table
+  folder, one class at a time, and appends its pin to `pipeline/sources.toml` (commit it); delete
+  the last export's pin by hand first. The `events` stage turns the pinned export into the scored table
   `ev/events.tsv.gz` in the profile's output root (`docs/design/streaming.md` 3.4).
 - `uv run prebuild fetch` downloads what is missing from `pipeline/sources.toml` into the raw-data
   folder and checks every sha256. `uv run prebuild excerpts` rewrites the committed excerpts in
