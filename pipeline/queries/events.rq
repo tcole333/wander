@@ -1,0 +1,47 @@
+# The events of one class, with its subclasses (streaming.md 3.4). `uv run prebuild wikidata` runs
+# it once per class in pipeline/config/event-classes.yaml against QLever's Wikidata endpoint,
+# replacing the class in the VALUES line; as written it asks for battles.
+#
+# One row per dated statement: point in time (P585), start time (P580) or end time (P582), with its
+# precision (9 year, 10 month, 11 day). Per event: the English label, the English Wikipedia title,
+# the coordinates (P625) and those of its location (P276/P625), the number of Wikipedia editions
+# covering it (the PRD's notability) and its part-of parents (P361). The events stage picks one row
+# per event.
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?event (SAMPLE(?enLabel) AS ?label) (SAMPLE(?enTitle) AS ?enwiki) ?property ?date
+  ?precision (SAMPLE(?direct) AS ?coord) (SAMPLE(?placed) AS ?placeCoord)
+  (SAMPLE(?count) AS ?editions)
+  (GROUP_CONCAT(DISTINCT STRAFTER(STR(?parent), STR(wd:)); separator=" ") AS ?parents)
+WHERE {
+  {
+    SELECT ?event (COUNT(DISTINCT ?article) AS ?count) WHERE {
+      VALUES ?class { wd:Q178561 }
+      ?event wdt:P31/wdt:P279* ?class .
+      OPTIONAL {
+        ?article schema:about ?event ; schema:isPartOf ?site .
+        ?site wikibase:wikiGroup "wikipedia" .
+      }
+    }
+    GROUP BY ?event
+  }
+  {
+    { ?event p:P585/psv:P585 ?value . BIND("P585" AS ?property) }
+    UNION { ?event p:P580/psv:P580 ?value . BIND("P580" AS ?property) }
+    UNION { ?event p:P582/psv:P582 ?value . BIND("P582" AS ?property) }
+  }
+  ?value wikibase:timeValue ?date ; wikibase:timePrecision ?precision .
+  OPTIONAL { ?event rdfs:label ?enLabel . FILTER(LANG(?enLabel) = "en") }
+  OPTIONAL {
+    ?page schema:about ?event ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?enTitle .
+  }
+  OPTIONAL { ?event wdt:P625 ?direct }
+  OPTIONAL { ?event wdt:P276/wdt:P625 ?placed }
+  OPTIONAL { ?event wdt:P361 ?parent }
+}
+GROUP BY ?event ?property ?date ?precision

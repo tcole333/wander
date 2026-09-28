@@ -1,6 +1,8 @@
 """The YAML configs under `pipeline/config/`: the fixture's tiles and excerpts (streaming.md 7.3),
-the water set (3.1) and the regions that bound L5-L7 (7.1)."""
+the water set (3.1), the regions that bound L5-L7 (7.1), and the event index's classes and
+curated boosts (3.4)."""
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +15,7 @@ from prebuild.paths import config_dir
 
 CONFIG_DIR = config_dir()
 SCALERANKS = range(13)  # NE river scalerank runs 0-12
+_QID = re.compile(r"Q[1-9][0-9]*")
 _WATER_KEYS = (
     "halfWidthKm",
     "riversMaxScalerank",
@@ -60,6 +63,15 @@ class Region:
     lon: float
     lat: float
     radius_km: Mapping[int, float]
+
+
+@dataclass(frozen=True)
+class EventClass:
+    """A class of the event index (event-classes.yaml): exported with its subclasses."""
+
+    qid: str
+    name: str
+    weight: float
 
 
 def load_fixture(path: Path = CONFIG_DIR / "fixture.yaml") -> FixtureConfig:
@@ -136,6 +148,45 @@ def load_regions(path: Path) -> list[Region]:
     if len({r.name for r in regions}) != len(regions):
         raise ConfigError(f"{path.name} names a region twice")
     return regions
+
+
+def load_event_classes(path: Path = CONFIG_DIR / "event-classes.yaml") -> list[EventClass]:
+    doc = _mapping(_load(path), path.name, {"classes"})
+    classes = []
+    for row in _list(doc["classes"], "classes"):
+        fields = _mapping(row, f"{path.name} class", {"qid", "name", "weight"})
+        name = _text(fields["name"], f"{path.name} class")
+        classes.append(
+            EventClass(
+                qid=_qid(fields["qid"], f"class {name}"),
+                name=name,
+                weight=_positive_float(fields["weight"], f"class {name} weight"),
+            )
+        )
+    for key in ("qid", "name"):
+        if len({getattr(c, key) for c in classes}) != len(classes):
+            raise ConfigError(f"{path.name} lists a class {key} twice")
+    return classes
+
+
+def load_event_boosts(path: Path = CONFIG_DIR / "events-curated.yaml") -> dict[str, float]:
+    """Score boosts by event qid (events-curated.yaml)."""
+    doc = _mapping(_load(path), path.name, {"boosts"})
+    boosts: dict[str, float] = {}
+    for row in _list(doc["boosts"], "boosts"):
+        fields = _mapping(row, f"{path.name} boost", {"qid", "boost", "why"})
+        qid = _qid(fields["qid"], f"{path.name} boost")
+        _text(fields["why"], f"boost {qid} why")
+        if qid in boosts:
+            raise ConfigError(f"{path.name} boosts {qid} twice")
+        boosts[qid] = _number(fields["boost"], f"boost {qid}")
+    return boosts
+
+
+def _qid(value: Any, where: str) -> str:
+    if not isinstance(value, str) or not _QID.fullmatch(value):
+        raise ConfigError(f"{where}: {value!r} is not a Wikidata item id")
+    return value
 
 
 def _expand_tiles(value: Any, where: str) -> list[Tile]:

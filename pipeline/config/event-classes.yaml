@@ -1,0 +1,47 @@
+# The event index's classes (streaming.md 3.4): `uv run prebuild wikidata` exports each with its
+# subclasses (wdt:P31/wdt:P279*), and the events stage scores an event log2(1 + Wikipedia editions)
+# x its class's weight. An event in several classes takes the heaviest. The first eighteen are the
+# classes of the old us-1850-1900 snapshot, weighted by its kind priors; the rest widen it to the
+# risings, disasters and wrecks of every era. Sporting seasons, elections and similar noise stay
+# out by never being listed. A shipwreck is Wikidata's shipwrecking (Q906512), the sinking: its
+# shipwreck (Q852190) is the wreck on the sea floor, dated by the ship's service.
+classes:
+  - {qid: Q198, name: war, weight: 1.0}
+  - {qid: Q12184, name: pandemic, weight: 1.0}
+  - {qid: Q10931, name: revolution, weight: 0.85}
+  - {qid: Q831663, name: military campaign, weight: 0.8}
+  - {qid: Q8065, name: natural disaster, weight: 0.75}
+  - {qid: Q3241045, name: epidemic, weight: 0.75}
+  - {qid: Q168247, name: famine, weight: 0.75}
+  - {qid: Q131569, name: treaty, weight: 0.7}
+  - {qid: Q7692360, name: volcanic eruption, weight: 0.7}
+  - {qid: Q7944, name: earthquake, weight: 0.65}
+  - {qid: Q3882219, name: assassination, weight: 0.65}
+  - {qid: Q45382, name: coup, weight: 0.6}
+  - {qid: Q3199915, name: massacre, weight: 0.6}
+  - {qid: Q178561, name: battle, weight: 0.55}
+  - {qid: Q188055, name: siege, weight: 0.55}
+  - {qid: Q2401485, name: expedition, weight: 0.55}
+  - {qid: Q124757, name: riot, weight: 0.45}
+  - {qid: Q168983, name: conflagration, weight: 0.45}
+  - {qid: Q41397, name: genocide, weight: 0.9}
+  - {qid: Q1464916, name: declaration of independence, weight: 0.8}
+  - {qid: Q467011, name: invasion, weight: 0.75}
+  - {qid: Q7157512, name: peace conference, weight: 0.75}
+  - {qid: Q124734, name: rebellion, weight: 0.7}
+  - {qid: Q1361229, name: conquest, weight: 0.7}
+  - {qid: Q43059, name: drought, weight: 0.7}
+  - {qid: Q8070, name: tsunami, weight: 0.7}
+  - {qid: Q8068, name: flood, weight: 0.65}
+  - {qid: Q8092, name: tropical cyclone, weight: 0.6}
+  - {qid: Q177716, name: pogrom, weight: 0.6}
+  - {qid: Q511866, name: mutiny, weight: 0.55}
+  - {qid: Q81054, name: storm, weight: 0.5}
+  - {qid: Q642683, name: cold wave, weight: 0.5}
+  - {qid: Q215864, name: heat wave, weight: 0.5}
+  - {qid: Q167903, name: landslide, weight: 0.5}
+  - {qid: Q906512, name: shipwreck, weight: 0.5}
+  - {qid: Q2620513, name: maritime disaster, weight: 0.5}
+  - {qid: Q7935, name: avalanche, weight: 0.45}
+  - {qid: Q8081, name: tornado, weight: 0.45}
+  - {qid: Q169950, name: wildfire, weight: 0.45}
