@@ -2,7 +2,7 @@
 // in miniature (rulerCraft.ts), with a speaker cut into its face and filled with niello. While
 // sound is on the speaker sends out its waves; muted, a cross stands in their place and the knob
 // falls into shadow. Pressing it mutes or unmutes, as the M key does (audio/walkAudio.ts). The
-// Sound Cabinet's mute is the same knob.
+// lobby and Sound Cabinet use the same knob; the lobby's press changes only the setting.
 import type { SoundSwitch } from '../contract';
 import { button, svg } from './dom';
 import { smallKnob } from './rulerCraft';

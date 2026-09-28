@@ -1,5 +1,5 @@
-/* The lobby (plaques.ts, lobby.ts) in the walk's materials (tokens.css, walkUi.css): the walk's
-   mark, a heading cut in gilt over a hairline, and each story's plaque in dark cast brass lit from
+/* The lobby (plaques.ts, lobby.ts) in the walk's materials (tokens.css, walkUi.css): a heading cut
+   in gilt over a hairline, and each story's plaque in dark cast brass lit from
    the lamp at the upper left: an engraved medallion, the title in gilt, the years in brass small
    capitals, the blurb in ivory and Begin at its foot. A hovered or focused plaque catches the lamp
    along its edge, and an ember wakes in its socket and in its medallion's crater. The lamp's pool
@@ -7,7 +7,6 @@
    arrives from here: its ruler rises during the dive, and its card and Meanwhile come in at the
    landing. */
 
-.lobby > .wu-mark,
 .lobby-column,
 .lobby-credits {
   opacity: 0;
@@ -18,7 +17,6 @@
     visibility 0s 0.9s;
 }
 
-.lobby.is-shown > .wu-mark,
 .lobby.is-shown .lobby-column,
 .lobby.is-shown .lobby-credits {
   opacity: 1;
@@ -261,7 +259,7 @@
   --delay: 0.3s;
 
   position: absolute;
-  top: 40px;
+  top: 34px;
   right: 42px;
   font: 400 11px/1 var(--display);
   letter-spacing: 0.3em;
@@ -277,40 +275,66 @@
 }
 
 /* The walk's UI arriving from the lobby: the ruler waits below the page and rises during the
-   dive, and the card, and Meanwhile with the sound knob over it, come in at the landing. Only the
+   dive, and the card and Meanwhile come in at the landing. Only the
    walk's layer: the Credits panel's sheet is a .wu-card too. */
 
-.lobby-dive .wu .rc {
+.lobby-dive .wu-story .rc {
   transition: translate 1.6s cubic-bezier(0.22, 0.8, 0.3, 1) 0.35s;
 }
 
-.lobby-ruler-down .wu .rc {
+.lobby-ruler-down .wu-story .rc {
   translate: 0 105%;
   transition: none;
 }
 
-.lobby-dive .wu > .wu-card,
-.lobby-dive .wu > .wu-meanwhile,
-.lobby-dive .wu > .wu-sound {
+.lobby-dive .wu-story > .wu-card,
+.lobby-dive .wu-story > .wu-meanwhile {
   transition:
     opacity 0.7s ease,
     translate 0.7s ease,
     visibility 0s;
 }
 
-.lobby-veiled .wu > .wu-card,
-.lobby-veiled .wu > .wu-meanwhile,
-.lobby-veiled .wu > .wu-sound {
+.lobby-veiled .wu-story > .wu-card,
+.lobby-veiled .wu-story > .wu-meanwhile {
   opacity: 0;
   visibility: hidden;
   transition: none;
 }
 
-.lobby-veiled .wu > .wu-card {
+.lobby-veiled .wu-story > .wu-card {
   translate: -18px 0;
 }
 
-.lobby-veiled .wu > .wu-meanwhile,
-.lobby-veiled .wu > .wu-sound {
+.lobby-veiled .wu-story > .wu-meanwhile {
   translate: 18px 0;
+}
+
+/* The way back mirrors the dive: the card and Meanwhile withdraw first, the ruler lowers during
+   the flight, and the retained plaques and Credits come back at the landing. The mark and knob
+   have their own persistent layer (chrome.ts). */
+.lobby-return .wu-story > .wu-card,
+.lobby-return .wu-story > .wu-meanwhile,
+.lobby-return .wu-story > .wu-resume,
+.lobby-return .wu-story > .wu-legend,
+.lobby-return .wu-story > .wu-borders {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.7s ease,
+    translate 0.7s ease,
+    visibility 0s 0.7s;
+}
+
+.lobby-return .wu-story > .wu-card {
+  translate: -18px 0;
+}
+
+.lobby-return .wu-story > .wu-meanwhile {
+  translate: 18px 0;
+}
+
+.lobby-return .wu-story .rc {
+  translate: 0 105%;
+  transition: translate 1.6s cubic-bezier(0.5, 0, 0.75, 0) 0.35s;
 }

@@ -1,4 +1,4 @@
-// The lobby's DOM (lobby.css): the Wander mark where the walk has it, the Credits link engraved at
+// The lobby's DOM (lobby.css): the Credits link engraved at
 // the top right, and at the left a column with a heading and the story's plaque in dark cast
 // brass: an engraved medallion (Tambora's volcano, milestone 1's one story), the title, the years
 // and the blurb, a Begin line at its foot, and an ember that wakes in its socket when the plaque
@@ -18,17 +18,19 @@ import { yearsLabel } from '../story/ui/format';
 export class Plaques {
   /** The lobby's layer, over the canvas as the walk's UI is. */
   readonly element = el('div', 'wu lobby');
-  /** The Wander mark, where the walk's stands. */
-  readonly mark = mark();
   readonly #column = el('nav', 'lobby-column');
+  readonly #credits = creditsLink('lobby-credits');
+  readonly #plaque: HTMLButtonElement;
 
   /** The plaque for `story`; choosing it calls `onChoose`. */
   constructor(story: Story, onChoose: () => void) {
     this.#column.setAttribute('aria-label', 'Stories');
     const rule = el('div', 'lobby-rule');
     this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule);
-    this.#column.append(plaque(story, onChoose));
-    this.element.append(this.mark, this.#column, creditsLink('lobby-credits'));
+    this.#plaque = plaque(story, onChoose);
+    this.#column.append(this.#plaque);
+    this.element.append(this.#column, this.#credits);
+    this.element.inert = true;
   }
 
   /** How far right the column reaches where it stands, in CSS px (its slide aside). */
@@ -36,41 +38,28 @@ export class Plaques {
     return this.#column.offsetLeft + this.#column.offsetWidth;
   }
 
-  /** The mark, the column and the Credits link come in. */
+  /** The column and the Credits link come in. */
   show(): void {
     this.element.classList.add('is-shown');
+    this.element.classList.remove('is-leaving');
+    this.element.inert = false;
   }
 
   /**
-   * The column and the Credits link slide away, the mark going at once, since the walk's own mark
-   * takes its place. Resolves once they have gone.
+   * The column and Credits slide away. They stay mounted, out of reach, ready for the return.
    */
-  leave(): Promise<void> {
-    this.mark.remove();
+  leave(): void {
     this.element.classList.add('is-leaving');
-    (document.activeElement as HTMLElement | null)?.blur();
-    return new Promise((done) => setTimeout(done, LEAVE_MS));
+    this.element.inert = true;
+  }
+
+  focus(): void {
+    this.#plaque.focus({ preventScroll: true });
   }
 
   dispose(): void {
     this.element.remove();
   }
-}
-
-/** How long the column takes to slide away (lobby.css). */
-const LEAVE_MS = 600;
-
-/** The walk's mark: WANDER over a rule and its line, where the walk's UI has it. */
-function mark(): HTMLElement {
-  const header = el('header', 'wu-mark');
-  const rule = el('div', 'wu-mark-rule');
-  rule.append(el('span'), el('i', undefined, '✦'), el('span'));
-  header.append(
-    el('div', 'wu-mark-word', 'WANDER'),
-    rule,
-    el('div', 'wu-mark-sub', 'AN INTERACTIVE HISTORY'),
-  );
-  return header;
 }
 
 function plaque(story: Story, choose: () => void): HTMLButtonElement {

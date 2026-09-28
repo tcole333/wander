@@ -133,6 +133,8 @@ export interface WalkUi {
    * whatever slides it for a moment (the lobby's veil).
    */
   cardReach(): number;
+  /** Keeps the departing card and ruler out of the tab order and pointer input. */
+  leave(): void;
   dispose(): void;
 }
 
@@ -146,7 +148,6 @@ export type CreateWalkUi = (
   root: HTMLElement,
   walk: Walk,
   meanwhile: Meanwhile,
-  sound: SoundSwitch,
   /** The data host, which serves the card's images. */
   dataHost: string,
 ) => WalkUi;
@@ -168,7 +169,11 @@ export interface WalkEffects {
     globe: Object3D,
     viewport: ViewportCss,
     elapsedS: number,
+    /** The lobby's dive/return fade, without changing the effect's tuned strength. */
+    strength?: number,
   ): void;
+  /** Clears the story from the lobby while keeping its compiled effects and loaded data. */
+  hide(): void;
   /** Starts fetching what the effects draw from the data host: the climate's years. */
   load(): void;
   /**

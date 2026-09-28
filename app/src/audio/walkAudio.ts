@@ -7,9 +7,10 @@
 // a Meanwhile entry has the camera, far from the beat's place, its cues fall back.
 //
 // WalkScore plays all of it on any engine, live or offline (the Sound Cabinet renders a stretch of
-// the walk with it). createWalkAudio attaches it to a page: nothing sounds before the visitor's
-// first gesture, which unlocks the AudioContext in its own handler (or a lobby's click has already
-// unlocked it); the mute knob and the M key mute it, remembered in this browser; and a hidden tab
+// the walk with it). createWalkAudio belongs to the page: the lobby's plaque unlocks the context
+// in its click; a dev walk arms first-gesture unlocks. The knob and M share one remembered setting
+// even before a story starts. Returning fades cues and rumble to the room, whose bed the next walk
+// reuses on landing. A hidden tab
 // fades out over hideRamp and suspends, then resumes and fades in over showFade (streaming.md 5.9).
 import { tunables } from '../config/tunables';
 import { flightPath } from '../story/flight';
@@ -80,6 +81,8 @@ export class WalkScore {
    * one that flies in from the lobby, whose whir carries the dive. Undefined until then.
    */
   #bed: Bed | null | undefined;
+  /** The room left by an earlier walk, reused once this walk lands. */
+  #room: Bed | null;
   #beat: number;
   #day: number;
   /**
@@ -98,8 +101,9 @@ export class WalkScore {
   #bedAt = -Infinity;
   #clunkAt = -Infinity;
 
-  constructor(engine: SoundEngine, from: WalkState, at: number) {
+  constructor(engine: SoundEngine, from: WalkState, at: number, room: Bed | null = null) {
     this.#engine = engine;
+    this.#room = room;
     this.#detents = new Detents(engine);
     this.#beat = from.beat;
     this.#day = from.day;
@@ -173,13 +177,29 @@ export class WalkScore {
   }
 
   #startBed(state: WalkState, at: number): void {
-    this.#bed = BEDS[state.story.id]?.(this.#engine, state.day, at) ?? null;
+    this.#bed = this.#room ?? BEDS[state.story.id]?.(this.#engine, state.day, at) ?? null;
+    this.#room = null;
+    this.#bed?.setDay(state.day, at);
     [this.#bedDay, this.#bedAt] = [state.day, at];
+  }
+
+  /** Fades the story back to the room, handing its bed to the next walk. */
+  toRoom(at: number): Bed | null {
+    for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
+    this.#cues = [];
+    this.#whir?.stop(at);
+    this.#whir = null;
+    const room = this.#bed ?? this.#room;
+    room?.toRoom(at);
+    this.#bed = null;
+    this.#room = null;
+    return room;
   }
 
   /** Fades everything the walk has playing. */
   stop(at: number): void {
     this.#bed?.stop(at);
+    this.#room?.stop(at);
     for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
     this.#whir?.stop(at);
   }
@@ -193,8 +213,18 @@ function landed(state: WalkState): boolean {
 /** The walk's sound in the page, and its mute switch. */
 export interface WalkAudio extends SoundSwitch {
   inspectMemory?(account: import('../perf/memory').MemoryAccount): void;
-  /** Every frame, after the UI's: the walk's state, the ruler's unit and the drawn view. */
-  update(state: WalkState, unit: Precision, view: ViewState, dtS: number): void;
+  /** Arms gesture unlocks; the plaque calls this inside its click with inGesture true. */
+  start(inGesture?: boolean): void;
+  /** Fades the bed and cues to the room and disarms gesture unlocks in the lobby. */
+  leave(): void;
+  /** Every frame; null state is the lobby, with a whir during its return flight. */
+  update(
+    state: WalkState | null,
+    unit: Precision,
+    view: ViewState,
+    dtS: number,
+    returning?: boolean,
+  ): void;
   dispose(): void;
 }
 
@@ -203,37 +233,32 @@ export function createWalkAudio(): WalkAudio {
   let engine = unlockedSound() ?? null;
   engine?.setMuted(muted);
   let score: WalkScore | null = null;
+  let room: Bed | null = null;
+  let returnWhir: Whir | null = null;
+  let active = false;
   /** The walk as the last frame left it, and as it stood before the gesture that unlocked sound. */
   let last: WalkState | null = null;
   let lastView: ViewState | null = null;
   let unlockedFrom: WalkState | null = null;
-  /** Whether the gesture under way is the one that unlocked sound. */
-  let unlocking = false;
   let suspending: ReturnType<typeof setTimeout> | undefined;
   const listeners = new AbortController();
-  const gestures = new AbortController();
   const { signal } = listeners;
 
-  // Heard while capturing, so a control that keeps its gesture to itself still unlocks sound; the
-  // walk as it stood before the gesture is kept, so the step a key takes sounds its clunk. A press
-  // or a key begins a gesture, ahead of the unlock.
-  for (const type of ['pointerdown', 'keydown'] as const) {
-    addEventListener(type, () => (unlocking = false), { capture: true, signal });
-  }
+  // Heard while capturing, so a control that keeps its gesture to itself still unlocks sound.
+  // In the lobby only the plaque can unlock it: the knob and M merely choose the setting.
   const unlock = () => {
+    if (!active || engine?.ctx.state === 'running') return;
     // A touch's start is not yet a gesture the browser unlocks sound for; its end is.
     if (navigator.userActivation?.isActive === false) return;
-    const sound = unlockSound();
+    const sound = unlockSound(undefined, muted);
     if (engine !== sound) {
       sound.setMuted(muted);
       unlockedFrom = last;
-      unlocking = true;
     }
     engine = sound;
-    if (sound.ctx.state === 'running') gestures.abort();
   };
   for (const type of GESTURES) {
-    addEventListener(type, unlock, { capture: true, signal: gestures.signal });
+    addEventListener(type, unlock, { capture: true, signal });
   }
 
   const flip = () => {
@@ -244,7 +269,8 @@ export function createWalkAudio(): WalkAudio {
   addEventListener(
     'keydown',
     (event) => {
-      if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.defaultPrevented || event.repeat || event.metaKey || event.ctrlKey || event.altKey)
+        return;
       if (isFormField(event.target) || event.key.toLowerCase() !== 'm') return;
       flip();
       event.preventDefault();
@@ -264,7 +290,7 @@ export function createWalkAudio(): WalkAudio {
         suspending = setTimeout(() => void ctx.suspend(), tunables.hideRamp);
       } else {
         void ctx.resume().then(() => {
-          if (!document.hidden) sound.fade(true, tunables.showFade / 1000);
+          if (!signal.aborted && !document.hidden) sound.fade(true, tunables.showFade / 1000);
         });
       }
     },
@@ -276,27 +302,60 @@ export function createWalkAudio(): WalkAudio {
     get muted() {
       return muted;
     },
-    // The knob's press that unlocks sound brings it, rather than muting what was never heard.
-    toggle() {
-      if (unlocking) unlocking = false;
-      else flip();
+    toggle: flip,
+    start(inGesture = false) {
+      active = true;
+      if (inGesture) {
+        try {
+          unlock();
+        } catch (error) {
+          console.warn('Sound did not start:', error);
+        }
+      }
     },
-    update(state, unit, view, dtS) {
+    leave() {
+      active = false;
+      if (engine && score) room = score.toRoom(engine.soon());
+      score = null;
+      last = null;
+      lastView = null;
+      unlockedFrom = null;
+    },
+    update(state, unit, view, dtS, returning = false) {
       if (engine && engine.ctx.state === 'running') {
         const at = engine.soon();
-        score ??= new WalkScore(engine, unlockedFrom ?? last ?? state, at);
         const pace = lastView ? paceOf(lastView, view, dtS) : 0;
-        score.frame({ state, unit, pace, at, dt: dtS });
+        if (state && active) {
+          if (!score) {
+            score = new WalkScore(engine, unlockedFrom ?? last ?? state, at, room);
+            room = null;
+            unlockedFrom = null;
+          }
+          score.frame({ state, unit, pace, at, dt: dtS });
+        }
+        if (returning) {
+          returnWhir ??= whir(engine, at);
+          returnWhir.setPace(pace, at);
+        } else if (returnWhir) {
+          returnWhir.stop(at);
+          returnWhir = null;
+        }
       }
       last = state;
       lastView = { ...view };
     },
     dispose() {
       listeners.abort();
-      gestures.abort();
       clearTimeout(suspending);
-      if (engine && score) score.stop(engine.soon());
+      if (engine) {
+        const at = engine.soon();
+        score?.stop(at);
+        room?.stop(at);
+        returnWhir?.stop(at);
+      }
       score = null;
+      room = null;
+      returnWhir = null;
     },
   };
 }

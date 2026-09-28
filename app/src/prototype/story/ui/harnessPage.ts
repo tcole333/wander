@@ -14,6 +14,7 @@ import { withLock } from '../../../story/lock';
 import { meanwhileFromLock } from '../../../story/meanwhile';
 import { parseStory } from '../../../story/story';
 import { createWalkUi } from '../../../story/ui/walkUi';
+import { WalkChrome } from '../../../story/ui/chrome';
 import { HarnessWalk } from './harnessWalk';
 
 declare global {
@@ -33,7 +34,9 @@ const sound = {
   },
 };
 const dataHost = dataOverride(location) ?? DATA_SERVERS.global ?? '';
-const ui = createWalkUi(document.body, walk, meanwhileFromLock(storyLock), sound, dataHost);
+const ui = createWalkUi(document.body, walk, meanwhileFromLock(storyLock), dataHost);
+const chrome = new WalkChrome(document.body, sound, () => {});
+chrome.show();
 window.__walkUi = { walk, jump: (beat) => walk.jump(beat) };
 
 addEventListener('keydown', (event) => {
@@ -57,6 +60,7 @@ const frame = (now: number) => {
   last = now;
   const state = walk.state();
   ui.update(state, walk.view);
+  chrome.update();
   // Where the focal place falls in a flat view of the stub's camera, tilt ignored.
   const beat = state.story.beats[state.beat];
   const at = beat?.focal.at ?? beat?.camera.target;

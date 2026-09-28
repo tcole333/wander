@@ -39,9 +39,10 @@ export class SoundEngine {
   #timer: ReturnType<typeof setInterval> | undefined;
   readonly #noise = new Map<string, AudioBuffer>();
 
-  constructor(ctx: BaseAudioContext, mix: Mix = defaultMix) {
+  constructor(ctx: BaseAudioContext, mix: Mix = defaultMix, muted = false) {
     this.ctx = ctx;
     this.#mix = structuredClone(mix);
+    this.#muted = muted;
     // Threshold, knee and ratio set so it holds peaks near -1.5 dBFS and leaves the rest alone.
     const limiter = new DynamicsCompressorNode(ctx, {
       threshold: -4,
@@ -50,7 +51,7 @@ export class SoundEngine {
       attack: 0.002,
       release: 0.25,
     });
-    this.#master = new GainNode(ctx, { gain: gainOf(this.#mix.master) });
+    this.#master = new GainNode(ctx, { gain: muted ? 0 : gainOf(this.#mix.master) });
     this.#presence = new GainNode(ctx, { gain: 1 });
     this.#master.connect(this.#presence).connect(limiter).connect(ctx.destination);
     const bus = (name: Bus) => {
@@ -155,8 +156,8 @@ let live: SoundEngine | undefined;
  * The live engine. Call it inside a click or key handler: the first call creates the AudioContext
  * and every call resumes it there and then, since a resume outside a gesture is refused.
  */
-export function unlockSound(mix: Mix = defaultMix): SoundEngine {
-  live ??= new SoundEngine(new AudioContext({ latencyHint: 'interactive' }), mix);
+export function unlockSound(mix: Mix = defaultMix, muted = false): SoundEngine {
+  live ??= new SoundEngine(new AudioContext({ latencyHint: 'interactive' }), mix, muted);
   const ctx = live.ctx as AudioContext;
   if (ctx.state !== 'running') void ctx.resume();
   return live;

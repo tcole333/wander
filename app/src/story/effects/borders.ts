@@ -101,6 +101,13 @@ export class WalkBorders {
     uniforms.lookBorderStrength.value = this.#strength;
   }
 
+  /** Clears the lobby while retaining the uploaded field for the next walk. */
+  hide(): void {
+    this.#shown = 0;
+    this.#strength = 0;
+    if (this.#uniforms) this.#uniforms.lookBorderStrength.value = 0;
+  }
+
   /** Draws no more borders. */
   dispose(): void {
     this.#stop('');

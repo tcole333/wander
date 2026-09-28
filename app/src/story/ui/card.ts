@@ -28,6 +28,9 @@ export class BeatCard {
   /** Where the images are, as the release's other keys are. */
   readonly #dataHost: string;
   #beat: StoryBeat | null = null;
+  #imageListeners = new AbortController();
+  #previewTimer: ReturnType<typeof setTimeout> | undefined;
+  #overflowFrame = 0;
 
   constructor(dataHost: string) {
     this.#dataHost = dataHost;
@@ -71,14 +74,14 @@ export class BeatCard {
     this.element.classList.remove('is-fresh');
     void this.element.offsetWidth;
     this.element.classList.add('is-fresh');
-    requestAnimationFrame(() => this.#checkOverflow());
+    this.#checkNextFrame();
   }
 
   #openSources(open: boolean): void {
     this.#foot.classList.toggle('is-open', open);
     this.#sourcesToggle.setAttribute('aria-expanded', String(open));
     this.#sources.inert = !open;
-    requestAnimationFrame(() => this.#checkOverflow());
+    this.#checkNextFrame();
   }
 
   #showSources(beat: StoryBeat): void {
@@ -117,7 +120,9 @@ export class BeatCard {
    * image's whole description.
    */
   #showImage(image: StoryImage): void {
-    this.#figure.replaceChildren();
+    this.#clearImage();
+    this.#imageListeners = new AbortController();
+    const { signal } = this.#imageListeners;
     const mount = el('div', 'wu-mount');
     const mat = el('div', 'wu-mat');
     const frame = el('div', 'wu-frame is-loading');
@@ -173,20 +178,43 @@ export class BeatCard {
     };
     if (preview) {
       preview.classList.add('wu-preview');
-      preview.addEventListener('load', () => show(preview));
-      preview.addEventListener('error', () => preview.remove());
+      preview.addEventListener('load', () => show(preview), { signal });
+      preview.addEventListener('error', () => preview.remove(), { signal });
       frame.append(preview);
     }
-    full.addEventListener('load', () => {
-      show(full);
-      setTimeout(() => preview?.remove(), 800);
-    });
-    full.addEventListener('error', () => {
-      if (shown) preview?.classList.remove('wu-preview');
-      else plate();
-    });
+    full.addEventListener(
+      'load',
+      () => {
+        show(full);
+        this.#previewTimer = setTimeout(() => preview?.remove(), 800);
+      },
+      { signal },
+    );
+    full.addEventListener(
+      'error',
+      () => {
+        if (shown) preview?.classList.remove('wu-preview');
+        else plate();
+      },
+      { signal },
+    );
     frame.append(full);
-    requestAnimationFrame(() => this.#checkOverflow());
+    this.#checkNextFrame();
+  }
+
+  #clearImage(): void {
+    this.#imageListeners.abort();
+    clearTimeout(this.#previewTimer);
+    for (const image of this.#figure.querySelectorAll('img')) {
+      image.removeAttribute('srcset');
+      image.removeAttribute('src');
+    }
+    this.#figure.replaceChildren();
+  }
+
+  #checkNextFrame(): void {
+    cancelAnimationFrame(this.#overflowFrame);
+    this.#overflowFrame = requestAnimationFrame(() => this.#checkOverflow());
   }
 
   /** Fades the text's foot while more of it lies below, and its head once scrolled. */
@@ -198,6 +226,8 @@ export class BeatCard {
   }
 
   dispose(): void {
+    cancelAnimationFrame(this.#overflowFrame);
+    this.#clearImage();
     this.element.remove();
   }
 }
