@@ -114,6 +114,11 @@ sources:
     ],
     ['no sources', BEAT.replace(/^sources:[\s\S]*/m, ''), /sources must be a list/],
     ['an image without alt text', BEAT.replace('"A map of Sumbawa."', '""'), /needs alt text/],
+    [
+      'a credit that is not text',
+      BEAT.replace('alt:', 'credit: [A, B], alt:'),
+      /credit must be text/,
+    ],
     ['no image', BEAT.replace(/^image: .*\n/m, ''), /image must be a mapping/],
     [
       'Meanwhile of neither kind',
