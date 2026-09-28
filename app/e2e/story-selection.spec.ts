@@ -36,13 +36,10 @@ async function phase(page: Page, name: string): Promise<void> {
 }
 
 for (const entry of ['production', 'dev'] as const) {
-  test(`${entry}: Magellan, return, Tambora, and a fresh Magellan`, async ({ page }, testInfo) => {
-    // CI's four-core SwiftShader walks each entry in minutes; it carries the production entry,
-    // and the dev page's walk runs on the GPU project (npm run e2e:gpu).
-    test.skip(
-      testInfo.project.name === 'swiftshader' && entry === 'dev',
-      'dev entry on the GPU only',
-    );
+  // CI's four-core SwiftShader walks each entry in minutes; it carries the production entry, and
+  // the dev page's walk, tagged @gpu, runs on the GPU project only (npm run e2e:gpu).
+  const tag = entry === 'dev' ? ['@gpu'] : [];
+  test(`${entry}: Magellan, return, Tambora, and a fresh Magellan`, { tag }, async ({ page }) => {
     test.setTimeout(600_000);
     const errors: string[] = [];
     const wikimedia: string[] = [];
