@@ -37,17 +37,19 @@
   },
   {
     "text": "North Atlantic\nOcean",
-    "lon": -42,
-    "lat": 30,
-    "size": 3.4,
+    "lon": -40,
+    "lat": 31,
+    "size": 2.8,
+    "tracking": 0.45,
     "style": "ocean",
     "minKm": 8000
   },
   {
     "text": "South Atlantic\nOcean",
-    "lon": -18,
-    "lat": -24,
-    "size": 3.4,
+    "lon": -16,
+    "lat": -22,
+    "size": 2.8,
+    "tracking": 0.45,
     "style": "ocean",
     "minKm": 8000
   },
