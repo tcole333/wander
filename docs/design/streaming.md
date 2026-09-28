@@ -463,10 +463,10 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   verify-only in `pipeline/sources.toml`. One export is pinned at a time: the step refuses to start
   until the maintainer deletes the last one's pin, a hand edit made about once a milestone that
   spares the step a TOML editor. The export stays out of the repo with the other raw data; the pin
-  makes every build from it reproducible. Wikidata is
-  CC0. A row is one dated statement that is not deprecated (P585, P580 or P582, with its
-  precision) of an event, with its English label and Wikipedia title, its coordinates and its
-  location's, its count of Wikipedia editions and its P361 parents.
+  makes every build from it reproducible. Wikidata is CC0. A row is one dated statement that is
+  not deprecated (P585, P580 or P582, with its precision) of an event, with its English label and
+  Wikipedia title, its coordinates and its location's, its count of Wikipedia editions and its P361
+  parents.
 - **Milestone 1:** the `events` stage writes the cleaned, scored table `ev/events.tsv.gz` (7.1),
   one row per event, which Meanwhile and the lobby's glows draw from. It keeps statements dated to
   the year or finer, and events with an English label, a place other than 0°, 0° (their own, else
