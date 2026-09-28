@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import type { Release } from '../data/release';
+import bundled from '../generated/release.json' with { type: 'json' };
 import type { StoryLock } from '../story/lock';
 import { parseStory } from '../story/story';
 
@@ -54,5 +56,12 @@ describe('credits.html', () => {
     const text = plain(credits);
     const missing = story.credits.filter((line) => !text.includes(line));
     expect(missing).toEqual([]);
+  });
+
+  it("links the borders' GPL notice and changed source as the bundled release publishes them", () => {
+    const release = bundled as Release;
+    const file = release.borders?.files['1815'];
+    const links = [file?.notice, file?.source].map((key) => `${release.dataHost}/${key ?? '?'}`);
+    for (const link of links) expect(credits).toContain(`href="${link}"`);
   });
 });
