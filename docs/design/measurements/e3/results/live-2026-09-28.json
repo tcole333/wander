@@ -1,0 +1,3261 @@
+{
+  "date": "2026-09-28T06:38:15.784Z",
+  "url": "https://wander.traviscole.xyz/",
+  "release": "9b3f8312bae73f83",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "chromium": "153.0.8010.12",
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)",
+  "cold": {
+    "25/50": {
+      "runs": [
+        {
+          "condition": "25/50",
+          "openMs": 1308.4000000357628,
+          "htmlMs": 94.90000003576279,
+          "firstPaintMs": 196,
+          "bytesBeforeOpen": 2199503,
+          "requestsBeforeOpen": 44,
+          "bytesBeforeOpenByHost": {
+            "wander.traviscole.xyz": 515065,
+            "wander-data.traviscole.xyz": 1684438
+          },
+          "inFlightAtOpen": [
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander-data.traviscole.xyz/fd/borders/f75bdb69/1815.bin",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/4/3/1.wst"
+          ],
+          "lobby": [
+            [
+              1164.800000011921,
+              "waiting"
+            ],
+            [
+              1281.300000011921,
+              "opening"
+            ],
+            [
+              5269.400000035763,
+              "idle"
+            ]
+          ],
+          "appHostAfterOpen": [],
+          "problems": []
+        },
+        {
+          "condition": "25/50",
+          "openMs": 1240,
+          "htmlMs": 77.5,
+          "firstPaintMs": 188,
+          "bytesBeforeOpen": 2199488,
+          "requestsBeforeOpen": 44,
+          "bytesBeforeOpenByHost": {
+            "wander.traviscole.xyz": 515053,
+            "wander-data.traviscole.xyz": 1684435
+          },
+          "inFlightAtOpen": [
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander-data.traviscole.xyz/fd/borders/f75bdb69/1815.bin",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/4/3/1.wst"
+          ],
+          "lobby": [
+            [
+              1085.8999999761581,
+              "waiting"
+            ],
+            [
+              1212.3999999761581,
+              "opening"
+            ],
+            [
+              5203.299999952316,
+              "idle"
+            ]
+          ],
+          "appHostAfterOpen": [],
+          "problems": []
+        },
+        {
+          "condition": "25/50",
+          "openMs": 1226.6000000238419,
+          "htmlMs": 79.39999997615814,
+          "firstPaintMs": 180,
+          "bytesBeforeOpen": 2199418,
+          "requestsBeforeOpen": 44,
+          "bytesBeforeOpenByHost": {
+            "wander.traviscole.xyz": 515057,
+            "wander-data.traviscole.xyz": 1684361
+          },
+          "inFlightAtOpen": [
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander-data.traviscole.xyz/fd/borders/f75bdb69/1815.bin",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/4/3/1.wst"
+          ],
+          "lobby": [
+            [
+              1080.8999999761581,
+              "waiting"
+            ],
+            [
+              1198.3999999761581,
+              "opening"
+            ],
+            [
+              5187.199999988079,
+              "idle"
+            ]
+          ],
+          "appHostAfterOpen": [],
+          "problems": []
+        }
+      ],
+      "medianOpenMs": 1240,
+      "medianBytesBeforeOpen": 2199488,
+      "medianFirstPaintMs": 188
+    },
+    "5/150": {
+      "runs": [
+        {
+          "condition": "5/150",
+          "openMs": 4506.899999976158,
+          "htmlMs": 184.19999998807907,
+          "firstPaintMs": 476,
+          "bytesBeforeOpen": 2199487,
+          "requestsBeforeOpen": 44,
+          "bytesBeforeOpenByHost": {
+            "wander.traviscole.xyz": 515063,
+            "wander-data.traviscole.xyz": 1684424
+          },
+          "inFlightAtOpen": [
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander-data.traviscole.xyz/fd/borders/f75bdb69/1815.bin",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/4/3/1.wst"
+          ],
+          "lobby": [
+            [
+              4361,
+              "waiting"
+            ],
+            [
+              4480.399999976158,
+              "opening"
+            ],
+            [
+              8455.699999988079,
+              "idle"
+            ]
+          ],
+          "appHostAfterOpen": [],
+          "problems": []
+        },
+        {
+          "condition": "5/150",
+          "openMs": 4504.300000011921,
+          "htmlMs": 180.10000002384186,
+          "firstPaintMs": 452,
+          "bytesBeforeOpen": 2199509,
+          "requestsBeforeOpen": 44,
+          "bytesBeforeOpenByHost": {
+            "wander.traviscole.xyz": 515060,
+            "wander-data.traviscole.xyz": 1684449
+          },
+          "inFlightAtOpen": [
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander-data.traviscole.xyz/fd/borders/f75bdb69/1815.bin",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/4/3/1.wst"
+          ],
+          "lobby": [
+            [
+              4358.600000023842,
+              "waiting"
+            ],
+            [
+              4477.199999988079,
+              "opening"
+            ],
+            [
+              8454.800000011921,
+              "idle"
+            ]
+          ],
+          "appHostAfterOpen": [],
+          "problems": []
+        },
+        {
+          "condition": "5/150",
+          "openMs": 4542.800000011921,
+          "htmlMs": 185.5,
+          "firstPaintMs": 472,
+          "bytesBeforeOpen": 2199490,
+          "requestsBeforeOpen": 44,
+          "bytesBeforeOpenByHost": {
+            "wander.traviscole.xyz": 515073,
+            "wander-data.traviscole.xyz": 1684417
+          },
+          "inFlightAtOpen": [
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander.traviscole.xyz/assets/decode.worker-CT1W4Xy6.js",
+            "https://wander-data.traviscole.xyz/fd/borders/f75bdb69/1815.bin",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/1/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/2/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/2.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/3/3.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/1/0/1.wst",
+            "https://wander-data.traviscole.xyz/surf/78f401c3/2/4/3/1.wst"
+          ],
+          "lobby": [
+            [
+              4395.300000011921,
+              "waiting"
+            ],
+            [
+              4515.800000011921,
+              "opening"
+            ],
+            [
+              8492.099999964237,
+              "idle"
+            ]
+          ],
+          "appHostAfterOpen": [],
+          "problems": []
+        }
+      ],
+      "medianOpenMs": 4506.899999976158,
+      "medianBytesBeforeOpen": 2199490,
+      "medianFirstPaintMs": 472
+    }
+  },
+  "walk": {
+    "condition": "5/150",
+    "openMs": 4565.699999988079,
+    "lobbyIdleMs": 8518,
+    "walk": [
+      {
+        "beat": 0,
+        "id": "world-1815",
+        "pressMs": 9653.899999976158,
+        "plannedMinS": 2.416666666666663,
+        "plannedS": 2.416666666666663,
+        "longestS": 2.6999999999999953,
+        "shotAtMs": 12604,
+        "landing": {
+          "status": "Beat 1 of 8: A Mountain Thought Extinct",
+          "title": "A Mountain Thought Extinct",
+          "date": "April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/e751bd21f5f6504c-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 14563.800000011921,
+        "settled": {
+          "status": "Beat 1 of 8: A Mountain Thought Extinct",
+          "title": "A Mountain Thought Extinct",
+          "date": "April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/e751bd21f5f6504c-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 12402,
+        "landedBy": "data-lobby gone",
+        "calloutShownMs": null,
+        "rulerAtRestMs": 9784.5,
+        "landedLateMs": 331.433333357179,
+        "held": true,
+        "lateOverFullHoldMs": 48.10000002384663,
+        "surfTilesInFlightAtGate": 12,
+        "lastOfThemDoneAfterGateMs": 284.17399997823304,
+        "dataRequests": 169,
+        "dataBytes": 8702722,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 1,
+        "id": "sunda",
+        "pressMs": 26653.80000001192,
+        "plannedMinS": 2.416666666666663,
+        "plannedS": 2.416666666666663,
+        "longestS": 2.6999999999999953,
+        "shotAtMs": 29603.69999998808,
+        "landing": {
+          "status": "Beat 2 of 8: Distant Cannon",
+          "title": "Distant Cannon",
+          "date": "5–10 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 15757.399999976158,
+        "settled": {
+          "status": "Beat 2 of 8: Distant Cannon",
+          "title": "Distant Cannon",
+          "date": "5–10 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 29349.899999976158,
+        "landedBy": "callout shown",
+        "calloutShownMs": 29349.899999976158,
+        "rulerAtRestMs": 29349.899999976158,
+        "landedLateMs": 279.43333329757434,
+        "held": true,
+        "lateOverFullHoldMs": -3.900000035758012,
+        "surfTilesInFlightAtGate": 11,
+        "lastOfThemDoneAfterGateMs": 1272.652999988295,
+        "dataRequests": 189,
+        "dataBytes": 9519434,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 2,
+        "id": "sumbawa",
+        "pressMs": 44652.80000001192,
+        "plannedMinS": 2.416666666666663,
+        "plannedS": 2.416666666666663,
+        "longestS": 2.6999999999999953,
+        "shotAtMs": 47602.5,
+        "landing": {
+          "status": "Beat 3 of 8: Three Columns of Flame",
+          "title": "Three Columns of Flame",
+          "date": "10–11 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 3245.099999964237,
+        "settled": {
+          "status": "Beat 3 of 8: Three Columns of Flame",
+          "title": "Three Columns of Flame",
+          "date": "10–11 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 47365.69999998808,
+        "landedBy": "callout shown",
+        "calloutShownMs": 47365.69999998808,
+        "rulerAtRestMs": 47365.69999998808,
+        "landedLateMs": 296.23333330949526,
+        "held": true,
+        "lateOverFullHoldMs": 12.899999976162917,
+        "surfTilesInFlightAtGate": 12,
+        "lastOfThemDoneAfterGateMs": 730.8899999833666,
+        "dataRequests": 49,
+        "dataBytes": 1655356,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 3,
+        "id": "ash",
+        "pressMs": 50313.80000001192,
+        "plannedMinS": 2.416666666666663,
+        "plannedS": 2.416666666666663,
+        "longestS": 2.6999999999999953,
+        "shotAtMs": 53266.89999997616,
+        "landing": {
+          "status": "Beat 4 of 8: Ash on the Rice Fields",
+          "title": "Ash on the Rice Fields",
+          "date": "12 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 5587.699999988079,
+        "settled": {
+          "status": "Beat 4 of 8: Ash on the Rice Fields",
+          "title": "Ash on the Rice Fields",
+          "date": "12 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 53040.30000001192,
+        "landedBy": "callout shown",
+        "calloutShownMs": 53040.30000001192,
+        "rulerAtRestMs": null,
+        "landedLateMs": 309.8333333333371,
+        "held": true,
+        "lateOverFullHoldMs": 26.500000000004775,
+        "surfTilesInFlightAtGate": 12,
+        "lastOfThemDoneAfterGateMs": 726.5449999822304,
+        "dataRequests": 80,
+        "dataBytes": 2945790,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 4,
+        "id": "veil",
+        "pressMs": 61741.19999998808,
+        "plannedMinS": 2.416666666666663,
+        "plannedS": 2.416666666666663,
+        "longestS": 2.6999999999999953,
+        "shotAtMs": 64690.89999997616,
+        "landing": {
+          "status": "Beat 5 of 8: A Veil Around the World",
+          "title": "A Veil Around the World",
+          "date": "28 June 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 3245.5,
+        "settled": {
+          "status": "Beat 5 of 8: A Veil Around the World",
+          "title": "A Veil Around the World",
+          "date": "28 June 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": null,
+        "landedBy": null,
+        "calloutShownMs": null,
+        "rulerAtRestMs": null,
+        "landedLateMs": null,
+        "held": null,
+        "lateOverFullHoldMs": null,
+        "surfTilesInFlightAtGate": 1,
+        "lastOfThemDoneAfterGateMs": 195.11300000315532,
+        "dataRequests": 27,
+        "dataBytes": 1210810,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 5,
+        "id": "europe-1816",
+        "pressMs": 73150.39999997616,
+        "plannedMinS": 2.416666666666663,
+        "plannedS": 2.416666666666663,
+        "longestS": 2.6999999999999953,
+        "shotAtMs": 76101.19999998808,
+        "landing": {
+          "status": "Beat 6 of 8: A Wet, Ungenial Summer",
+          "title": "A Wet, Ungenial Summer",
+          "date": "June–August 1816",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 15276,
+        "settled": {
+          "status": "Beat 6 of 8: A Wet, Ungenial Summer",
+          "title": "A Wet, Ungenial Summer",
+          "date": "June–August 1816",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 75920.10000002384,
+        "landedBy": "callout shown",
+        "calloutShownMs": 75920.10000002384,
+        "rulerAtRestMs": 75920.10000002384,
+        "landedLateMs": 353.03333338102084,
+        "held": true,
+        "lateOverFullHoldMs": 69.70000004768849,
+        "surfTilesInFlightAtGate": 12,
+        "lastOfThemDoneAfterGateMs": 1074.3829999854788,
+        "dataRequests": 167,
+        "dataBytes": 9121135,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 6,
+        "id": "new-england-1816",
+        "pressMs": 90843.80000001192,
+        "plannedMinS": 2.7833333333333283,
+        "plannedS": 2.7833333333333283,
+        "longestS": 3.099999999999994,
+        "shotAtMs": 94193.39999997616,
+        "landing": {
+          "status": "Beat 7 of 8: Eighteen Hundred and Froze to Death",
+          "title": "Eighteen Hundred and Froze to Death",
+          "date": "6 June 1816",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 16466.19999998808,
+        "settled": {
+          "status": "Beat 7 of 8: Eighteen Hundred and Froze to Death",
+          "title": "Eighteen Hundred and Froze to Death",
+          "date": "6 June 1816",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 93937.30000001192,
+        "landedBy": "callout shown",
+        "calloutShownMs": 93937.30000001192,
+        "rulerAtRestMs": 93937.30000001192,
+        "landedLateMs": 310.1666666666715,
+        "held": true,
+        "lateOverFullHoldMs": -6.499999999994031,
+        "surfTilesInFlightAtGate": 12,
+        "lastOfThemDoneAfterGateMs": 1235.107999978587,
+        "dataRequests": 197,
+        "dataBytes": 9945227,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      },
+      {
+        "beat": 7,
+        "id": "yunnan-bengal-1817",
+        "pressMs": 109713.89999997616,
+        "plannedMinS": 3.949999999999991,
+        "plannedS": 3.949999999999991,
+        "longestS": 4.316666666666657,
+        "shotAtMs": 114280.60000002384,
+        "landing": {
+          "status": "Beat 8 of 8: Famine in the Hills, Cholera in the Delta",
+          "title": "Famine in the Hills, Cholera in the Delta",
+          "date": "28 August 1817",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/fd46bea844ec7827-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "dataQuietAfterMs": 12141.700000047684,
+        "settled": {
+          "status": "Beat 8 of 8: Famine in the Hills, Cholera in the Delta",
+          "title": "Famine in the Hills, Cholera in the Delta",
+          "date": "28 August 1817",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/fd46bea844ec7827-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "landedAtMs": 114011.5,
+        "landedBy": "callout shown",
+        "calloutShownMs": 114011.5,
+        "rulerAtRestMs": 114011.5,
+        "landedLateMs": 347.60000002385095,
+        "held": true,
+        "lateOverFullHoldMs": -19.06666664281488,
+        "surfTilesInFlightAtGate": 12,
+        "lastOfThemDoneAfterGateMs": 1667.2099999943894,
+        "dataRequests": 119,
+        "dataBytes": 7049319,
+        "failedRequests": [],
+        "landingWhole": [],
+        "settledWhole": []
+      }
+    ],
+    "hostile": {
+      "presses": [
+        "Back",
+        "Back",
+        "Back",
+        "Back",
+        "Back",
+        "Back",
+        "Next",
+        "Next",
+        "Back",
+        "Back",
+        "Next",
+        "Next",
+        "Back",
+        "Back",
+        "Next",
+        "Next",
+        "Back",
+        "Back",
+        "Next",
+        "Next",
+        "Next",
+        "Next",
+        "Back",
+        "Back",
+        "Next",
+        "Next",
+        "Back",
+        "Next",
+        "Back",
+        "Next",
+        "Next",
+        "Back",
+        "Next",
+        "Back",
+        "Back",
+        "Back",
+        "Next",
+        "Back",
+        "Back",
+        "Back",
+        "Next",
+        "Back",
+        "Next",
+        "Back",
+        "Next",
+        "Next",
+        "Next",
+        "Next",
+        "Next",
+        "Back"
+      ],
+      "stormMs": 9800.199999988079,
+      "afterStorm": {
+        "card": {
+          "status": "Beat 6 of 8: A Wet, Ungenial Summer",
+          "title": "A Wet, Ungenial Summer",
+          "date": "June–August 1816",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "expectedBeat": 5,
+        "problems": []
+      },
+      "retargetedTo": 1,
+      "afterRetarget": {
+        "card": {
+          "status": "Beat 2 of 8: Distant Cannon",
+          "title": "Distant Cannon",
+          "date": "5–10 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "expectedBeat": 1,
+        "problems": []
+      },
+      "resumeShownAfterBreakout": true,
+      "after": {
+        "card": {
+          "status": "Beat 3 of 8: Three Columns of Flame",
+          "title": "Three Columns of Flame",
+          "date": "10–11 April 1815",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "expectedBeat": 2,
+        "problems": []
+      },
+      "problems": []
+    },
+    "offline": {
+      "steps": [
+        {
+          "beat": 0,
+          "card": {
+            "status": "Beat 1 of 8: A Mountain Thought Extinct",
+            "title": "A Mountain Thought Extinct",
+            "date": "April 1815",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/e751bd21f5f6504c-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 264,
+          "failed": 11
+        },
+        {
+          "beat": 1,
+          "card": {
+            "status": "Beat 2 of 8: Distant Cannon",
+            "title": "Distant Cannon",
+            "date": "5–10 April 1815",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 259,
+          "failed": 14
+        },
+        {
+          "beat": 2,
+          "card": {
+            "status": "Beat 3 of 8: Three Columns of Flame",
+            "title": "Three Columns of Flame",
+            "date": "10–11 April 1815",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 94,
+          "failed": 1
+        },
+        {
+          "beat": 3,
+          "card": {
+            "status": "Beat 4 of 8: Ash on the Rice Fields",
+            "title": "Ash on the Rice Fields",
+            "date": "12 April 1815",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 62,
+          "failed": 3
+        },
+        {
+          "beat": 4,
+          "card": {
+            "status": "Beat 5 of 8: A Veil Around the World",
+            "title": "A Veil Around the World",
+            "date": "28 June 1815",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 200,
+          "failed": 0
+        },
+        {
+          "beat": 5,
+          "card": {
+            "status": "Beat 6 of 8: A Wet, Ungenial Summer",
+            "title": "A Wet, Ungenial Summer",
+            "date": "June–August 1816",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 222,
+          "failed": 5
+        },
+        {
+          "beat": 6,
+          "card": {
+            "status": "Beat 7 of 8: Eighteen Hundred and Froze to Death",
+            "title": "Eighteen Hundred and Froze to Death",
+            "date": "6 June 1816",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 272,
+          "failed": 48
+        },
+        {
+          "beat": 7,
+          "card": {
+            "status": "Beat 8 of 8: Famine in the Hills, Cholera in the Delta",
+            "title": "Famine in the Hills, Cholera in the Delta",
+            "date": "28 August 1817",
+            "paragraphs": 1,
+            "image": "sharp",
+            "imageSrc": "https://wander-data.traviscole.xyz/img/fd46bea844ec7827-256.jpg",
+            "resumeShown": false,
+            "roomOpen": true
+          },
+          "problems": [],
+          "fromCache": 318,
+          "failed": 37
+        }
+      ],
+      "failedWhileOffline": 168,
+      "failedWhileOfflineSample": [
+        "https://wander-data.traviscole.xyz/surf/78f401c3/6/1/55/30.wst: net::ERR_INTERNET_DISCONNECTED",
+        "https://wander-data.traviscole.xyz/surf/78f401c3/6/1/56/30.wst: net::ERR_INTERNET_DISCONNECTED",
+        "https://wander-data.traviscole.xyz/surf/78f401c3/6/1/55/31.wst: net::ERR_INTERNET_DISCONNECTED",
+        "https://wander-data.traviscole.xyz/surf/78f401c3/6/1/56/21.wst: net::ERR_INTERNET_DISCONNECTED",
+        "https://wander-data.traviscole.xyz/surf/78f401c3/6/1/56/20.wst: net::ERR_INTERNET_DISCONNECTED"
+      ],
+      "problemsWhileOffline": [
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-breakout",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "phase": "offline-rest",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        }
+      ],
+      "recovery": {
+        "afterMs": 18056.19999998808,
+        "tilesLostAtRest": 12,
+        "fetchedAgain": 12,
+        "tilesLostMidDrag": 25,
+        "fetchedAgainMidDrag": 12,
+        "requests": 139,
+        "failed": 0
+      },
+      "back": {
+        "card": {
+          "status": "Beat 7 of 8: Eighteen Hundred and Froze to Death",
+          "title": "Eighteen Hundred and Froze to Death",
+          "date": "6 June 1816",
+          "paragraphs": 1,
+          "image": "sharp",
+          "imageSrc": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+          "resumeShown": false,
+          "roomOpen": true
+        },
+        "problems": []
+      },
+      "problemsOnline": []
+    },
+    "images": [
+      {
+        "url": "https://wander-data.traviscole.xyz/img/e751bd21f5f6504c-256.jpg",
+        "phase": "walk",
+        "atMs": 9785,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+        "phase": "walk",
+        "atMs": 26669,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+        "phase": "walk",
+        "atMs": 44667,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+        "phase": "walk",
+        "atMs": 50334,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+        "phase": "walk",
+        "atMs": 61750,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+        "phase": "walk",
+        "atMs": 73169,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "walk",
+        "atMs": 90848,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fd46bea844ec7827-256.jpg",
+        "phase": "walk",
+        "atMs": 109733,
+        "cached": false,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "hostile",
+        "atMs": 124265,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+        "phase": "hostile",
+        "atMs": 124469,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+        "phase": "hostile",
+        "atMs": 124668,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+        "phase": "hostile",
+        "atMs": 124868,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+        "phase": "hostile",
+        "atMs": 125067,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+        "phase": "hostile",
+        "atMs": 125267,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+        "phase": "hostile",
+        "atMs": 128269,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+        "phase": "hostile",
+        "atMs": 128469,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "hostile",
+        "atMs": 130269,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+        "phase": "hostile",
+        "atMs": 131068,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+        "phase": "hostile",
+        "atMs": 131269,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+        "phase": "hostile",
+        "atMs": 131869,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+        "phase": "hostile",
+        "atMs": 132068,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+        "phase": "hostile",
+        "atMs": 133268,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+        "phase": "hostile",
+        "atMs": 133465,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+        "phase": "hostile",
+        "atMs": 133668,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "hostile",
+        "atMs": 133868,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "hostile",
+        "atMs": 140302,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+        "phase": "hostile",
+        "atMs": 141536,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+        "phase": "hostile",
+        "atMs": 148033,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/e751bd21f5f6504c-256.jpg",
+        "phase": "offline",
+        "atMs": 160980,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/95f36e9a47256597-256.jpg",
+        "phase": "offline",
+        "atMs": 168178,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/348f893f47acf3d5-256.jpg",
+        "phase": "offline",
+        "atMs": 175380,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/14b19ed1e3530254-256.jpg",
+        "phase": "offline",
+        "atMs": 182577,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/1706506d6a0e0726-256.jpg",
+        "phase": "offline",
+        "atMs": 189813,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fb5212e57e9b3a9b-256.jpg",
+        "phase": "offline",
+        "atMs": 197013,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "offline",
+        "atMs": 204211,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/fd46bea844ec7827-256.jpg",
+        "phase": "offline",
+        "atMs": 211426,
+        "cached": true,
+        "failed": null
+      },
+      {
+        "url": "https://wander-data.traviscole.xyz/img/010fe3b3020920ee-256.jpg",
+        "phase": "online",
+        "atMs": 247551,
+        "cached": true,
+        "failed": null
+      }
+    ],
+    "appHostAfterOpen": [],
+    "problems": [
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-breakout",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "phase": "offline-rest",
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      }
+    ]
+  },
+  "contextLoss": {
+    "firstLossReloaded": true,
+    "reopenedMs": 330.60000002384186,
+    "secondLossPlate": true,
+    "secondLossReloaded": false,
+    "shown": {
+      "roomOpen": false,
+      "title": "Tambora",
+      "blurb": "In April 1815 Tambora explodes, and the veil it spreads across the sky brings cold and hunger from New England to Yunnan.",
+      "note": "The graphics card reset twice in a few minutes. Close other heavy tabs, then reload.",
+      "reload": true,
+      "canvas": false,
+      "stored": "1790577816060"
+    },
+    "appHostAfterOpen": [],
+    "problems": []
+  },
+  "leak": {
+    "driver": "bare CDP, no Network domain",
+    "samples": [
+      {
+        "walks": -1,
+        "jsHeapUsedMB": 0.3,
+        "jsHeapTotalMB": 1,
+        "nodes": 4,
+        "listeners": 2,
+        "documents": 1,
+        "rendererMB": 13,
+        "gpuMB": 11,
+        "gpuGraphicsMB": 0.5,
+        "renderer": {
+          "arrayBuffers": null,
+          "blinkBuffers": 0.8,
+          "blinkGc": 0.5,
+          "v8": 2.4,
+          "malloc": 8.4,
+          "gpuClient": 0.1
+        }
+      },
+      {
+        "walks": 0,
+        "jsHeapUsedMB": 20,
+        "jsHeapTotalMB": 84.4,
+        "nodes": 1394,
+        "listeners": 114,
+        "documents": 5,
+        "rendererMB": 260,
+        "gpuMB": 1015,
+        "gpuGraphicsMB": 800.4,
+        "renderer": {
+          "arrayBuffers": 52.7,
+          "blinkBuffers": 14.7,
+          "blinkGc": 10.3,
+          "v8": 16.3,
+          "malloc": 56.7,
+          "gpuClient": 49.2
+        }
+      },
+      {
+        "walks": 1,
+        "jsHeapUsedMB": 40,
+        "jsHeapTotalMB": 86.1,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 288,
+        "gpuMB": 1004,
+        "gpuGraphicsMB": 747.4,
+        "renderer": {
+          "arrayBuffers": 66.1,
+          "blinkBuffers": 15.6,
+          "blinkGc": 21.3,
+          "v8": 17.9,
+          "malloc": 67.4,
+          "gpuClient": 31.1
+        }
+      },
+      {
+        "walks": 2,
+        "jsHeapUsedMB": 40.1,
+        "jsHeapTotalMB": 85.6,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 273,
+        "gpuMB": 1013,
+        "gpuGraphicsMB": 746.4,
+        "renderer": {
+          "arrayBuffers": 63.6,
+          "blinkBuffers": 15,
+          "blinkGc": 22.4,
+          "v8": 18.2,
+          "malloc": 65,
+          "gpuClient": 25.1
+        }
+      },
+      {
+        "walks": 3,
+        "jsHeapUsedMB": 38,
+        "jsHeapTotalMB": 85.4,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 273,
+        "gpuMB": 1017,
+        "gpuGraphicsMB": 748.4,
+        "renderer": {
+          "arrayBuffers": 66.1,
+          "blinkBuffers": 16.4,
+          "blinkGc": 24,
+          "v8": 18.1,
+          "malloc": 66.8,
+          "gpuClient": 27.1
+        }
+      },
+      {
+        "walks": 4,
+        "jsHeapUsedMB": 38,
+        "jsHeapTotalMB": 85.1,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 271,
+        "gpuMB": 1015,
+        "gpuGraphicsMB": 746.4,
+        "renderer": {
+          "arrayBuffers": 63.6,
+          "blinkBuffers": 15.4,
+          "blinkGc": 24.6,
+          "v8": 18.1,
+          "malloc": 65.6,
+          "gpuClient": 25.1
+        }
+      },
+      {
+        "walks": 5,
+        "jsHeapUsedMB": 40,
+        "jsHeapTotalMB": 85.1,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 270,
+        "gpuMB": 1015,
+        "gpuGraphicsMB": 746.4,
+        "renderer": {
+          "arrayBuffers": 65.8,
+          "blinkBuffers": 16.3,
+          "blinkGc": 25.3,
+          "v8": 17.9,
+          "malloc": 67.1,
+          "gpuClient": 24.1
+        }
+      },
+      {
+        "walks": 6,
+        "jsHeapUsedMB": 37.9,
+        "jsHeapTotalMB": 85.4,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 278,
+        "gpuMB": 1016,
+        "gpuGraphicsMB": 747.4,
+        "renderer": {
+          "arrayBuffers": 66,
+          "blinkBuffers": 16.8,
+          "blinkGc": 25.3,
+          "v8": 18.9,
+          "malloc": 66.9,
+          "gpuClient": 25.1
+        }
+      },
+      {
+        "walks": 7,
+        "jsHeapUsedMB": 38,
+        "jsHeapTotalMB": 85.4,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 277,
+        "gpuMB": 1018,
+        "gpuGraphicsMB": 750.4,
+        "renderer": {
+          "arrayBuffers": 65.5,
+          "blinkBuffers": 16.5,
+          "blinkGc": 25.7,
+          "v8": 18.8,
+          "malloc": 67.5,
+          "gpuClient": 25.1
+        }
+      },
+      {
+        "walks": 8,
+        "jsHeapUsedMB": 37.9,
+        "jsHeapTotalMB": 85.4,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 276,
+        "gpuMB": 1014,
+        "gpuGraphicsMB": 748.4,
+        "renderer": {
+          "arrayBuffers": 66,
+          "blinkBuffers": 17.5,
+          "blinkGc": 25.9,
+          "v8": 18.4,
+          "malloc": 67.7,
+          "gpuClient": 25.1
+        }
+      },
+      {
+        "walks": 9,
+        "jsHeapUsedMB": 38,
+        "jsHeapTotalMB": 85.8,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 277,
+        "gpuMB": 1017,
+        "gpuGraphicsMB": 748.4,
+        "renderer": {
+          "arrayBuffers": 63.6,
+          "blinkBuffers": 16.3,
+          "blinkGc": 26.3,
+          "v8": 18.2,
+          "malloc": 67.4,
+          "gpuClient": 25.1
+        }
+      },
+      {
+        "walks": 10,
+        "jsHeapUsedMB": 40.2,
+        "jsHeapTotalMB": 86.1,
+        "nodes": 1338,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 275,
+        "gpuMB": 1013,
+        "gpuGraphicsMB": 751.4,
+        "renderer": {
+          "arrayBuffers": 66,
+          "blinkBuffers": 17.3,
+          "blinkGc": 25.9,
+          "v8": 17.9,
+          "malloc": 67.8,
+          "gpuClient": 25.1
+        }
+      }
+    ],
+    "growth": {
+      "walks3to6": {
+        "rendererMB": {
+          "from": 273,
+          "to": 278
+        },
+        "gpuMB": {
+          "from": 1017,
+          "to": 1016
+        },
+        "gpuGraphicsMB": {
+          "from": 748.4,
+          "to": 747.4
+        },
+        "jsHeapUsedMB": {
+          "from": 38,
+          "to": 37.9
+        },
+        "nodes": {
+          "from": 1338,
+          "to": 1338
+        },
+        "renderer": {
+          "arrayBuffers": {
+            "from": 66.1,
+            "to": 66
+          },
+          "blinkBuffers": {
+            "from": 16.4,
+            "to": 16.8
+          },
+          "blinkGc": {
+            "from": 24,
+            "to": 25.3
+          },
+          "v8": {
+            "from": 18.1,
+            "to": 18.9
+          },
+          "malloc": {
+            "from": 66.8,
+            "to": 66.9
+          },
+          "gpuClient": {
+            "from": 27.1,
+            "to": 25.1
+          }
+        }
+      },
+      "walks6toLast": {
+        "rendererMB": {
+          "from": 278,
+          "to": 275
+        },
+        "gpuMB": {
+          "from": 1016,
+          "to": 1013
+        },
+        "gpuGraphicsMB": {
+          "from": 747.4,
+          "to": 751.4
+        },
+        "jsHeapUsedMB": {
+          "from": 37.9,
+          "to": 40.2
+        },
+        "nodes": {
+          "from": 1338,
+          "to": 1338
+        },
+        "renderer": {
+          "arrayBuffers": {
+            "from": 66,
+            "to": 66
+          },
+          "blinkBuffers": {
+            "from": 16.8,
+            "to": 17.3
+          },
+          "blinkGc": {
+            "from": 25.3,
+            "to": 25.9
+          },
+          "v8": {
+            "from": 18.9,
+            "to": 17.9
+          },
+          "malloc": {
+            "from": 66.9,
+            "to": 67.8
+          },
+          "gpuClient": {
+            "from": 25.1,
+            "to": 25.1
+          }
+        }
+      }
+    },
+    "landingsUnthrottled": {
+      "flights": 79,
+      "observed": 69,
+      "lateMsMedian": 265.3333333333371,
+      "lateMsMax": 356.26666669051747,
+      "held": 44,
+      "overFullHoldMsMax": 67.60000002384663
+    },
+    "appHostAfterOpen": [],
+    "problems": []
+  },
+  "shots": [
+    "walk-1-world-1815-landing.png",
+    "walk-1-world-1815-settled.png",
+    "walk-2-sunda-landing.png",
+    "walk-2-sunda-settled.png",
+    "walk-3-sumbawa-landing.png",
+    "walk-3-sumbawa-settled.png",
+    "walk-4-ash-landing.png",
+    "walk-4-ash-settled.png",
+    "walk-5-veil-landing.png",
+    "walk-5-veil-settled.png",
+    "walk-6-europe-1816-landing.png",
+    "walk-6-europe-1816-settled.png",
+    "walk-7-new-england-1816-landing.png",
+    "walk-7-new-england-1816-settled.png",
+    "walk-8-yunnan-bengal-1817-landing.png",
+    "walk-8-yunnan-bengal-1817-settled.png",
+    "hostile-1-storm-end.png",
+    "hostile-2-retargeted.png",
+    "hostile-3-breakout.png",
+    "hostile-4-resized.png",
+    "hostile-5-after.png",
+    "offline-1-world-1815.png",
+    "offline-2-sunda.png",
+    "offline-3-sumbawa.png",
+    "offline-4-ash.png",
+    "offline-5-veil.png",
+    "offline-6-europe-1816.png",
+    "offline-7-new-england-1816.png",
+    "offline-8-yunnan-bengal-1817.png",
+    "offline-9-breakout.png",
+    "online-1-recovered.png",
+    "online-2-back.png",
+    "context-1-before.png",
+    "context-2-reloaded.png",
+    "context-3-second-loss.png",
+    "leak-after.png"
+  ]
+}
