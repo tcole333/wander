@@ -90,8 +90,31 @@ sources:
     expect(beat?.window).toEqual([dayFromIso('1815-04-05'), dayFromIso('1815-04-12')]);
   });
 
+  it.each(['spread', 'route'])('reads a named %s dataset without building it', (kind) => {
+    const [beat] = parseStory(
+      storyWith(`${BEAT}\neffects: [{${kind}: {dataset: voyage, wDays: 7, style: brass}}]`),
+    ).beats;
+    expect(beat?.effects).toEqual([{ kind, dataset: 'voyage', wDays: 7, style: 'brass' }]);
+
+    const [defaults] = parseStory(
+      storyWith(`${BEAT}\neffects: [{${kind}: {dataset: voyage}}]`),
+    ).beats;
+    expect(defaults?.effects).toEqual([{ kind, dataset: 'voyage', wDays: 1, style: kind }]);
+  });
+
   it.each([
     ['a key it does not name', `${BEAT}\nmood: grim`, /unknown key 'mood'/],
+    ['a route without a dataset', `${BEAT}\neffects: [{route: {}}]`, /dataset must be text/],
+    [
+      'a misspelled route field',
+      `${BEAT}\neffects: [{route: {dataset: voyage, width: 7}}]`,
+      /unknown key 'width'/,
+    ],
+    [
+      'a route width that is not a number',
+      `${BEAT}\neffects: [{route: {dataset: voyage, wDays: soon}}]`,
+      /wDays must be a number/,
+    ],
     ['a misspelled camera field', BEAT.replace('viewKm', 'viewkm'), /unknown key 'viewkm'/],
     ['a layer the constants do not list', BEAT.replace('labels', 'rivers'), /layer 'rivers'/],
     ['climate without its mode', BEAT.replace('labels', 'climate'), /climate needs its mode/],
