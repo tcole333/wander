@@ -17,6 +17,7 @@ import {
   type Vector3,
 } from 'three';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
+import { smoothstep } from '../story/effects/timeline';
 import list from './seaNames.json';
 
 /** A name as seaNames.json holds it. */
@@ -40,34 +41,29 @@ export interface SeaName {
   maxKm?: number;
 }
 
-export const SEA_NAMES = list as SeaName[];
+const SEA_NAMES = list as SeaName[];
 
 /** The most names the shader inlays at once. */
 export const SEA_NAMES_MAX = 16;
 
 /** The em in CSS px over which a name fades in, and over which it fades out again. */
-export const SEA_NAME_PX = { in: [7, 11], out: [36, 48] } as const;
+const SEA_NAME_PX = { in: [7, 11], out: [36, 48] } as const;
 
 /** A view width bound's fade, either side of it, as a share of it. */
 const KM_FADE = 0.15;
 
 const DEG = Math.PI / 180;
 
-const smooth = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
-
 /** How strongly a name shows with its em `emPx` CSS px on screen, the view `viewKm` wide there. */
 export function seaNameFade(name: SeaName, emPx: number, viewKm: number): number {
   const [a, b] = SEA_NAME_PX.in;
   const [c, d] = SEA_NAME_PX.out;
-  let fade = smooth(a, b, emPx) * (1 - smooth(c, d, emPx));
+  let fade = smoothstep(a, b, emPx) * (1 - smoothstep(c, d, emPx));
   if (name.minKm !== undefined) {
-    fade *= smooth(name.minKm * (1 - KM_FADE), name.minKm * (1 + KM_FADE), viewKm);
+    fade *= smoothstep(name.minKm * (1 - KM_FADE), name.minKm * (1 + KM_FADE), viewKm);
   }
   if (name.maxKm !== undefined) {
-    fade *= 1 - smooth(name.maxKm * (1 - KM_FADE), name.maxKm * (1 + KM_FADE), viewKm);
+    fade *= 1 - smoothstep(name.maxKm * (1 - KM_FADE), name.maxKm * (1 + KM_FADE), viewKm);
   }
   return fade;
 }
@@ -90,13 +86,13 @@ export interface PlacedName {
 }
 
 /**
- * The names to inlay and how strongly, strongest first and at most `max`: those at least partly on
- * the camera's side of the globe, faded by their em on screen and the view's width at them.
+ * The names to inlay and how strongly, strongest first and at most SEA_NAMES_MAX: those at least
+ * partly on the camera's side of the globe, faded by their em on screen and the view's width at
+ * them.
  */
 export function pickSeaNames(
   names: readonly PlacedName[],
   view: SeaNameView,
-  max = SEA_NAMES_MAX,
 ): { index: number; alpha: number }[] {
   const r = view.camera.length();
   if (r <= 1) return [];
@@ -111,7 +107,7 @@ export function pickSeaNames(
     const alpha = seaNameFade(name, emPx, viewKm);
     if (alpha > 0) picked.push({ index, alpha });
   });
-  return picked.sort((a, b) => b.alpha - a.alpha).slice(0, max);
+  return picked.sort((a, b) => b.alpha - a.alpha).slice(0, SEA_NAMES_MAX);
 }
 
 export interface SeaNameUniforms {
@@ -153,9 +149,8 @@ export class SeaNameLayer {
   readonly uniforms: SeaNameUniforms;
   /** Resolves once the atlas is lettered, or has failed to be (the names then never show). */
   readonly ready: Promise<void>;
-  private readonly names = SEA_NAMES;
-  private readonly placed: PlacedName[];
-  private boxes: Lettered[] | null = null;
+  readonly #placed: PlacedName[];
+  #boxes: Lettered[] | null = null;
 
   constructor() {
     const vectors = () => Array.from({ length: SEA_NAMES_MAX }, () => new Vector4());
@@ -168,23 +163,23 @@ export class SeaNameLayer {
       lookSeaBox: { value: vectors() },
       lookSeaAtlas: { value: blank },
     };
-    this.placed = this.names.map((name) => ({ name, dir: dirOf([name.lon, name.lat]), reach: 0 }));
-    this.ready = this.letter().catch((error: unknown) => {
+    this.#placed = SEA_NAMES.map((name) => ({ name, dir: dirOf([name.lon, name.lat]), reach: 0 }));
+    this.ready = this.#letter().catch((error: unknown) => {
       console.warn('The sea names were not lettered:', error);
     });
   }
 
   /** Picks the names for this view and fills the uniforms; `strength` is the layer's. */
   place(view: SeaNameView, strength: number): void {
-    const boxes = this.boxes;
+    const boxes = this.#boxes;
     if (!boxes || strength <= 0) {
       this.uniforms.lookSeaCount.value = 0;
       return;
     }
-    const picked = pickSeaNames(this.placed, view);
+    const picked = pickSeaNames(this.#placed, view);
     const { lookSeaPlace, lookSeaFrame, lookSeaBox } = this.uniforms;
     picked.forEach(({ index, alpha }, i) => {
-      const name = this.names[index];
+      const name = SEA_NAMES[index];
       const box = boxes[index];
       if (!name || !box) return;
       const angle = (name.angle ?? 0) * DEG;
@@ -202,11 +197,11 @@ export class SeaNameLayer {
   }
 
   /** Loads the faces, letters every name into one canvas and makes it the atlas. */
-  private async letter(): Promise<void> {
+  async #letter(): Promise<void> {
     const upper = (name: SeaName) => (name.style === 'ocean' ? name.text.toUpperCase() : name.text);
     await Promise.all(
       (Object.keys(FONTS) as SeaName['style'][]).map((style) => {
-        const text = this.names.filter((n) => n.style === style).map(upper);
+        const text = SEA_NAMES.filter((n) => n.style === style).map(upper);
         return document.fonts.load(FONTS[style], text.join(''));
       }),
     );
@@ -229,7 +224,7 @@ export class SeaNameLayer {
           return { chars, at, width };
         });
     };
-    const layouts = this.names.map(lettersOf);
+    const layouts = SEA_NAMES.map(lettersOf);
 
     // Shelves across the atlas's width, the names on two lines together.
     const boxes: Lettered[] = [];
@@ -259,7 +254,7 @@ export class SeaNameLayer {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#fff';
     ctx.textBaseline = 'alphabetic';
-    this.names.forEach((name, n) => {
+    SEA_NAMES.forEach((name, n) => {
       const box = boxes[n];
       const lines = layouts[n];
       if (!box || !lines) return;
@@ -284,11 +279,11 @@ export class SeaNameLayer {
     this.uniforms.lookSeaAtlas.value.dispose();
     this.uniforms.lookSeaAtlas.value = atlas;
     boxes.forEach((box, n) => {
-      const placed = this.placed[n];
-      const name = this.names[n];
+      const placed = this.#placed[n];
+      const name = SEA_NAMES[n];
       if (placed && name)
         placed.reach = (Math.hypot(box.w, box.h) / 2 / (EM_TEXELS / name.size)) * DEG;
     });
-    this.boxes = boxes;
+    this.#boxes = boxes;
   }
 }
