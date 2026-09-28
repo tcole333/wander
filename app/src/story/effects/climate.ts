@@ -1,8 +1,8 @@
 // The globe's climate in the walk (streaming.md 3.5): ModE-RA's monthly temperature anomalies
 // under the story day, on the beats whose layers show climate monthly. The years those beats reach
-// load once asked (the boot asks as the lobby's opening starts, after everything the first frame
-// needs), from the beat before each (a flight sweeps story time from its date) to the end of the
-// beat's window: each year's mean file is fetched from the data host, inflated and read
+// load once asked (the boot asks the first time the view settles with the tiles in view loaded),
+// from the beat before each (a flight sweeps story time from its date) to the end of the beat's
+// window: each year's mean file is fetched from the data host, inflated and read
 // (data/climate.ts). A year a scrub reaches beyond them loads when first asked for, and past the
 // data's years the layer eases out. Each frame the two months around the story day blend into the
 // look's field (look/climateHook.ts), uploaded when the blend changes, and the look's strength
