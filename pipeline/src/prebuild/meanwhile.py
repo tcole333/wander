@@ -25,8 +25,9 @@ A beat's `meanwhile: {pin: [qids], hide: [qids]}` puts its pins first, whatever 
 keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The same rule gives
 `COUNT` events for each month of the story's years, which Meanwhile shows while the visitor
 scrubs: first those dated in the month, then those within `PAD_DAYS` of its middle; the target of
-the beat dated nearest it; none of the story's focal events and nothing a beat hides. Since no
-writer has read a month's picks, they are events with a written line, or with an English
+the beat dated nearest it; none of the story's focal events and nothing a beat hides. A month
+still short of `COUNT` relaxes by `SPARSE_STEPS`: the spacing between its entries, then its reach.
+Since no writer has read a month's picks, they are events with a written line, or with an English
 Wikipedia article and a place of their own (an inherited place is often a region's middle).
 
 An entry shows its written line where it has one, else its Wikidata label, and cites the line's
@@ -63,6 +64,9 @@ COUNT = 3  # entries per beat and per month
 PAD_DAYS = 45  # a beat's window reaches at least this far either side of its date
 SHORTEST_DAYS = 92  # the longest span a short window admits
 MIN_KM = 2000.0  # from the beat's target, and between entries
+# How a month holding fewer than COUNT relaxes, a step at a time until it holds COUNT: the spacing
+# between its entries (km), then how far its window reaches either side of its middle (days).
+SPARSE_STEPS = ((1000.0, PAD_DAYS), (500.0, PAD_DAYS), (500.0, 60), (500.0, 75), (500.0, 90))
 GLOW_COUNT = 120
 GLOW_MIN_KM = 450.0
 EARTH_KM = 6371.0088
@@ -194,13 +198,14 @@ def choose(
     *,
     pins: Sequence[Event] = (),
     avoid: Mapping[str, int] | None = None,
+    spacing: float = MIN_KM,
     count: int = COUNT,
 ) -> list[Event]:
     """Up to `count` events for `frame`: the pins, then of those that qualify, first the ones
     dated in its near days by score (`index`'s order), then the rest nearest its day first. Each
-    keeps `MIN_KM` from those taken and is neither parent nor child of one of them (`ancestors`,
-    from `lineage`). Those in `avoid`, which counts how often each is shown nearby, are taken only
-    once the others run out, the least shown first."""
+    keeps `spacing` km from those taken and is neither parent nor child of one of them
+    (`ancestors`, from `lineage`). Those in `avoid`, which counts how often each is shown nearby,
+    are taken only once the others run out, the least shown first."""
     chosen = list(pins)
     qualifying = [e for e in index if qualifies(e, frame) and e not in chosen]
     near = [e for e in qualifying if is_near(e, frame)]
@@ -214,7 +219,7 @@ def choose(
                 return chosen
             if event in chosen or shown.get(event.qid, 0) > most:
                 continue
-            if any(apart_km(event.at, c.at) < MIN_KM for c in chosen):
+            if any(apart_km(event.at, c.at) < spacing for c in chosen):
                 continue
             if any(related(event.qid, c.qid, ancestors) for c in chosen):
                 continue
@@ -243,11 +248,14 @@ def in_turn(
     index: Sequence[Event],
     ancestors: Mapping[str, frozenset[str]],
     pins: Sequence[Sequence[Event]] | None = None,
+    sparse: Sequence[tuple[float, int]] = (),
 ) -> list[list[Event]]:
     """Each frame's entries, in order. Where the pool allows, a list shuns the events the lists
     before it took from their own near days, and those the next list would take on its own that
     are dated nearer to it, so a month's event is not left to the month before, which borrowed it;
-    where it does not, a list repeats the entries shown least."""
+    where it does not, a list repeats the entries shown least. A list still short of `COUNT`
+    relaxes by the steps in `sparse`, each a spacing and a reach either side of the frame's day,
+    keeping what it has."""
     pinned = pins or [()] * len(frames)
     alone = [choose(index, f, ancestors, pins=p) for f, p in zip(frames, pinned, strict=True)]
     lists: list[list[Event]] = []
@@ -260,7 +268,17 @@ def in_turn(
             shown.update(
                 e.qid for e in alone[i + 1] if abs(e.middle - after.day) < abs(e.middle - frame.day)
             )
-        lists.append(choose(index, frame, ancestors, pins=pinned[i], avoid=shown))
+        chosen = choose(index, frame, ancestors, pins=pinned[i], avoid=shown)
+        for spacing, reach in sparse:
+            if len(chosen) >= COUNT:
+                break
+            wider = replace(
+                frame,
+                start=min(frame.start, frame.day - reach),
+                end=max(frame.end, frame.day + reach),
+            )
+            chosen = choose(index, wider, ancestors, pins=chosen, avoid=shown, spacing=spacing)
+        lists.append(chosen)
     return lists
 
 
@@ -307,7 +325,8 @@ def month_lists(
 ) -> dict[tuple[int, int], list[Event]]:
     """Each month's entries, from January of the year the story's windows open to December of
     the year they close. Only the events in `written`, or with an English article and a place of
-    their own, qualify; none whose date is `contested`."""
+    their own, qualify; none whose date is `contested`. A month short of entries relaxes by
+    `SPARSE_STEPS`."""
     ancestors = lineage(index)
     excluded = (
         relatives({b.focal for b in beats}, index, ancestors)
@@ -338,7 +357,7 @@ def month_lists(
             )
         )
         year, month = (year + 1, 1) if month == 12 else (year, month + 1)
-    return dict(zip(months, in_turn(frames, pool, ancestors), strict=True))
+    return dict(zip(months, in_turn(frames, pool, ancestors, sparse=SPARSE_STEPS), strict=True))
 
 
 def glows(index: Sequence[Event], count: int = GLOW_COUNT) -> list[Event]:
