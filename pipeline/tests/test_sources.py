@@ -40,6 +40,7 @@ def test_the_registry_pins_the_inputs_of_the_landed_stages():
             "ModE-RA_ensstd_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
             "ModE-readme.txt",
         ],
+        "historical-basemaps": ["world_1815.geojson"],
     }
 
 
