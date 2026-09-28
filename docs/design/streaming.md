@@ -1209,8 +1209,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     shift, so the lens eases back to the page's center, and unfolding brings the shift back. A
     fold holds across beats and across both stories, remembered per viewer in `localStorage`
     (`wander.fold.card`, `wander.fold.meanwhile`), or for the visit alone where storage refuses.
-    Reduced motion otherwise waits (below); under `prefers-reduced-motion` a fold is instant, and
-    the globe takes its new place at once rather than easing there.
+    Under `prefers-reduced-motion` a fold is instant, and the globe takes its new place at once.
   - **Return:** WANDER at the top left and Escape bring the lobby back from a beat, a break-out or
     an unfinished dive. Escape first closes Credits when its panel is open. The card and Meanwhile
     withdraw along their arrival paths, with the Resume plaque, legend and borders' year plate;
