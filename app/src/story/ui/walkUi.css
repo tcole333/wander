@@ -432,10 +432,6 @@
       100% 1px no-repeat;
 }
 
-.wu-foot[hidden] {
-  display: none;
-}
-
 /* The sources toggle and the credits page, engraved on one line and one baseline. */
 .wu-foot-line {
   display: flex;
