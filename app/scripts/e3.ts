@@ -31,8 +31,8 @@
 // footprint(1)); plain Node, run from app/ with nothing else using the GPU (about 20 minutes):
 //
 //   node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results \
-//     [--url https://wander.traviscole.xyz] [--name live] [--only cold,walk,context,leak] \
-//     [--runs 3] [--walks 6]
+//     [--url https://wander.traviscole.xyz] [--name live-<today>] [--only cold,walk,context,leak] \
+//     [--runs 3] [--walks 10]
 import {
   chromium,
   type Browser,
@@ -100,10 +100,10 @@ const { values } = parseArgs({
     url: { type: 'string', default: 'https://wander.traviscole.xyz' },
     out: { type: 'string' },
     results: { type: 'string' },
-    name: { type: 'string', default: 'live' },
+    name: { type: 'string', default: `live-${new Date().toISOString().slice(0, 10)}` },
     only: { type: 'string', default: 'cold,walk,context,leak' },
     runs: { type: 'string', default: '3' },
-    walks: { type: 'string', default: '6' },
+    walks: { type: 'string', default: '10' },
     timeout: { type: 'string', default: '120' },
   },
 });
