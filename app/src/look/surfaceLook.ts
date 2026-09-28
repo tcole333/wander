@@ -177,8 +177,10 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   registerBorders(material, borders);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule and the sea names need the camera in the globe frame: the mesh's local frame.
-  // The names also need the CSS px a length spans at the same distance in front of the camera.
+  // The names also need the CSS px a length spans at the same distance in front of the camera, and
+  // the globe frame's projection, to keep to the names in the view.
   const toLocal = new Matrix4();
+  const toClip = new Matrix4();
   const viewport = new Vector2();
   material.onBeforeRender = (renderer, _scene, camera, _geometry, object) => {
     toLocal.copy(object.matrixWorld).invert();
@@ -186,7 +188,11 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     if (!(camera instanceof PerspectiveCamera)) return;
     renderer.getSize(viewport);
     const pxPerUnit = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.y;
-    seaNames.place({ camera: camLocal, pxPerUnit, width: viewport.x }, Number(params.seaNames));
+    toClip
+      .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+      .multiply(object.matrixWorld);
+    const view = { camera: camLocal, pxPerUnit, width: viewport.x, height: viewport.y, toClip };
+    seaNames.place(view, Number(params.seaNames));
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
