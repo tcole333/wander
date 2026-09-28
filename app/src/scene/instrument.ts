@@ -21,6 +21,7 @@ import {
   Vector3,
   type Object3D,
 } from 'three';
+import { releaseCanvasAfterUpload } from '../gpu/uploadOnce';
 
 /** A piece of the instrument that fades as the camera nears it. */
 export interface FadePart {
@@ -71,7 +72,7 @@ function brushedNoiseTexture(size = 512): CanvasTexture {
     }
   }
   x.putImageData(img, 0, 0);
-  const texture = new CanvasTexture(canvas);
+  const texture = releaseCanvasAfterUpload(new CanvasTexture(canvas));
   texture.wrapS = texture.wrapT = RepeatWrapping;
   return texture;
 }
@@ -159,7 +160,7 @@ function engravedRingTexture(
     });
   }
 
-  const texture = new CanvasTexture(canvas);
+  const texture = releaseCanvasAfterUpload(new CanvasTexture(canvas));
   texture.repeat.set(1 / (2 * outer), 1 / (2 * outer));
   texture.offset.set(0.5, 0.5);
   texture.anisotropy = 8;
