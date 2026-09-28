@@ -51,8 +51,9 @@ beat the visitor can break out: scrub time, spin and zoom the globe, open Meanwh
 about what the app does or does not show.
 
 **Image cards.** Most beats carry one historical image (painting, engraving, period map, or
-photograph) from Wikimedia Commons, shown as a framed card with a one-line credit. Framing and
-toning keep images consistent with the brass look.
+photograph) from Wikimedia Commons, shown as a framed card with a one-line credit, and under it
+the holding collection's own credit line where the collection asks for one. Framing and toning keep
+images consistent with the brass look.
 
 ### Time and detail
 
