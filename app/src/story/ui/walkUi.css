@@ -907,6 +907,95 @@ button.wu-mark:not(:disabled) {
   opacity: 0;
 }
 
+/* The folds (fold.ts): what a panel folds away is a grid row that shrinks to nothing, as the
+   sources' does, and the panel keeps its head. A small brass knob in the head folds it: the
+   sound knob's metal in miniature, with a chevron cut into its face that turns over as the panel
+   folds. On the card the knob stands at the head's upper right, level with the date line. */
+
+.wu-fold {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.45s ease;
+}
+
+.is-folded .wu-fold {
+  grid-template-rows: 0fr;
+}
+
+.wu-fold-in {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: visibility 0s;
+}
+
+/* What has folded away is hidden once the row is closed, and shows again as it opens. */
+.is-folded .wu-fold-in {
+  visibility: hidden;
+  transition: visibility 0s 0.45s;
+}
+
+.wu-story .wu-card-head {
+  position: relative;
+}
+
+.wu-fold-knob {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+  box-shadow: var(--cast-near);
+  transition: filter 0.15s;
+}
+
+.wu-card-head > .wu-fold-knob {
+  top: 13px;
+  right: 13px;
+}
+
+.wu-fold-knob > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.wu-fold-knob:hover {
+  filter: brightness(1.12) drop-shadow(0 0 6px rgb(255 206 130 / 0.35));
+}
+
+.wu-fold-knob:active {
+  filter: brightness(0.94);
+}
+
+.wu-fold-mark .wu-niello-line {
+  stroke-width: 1.7;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: rotate 0.35s ease;
+}
+
+.is-folded .wu-fold-mark .wu-niello-line {
+  rotate: 180deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wu-fold,
+  .wu-fold-in,
+  .is-folded .wu-fold-in,
+  .wu-fold-mark .wu-niello-line {
+    transition: none;
+  }
+}
+
 /* The Resume plaque: a small cast brass plaque, riveted at its ends, its lettering cut in. */
 
 .wu-resume {
