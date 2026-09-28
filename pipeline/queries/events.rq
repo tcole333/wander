@@ -1,12 +1,13 @@
 # The events of one class, with its subclasses (streaming.md 3.4). `uv run prebuild wikidata` runs
 # it once per class in pipeline/config/event-classes.yaml against QLever's Wikidata endpoint,
-# replacing the class in the VALUES line; as written it asks for battles.
+# replacing the class in the `VALUES ?class` line; as written it asks for battles.
 #
-# One row per dated statement: point in time (P585), start time (P580) or end time (P582), with its
-# precision (9 year, 10 month, 11 day). Per event: the English label, the English Wikipedia title,
-# the coordinates (P625) and those of its location (P276/P625), the number of Wikipedia editions
-# covering it (the PRD's notability) and its part-of parents (P361). The events stage picks one row
-# per event.
+# One row per dated statement that is not deprecated: point in time (P585), start time (P580) or
+# end time (P582), with its precision (9 year, 10 month, 11 day). The ranks kept are listed, since
+# QLever drops most rows under FILTER(?rank != wikibase:DeprecatedRank). Per event: the English
+# label, the English Wikipedia title, the coordinates (P625) and those of its location
+# (P276/P625), the number of Wikipedia editions covering it (the PRD's notability) and its part-of
+# parents (P361). The events stage picks one row per event.
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX p: <http://www.wikidata.org/prop/>
@@ -31,10 +32,12 @@ WHERE {
     GROUP BY ?event
   }
   {
-    { ?event p:P585/psv:P585 ?value . BIND("P585" AS ?property) }
-    UNION { ?event p:P580/psv:P580 ?value . BIND("P580" AS ?property) }
-    UNION { ?event p:P582/psv:P582 ?value . BIND("P582" AS ?property) }
+    { ?event p:P585 ?statement . ?statement psv:P585 ?value . BIND("P585" AS ?property) }
+    UNION { ?event p:P580 ?statement . ?statement psv:P580 ?value . BIND("P580" AS ?property) }
+    UNION { ?event p:P582 ?statement . ?statement psv:P582 ?value . BIND("P582" AS ?property) }
   }
+  VALUES ?rank { wikibase:NormalRank wikibase:PreferredRank }
+  ?statement wikibase:rank ?rank .
   ?value wikibase:timeValue ?date ; wikibase:timePrecision ?precision .
   OPTIONAL { ?event rdfs:label ?enLabel . FILTER(LANG(?enLabel) = "en") }
   OPTIONAL {
