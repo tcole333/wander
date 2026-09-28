@@ -63,10 +63,1422 @@
     "testsPassed": 31
   },
   "limits": [
-    "The terrain-bound failures are left for bake investigation; they do not establish a visible crack.",
+    "The later raw-source replay classifies all twelve terrain-bound misses as source-correct footprint or coastal-clamp differences; the bound and rendered shading remain E2 work.",
     "Global L5-L6 creases are measured, without a regional regression limit, because coverage and quantization differ.",
     "The CPU mirror checks available same-level pairs at d=0 on the full grid. Mixed levels, motion, GPU behavior and visual shading are outside this run.",
     "Owner means are checked only where the owner tile is baked. L7 at Sumbawa has no face-edge pairs.",
-    "Source pins are compared with the records; raw source files are not rehashed or reread."
-  ]
+    "The full verification compared source pins without rereading raw files. The later classification reread the affected GEBCO and Natural Earth data, checking pinned sizes but not rehashing entire files."
+  ],
+  "classification": {
+    "date": "2026-09-28",
+    "commandFromPipeline": "uv run python ../docs/design/measurements/work/surface-bake/classify-cross-face.py",
+    "recipe": "Production cube mapping; 4x4 bilinear subsamples of GEBCO's 15-arcsecond grid per texel; Natural Earth shore distance; two-texel coastal clamp; stored level qLand and half-away rounding.",
+    "checkedBorderTexels": 12,
+    "checkedNeighborTexels": 108,
+    "maxCodeDifferenceFromRecomputedSource": 0,
+    "allRecomputedShoreBytesMatch": true,
+    "conclusion": "All twelve are terrain-bound false positives, with no encoder or column-mapping defect found: three from different GEBCO sampling footprints, six from the coastal clamp's two-texel reach and three from its land/sea sign. Both sides follow the specified encoder.",
+    "normalMethod": {
+      "singleTexelNormalChange": "To isolate each miss, replace only its border code with the neighbor grid's bilinear code at the same physical center. Compare geometric normals at the centers of the four adjacent mip-0 bilinear cells (two at outermost k=3); report the maximum rotation at each relief and the cell where it occurs. This is a diagnostic substitution, not a proposed correction to source data.",
+      "singleTexelCalculation": "For each cell's four corners form P=(6371008.8+k*h)*direction, k=8 or 2, using codes_to_meters. At its center take the s tangent as the mean of its two s-edge chords and the t tangent as the mean of its two t-edge chords. Normalize their cross product before and after the single-code substitution; the angle is atan2(|a cross b|, a dot b) in degrees.",
+      "normalComparison": "Also compare both decoded mip-0 fields' secant normals at the offending border center on the same physical stencil. Sample one texel before and after along each border-face axis; at k=3 use the center and inward sample on that axis. offsetsIJ lists s-low, s-high, t-low, t-high. Map each point into each face, bilinearly interpolate codes, form P as above, and compare normalized (P_sHigh-P_sLow) cross (P_tHigh-P_tLow). This compares whole local fields, rather than isolating one texel.",
+      "limit": "These are CPU geometric slope diagnostics. They do not measure drawn mesh normals or the look shader's filtered, stylized, view-dependent normals. Border centers lie outside the face edge; rendered shading remains E2 work."
+    },
+    "tileCentersLonLat": {
+      "5/0/31/24": [
+        43.59375,
+        17.798534036
+      ],
+      "5/1/27/31": [
+        122.34375,
+        38.812067116
+      ],
+      "5/1/28/31": [
+        125.15625,
+        37.897384577
+      ],
+      "5/3/27/0": [
+        -57.65625,
+        -38.812067116
+      ],
+      "5/4/31/31": [
+        135.0,
+        36.601179336
+      ],
+      "5/5/20/0": [
+        166.728755212,
+        -45.631297908
+      ],
+      "6/3/43/0": [
+        -73.828125,
+        -43.1414899
+      ],
+      "6/4/63/62": [
+        133.592478626,
+        36.585029625
+      ]
+    },
+    "cases": [
+      {
+        "miss": "5/0/31/24 E k=3 along=81: 592 vs 568..584",
+        "classification": "neither side departs from its source",
+        "cause": "different GEBCO sampling footprints",
+        "texelCenterLonLat": [
+          45.038452148,
+          16.999411001
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": 1201.598764545,
+        "borderShoreDistanceTexels": "Infinity",
+        "borderAfterClampMeters": 1201.598764545,
+        "borderExpectedAndStoredCode": 592,
+        "neighborTile": "5/1/0/24",
+        "neighborCenterIJ": [
+          3,
+          78
+        ],
+        "neighborRawCodeRange": [
+          568,
+          584
+        ],
+        "neighborStoredCodeRange": [
+          568,
+          584
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            583.0,
+            592.0,
+            573.0,
+            574.0
+          ],
+          "neighborStencilCodes": [
+            581.572384952,
+            583.549832815,
+            576.315209702,
+            577.609019961
+          ],
+          "angleDegrees": {
+            "x8": 5.508841814,
+            "x2": 1.38786966
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 583.549832815,
+          "borderMinusNeighborMeters": 17.164402094,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                258,
+                80
+              ],
+              "degrees": 5.940671366
+            },
+            "x2": {
+              "cellLowerIJ": [
+                258,
+                80
+              ],
+              "degrees": 1.55083258
+            }
+          },
+          "adjacentCellsChecked": 2
+        }
+      },
+      {
+        "miss": "5/1/27/31 N k=0 along=239: -9 vs -4..1",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp reach",
+        "texelCenterLonLat": [
+          123.568725586,
+          39.807249276
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": -18.888480947,
+        "borderShoreDistanceTexels": 2.353042509,
+        "borderAfterClampMeters": -18.888480947,
+        "borderExpectedAndStoredCode": -9,
+        "neighborTile": "5/4/31/27",
+        "neighborCenterIJ": [
+          255,
+          239
+        ],
+        "neighborRawCodeRange": [
+          -10,
+          1
+        ],
+        "neighborStoredCodeRange": [
+          -4,
+          1
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "neighborStencilCodes": [
+            -0.775603484,
+            0.0,
+            0.0,
+            1.146014724
+          ],
+          "angleDegrees": {
+            "x8": 1.157880134,
+            "x2": 0.28948211
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": -1.842810474,
+          "borderMinusNeighborMeters": -14.538041224,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                239,
+                256
+              ],
+              "degrees": 5.449251251
+            },
+            "x2": {
+              "cellLowerIJ": [
+                239,
+                256
+              ],
+              "degrees": 1.369956035
+            }
+          },
+          "adjacentCellsChecked": 4
+        }
+      },
+      {
+        "miss": "5/1/28/31 N k=1 along=79: 10 vs -5..1",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp sign",
+        "texelCenterLonLat": [
+          124.623413086,
+          39.46728205
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": 19.719126836,
+        "borderShoreDistanceTexels": 0.088388348,
+        "borderAfterClampMeters": 19.719126836,
+        "borderExpectedAndStoredCode": 10,
+        "neighborTile": "5/4/31/28",
+        "neighborCenterIJ": [
+          254,
+          78
+        ],
+        "neighborRawCodeRange": [
+          -5,
+          11
+        ],
+        "neighborStoredCodeRange": [
+          -5,
+          1
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            0.0,
+            -2.0,
+            -2.0,
+            0.0
+          ],
+          "neighborStencilCodes": [
+            -1.206979133,
+            -1.986328541,
+            -2.129832367,
+            -1.012175843
+          ],
+          "angleDegrees": {
+            "x8": 0.567222242,
+            "x2": 0.141827425
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 0.597469562,
+          "borderMinusNeighborMeters": 19.098889952,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                78,
+                256
+              ],
+              "degrees": 7.188210058
+            },
+            "x2": {
+              "cellLowerIJ": [
+                78,
+                256
+              ],
+              "degrees": 1.80735503
+            }
+          },
+          "adjacentCellsChecked": 4
+        },
+        "footprintEvidence": {
+          "borderCornersLonLat": [
+            [
+              124.617919922,
+              39.463752003
+            ],
+            [
+              124.62890625,
+              39.46002986
+            ],
+            [
+              124.62890625,
+              39.470811802
+            ],
+            [
+              124.617919922,
+              39.474534219
+            ]
+          ],
+          "borderBilinearSubsamplesMeters": [
+            [
+              31.55988323,
+              12.420838413,
+              1.452324669,
+              -2.870619844
+            ],
+            [
+              54.090857801,
+              22.616641019,
+              6.538022823,
+              -2.014289828
+            ],
+            [
+              65.813916543,
+              29.287441051,
+              9.034424174,
+              -2.068644181
+            ],
+            [
+              65.505291957,
+              20.876289871,
+              5.05796346,
+              -1.794311789
+            ]
+          ],
+          "neighborGebcoMeansMeters": [
+            [
+              0.845359998,
+              23.231167238,
+              -1.797212373
+            ],
+            [
+              -4.545429422,
+              2.570916199,
+              -0.227032197
+            ],
+            [
+              -9.557923112,
+              -7.215580025,
+              -7.850621253
+            ]
+          ],
+          "neighborShoreDistanceTexels": [
+            [
+              -0.614520252,
+              -0.290642596,
+              -0.835191907
+            ],
+            [
+              -0.732460105,
+              0.0625,
+              -0.290642596
+            ],
+            [
+              -1.294802046,
+              -0.767836455,
+              -0.943177041
+            ]
+          ],
+          "neighborAfterClampMeters": [
+            [
+              0.0,
+              0.0,
+              -1.797212373
+            ],
+            [
+              -4.545429422,
+              2.570916199,
+              -0.227032197
+            ],
+            [
+              -9.557923112,
+              -7.215580025,
+              -7.850621253
+            ]
+          ],
+          "neighborExpectedAndStoredCodes": [
+            [
+              0,
+              0,
+              -1
+            ],
+            [
+              -2,
+              1,
+              0
+            ],
+            [
+              -5,
+              -4,
+              -4
+            ]
+          ]
+        }
+      },
+      {
+        "miss": "5/3/27/0 S k=1 along=233: -99 vs -84..-46",
+        "classification": "neither side departs from its source",
+        "cause": "different GEBCO sampling footprints",
+        "texelCenterLonLat": [
+          -56.497192383,
+          -39.839545748
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": -206.064407007,
+        "borderShoreDistanceTexels": "-Infinity",
+        "borderAfterClampMeters": -206.064407007,
+        "borderExpectedAndStoredCode": -99,
+        "neighborTile": "5/5/0/27",
+        "neighborCenterIJ": [
+          1,
+          232
+        ],
+        "neighborRawCodeRange": [
+          -84,
+          -46
+        ],
+        "neighborStoredCodeRange": [
+          -84,
+          -46
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            -56.0,
+            -61.0,
+            -59.0,
+            -47.0
+          ],
+          "neighborStencilCodes": [
+            -69.543482796,
+            -63.807413915,
+            -56.282386836,
+            -46.460254334
+          ],
+          "angleDegrees": {
+            "x8": 5.722287935,
+            "x2": 1.436682585
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": -83.380659593,
+          "borderMinusNeighborMeters": -37.820535202,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                233,
+                -3
+              ],
+              "degrees": 11.631459143
+            },
+            "x2": {
+              "cellLowerIJ": [
+                233,
+                -3
+              ],
+              "degrees": 3.514439483
+            }
+          },
+          "adjacentCellsChecked": 4
+        }
+      },
+      {
+        "miss": "5/4/31/31 E k=0 along=244: 102 vs 49..86",
+        "classification": "neither side departs from its source",
+        "cause": "different GEBCO sampling footprints",
+        "texelCenterLonLat": [
+          134.868164118,
+          35.321235821
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": 206.772483138,
+        "borderShoreDistanceTexels": "Infinity",
+        "borderAfterClampMeters": 206.772483138,
+        "borderExpectedAndStoredCode": 102,
+        "neighborTile": "5/1/31/31",
+        "neighborCenterIJ": [
+          244,
+          255
+        ],
+        "neighborRawCodeRange": [
+          49,
+          86
+        ],
+        "neighborStoredCodeRange": [
+          49,
+          86
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            77.0,
+            67.0,
+            52.0,
+            61.0
+          ],
+          "neighborStencilCodes": [
+            76.499967443,
+            64.50054417,
+            64.500209113,
+            69.999864109
+          ],
+          "angleDegrees": {
+            "x8": 2.242038757,
+            "x2": 0.56231214
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 84.000020295,
+          "borderMinusNeighborMeters": 36.562458775,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                256,
+                244
+              ],
+              "degrees": 13.678878704
+            },
+            "x2": {
+              "cellLowerIJ": [
+                256,
+                244
+              ],
+              "degrees": 3.620682141
+            }
+          },
+          "adjacentCellsChecked": 4
+        },
+        "footprintEvidence": {
+          "borderCornersLonLat": [
+            [
+              134.868164062,
+              35.326418639
+            ],
+            [
+              134.85717786,
+              35.321211003
+            ],
+            [
+              134.868164169,
+              35.316053333
+            ],
+            [
+              134.879150391,
+              35.321258653
+            ]
+          ],
+          "borderBilinearSubsamplesMeters": [
+            [
+              179.98896028,
+              215.111040485,
+              206.910140345,
+              163.573919664
+            ],
+            [
+              195.822806804,
+              243.694115092,
+              223.842480752,
+              184.816219867
+            ],
+            [
+              187.219188182,
+              231.342510732,
+              249.204681418,
+              203.797390572
+            ],
+            [
+              136.80339356,
+              206.139623909,
+              246.247912464,
+              233.845346086
+            ]
+          ],
+          "neighborGebcoMeansMeters": [
+            [
+              164.619017679,
+              140.642219238,
+              121.496751198
+            ],
+            [
+              165.930958437,
+              175.627860611,
+              109.389507301
+            ],
+            [
+              99.34113959,
+              148.698071842,
+              163.398402606
+            ]
+          ],
+          "neighborShoreDistanceTexels": [
+            [
+              "Infinity",
+              "Infinity",
+              "Infinity"
+            ],
+            [
+              "Infinity",
+              "Infinity",
+              "Infinity"
+            ],
+            [
+              "Infinity",
+              "Infinity",
+              "Infinity"
+            ]
+          ],
+          "neighborAfterClampMeters": [
+            [
+              164.619017679,
+              140.642219238,
+              121.496751198
+            ],
+            [
+              165.930958437,
+              175.627860611,
+              109.389507301
+            ],
+            [
+              99.34113959,
+              148.698071842,
+              163.398402606
+            ]
+          ],
+          "neighborExpectedAndStoredCodes": [
+            [
+              81,
+              69,
+              60
+            ],
+            [
+              82,
+              86,
+              54
+            ],
+            [
+              49,
+              73,
+              80
+            ]
+          ]
+        }
+      },
+      {
+        "miss": "5/4/31/31 E k=2 along=82: 67 vs 0..45",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp sign",
+        "texelCenterLonLat": [
+          133.066467898,
+          36.12428395
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": 136.669464887,
+        "borderShoreDistanceTexels": 0.290642596,
+        "borderAfterClampMeters": 136.669464887,
+        "borderExpectedAndStoredCode": 67,
+        "neighborTile": "5/1/31/31",
+        "neighborCenterIJ": [
+          80,
+          253
+        ],
+        "neighborRawCodeRange": [
+          0,
+          71
+        ],
+        "neighborStoredCodeRange": [
+          0,
+          45
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            0.0,
+            47.0,
+            0.0,
+            15.0
+          ],
+          "neighborStencilCodes": [
+            0.0,
+            37.936796994,
+            -0.0,
+            24.272560234
+          ],
+          "angleDegrees": {
+            "x8": 3.956691222,
+            "x2": 1.07675444
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 22.752509732,
+          "borderMinusNeighborMeters": 89.877714607,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                258,
+                82
+              ],
+              "degrees": 28.151739439
+            },
+            "x2": {
+              "cellLowerIJ": [
+                258,
+                82
+              ],
+              "degrees": 8.695167912
+            }
+          },
+          "adjacentCellsChecked": 4
+        }
+      },
+      {
+        "miss": "5/5/20/0 S k=3 along=69: 27 vs -18..9",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp reach",
+        "texelCenterLonLat": [
+          168.002097117,
+          -44.328865585
+        ],
+        "qLandMeters": 2.03125,
+        "borderGebcoMeanMeters": 54.888310364,
+        "borderShoreDistanceTexels": -2.176497902,
+        "borderAfterClampMeters": 54.888310364,
+        "borderExpectedAndStoredCode": 27,
+        "neighborTile": "5/2/11/0",
+        "neighborCenterIJ": [
+          187,
+          3
+        ],
+        "neighborRawCodeRange": [
+          -18,
+          60
+        ],
+        "neighborStoredCodeRange": [
+          -18,
+          9
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            0.0,
+            -7.0,
+            27.0,
+            -2.0
+          ],
+          "neighborStencilCodes": [
+            0.0,
+            -3.065701177,
+            5.182041828,
+            -1.8252371
+          ],
+          "angleDegrees": {
+            "x8": 15.77645327,
+            "x2": 4.175665704
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 5.182041828,
+          "borderMinusNeighborMeters": 44.317727538,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                68,
+                -4
+              ],
+              "degrees": 14.713718853
+            },
+            "x2": {
+              "cellLowerIJ": [
+                68,
+                -4
+              ],
+              "degrees": 3.821477304
+            }
+          },
+          "adjacentCellsChecked": 2
+        }
+      },
+      {
+        "miss": "6/3/43/0 S k=0 along=104: 40 vs 0..23",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp reach",
+        "texelCenterLonLat": [
+          -73.957214355,
+          -43.865062885
+        ],
+        "qLandMeters": 2.078125,
+        "borderGebcoMeanMeters": 82.543501602,
+        "borderShoreDistanceTexels": -2.070898695,
+        "borderAfterClampMeters": 82.543501602,
+        "borderExpectedAndStoredCode": 40,
+        "neighborTile": "6/5/0/43",
+        "neighborCenterIJ": [
+          0,
+          104
+        ],
+        "neighborRawCodeRange": [
+          9,
+          46
+        ],
+        "neighborStoredCodeRange": [
+          0,
+          23
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            0.0,
+            27.0,
+            0.0,
+            0.0
+          ],
+          "neighborStencilCodes": [
+            0.0,
+            16.889749782,
+            4.269703564,
+            0.0
+          ],
+          "angleDegrees": {
+            "x8": 9.272525742,
+            "x2": 2.671292151
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 0.0,
+          "borderMinusNeighborMeters": 83.125,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                104,
+                -2
+              ],
+              "degrees": 47.906741656
+            },
+            "x2": {
+              "cellLowerIJ": [
+                104,
+                -2
+              ],
+              "degrees": 14.403445574
+            }
+          },
+          "adjacentCellsChecked": 4
+        }
+      },
+      {
+        "miss": "6/4/63/62 E k=1 along=163: 36 vs -11..2",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp reach",
+        "texelCenterLonLat": [
+          133.077411047,
+          36.137724007
+        ],
+        "qLandMeters": 2.078125,
+        "borderGebcoMeanMeters": 73.883920874,
+        "borderShoreDistanceTexels": -2.553034618,
+        "borderAfterClampMeters": 73.883920874,
+        "borderExpectedAndStoredCode": 36,
+        "neighborTile": "6/1/62/63",
+        "neighborCenterIJ": [
+          162,
+          254
+        ],
+        "neighborRawCodeRange": [
+          -11,
+          71
+        ],
+        "neighborStoredCodeRange": [
+          -11,
+          2
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            2.0,
+            0.0,
+            20.0,
+            38.0
+          ],
+          "neighborStencilCodes": [
+            1.501117545,
+            0.0,
+            4.966185108,
+            0.0
+          ],
+          "angleDegrees": {
+            "x8": 21.497289533,
+            "x2": 5.481352164
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 0.0,
+          "borderMinusNeighborMeters": 74.8125,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                257,
+                163
+              ],
+              "degrees": 41.373424283
+            },
+            "x2": {
+              "cellLowerIJ": [
+                257,
+                163
+              ],
+              "degrees": 14.26340802
+            }
+          },
+          "adjacentCellsChecked": 4
+        }
+      },
+      {
+        "miss": "6/4/63/62 E k=1 along=164: 38 vs -6..3",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp reach",
+        "texelCenterLonLat": [
+          133.082904106,
+          36.135277585
+        ],
+        "qLandMeters": 2.078125,
+        "borderGebcoMeanMeters": 78.346633633,
+        "borderShoreDistanceTexels": -2.007337548,
+        "borderAfterClampMeters": 78.346633633,
+        "borderExpectedAndStoredCode": 38,
+        "neighborTile": "6/1/62/63",
+        "neighborCenterIJ": [
+          163,
+          254
+        ],
+        "neighborRawCodeRange": [
+          -6,
+          60
+        ],
+        "neighborStoredCodeRange": [
+          -6,
+          3
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            6.0,
+            0.0,
+            36.0,
+            -0.0
+          ],
+          "neighborStencilCodes": [
+            2.501111147,
+            0.0,
+            0.0,
+            -1.006647663
+          ],
+          "angleDegrees": {
+            "x8": 31.103764391,
+            "x2": 8.787171881
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 0.0,
+          "borderMinusNeighborMeters": 78.96875,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                257,
+                164
+              ],
+              "degrees": 47.346220543
+            },
+            "x2": {
+              "cellLowerIJ": [
+                257,
+                164
+              ],
+              "degrees": 15.182786223
+            }
+          },
+          "adjacentCellsChecked": 4
+        },
+        "footprintEvidence": {
+          "borderCornersLonLat": [
+            [
+              133.082898002,
+              36.137896475
+            ],
+            [
+              133.077417168,
+              36.135105114
+            ],
+            [
+              133.082910192,
+              36.132658779
+            ],
+            [
+              133.088391096,
+              36.135449563
+            ]
+          ],
+          "borderBilinearSubsamplesMeters": [
+            [
+              51.22940089,
+              69.945727382,
+              84.96602141,
+              99.130130776
+            ],
+            [
+              54.054783258,
+              73.040372334,
+              87.070718237,
+              100.217724636
+            ],
+            [
+              60.142520242,
+              78.195320778,
+              86.341422525,
+              100.104857863
+            ],
+            [
+              62.629640441,
+              71.71237381,
+              80.67736298,
+              94.087760559
+            ]
+          ],
+          "neighborGebcoMeansMeters": [
+            [
+              123.863647217,
+              50.195290081,
+              -12.878311265
+            ],
+            [
+              75.827615699,
+              61.33477619,
+              -5.084944751
+            ],
+            [
+              2.271687706,
+              3.164419375,
+              5.544465635
+            ]
+          ],
+          "neighborShoreDistanceTexels": [
+            [
+              -0.614520252,
+              -0.25,
+              -0.614520252
+            ],
+            [
+              -1.504675856,
+              -1.25,
+              -1.480811636
+            ],
+            [
+              -2.409145432,
+              -2.25,
+              -2.409145432
+            ]
+          ],
+          "neighborAfterClampMeters": [
+            [
+              0.0,
+              0.0,
+              -12.878311265
+            ],
+            [
+              0.0,
+              0.0,
+              -5.084944751
+            ],
+            [
+              2.271687706,
+              3.164419375,
+              5.544465635
+            ]
+          ],
+          "neighborExpectedAndStoredCodes": [
+            [
+              0,
+              0,
+              -6
+            ],
+            [
+              0,
+              0,
+              -2
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        }
+      },
+      {
+        "miss": "6/4/63/62 E k=2 along=162: 26 vs -7..10",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp reach",
+        "texelCenterLonLat": [
+          133.066437296,
+          36.137377593
+        ],
+        "qLandMeters": 2.078125,
+        "borderGebcoMeanMeters": 54.022732674,
+        "borderShoreDistanceTexels": -2.730976204,
+        "borderAfterClampMeters": 54.022732674,
+        "borderExpectedAndStoredCode": 26,
+        "neighborTile": "6/1/62/63",
+        "neighborCenterIJ": [
+          160,
+          253
+        ],
+        "neighborRawCodeRange": [
+          -7,
+          84
+        ],
+        "neighborStoredCodeRange": [
+          -7,
+          10
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            20.0,
+            19.0,
+            -5.0,
+            0.0
+          ],
+          "neighborStencilCodes": [
+            4.966185108,
+            0.0,
+            -5.437475007,
+            0.0
+          ],
+          "angleDegrees": {
+            "x8": 3.510724795,
+            "x2": 0.880471118
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 0.0,
+          "borderMinusNeighborMeters": 54.03125,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                258,
+                162
+              ],
+              "degrees": 35.05127631
+            },
+            "x2": {
+              "cellLowerIJ": [
+                258,
+                162
+              ],
+              "degrees": 10.479870537
+            }
+          },
+          "adjacentCellsChecked": 4
+        }
+      },
+      {
+        "miss": "6/4/63/62 E k=3 along=165: 70 vs 0..49",
+        "classification": "neither side departs from its source",
+        "cause": "coastal clamp sign",
+        "texelCenterLonLat": [
+          133.077435425,
+          36.127248942
+        ],
+        "qLandMeters": 2.078125,
+        "borderGebcoMeanMeters": 144.95989611,
+        "borderShoreDistanceTexels": 0.088388348,
+        "borderAfterClampMeters": 144.95989611,
+        "borderExpectedAndStoredCode": 70,
+        "neighborTile": "6/1/62/63",
+        "neighborCenterIJ": [
+          162,
+          252
+        ],
+        "neighborRawCodeRange": [
+          -1,
+          84
+        ],
+        "neighborStoredCodeRange": [
+          0,
+          49
+        ],
+        "normalComparison": {
+          "offsetsIJ": [
+            [
+              -1,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "borderStencilCodes": [
+            0.0,
+            70.0,
+            0.0,
+            26.0
+          ],
+          "neighborStencilCodes": [
+            0.0,
+            24.882203102,
+            0.0,
+            28.68978609
+          ],
+          "angleDegrees": {
+            "x8": 22.880950908,
+            "x2": 17.282169102
+          }
+        },
+        "singleTexelNormalChange": {
+          "neighborReplacementCode": 24.882203102,
+          "borderMinusNeighborMeters": 93.760421679,
+          "maxAngleDegrees": {
+            "x8": {
+              "cellLowerIJ": [
+                258,
+                164
+              ],
+              "degrees": 28.024621977
+            },
+            "x2": {
+              "cellLowerIJ": [
+                258,
+                164
+              ],
+              "degrees": 16.484537909
+            }
+          },
+          "adjacentCellsChecked": 2
+        }
+      }
+    ],
+    "limits": [
+      "The source comparison covers twelve border texels and twelve 3x3 neighbor patches; it is not another full-bake verification.",
+      "Raw GEBCO and Natural Earth files were read after checking their pinned sizes; their full SHA-256 hashes were not recomputed.",
+      "Infinity shore distances mean no shoreline within the raster's search reach; their stored shore bytes still match. Longitude and latitude are in degrees; matrix rows increase in face t, columns in face s."
+    ]
+  },
+  "classificationRun": {
+    "pipelineTreeAtCommit": "4124f11",
+    "wallSeconds": 2.49,
+    "readOnly": true
+  }
 }
