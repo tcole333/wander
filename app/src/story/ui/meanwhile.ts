@@ -1,11 +1,11 @@
 // Meanwhile, at the top right: what else is happening during the current beat, or once the visitor
-// has scrubbed story time away from the beat's date, the entries nearest the time scrubbed to, on
-// vellum slips in a dark cast-brass panel. Each entry has an engraved compass rose whose needle
+// has scrubbed story time away from the beat's date, during the month scrubbed to, on vellum slips
+// in a dark cast-brass panel. Each entry has an engraved compass rose whose needle
 // points from the view's center toward it (turned with the view's heading, so it points the way to
 // look on screen), and the compass point it lies at. Choosing one flies there.
 import { arcKm, type ViewState } from '../../view/viewState';
-import type { MeanwhileByBeat, MeanwhileEntry, Walk, WalkState } from '../contract';
-import { nearestEntries } from '../meanwhile';
+import type { Meanwhile, MeanwhileEntry, Walk, WalkState } from '../contract';
+import { scrubbedEntries } from '../meanwhile';
 import { el, onPress, svg } from './dom';
 import { bearingDeg, compassPoint, curlyQuotes } from './format';
 
@@ -13,8 +13,6 @@ import { bearingDeg, compassPoint, curlyQuotes } from './format';
 const ARRIVE_KM = 1500;
 /** An entry nearer the view's center than this share of the view's width is here. */
 const HERE_SHARE = 0.05;
-/** How many entries a scrub away from the beat's date shows. */
-const NEAREST = 3;
 /** The rose's center, in its SVG's units (40 across). */
 const C = 20;
 
@@ -30,15 +28,15 @@ interface Row {
 export class MeanwhilePanel {
   readonly element = el('aside', 'wu-meanwhile wu-brass');
   readonly #walk: Walk;
-  readonly #byBeat: MeanwhileByBeat;
+  readonly #meanwhile: Meanwhile;
   readonly #list = el('ul', 'wu-mw-list');
   /** The entries shown, by label, to tell when they change. */
   #shown: string | null = null;
   #rows: Row[] = [];
 
-  constructor(walk: Walk, byBeat: MeanwhileByBeat) {
+  constructor(walk: Walk, meanwhile: Meanwhile) {
     this.#walk = walk;
-    this.#byBeat = byBeat;
+    this.#meanwhile = meanwhile;
     this.element.append(el('h2', 'wu-mw-head', 'Meanwhile, elsewhere —'), this.#list);
   }
 
@@ -62,13 +60,13 @@ export class MeanwhilePanel {
     }
   }
 
-  /** The beat's own entries, or in a break-out scrubbed off the beat's date, the nearest. */
+  /** The beat's own entries, or in a break-out scrubbed off the beat's date, the month's. */
   #entries(state: WalkState): MeanwhileEntry[] {
     const beat = state.story.beats[state.beat];
     if (!beat) return [];
     const scrubbed = state.mode === 'breakout' && Math.abs(state.day - beat.day) >= 1;
-    if (scrubbed) return nearestEntries(this.#byBeat, state.day, NEAREST);
-    return this.#byBeat[beat.id] ?? [];
+    if (scrubbed) return scrubbedEntries(this.#meanwhile, state.day);
+    return this.#meanwhile.beats[beat.id] ?? [];
   }
 
   #show(entries: MeanwhileEntry[]): void {

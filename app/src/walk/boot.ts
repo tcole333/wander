@@ -37,10 +37,10 @@ import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { summarizeFrames } from '../perf/frameStats';
 import { createMuseumScene } from '../scene/museumScene';
-import type { MeanwhileByBeat, Walk, WalkEffects, WalkUi } from '../story/contract';
+import type { Meanwhile, Walk, WalkEffects, WalkUi } from '../story/contract';
 import { bindWalkKeys, createWalk, type DirectedWalk } from '../story/director';
 import { createWalkEffects } from '../story/effects/walkEffects';
-import type { Story } from '../story/story';
+import type { LonLat, Story } from '../story/story';
 import { loadFaces } from '../story/ui/fonts';
 import { createWalkUi } from '../story/ui/walkUi';
 import { createSurfaceStreamer } from '../stream/streamer';
@@ -70,10 +70,11 @@ const FRAMES = 120;
 const IDLE_MS = 1000;
 const IDLE_FRAMES = 5;
 
-/** A story to walk, and Meanwhile's entries by beat. */
+/** A story to walk, Meanwhile's entries, and where the lobby's glows are: all from its lock. */
 export interface StorySource {
   story: Story;
-  meanwhile: MeanwhileByBeat;
+  meanwhile: Meanwhile;
+  glows: LonLat[];
 }
 
 export interface BootOptions {
@@ -310,7 +311,7 @@ async function assemble(
       ? createLobby({
           host,
           story: source.story,
-          places: Object.values(source.meanwhile).flatMap((entries) => entries.map((e) => e.at)),
+          places: source.glows,
           museum,
           control,
           // The press that chose the plaque is the visitor's first gesture: sound unlocks in its

@@ -19,8 +19,7 @@ import { afterContextLoss } from './page/contextLoss';
 import { dataOverride } from './page/dataOrigin';
 import { dataPlate, Room, storyPlate } from './page/room';
 import { withLock } from './story/lock';
-import meanwhile from './story/meanwhile.tambora.json';
-import { meanwhileFromJson } from './story/meanwhile';
+import { glowsFromLock, meanwhileFromLock } from './story/meanwhile';
 import { parseStory, type Story } from './story/story';
 import { bootWalk, DrawError } from './walk/boot';
 
@@ -53,7 +52,7 @@ async function main(): Promise<void> {
   try {
     const release = await readRelease();
     const walk = await bootWalk(document.body, release, {
-      story: { story, meanwhile: meanwhileFromJson(meanwhile) },
+      story: { story, meanwhile: meanwhileFromLock(storyLock), glows: glowsFromLock(storyLock) },
       lobby: true,
       // The story that does not start from its plaque brings the card, as a boot that stops does.
       onFail: (error) => {
