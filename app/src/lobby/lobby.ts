@@ -1,14 +1,15 @@
 // The lobby (PRD, "First visit: the lobby"; streaming.md 5.7): the instrument at world view in the
 // lamp-lit room, the story's plaque at its left (plaques.ts) and faint glows on the globe
-// (glows.ts). At the first frame, once the roots are resident and the shaders compiled, the opening
-// plays (opening.ts) and the room's poster gives way to it; the finer tiles stream in as the lamp
-// comes up out of the dark. Any press, key or wheel runs the rest of it in SKIP_S. Then the
-// instrument turns slowly eastward, as the Earth does, stopping at any input and turning on after
-// TURN_IDLE_S without one; dragging and the wheel move it as in the walk. Choosing a plaque dives:
-// the plaques slide away, the walk starts in that press, its sound unlocking in the press's own
-// handler (walk/boot.ts), and the camera flies into the story's first beat by the walk's own flight
-// and readiness gate while the time ruler rises; the card and Meanwhile come in at the landing. The
-// turn stops, and the glows go as the story's own effects come up (walk/boot.ts).
+// (glows.ts). At the first frame, once the roots are resident, the faces loaded and the shaders
+// compiled, the opening plays (opening.ts) and the room's poster gives way to it; the finer tiles
+// stream in as the lamp comes up out of the dark. Any press, key or wheel runs the rest of it in
+// SKIP_S. Then the instrument turns slowly eastward, as the Earth does, stopping at any input and
+// turning on after TURN_IDLE_S without one; dragging and the wheel move it as in the walk. Choosing
+// a plaque dives: the plaques slide away, the walk starts in that press, its sound unlocking in the
+// press's own handler (walk/boot.ts), and the camera flies into the story's first beat by the
+// walk's own flight and readiness gate while the time ruler rises; the card and Meanwhile come in
+// at the landing. The turn stops, and the glows go as the story's own effects come up
+// (walk/boot.ts).
 //
 // While it stands, the lobby holds the scene's lamp and ring swings and the view's longitude. The
 // walk's boot (walk/boot.ts) calls update() every frame before the view steps, and shifts its lens
