@@ -19,7 +19,7 @@ Q25412993:
   source: {title: Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia), url: "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"}
 
 Q7162128:
-  line: Morillo's troops enter Cartagena, starved out after a 105-day siege
+  line: Morillo's troops enter a starving Cartagena after a 105-day siege
   date: "1815-12-06"
   source: {title: Siege of Cartagena (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Siege_of_Cartagena_(1815)"}
 
@@ -121,7 +121,7 @@ Q12241904:
   source: {title: Al-Jawazi massacre (Wikipedia), url: "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"}
 
 Q4871874:
-  line: In Florida, a US gunboat blows up a fort held by escaped slaves
+  line: A US gunboat blows up a Florida fort held by escaped slaves
   source: {title: Negro Fort (Wikipedia), url: "https://en.wikipedia.org/wiki/Negro_Fort"}
 
 Q3534806:
@@ -140,11 +140,11 @@ Q1713044:
   source: {title: Treaty of Fort Meigs (Wikipedia), url: "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"}
 
 Q4873014:
-  line: After the peace, Black Hawk's warriors fight US rangers from a Missouri sinkhole
+  line: After the peace, Black Hawk's warriors fight rangers from a Missouri sinkhole
   source: {title: Battle of the Sink Hole (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"}
 
 Q5722534:
-  line: By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262
+  line: By the Ibiraocaí, Portuguese troops beat Artigas's men, killing or taking 262
   at: [-56.655, -29.425]
   source: {title: Battle of Ibiraocaí (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"}
 
