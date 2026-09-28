@@ -11,9 +11,9 @@ import {
   LinearFilter,
   LinearMipmapLinearFilter,
   RedFormat,
+  Vector3,
   Vector4,
   type Texture,
-  type Vector3,
 } from 'three';
 import { tunables } from '../config/tunables';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
@@ -30,10 +30,8 @@ export interface SeaName {
   size: number;
   /** Space added between letters, in ems. */
   tracking?: number;
-  /** The baseline's direction at its middle, degrees counterclockwise from east. */
+  /** The baseline's direction, degrees counterclockwise from east. */
   angle?: number;
-  /** Degrees the baseline turns from its first letter to its last, upward when positive. */
-  bend?: number;
   /** Tracked capitals in Libre Baskerville, or Source Serif 4's italic. */
   style: 'ocean' | 'sea';
   /** The view's width at the name, km, within which it shows. */
@@ -114,8 +112,8 @@ export interface SeaNameUniforms {
   lookSeaCount: { value: number };
   /** Longitude, latitude and the cosine of latitude of the name's center, degrees; its strength. */
   lookSeaPlace: { value: Vector4[] };
-  /** The baseline's cosine and sine, its bend per degree, and atlas texels per degree. */
-  lookSeaFrame: { value: Vector4[] };
+  /** The baseline's cosine and sine, and atlas texels per degree. */
+  lookSeaFrame: { value: Vector3[] };
   /** The name's box in the atlas: its center and half its width and height, texels. */
   lookSeaBox: { value: Vector4[] };
   lookSeaAtlas: { value: Texture };
@@ -140,8 +138,6 @@ interface Lettered {
   y: number;
   w: number;
   h: number;
-  /** The baseline's length, texels. */
-  length: number;
 }
 
 /** The Labels layer: the names, their atlas and the uniforms the look's shader reads. */
@@ -154,12 +150,13 @@ export class SeaNameLayer {
 
   constructor() {
     const vectors = () => Array.from({ length: SEA_NAMES_MAX }, () => new Vector4());
+    const frames = Array.from({ length: SEA_NAMES_MAX }, () => new Vector3());
     const blank = new DataTexture(new Uint8Array(1), 1, 1, RedFormat);
     blank.needsUpdate = true;
     this.uniforms = {
       lookSeaCount: { value: 0 },
       lookSeaPlace: { value: vectors() },
-      lookSeaFrame: { value: vectors() },
+      lookSeaFrame: { value: frames },
       lookSeaBox: { value: vectors() },
       lookSeaAtlas: { value: blank },
     };
@@ -183,10 +180,8 @@ export class SeaNameLayer {
       const box = boxes[index];
       if (!name || !box) return;
       const angle = (name.angle ?? 0) * DEG;
-      const texelsPerDeg = EM_TEXELS / name.size;
-      const bend = ((name.bend ?? 0) * DEG) / (box.length / texelsPerDeg);
       lookSeaPlace.value[i]?.set(name.lon, name.lat, Math.cos(name.lat * DEG), alpha * strength);
-      lookSeaFrame.value[i]?.set(Math.cos(angle), Math.sin(angle), bend, texelsPerDeg);
+      lookSeaFrame.value[i]?.set(Math.cos(angle), Math.sin(angle), EM_TEXELS / name.size);
       lookSeaBox.value[i]?.set(box.x + box.w / 2, box.y + box.h / 2, box.w / 2, box.h / 2);
     });
     this.uniforms.lookSeaCount.value = picked.length;
@@ -248,7 +243,7 @@ export class SeaNameLayer {
         y += shelf;
         shelf = 0;
       }
-      boxes[n] = { x, y, w, h, length };
+      boxes[n] = { x, y, w, h };
       x += w;
       shelf = Math.max(shelf, h);
     }
