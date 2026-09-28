@@ -70,6 +70,10 @@ const data = (profile: Profile) => ({
 export default defineConfig({
   testDir: 'e2e',
   forbidOnly: !!process.env.CI,
+  // CI's four-core runner cannot hold two SwiftShader walks at once: sharing it, each drew a frame
+  // every two to five seconds, and a browser context's setup and a lobby dive both ran past their
+  // limits. One test at a time gives each walk the whole runner.
+  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: PREVIEW_URL,
