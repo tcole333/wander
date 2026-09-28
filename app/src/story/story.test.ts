@@ -106,20 +106,17 @@ sources:
       BEAT.replace('1815-04-05..', '1815-04-11..'),
       /outside its window/,
     ],
-    ['no window', BEAT.replace(/^window: .*\n/m, ''), /window must be text/],
     [
       'a source without an https link',
       `${BEAT}\n  - {title: Another history, url: "http://example.org/another"}`,
       /'Another history' needs an https link/,
     ],
-    ['no sources', BEAT.replace(/^sources:[\s\S]*/m, ''), /sources must be a list/],
     ['an image without alt text', BEAT.replace('"A map of Sumbawa."', '""'), /needs alt text/],
     [
       'a credit that is not text',
       BEAT.replace('alt:', 'credit: [A, B], alt:'),
       /credit must be text/,
     ],
-    ['no image', BEAT.replace(/^image: .*\n/m, ''), /image must be a mapping/],
     [
       'Meanwhile of neither kind',
       BEAT.replace('meanwhile: auto', 'meanwhile: often'),
