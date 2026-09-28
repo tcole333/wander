@@ -130,8 +130,9 @@ export function createLobby(parts: LobbyParts): Lobby {
     skip();
     become('diving');
     chrome.lobby(false);
-    // The plaque relinquishes focus before becoming inert; the persistent mark is its heir.
-    chrome.mark.focus({ preventScroll: true });
+    // The plaque relinquishes focus before becoming inert; the persistent layer is its heir, not
+    // the mark, which Space would press and so send the visitor straight back.
+    chrome.focus();
     plaques.leave();
     host.classList.add('lobby-dive', 'lobby-veiled', 'lobby-ruler-down');
     let walk: Walk;

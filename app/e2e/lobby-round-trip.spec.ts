@@ -101,6 +101,13 @@ for (const entry of ['production', 'dev'] as const) {
     ]);
     expect(await knob.evaluate((current, first) => current === first, originalKnob)).toBe(true);
 
+    // After a pointer dive, Space plays and pauses the story; it never presses the mark.
+    await page.keyboard.press(' ');
+    await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
+    await expect(page.locator('body')).toHaveAttribute('data-lobby', 'gone');
+    await page.keyboard.press(' ');
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
+
     await page.keyboard.press('ArrowRight');
     await expect(title).toHaveText(story.beats[1]!.title, { timeout: TIMEOUT });
     // The date reaches 5 April only when the flight has reached beat 2.

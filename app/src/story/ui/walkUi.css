@@ -112,6 +112,11 @@ button.wu-mark:not(:disabled) {
   z-index: 11;
 }
 
+/* The layer holds focus between the plaque and the walk's controls; it is not one itself. */
+.wu-chrome:focus {
+  outline: none;
+}
+
 .wu-chrome > * {
   opacity: 0;
   visibility: hidden;

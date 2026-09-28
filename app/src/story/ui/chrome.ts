@@ -28,6 +28,15 @@ export class WalkChrome {
     this.element.classList.add('is-shown');
   }
 
+  /**
+   * Takes the focus the plaque gives up at the dive. The layer is not a control, so Space still
+   * reaches the walk's play and pause; Tab leads on to the mark and the knob.
+   */
+  focus(): void {
+    this.element.tabIndex = -1;
+    this.element.focus({ preventScroll: true });
+  }
+
   lobby(on: boolean): void {
     this.element.classList.toggle('in-lobby', on);
     this.mark.disabled = on;

@@ -79,7 +79,7 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
     walk?.dispose();
     walk = null;
   });
-  const chrome = { lobby: vi.fn(), show: vi.fn(), mark: { focus: vi.fn() } };
+  const chrome = { lobby: vi.fn(), show: vi.fn(), focus: vi.fn(), mark: {} };
   const lobby = createLobby({
     host: host as unknown as HTMLElement,
     story,
