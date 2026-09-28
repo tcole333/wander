@@ -279,28 +279,15 @@
     "beats": {
       "sanlucar-out": [
         {
-          "qid": "Q4087402",
-          "label": "Battle of Sokal",
-          "date": "1519-08-12",
-          "precision": "day",
-          "at": [
-            24.28333,
-            50.48333
-          ],
-          "source": {
-            "title": "Battle of Sokal (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
-          }
-        },
-        {
           "qid": "Q3297424",
           "label": "Cholula Massacre",
-          "date": "1519-11-03",
+          "date": "1519-10-18",
           "precision": "day",
           "at": [
             -98.31,
             19.06
           ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
           "source": {
             "title": "Cholula massacre (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
@@ -311,12 +298,13 @@
         {
           "qid": "Q3297424",
           "label": "Cholula Massacre",
-          "date": "1519-11-03",
+          "date": "1519-10-18",
           "precision": "day",
           "at": [
             -98.31,
             19.06
           ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
           "source": {
             "title": "Cholula massacre (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
@@ -331,6 +319,7 @@
             13.3953,
             57.77
           ],
+          "line": "On Lake Åsunden's ice, a cannonball strikes Sten Sture's leg",
           "source": {
             "title": "Battle of Bogesund (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
@@ -341,12 +330,13 @@
         {
           "qid": "Q10572590",
           "label": "Battle of Uppsala",
-          "date": "1520-04-16",
+          "date": "1520-04-06",
           "precision": "day",
           "at": [
             17.64472,
             59.85806
           ],
+          "line": "At Uppsala, Danish mercenaries defeat a Swedish peasant army",
           "source": {
             "title": "Battle of Uppsala (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
@@ -355,12 +345,13 @@
         {
           "qid": "Q4872151",
           "label": "Battle of Raichur",
-          "date": "1520-05-01",
-          "precision": "month",
+          "date": "1520-05-19",
+          "precision": "day",
           "at": [
             77.35056,
             16.2
           ],
+          "line": "At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna",
           "source": {
             "title": "Battle of Raichur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
@@ -369,12 +360,13 @@
         {
           "qid": "Q1131442",
           "label": "Massacre in the Great Temple of Tenochtitlan",
-          "date": "1520-06-01",
+          "date": "1520-05-22",
           "precision": "day",
           "at": [
             -99.13139,
             19.435
           ],
+          "line": "Alvarado's soldiers massacre festival celebrants inside Tenochtitlan's Great Temple",
           "source": {
             "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
@@ -383,86 +375,77 @@
       ],
       "strait": [
         {
-          "qid": "Q134238639",
-          "label": "Battle of Beirut",
-          "date": "1520-10-19",
-          "precision": "day",
-          "at": [
-            35.51306,
-            33.88694
-          ],
-          "source": {
-            "title": "Battle of Beirut (1520) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"
-          }
-        },
-        {
-          "qid": "Q22936045",
-          "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
-          "precision": "month",
-          "at": [
-            75.08,
-            24.03
-          ],
-          "source": {
-            "title": "Siege of Mandsaur (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
-          }
-        },
-        {
           "qid": "Q28109023",
           "label": "Battle of Tordesillas",
-          "date": "1520-12-15",
+          "date": "1520-12-05",
           "precision": "day",
           "at": [
             -5.00048,
             41.50086
           ],
+          "line": "Royalist troops seize Tordesillas, the headquarters of Castile's rebels",
           "source": {
             "title": "Battle of Tordesillas (1520) (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        },
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
           }
         }
       ],
       "pacific": [
         {
-          "qid": "Q22936045",
-          "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
-          "precision": "month",
-          "at": [
-            75.08,
-            24.03
-          ],
-          "source": {
-            "title": "Siege of Mandsaur (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
-          }
-        },
-        {
           "qid": "Q28109023",
           "label": "Battle of Tordesillas",
-          "date": "1520-12-15",
+          "date": "1520-12-05",
           "precision": "day",
           "at": [
             -5.00048,
             41.50086
           ],
+          "line": "Royalist troops seize Tordesillas, the headquarters of Castile's rebels",
           "source": {
             "title": "Battle of Tordesillas (1520) (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
           }
         },
         {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
           "qid": "Q10431431",
           "label": "Nydala Abbey Bloodbath",
-          "date": "1521-02-12",
+          "date": "1521-02-02",
           "precision": "day",
           "at": [
             14.34127,
             57.32299
           ],
+          "line": "Danish soldiers execute the abbot and monks at Nydala Abbey",
           "source": {
             "title": "Nydala Abbey Bloodbath (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Nydala_Abbey_Bloodbath"
@@ -470,6 +453,21 @@
         }
       ],
       "guam": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
         {
           "qid": "Q4870578",
           "label": "Battle of Brunnbäck Ferry",
@@ -479,6 +477,7 @@
             16.25333,
             60.13139
           ],
+          "line": "At Brunnbäck Ferry, Swedish rebels drive Danish troops into the river",
           "source": {
             "title": "Battle of Brunnbäck Ferry (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Brunnb%C3%A4ck_Ferry"
@@ -495,6 +494,7 @@
             -5.13333,
             41.55
           ],
+          "line": "At Villalar, royalist cavalry scatter Castile's rebels in the rain",
           "source": {
             "title": "Battle of Villalar (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
@@ -509,6 +509,7 @@
             16.61667,
             59.63333
           ],
+          "line": "Outside Västerås, Gustav Vasa's rebels drive back a Danish attack",
           "source": {
             "title": "Battle of Västerås (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_V%C3%A4ster%C3%A5s"
@@ -519,12 +520,13 @@
         {
           "qid": "Q112811996",
           "label": "Battle of Colhuacatonco",
-          "date": "1521-07-10",
+          "date": "1521-06-30",
           "precision": "day",
           "at": [
             -99.13528,
             19.44339
           ],
+          "line": "At Colhuacatonco, Mexica warriors drive back Cortés and his allies",
           "source": {
             "title": "Battle of Colhuacatonco (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
@@ -533,15 +535,16 @@
         {
           "qid": "Q958133",
           "label": "Battle of Oriola",
-          "date": "1521-09-09",
+          "date": "1521-08-30",
           "precision": "day",
           "at": [
             -0.94694,
             38.08556
           ],
+          "line": "At Orihuela, royalist troops defeat the rebels and sack the city",
           "source": {
-            "title": "Battle of Oriola (1521) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+            "title": "1200 años de una idea, p. 19 (Museo de la Ciudad, Murcia)",
+            "url": "https://museodelaciudad.murcia.es/sites/default/files/documents/publicacion-1200-baja.pdf#page=19"
           }
         },
         {
@@ -553,6 +556,7 @@
             104.61944,
             0.95
           ],
+          "line": "On Bintan, Malay defenders repulse a Portuguese attack on their fort",
           "source": {
             "title": "Attack on Bintan (1521) (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
@@ -569,6 +573,7 @@
             9.21,
             45.518
           ],
+          "line": "At Bicocca, Spanish gunfire tears through the advancing Swiss pikemen",
           "source": {
             "title": "Battle of Bicocca (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
@@ -583,9 +588,10 @@
             68.8875,
             27.69528
           ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
           "source": {
-            "title": "Bukkur Massacre (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Bukkur_Massacre"
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
           }
         }
       ],
@@ -593,12 +599,13 @@
         {
           "qid": "Q3180568",
           "label": "Luso Sundanese padrão",
-          "date": "1522-08-31",
+          "date": "1522-08-21",
           "precision": "day",
           "at": [
             106.80861,
             -6.12387
           ],
+          "line": "At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance",
           "source": {
             "title": "Luso-Sundanese padrão (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
@@ -640,6 +647,21 @@
             "title": "Battle of Soltau (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
           }
+        },
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-02",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "line": "At Sokal, Crimean archers drive Polish troops back to the river",
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
+          }
         }
       ],
       "1519-06": [
@@ -655,6 +677,21 @@
           "source": {
             "title": "Battle of Soltau (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        },
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-02",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "line": "At Sokal, Crimean archers drive Polish troops back to the river",
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
           }
         }
       ],
@@ -672,6 +709,21 @@
             "title": "Battle of Soltau (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
           }
+        },
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-02",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "line": "At Sokal, Crimean archers drive Polish troops back to the river",
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
+          }
         }
       ],
       "1519-08": [
@@ -687,6 +739,36 @@
           "source": {
             "title": "Battle of Soltau (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        },
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-02",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "line": "At Sokal, Crimean archers drive Polish troops back to the river",
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
+          }
+        },
+        {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-10-18",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
           }
         }
       ],
@@ -704,9 +786,70 @@
             "title": "Battle of Soltau (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
           }
+        },
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-02",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "line": "At Sokal, Crimean archers drive Polish troops back to the river",
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
+          }
+        },
+        {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-10-18",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
+          }
         }
       ],
-      "1519-10": [],
+      "1519-10": [
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-02",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "line": "At Sokal, Crimean archers drive Polish troops back to the river",
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
+          }
+        },
+        {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-10-18",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
+          }
+        }
+      ],
       "1519-11": [
         {
           "qid": "Q108542187",
@@ -723,6 +866,21 @@
           }
         },
         {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-10-18",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
+          }
+        },
+        {
           "qid": "Q1606958",
           "label": "Battle of Bogesund",
           "date": "1520-01-19",
@@ -731,6 +889,7 @@
             13.3953,
             57.77
           ],
+          "line": "On Lake Åsunden's ice, a cannonball strikes Sten Sture's leg",
           "source": {
             "title": "Battle of Bogesund (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
@@ -739,21 +898,20 @@
       ],
       "1519-12": [
         {
-          "qid": "Q1606958",
-          "label": "Battle of Bogesund",
-          "date": "1520-01-19",
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-10-18",
           "precision": "day",
           "at": [
-            13.3953,
-            57.77
+            -98.31,
+            19.06
           ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
           "source": {
-            "title": "Battle of Bogesund (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
           }
-        }
-      ],
-      "1520-01": [
+        },
         {
           "qid": "Q1606958",
           "label": "Battle of Bogesund",
@@ -763,6 +921,39 @@
             13.3953,
             57.77
           ],
+          "line": "On Lake Åsunden's ice, a cannonball strikes Sten Sture's leg",
+          "source": {
+            "title": "Battle of Bogesund (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+          }
+        }
+      ],
+      "1520-01": [
+        {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-10-18",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "line": "At Cholula, Cortés's troops massacre the inhabitants and burn the city",
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
+          }
+        },
+        {
+          "qid": "Q1606958",
+          "label": "Battle of Bogesund",
+          "date": "1520-01-19",
+          "precision": "day",
+          "at": [
+            13.3953,
+            57.77
+          ],
+          "line": "On Lake Åsunden's ice, a cannonball strikes Sten Sture's leg",
           "source": {
             "title": "Battle of Bogesund (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
@@ -779,6 +970,7 @@
             13.3953,
             57.77
           ],
+          "line": "On Lake Åsunden's ice, a cannonball strikes Sten Sture's leg",
           "source": {
             "title": "Battle of Bogesund (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
@@ -789,26 +981,43 @@
         {
           "qid": "Q10572590",
           "label": "Battle of Uppsala",
-          "date": "1520-04-16",
+          "date": "1520-04-06",
           "precision": "day",
           "at": [
             17.64472,
             59.85806
           ],
+          "line": "At Uppsala, Danish mercenaries defeat a Swedish peasant army",
           "source": {
             "title": "Battle of Uppsala (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
           }
         },
         {
+          "qid": "Q4872151",
+          "label": "Battle of Raichur",
+          "date": "1520-05-19",
+          "precision": "day",
+          "at": [
+            77.35056,
+            16.2
+          ],
+          "line": "At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna",
+          "source": {
+            "title": "Battle of Raichur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
+          }
+        },
+        {
           "qid": "Q1131442",
           "label": "Massacre in the Great Temple of Tenochtitlan",
-          "date": "1520-06-01",
+          "date": "1520-05-22",
           "precision": "day",
           "at": [
             -99.13139,
             19.435
           ],
+          "line": "Alvarado's soldiers massacre festival celebrants inside Tenochtitlan's Great Temple",
           "source": {
             "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
@@ -819,43 +1028,46 @@
         {
           "qid": "Q10572590",
           "label": "Battle of Uppsala",
-          "date": "1520-04-16",
+          "date": "1520-04-06",
           "precision": "day",
           "at": [
             17.64472,
             59.85806
           ],
+          "line": "At Uppsala, Danish mercenaries defeat a Swedish peasant army",
           "source": {
             "title": "Battle of Uppsala (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
           }
         },
         {
+          "qid": "Q4872151",
+          "label": "Battle of Raichur",
+          "date": "1520-05-19",
+          "precision": "day",
+          "at": [
+            77.35056,
+            16.2
+          ],
+          "line": "At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna",
+          "source": {
+            "title": "Battle of Raichur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
+          }
+        },
+        {
           "qid": "Q1131442",
           "label": "Massacre in the Great Temple of Tenochtitlan",
-          "date": "1520-06-01",
+          "date": "1520-05-22",
           "precision": "day",
           "at": [
             -99.13139,
             19.435
           ],
+          "line": "Alvarado's soldiers massacre festival celebrants inside Tenochtitlan's Great Temple",
           "source": {
             "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
-          }
-        },
-        {
-          "qid": "Q1308854",
-          "label": "La Noche Triste",
-          "date": "1520-07-10",
-          "precision": "day",
-          "at": [
-            -109.23457,
-            30.66411
-          ],
-          "source": {
-            "title": "La Noche Triste (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
           }
         }
       ],
@@ -863,73 +1075,63 @@
         {
           "qid": "Q10572590",
           "label": "Battle of Uppsala",
-          "date": "1520-04-16",
+          "date": "1520-04-06",
           "precision": "day",
           "at": [
             17.64472,
             59.85806
           ],
+          "line": "At Uppsala, Danish mercenaries defeat a Swedish peasant army",
           "source": {
             "title": "Battle of Uppsala (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
           }
         },
         {
+          "qid": "Q4872151",
+          "label": "Battle of Raichur",
+          "date": "1520-05-19",
+          "precision": "day",
+          "at": [
+            77.35056,
+            16.2
+          ],
+          "line": "At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna",
+          "source": {
+            "title": "Battle of Raichur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
+          }
+        },
+        {
           "qid": "Q1131442",
           "label": "Massacre in the Great Temple of Tenochtitlan",
-          "date": "1520-06-01",
+          "date": "1520-05-22",
           "precision": "day",
           "at": [
             -99.13139,
             19.435
           ],
+          "line": "Alvarado's soldiers massacre festival celebrants inside Tenochtitlan's Great Temple",
           "source": {
             "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
-          }
-        },
-        {
-          "qid": "Q1308854",
-          "label": "La Noche Triste",
-          "date": "1520-07-10",
-          "precision": "day",
-          "at": [
-            -109.23457,
-            30.66411
-          ],
-          "source": {
-            "title": "La Noche Triste (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
           }
         }
       ],
       "1520-06": [
         {
-          "qid": "Q10572590",
-          "label": "Battle of Uppsala",
-          "date": "1520-04-16",
+          "qid": "Q4872151",
+          "label": "Battle of Raichur",
+          "date": "1520-05-19",
           "precision": "day",
           "at": [
-            17.64472,
-            59.85806
+            77.35056,
+            16.2
           ],
+          "line": "At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna",
           "source": {
-            "title": "Battle of Uppsala (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
-          }
-        },
-        {
-          "qid": "Q1131442",
-          "label": "Massacre in the Great Temple of Tenochtitlan",
-          "date": "1520-06-01",
-          "precision": "day",
-          "at": [
-            -99.13139,
-            19.435
-          ],
-          "source": {
-            "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
+            "title": "Battle of Raichur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
           }
         },
         {
@@ -945,9 +1147,38 @@
             "title": "La Noche Triste (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
           }
+        },
+        {
+          "qid": "Q2888038",
+          "label": "Battle of Otumba",
+          "date": "1520-07-17",
+          "precision": "day",
+          "at": [
+            -98.7547,
+            19.6969
+          ],
+          "source": {
+            "title": "Battle of Otumba (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Otumba"
+          }
         }
       ],
       "1520-07": [
+        {
+          "qid": "Q4872151",
+          "label": "Battle of Raichur",
+          "date": "1520-05-19",
+          "precision": "day",
+          "at": [
+            77.35056,
+            16.2
+          ],
+          "line": "At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna",
+          "source": {
+            "title": "Battle of Raichur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
+          }
+        },
         {
           "qid": "Q1308854",
           "label": "La Noche Triste",
@@ -1005,6 +1236,21 @@
             "title": "Battle of Otumba (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Otumba"
           }
+        },
+        {
+          "qid": "Q134238639",
+          "label": "Battle of Beirut",
+          "date": "1520-10-09",
+          "precision": "day",
+          "at": [
+            35.51306,
+            33.88694
+          ],
+          "line": "At Beirut, Ottoman soldiers ambush a French landing force",
+          "source": {
+            "title": "Battle of Beirut (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"
+          }
         }
       ],
       "1520-09": [
@@ -1037,104 +1283,141 @@
           }
         },
         {
-          "qid": "Q22936045",
-          "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
-          "precision": "month",
+          "qid": "Q134238639",
+          "label": "Battle of Beirut",
+          "date": "1520-10-09",
+          "precision": "day",
           "at": [
-            75.08,
-            24.03
+            35.51306,
+            33.88694
           ],
+          "line": "At Beirut, Ottoman soldiers ambush a French landing force",
           "source": {
-            "title": "Siege of Mandsaur (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+            "title": "Battle of Beirut (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"
           }
         }
       ],
       "1520-10": [
         {
+          "qid": "Q134238639",
+          "label": "Battle of Beirut",
+          "date": "1520-10-09",
+          "precision": "day",
+          "at": [
+            35.51306,
+            33.88694
+          ],
+          "line": "At Beirut, Ottoman soldiers ambush a French landing force",
+          "source": {
+            "title": "Battle of Beirut (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"
+          }
+        },
+        {
+          "qid": "Q28109023",
+          "label": "Battle of Tordesillas",
+          "date": "1520-12-05",
+          "precision": "day",
+          "at": [
+            -5.00048,
+            41.50086
+          ],
+          "line": "Royalist troops seize Tordesillas, the headquarters of Castile's rebels",
+          "source": {
+            "title": "Battle of Tordesillas (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        },
+        {
           "qid": "Q22936045",
           "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
+          "date": "1521-01-01",
           "precision": "month",
           "at": [
             75.08,
             24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
             "title": "Siege of Mandsaur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
-          }
-        },
-        {
-          "qid": "Q7509804",
-          "label": "Siege of Allenstein",
-          "date": "1521-01-01",
-          "precision": "month",
-          "at": [
-            19.81671,
-            54.38354
-          ],
-          "source": {
-            "title": "Siege of Allenstein (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
           }
         }
       ],
       "1520-11": [
         {
+          "qid": "Q134238639",
+          "label": "Battle of Beirut",
+          "date": "1520-10-09",
+          "precision": "day",
+          "at": [
+            35.51306,
+            33.88694
+          ],
+          "line": "At Beirut, Ottoman soldiers ambush a French landing force",
+          "source": {
+            "title": "Battle of Beirut (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"
+          }
+        },
+        {
+          "qid": "Q28109023",
+          "label": "Battle of Tordesillas",
+          "date": "1520-12-05",
+          "precision": "day",
+          "at": [
+            -5.00048,
+            41.50086
+          ],
+          "line": "Royalist troops seize Tordesillas, the headquarters of Castile's rebels",
+          "source": {
+            "title": "Battle of Tordesillas (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        },
+        {
           "qid": "Q22936045",
           "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
+          "date": "1521-01-01",
           "precision": "month",
           "at": [
             75.08,
             24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
             "title": "Siege of Mandsaur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
-          }
-        },
-        {
-          "qid": "Q7509804",
-          "label": "Siege of Allenstein",
-          "date": "1521-01-01",
-          "precision": "month",
-          "at": [
-            19.81671,
-            54.38354
-          ],
-          "source": {
-            "title": "Siege of Allenstein (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
-          }
-        },
-        {
-          "qid": "Q4870998",
-          "label": "Battle of Falun",
-          "date": "1521-02-05",
-          "precision": "day",
-          "at": [
-            15.63111,
-            60.60722
-          ],
-          "source": {
-            "title": "Battle of Falun (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Falun"
           }
         }
       ],
       "1520-12": [
         {
+          "qid": "Q28109023",
+          "label": "Battle of Tordesillas",
+          "date": "1520-12-05",
+          "precision": "day",
+          "at": [
+            -5.00048,
+            41.50086
+          ],
+          "line": "Royalist troops seize Tordesillas, the headquarters of Castile's rebels",
+          "source": {
+            "title": "Battle of Tordesillas (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        },
+        {
           "qid": "Q22936045",
           "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
+          "date": "1521-01-01",
           "precision": "month",
           "at": [
             75.08,
             24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
             "title": "Siege of Mandsaur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
@@ -1143,42 +1426,45 @@
         {
           "qid": "Q7509804",
           "label": "Siege of Allenstein",
-          "date": "1521-01-01",
-          "precision": "month",
+          "date": "1521-01-26",
+          "precision": "day",
           "at": [
-            19.81671,
-            54.38354
+            20.48,
+            53.78
           ],
+          "line": "At Olsztyn, Polish troops repel Teutonic knights at the breached gate",
           "source": {
             "title": "Siege of Allenstein (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
-          }
-        },
-        {
-          "qid": "Q4870998",
-          "label": "Battle of Falun",
-          "date": "1521-02-05",
-          "precision": "day",
-          "at": [
-            15.63111,
-            60.60722
-          ],
-          "source": {
-            "title": "Battle of Falun (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Falun"
           }
         }
       ],
       "1521-01": [
         {
+          "qid": "Q28109023",
+          "label": "Battle of Tordesillas",
+          "date": "1520-12-05",
+          "precision": "day",
+          "at": [
+            -5.00048,
+            41.50086
+          ],
+          "line": "Royalist troops seize Tordesillas, the headquarters of Castile's rebels",
+          "source": {
+            "title": "Battle of Tordesillas (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        },
+        {
           "qid": "Q22936045",
           "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
+          "date": "1521-01-01",
           "precision": "month",
           "at": [
             75.08,
             24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
             "title": "Siege of Mandsaur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
@@ -1187,29 +1473,16 @@
         {
           "qid": "Q7509804",
           "label": "Siege of Allenstein",
-          "date": "1521-01-01",
-          "precision": "month",
+          "date": "1521-01-26",
+          "precision": "day",
           "at": [
-            19.81671,
-            54.38354
+            20.48,
+            53.78
           ],
+          "line": "At Olsztyn, Polish troops repel Teutonic knights at the breached gate",
           "source": {
             "title": "Siege of Allenstein (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
-          }
-        },
-        {
-          "qid": "Q4870998",
-          "label": "Battle of Falun",
-          "date": "1521-02-05",
-          "precision": "day",
-          "at": [
-            15.63111,
-            60.60722
-          ],
-          "source": {
-            "title": "Battle of Falun (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Falun"
           }
         }
       ],
@@ -1217,59 +1490,63 @@
         {
           "qid": "Q22936045",
           "label": "Siege of Mandsaur",
-          "date": "1520-12-01",
+          "date": "1521-01-01",
           "precision": "month",
           "at": [
             75.08,
             24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
             "title": "Siege of Mandsaur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
           }
         },
         {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-26",
+          "precision": "day",
+          "at": [
+            20.48,
+            53.78
+          ],
+          "line": "At Olsztyn, Polish troops repel Teutonic knights at the breached gate",
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        },
+        {
           "qid": "Q10431431",
           "label": "Nydala Abbey Bloodbath",
-          "date": "1521-02-12",
+          "date": "1521-02-02",
           "precision": "day",
           "at": [
             14.34127,
             57.32299
           ],
+          "line": "Danish soldiers execute the abbot and monks at Nydala Abbey",
           "source": {
             "title": "Nydala Abbey Bloodbath (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Nydala_Abbey_Bloodbath"
-          }
-        },
-        {
-          "qid": "Q2890338",
-          "label": "Battle of Villalar",
-          "date": "1521-04-23",
-          "precision": "day",
-          "at": [
-            -5.13333,
-            41.55
-          ],
-          "source": {
-            "title": "Battle of Villalar (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
           }
         }
       ],
       "1521-03": [
         {
-          "qid": "Q7509804",
-          "label": "Siege of Allenstein",
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
           "date": "1521-01-01",
           "precision": "month",
           "at": [
-            19.81671,
-            54.38354
+            75.08,
+            24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
-            "title": "Siege of Allenstein (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
           }
         },
         {
@@ -1281,6 +1558,7 @@
             16.25333,
             60.13139
           ],
+          "line": "At Brunnbäck Ferry, Swedish rebels drive Danish troops into the river",
           "source": {
             "title": "Battle of Brunnbäck Ferry (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Brunnb%C3%A4ck_Ferry"
@@ -1295,6 +1573,7 @@
             -5.13333,
             41.55
           ],
+          "line": "At Villalar, royalist cavalry scatter Castile's rebels in the rain",
           "source": {
             "title": "Battle of Villalar (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
@@ -1303,17 +1582,18 @@
       ],
       "1521-04": [
         {
-          "qid": "Q7509804",
-          "label": "Siege of Allenstein",
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
           "date": "1521-01-01",
           "precision": "month",
           "at": [
-            19.81671,
-            54.38354
+            75.08,
+            24.03
           ],
+          "line": "Gujarat's army tunnels beneath the walls of Mandsaur",
           "source": {
-            "title": "Siege of Allenstein (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
           }
         },
         {
@@ -1325,6 +1605,7 @@
             -5.13333,
             41.55
           ],
+          "line": "At Villalar, royalist cavalry scatter Castile's rebels in the rain",
           "source": {
             "title": "Battle of Villalar (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
@@ -1339,6 +1620,7 @@
             16.61667,
             59.63333
           ],
+          "line": "Outside Västerås, Gustav Vasa's rebels drive back a Danish attack",
           "source": {
             "title": "Battle of Västerås (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_V%C3%A4ster%C3%A5s"
@@ -1375,17 +1657,18 @@
           }
         },
         {
-          "qid": "Q1293343",
-          "label": "Siege of Šabac",
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
           "date": "1521-06-30",
           "precision": "day",
           "at": [
-            19.69389,
-            44.75583
+            -99.13528,
+            19.44339
           ],
+          "line": "At Colhuacatonco, Mexica warriors drive back Cortés and his allies",
           "source": {
-            "title": "Siege of Šabac (1521) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_%C5%A0abac_(1521)"
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
           }
         }
       ],
@@ -1421,12 +1704,13 @@
         {
           "qid": "Q112811996",
           "label": "Battle of Colhuacatonco",
-          "date": "1521-07-10",
+          "date": "1521-06-30",
           "precision": "day",
           "at": [
             -99.13528,
             19.44339
           ],
+          "line": "At Colhuacatonco, Mexica warriors drive back Cortés and his allies",
           "source": {
             "title": "Battle of Colhuacatonco (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
@@ -1434,6 +1718,21 @@
         }
       ],
       "1521-07": [
+        {
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
+          "date": "1521-06-30",
+          "precision": "day",
+          "at": [
+            -99.13528,
+            19.44339
+          ],
+          "line": "At Colhuacatonco, Mexica warriors drive back Cortés and his allies",
+          "source": {
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+          }
+        },
         {
           "qid": "Q535542",
           "label": "Siege of Belgrade",
@@ -1446,20 +1745,6 @@
           "source": {
             "title": "Siege of Belgrade (1521) (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Belgrade_(1521)"
-          }
-        },
-        {
-          "qid": "Q112811996",
-          "label": "Battle of Colhuacatonco",
-          "date": "1521-07-10",
-          "precision": "day",
-          "at": [
-            -99.13528,
-            19.44339
-          ],
-          "source": {
-            "title": "Battle of Colhuacatonco (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
           }
         },
         {
@@ -1479,61 +1764,17 @@
       ],
       "1521-08": [
         {
-          "qid": "Q112811996",
-          "label": "Battle of Colhuacatonco",
-          "date": "1521-07-10",
+          "qid": "Q535542",
+          "label": "Siege of Belgrade",
+          "date": "1521-07-05",
           "precision": "day",
           "at": [
-            -99.13528,
-            19.44339
+            20.46667,
+            44.81667
           ],
           "source": {
-            "title": "Battle of Colhuacatonco (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
-          }
-        },
-        {
-          "qid": "Q4870274",
-          "label": "Battle of Almenara",
-          "date": "1521-07-28",
-          "precision": "day",
-          "at": [
-            -0.21667,
-            39.75
-          ],
-          "source": {
-            "title": "Battle of Almenara (1521) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Almenara_(1521)"
-          }
-        },
-        {
-          "qid": "Q7879248",
-          "label": "Siege of Mézières",
-          "date": "1521-08-01",
-          "precision": "month",
-          "at": [
-            4.71652,
-            49.76085
-          ],
-          "source": {
-            "title": "Siege of Mézières (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Siege_of_M%C3%A9zi%C3%A8res"
-          }
-        }
-      ],
-      "1521-09": [
-        {
-          "qid": "Q112811996",
-          "label": "Battle of Colhuacatonco",
-          "date": "1521-07-10",
-          "precision": "day",
-          "at": [
-            -99.13528,
-            19.44339
-          ],
-          "source": {
-            "title": "Battle of Colhuacatonco (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+            "title": "Siege of Belgrade (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Belgrade_(1521)"
           }
         },
         {
@@ -1553,15 +1794,62 @@
         {
           "qid": "Q958133",
           "label": "Battle of Oriola",
-          "date": "1521-09-09",
+          "date": "1521-08-30",
           "precision": "day",
           "at": [
             -0.94694,
             38.08556
           ],
+          "line": "At Orihuela, royalist troops defeat the rebels and sack the city",
           "source": {
-            "title": "Battle of Oriola (1521) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+            "title": "1200 años de una idea, p. 19 (Museo de la Ciudad, Murcia)",
+            "url": "https://museodelaciudad.murcia.es/sites/default/files/documents/publicacion-1200-baja.pdf#page=19"
+          }
+        }
+      ],
+      "1521-09": [
+        {
+          "qid": "Q7879248",
+          "label": "Siege of Mézières",
+          "date": "1521-08-01",
+          "precision": "month",
+          "at": [
+            4.71652,
+            49.76085
+          ],
+          "source": {
+            "title": "Siege of Mézières (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_M%C3%A9zi%C3%A8res"
+          }
+        },
+        {
+          "qid": "Q958133",
+          "label": "Battle of Oriola",
+          "date": "1521-08-30",
+          "precision": "day",
+          "at": [
+            -0.94694,
+            38.08556
+          ],
+          "line": "At Orihuela, royalist troops defeat the rebels and sack the city",
+          "source": {
+            "title": "1200 años de una idea, p. 19 (Museo de la Ciudad, Murcia)",
+            "url": "https://museodelaciudad.murcia.es/sites/default/files/documents/publicacion-1200-baja.pdf#page=19"
+          }
+        },
+        {
+          "qid": "Q118900813",
+          "label": "Attack on Bintan",
+          "date": "1521-10-01",
+          "precision": "month",
+          "at": [
+            104.61944,
+            0.95
+          ],
+          "line": "On Bintan, Malay defenders repulse a Portuguese attack on their fort",
+          "source": {
+            "title": "Attack on Bintan (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
           }
         }
       ],
@@ -1583,15 +1871,31 @@
         {
           "qid": "Q958133",
           "label": "Battle of Oriola",
-          "date": "1521-09-09",
+          "date": "1521-08-30",
           "precision": "day",
           "at": [
             -0.94694,
             38.08556
           ],
+          "line": "At Orihuela, royalist troops defeat the rebels and sack the city",
           "source": {
-            "title": "Battle of Oriola (1521) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+            "title": "1200 años de una idea, p. 19 (Museo de la Ciudad, Murcia)",
+            "url": "https://museodelaciudad.murcia.es/sites/default/files/documents/publicacion-1200-baja.pdf#page=19"
+          }
+        },
+        {
+          "qid": "Q118900813",
+          "label": "Attack on Bintan",
+          "date": "1521-10-01",
+          "precision": "month",
+          "at": [
+            104.61944,
+            0.95
+          ],
+          "line": "On Bintan, Malay defenders repulse a Portuguese attack on their fort",
+          "source": {
+            "title": "Attack on Bintan (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
           }
         }
       ],
@@ -1613,20 +1917,68 @@
         {
           "qid": "Q958133",
           "label": "Battle of Oriola",
-          "date": "1521-09-09",
+          "date": "1521-08-30",
           "precision": "day",
           "at": [
             -0.94694,
             38.08556
           ],
+          "line": "At Orihuela, royalist troops defeat the rebels and sack the city",
           "source": {
-            "title": "Battle of Oriola (1521) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+            "title": "1200 años de una idea, p. 19 (Museo de la Ciudad, Murcia)",
+            "url": "https://museodelaciudad.murcia.es/sites/default/files/documents/publicacion-1200-baja.pdf#page=19"
+          }
+        },
+        {
+          "qid": "Q118900813",
+          "label": "Attack on Bintan",
+          "date": "1521-10-01",
+          "precision": "month",
+          "at": [
+            104.61944,
+            0.95
+          ],
+          "line": "On Bintan, Malay defenders repulse a Portuguese attack on their fort",
+          "source": {
+            "title": "Attack on Bintan (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
           }
         }
       ],
-      "1521-12": [],
-      "1522-01": [],
+      "1521-12": [
+        {
+          "qid": "Q118900813",
+          "label": "Attack on Bintan",
+          "date": "1521-10-01",
+          "precision": "month",
+          "at": [
+            104.61944,
+            0.95
+          ],
+          "line": "On Bintan, Malay defenders repulse a Portuguese attack on their fort",
+          "source": {
+            "title": "Attack on Bintan (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
+          }
+        }
+      ],
+      "1522-01": [
+        {
+          "qid": "Q118900813",
+          "label": "Attack on Bintan",
+          "date": "1521-10-01",
+          "precision": "month",
+          "at": [
+            104.61944,
+            0.95
+          ],
+          "line": "On Bintan, Malay defenders repulse a Portuguese attack on their fort",
+          "source": {
+            "title": "Attack on Bintan (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
+          }
+        }
+      ],
       "1522-02": [
         {
           "qid": "Q683341",
@@ -1637,6 +1989,7 @@
             9.21,
             45.518
           ],
+          "line": "At Bicocca, Spanish gunfire tears through the advancing Swiss pikemen",
           "source": {
             "title": "Battle of Bicocca (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
@@ -1654,6 +2007,21 @@
           "source": {
             "title": "Siege of Knin (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        },
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
           }
         }
       ],
@@ -1667,6 +2035,7 @@
             9.21,
             45.518
           ],
+          "line": "At Bicocca, Spanish gunfire tears through the advancing Swiss pikemen",
           "source": {
             "title": "Battle of Bicocca (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
@@ -1685,6 +2054,21 @@
             "title": "Siege of Knin (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
           }
+        },
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
+          }
         }
       ],
       "1522-04": [
@@ -1697,9 +2081,25 @@
             9.21,
             45.518
           ],
+          "line": "At Bicocca, Spanish gunfire tears through the advancing Swiss pikemen",
           "source": {
             "title": "Battle of Bicocca (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
+          }
+        },
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
           }
         },
         {
@@ -1733,6 +2133,21 @@
           }
         },
         {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
+          }
+        },
+        {
           "qid": "Q9291683",
           "label": "Siege of Genoa",
           "date": "1522-05-30",
@@ -1748,6 +2163,21 @@
         }
       ],
       "1522-06": [
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
+          }
+        },
         {
           "qid": "Q18713116",
           "label": "Siege of Knin",
@@ -1791,6 +2221,36 @@
             "title": "Siege of Knin (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
           }
+        },
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
+          }
+        },
+        {
+          "qid": "Q3180568",
+          "label": "Luso Sundanese padrão",
+          "date": "1522-08-21",
+          "precision": "day",
+          "at": [
+            106.80861,
+            -6.12387
+          ],
+          "line": "At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance",
+          "source": {
+            "title": "Luso-Sundanese padrão (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
+          }
         }
       ],
       "1522-08": [
@@ -1807,11 +2267,89 @@
             "title": "Siege of Knin (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
           }
+        },
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "line": "At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs",
+          "source": {
+            "title": "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)",
+            "url": "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"
+          }
+        },
+        {
+          "qid": "Q3180568",
+          "label": "Luso Sundanese padrão",
+          "date": "1522-08-21",
+          "precision": "day",
+          "at": [
+            106.80861,
+            -6.12387
+          ],
+          "line": "At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance",
+          "source": {
+            "title": "Luso-Sundanese padrão (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
+          }
         }
       ],
-      "1522-09": [],
-      "1522-10": [],
-      "1522-11": [],
+      "1522-09": [
+        {
+          "qid": "Q3180568",
+          "label": "Luso Sundanese padrão",
+          "date": "1522-08-21",
+          "precision": "day",
+          "at": [
+            106.80861,
+            -6.12387
+          ],
+          "line": "At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance",
+          "source": {
+            "title": "Luso-Sundanese padrão (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
+          }
+        }
+      ],
+      "1522-10": [
+        {
+          "qid": "Q3180568",
+          "label": "Luso Sundanese padrão",
+          "date": "1522-08-21",
+          "precision": "day",
+          "at": [
+            106.80861,
+            -6.12387
+          ],
+          "line": "At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance",
+          "source": {
+            "title": "Luso-Sundanese padrão (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
+          }
+        }
+      ],
+      "1522-11": [
+        {
+          "qid": "Q3180568",
+          "label": "Luso Sundanese padrão",
+          "date": "1522-08-21",
+          "precision": "day",
+          "at": [
+            106.80861,
+            -6.12387
+          ],
+          "line": "At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance",
+          "source": {
+            "title": "Luso-Sundanese padrão (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
+          }
+        }
+      ],
       "1522-12": []
     }
   },

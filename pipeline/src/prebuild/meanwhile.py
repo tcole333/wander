@@ -4,9 +4,9 @@ output root) into the story's committed lock.
 
 `uv run prebuild meanwhile --story <id>` reads the beats of `stories/<id>/story.md` and the lines
 written for their events in `stories/<id>/meanwhile.yaml` (qid -> {line, date?, at?, source:
-{title, url}}), whose `date` (one day) and `at` ([lon, lat]) stand in for the index's where the
-source dates or places the event otherwise. For each beat it picks `COUNT` events happening
-elsewhere at the beat's time:
+{title, url}}), whose `date` (one day or month) and `at` ([lon, lat]) stand in for the index's
+where the source dates or places the event otherwise. For each beat it picks `COUNT` events
+happening elsewhere at the beat's time:
 
 - dated inside the beat's window, widened where needed to `PAD_DAYS` either side of the beat's
   date (a date of year or month precision counts as its whole year or month), and spanning no
@@ -471,7 +471,7 @@ def read_lines(path: Path) -> dict[str, dict[str, Any]]:
         if not written.get("line") or not source.get("title") or not source.get("url"):
             raise MeanwhileError(f"{path.name}: {qid} needs a line and a source's title and url")
         if "date" in written:
-            iso_day(str(written["date"]))
+            written_date(str(written["date"]))
         at = written.get("at", [0, 0])
         if not (
             isinstance(at, list)
@@ -484,14 +484,27 @@ def read_lines(path: Path) -> dict[str, dict[str, Any]]:
     return lines
 
 
+def written_date(text: str) -> tuple[int, int, int]:
+    """A source's day or month as (first day, last day, precision)."""
+    if match := re.fullmatch(r"([+-]?\d{4,})-(0[1-9]|1[0-2])", text):
+        year, month = map(int, match.groups())
+        return (
+            day_number(year, month, 1),
+            day_number(year, month, events.month_days(year, month)),
+            events.MONTH,
+        )
+    day = iso_day(text)
+    return day, day, events.DAY
+
+
 def as_written(event: Event, written: Mapping[str, Any] | None) -> Event:
-    """The event with its written line's date, a single day, and place, where the line gives
+    """The event with its written line's date, a day or month, and place, where the line gives
     them."""
     if written is None:
         return event
     if "date" in written:
-        day = iso_day(str(written["date"]))
-        event = replace(event, date=day, precision=events.DAY, t0=day, t1=day)
+        first, last, precision = written_date(str(written["date"]))
+        event = replace(event, date=first, precision=precision, t0=first, t1=last)
     if "at" in written:
         lon, lat = written["at"]
         event = replace(event, at=(float(lon), float(lat)), inherited=False)
