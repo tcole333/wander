@@ -53,7 +53,7 @@ from prebuild.wikidata import META, SOURCE_PREFIX, TABLE
 STAGE = "events"
 KEY = "ev/events.tsv.gz"
 MAX_ROWS = 100_000  # streaming.md 3.4's bound for one events file
-YEAR, MONTH = 9, 10  # Wikidata's precisions; day is 11
+YEAR, MONTH, DAY = 9, 10, 11  # Wikidata's precisions
 DATE_ORDER = ("P585", "P580", "P582")  # point in time, start time, end time
 COLUMNS = (
     "qid",
