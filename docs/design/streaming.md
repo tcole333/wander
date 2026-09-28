@@ -406,7 +406,9 @@ u8 d[6][size][size]   min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels, +
   coast, darkened like the coast's line and a touch rougher (`app/src/look/bordersHook.ts`), after
   the climate wash and before the ash. It eases over `borderFade` with the beat's `borders` layer
   once every face is in, and fades out as the view closes in from 400 to 220 km across, where a
-  texel spans tens of pixels. Its program is compiled at strength 0 in the lobby's precompile.
+  texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's reach
+  of 8 texels no longer spans the line. Its program is compiled at strength 0 in the lobby's
+  precompile.
 - **Year plate:** whenever borders are drawn, a small riveted plate of Meanwhile's cast brass at the
   top of the page, between the mark and the sound knob, names the snapshot ("Borders · 1815") and
   fades with them; it never crowds the card, Meanwhile, the climate legend or the ruler.
