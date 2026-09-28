@@ -7,15 +7,21 @@ import { parseStory } from '../src/story/story';
 import { DATA_URL, DEV_URL, PREVIEW_URL } from './servers';
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
-const stories = Object.fromEntries(
+const locks = Object.fromEntries(
   ['tambora', 'magellan'].map((id) => [
     id,
-    withLock(
-      parseStory(read(`../../stories/${id}/story.md`)),
-      JSON.parse(read(`../../stories/${id}/story.lock.json`)) as StoryLock,
-    ),
+    JSON.parse(read(`../../stories/${id}/story.lock.json`)) as StoryLock,
   ]),
 );
+const stories = Object.fromEntries(
+  Object.entries(locks).map(([id, lock]) => [
+    id,
+    withLock(parseStory(read(`../../stories/${id}/story.md`)), lock),
+  ]),
+);
+/** How many Meanwhile entries the lock gives a story's first beat, as its panel shows them. */
+const firstBeatMeanwhile = (id: string) =>
+  locks[id]!.meanwhile!.beats[stories[id]!.beats[0]!.id]!.length;
 const JPEG = readFileSync(
   new URL('../../pipeline/tests/data/media/quadrants.jpg', import.meta.url),
 );
@@ -94,7 +100,7 @@ for (const entry of ['production', 'dev'] as const) {
         return imageKeys.some((key) => src === `${DATA_URL.fixture}/${key}`);
       })
       .toBe(true);
-    await expect(page.locator('.wu-mw-entry')).toHaveCount(2);
+    await expect(page.locator('.wu-mw-entry')).toHaveCount(firstBeatMeanwhile('magellan'));
     await page.keyboard.press('ArrowRight');
     await expect(title).toHaveText(stories.magellan!.beats[1]!.title);
     await expect(page.locator('.rc-plate-top').first()).toHaveText('13 DECEMBER');
@@ -109,7 +115,7 @@ for (const entry of ['production', 'dev'] as const) {
     await expect(title).toHaveText(stories.tambora!.beats[0]!.title);
     await expect(page.locator('.rc-status')).toContainText('Beat 1 of 8');
     await expect(page.locator('.rc-gilt .rc-tier-year')).toHaveText(['1815', '1816', '1817']);
-    await expect(page.locator('.wu-mw-entry')).toHaveCount(3);
+    await expect(page.locator('.wu-mw-entry')).toHaveCount(firstBeatMeanwhile('tambora'));
     await mark.click();
     await phase(page, 'idle');
     // Keyboard selection starts Magellan afresh, rather than resuming its previous beat 2.
