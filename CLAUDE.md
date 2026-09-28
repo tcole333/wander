@@ -83,11 +83,12 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
-  every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`,
-  `borders` (its tests draw synthetic snapshots, since the GPL source is never committed) and
-  `modera` until the climate layer has an excerpt. `uv run prebuild --profile region` bakes the
-  milestone-1 region into `build/region/` (about 2.5 min on the M5, plus 50 s for `modera`, which
-  writes all of ModE-RA whatever the profile, and 30 s for `borders`, the whole 1815 field).
+  every stage in order except `wikidata`, `excerpts` and `media`; the fixture profile also skips
+  `fetch`, `borders` (its tests draw synthetic snapshots, since the GPL source is never committed),
+  and `events` and `modera` until their layers have excerpts. `uv run prebuild --profile region`
+  bakes the milestone-1 region into `build/region/` (about 2.5 min on the M5, plus 50 s for
+  `modera`, which writes all of ModE-RA whatever the profile, and 30 s for `borders`, the whole
+  1815 field).
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
@@ -106,6 +107,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   published. When the borders' `ver` is new, tag the commit that built them `borders-<ver>` and
   push the tag first: their GPL notice links the build scripts there, and the run stops, naming
   the commands, until origin holds it.
+- `uv run prebuild wikidata` exports the event index's classes (`pipeline/config/event-classes.yaml`)
+  from QLever's public Wikidata endpoint into `sources/wikidata-events-<date>/` in the raw-data
+  folder, one class at a time, and pins the export in `pipeline/sources.toml` in place of the last
+  one (commit it). The `events` stage turns the pinned export into the scored table
+  `ev/events.tsv.gz` in the profile's output root (`docs/design/streaming.md` 3.4).
 - `uv run prebuild fetch` downloads what is missing from `pipeline/sources.toml` into the raw-data
   folder and checks every sha256. `uv run prebuild excerpts` rewrites the committed excerpts in
   `pipeline/tests/data/` from it, reproducing them byte for byte; commit what it changes.

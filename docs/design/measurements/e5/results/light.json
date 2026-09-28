@@ -1,0 +1,14 @@
+{
+  "file": "build/out/ev/events.tsv.gz",
+  "rows": 29649,
+  "bytes": 1183062,
+  "decoded": 3774760,
+  "parseMs": {
+    "first": 41.5,
+    "median": 37.1,
+    "min": 34.9
+  },
+  "runs": 7,
+  "node": "v22.23.2",
+  "measured": "2026-09-28"
+}
