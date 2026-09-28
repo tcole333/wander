@@ -134,6 +134,11 @@ describe('the route core and material hook', () => {
     expect(uniforms.lookRouteCount.value).toBe(0);
     effects.update(on('pacific', '1519-09-19'), 1, 1);
     expect(uniforms.lookRouteCount.value).toBe(0);
+    effects.update(on('pacific'), 1, 1);
+    effects.hide();
+    expect(uniforms.lookRouteCount.value).toBe(0);
+    effects.update(on('pacific'), 0.25, 1);
+    expect(state()[3]).toBeCloseTo(0.5);
     effects.dispose();
   });
 

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 30">
+  <defs>
+    <radialGradient id="brass" cx="35%" cy="35%" r="75%">
+      <stop stop-color="#f6e2b0"/>
+      <stop offset=".7" stop-color="#a27f45"/>
+      <stop offset="1" stop-color="#5e4521"/>
+    </radialGradient>
+  </defs>
+  <g stroke="#241d16" stroke-width=".85" stroke-linejoin="round" stroke-linecap="round" fill="url(#brass)">
+    <!-- High stern at left, beak and bowsprit at right; three masts under a pennant. -->
+    <path d="M5 24V8m10 17V2m9 22V7M23 23l8-5" fill="none" stroke="#e3c486" stroke-width="1.2"/>
+    <path d="M15 2h8l-3 2 3 1h-8z"/>
+    <path d="M2 10h7q-2 4 0 8H2q2-4 0-8Z"/>
+    <path d="M11 6h9q-2 3 0 6h-9q2-3 0-6Z"/>
+    <path d="M10 14h11q-2 4 0 7H10q2-3 0-7Z"/>
+    <path d="M22 10h7q-2 4 0 9h-7q2-5 0-9Z"/>
+    <path d="m5 9-3 15m13-18L8 25m7-19 8 19m1-15 5 13" fill="none" stroke="#b08a4a" stroke-width=".6"/>
+    <path d="M1 21h7v3h15l7-3-4 6q-9 5-21 0Z"/>
+    <path d="M5 26h20M13 15v5m3-5v5m3-5v5" fill="none" stroke-width=".55"/>
+    <path d="M3 22h4m4 3h11" fill="none" stroke="#f6e2b0" stroke-width=".65"/>
+  </g>
+</svg>
