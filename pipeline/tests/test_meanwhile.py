@@ -80,6 +80,25 @@ def test_a_list_repeats_an_earlier_list_s_entry_only_when_it_must_and_then_the_l
     ]
 
 
+def test_a_sparse_month_relaxes_the_spacing_between_its_entries_then_its_reach():
+    beat = m.Beat(
+        id="veil",
+        date=m.iso_day("1816-09-15"),
+        window=(m.iso_day("1816-09-01"), m.iso_day("1816-09-30")),
+        target=TAMBORA,
+        focal="Q0",
+        pins=(),
+        hides=(),
+    )
+    index = [
+        m.replace(event("Q1", 3.0, (80.0, 20.0), "1816-09-10"), enwiki="One"),
+        m.replace(event("Q2", 2.0, (75.0, 19.0), "1816-09-20"), enwiki="Two"),  # 530 km from Q1
+        m.replace(event("Q3", 1.0, (-60.0, -30.0), "1816-11-20"), enwiki="Three"),  # 66 days on
+    ]
+    september = m.month_lists([beat], index)[(1816, 9)]
+    assert [e.qid for e in september] == ["Q1", "Q2", "Q3"]
+
+
 def test_an_event_whose_date_the_sources_dispute_is_left_out():
     beat = m.Beat(
         id="summer",
