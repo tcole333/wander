@@ -2,7 +2,8 @@
 // Metal at 1440x900. It steps through the story as a visitor would and shoots each beat once the
 // flight has landed, the streamer has been idle for a second, story time has come to rest (the ash
 // and veil beats play their spread out after landing) and the card's image has loaded (or
-// failed); three flights halfway; the ruler scrubbed to 11 April 1815 on the ash beat; and a
+// failed); three flights halfway; the ruler scrubbed to 11 April 1815 on the ash beat, and from
+// the veil beat to February 1816, between beats, where Meanwhile shows that month's entries; and a
 // break-out, a Meanwhile entry chosen, with the Resume plaque. Writes <out>/*.png and
 // <out>/walk.json (flight timings, fonts and any console errors). Plain Node, run from app/ with
 // the Vite dev server and a data server up:
@@ -12,6 +13,7 @@ import { chromium, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { dayFromIso } from '../src/story/dates.ts';
 
 interface WalkApi {
   state(): { beat: number; mode: string; flight: number | null; day: number };
@@ -41,7 +43,13 @@ const BEATS = [
 ];
 /** The flights shot halfway, by the beat flown to. */
 const MID_FLIGHT = new Set(['sumbawa', 'europe-1816', 'new-england-1816']);
-const ASH = BEATS.indexOf('ash');
+/** The scrubs shot, by the beat scrubbed from: the name's date, and the day scrubbed to. */
+const SCRUBS: Record<string, { date: string; to: (day: number) => number }> = {
+  // Back a day, to 11 April 1815: ash has reached Bali, Lombok and Banyuwangi.
+  ash: { date: '1815-04-11', to: (day) => day - 1 },
+  // Past the beat, to a month between beats.
+  veil: { date: '1816-02', to: () => dayFromIso('1816-02-15') },
+};
 /** Long enough for the plaques and the card's words to fade in after a landing. */
 const FADE_MS = 1500;
 
@@ -110,14 +118,12 @@ try {
     await settle(page);
     await shoot(`beat-${n}-${id}`);
 
-    if (beat === ASH) {
-      // Scrubbed back a day, to 11 April 1815: ash has reached Bali, Lombok and Banyuwangi.
-      await page.evaluate(() => {
-        const walk = (window as WalkWindow).__walk;
-        walk?.scrub(walk.state().day - 1);
-      });
+    const scrub = SCRUBS[id];
+    if (scrub) {
+      const day = await page.evaluate(() => (window as WalkWindow).__walk?.state().day ?? 0);
+      await page.evaluate((to) => (window as WalkWindow).__walk?.scrub(to), scrub.to(day));
       await page.waitForTimeout(FADE_MS);
-      await shoot(`scrub-${n}-${id}-1815-04-11`);
+      await shoot(`scrub-${n}-${id}-${scrub.date}`);
       await page.evaluate(() => (window as WalkWindow).__walk?.resume());
       await settle(page);
     }
