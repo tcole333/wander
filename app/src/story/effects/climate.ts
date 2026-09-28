@@ -1,7 +1,8 @@
 // The globe's climate in the walk (streaming.md 3.5): ModE-RA's monthly temperature anomalies
 // under the story day, on the beats whose layers show climate monthly. The years those beats reach
-// load at the start, from the beat before each (a flight sweeps story time from its date) to the
-// end of the beat's window: each year's mean file is fetched from the data host, inflated and read
+// load once asked (the boot asks as the lobby's opening starts, after everything the first frame
+// needs), from the beat before each (a flight sweeps story time from its date) to the end of the
+// beat's window: each year's mean file is fetched from the data host, inflated and read
 // (data/climate.ts). A year a scrub reaches beyond them loads when first asked for, and past the
 // data's years the layer eases out. Each frame the two months around the story day blend into the
 // look's field (look/climateHook.ts), uploaded when the blend changes, and the look's strength
@@ -69,6 +70,8 @@ export class WalkClimate {
   readonly #uniforms: ClimateUniforms | undefined;
   readonly #source: ClimateSource;
   readonly #load: LoadClimateYear;
+  /** The years the story's climate beats reach, which load() fetches. */
+  readonly #reach: number[];
   readonly #years = new Map<number, ClimateFile | null>();
   readonly #field = new Float32Array(CLIMATE_GRID.nlat * CLIMATE_GRID.nlon);
   /** The blend drawn, and the month of the story day it was last drawn for. */
@@ -87,8 +90,8 @@ export class WalkClimate {
     this.#uniforms = uniforms;
     this.#source = source;
     this.#load = load;
-    const years = climateYears(story);
-    this.#off = uniforms === undefined || years.length === 0;
+    this.#reach = climateYears(story);
+    this.#off = uniforms === undefined || this.#reach.length === 0;
     if (this.#off) return;
     const { modera } = source;
     if (!modera) {
@@ -98,7 +101,11 @@ export class WalkClimate {
     const { lat, lon0, dlon } = modera;
     const [north = 90, south = -90] = [lat[0], lat[lat.length - 1]];
     uniforms?.lookClimateGrid.value.set(lon0, dlon, north, (north - south) / (lat.length - 1));
-    for (const year of years) this.#request(year);
+  }
+
+  /** Starts loading the years the story's climate beats reach. */
+  load(): void {
+    for (const year of this.#reach) this.#request(year);
   }
 
   /** How strongly climate data is drawn now, 0 to 1: 0 until a field has loaded. */

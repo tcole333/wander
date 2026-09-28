@@ -137,6 +137,8 @@ export interface WalkEffects {
     viewport: ViewportCss,
     elapsedS: number,
   ): void;
+  /** Starts fetching what the effects draw from the data host: the climate's years. */
+  load(): void;
   /** The climate drawn, for its legend; null while none is. */
   climate(): ClimateShown | null;
   dispose(): void;

@@ -10,7 +10,8 @@
 // walk and flies into its first beat.
 //
 // The first frame follows the roots (L0-L1) and the precompile, and in the lobby the opening starts
-// on it: the finer tiles stream in as the lamp comes up.
+// on it: the finer tiles stream in as the lamp comes up. The climate's years, which only the 1816
+// beats draw, load once the opening has started, after everything the first frame needs.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
@@ -339,6 +340,7 @@ async function assemble(
   }
   if (lobby && effects) effects.group.visible = false;
   else if (source) begin('jump');
+  if (effects) void (lobby?.opened ?? Promise.resolve()).then(() => effects.load());
 
   const frameLens = (dtS: number) => {
     const target = lobby?.lensShift() ?? cardShift;

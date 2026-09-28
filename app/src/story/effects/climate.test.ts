@@ -1,6 +1,7 @@
-// The walk's climate: with a modera section it draws the story day's month on the monthly climate
-// beats and eases out off them or past the data's years; without one it fetches nothing, draws
-// nothing and says why once, so the walk goes on.
+// The walk's climate: with a modera section it fetches its years once asked, not as the page boots,
+// draws the story day's month on the monthly climate beats and eases out off them or past the
+// data's years; without one it fetches nothing, draws nothing and says why once, so the walk goes
+// on.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { parseClimate } from '../../data/climate';
@@ -48,12 +49,31 @@ async function shownOnEurope() {
   const uniforms = createClimateUniforms();
   const source = { dataHost: 'https://data.test', modera: MODERA };
   const climate = new WalkClimate(story, source, uniforms, loadSynthetic);
+  climate.load();
   await new Promise((resolve) => setTimeout(resolve, 0));
   aSecondOn(climate, pausedOn('europe-1816'));
   return { climate, uniforms };
 }
 
 describe('the walk climate', () => {
+  it('fetches nothing until asked', () => {
+    const load = vi.fn(loadSynthetic);
+    const source = { dataHost: 'https://data.test', modera: MODERA };
+    new WalkClimate(story, source, createClimateUniforms(), load);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('fetches the years its climate beats reach once asked', () => {
+    const load = vi.fn(loadSynthetic);
+    const source = { dataHost: 'https://data.test', modera: MODERA };
+    new WalkClimate(story, source, createClimateUniforms(), load).load();
+    expect(load.mock.calls.map(([url]) => /(\d{4})\.bin$/.exec(url)?.[1])).toEqual([
+      '1815',
+      '1816',
+      '1817',
+    ]);
+  });
+
   it("draws the story day's month in full on a monthly climate beat", async () => {
     const { climate, uniforms } = await shownOnEurope();
     expect([uniforms.lookClimateStrength.value, climate.month]).toEqual([
