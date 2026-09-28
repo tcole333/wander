@@ -203,7 +203,7 @@ def load_corrections(stem: str, directory: Path = CONFIG_DIR) -> Corrections:
 def correct(collection: Mapping[str, Any], corrections: Sequence[Correction]) -> dict[str, Any]:
     """The snapshot with each correction applied in turn: the polity's polygons (only the one
     holding `at`, if given) join the first feature of the polity it becomes, and a feature left
-    with none is dropped. Every other byte of the source stays as it was."""
+    with none is dropped. Every other feature stays as it was."""
     fixed = copy.deepcopy(dict(collection))
     features: list[dict[str, Any]] = fixed["features"]
     for c in corrections:
