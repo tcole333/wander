@@ -1,4 +1,4 @@
-// The look's Labels layer: the ocean and sea names of story/seaNames.json, engraved in the
+// The look's Labels layer: the ocean and sea names of seaNames.json, engraved in the
 // lacquer. They are lettered once at boot into an atlas in the walk's own faces, the oceans in
 // Libre Baskerville's tracked capitals and the seas in Source Serif 4's italic, both bundled and
 // loaded before anything is drawn, so nothing is fetched later. The look inlays them at sea level,
@@ -17,7 +17,7 @@ import {
   type Vector3,
 } from 'three';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
-import list from '../story/seaNames.json';
+import list from './seaNames.json';
 
 /** A name as seaNames.json holds it. */
 export interface SeaName {
