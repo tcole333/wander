@@ -148,6 +148,9 @@ def test_the_notice_names_the_source_the_license_the_changes_and_the_build_scrip
         f"https://github.com/tcole333/wander/tree/borders-{record['ver']}/pipeline",
     ):
         assert line in text
-    # A single border: West became East, so the six faces hold no border at all.
+
+
+def test_a_correction_that_joins_the_only_two_polities_leaves_no_border(built):
+    ctx, record = built
     _, faces = borders.from_file((ctx.out / record["files"]["1815"]["key"]).read_bytes())
     assert np.all(faces == 255)
