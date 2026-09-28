@@ -3,10 +3,10 @@
 // function of story time, so scrubbing backward shows the right state. The plume, ash and veil
 // belong to the story: any beat that lists them turns them on for every beat, and story time alone
 // shows or hides them, so they never vanish as a flight leaves the beat that lists them. Pulses and
-// plaques come from the beat's effect list, and its layers switch the look's lines, bathymetry,
-// climate (climate.ts) and borders (borders.ts). Where the climate's data is drawn, the
-// illustrative veil gives way to it. Every mesh is made up front, the story's pulses too, so their
-// shaders compile before the walk starts (walk/boot.ts). `group` hangs from the museum's
+// plaques come from the beat's effect list, and its layers switch the look's lines, sea names,
+// bathymetry, climate (climate.ts) and borders (borders.ts). Where the climate's data is drawn,
+// the illustrative veil gives way to it. Every mesh is made up front, the story's pulses too, so
+// their shaders compile before the walk starts (walk/boot.ts). `group` hangs from the museum's
 // globeMount (the globe frame, radius 1).
 import {
   Group,
@@ -43,6 +43,7 @@ const LAMP_FALLBACK = new Vector3(-4.2, 5.2, 9.5);
 /** The beat's layers the look can switch, and the look param each one sets. */
 const LAYERS: [layer: string, param: string, off: number | boolean][] = [
   ['graticule', 'graticule', 0],
+  ['labels', 'seaNames', 0],
   ['coastline', 'coastLine', 0],
   ['water', 'riverLine', 0],
   ['bathymetry', 'bathymetry', false],
