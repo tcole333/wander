@@ -1416,7 +1416,7 @@ release's `media` section lists every key the locks name (3.8).
   reader, quantizer and annual means as a global build. The events excerpt keeps every statement
   of events with any date in 1815-1817, and all their ancestors present in the export, in source
   order: 394 statements for 239 events. The source pins, licenses, credits and selection rules
-  sit in JSON sidecars. Both new excerpts together take 139 KB; all excerpts take 1.98 MB [M].
+  sit in JSON sidecars. The ModE-RA and events excerpts take 139 KB; all excerpts take 1.98 MB [M].
   GEBCO rasters are int16 gzip and NE vectors gzipped WKB, each with a JSON sidecar; FlatGeobuf
   output is not deterministic. Borders keep synthetic snapshots in pytest; their GPL source stays
   out of the repo. An ecoregion sample, the deep-time/BCE event cases and the 3-beat mini story
