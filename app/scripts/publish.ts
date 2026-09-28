@@ -15,7 +15,13 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import type { MediaRelease, ModeraRelease, Release, SurfaceRelease } from '../src/data/release.ts';
+import type {
+  BordersRelease,
+  MediaRelease,
+  ModeraRelease,
+  Release,
+  SurfaceRelease,
+} from '../src/data/release.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import { localRelease, OUTPUT_DIR, profileBuild, ReleaseError, REPO_ROOT } from './release.ts';
@@ -49,6 +55,7 @@ export interface Section {
 export function releaseSections(release: Release, root: string): Section[] {
   const sections = [surfaceSection(release.surface, root)];
   if (release.modera) sections.push(moderaSection(release.modera, root));
+  if (release.borders) sections.push(...bordersSections(release.borders, root));
   sections.push(mediaSection(release.media, root));
   return sections;
 }
@@ -99,6 +106,30 @@ function moderaSection(modera: ModeraRelease, root: string): Section {
     return object;
   });
   return { prefix, objects };
+}
+
+/**
+ * Every border field the borders record lists under fd/borders/<ver>/, each the size the record
+ * gives it, and under lic/ the GPL notice and the corrected source each is published with.
+ */
+function bordersSections(borders: BordersRelease, root: string): Section[] {
+  const files = borders.stems.map((stem) => {
+    const file = borders.files[stem];
+    if (!file) throw new PublishError(`the borders record lists no file for ${stem}`);
+    return file;
+  });
+  const fields = files.map(({ key, bytes }) => {
+    const object = localObject(root, key);
+    if (object.size !== bytes) {
+      throw new PublishError(`${object.path} holds ${object.size} B, not the record's ${bytes} B`);
+    }
+    return object;
+  });
+  const licenses = files.flatMap(({ notice, source }) => [notice, source]);
+  return [
+    { prefix: `fd/borders/${borders.ver}/`, objects: fields },
+    { prefix: 'lic/', objects: [...new Set(licenses)].map((key) => localObject(root, key)) },
+  ];
 }
 
 /** The stories' images under img/, each baked by the media stage into this output root. */
