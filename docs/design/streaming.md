@@ -2007,6 +2007,9 @@ spike's look:
 19. **Relief follows the zoom:** kLand and kSea are ×8 at 3,000 km across and wider and ×2 at
     100 km and closer, log-linear between (the PRD's "especially when zoomed out"). A constant ×8
     turns close views into bronze walls tens of kilometers high.
+27. **E1 and E2 re-scoped:** to the look prototype, so the owner could judge the look before more
+    exactness work; their formal runs, E1's factorial run and E2's torture script, move to the
+    pre-launch checks (8.2).
 
 Decided at go-live (issues #6 and #13), 2026-09-27:
 
@@ -2044,9 +2047,6 @@ Decided at milestone 1's close (issues #4, #11 and #14), 2026-09-27 and 2026-09-
 26. **Later in v1, not in milestone 1:** the layers panel, polity names, Read more, the globe's
     events layer, and the ruler's centuries and deep-time zoom. The PRD's milestones name where
     each lands.
-27. **E1 and E2 re-scoped** (2026-09-26): to the look prototype, so the owner could judge the look
-    before more exactness work; their formal runs, E1's factorial run and E2's torture script,
-    move to the pre-launch checks (8.2).
 28. **Tambora text:** approved as it stands on the live site.
 29. **No headed frame-time run in milestone 1:** presented-frame p95 stays unmeasured until the
     pre-launch checks.
