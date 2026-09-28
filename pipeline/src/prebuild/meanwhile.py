@@ -35,7 +35,6 @@ stage's images). It writes no record: the lock is its record.
 """
 
 import gzip
-import json
 import math
 import time
 import urllib.parse
@@ -47,7 +46,7 @@ from typing import Any
 import yaml
 
 from prebuild import events
-from prebuild.media import BEAT_BLOCK, write_lock
+from prebuild.media import BEAT_BLOCK, read_lock, write_lock
 from prebuild.profiles import Context
 
 COUNT = 3  # entries per beat and per month
@@ -72,7 +71,6 @@ MONTH_NAMES = (
     "November",
     "December",
 )
-YEAR, MONTH, DAY = 9, 10, 11  # Wikidata's precisions
 
 type LonLat = tuple[float, float]
 
@@ -101,9 +99,9 @@ class Event:
     def dated(self) -> tuple[int, int]:
         """The first and last day its date names at its precision: 1816 is all of 1816."""
         year, month, _ = civil(self.date)
-        if self.precision <= YEAR:
+        if self.precision <= events.YEAR:
             return day_number(year, 1, 1), day_number(year, 12, 31)
-        if self.precision == MONTH:
+        if self.precision == events.MONTH:
             last = events.month_days(year, month)
             return day_number(year, month, 1), day_number(year, month, last)
         return self.date, self.date
@@ -432,10 +430,6 @@ def read_table(lines: Iterable[str]) -> list[Event]:
     return index
 
 
-def read_lock(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-
-
 # What the lock holds
 
 
@@ -448,7 +442,7 @@ def entry(
     source gives where that differs from Wikidata's."""
     day, precision = event.date, event.precision
     if written is not None and "date" in written:
-        day, precision = iso_day(str(written["date"])), DAY
+        day, precision = iso_day(str(written["date"])), events.DAY
     fields: dict[str, Any] = {
         "qid": event.qid,
         "label": event.label[:1].upper() + event.label[1:],
@@ -477,9 +471,9 @@ def date_label(day: int, precision: int) -> str:
     """'18 June 1815', 'June 1815' or '1815', as the date's precision allows."""
     year, month, date = civil(day)
     shown = str(year) if year > 0 else f"{1 - year} BC"
-    if precision <= YEAR:
+    if precision <= events.YEAR:
         return shown
-    if precision == MONTH:
+    if precision == events.MONTH:
         return f"{MONTH_NAMES[month - 1]} {shown}"
     return f"{date} {MONTH_NAMES[month - 1]} {shown}"
 

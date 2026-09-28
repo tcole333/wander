@@ -140,8 +140,7 @@ def run(ctx: Context) -> None:
             )
         entries.append(lock_entry(image, original, baked, keys))
     lock = story_md.with_name("story.lock.json")
-    kept = json.loads(lock.read_text(encoding="utf-8")) if lock.exists() else {}
-    write_lock(lock, {**kept, "images": entries})
+    write_lock(lock, {**read_lock(lock), "images": entries})
     seconds = time.perf_counter() - started
     print(
         f"media: {len(entries)} images of {ctx.story} into img/, "
@@ -241,6 +240,10 @@ def lock_entry(
         "license": image.license or plain_text(original.license),
         "source": original.source,
     }
+
+
+def read_lock(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
 def write_lock(path: Path, lock: dict[str, Any]) -> None:
