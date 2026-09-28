@@ -14,17 +14,17 @@ each:
   hex characters of `lines_sha` over the two files' sha256, keyed `1024.jpg` and `256.jpg`. A key
   already there is kept only when it holds the same bytes, since keys are never overwritten.
 
-Then it writes `stories/<id>/story.lock.json`: per image (in beat order, one entry per distinct
-sha1 and crop) its Commons title, sha1 and crop, its files with their keys, sizes and bytes, the
-credit, the license and the file's page. The credit names the artists from Commons' Artist field
-(catalog names such as 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), or failing that its
-Credit field; the license is Commons' LicenseShortName as it stands. A beat's own `credit` and
-`license` stand in for Commons' where the story words them better: the makers when Commons' Artist
-names an uploader or spells a name otherwise than the credits page, and the source's own rights
-statement where Commons gives only its template's short name. A beat's `collection`, the holding
-collection's own credit line where it asks to be credited so (the David Rumsey Map Collection's),
-is locked beside the credit. The release names every key a lock lists (app/scripts/release.ts), so
-`npm run publish-data` uploads them.
+Then it writes the images into `stories/<id>/story.lock.json`, keeping what the meanwhile stage
+wrote there: per image (in beat order, one entry per distinct sha1 and crop) its Commons title, sha1
+and crop, its files with their keys, sizes and bytes, the credit, the license and the file's page.
+The credit names the artists from Commons' Artist field (catalog names such as 'Pinkerton, John,
+1758-1826' as 'John Pinkerton'), or failing that its Credit field; the license is Commons'
+LicenseShortName as it stands. A beat's own `credit` and `license` stand in for Commons' where the
+story words them better: the makers when Commons' Artist names an uploader or spells a name
+otherwise than the credits page, and the source's own rights statement where Commons gives only its
+template's short name. A beat's `collection`, the holding collection's own credit line where it asks
+to be credited so (the David Rumsey Map Collection's), is locked beside the credit. The release
+names every key a lock lists (app/scripts/release.ts), so `npm run publish-data` uploads them.
 
 `--offline` reads the committed sources in `pipeline/tests/data/media/` instead of Commons: the
 files themselves and, in `commons.json`, the metadata the API would give for each title. The stage
@@ -140,7 +140,8 @@ def run(ctx: Context) -> None:
             )
         entries.append(lock_entry(image, original, baked, keys))
     lock = story_md.with_name("story.lock.json")
-    write_lock(lock, {"images": entries})
+    kept = json.loads(lock.read_text(encoding="utf-8")) if lock.exists() else {}
+    write_lock(lock, {**kept, "images": entries})
     seconds = time.perf_counter() - started
     print(
         f"media: {len(entries)} images of {ctx.story} into img/, "

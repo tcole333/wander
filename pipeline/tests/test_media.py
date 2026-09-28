@@ -97,3 +97,15 @@ def test_a_beats_collection_is_locked_as_the_story_words_it(tmp_path):
 
     [image] = json.loads((story.parent / "story.lock.json").read_text(encoding="utf-8"))["images"]
     assert image["collection"] == rumsey
+
+
+def test_the_stage_keeps_what_the_meanwhile_stage_wrote_into_the_lock(tmp_path):
+    story = tmp_path / "stories" / "test" / "story.md"
+    story.parent.mkdir(parents=True)
+    story.write_text(STORY, encoding="utf-8")
+    lock = story.parent / "story.lock.json"
+    lock.write_text(json.dumps({"images": [], "glows": [{"qid": "Q48314"}]}), encoding="utf-8")
+    media.run(make_context(Profile.FIXTURE, 1, tmp_path, story="test", offline=True))
+
+    written = json.loads(lock.read_text(encoding="utf-8"))
+    assert (len(written["images"]), written["glows"]) == (1, [{"qid": "Q48314"}])
