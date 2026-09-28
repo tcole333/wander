@@ -1,0 +1,100 @@
+# Meanwhile's written lines (docs/design/streaming.md 3.9): for each event a beat's Meanwhile
+# shows, the line the panel prints, in the story's voice, and the source it rests on. `date` gives
+# the day or month the source dates it to where Wikidata's differs, and `at` [lon, lat] its place where
+# Wikidata's is its location's middle (a country, a colony, a sea). The rule picks by both.
+# `uv run prebuild meanwhile --story magellan` merges them into story.lock.json.
+
+Q4087402:
+  line: At Sokal, Crimean archers drive Polish troops back to the river
+  date: "1519-08-02"
+  source: {title: Battle of Sokal (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Sokal"}
+
+Q3297424:
+  line: At Cholula, Cortés's troops massacre the inhabitants and burn the city
+  date: "1519-10-18"
+  source: {title: Cholula massacre (Wikipedia), url: "https://en.wikipedia.org/wiki/Cholula_massacre"}
+
+Q1606958:
+  line: On Lake Åsunden's ice, a cannonball strikes Sten Sture's leg
+  source: {title: Battle of Bogesund (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Bogesund"}
+
+Q10572590:
+  line: At Uppsala, Danish mercenaries defeat a Swedish peasant army
+  date: "1520-04-06"
+  source: {title: Battle of Uppsala (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Uppsala"}
+
+Q4872151:
+  line: At Raichur, Vijayanagara's army drives Bijapur's sultan across the Krishna
+  date: "1520-05-19"
+  source: {title: Battle of Raichur (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Raichur"}
+
+Q1131442:
+  line: Alvarado's soldiers massacre festival celebrants inside Tenochtitlan's Great Temple
+  date: "1520-05-22"
+  source: {title: Massacre in the Great Temple of Tenochtitlan (Wikipedia), url: "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"}
+
+Q134238639:
+  line: At Beirut, Ottoman soldiers ambush a French landing force
+  date: "1520-10-09"
+  source: {title: Battle of Beirut (1520) (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"}
+
+Q28109023:
+  line: Royalist troops seize Tordesillas, the headquarters of Castile's rebels
+  date: "1520-12-05"
+  source: {title: Battle of Tordesillas (1520) (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"}
+
+Q22936045:
+  line: Gujarat's army tunnels beneath the walls of Mandsaur
+  date: "1521-01"
+  source: {title: Siege of Mandsaur (Wikipedia), url: "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"}
+
+Q7509804:
+  line: At Olsztyn, Polish troops repel Teutonic knights at the breached gate
+  date: "1521-01-26"
+  # Olsztyn's city coordinates: https://en.wikipedia.org/wiki/Olsztyn.
+  at: [20.48, 53.78]
+  source: {title: Siege of Allenstein (Wikipedia), url: "https://en.wikipedia.org/wiki/Siege_of_Allenstein"}
+
+Q10431431:
+  line: Danish soldiers execute the abbot and monks at Nydala Abbey
+  date: "1521-02-02"
+  source: {title: Nydala Abbey Bloodbath (Wikipedia), url: "https://en.wikipedia.org/wiki/Nydala_Abbey_Bloodbath"}
+
+Q4870578:
+  line: At Brunnbäck Ferry, Swedish rebels drive Danish troops into the river
+  source: {title: Battle of Brunnbäck Ferry (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Brunnb%C3%A4ck_Ferry"}
+
+Q2890338:
+  line: At Villalar, royalist cavalry scatter Castile's rebels in the rain
+  source: {title: Battle of Villalar (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Villalar"}
+
+Q3656504:
+  line: Outside Västerås, Gustav Vasa's rebels drive back a Danish attack
+  source: {title: Battle of Västerås (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_V%C3%A4ster%C3%A5s"}
+
+Q112811996:
+  line: At Colhuacatonco, Mexica warriors drive back Cortés and his allies
+  date: "1521-06-30"
+  source: {title: Battle of Colhuacatonco (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"}
+
+Q958133:
+  line: At Orihuela, royalist troops defeat the rebels and sack the city
+  date: "1521-08-30"
+  source: {title: "1200 años de una idea, p. 19 (Museo de la Ciudad, Murcia)", url: "https://museodelaciudad.murcia.es/sites/default/files/documents/publicacion-1200-baja.pdf#page=19"}
+
+Q118900813:
+  line: On Bintan, Malay defenders repulse a Portuguese attack on their fort
+  source: {title: Attack on Bintan (1521) (Wikipedia), url: "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"}
+
+Q683341:
+  line: At Bicocca, Spanish gunfire tears through the advancing Swiss pikemen
+  source: {title: Battle of Bicocca (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Bicocca"}
+
+Q137785089:
+  line: At Bukkur, Shah Beg orders the execution of visiting Dhareja chiefs
+  source: {title: "Chronological Dictionary of Sind, p. 381 (M. H. Panhwar)", url: "https://archive.org/details/chronologicaldictionaryofsindh_201912/page/n546/mode/1up"}
+
+Q3180568:
+  line: At Sunda Kalapa, Portuguese envoys raise a stone marking Sunda's alliance
+  date: "1522-08-21"
+  source: {title: Luso-Sundanese padrão (Wikipedia), url: "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"}

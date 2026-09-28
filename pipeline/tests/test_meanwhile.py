@@ -216,6 +216,37 @@ def test_a_written_date_and_place_stand_in_for_the_index_s():
     assert moved.dated == (moved.date, moved.date)
 
 
+def test_a_written_month_moves_selection_and_keeps_month_precision(tmp_path):
+    path = tmp_path / "meanwhile.yaml"
+    path.write_text(
+        'Q22936045:\n  line: At Mandsaur…\n  date: "1521-01"\n'
+        '  source: {title: Siege of Mandsaur, url: "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"}\n'
+    )
+    siege = event("Q22936045", 2.0, (75.08, 24.03), "1520-12-01", precision=10)
+    moved = m.as_written(siege, m.read_lines(path)[siege.qid])
+    assert (moved.t0, moved.t1) == (m.iso_day("1521-01-01"), m.iso_day("1521-01-31"))
+    assert moved.dated == (moved.t0, moved.t1)
+    assert m.entry(moved)["precision"] == "month"
+    assert m.entry(moved)["date"] == "1521-01-01"
+    # January's last week overlaps this frame; treating it as January 1 would miss it.
+    march = frame("1521-03-10")
+    assert not m.choose([siege], march, {})
+    assert m.choose([moved], march, {}) == [moved]
+    assert not m.choose([moved], frame("1520-11-01"), {})
+
+
+@pytest.mark.parametrize(("date", "last"), [("1520-02", "1520-02-29"), ("1521-02", "1521-02-28")])
+def test_a_written_month_ends_on_its_last_calendar_day(date, last):
+    _, end, precision = m.written_date(date)
+    assert (end, precision) == (m.iso_day(last), 10)
+
+
+@pytest.mark.parametrize("date", ["1521-00", "1521-13", "1521-1", "1521-01-extra"])
+def test_a_written_month_must_be_an_iso_month(date):
+    with pytest.raises(m.MeanwhileError, match="ISO date"):
+        m.written_date(date)
+
+
 def test_a_list_reads_in_date_order_with_the_written_lines_and_no_title_years():
     munich = m.replace(
         event("Q2518869", 2.0, (11.6, 48.1), "1816-04-14"), label="Treaty of Munich (1816)"

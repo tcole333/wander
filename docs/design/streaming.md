@@ -717,9 +717,10 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   region's middle (three battles of 1816 stand at one point, the middle of Rio Grande do Sul).
 - **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
   present-tense line in the story's voice and its source (`qid: {line, date?, at?, source:
-  {title, url}}`). `date` gives the day the source dates the event to where Wikidata's differs
-  (or knows only the year), and `at` its place where Wikidata's is its location's middle; the rule
-  picks by both, so a rising Wikidata dates only to 1815 leaves a June beat once its line dates it
+  {title, url}}`). `date` gives the day (`YYYY-MM-DD`) or month (`YYYY-MM`) the source dates the event
+  to where Wikidata's differs (or knows only the year), preserving the source's precision, and `at`
+  its place where Wikidata's is its location's middle; the rule picks by both, so a rising Wikidata
+  dates only to 1815 leaves a June beat once its line dates it
   to November. Every entry, a beat's or a month's, shows the written line where there is one, else
   the Wikidata label (its first letter capitalized, without a title's year in brackets), and cites
   the written source, else its Wikipedia article. Each list is in date order. The stage names any
