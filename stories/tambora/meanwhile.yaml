@@ -50,7 +50,7 @@ Q16848306:
   source: {title: Invasion of Guadeloupe (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"}
 
 Q5010928:
-  line: On the Cape frontier, Boer farmers rise against British rule
+  line: On the Cape frontier, Boer rebels confront British troops at Slachter's Nek
   date: "1815-11-18"
   at: [25.8, -32.8]
   source: {title: Slachter's Nek Rebellion (Wikipedia), url: "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"}
@@ -124,8 +124,9 @@ Q4871874:
   source: {title: Negro Fort (Wikipedia), url: "https://en.wikipedia.org/wiki/Negro_Fort"}
 
 Q3534806:
-  line: In Uva, rebels kill the British Assistant Resident, and a rising against British rule begins
+  line: Near Bibile, rebels kill Major Wilson, and Uva rises against British rule
   date: "1817-10-16"
+  at: [81.22, 7.13]
   source: {title: Great Rebellion of 1817–1818 (Wikipedia), url: "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"}
 
 Q3656338:
