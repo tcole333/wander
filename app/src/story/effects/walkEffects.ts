@@ -264,6 +264,8 @@ export const createWalkEffects: CreateWalkEffects = (
       borders.background();
     },
 
+    route: (dataset) => routes.data(dataset),
+
     climate() {
       const month = climate.month;
       const shown = climateShown();

@@ -17,8 +17,12 @@ const MAX_S = 5;
 const DEG = Math.PI / 180;
 
 export interface FlightPath {
-  /** The path's length S, in e-folds of zoom over rho; it sets the duration. */
+  /** Zoom/pan length in van Wijk-Nuij units, also used to carry pace through a retarget. */
   length: number;
+  /** Route flights set their duration from sailed distance instead of zoom/pan length. */
+  durationS?: number;
+  /** Route flights supply the day at each point; direct flights keep the director's day sweep. */
+  dayAt?(t: number): number;
   /** The view `t` of the way along the path, 0 to 1. */
   at(t: number): ViewState;
 }

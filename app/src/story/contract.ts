@@ -5,6 +5,7 @@ import type { Object3D, PerspectiveCamera } from 'three';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
+import type { RouteData } from '../data/route';
 import type { Precision } from './dates';
 import type { BordersSource } from './effects/borders';
 import type { ClimateSource } from './effects/climate';
@@ -52,6 +53,8 @@ export interface Walk {
 export interface WalkOptions {
   /** Whether the tiles the current view needs have landed, for the flight's readiness hold. */
   ready: () => boolean;
+  /** Already loaded route data, shared with the surface trace and ship; never starts a fetch. */
+  route?: (dataset: string) => RouteData | undefined;
   /**
    * How the walk comes to its first beat: a jump there (the default), or a flight from the view,
    * as from the lobby.
@@ -177,6 +180,8 @@ export interface WalkEffects {
   hide(): void;
   /** Starts fetching the story's climate years and named routes from the data host. */
   load(): void;
+  /** The director may follow a route only once the effects have loaded it. */
+  route(dataset: string): RouteData | undefined;
   /**
    * Every frame from the room's opening, the story started or not: what loads in the background
    * (the borders' field, a face a frame).

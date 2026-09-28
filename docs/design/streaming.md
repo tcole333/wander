@@ -1249,6 +1249,23 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   index and meta) are resident and prepared, N's critical surface and overlay tiles are uploaded, and the
   1024w card is decoded with `img.decode()` (or its preview stands in).
 - **Flights:** a van Wijk-Nuij path lasting `flightDuration`, with ρ = 1.42.
+  - **Voyages:** between adjacent beats showing the same loaded route, the path follows the fleet.
+    It starts on the departing view, lifts to a north-up view centered on the ship, then settles
+    onto the destination view. Each end blends over `voyageBlend` of the path; the middle keeps
+    the ship at the view center, under the walk's usual shift clear of the card. The beats keep
+    their own cameras. Skipping beats, the lobby dive, a return from break-out, free flights and
+    routes still loading use the direct path.
+    Progress blends sailed distance with elapsed days, weighted by `voyageDistanceWeight`. A
+    long stay in port passes quickly but continuously. Sailing eases through the lift and settle
+    so the fleet stays within the narrow views at each end. The path gives the director the day at
+    each point, so the ruler, trace and ship stay together, forward or backward. Following width
+    is `voyageWidth` of the sailed distance within its bounds; duration is `voyageDuration`'s
+    base plus distance over speed, also bounded. These are starting values for GPU renders.
+    This is one more `FlightPath`, using the same easing, retarget blend, gate and flight records.
+    The fleet is a 26 CSS px brass chart ship over the inlay's ember light: upright, facing its
+    course, gently bobbing while moving. It projects through the globe and shifted lens every
+    frame, hides at the horizon like the callouts, and fades with its route, including in dwells
+    and scrubs. A shared route stays visible throughout the flight and at ports.
   - **Gate:** at `gateAt` of the flight, if N is not ready, a critically damped time-warp eases toward
     zero and holds just above the target for at most `holdMax`. The camera then lands on ancestors, and
     refinement continues in place. A missing core item shows its fallback (the preview, or a caption
@@ -1984,6 +2001,10 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries (a sparse month's down to 500 km apart, reaching up to 90 days) | Meanwhile rule; in milestone 1 the `meanwhile` stage's constants | eye |
 | `placeLabelsMax` | 30 | place labels shown | eye |
 | `flightDuration` | `clamp(S/1.2, 1.6, 4.5)` s, ρ = 1.42 | flight length | eye |
+| `voyageDistanceWeight` | 0.9 distance, 0.1 days | route progress through sailing and stays | GPU renders |
+| `voyageWidth` | distance × 0.55, clamped to 1,200–6,500 km | following view width | GPU renders |
+| `voyageDuration` | 4 s + distance / 1,200 km/s, clamped to 6–18 s | time to watch a voyage leg | GPU renders |
+| `voyageBlend` | 0.15 of the path at each end | lift from and settle onto beat views | GPU renders |
 | `gateAt`, `holdMax` | 0.7 of the flight, 1.5 s | readiness gate and hold | E3, E4 |
 | `retargetBlend` | 300 ms | mid-flight retarget | eye |
 | `rmDissolve`, `rmHoldMax` | 400 ms, 2.5 s | reduced-motion shutter | eye |

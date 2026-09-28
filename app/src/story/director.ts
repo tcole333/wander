@@ -9,6 +9,7 @@ import { mixViews, wrap180, type ViewState } from '../view/viewState';
 import type { Walk, WalkMode, WalkOptions, WalkState } from './contract';
 import { flightEase, flightPath, flightSeconds, MAX_LEAD, type FlightPath } from './flight';
 import type { LonLat, Story, StoryBeat } from './story';
+import { voyagePath } from './voyageFlight';
 
 /**
  * The readiness gate: how far into a flight it checks, and the longest it holds, in seconds. The
@@ -40,6 +41,10 @@ const SPREAD_S = 8;
 
 /** A flight's timings, for scripts. */
 export interface FlightRecord {
+  kind: 'direct' | 'voyage';
+  /** The loaded route's sailed distance and following width, for GPU reviews. */
+  sailedKm?: number;
+  followKm?: number;
   /** The beat flown to, or null for a free flight. */
   to: number | null;
   /** The path's length S, and the duration it gives. */
@@ -179,15 +184,21 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
    * Flies from the drawn view to `to`. A flight under way hands over its pace, and its course
    * blends into the new one, so a retarget neither jolts nor stalls the camera.
    */
-  const fly = (to: ViewState, target: number | null) => {
+  const fly = (to: ViewState, target: number | null, routeName?: string) => {
     const old = course();
     const pace = old ? flightPath(old(0), old(PACE_S)).length / PACE_S : 0;
     fading = old && { course: old, s: 0 };
     end('retargeted');
-    const path = flightPath({ ...control.current }, to);
-    const durationS = flightSeconds(path.length);
+    const days: [number, number] | null =
+      target === null ? null : [day, landingDay(beatAt(target), day)];
+    const route = routeName === undefined ? undefined : options.route?.(routeName);
+    const voyage = route && days ? voyagePath(control.current, to, route, ...days) : null;
+    const path = voyage ?? flightPath({ ...control.current }, to);
+    const durationS = path.durationS ?? flightSeconds(path.length);
     const lead = path.length > 0 ? Math.min(MAX_LEAD, (pace * durationS) / path.length) : 0;
     const record: FlightRecord = {
+      kind: voyage ? 'voyage' : 'direct',
+      ...(voyage ? { sailedKm: voyage.sailedKm, followKm: voyage.followKm } : {}),
       to: target,
       length: path.length,
       plannedS: durationS,
@@ -204,7 +215,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
       clock: 0,
       rate: 1,
       beat: target,
-      days: target === null ? null : [day, landingDay(beatAt(target), day)],
+      days,
       // Free flights go wherever the visitor points, so they never wait on tiles.
       gate: target === null ? 'passed' : 'ahead',
       record,
@@ -253,9 +264,23 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     const wasOut = mode === 'breakout';
     if (wasOut) mode = resumeMode;
     if (wasOut || next !== beat) {
+      const sharedRoute =
+        !wasOut && Math.abs(next - beat) === 1
+          ? beatAt(beat).effects.find(
+              (effect) =>
+                effect.kind === 'route' &&
+                beatAt(next).effects.some(
+                  (other) => other.kind === 'route' && other.dataset === effect.dataset,
+                ),
+            )
+          : undefined;
       beat = next;
       advanceIn = null;
-      fly(beatView(beatAt(next)), next);
+      fly(
+        beatView(beatAt(next)),
+        next,
+        sharedRoute?.kind === 'route' ? sharedRoute.dataset : undefined,
+      );
     }
     changed();
   };
@@ -320,7 +345,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
         }
         control.go(view, true);
         leg.record.peakKm = Math.max(leg.record.peakKm, control.current.viewKm);
-        if (leg.days) day = leg.days[0] + (leg.days[1] - leg.days[0]) * e;
+        if (leg.days) day = leg.path.dayAt?.(e) ?? leg.days[0] + (leg.days[1] - leg.days[0]) * e;
         if (leg.clock >= leg.durationS) land();
       } else if (mode !== 'breakout') {
         dwelt += dtS;
