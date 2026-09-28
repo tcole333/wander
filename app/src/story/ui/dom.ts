@@ -24,6 +24,14 @@ export function onPress(element: HTMLElement, action: (event: MouseEvent) => voi
   });
 }
 
+/**
+ * Hands the keyboard's focus from a control going out of reach to `heir`, when the control has
+ * it, so a keyboard visitor keeps their place rather than holding a control no one can see.
+ */
+export function passFocus(from: HTMLElement, heir: HTMLElement): void {
+  if (from.ownerDocument.activeElement === from) heir.focus();
+}
+
 export function button(className: string, label: string, action: () => void): HTMLButtonElement {
   const b = el('button', className);
   b.type = 'button';

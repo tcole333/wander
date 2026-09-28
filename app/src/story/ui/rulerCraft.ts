@@ -369,6 +369,11 @@ export class CraftRuler {
     return this.#unit;
   }
 
+  /** The Play knob, where a keyboard visitor lands as the Resume plaque fades. */
+  get play(): HTMLButtonElement {
+    return this.#play;
+  }
+
   dispose(): void {
     removeEventListener('resize', this.#onResize);
     cancelAnimationFrame(this.#resizeFrame);
