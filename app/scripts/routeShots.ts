@@ -3,7 +3,7 @@
 //
 //   node scripts/routeShots.ts --url http://127.0.0.1:5173 --out ../build/m2/route --query data=global
 //
-// Pacific, strait, Mactan at 120 km, a beat without the route, and forward/backward scrubs across
+// Pacific, strait, Mactan at 120 km, the San Julián port, and forward/backward scrubs across
 // the dateline. Captures the same views at pixel ratios 1 and 1.5 (production's Retina cap),
 // with frame statistics and any shader/network errors. Inspect the fine brass cut at sea level,
 // the ember week and fleet point, and whether the track ends/shortens at each scrub date.
