@@ -565,7 +565,7 @@ function startStory(
   arrive: 'jump' | 'fly',
   ready: () => boolean,
 ): [StoryParts, () => void, () => void] {
-  const walk = createWalk(story, control, { ready, arrive });
+  const walk = createWalk(story, control, { ready, arrive, route: (name) => effects.route(name) });
   let ui: WalkUi;
   try {
     ui = createWalkUi(root, walk, meanwhile, dataHost);
