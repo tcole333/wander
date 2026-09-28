@@ -1958,3 +1958,21 @@ Decided for the climate layer (issue #7), 2026-09-27:
 24. **No climate over Yunnan:** ModE-RA shows no distinct 1816-1817 cold there (JJA 1816 is
     −0.07 K against the neighbouring summers), so the Yunnan and Bengal beat drops its annual
     climate layer; the famine stays in its text and sources.
+
+Decided at milestone 1's close (issues #4, #11 and #14), 2026-09-27 and 2026-09-28:
+
+25. **Sea names in milestone 1:** every Tambora beat lists the Labels layer, so the ocean and sea
+    names are engraved in the lacquer (section 2); polity and range names wait for the labels
+    stage.
+26. **Later in v1, not in milestone 1:** the layers panel, polity names, Read more, the globe's
+    events layer, and the ruler's centuries and deep-time zoom. The PRD's milestones name where
+    each lands.
+27. **E1 and E2 re-scoped** (2026-09-26): to the look prototype, so the owner could judge the look
+    before more exactness work; their formal runs, E1's factorial run and E2's torture script,
+    move to the pre-launch checks (8.2).
+28. **Tambora text:** approved as it stands on the live site.
+29. **No headed frame-time run in milestone 1:** presented-frame p95 stays unmeasured until the
+    pre-launch checks.
+30. **Later:** reduced motion, the article view, deep links, a way back to the lobby, quality tiers
+    and the heavy runtime (`lod.ts`'s per-beat plans, request classes, the byte cache, the
+    governor, hover prefetch). Phones stay out of v1.
