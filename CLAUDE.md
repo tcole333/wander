@@ -52,9 +52,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `?data=<origin>` reads a local data server's release instead (`app/src/page/dataOrigin.ts`).
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
 - `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
-  uv) into `build/fixture/` and `build/stages/fixture/`: surface, ModE-RA's 1815-1817 Europe
-  excerpt and the scored events excerpt. Meanwhile awaits a fixture story and lock of its own;
-  borders use synthetic snapshots in pytest. Vitest checks against the build and fails,
+  uv) into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for
+  1815-1817 and the scored events of those years, from real excerpts. Meanwhile waits for a
+  fixture story and lock of its own, and borders stay synthetic. Vitest checks against it and fails,
   naming this command, when it is missing or was built from other pipeline code, shared constants
   or excerpts than the working tree holds.
 - `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
