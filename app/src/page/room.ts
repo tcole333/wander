@@ -100,16 +100,28 @@ export function dataPlate(): HTMLElement {
 
 /** The story's card in vellum and brass, its title and blurb, and why the globe is not drawn. */
 export function storyPlate(story: Story, why: Unable): HTMLElement {
+  return storiesPlate([story], why);
+}
+
+/** Before a choice, both stories stand in the room with the same explanation. */
+export function lobbyPlate(stories: readonly Story[], why: Unable): HTMLElement {
+  return storiesPlate(stories, why);
+}
+
+function storiesPlate(stories: readonly Story[], why: Unable): HTMLElement {
   const plate = el('article', 'plate plate-card wu-card wu-lit');
   plate.setAttribute('role', 'alert');
   const sheet = el('div', 'wu-sheet');
-  const head = el('header', 'wu-card-head');
-  head.append(el('div', 'wu-date', yearsLabel(story.beats)), el('h1', 'wu-title', story.title));
-  head.append(el('div', 'wu-rule'));
+  for (const story of stories) {
+    const head = el('header', 'wu-card-head');
+    head.append(el('div', 'wu-date', yearsLabel(story.beats)), el('h1', 'wu-title', story.title));
+    head.append(el('div', 'wu-rule'));
+    sheet.append(head, el('p', 'plate-blurb', story.blurb));
+  }
   const foot = el('footer', 'plate-foot');
   foot.append(el('p', 'plate-note', NOTES[why]));
   if (why !== 'cannot-draw') foot.append(reload());
-  sheet.append(head, el('p', 'plate-blurb', story.blurb), foot);
+  sheet.append(foot);
   plate.append(sheet);
   return plate;
 }

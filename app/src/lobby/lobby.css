@@ -59,6 +59,16 @@
   translate: -14px 0;
 }
 
+/* Short desktop windows keep both choices reachable without squeezing their lettering. */
+@media (max-height: 760px) {
+  .lobby-column {
+    max-height: calc(100vh - 162px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #7a5a2a transparent;
+  }
+}
+
 .lobby.is-shown .lobby-column {
   translate: 0 0;
 }
@@ -112,6 +122,10 @@
   transition:
     box-shadow 0.35s,
     filter 0.35s;
+}
+
+.lobby-plaque + .lobby-plaque {
+  margin-top: 14px;
 }
 
 /* Lit: the lamp catches its edge, and its brass warms. */

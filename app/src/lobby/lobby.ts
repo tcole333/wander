@@ -24,7 +24,7 @@ type LobbyPhase = 'waiting' | 'opening' | 'idle' | 'diving' | 'gone' | 'returnin
 
 export interface LobbyParts {
   host: HTMLElement;
-  story: Story;
+  stories: readonly Story[];
   places: LonLat[];
   museum: MuseumScene;
   control: ViewControl;
@@ -32,12 +32,12 @@ export interface LobbyParts {
   /** The dev shell starts on a beat; it still has a lobby to return to. */
   initial?: 'lobby' | 'story';
   /** Starts a fresh walk inside the press that chose its plaque. */
-  enter: () => Walk;
+  enter: (story: Story) => Walk;
   /** Stops the story clock and inputs and fades its sound to the room. */
   leave: () => void;
   /** Releases the departing walk and restores the lobby's layers. */
   finish: () => void;
-  fail: (error: unknown) => void;
+  fail: (error: unknown, story: Story) => void;
 }
 
 export interface Lobby {
@@ -75,7 +75,7 @@ export function createLobby(parts: LobbyParts): Lobby {
 
   const glows = new Glows(parts.places);
   museum.globeMount.add(glows.points);
-  const plaques = new Plaques(parts.story, () => choose());
+  const plaques = new Plaques(parts.stories, (story) => choose(story));
   host.append(plaques.element);
   let reach = plaques.reach();
   chrome.lobby(!startsOnBeat);
@@ -124,7 +124,7 @@ export function createLobby(parts: LobbyParts): Lobby {
     host.classList.remove('lobby-dive', 'lobby-veiled', 'lobby-ruler-down', 'lobby-return');
   };
 
-  const choose = () => {
+  const choose = (story: Story) => {
     if (phase !== 'opening' && phase !== 'idle') return;
     home = { ...control.current };
     skip();
@@ -137,9 +137,9 @@ export function createLobby(parts: LobbyParts): Lobby {
     host.classList.add('lobby-dive', 'lobby-veiled', 'lobby-ruler-down');
     let walk: Walk;
     try {
-      walk = parts.enter();
+      walk = parts.enter(story);
     } catch (error) {
-      parts.fail(error);
+      parts.fail(error, story);
       return;
     }
     // Mount below the page for a frame before the ruler rises. No queued frame or timeout can

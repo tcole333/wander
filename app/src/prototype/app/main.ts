@@ -8,25 +8,18 @@
 // alternate for the owner's choice lives here only: ?climateRangeK=6 saturates at ±6 K.
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
-// ?story=tambora walks the story instead of the presets, as the boot plays it. The panel hides
+// ?story=tambora|magellan walks the story instead of the presets, as the boot plays it. The panel hides
 // behind a small gear at the top right. window.__walk serves scripts (scripts/walkShots.ts).
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS } from '../../page/dataOrigin';
 import type { WalkState } from '../../story/contract';
 import type { DirectedWalk, FlightRecord } from '../../story/director';
-import { withLock } from '../../story/lock';
-import { glowsFromLock, meanwhileFromLock } from '../../story/meanwhile';
-import { parseStory, type LonLat } from '../../story/story';
+import { stories, storyNamed } from '../../story/catalog';
+import type { LonLat } from '../../story/story';
 import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
-import {
-  bootWalk,
-  WORLD,
-  type StoryParts,
-  type StorySource,
-  type WalkStats,
-} from '../../walk/boot';
+import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
@@ -49,22 +42,6 @@ const PRESETS: Record<string, ViewState> = {
   himalaya: { lon: 86.5, lat: 28.5, viewKm: 800, tilt: 40, heading: 0 },
   mediterranean: { lon: 15, lat: 38, viewKm: 3000, tilt: 15, heading: 0 },
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
-};
-
-/** The stories ?story= walks: the text, read by Vite, and its lock. */
-const STORIES: Record<string, () => Promise<StorySource>> = {
-  tambora: async () => {
-    const [text, lock] = await Promise.all([
-      import('../../../../stories/tambora/story.md?raw'),
-      import('../../../../stories/tambora/story.lock.json'),
-    ]);
-    const story = withLock(parseStory(text.default), lock.default);
-    return {
-      story,
-      meanwhile: meanwhileFromLock(lock.default),
-      glows: glowsFromLock(lock.default),
-    };
-  },
 };
 
 /** The keys that fly to the presets, in order; the rest are on the preset bar alone. */
@@ -111,7 +88,7 @@ declare global {
 async function main(): Promise<void> {
   const query = new URLSearchParams(location.search);
   const showUi = query.get('ui') !== '0';
-  const source = await loadStory(query.get('story'));
+  const source = storyNamed(query.get('story'));
   const data = await pickData(query.get('data'));
   const releaseUrl = `${DATA_SERVERS[data] ?? data}/release.json`;
   const response = await fetch(releaseUrl);
@@ -122,6 +99,8 @@ async function main(): Promise<void> {
   let preset = asked in PRESETS ? asked : 'world';
   const page = await bootWalk(document.body, release, {
     story: source,
+    stories: source ? stories : [],
+    lobby: false,
     view: PRESETS[preset],
     tune: (params) => applyQuery(params, query),
   });
@@ -179,13 +158,6 @@ async function main(): Promise<void> {
 
   const hud = document.getElementById('hud');
   if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);
-}
-
-async function loadStory(name: string | null): Promise<StorySource | null> {
-  if (name === null) return null;
-  const load = STORIES[name];
-  if (!load) throw new Error(`no story '${name}'`);
-  return load();
 }
 
 /** window.__walk, for scripts: `ready` is the page's own check that the streamer is idle. */
