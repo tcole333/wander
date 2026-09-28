@@ -282,12 +282,17 @@ async function assemble(
   // each beat's place lands right of it and what lies around it clears both the card and
   // Meanwhile. The lens eases from one to the other during the dive. A folded card reaches
   // nothing, so folding it eases the lens back to the center; the card has the lens measured
-  // again as it folds or unfolds, as a resize does.
+  // again as it folds or unfolds, as a resize does, and where reduced motion is asked for, the
+  // globe takes its new place at once.
   let cardShift = 0;
   let shift = 0;
   let drawnShift = NaN;
   const measureLens = () => {
     cardShift = story ? LENS_SHIFT * story.ui.cardReach() : 0;
+  };
+  const cardFolded = () => {
+    measureLens();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) shift = cardShift;
   };
 
   // A story's effects hang in the globe frame from the start, so the precompile readies their
@@ -325,7 +330,7 @@ async function assemble(
         const s = streamer.stats();
         return s.inFlight + s.decoding + s.uploading === 0;
       },
-      measureLens,
+      cardFolded,
     );
     endStory = end;
     leaveStory = leave;
