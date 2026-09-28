@@ -737,7 +737,7 @@ button.wu-mark:not(:disabled) {
 }
 
 .wu-mw-head {
-  margin: 2px 0 13px;
+  margin: 2px 0 0;
   font: 400 17px/1.2 var(--display);
   text-align: center;
   background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
@@ -751,7 +751,7 @@ button.wu-mark:not(:disabled) {
   display: grid;
   gap: 9px;
   margin: 0;
-  padding: 0;
+  padding: 13px 0 0;
   list-style: none;
 }
 
@@ -910,7 +910,8 @@ button.wu-mark:not(:disabled) {
 /* The folds (fold.ts): what a panel folds away is a grid row that shrinks to nothing, as the
    sources' does, and the panel keeps its head. A small brass knob in the head folds it: the
    sound knob's metal in miniature, with a chevron cut into its face that turns over as the panel
-   folds. On the card the knob stands at the head's upper right, level with the date line. */
+   folds. On the card the knob stands at the head's upper right, level with the date line; on
+   Meanwhile, at the heading's end. */
 
 .wu-fold {
   flex: 1 1 auto;
@@ -938,6 +939,13 @@ button.wu-mark:not(:disabled) {
   transition: visibility 0s 0.45s;
 }
 
+/* Meanwhile's slips cast their shadows past the list, so its row is clipped with room to spare at
+   the sides and the foot; the list's first 13px keep the slips out of that room as the row closes. */
+.wu-meanwhile .wu-fold-in {
+  overflow: visible;
+  clip-path: inset(0 -12px -10px);
+}
+
 .wu-story .wu-card-head {
   position: relative;
 }
@@ -958,6 +966,11 @@ button.wu-mark:not(:disabled) {
 .wu-card-head > .wu-fold-knob {
   top: 13px;
   right: 13px;
+}
+
+.wu-meanwhile > .wu-fold-knob {
+  top: 15px;
+  right: 12px;
 }
 
 .wu-fold-knob > svg {

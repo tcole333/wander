@@ -2,11 +2,13 @@
 // has scrubbed story time away from the beat's date, during the month scrubbed to, on vellum slips
 // in a dark cast-brass panel. Each entry has an engraved compass rose whose needle points from the
 // view's center toward it (turned with the view's heading, so it points the way to look on
-// screen), and the compass point it lies at. Choosing one flies there.
+// screen), and the compass point it lies at. Choosing one flies there. A small brass knob at the
+// heading folds the slips away (fold.ts), and the panel keeps its heading.
 import { arcKm, type ViewState } from '../../view/viewState';
 import type { Meanwhile, MeanwhileEntry, Walk, WalkState } from '../contract';
 import { scrubbedEntries } from '../meanwhile';
 import { el, onPress, svg } from './dom';
+import { Fold } from './fold';
 import { bearingDeg, compassPoint, curlyQuotes } from './format';
 
 /** The width a Meanwhile flight lands at, km. */
@@ -37,7 +39,17 @@ export class MeanwhilePanel {
   constructor(walk: Walk, meanwhile: Meanwhile) {
     this.#walk = walk;
     this.#meanwhile = meanwhile;
-    this.element.append(el('h2', 'wu-mw-head', 'Meanwhile, elsewhere —'), this.#list);
+    const fold = new Fold({
+      id: 'meanwhile',
+      name: 'Meanwhile',
+      panel: this.element,
+      content: [this.#list],
+    });
+    this.element.append(
+      el('h2', 'wu-mw-head', 'Meanwhile, elsewhere —'),
+      fold.control,
+      fold.region,
+    );
   }
 
   update(state: WalkState, view: ViewState): void {
