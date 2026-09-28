@@ -412,8 +412,11 @@ u8 d[6][size][size]   min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels, +
   fades with them; it never crowds the card, Meanwhile, the climate legend or the ruler.
 - **License:** the notice `lic/<sha16>.txt` (the GPL-3.0's canonical URL, the source file at its
   commit, a notice dated by the corrections file listing what changed, and the build scripts at the
-  tag `borders-<ver8>`, made at publish time) and the corrected source `lic/<sha16>.geojson` go
-  beside the field (owner decision 6), and the Credits panel links both.
+  tag `borders-<ver8>`) and the corrected source `lic/<sha16>.geojson` go beside the field (owner
+  decision 6), and the Credits panel links both. The commit that built a new borders version is
+  tagged, and the tag pushed, before `npm run publish-data`, which stops, naming the commands, while
+  origin lacks the tag and R2 lacks the notice: the notice is never overwritten, so its link must
+  resolve before it goes up.
 
 ### 3.4 Event files `ev/<ver8>/{overview,all,p00..p23,long}.wev`
 
@@ -734,6 +737,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      profile's output root, so versions left there by older builds stay local
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
      upload, because keys are content-versioned and a mismatch means a broken build or upload
+   - stops before any upload when it would send a borders notice and origin lacks the
+     `borders-<ver8>` tag the notice links the build scripts at (3.3)
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
      them over the S3 API before anything else goes up, since a key is never overwritten and the
      edge keeps whatever it sees for a year; `npm run check-release` reads the same keys through the

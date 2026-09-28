@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { Release } from '../src/data/release';
-import { plan, releaseSections } from './publish';
+import { noticeTag, plan, releaseSections } from './publish';
 import type { R2Bucket } from './r2';
 
 // Bits 0-6: the six L0 nodes and L1 node 6 (face 0, x 0, y 0).
@@ -136,5 +136,20 @@ describe('plan', () => {
   test('stops on a key R2 holds at another size, before anything is uploaded', async () => {
     const sections = releaseSections(release(SEVEN), root);
     await expect(plan(holding({ [BOUNDS]: 13 }), sections)).rejects.toThrow(/13 B, not 12 B/);
+  });
+});
+
+describe('noticeTag', () => {
+  const withBorders = { ...release(SEVEN), borders: BORDERS };
+  const missing = async (held: Record<string, number>) =>
+    (await plan(holding(held), releaseSections(withBorders, root))).flatMap((p) => p.missing);
+
+  test("names the tag the borders' notice links while R2 lacks the notice", async () => {
+    expect(noticeTag(withBorders, await missing({}))).toBe('borders-eeee5555');
+  });
+
+  test('names none once R2 holds the notice', async () => {
+    const held = { 'lic/1111222233334444.txt': 20 };
+    expect(noticeTag(withBorders, await missing(held))).toBeNull();
   });
 });
