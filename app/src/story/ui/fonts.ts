@@ -3,7 +3,8 @@
 // A browser fetches a face only when some text first needs it, and each of its subsets (Latin,
 // Latin Extended and the rest) only for characters in its range, so a face or subset first drawn
 // mid-story would come from the app's host then. The boot loads them all for the page's text
-// before the room opens, since nothing is fetched from Pages after boot (streaming.md 2).
+// before the room opens, since nothing is fetched from Pages after boot (streaming.md 2), waiting
+// no longer than FACE_WAIT_MS: a face that stalls then only arrives late.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/libre-baskerville/700.css';
 import '@fontsource/source-serif-4/400.css';
@@ -19,12 +20,25 @@ const FACES = [
   '600 16px "Source Serif 4"',
 ];
 
+/** The longest the faces are waited for, in ms: the live frame's 3 s (streaming.md 6). */
+export const FACE_WAIT_MS = 3000;
+
 /**
- * Loads every face's subsets that `text` reaches. A face that fails is logged and left to its
- * fallback, since the page reads without it.
+ * Loads every face's subsets that `text` reaches, waiting at most FACE_WAIT_MS. A face that fails,
+ * or is still loading then, is logged and left to its fallback, since the page reads without it.
  */
 export async function loadFaces(text: string): Promise<void> {
-  const loads = await Promise.allSettled(FACES.map((face) => document.fonts.load(face, text)));
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>((resolve) => (timer = setTimeout(resolve, FACE_WAIT_MS, null)));
+  const loads = await Promise.race([
+    Promise.allSettled(FACES.map((face) => document.fonts.load(face, text))),
+    late,
+  ]);
+  clearTimeout(timer);
+  if (!loads) {
+    console.warn(`The faces had not loaded after ${FACE_WAIT_MS} ms.`);
+    return;
+  }
   for (const load of loads) {
     if (load.status === 'rejected') console.warn('A face did not load:', load.reason);
   }

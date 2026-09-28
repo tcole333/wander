@@ -1021,9 +1021,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - **Boot:** the roots (L0-L1) load into their fixed slots while every face the lobby, the walk
     and the Credits panel draw loads for the characters of the story, Meanwhile and the credits
     (`story/ui/fonts.ts`): a browser fetches a face, and each of its subsets, only when some text
-    first needs it, and nothing is fetched from Pages after boot (section 2). The precompile follows,
-    then the first frame. The climate's years, which only the 1816 beats draw, load once the opening
-    has started.
+    first needs it, and nothing is fetched from Pages after boot (section 2). The boot waits at most
+    3 s for them, so a face that stalls arrives late rather than holding the room. The precompile
+    follows, then the first frame. The climate's years, which only the 1816 beats draw, load once
+    the opening has started.
   - **Opening (~4 s):** it starts at that first frame, and the room crossfades into it, its Wander
     mark gliding onto the lobby's at the top left, so one mark stands throughout. L2 streams in
     during the lamp-up, which starts dark; waiting for L2 and an idle streamer instead held the room
