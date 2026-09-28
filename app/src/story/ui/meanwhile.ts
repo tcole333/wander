@@ -1,8 +1,8 @@
 // Meanwhile, at the top right: what else is happening during the current beat, or once the visitor
 // has scrubbed story time away from the beat's date, during the month scrubbed to, on vellum slips
-// in a dark cast-brass panel. Each entry has an engraved compass rose whose needle
-// points from the view's center toward it (turned with the view's heading, so it points the way to
-// look on screen), and the compass point it lies at. Choosing one flies there.
+// in a dark cast-brass panel. Each entry has an engraved compass rose whose needle points from the
+// view's center toward it (turned with the view's heading, so it points the way to look on
+// screen), and the compass point it lies at. Choosing one flies there.
 import { arcKm, type ViewState } from '../../view/viewState';
 import type { Meanwhile, MeanwhileEntry, Walk, WalkState } from '../contract';
 import { scrubbedEntries } from '../meanwhile';
