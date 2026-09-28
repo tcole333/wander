@@ -85,7 +85,7 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `wikidata`, `excerpts`, `media` and `meanwhile`; the fixture profile
   also skips `fetch`, `borders` (its tests draw synthetic snapshots, since the GPL source is never
-  committed), and `events`, `modera` and `meanwhile` until their layers have excerpts.
+  committed), and `events` and `modera` until their layers have excerpts.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
   2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA whatever the profile, and
   30 s for `borders`, the whole 1815 field).

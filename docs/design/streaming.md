@@ -714,22 +714,24 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   the Wikidata label (its first letter capitalized, without a title's year in brackets), and cites
   the written source, else its Wikipedia article. Each list is in date order. The stage names any
   beat entry without a line.
-- **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages, committed):
-  `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?, license, source}], audio:
-  [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry, …]}, months: {"YYYY-MM":
-  [entry, …]}}, glows: [{qid, label, at}]}`, an entry being `{qid, label, date, precision, at,
-  line?, source: {title, url}}`: an ISO date and its precision (day, month or year), which the app
-  prints with `dates.ts` as it prints a beat's ('18 June 1815', 'June 1815', '1816'). Each stage rewrites its own sections and keeps the rest. An image's entry is found by its sha1 and crop, so a recrop needs a new
-  bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the Artist
-  field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else Commons'
-  Credit; `collection` is the story's own, when the beat names one; `license` is the story's own `license` when the beat gives one, else Commons'
-  LicenseShortName as it stands; `source` is the file's page. `glows` are the lobby's: the 120
-  best-scored events of every era with a place of their own (an inherited place is often a
-  continent's or an ocean's middle), each 450 km from the others. `audio` joins with the first CC0
-  sample. Until `npm run stories` compiles the story, the app joins the lock to the parsed
-  story itself (`app/src/story/lock.ts`), and the card reads its image from the data host and its
-  credit from the lock, so a visitor's browser never calls Commons; Meanwhile and the lobby's
-  glows read the lock too (`app/src/story/meanwhile.ts`).
+- **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages,
+  committed): `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?,
+  license, source}], audio: [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry,
+  …]}, months: {"YYYY-MM": [entry, …]}}, glows: [{qid, label, at}]}`, an entry being `{qid, label,
+  date, precision, at, line?, source: {title, url}}`: an ISO date and its precision (day, month or
+  year), which the app prints with `dates.ts` as it prints a beat's ('18 June 1815', 'June 1815',
+  '1816'). Each stage rewrites its own sections and keeps the rest. An image's entry is found by its
+  sha1 and crop, so a recrop needs a new bake. `credit` is the makers: the story's own `credit` when
+  the beat gives one, else the Artist field's names (a catalog's 'Pinkerton, John, 1758-1826' as
+  'John Pinkerton'), else Commons' Credit; `collection` is the story's own, when the beat names one;
+  `license` is the story's own `license` when the beat gives one, else Commons' LicenseShortName as
+  it stands; `source` is the file's page. `glows` are the lobby's: the 120 best-scored events of
+  every era with a place of their own (an inherited place is often a continent's or an ocean's
+  middle), each 450 km from the others. `eventsVer` joins with the events layer's `.wev` files and
+  `audio` with the first CC0 sample. Until `npm run stories` compiles the story, the app joins the
+  lock to the parsed story itself (`app/src/story/lock.ts`), and the card reads its image from the
+  data host and its credit from the lock, so a visitor's browser never calls Commons; Meanwhile and
+  the lobby's glows read the lock too (`app/src/story/meanwhile.ts`).
 
 ---
 
@@ -1172,9 +1174,10 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     does, stops at any input and turns on after 5 s without one; dragging and the wheel work as in
     the walk. The plaques stand in a column at the left, and the lens shifts right by half the
     column's reach, which centers the instrument beside it. Tambora is the only plaque; no plaque
-    stands for a story not yet built. The ambient events are the lock's glows (3.9): small pinpricks of lit brass with a slow, shallow breath,
-    additive and unlit, in three's built-in points material, compiled in the precompile. They stay
-    faint and apart, since ember orange belongs to the chosen story. There is no hover queue yet;
+    stands for a story not yet built. The ambient events are the lock's glows (3.9): small
+    pinpricks of lit brass with a slow, shallow breath, additive and unlit, in three's built-in
+    points material, compiled in the precompile. They stay faint and apart, since ember orange
+    belongs to the chosen story. There is no hover queue yet;
     the dive's readiness gate covers beat 1.
   - **Credits:** an engraved link in the lobby, and the card's Credits link in the walk, open the
     PRD's Credits panel in place: the credits page's own sheet (`app/credits.html`, one source for
@@ -1309,13 +1312,13 @@ story above them.
 when none is named, every prebuild stage from `fetch` to `minerals` in the order below except
 `wikidata`, `excerpts`, `media` and `meanwhile`, which run only when named: `wikidata` and
 `excerpts` because they rewrite committed files, and `media` and `meanwhile` because each builds
-one story, named with `--story <id>`.
-A bare run builds the global profile (owner decision 17). Each profile has its own output root:
-`build/out/` for global, `build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for
-the fixture (7.3); `publish-data` takes the same `--profile` (4.3). The fixture profile skips
-`fetch`, `wikidata` and `excerpts`, so it needs no raw data, and `events`, `modera` and
-`meanwhile`, which reads the events, until their layers have excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-context worker processes.
-`media` also takes `--offline`.
+one story, named with `--story <id>`. A bare run builds the global profile (owner decision 17).
+Each profile has its own output root: `build/out/` for global, `build/region/` for the
+milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the same
+`--profile` (4.3). The fixture profile skips `fetch`, `wikidata` and `excerpts`, so it needs no
+raw data, and `events`, `modera` and `meanwhile`, which reads the events, until their layers have
+excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-context worker processes. `media`
+also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
@@ -1363,9 +1366,10 @@ the fixture (7.3); `publish-data` takes the same `--profile` (4.3). The fixture 
 
 Every stage writes its profile's output root in the exact R2 key layout, plus a record at
 `build/stages/<profile>/<stage>.json`, outside the tree `publish-data` uploads, so records never
-become R2 keys. `fetch`, `wikidata`, `excerpts` and `media` write no record: `wikidata` pins its
-export in `sources.toml`, and `media` lists what it wrote in the committed lock (3.9), which
-`npm run stories` reads, and the release's `media` section lists every key the locks name (3.8).
+become R2 keys. `fetch`, `wikidata`, `excerpts`, `media` and `meanwhile` write no record:
+`wikidata` pins its export in `sources.toml`, `meanwhile` writes its lists into the lock, and
+`media` lists what it wrote in the committed lock (3.9), which `npm run stories` reads, and the
+release's `media` section lists every key the locks name (3.8).
 
 | Stage | Record |
 |---|---|
