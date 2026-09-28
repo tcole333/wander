@@ -19,9 +19,10 @@ import {
   TorusGeometry,
   Vector2,
   Vector3,
+  type BufferGeometry,
   type Object3D,
 } from 'three';
-import { releaseCanvasAfterUpload } from '../gpu/uploadOnce';
+import { releaseCanvasAfterUpload, releaseGeometryAfterUpload } from '../gpu/uploadOnce';
 
 /** A piece of the instrument that fades as the camera nears it. */
 export interface FadePart {
@@ -425,5 +426,12 @@ export function buildInstrument(): Instrument {
     fadeParts.push({ object: gear, samples: [new Vector3()], halfWidth: spec.radius });
   }
 
+  // From here only object transforms and materials change. Picking and fades use explicit
+  // sample points, never the hardware's vertices; context loss reloads instead of restoring.
+  for (const root of [fixed, tilting]) {
+    root.traverse((object) => {
+      if (object instanceof Mesh) releaseGeometryAfterUpload(object.geometry as BufferGeometry);
+    });
+  }
   return { fixed, tilting, rings: [tilting, outer], meridian, outer, gears, fadeParts };
 }
