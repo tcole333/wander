@@ -43,6 +43,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import type { CreateMuseumScene } from '../contract';
+import { releaseCanvasAfterUpload } from '../gpu/uploadOnce';
 import { instrumentOpacity, partOpacity } from './fade';
 import { buildInstrument, type FadePart } from './instrument';
 import { KEY_LAMP, LENS } from './lens';
@@ -83,7 +84,7 @@ function backdropTexture(): CanvasTexture {
   g.addColorStop(1, '#050403');
   x.fillStyle = g;
   x.fillRect(0, 0, canvas.width, canvas.height);
-  const texture = new CanvasTexture(canvas);
+  const texture = releaseCanvasAfterUpload(new CanvasTexture(canvas));
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }

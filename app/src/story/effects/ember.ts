@@ -12,6 +12,7 @@ import {
   Vector3,
 } from 'three';
 import { EARTH_KM } from './geo';
+import { releaseCanvasAfterUpload } from '../../gpu/uploadOnce';
 
 export const EMBER = '#e8662c';
 /** The core's diameter in CSS pixels, and at least a caldera's width. */
@@ -29,7 +30,7 @@ export function glowTexture(stops: [number, string][]): CanvasTexture {
   for (const [at, color] of stops) gradient.addColorStop(at, color);
   g2d.fillStyle = gradient;
   g2d.fillRect(0, 0, 128, 128);
-  const texture = new CanvasTexture(canvas);
+  const texture = releaseCanvasAfterUpload(new CanvasTexture(canvas));
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }

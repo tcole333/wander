@@ -1,6 +1,7 @@
 // No browser or rasterizer: run the actual geometry constructors and size the actual canvas
 // sources. Rendering equivalence belongs to e2e:gpu and the walk shots on Metal.
 import { afterEach, expect, it, vi } from 'vitest';
+import { Mesh, Texture } from 'three';
 import { MemoryAccount } from '../perf/memory';
 import { buildInstrument } from './instrument';
 
@@ -40,4 +41,18 @@ it('accounts for the built instrument, including shared material maps only once'
       "imagePixels": 0,
     }
   `);
+  for (const root of [instrument.fixed, instrument.tilting]) {
+    root.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      for (const material of [object.material].flat()) {
+        for (const value of Object.values(material as object)) {
+          if (value instanceof Texture) value.onUpdate?.(value as Texture);
+        }
+      }
+    });
+  }
+  const uploaded = new MemoryAccount();
+  uploaded.object('instrument', instrument.fixed);
+  uploaded.object('instrument', instrument.tilting);
+  expect(uploaded.report().totals.canvasPixels).toBe(0);
 });
