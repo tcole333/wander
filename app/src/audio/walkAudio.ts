@@ -68,6 +68,10 @@ export function paceOf(from: ViewState, to: ViewState, dt: number): number {
 
 /** The walk's sound on an engine, from `from` (the walk as it stood when the sound began). */
 export class WalkScore {
+  inspectMemory(account: import('../perf/memory').MemoryAccount): void {
+    for (const [, cue] of this.#cues) cue.inspectMemory?.(account);
+  }
+
   readonly #engine: SoundEngine;
   readonly #detents: Detents;
   /**
@@ -188,6 +192,7 @@ function landed(state: WalkState): boolean {
 
 /** The walk's sound in the page, and its mute switch. */
 export interface WalkAudio extends SoundSwitch {
+  inspectMemory?(account: import('../perf/memory').MemoryAccount): void;
   /** Every frame, after the UI's: the walk's state, the ruler's unit and the drawn view. */
   update(state: WalkState, unit: Precision, view: ViewState, dtS: number): void;
   dispose(): void;
@@ -267,6 +272,7 @@ export function createWalkAudio(): WalkAudio {
   );
 
   return {
+    inspectMemory: (account) => score?.inspectMemory(account),
     get muted() {
       return muted;
     },

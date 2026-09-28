@@ -15,6 +15,7 @@ import type {
 import type { Release, SurfaceRelease } from './data/release';
 import type { SurfaceLayer } from './data/surfaceLayer';
 import type { SurfacePools } from './gpu/surfaceUploads';
+import type { MemoryAccount } from './perf/memory';
 
 export type Params = Record<string, number | boolean | string>;
 
@@ -35,6 +36,7 @@ export interface StreamerStats {
 
 /** Selects, fetches, decodes and uploads surface tiles, and packs the drawn instances. */
 export interface SurfaceStreamer {
+  inspectMemory?(account: MemoryAccount): void;
   release: Release;
   /** The layer it streams: availability and each node's bounds, which the camera's clearance reads. */
   layer: SurfaceLayer;
@@ -63,6 +65,7 @@ export type CreateSurfaceStreamer = (
 
 /** The globe's material: the merged surface vertex chunk plus the spike's look, live. */
 export interface SurfaceLook {
+  inspectMemory?(account: MemoryAccount): void;
   material: Material;
   /** For the globe mesh's customDepthMaterial, so the displaced globe casts true shadows. */
   depthMaterial: Material;

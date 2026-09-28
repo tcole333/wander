@@ -251,6 +251,11 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     params,
     update,
     ready: seaNames.ready,
+    inspectMemory(account) {
+      account.texture('borders.1815', borders.lookBorderField.value);
+      account.texture('climate.uploadField', climate.lookClimateField.value);
+      account.texture('labels.seaAtlas', seaNames.uniforms.lookSeaAtlas.value);
+    },
     dispose() {
       material.dispose();
       depthMaterial.dispose();

@@ -441,6 +441,24 @@ export const createSurfaceStreamer = (async (
     geometry: instances.geometry,
     params,
 
+    inspectMemory(account) {
+      account.array('surface.availability', layer.avail);
+      account.bytes('surface.uploadQueue', 'arrayBuffers', uploads.retainedBytes);
+      account.bytes('surface.waitingTiles', 'arrayBuffers', 0);
+      for (const { decoded } of waiting.values()) account.tile('surface.waitingTiles', decoded);
+      decoder.inspectMemory(account);
+      for (const name of ['height', 'shoreWater', 'edges'] as const)
+        pools[name].inspectMemory?.(account, `pool.${name}`);
+      account.details.surface = {
+        boundsEntries: layer.bounds.size,
+        instanceCapacity: instances.capacity,
+        pendingUploadBytes: uploads.pendingBytes,
+        byteCacheBytes: 0,
+        residentCpuGridBytes: 0,
+        fetches: inFlight.size,
+      };
+    },
+
     update(camera, viewport, globe) {
       if (disposed) return;
       let t = performance.now();

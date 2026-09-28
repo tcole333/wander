@@ -36,6 +36,7 @@ import { ClearanceField } from '../globe/clearance';
 import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { summarizeFrames } from '../perf/frameStats';
+import type { MemoryAccount } from '../perf/memory';
 import { createMuseumScene } from '../scene/museumScene';
 import type { Meanwhile, Walk, WalkEffects, WalkUi } from '../story/contract';
 import { bindWalkKeys, createWalk, type DirectedWalk } from '../story/director';
@@ -116,6 +117,7 @@ export interface WalkStats extends StreamerStats {
 
 /** A booted walk: the parts the dev shell's panel and hooks reach into, and its checks. */
 export interface WalkPage {
+  inspectMemory(account: MemoryAccount): void;
   museum: MuseumScene;
   look: SurfaceLook;
   streamer: SurfaceStreamer;
@@ -461,6 +463,30 @@ async function assemble(
       };
     },
     ready,
+    inspectMemory(account) {
+      streamer.inspectMemory?.(account);
+      look.inspectMemory?.(account);
+      effects?.inspectMemory?.(account);
+      story?.sound.inspectMemory?.(account);
+      // Count specialized owners first, then the remaining instrument and lobby resources.
+      account.geometry('surface.gridAndInstances', streamer.geometry);
+      if (effects) account.object('effects', effects.group);
+      if (lobby) account.object('lobby', lobby.glows);
+      account.object('instrument', museum.scene);
+      if (museum.scene.background && 'isTexture' in museum.scene.background) {
+        account.texture('room.backdrop', museum.scene.background);
+      }
+      const { memory, render, programs } = renderer.info;
+      account.details.renderer = {
+        memory: { ...memory },
+        render: { ...render },
+        programs: programs?.length ?? 0,
+        pixelRatio: renderer.getPixelRatio(),
+      };
+      account.details.streamer = streamer.stats();
+      account.details.cardFiles =
+        source?.story.beats.flatMap((beat) => beat.image.locked?.files ?? []) ?? [];
+    },
     dispose() {
       for (const undo of made.splice(0).reverse()) undo();
     },

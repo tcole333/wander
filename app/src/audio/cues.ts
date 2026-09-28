@@ -21,6 +21,7 @@ import {
 } from './synth';
 
 export interface CueHandle {
+  inspectMemory?(account: import('../perf/memory').MemoryAccount): void;
   setLevel(db: number, at?: number): void;
   stop(at?: number, fade?: number): void;
 }
@@ -263,6 +264,7 @@ export function startCue(engine: SoundEngine, name: CueName, at = engine.soon())
   // Changes take effect no earlier than `at`, where the cue's coming in would override them, and a
   // stop cancels the coming in, so a cue stopped before it sounds stays silent.
   return {
+    inspectMemory: (account) => sources.inspectMemory(account),
     setLevel(db, when = ctx.currentTime) {
       out.gain.setTargetAtTime(gainOf(db), Math.max(when, at), 0.05);
     },

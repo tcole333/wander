@@ -34,6 +34,16 @@ interface Slot {
 }
 
 export class DecodePool {
+  inspectMemory(account: import('../perf/memory').MemoryAccount): void {
+    for (const result of this.#ready)
+      if ('tile' in result) account.tile('surface.decodeReady', result.tile);
+    account.details.decodeWorkers = {
+      workers: this.#slots.length,
+      pending: this.pending,
+      ready: this.#ready.length,
+    };
+  }
+
   readonly #slots: Slot[];
   readonly #pending = new Map<number, Pending>();
   #ready: Decoded[] = [];

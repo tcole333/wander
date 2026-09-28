@@ -16,7 +16,7 @@ import { DataError, fetchData } from './data/surfaceLayer';
 import type { Release } from './data/release';
 import bundled from './generated/release.json';
 import { afterContextLoss } from './page/contextLoss';
-import { dataOverride } from './page/dataOrigin';
+import { dataOverride, memoryRequested } from './page/dataOrigin';
 import { dataPlate, Room, storyPlate } from './page/room';
 import { withLock } from './story/lock';
 import { glowsFromLock, meanwhileFromLock } from './story/meanwhile';
@@ -62,6 +62,14 @@ async function main(): Promise<void> {
       },
     });
     dispose = () => walk.dispose();
+    if (memoryRequested(location)) {
+      const { installMemoryHook } = await import('./perf/memoryHook');
+      const removeMemoryHook = installMemoryHook(walk);
+      dispose = () => {
+        removeMemoryHook();
+        walk.dispose();
+      };
+    }
     opened = walk.lobby?.opened;
     mark = walk.lobby?.mark;
   } catch (error) {

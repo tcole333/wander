@@ -112,6 +112,15 @@ export function toBuffer(ctx: BaseAudioContext, samples: Float32Array): AudioBuf
 
 /** The sources a long sound starts, and what else to undo, to stop them all at once. */
 export class Sources {
+  inspectMemory(account: import('../perf/memory').MemoryAccount): void {
+    for (const node of this.#nodes) {
+      if ('buffer' in node) {
+        const buffer = (node as AudioBufferSourceNode).buffer;
+        if (buffer) account.audio('audio.activeCueBuffers', buffer);
+      }
+    }
+  }
+
   readonly #nodes: AudioScheduledSourceNode[] = [];
   readonly #undo: ((at: number) => void)[] = [];
 
