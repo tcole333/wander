@@ -1,12 +1,12 @@
 {
   "file": "build/out/ev/events.tsv.gz",
   "rows": 29649,
-  "bytes": 1183063,
+  "bytes": 1183068,
   "decoded": 3774760,
   "parseMs": {
-    "first": 42.2,
-    "median": 36.9,
-    "min": 35.4
+    "first": 38.2,
+    "median": 32.7,
+    "min": 30.6
   },
   "runs": 7,
   "node": "v22.23.2",
