@@ -356,6 +356,8 @@ struct LookSurface {
   float zoom;
   // 1 on land, 0 at sea and on lakes.
   float land;
+  // 1 on land and lakes, 0 at sea: the ground inside the drawn coast.
+  float ground;
 };
 
 LookSurface lookSurface() {
@@ -471,6 +473,7 @@ LookSurface lookSurface() {
   landMetal = mix(landMetal, 0.08, lake);
 
   o.land = land * (1.0 - lake);
+  o.ground = land;
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
   o.roughness = clamp(mix(seaRough, landRough, land), 0.05, 1.0);
   o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);

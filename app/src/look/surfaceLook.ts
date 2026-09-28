@@ -12,6 +12,12 @@ import {
 } from '../globe/surfaceVertex.glsl';
 import { ASH_FRAGMENT_APPLY, ASH_FRAGMENT_PARS, createAshUniforms, registerAsh } from './ashHook';
 import {
+  BORDERS_FRAGMENT_APPLY,
+  BORDERS_FRAGMENT_PARS,
+  createBorderUniforms,
+  registerBorders,
+} from './bordersHook';
+import {
   CLIMATE_FRAGMENT_APPLY,
   CLIMATE_FRAGMENT_PARS,
   createClimateUniforms,
@@ -134,16 +140,18 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   for (const uniform of Object.values(SCALAR_UNIFORMS)) look[uniform] = { value: 0 };
   const camLocal = new Vector3();
   look.lookCamLocal = { value: camLocal };
-  // The walk's illustrative ashfall (ashHook.ts) and its climate (climateHook.ts), off until its
-  // effects set a strength.
+  // The walk's illustrative ashfall (ashHook.ts), its climate (climateHook.ts) and its borders
+  // (bordersHook.ts), off until its effects set a strength.
   const ash = createAshUniforms();
   const climate = createClimateUniforms();
-  const uniforms: Uniforms = { ...vertex, ...look, ...ash, ...climate };
+  const borders = createBorderUniforms();
+  const uniforms: Uniforms = { ...vertex, ...look, ...ash, ...climate, ...borders };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
   material.name = 'wander-surface-look';
   registerAsh(material, ash);
   registerClimate(material, climate);
+  registerBorders(material, borders);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule needs the camera in the globe frame: the mesh's local frame.
   const toLocal = new Matrix4();
@@ -157,11 +165,11 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${LOOK_FRAGMENT_PARS}\n${CLIMATE_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}`,
+        `#include <common>\n${LOOK_FRAGMENT_PARS}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}`,
       ],
       [
         '#include <color_fragment>',
-        `${LOOK_FRAGMENT_COLOR}\n${CLIMATE_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}`,
+        `${LOOK_FRAGMENT_COLOR}\n${CLIMATE_FRAGMENT_APPLY}\n${BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}`,
       ],
       ['#include <roughnessmap_fragment>', LOOK_FRAGMENT_ROUGHNESS],
       ['#include <metalnessmap_fragment>', LOOK_FRAGMENT_METALNESS],
@@ -211,6 +219,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       material.dispose();
       depthMaterial.dispose();
       climate.lookClimateField.value.dispose();
+      borders.lookBorderField.value.dispose();
     },
   };
 };
