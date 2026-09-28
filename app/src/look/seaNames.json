@@ -111,7 +111,7 @@
   {
     "text": "Flores Sea",
     "lon": 121,
-    "lat": -7.2,
+    "lat": -6.6,
     "size": 0.5,
     "style": "sea",
     "minKm": 2400
@@ -153,14 +153,16 @@
     "lon": 127.5,
     "lat": -5.6,
     "size": 0.6,
-    "style": "sea"
+    "style": "sea",
+    "minKm": 4000
   },
   {
     "text": "Timor Sea",
     "lon": 127,
     "lat": -11.6,
     "size": 0.62,
-    "style": "sea"
+    "style": "sea",
+    "minKm": 4000
   },
   {
     "text": "Arafura Sea",
@@ -182,7 +184,8 @@
     "lon": 122,
     "lat": 3.8,
     "size": 0.6,
-    "style": "sea"
+    "style": "sea",
+    "minKm": 5000
   },
   {
     "text": "South China Sea",
