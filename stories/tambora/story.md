@@ -245,7 +245,7 @@ effects:
   - callout: {at: [-70.8985, 42.5168], text: Salem}
   - callout: {at: [-72.2961, 44.4013], text: Cabot}
 audio: {cues: [wind-cold]}
-meanwhile: auto
+meanwhile: {hide: [Q3536898, Q3536856]}
 sources:
   - {title: "Historic Storms of New England (ch. 53, The Cold Summer of 1816)", author: "Sidney Perley", publisher: "Salem Press Publishing and Printing Co., Salem, Mass.", year: 1891, url: "https://archive.org/details/historicstormsof00perl"}
   - {title: "Diary of Thomas Robbins, D.D., 1796-1854, vol. 1 (entries of 4 and 5 September 1816)", author: "Thomas Robbins, ed. Increase N. Tarbox", publisher: "Beacon Press, Boston", year: 1886, url: "https://archive.org/details/diaryofthomasrob01robb"}
@@ -279,7 +279,7 @@ effects:
   - pulse: {at: [89.2167, 23.1667], start: "1817-08-28", end: "1817-12-31", radiusKm: 300, style: contagion}
   - callout: {at: [102.7061, 25.0433], text: Yunnan}
 audio: {cues: []}
-meanwhile: auto
+meanwhile: {hide: [Q46362]}
 sources:
   - {title: "嘉庆云南大饥荒(1815—1817)与坦博拉火山喷发 [A serious famine in Yunnan (1815-1817) and the eruption of Tambora volcano] (pp. 79, 82-83)", author: "Yang Yuda, Man Zhimin and Zheng Jingyun", publisher: "Fudan Journal (Social Sciences) 2005(1): 79-85", year: 2005, url: "https://web.archive.org/web/20090326133019/http://www.igsnrr.ac.cn/lwzzImg/1161151232919.pdf"}
   - {title: "Report on the Epidemick Cholera Morbus, as it visited the territories subject to the Presidency of Bengal, in the years 1817, 1818 and 1819 (Introduction pp. xliii-xlv and lx; pp. 3-4)", author: "James Jameson, for the Bengal Medical Board", publisher: "Government Gazette Press, Calcutta", year: 1820, url: "https://archive.org/details/b21971547"}
