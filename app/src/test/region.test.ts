@@ -3,8 +3,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CODE_PATHS } from './bakeInputs';
 import {
+  CODE_PATHS,
   StaleRegionBake,
   readBake,
   readRegionBake,
@@ -101,12 +101,15 @@ describe.each(['region', 'global'] as const)('the %s bake check', (profile) => {
 
   it.each([
     'pipeline/src/prebuild/surface.py',
+    'pipeline/src/prebuild/cli.py',
+    'pipeline/src/prebuild/excerpts.py',
+    'pipeline/src/prebuild/events.py',
     'pipeline/config/water.yaml',
     'pipeline/config/l7.yaml',
     'shared/constants.json',
     'pipeline/uv.lock',
     'pipeline/pyproject.toml',
-  ])('fails changed surface input %s', (path) => {
+  ])('fails changed pipeline input %s', (path) => {
     records(inputs(), inputs());
     write(path, 'changed\n');
     expect(read).toThrow(StaleRegionBake);

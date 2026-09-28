@@ -1,5 +1,5 @@
-// Reads either real surface bake (streaming.md 7.3), after checking its records, surface code,
-// profile configs and pinned sources. A missing or stale bake names the command that rebuilds it.
+// Reads either real surface bake (streaming.md 7.3), after checking its records, pipeline code,
+// configs and pinned sources. A missing or stale bake names the command that rebuilds it.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -7,8 +7,16 @@ import { isDeepStrictEqual } from 'node:util';
 import { tileKey, type Tile } from '../surface/cube';
 import { decodeWst, type DecodedWst } from '../surface/wst';
 import { REPO_ROOT, type SurfaceRecord } from './fixture';
-import { matchesSurfaceCode } from './bakeInputs';
 import { treeSha } from './stamp';
+
+// pipeline/src/prebuild/hashing.py CODE_PATHS, whose exact tree hash is inputs.code.
+export const CODE_PATHS = [
+  'pipeline/src',
+  'pipeline/config',
+  'pipeline/pyproject.toml',
+  'pipeline/uv.lock',
+  'shared/constants.json',
+];
 
 export type BakeProfile = 'region' | 'global';
 const OUTPUT = { region: 'region', global: 'out' };
@@ -68,7 +76,7 @@ export function readBake(profile: BakeProfile = 'region', repo: string = REPO_RO
   const stale = (reason: string) =>
     new StaleRegionBake(
       `build/${OUTPUT[profile]} is missing or stale (${reason}): ` +
-        `run \`uv run prebuild --profile ${profile}\` in pipeline/`,
+        `run \`uv run prebuild --profile ${profile} coverage surface\` in pipeline/`,
     );
   const stages = join(repo, 'build', 'stages', profile);
   const coverage = readJson<CoverageRecord>(join(stages, 'coverage.json'));
@@ -83,8 +91,8 @@ export function readBake(profile: BakeProfile = 'region', repo: string = REPO_RO
     throw stale('the surface layer was built from other inputs than the coverage record holds');
   }
   const { inputs } = coverage;
-  if (!inputs || !matchesSurfaceCode(inputs.code, repo)) {
-    throw stale('its surface code, dependencies or shared constants differ or cannot be verified');
+  if (inputs?.code !== treeSha(CODE_PATHS, repo)) {
+    throw stale('it was built from other pipeline code, configs or shared constants');
   }
   const configs = Object.fromEntries(
     CONFIGS[profile].map((name) => {
