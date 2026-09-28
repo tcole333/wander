@@ -16,7 +16,7 @@ from prebuild.paths import config_dir
 CONFIG_DIR = config_dir()
 EVENT_CLASSES = CONFIG_DIR / "event-classes.yaml"
 EVENT_CURATED = CONFIG_DIR / "events-curated.yaml"
-CURATED_KEYS = frozenset({"boosts", "dates"})
+CURATED_KEYS = frozenset({"boosts", "dates", "contested"})
 ISO_DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 SCALERANKS = range(13)  # NE river scalerank runs 0-12
 _QID = re.compile(r"Q[1-9][0-9]*")
@@ -199,6 +199,17 @@ def load_event_dates(path: Path = EVENT_CURATED) -> dict[str, str]:
             raise ConfigError(f"{path.name} dates {qid} twice")
         dates[qid] = fields["date"]
     return dates
+
+
+def load_contested_events(path: Path = EVENT_CURATED) -> frozenset[str]:
+    """The events whose date the sources dispute (events-curated.yaml), by qid."""
+    contested: set[str] = set()
+    for row in _curated(path, "contested"):
+        fields = _mapping(row, f"{path.name} contested event", {"qid", "why"})
+        qid = _qid(fields["qid"], f"{path.name} contested event")
+        _text(fields["why"], f"contested {qid} why")
+        contested.add(qid)
+    return frozenset(contested)
 
 
 def _curated(path: Path, key: str) -> list[Any]:
