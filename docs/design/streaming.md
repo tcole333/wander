@@ -454,8 +454,10 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
   1700, 1800, 1850, 1900, 1950, 2000, +∞); `pipeline/config/macro-regions.geojson` (8 macro-regions);
   `pipeline/config/event-classes.yaml` (the class allowlist and weights, which keep out sporting
-  seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, each
-  with its reason; the overrides for unlocated parents join it with the hierarchy);
+  seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, the
+  days a better source dates an event to where Wikidata's date is wrong, and the events whose date
+  the sources dispute, each with its reason; the overrides for unlocated parents join it with the
+  hierarchy);
   `pipeline/queries/events.rq`, the one query, run once per class.
 - **Export:** `uv run prebuild wikidata` runs `events.rq` for each class against QLever's public
   Wikidata endpoint, one request at a time with a pause between them, and writes the rows as gzip
@@ -471,9 +473,10 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   one row per event, which Meanwhile and the lobby's glows draw from. It keeps statements dated to
   the year or finer, and events with an English label, a place other than 0°, 0° (their own, else
   their location's, flagged) and a Wikipedia edition. An event takes its heaviest class; its date
-  is its point in time, else its start, else its end, the most precise and then the earliest; and
-  its span `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and
-  ends, widened to their precision, so a war dated at its armistice still spans its years. In
+  is its point in time, else its start, else its end, the most precise and then the earliest, or
+  the day `events-curated.yaml` gives where a better source shows Wikidata's wrong; and its span
+  `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and ends,
+  widened to their precision, so a war dated at its armistice still spans its years. In
   milestone 1 the span only keeps a long event out of a short window's Meanwhile (3.9). Its score
   is `log2(1 + editions)` times the class weight plus any curated boost, unscaled. Parents stay as
   Wikidata gives them. The table is TSV with a header line, in score order, at most 100K rows,
@@ -686,25 +689,31 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   a sound. `stories/<story>/audio/bed.json` (`{synth: {...}, loops: [{src, gain}], oneShots: [...]}`,
   with the CC0 WAV sources committed beside it) and the lock's `audio` entries arrive with the first
   CC0 sample.
-- **Meanwhile, auto:** the `meanwhile` stage (7.1) picks three events per beat from the event
-  index (3.4): dated inside the beat's window, widened where needed to 45 days either side of the
-  beat's date (a date of year or month precision counts as its whole year or month); spanning no
-  longer than the window or 92 days, whichever is longer, so a decade's war does not stand for a
-  month of it; more than 2,000 km from the beat's target; never the beat's focal event or its
-  part-of relatives, and never a parent with its child; with an English Wikipedia article or a
-  written line, so a writer can cite it. It takes first those dated within 45 days of the beat's
-  date, greedy by score, then the rest of the window, nearest the date first, each 2,000 km from
-  those taken, since Meanwhile is what happens at the beat's date, which the ruler reads, not
-  anywhere in its window: a beat of April 1815 whose window runs into 1816 shows April's events,
-  not 1816's. While enough others qualify, a beat shows none of those the previous beat took
-  from its own 45 days, nor any the next beat would show that is dated nearer to it. The same
-  rule picks three per month of the story's years (from January of the year its beats' windows
-  open to December of the year they close) for scrubbing: first those dated in the month, then
-  those within 45 days of its middle, so an event borrowed from a neighbouring month only fills a
-  thin one; the target of the beat dated nearest it; none of the story's focal events and nothing
-  a beat hides. No writer reads a month's picks, so they are events with a written line, or with
-  an English article and a place of their own, since an inherited place is often a region's
-  middle (three battles of 1816 stand at one point, the middle of Rio Grande do Sul).
+- **Meanwhile, auto:** the `meanwhile` stage (7.1) picks three events per beat from the event index
+  (3.4): dated inside the beat's window, widened where needed to 45 days either side of the beat's
+  date (a date of year or month precision counts as its whole year or month); spanning no longer
+  than the window or 92 days, whichever is longer, so a decade's war does not stand for a month of
+  it; more than 2,000 km from the beat's target; never the beat's focal event or its part-of
+  relatives, and never a parent with its child; never an event whose date the sources dispute
+  (`contested` in `events-curated.yaml`), since Meanwhile prints one date for each; with an English
+  Wikipedia article or a written line, so a writer can cite it. It takes first those dated within 45
+  days of the beat's date, greedy by score, then the rest of the window, nearest the date first,
+  each 2,000 km from those taken, since Meanwhile is what happens at the beat's date, which the
+  ruler reads, not anywhere in its window: a beat of April 1815 whose window runs into 1816 shows
+  April's events, not 1816's. While enough others qualify, a beat shows none of those the beats
+  before it took from their own 45 days, nor any the next beat would show that is dated nearer to
+  it; where too few do, it repeats the ones shown least, so no entry runs through three beats in a
+  row when a neighbour's would do. The same rule picks three per month of the story's years (from
+  January of the year its beats' windows open to December of the year they close) for scrubbing:
+  first those dated in the month, then those within 45 days of its middle, so an event borrowed from
+  a neighbouring month only fills a thin one; the target of the beat dated nearest it; none of the
+  story's focal events and nothing a beat hides. A month still short of three relaxes a step at a
+  time until it holds three: the spacing between its entries to 1,000 km, then 500 km, then its
+  reach to 60, 75 and 90 days either side of its middle, keeping 2,000 km from the target, since a
+  month of one entry reads as a quiet world. No writer reads a month's picks, so they are events
+  with a written line, or with an English article and a place of their own, since an inherited place
+  is often a region's middle (three battles of 1816 stand at one point, the middle of Rio Grande do
+  Sul).
 - **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
   present-tense line in the story's voice and its source (`qid: {line, date?, at?, source:
   {title, url}}`). `date` gives the day the source dates the event to where Wikidata's differs
@@ -1334,7 +1343,7 @@ also takes `--offline`.
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points and focal resolution against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
-| `meanwhile --story <id>` | the story's beats + `ev/events.tsv.gz` in the profile's output root + `stories/<id>/meanwhile.yaml` → the lock's `meanwhile` (each beat's three entries and each month's of the story's years) and `glows` (3.9); it stops, naming `events`, when the events record's `inputs` differ from the current export and configs | 1 s [M] | local |
+| `meanwhile --story <id>` | the story's beats + `ev/events.tsv.gz` in the profile's output root + `stories/<id>/meanwhile.yaml` + the `contested` events of `events-curated.yaml` → the lock's `meanwhile` (each beat's three entries and each month's of the story's years) and `glows` (3.9); it stops, naming `events`, when the events record's `inputs` differ from the current export and configs | 1 s [M] | local |
 | `npm run poster` | Deferred past milestone 1, whose poster is the CSS room (owner decision 21). Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
 | `npm run publish-data` | stage records → `release.json`; uploads (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
@@ -1798,7 +1807,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `declutterPerCell` | 2 per 64 px cell | event declutter | eye |
 | `hysteresisScore` | 20 on the 0-1000 score scale | margin to displace an incumbent | eye |
 | `eventFade` | 300 ms | event fades | eye |
-| `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries | Meanwhile rule; in milestone 1 the `meanwhile` stage's constants | eye |
+| `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries (a sparse month's down to 500 km apart, reaching up to 90 days) | Meanwhile rule; in milestone 1 the `meanwhile` stage's constants | eye |
 | `placeLabelsMax` | 30 | place labels shown | eye |
 | `flightDuration` | `clamp(S/1.2, 1.6, 4.5)` s, ρ = 1.42 | flight length | eye |
 | `gateAt`, `holdMax` | 0.7 of the flight, 1.5 s | readiness gate and hold | E3, E4 |
