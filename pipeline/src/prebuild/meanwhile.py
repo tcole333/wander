@@ -18,8 +18,8 @@ each, `COUNT` events happening elsewhere at the beat's time:
 
 A beat's `meanwhile: {pin: [qids], hide: [qids]}` puts its pins first, whatever the rule says, and
 keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The same rule gives
-`COUNT` events for each month from `MONTHS[0]` to `MONTHS[1]`, which Meanwhile shows while the
-visitor scrubs: the month's window, the target of the beat dated nearest it, none of the story's
+`COUNT` events for each month of the story's years, which Meanwhile shows while the visitor
+scrubs: the month's window, the target of the beat dated nearest it, none of the story's
 focal events, and no event any beat hides.
 
 A beat's entries carry the lines the story's writers give them in `stories/<id>/meanwhile.yaml`
@@ -53,7 +53,6 @@ COUNT = 3  # entries per beat and per month
 PAD_DAYS = 45  # a beat's window reaches at least this far either side of its date
 SHORTEST_DAYS = 92  # the longest span a short window admits
 MIN_KM = 2000.0  # from the beat's target, and between entries
-MONTHS = ((1815, 1), (1817, 12))  # the months scrubbing shows, first and last
 GLOW_COUNT = 120
 GLOW_MIN_KM = 450.0
 EARTH_KM = 6371.0088
@@ -272,12 +271,14 @@ def beat_lists(beats: Sequence[Beat], index: Sequence[Event]) -> dict[str, list[
 def month_lists(
     beats: Sequence[Beat], index: Sequence[Event]
 ) -> dict[tuple[int, int], list[Event]]:
-    """Each month's entries, from `MONTHS[0]` to `MONTHS[1]`."""
+    """Each month's entries, from January of the year the story's windows open to December of
+    the year they close."""
     ancestors = lineage(index)
     excluded = relatives({b.focal for b in beats}, index, ancestors) | {
         qid for b in beats for qid in b.hides
     }
-    (year, month), last = MONTHS
+    year, month = civil(min(b.window[0] for b in beats))[0], 1
+    last = (civil(max(b.window[1] for b in beats))[0], 12)
     months: list[tuple[int, int]] = []
     frames: list[Frame] = []
     while (year, month) <= last:

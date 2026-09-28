@@ -60,3 +60,17 @@ def test_an_event_goes_to_the_neighbour_dated_nearer_it_and_neighbours_repeat_wh
     may, june = frame("1815-05-20"), frame("1815-06-28")
     lists = m.in_turn([may, june], index, m.lineage(index))
     assert [[e.qid for e in chosen] for chosen in lists] == [["Q2", "Q3", "Q4"], ["Q1", "Q2", "Q3"]]
+
+
+def test_scrubbing_covers_the_years_of_the_story_s_windows():
+    beat = m.Beat(
+        id="strait",
+        date=m.iso_day("1520-11-01"),
+        window=(m.iso_day("1519-09-20"), m.iso_day("1522-09-06")),
+        target=(-70.0, -53.0),
+        focal="Q1",
+        pins=(),
+        hides=(),
+    )
+    months = list(m.month_lists([beat], []))
+    assert (months[0], months[-1], len(months)) == ((1519, 1), (1522, 12), 48)
