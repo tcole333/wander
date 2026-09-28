@@ -59,10 +59,11 @@ export type FxRelease = Record<
   string,
   {
     key: string;
-    kind: 'route';
+    /** 'route' so far; typed as release.json's JSON gives it, like the other sections. */
+    kind: string;
     epochDay: number;
     /** West, south, east, north; east may exceed 180 across the dateline. */
-    bbox: [number, number, number, number];
+    bbox: number[];
     bytes: number;
   }
 >;
