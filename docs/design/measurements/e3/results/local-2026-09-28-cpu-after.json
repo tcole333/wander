@@ -1,0 +1,2392 @@
+{
+  "date": "2026-09-28T17:54:22.904Z",
+  "url": "http://127.0.0.1:4191/?data=http://127.0.0.1:8893",
+  "release": "f41601b9cf214f68",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "leak": {
+    "driver": "bare CDP, no Network domain",
+    "url": "http://127.0.0.1:4191/?data=http%3A%2F%2F127.0.0.1%3A8893&memory=1",
+    "cpuBudget": {
+      "limitMiB": 256,
+      "passed": true
+    },
+    "samples": [
+      {
+        "walks": -1,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 0.3,
+        "jsHeapTotalMB": 1,
+        "nodes": 4,
+        "listeners": 2,
+        "documents": 1,
+        "rendererMB": 13,
+        "gpuMB": 11,
+        "gpuGraphicsMB": 0.5,
+        "renderer": {
+          "arrayBuffers": null,
+          "blinkBuffers": 0.8,
+          "blinkGc": 0.5,
+          "v8": 2.4,
+          "malloc": 8.4,
+          "gpuClient": 0.1
+        }
+      },
+      {
+        "walks": 0,
+        "memoryAccount": {
+          "version": 1,
+          "units": "bytes",
+          "owners": {
+            "audio.noise.white 62401": {
+              "arrayBuffers": 0,
+              "audioSamples": 249604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 81611": {
+              "arrayBuffers": 0,
+              "audioSamples": 326444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 177601": {
+              "arrayBuffers": 0,
+              "audioSamples": 710404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 350411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1401644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 427213": {
+              "arrayBuffers": 0,
+              "audioSamples": 1708852,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 484829": {
+              "arrayBuffers": 0,
+              "audioSamples": 1939316,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 542401": {
+              "arrayBuffers": 0,
+              "audioSamples": 2169604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 609601": {
+              "arrayBuffers": 0,
+              "audioSamples": 2438404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.availability": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.uploadQueue": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.waitingTiles": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "borders.1815": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.uploadField": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "labels.seaAtlas": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.blendScratch": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1815": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1816": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1817": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.plumeArrays": {
+              "arrayBuffers": 171600,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.gridAndInstances": {
+              "arrayBuffers": 86662,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.geometry": {
+              "arrayBuffers": 1061500,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.textures": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.geometry": {
+              "arrayBuffers": 2880,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.geometry": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "room.backdrop": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "cards.attached": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 184320
+            }
+          },
+          "totals": {
+            "arrayBuffers": 2167042,
+            "audioSamples": 10944272,
+            "canvasPixels": 0,
+            "imagePixels": 184320
+          },
+          "details": {
+            "audio": {
+              "sampleRate": 48000,
+              "state": "running",
+              "cachedNoiseBuffers": 8
+            },
+            "decodeWorkers": {
+              "workers": 2,
+              "pending": 0,
+              "ready": 0
+            },
+            "pool.height": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.shoreWater": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.edges": {
+              "width": 257,
+              "height": 12,
+              "levels": 1,
+              "slots": 256,
+              "bytesPerSlot": 12336,
+              "gpuBytes": 3158016
+            },
+            "surface": {
+              "boundsEntries": 15740,
+              "instanceCapacity": 2048,
+              "pendingUploadBytes": 0,
+              "byteCacheBytes": 0,
+              "residentCpuGridBytes": 0,
+              "fetches": 0
+            },
+            "renderer": {
+              "memory": {
+                "geometries": 56,
+                "textures": 34
+              },
+              "render": {
+                "frame": 10133,
+                "calls": 1,
+                "triangles": 1,
+                "points": 0,
+                "lines": 0
+              },
+              "programs": 30,
+              "pixelRatio": 1
+            },
+            "streamer": {
+              "drawn": 158,
+              "resident": 234,
+              "inFlight": 0,
+              "decoding": 0,
+              "uploading": 0,
+              "levels": [
+                0,
+                0,
+                29,
+                129,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "cardFiles": [
+              {
+                "key": "img/e751bd21f5f6504c-1024.jpg",
+                "w": 1024,
+                "h": 721,
+                "bytes": 193315
+              },
+              {
+                "key": "img/e751bd21f5f6504c-256.jpg",
+                "w": 256,
+                "h": 180,
+                "bytes": 13840
+              },
+              {
+                "key": "img/95f36e9a47256597-1024.jpg",
+                "w": 1024,
+                "h": 603,
+                "bytes": 186206
+              },
+              {
+                "key": "img/95f36e9a47256597-256.jpg",
+                "w": 256,
+                "h": 151,
+                "bytes": 13341
+              },
+              {
+                "key": "img/348f893f47acf3d5-1024.jpg",
+                "w": 1024,
+                "h": 838,
+                "bytes": 283103
+              },
+              {
+                "key": "img/348f893f47acf3d5-256.jpg",
+                "w": 256,
+                "h": 210,
+                "bytes": 13667
+              },
+              {
+                "key": "img/14b19ed1e3530254-1024.jpg",
+                "w": 1024,
+                "h": 872,
+                "bytes": 241064
+              },
+              {
+                "key": "img/14b19ed1e3530254-256.jpg",
+                "w": 256,
+                "h": 218,
+                "bytes": 19391
+              },
+              {
+                "key": "img/1706506d6a0e0726-1024.jpg",
+                "w": 1024,
+                "h": 727,
+                "bytes": 132222
+              },
+              {
+                "key": "img/1706506d6a0e0726-256.jpg",
+                "w": 256,
+                "h": 182,
+                "bytes": 11815
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-1024.jpg",
+                "w": 1024,
+                "h": 679,
+                "bytes": 248550
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-256.jpg",
+                "w": 256,
+                "h": 170,
+                "bytes": 16849
+              },
+              {
+                "key": "img/010fe3b3020920ee-1024.jpg",
+                "w": 1024,
+                "h": 1623,
+                "bytes": 460861
+              },
+              {
+                "key": "img/010fe3b3020920ee-256.jpg",
+                "w": 256,
+                "h": 406,
+                "bytes": 34790
+              },
+              {
+                "key": "img/fd46bea844ec7827-1024.jpg",
+                "w": 1024,
+                "h": 669,
+                "bytes": 163091
+              },
+              {
+                "key": "img/fd46bea844ec7827-256.jpg",
+                "w": 256,
+                "h": 167,
+                "bytes": 13033
+              }
+            ],
+            "cards": [
+              {
+                "url": "http://127.0.0.1:8893/img/e751bd21f5f6504c-256.jpg",
+                "width": 256,
+                "height": 180
+              }
+            ],
+            "fonts": {
+              "faces": [
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                }
+              ],
+              "resources": [
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-400-normal-C42RasBZ.woff2",
+                  "encodedBytes": 20108
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-normal-DJ5YJwmz.woff2",
+                  "encodedBytes": 20088
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-400-normal-DehDhP4C.woff2",
+                  "encodedBytes": 21272
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-700-normal-CLGq6Yj4.woff2",
+                  "encodedBytes": 20436
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-700-normal-URU-TBJY.woff2",
+                  "encodedBytes": 21708
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-normal-Cp7z-ARB.woff2",
+                  "encodedBytes": 17828
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-italic-JynPwBMj.woff2",
+                  "encodedBytes": 18480
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-italic-0j97Jm6B.woff2",
+                  "encodedBytes": 20092
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-600-normal-DouSKlru.woff2",
+                  "encodedBytes": 21532
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-600-normal-0sIUyHMO.woff2",
+                  "encodedBytes": 18376
+                }
+              ],
+              "decodedBytes": null
+            }
+          },
+          "coverage": [
+            "ArrayBuffers: unique backing allocations, not view lengths; audio samples are separate (browser storage can overlap allocator categories).",
+            "Canvas and attached image pixels: width × height × 4 estimates; browser/Skia caches, copies and GPU-backed canvases are not observable here.",
+            "Fonts: loaded faces and encoded resource sizes only; decoded fonts and glyph caches have no byte API. Resource Timing may have evicted old entries.",
+            "No resident surface byte cache or CPU height grids in milestone 1. Pending fetch/worker working buffers are not observable; compare settled samples.",
+            "JS objects, browser image cache after detachment, audio nodes and fading sources, allocator slack and GL command/transfer buffers are outside this account. Do not equate its sum with process footprint."
+          ]
+        },
+        "jsHeapUsedMB": 36.5,
+        "jsHeapTotalMB": 81.9,
+        "nodes": 1445,
+        "listeners": 115,
+        "documents": 5,
+        "rendererMB": 230,
+        "gpuMB": 1053,
+        "gpuGraphicsMB": 784.4,
+        "renderer": {
+          "arrayBuffers": 17.5,
+          "blinkBuffers": 15,
+          "blinkGc": 9.5,
+          "v8": 15.9,
+          "malloc": 57.6,
+          "gpuClient": 49.2
+        }
+      },
+      {
+        "walks": 1,
+        "memoryAccount": {
+          "version": 1,
+          "units": "bytes",
+          "owners": {
+            "audio.noise.white 62401": {
+              "arrayBuffers": 0,
+              "audioSamples": 249604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 81611": {
+              "arrayBuffers": 0,
+              "audioSamples": 326444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 177601": {
+              "arrayBuffers": 0,
+              "audioSamples": 710404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 350411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1401644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 427213": {
+              "arrayBuffers": 0,
+              "audioSamples": 1708852,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 484829": {
+              "arrayBuffers": 0,
+              "audioSamples": 1939316,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 542401": {
+              "arrayBuffers": 0,
+              "audioSamples": 2169604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 609601": {
+              "arrayBuffers": 0,
+              "audioSamples": 2438404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.white 48017": {
+              "arrayBuffers": 0,
+              "audioSamples": 192068,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 48017": {
+              "arrayBuffers": 0,
+              "audioSamples": 192068,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 465611": {
+              "arrayBuffers": 0,
+              "audioSamples": 1862444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 523207": {
+              "arrayBuffers": 0,
+              "audioSamples": 2092828,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 235211": {
+              "arrayBuffers": 0,
+              "audioSamples": 940844,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 302411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1209644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 369637": {
+              "arrayBuffers": 0,
+              "audioSamples": 1478548,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 436801": {
+              "arrayBuffers": 0,
+              "audioSamples": 1747204,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 340801": {
+              "arrayBuffers": 0,
+              "audioSamples": 1363204,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 417617": {
+              "arrayBuffers": 0,
+              "audioSamples": 1670468,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.white 273601": {
+              "arrayBuffers": 0,
+              "audioSamples": 1094404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 446401": {
+              "arrayBuffers": 0,
+              "audioSamples": 1785604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.availability": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.uploadQueue": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.waitingTiles": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "borders.1815": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.uploadField": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "labels.seaAtlas": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.blendScratch": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1815": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1816": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1817": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.plumeArrays": {
+              "arrayBuffers": 171600,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.gridAndInstances": {
+              "arrayBuffers": 86662,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.geometry": {
+              "arrayBuffers": 1061500,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.textures": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.geometry": {
+              "arrayBuffers": 2880,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.geometry": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "room.backdrop": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "cards.attached": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 171008
+            }
+          },
+          "totals": {
+            "arrayBuffers": 2167042,
+            "audioSamples": 26573600,
+            "canvasPixels": 0,
+            "imagePixels": 171008
+          },
+          "details": {
+            "audio": {
+              "sampleRate": 48000,
+              "state": "running",
+              "cachedNoiseBuffers": 20
+            },
+            "decodeWorkers": {
+              "workers": 2,
+              "pending": 0,
+              "ready": 0
+            },
+            "pool.height": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.shoreWater": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.edges": {
+              "width": 257,
+              "height": 12,
+              "levels": 1,
+              "slots": 256,
+              "bytesPerSlot": 12336,
+              "gpuBytes": 3158016
+            },
+            "surface": {
+              "boundsEntries": 15740,
+              "instanceCapacity": 2048,
+              "pendingUploadBytes": 0,
+              "byteCacheBytes": 0,
+              "residentCpuGridBytes": 0,
+              "fetches": 0
+            },
+            "renderer": {
+              "memory": {
+                "geometries": 56,
+                "textures": 34
+              },
+              "render": {
+                "frame": 45957,
+                "calls": 1,
+                "triangles": 1,
+                "points": 0,
+                "lines": 0
+              },
+              "programs": 30,
+              "pixelRatio": 1
+            },
+            "streamer": {
+              "drawn": 121,
+              "resident": 255,
+              "inFlight": 0,
+              "decoding": 0,
+              "uploading": 0,
+              "levels": [
+                0,
+                0,
+                0,
+                12,
+                109,
+                0,
+                0,
+                0
+              ]
+            },
+            "cardFiles": [
+              {
+                "key": "img/e751bd21f5f6504c-1024.jpg",
+                "w": 1024,
+                "h": 721,
+                "bytes": 193315
+              },
+              {
+                "key": "img/e751bd21f5f6504c-256.jpg",
+                "w": 256,
+                "h": 180,
+                "bytes": 13840
+              },
+              {
+                "key": "img/95f36e9a47256597-1024.jpg",
+                "w": 1024,
+                "h": 603,
+                "bytes": 186206
+              },
+              {
+                "key": "img/95f36e9a47256597-256.jpg",
+                "w": 256,
+                "h": 151,
+                "bytes": 13341
+              },
+              {
+                "key": "img/348f893f47acf3d5-1024.jpg",
+                "w": 1024,
+                "h": 838,
+                "bytes": 283103
+              },
+              {
+                "key": "img/348f893f47acf3d5-256.jpg",
+                "w": 256,
+                "h": 210,
+                "bytes": 13667
+              },
+              {
+                "key": "img/14b19ed1e3530254-1024.jpg",
+                "w": 1024,
+                "h": 872,
+                "bytes": 241064
+              },
+              {
+                "key": "img/14b19ed1e3530254-256.jpg",
+                "w": 256,
+                "h": 218,
+                "bytes": 19391
+              },
+              {
+                "key": "img/1706506d6a0e0726-1024.jpg",
+                "w": 1024,
+                "h": 727,
+                "bytes": 132222
+              },
+              {
+                "key": "img/1706506d6a0e0726-256.jpg",
+                "w": 256,
+                "h": 182,
+                "bytes": 11815
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-1024.jpg",
+                "w": 1024,
+                "h": 679,
+                "bytes": 248550
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-256.jpg",
+                "w": 256,
+                "h": 170,
+                "bytes": 16849
+              },
+              {
+                "key": "img/010fe3b3020920ee-1024.jpg",
+                "w": 1024,
+                "h": 1623,
+                "bytes": 460861
+              },
+              {
+                "key": "img/010fe3b3020920ee-256.jpg",
+                "w": 256,
+                "h": 406,
+                "bytes": 34790
+              },
+              {
+                "key": "img/fd46bea844ec7827-1024.jpg",
+                "w": 1024,
+                "h": 669,
+                "bytes": 163091
+              },
+              {
+                "key": "img/fd46bea844ec7827-256.jpg",
+                "w": 256,
+                "h": 167,
+                "bytes": 13033
+              }
+            ],
+            "cards": [
+              {
+                "url": "http://127.0.0.1:8893/img/fd46bea844ec7827-256.jpg",
+                "width": 256,
+                "height": 167
+              }
+            ],
+            "fonts": {
+              "faces": [
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                }
+              ],
+              "resources": [
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-400-normal-C42RasBZ.woff2",
+                  "encodedBytes": 20108
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-normal-DJ5YJwmz.woff2",
+                  "encodedBytes": 20088
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-400-normal-DehDhP4C.woff2",
+                  "encodedBytes": 21272
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-700-normal-CLGq6Yj4.woff2",
+                  "encodedBytes": 20436
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-700-normal-URU-TBJY.woff2",
+                  "encodedBytes": 21708
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-normal-Cp7z-ARB.woff2",
+                  "encodedBytes": 17828
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-italic-JynPwBMj.woff2",
+                  "encodedBytes": 18480
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-italic-0j97Jm6B.woff2",
+                  "encodedBytes": 20092
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-600-normal-DouSKlru.woff2",
+                  "encodedBytes": 21532
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-600-normal-0sIUyHMO.woff2",
+                  "encodedBytes": 18376
+                }
+              ],
+              "decodedBytes": null
+            }
+          },
+          "coverage": [
+            "ArrayBuffers: unique backing allocations, not view lengths; audio samples are separate (browser storage can overlap allocator categories).",
+            "Canvas and attached image pixels: width × height × 4 estimates; browser/Skia caches, copies and GPU-backed canvases are not observable here.",
+            "Fonts: loaded faces and encoded resource sizes only; decoded fonts and glyph caches have no byte API. Resource Timing may have evicted old entries.",
+            "No resident surface byte cache or CPU height grids in milestone 1. Pending fetch/worker working buffers are not observable; compare settled samples.",
+            "JS objects, browser image cache after detachment, audio nodes and fading sources, allocator slack and GL command/transfer buffers are outside this account. Do not equate its sum with process footprint."
+          ]
+        },
+        "jsHeapUsedMB": 37.9,
+        "jsHeapTotalMB": 85.9,
+        "nodes": 1329,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 250,
+        "gpuMB": 998,
+        "gpuGraphicsMB": 724.4,
+        "renderer": {
+          "arrayBuffers": 30.7,
+          "blinkBuffers": 15.3,
+          "blinkGc": 17.5,
+          "v8": 17.6,
+          "malloc": 62.2,
+          "gpuClient": 31.1
+        }
+      },
+      {
+        "walks": 2,
+        "memoryAccount": {
+          "version": 1,
+          "units": "bytes",
+          "owners": {
+            "audio.noise.white 62401": {
+              "arrayBuffers": 0,
+              "audioSamples": 249604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 81611": {
+              "arrayBuffers": 0,
+              "audioSamples": 326444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 177601": {
+              "arrayBuffers": 0,
+              "audioSamples": 710404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 350411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1401644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 427213": {
+              "arrayBuffers": 0,
+              "audioSamples": 1708852,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 484829": {
+              "arrayBuffers": 0,
+              "audioSamples": 1939316,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 542401": {
+              "arrayBuffers": 0,
+              "audioSamples": 2169604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 609601": {
+              "arrayBuffers": 0,
+              "audioSamples": 2438404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.white 48017": {
+              "arrayBuffers": 0,
+              "audioSamples": 192068,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 48017": {
+              "arrayBuffers": 0,
+              "audioSamples": 192068,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 465611": {
+              "arrayBuffers": 0,
+              "audioSamples": 1862444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 523207": {
+              "arrayBuffers": 0,
+              "audioSamples": 2092828,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 235211": {
+              "arrayBuffers": 0,
+              "audioSamples": 940844,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 302411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1209644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 369637": {
+              "arrayBuffers": 0,
+              "audioSamples": 1478548,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 436801": {
+              "arrayBuffers": 0,
+              "audioSamples": 1747204,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 340801": {
+              "arrayBuffers": 0,
+              "audioSamples": 1363204,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 417617": {
+              "arrayBuffers": 0,
+              "audioSamples": 1670468,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.white 273601": {
+              "arrayBuffers": 0,
+              "audioSamples": 1094404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 446401": {
+              "arrayBuffers": 0,
+              "audioSamples": 1785604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.availability": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.uploadQueue": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.waitingTiles": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "borders.1815": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.uploadField": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "labels.seaAtlas": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.blendScratch": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1815": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1816": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1817": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.plumeArrays": {
+              "arrayBuffers": 171600,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.gridAndInstances": {
+              "arrayBuffers": 86662,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.geometry": {
+              "arrayBuffers": 1061500,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.textures": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.geometry": {
+              "arrayBuffers": 2880,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.geometry": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "room.backdrop": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "cards.attached": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 171008
+            }
+          },
+          "totals": {
+            "arrayBuffers": 2167042,
+            "audioSamples": 26573600,
+            "canvasPixels": 0,
+            "imagePixels": 171008
+          },
+          "details": {
+            "audio": {
+              "sampleRate": 48000,
+              "state": "running",
+              "cachedNoiseBuffers": 20
+            },
+            "decodeWorkers": {
+              "workers": 2,
+              "pending": 0,
+              "ready": 0
+            },
+            "pool.height": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.shoreWater": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.edges": {
+              "width": 257,
+              "height": 12,
+              "levels": 1,
+              "slots": 256,
+              "bytesPerSlot": 12336,
+              "gpuBytes": 3158016
+            },
+            "surface": {
+              "boundsEntries": 15740,
+              "instanceCapacity": 2048,
+              "pendingUploadBytes": 0,
+              "byteCacheBytes": 0,
+              "residentCpuGridBytes": 0,
+              "fetches": 0
+            },
+            "renderer": {
+              "memory": {
+                "geometries": 56,
+                "textures": 34
+              },
+              "render": {
+                "frame": 90197,
+                "calls": 1,
+                "triangles": 1,
+                "points": 0,
+                "lines": 0
+              },
+              "programs": 30,
+              "pixelRatio": 1
+            },
+            "streamer": {
+              "drawn": 121,
+              "resident": 255,
+              "inFlight": 0,
+              "decoding": 0,
+              "uploading": 0,
+              "levels": [
+                0,
+                0,
+                0,
+                12,
+                109,
+                0,
+                0,
+                0
+              ]
+            },
+            "cardFiles": [
+              {
+                "key": "img/e751bd21f5f6504c-1024.jpg",
+                "w": 1024,
+                "h": 721,
+                "bytes": 193315
+              },
+              {
+                "key": "img/e751bd21f5f6504c-256.jpg",
+                "w": 256,
+                "h": 180,
+                "bytes": 13840
+              },
+              {
+                "key": "img/95f36e9a47256597-1024.jpg",
+                "w": 1024,
+                "h": 603,
+                "bytes": 186206
+              },
+              {
+                "key": "img/95f36e9a47256597-256.jpg",
+                "w": 256,
+                "h": 151,
+                "bytes": 13341
+              },
+              {
+                "key": "img/348f893f47acf3d5-1024.jpg",
+                "w": 1024,
+                "h": 838,
+                "bytes": 283103
+              },
+              {
+                "key": "img/348f893f47acf3d5-256.jpg",
+                "w": 256,
+                "h": 210,
+                "bytes": 13667
+              },
+              {
+                "key": "img/14b19ed1e3530254-1024.jpg",
+                "w": 1024,
+                "h": 872,
+                "bytes": 241064
+              },
+              {
+                "key": "img/14b19ed1e3530254-256.jpg",
+                "w": 256,
+                "h": 218,
+                "bytes": 19391
+              },
+              {
+                "key": "img/1706506d6a0e0726-1024.jpg",
+                "w": 1024,
+                "h": 727,
+                "bytes": 132222
+              },
+              {
+                "key": "img/1706506d6a0e0726-256.jpg",
+                "w": 256,
+                "h": 182,
+                "bytes": 11815
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-1024.jpg",
+                "w": 1024,
+                "h": 679,
+                "bytes": 248550
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-256.jpg",
+                "w": 256,
+                "h": 170,
+                "bytes": 16849
+              },
+              {
+                "key": "img/010fe3b3020920ee-1024.jpg",
+                "w": 1024,
+                "h": 1623,
+                "bytes": 460861
+              },
+              {
+                "key": "img/010fe3b3020920ee-256.jpg",
+                "w": 256,
+                "h": 406,
+                "bytes": 34790
+              },
+              {
+                "key": "img/fd46bea844ec7827-1024.jpg",
+                "w": 1024,
+                "h": 669,
+                "bytes": 163091
+              },
+              {
+                "key": "img/fd46bea844ec7827-256.jpg",
+                "w": 256,
+                "h": 167,
+                "bytes": 13033
+              }
+            ],
+            "cards": [
+              {
+                "url": "http://127.0.0.1:8893/img/fd46bea844ec7827-256.jpg",
+                "width": 256,
+                "height": 167
+              }
+            ],
+            "fonts": {
+              "faces": [
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                }
+              ],
+              "resources": [
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-400-normal-C42RasBZ.woff2",
+                  "encodedBytes": 20108
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-normal-DJ5YJwmz.woff2",
+                  "encodedBytes": 20088
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-400-normal-DehDhP4C.woff2",
+                  "encodedBytes": 21272
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-700-normal-CLGq6Yj4.woff2",
+                  "encodedBytes": 20436
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-700-normal-URU-TBJY.woff2",
+                  "encodedBytes": 21708
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-normal-Cp7z-ARB.woff2",
+                  "encodedBytes": 17828
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-italic-JynPwBMj.woff2",
+                  "encodedBytes": 18480
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-italic-0j97Jm6B.woff2",
+                  "encodedBytes": 20092
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-600-normal-DouSKlru.woff2",
+                  "encodedBytes": 21532
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-600-normal-0sIUyHMO.woff2",
+                  "encodedBytes": 18376
+                }
+              ],
+              "decodedBytes": null
+            }
+          },
+          "coverage": [
+            "ArrayBuffers: unique backing allocations, not view lengths; audio samples are separate (browser storage can overlap allocator categories).",
+            "Canvas and attached image pixels: width × height × 4 estimates; browser/Skia caches, copies and GPU-backed canvases are not observable here.",
+            "Fonts: loaded faces and encoded resource sizes only; decoded fonts and glyph caches have no byte API. Resource Timing may have evicted old entries.",
+            "No resident surface byte cache or CPU height grids in milestone 1. Pending fetch/worker working buffers are not observable; compare settled samples.",
+            "JS objects, browser image cache after detachment, audio nodes and fading sources, allocator slack and GL command/transfer buffers are outside this account. Do not equate its sum with process footprint."
+          ]
+        },
+        "jsHeapUsedMB": 38.1,
+        "jsHeapTotalMB": 85.6,
+        "nodes": 1329,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 251,
+        "gpuMB": 1004,
+        "gpuGraphicsMB": 723.4,
+        "renderer": {
+          "arrayBuffers": 28.5,
+          "blinkBuffers": 14.8,
+          "blinkGc": 21.2,
+          "v8": 17.7,
+          "malloc": 63.4,
+          "gpuClient": 39.1
+        }
+      },
+      {
+        "walks": 3,
+        "memoryAccount": {
+          "version": 1,
+          "units": "bytes",
+          "owners": {
+            "audio.noise.white 62401": {
+              "arrayBuffers": 0,
+              "audioSamples": 249604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 81611": {
+              "arrayBuffers": 0,
+              "audioSamples": 326444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 177601": {
+              "arrayBuffers": 0,
+              "audioSamples": 710404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 350411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1401644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 427213": {
+              "arrayBuffers": 0,
+              "audioSamples": 1708852,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 484829": {
+              "arrayBuffers": 0,
+              "audioSamples": 1939316,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 542401": {
+              "arrayBuffers": 0,
+              "audioSamples": 2169604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 609601": {
+              "arrayBuffers": 0,
+              "audioSamples": 2438404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.white 48017": {
+              "arrayBuffers": 0,
+              "audioSamples": 192068,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 48017": {
+              "arrayBuffers": 0,
+              "audioSamples": 192068,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 465611": {
+              "arrayBuffers": 0,
+              "audioSamples": 1862444,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 523207": {
+              "arrayBuffers": 0,
+              "audioSamples": 2092828,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 235211": {
+              "arrayBuffers": 0,
+              "audioSamples": 940844,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 302411": {
+              "arrayBuffers": 0,
+              "audioSamples": 1209644,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 369637": {
+              "arrayBuffers": 0,
+              "audioSamples": 1478548,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 436801": {
+              "arrayBuffers": 0,
+              "audioSamples": 1747204,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 340801": {
+              "arrayBuffers": 0,
+              "audioSamples": 1363204,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.pink 417617": {
+              "arrayBuffers": 0,
+              "audioSamples": 1670468,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.white 273601": {
+              "arrayBuffers": 0,
+              "audioSamples": 1094404,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "audio.noise.brown 446401": {
+              "arrayBuffers": 0,
+              "audioSamples": 1785604,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.availability": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.uploadQueue": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.waitingTiles": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.height.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.shoreWater.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.cpuMirror": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "pool.edges.staging": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "borders.1815": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.uploadField": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "labels.seaAtlas": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.blendScratch": {
+              "arrayBuffers": 73728,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1815": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1816": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "climate.year.1817": {
+              "arrayBuffers": 221392,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.plumeArrays": {
+              "arrayBuffers": 171600,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "surface.gridAndInstances": {
+              "arrayBuffers": 86662,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.geometry": {
+              "arrayBuffers": 1061500,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "effects.textures": {
+              "arrayBuffers": 16384,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.geometry": {
+              "arrayBuffers": 2880,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "lobby.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.geometry": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "instrument.textures": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "room.backdrop": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 0
+            },
+            "cards.attached": {
+              "arrayBuffers": 0,
+              "audioSamples": 0,
+              "canvasPixels": 0,
+              "imagePixels": 171008
+            }
+          },
+          "totals": {
+            "arrayBuffers": 2167042,
+            "audioSamples": 26573600,
+            "canvasPixels": 0,
+            "imagePixels": 171008
+          },
+          "details": {
+            "audio": {
+              "sampleRate": 48000,
+              "state": "running",
+              "cachedNoiseBuffers": 20
+            },
+            "decodeWorkers": {
+              "workers": 2,
+              "pending": 0,
+              "ready": 0
+            },
+            "pool.height": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.shoreWater": {
+              "width": 264,
+              "height": 264,
+              "levels": 3,
+              "slots": 256,
+              "bytesPerSlot": 182952,
+              "gpuBytes": 46835712
+            },
+            "pool.edges": {
+              "width": 257,
+              "height": 12,
+              "levels": 1,
+              "slots": 256,
+              "bytesPerSlot": 12336,
+              "gpuBytes": 3158016
+            },
+            "surface": {
+              "boundsEntries": 15740,
+              "instanceCapacity": 2048,
+              "pendingUploadBytes": 0,
+              "byteCacheBytes": 0,
+              "residentCpuGridBytes": 0,
+              "fetches": 0
+            },
+            "renderer": {
+              "memory": {
+                "geometries": 56,
+                "textures": 34
+              },
+              "render": {
+                "frame": 134405,
+                "calls": 1,
+                "triangles": 1,
+                "points": 0,
+                "lines": 0
+              },
+              "programs": 30,
+              "pixelRatio": 1
+            },
+            "streamer": {
+              "drawn": 121,
+              "resident": 255,
+              "inFlight": 0,
+              "decoding": 0,
+              "uploading": 0,
+              "levels": [
+                0,
+                0,
+                0,
+                12,
+                109,
+                0,
+                0,
+                0
+              ]
+            },
+            "cardFiles": [
+              {
+                "key": "img/e751bd21f5f6504c-1024.jpg",
+                "w": 1024,
+                "h": 721,
+                "bytes": 193315
+              },
+              {
+                "key": "img/e751bd21f5f6504c-256.jpg",
+                "w": 256,
+                "h": 180,
+                "bytes": 13840
+              },
+              {
+                "key": "img/95f36e9a47256597-1024.jpg",
+                "w": 1024,
+                "h": 603,
+                "bytes": 186206
+              },
+              {
+                "key": "img/95f36e9a47256597-256.jpg",
+                "w": 256,
+                "h": 151,
+                "bytes": 13341
+              },
+              {
+                "key": "img/348f893f47acf3d5-1024.jpg",
+                "w": 1024,
+                "h": 838,
+                "bytes": 283103
+              },
+              {
+                "key": "img/348f893f47acf3d5-256.jpg",
+                "w": 256,
+                "h": 210,
+                "bytes": 13667
+              },
+              {
+                "key": "img/14b19ed1e3530254-1024.jpg",
+                "w": 1024,
+                "h": 872,
+                "bytes": 241064
+              },
+              {
+                "key": "img/14b19ed1e3530254-256.jpg",
+                "w": 256,
+                "h": 218,
+                "bytes": 19391
+              },
+              {
+                "key": "img/1706506d6a0e0726-1024.jpg",
+                "w": 1024,
+                "h": 727,
+                "bytes": 132222
+              },
+              {
+                "key": "img/1706506d6a0e0726-256.jpg",
+                "w": 256,
+                "h": 182,
+                "bytes": 11815
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-1024.jpg",
+                "w": 1024,
+                "h": 679,
+                "bytes": 248550
+              },
+              {
+                "key": "img/fb5212e57e9b3a9b-256.jpg",
+                "w": 256,
+                "h": 170,
+                "bytes": 16849
+              },
+              {
+                "key": "img/010fe3b3020920ee-1024.jpg",
+                "w": 1024,
+                "h": 1623,
+                "bytes": 460861
+              },
+              {
+                "key": "img/010fe3b3020920ee-256.jpg",
+                "w": 256,
+                "h": 406,
+                "bytes": 34790
+              },
+              {
+                "key": "img/fd46bea844ec7827-1024.jpg",
+                "w": 1024,
+                "h": 669,
+                "bytes": 163091
+              },
+              {
+                "key": "img/fd46bea844ec7827-256.jpg",
+                "w": 256,
+                "h": 167,
+                "bytes": 13033
+              }
+            ],
+            "cards": [
+              {
+                "url": "http://127.0.0.1:8893/img/fd46bea844ec7827-256.jpg",
+                "width": 256,
+                "height": 167
+              }
+            ],
+            "fonts": {
+              "faces": [
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "400",
+                  "style": "italic",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Libre Baskerville",
+                  "weight": "700",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+                },
+                {
+                  "family": "Source Serif 4",
+                  "weight": "600",
+                  "style": "normal",
+                  "unicodeRange": "U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+                }
+              ],
+              "resources": [
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-400-normal-C42RasBZ.woff2",
+                  "encodedBytes": 20108
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-normal-DJ5YJwmz.woff2",
+                  "encodedBytes": 20088
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-400-normal-DehDhP4C.woff2",
+                  "encodedBytes": 21272
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-700-normal-CLGq6Yj4.woff2",
+                  "encodedBytes": 20436
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/libre-baskerville-latin-ext-700-normal-URU-TBJY.woff2",
+                  "encodedBytes": 21708
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-normal-Cp7z-ARB.woff2",
+                  "encodedBytes": 17828
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-400-italic-JynPwBMj.woff2",
+                  "encodedBytes": 18480
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-400-italic-0j97Jm6B.woff2",
+                  "encodedBytes": 20092
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-600-normal-DouSKlru.woff2",
+                  "encodedBytes": 21532
+                },
+                {
+                  "url": "http://127.0.0.1:4191/assets/source-serif-4-latin-ext-600-normal-0sIUyHMO.woff2",
+                  "encodedBytes": 18376
+                }
+              ],
+              "decodedBytes": null
+            }
+          },
+          "coverage": [
+            "ArrayBuffers: unique backing allocations, not view lengths; audio samples are separate (browser storage can overlap allocator categories).",
+            "Canvas and attached image pixels: width × height × 4 estimates; browser/Skia caches, copies and GPU-backed canvases are not observable here.",
+            "Fonts: loaded faces and encoded resource sizes only; decoded fonts and glyph caches have no byte API. Resource Timing may have evicted old entries.",
+            "No resident surface byte cache or CPU height grids in milestone 1. Pending fetch/worker working buffers are not observable; compare settled samples.",
+            "JS objects, browser image cache after detachment, audio nodes and fading sources, allocator slack and GL command/transfer buffers are outside this account. Do not equate its sum with process footprint."
+          ]
+        },
+        "jsHeapUsedMB": 38.2,
+        "jsHeapTotalMB": 86.6,
+        "nodes": 1329,
+        "listeners": 108,
+        "documents": 5,
+        "rendererMB": 253,
+        "gpuMB": 1013,
+        "gpuGraphicsMB": 731.4,
+        "renderer": {
+          "arrayBuffers": 30.8,
+          "blinkBuffers": 15.2,
+          "blinkGc": 21.6,
+          "v8": 17.9,
+          "malloc": 66.4,
+          "gpuClient": 39.1
+        }
+      }
+    ],
+    "growth": {
+      "walks3to6": null,
+      "walks6toLast": null
+    },
+    "landingsUnthrottled": {
+      "flights": 23,
+      "observed": 20,
+      "lateMsMedian": 280.6500000059648,
+      "lateMsMax": 372.43333329757434,
+      "held": 16,
+      "overFullHoldMsMax": 89.09999996424199
+    },
+    "appHostAfterOpen": [],
+    "problems": []
+  },
+  "shots": [
+    "leak-after.png"
+  ]
+}

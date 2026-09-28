@@ -9,12 +9,12 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 ## Status
 
 Milestone 1, the Tambora slice, is complete and live at `wander.traviscole.xyz`; E3, its acceptance,
-passed there on 2026-09-28 except CPU memory (`docs/design/streaming.md` 8.1 lists where it departs
-from the design, and 8.2 what the experiments settled). The site opens on the lobby, whose plaque
-dives into the eight-beat Tambora walk: the global surface bake, ModE-RA's 1816 cold on two beats,
-the 1815 borders under their year plate, engraved sea names, Meanwhile and the lobby's glows from
-the all-eras Wikidata index, synthesized sound, and the Credits panel. The production entry
-(`app/index.html`, `app/src/main.ts`) plays it from the bundled release,
+passed there on 2026-09-28 except CPU memory, now at its line (`docs/design/streaming.md` 8.1 lists
+where it departs from the design, and 8.2 what the experiments settled). The site opens on the
+lobby, whose plaque dives into the eight-beat Tambora walk: the global surface bake, ModE-RA's 1816
+cold on two beats, the 1815 borders under their year plate, engraved sea names, Meanwhile and the
+lobby's glows from the all-eras Wikidata index, synthesized sound, and the Credits panel. The
+production entry (`app/index.html`, `app/src/main.ts`) plays it from the bundled release,
 `app/src/generated/release.json`, whose data is on R2; the dev page
 `app/prototype.html?story=tambora` boots the same walk (`app/src/walk/boot.ts`) under a tuning
 panel. Next is milestone 2, Magellan (`docs/PRD.md`).
