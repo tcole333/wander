@@ -12,10 +12,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { parse } from 'yaml';
 import type { Release } from '../src/data/release.ts';
 import { lockedImage, type StoryLock } from '../src/story/lock.ts';
-import type { StoryImage } from '../src/story/story.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { REPO_ROOT } from './release.ts';
 
@@ -49,8 +47,13 @@ export function firstStoryImages(): string[] {
       const text = readFileSync(join(root, name, 'story.md'), 'utf8');
       const block = /^```beat\s*\n([\s\S]*?)^```/m.exec(text)?.[1];
       if (!block) throw new Error(`${name}: no opening beat`);
-      const beat = parse(block) as { image: StoryImage };
-      const image = lockedImage(lock, beat.image)?.files.find(
+      // Plain Node with no packages (CI runs this without npm ci): the lock matches an image by
+      // its sha1 and crop, both single-line fields in the beat's block.
+      const sha1 = /^\s*sha1:\s*"?([0-9a-f]{40})"?\s*$/m.exec(block)?.[1];
+      const crop = /^\s*crop:\s*(\[[^\]\n]*\])\s*$/m.exec(block)?.[1];
+      if (!sha1 || !crop) throw new Error(`${name}: the opening beat's image has no sha1 or crop`);
+      const opening = { sha1, crop: JSON.parse(crop) as number[] };
+      const image = lockedImage(lock, opening as Parameters<typeof lockedImage>[1])?.files.find(
         (file) => file.w === 256 && file.key.endsWith('.jpg'),
       );
       if (!image) throw new Error(`${name}: the first image has no 256w JPEG in its lock`);
