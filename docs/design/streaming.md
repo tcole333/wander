@@ -1019,7 +1019,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   In milestone 1 (`app/src/lobby/`) the production entry boots into the lobby on every fresh load,
   and a reload returns to it:
   - **Boot:** the roots (L0-L1) load into their fixed slots, the precompile follows, then the first
-    frame.
+    frame. The climate's years, which only the 1816 beats draw, load once the opening has started.
   - **Opening (~4 s):** it starts at that first frame, and the room crossfades into it, its Wander
     mark gliding onto the lobby's at the top left, so one mark stands throughout. L2 streams in
     during the lamp-up, which starts dark; waiting for L2 and an idle streamer instead held the room

@@ -214,6 +214,10 @@ export const createWalkEffects: CreateWalkEffects = (
       callouts.update(state.flight === null, cam, camera, globe, viewport, strength('labels'));
     },
 
+    load() {
+      climate.load();
+    },
+
     climate() {
       const month = climate.month;
       const shown = climateShown();
