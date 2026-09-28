@@ -6,10 +6,10 @@ The region layer `ee095df5` and the global layer `78f401c3` record the same `inp
 `hashing.py`'s SHA-256 lines rule. Both coverage and surface records hold it. Neither record holds
 individual code-file hashes, so their code hash cannot simply be reduced to the surface files.
 
-`app/src/test/bakeInputs.ts` accepts that one old code hash against the reviewed surface code at
-`6154f13` (28 September 2026). Its `SURFACE_CODE_PATHS` hash is
-`a804ffaf4e0ad24cef5f23e4ece67821624538657e29450b803dd99717809da7`. The comparison of those two
-trees found these changes:
+The 28 September 2026 global run used the working tree based on `6154f13`, with a one-off
+freshness allowance subsequently committed in `2a4f59f` (rebased as `dba5e5b`). It checked the
+shipped bake against the reviewed surface code at that commit. The comparison with `3aca3c2`
+found these changes:
 
 - `borders.py`, `events.py`, `meanwhile.py`, `media.py`, `modera.py` and `wikidata.py`, and their
   configs, add independent stages. They do not produce the surface tiles or their coverage.
@@ -25,17 +25,14 @@ trees found these changes:
 - `shared/constants.json` adds `formats.borderField`. The surface formats and cube constants are
   unchanged.
 
-All other surface code is byte-identical. The compatibility fingerprint includes the shared
-modules above, the dependencies and the complete constants file, so another edit there makes
-the old bake stale. Only the six independent stage modules are left out. Configs are checked
-separately against the hashes in the records: `l7.yaml` and `water.yaml` for global, plus
-`regions-milestone1.yaml` for region. The GEBCO and Natural Earth hashes must still be pinned in
-`sources.toml`, and coverage and surface must name identical inputs and availability.
+All other surface code was byte-identical. The run also checked the recorded config hashes
+(`l7.yaml` and `water.yaml` for global; also `regions-milestone1.yaml` for region), the GEBCO
+and Natural Earth pins, and agreement between the coverage and surface inputs and availability.
+The linked bakes and their records were left untouched.
 
-This compatibility pair is deliberately finite: a bake with an unknown code hash still needs
-an exact match against the working tree's full `CODE_PATHS` hash. The linked bakes and their
-records stay untouched. Future surface changes need a new bake; changing this fingerprint alone
-would lose the evidence that makes these two old records usable.
+This note records that run's provenance. Verification again requires the exact working-tree
+`CODE_PATHS` hash: any pipeline change needs a new bake. Re-verifying global therefore starts
+with `uv run prebuild --profile global coverage surface` in `pipeline/`.
 
 The comparison can be read with:
 

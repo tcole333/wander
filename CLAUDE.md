@@ -122,7 +122,7 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   or `build/out/`, reading `build/stages/<profile>/`, and checks its seams, headers, `bounds.bin`,
   availability and known places (`docs/design/streaming.md` 7.3). Local only, since building the
   bake needs the raw data; verification reads it without rebuilding. It fails, naming the command,
-  when the bake is missing or its surface code, configs or pinned sources differ.
+  when the bake is missing or was built from other pipeline code, configs or pinned sources.
 - `npm run publish-data -- [--profile global|region] [--dry-run]`: uploads the keys the build's
   release names that R2 lacks, canary first and never overwriting a key, then writes
   `app/src/generated/release.json` (commit it) and `rel/<id>.json` (`docs/design/streaming.md`

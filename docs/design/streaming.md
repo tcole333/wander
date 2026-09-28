@@ -1407,13 +1407,6 @@ release's `media` section lists every key the locks name (3.8).
   the Vitest fixture loader checks (7.3). The fixture's events record also hashes its excerpt TSV
   and sidecar in `inputs`, so it cannot be mistaken for an index of the full export.
 
-  The region and global surface bakes predate the other stages. Their old code hash has one audited
-  compatibility pair in `app/src/test/bakeInputs.ts`: the added stages and the extraction of
-  surface publication leave the surface bytes unchanged [M `work/surface-bake/provenance.md`].
-  Verification checks that exact surface-code fingerprint, all shared modules and dependency pins
-  included, plus the profile's recorded config and source hashes. An unknown old code hash or any
-  further surface edit still fails. The records and the bake are read without changing them.
-
 ### 7.3 Fixture, dev and CI
 
 - **Excerpts** (committed, ≤ 3 MB, `pipeline/tests/data/`): GEBCO source pyramids at Sumbawa (an
@@ -1626,14 +1619,18 @@ release's `media` section lists every key the locks name (3.8).
 
   Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
   which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
-  region's 2,649 tiles passed all 31 checks in 33.38 s. The global bake's 15,740 tiles took
+  region's 2,649 tiles passed all 31 checks in 33.38 s. That global run checked the shipped bake,
+  built from the surface code at `3aca3c2`, which the provenance note shows unchanged in the
+  run's working tree [M `work/surface-bake/provenance.md`]. Its 15,740 tiles took
   152.41 s: 30 checks passed, but 12 border texels on eight L5-L6 tiles fell outside the unchanged
   cross-face terrain bound. Those misses remain for investigation, with their keys and code
   ranges recorded [M `work/surface-bake/global-verify-2026-09-28.json`]. They do not establish a
   visible crack; the exact shared-vertex checks passed.
 
-  It fails, naming the command, when the bake is missing or its surface code, configs or pinned
-  sources differ (7.2). It covers what the fixture never exercises: the overviews, global reads
+  Re-verifying global needs `uv run prebuild --profile global coverage surface` first: the check
+  requires the working tree's exact pipeline hash. It fails, naming the command, when the bake
+  is missing or was built from other pipeline code, configs or pinned sources (7.2). It covers
+  what the fixture never exercises: the overviews, global reads
   with the longitude wrap and pole clamp, full NE data, and owner-frame rasters on real face edges.
   Building the bake needs the raw data, so the check stays out of `npm test` and CI. Verification
   reads only the built files and their records; it does not rehash raw sources. It checks owner
@@ -1759,7 +1756,7 @@ pre-launch checks or a later milestone:
 | | In milestone 1 | Left |
 |---|---|---|
 | **E1** | Re-scoped to the look prototype (owner decision 27) and answered by what shipped: material (a), relief normals from the fragment and four taps around it in the spike's look; the zoom floor and relief by zoom, judged by eye on the global bake (owner decisions 1 and 19); MSAA as shipped (8.1). In the lab no browser flattens a branch on a uniform that is off, and a tile decodes in 1.7-2 ms at the median [M `e1/results/`]. In the look reviews, headless rAF on Metal showed no missed ticks (not presented frames). Compression stays gzip-9 and zstd is dropped: no browser's `DecompressionStream` takes zstd [M `e1/results/`], so it would need a decoder of its own. | For the pre-launch checks: the factorial run, headed, with presented-frame p95 on both tiers, unmeasured until then (owner decision 29); compile times; the soak; the AA and material comparisons; and the Windows checks on the Iris Xe laptop. |
-| **E2** | Every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of both real bakes by `npm run verify:bake`, and on the GPU by the fixture readback on SwiftShader and Metal. The shipped global bake's 15,740 tiles took 152.41 s: 30 of 31 checks passed, with 12 border texels on eight L5-L6 tiles outside the cross-face terrain bound (7.3); the region passed all 31 [M `work/surface-bake/global-verify-2026-09-28.json`]. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | Resolve the global bake's cross-face bound misses before calling its verification complete. For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, the global L5-L6 crease, and upload timing on the target machines. |
+| **E2** | Every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of both real bakes by `npm run verify:bake`, and on the GPU by the fixture readback on SwiftShader and Metal. The 28 September run checked the shipped global bake, built from the surface code at `3aca3c2` that the provenance note shows unchanged [M `work/surface-bake/provenance.md`]. Its 15,740 tiles took 152.41 s: 30 of 31 checks passed, with 12 border texels on eight L5-L6 tiles outside the cross-face terrain bound (7.3); the region passed all 31 [M `work/surface-bake/global-verify-2026-09-28.json`]. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | Re-verifying needs `uv run prebuild --profile global coverage surface` first, then resolution of the cross-face bound misses. For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, the global L5-L6 crease, and upload timing on the target machines. |
 | **E3** | Passed on the live site except CPU memory (below) [M `e3/results/`]: the renderer holds 270-288 MiB against the 256 MiB line (section 6). The GPU cap and the lite tier were not measured, since the GPU process's ~1.0 GB footprint and 750 MB of graphics memory cannot be split into the app's share. In a run by hand, with no record in the repo, headless WebKit 26.6 and Firefox 155 walked the live lobby, dive and beats 1-3 on WebGL 2 with no console error or failed request. | For the pre-launch checks: the renderer's memory against the CPU line, frame times, the lite tier, tilt, GPU memory, the overlay pool peak (after E6), in-place restore, reload with URL state, and the loop seams by ear in Safari and Firefox. |
 | **E4** | At 24 h and 72 h after the warm, all 50 first reads of each cohort hit at the Boston edge: wait p50 27 ms, TTFB p90 128 and 79 ms, far under the 500 ms break point [M `e4/results/`]. No re-warm and no quad packs so far. The 1 h cohort was not read, and HTTP/3 (the probe runs over HTTP/2), browser revisits and Class B charges were not measured. | The 7 d cohort, due on 2 October; it decides the scheduled re-warm (section 9). |
 | **E5** | The light answer below: 29,649 events in 1.18 MB, parsed in 31-39 ms, so the whole corpus fits one `all.wev`. | The query benchmark, with the globe's events layer in a later milestone (owner decision 26). |
