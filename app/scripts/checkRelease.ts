@@ -32,13 +32,10 @@ function expected(key: string): Record<string, string> {
  */
 export const CLIMATE_YEARS = [1815, 1816, 1817];
 
-/** The border snapshot the check reads: the one every Tambora date falls nearest (3.0). */
-export const BORDER_STEM = '1815';
-
 /**
  * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
- * section the climate's mean for each of CLIMATE_YEARS, with a borders section the field of
- * BORDER_STEM, and the first image.
+ * section the climate's mean for each of CLIMATE_YEARS, with a borders section the field of its
+ * one snapshot (the walk's, 3.3), and the first image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -47,7 +44,8 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
   const climate = modera
     ? CLIMATE_YEARS.map((year) => `fd/modera/${modera.ver}/mean/${year}.bin`)
     : [];
-  const border = release.borders?.files[BORDER_STEM]?.key;
+  const stem = release.borders?.stems[0];
+  const border = stem === undefined ? undefined : release.borders?.files[stem]?.key;
   const borders = border ? [border] : [];
   const image = release.media.images.slice(0, 1);
   return {
