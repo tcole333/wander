@@ -78,6 +78,45 @@ describe('the Magellan story and its source route', () => {
     });
   });
 
+  it('keeps the early December courses and the northeast turn in Albo, p. 220', () => {
+    const dates = [
+      '1520-12-01',
+      '1520-12-02',
+      '1520-12-03',
+      '1520-12-04',
+      '1520-12-05',
+      '1520-12-13',
+    ];
+    const points = dates.map((date) => {
+      const i = data.dates.indexOf(date);
+      expect(i, date).toBeGreaterThanOrEqual(0);
+      return geometry.coordinates[i]!;
+    });
+    expect(points[0]![1]).toBe(-48);
+    expect(points.at(-1)![1]).toBe(-40);
+    for (let i = 1; i < points.length; i++) {
+      const [fromLon, fromLat] = points[i - 1]!;
+      const [toLon, toLat] = points[i]!;
+      expect(toLat).toBeGreaterThan(fromLat);
+      // NNE on 2 December; west of north on 3–5; east of north on 6–13.
+      // Check the recorded directions, not invented historical longitudes.
+      if (i >= 2 && i <= 4) expect(toLon).toBeLessThan(fromLon);
+      else expect(toLon).toBeGreaterThan(fromLon);
+    }
+  });
+
+  it('turns southeast off Cape St. Vincent before returning to Sanlúcar (Albo, p. 236)', () => {
+    const start = data.dates.indexOf('1522-09-04');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const [capeLon, capeLat] = geometry.coordinates[start]!;
+    const [offshoreLon, offshoreLat] = geometry.coordinates[start + 1]!;
+    expect(offshoreLon).toBeGreaterThan(capeLon);
+    expect(offshoreLat).toBeLessThan(capeLat);
+    expect(data.vertices[start + 1]?.dateBasis).toBe('estimated');
+    expect(data.vertices[start + 1]?.dateRange).toEqual(['1522-09-04', '1522-09-06']);
+    expect(geometry.coordinates.at(-1)![1]).toBeGreaterThan(offshoreLat);
+  });
+
   it('keeps a citation for each vertex and bounds every estimated date', () => {
     for (const source of Object.values(data.sources)) {
       expect(source.title && source.author && source.publisher && source.year).toBeTruthy();
