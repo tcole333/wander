@@ -62,10 +62,10 @@
   },
   {
     "text": "Atlantic Ocean",
-    "lon": -71.8,
+    "lon": -72.0,
     "lat": 40.35,
     "size": 0.19,
-    "tracking": 0.35,
+    "tracking": 0.3,
     "style": "ocean",
     "maxKm": 2400
   },
@@ -177,7 +177,8 @@
     "lat": -2.2,
     "size": 0.3,
     "angle": 72,
-    "style": "sea"
+    "style": "sea",
+    "minKm": 2600
   },
   {
     "text": "Celebes Sea",
@@ -275,7 +276,8 @@
     "lon": 34.5,
     "lat": 43.2,
     "size": 0.8,
-    "style": "sea"
+    "style": "sea",
+    "minKm": 6500
   },
   {
     "text": "Mediterranean Sea",
@@ -324,10 +326,9 @@
   },
   {
     "text": "Baltic Sea",
-    "lon": 19.2,
-    "lat": 56.2,
-    "size": 0.5,
-    "angle": 48,
+    "lon": 17.0,
+    "lat": 55.5,
+    "size": 0.4,
     "style": "sea"
   },
   {
