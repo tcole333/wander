@@ -1,0 +1,4 @@
+# Hand-made corrections to the event index (streaming.md 3.4). `boosts` adds to an event's score,
+# log2(1 + Wikipedia editions) x class weight, where the edition count misjudges how much an event
+# mattered: each entry is {qid, boost, why}. None is needed yet.
+boosts: []
