@@ -1,8 +1,8 @@
 [
   {
     "text": "Indian Ocean",
-    "lon": 78,
-    "lat": -9,
+    "lon": 72,
+    "lat": -7,
     "size": 3.4,
     "tracking": 0.5,
     "style": "ocean",
@@ -129,9 +129,9 @@
   },
   {
     "text": "Flores Sea",
-    "lon": 118.9,
+    "lon": 119.2,
     "lat": -7.6,
-    "size": 0.18,
+    "size": 0.16,
     "tracking": 0.12,
     "style": "sea",
     "minKm": 700,
@@ -257,7 +257,7 @@
   },
   {
     "text": "Bay of Bengal",
-    "lon": 88.5,
+    "lon": 87.8,
     "lat": 14.5,
     "size": 1.4,
     "tracking": 0.12,
@@ -275,7 +275,7 @@
   },
   {
     "text": "Arabian Sea",
-    "lon": 64,
+    "lon": 62.5,
     "lat": 14,
     "size": 1.4,
     "tracking": 0.12,
@@ -318,9 +318,9 @@
   },
   {
     "text": "Mediterranean Sea",
-    "lon": 5.8,
-    "lat": 38.9,
-    "size": 0.5,
+    "lon": 4.2,
+    "lat": 38.1,
+    "size": 0.42,
     "tracking": 0.12,
     "style": "sea",
     "maxKm": 8000
@@ -380,6 +380,23 @@
     "lon": -8,
     "lat": 50.3,
     "size": 0.3,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "English Channel",
+    "lon": -1.6,
+    "lat": 50.15,
+    "size": 0.2,
+    "tracking": 0.12,
+    "angle": 12,
+    "style": "sea"
+  },
+  {
+    "text": "Irish Sea",
+    "lon": -5.0,
+    "lat": 53.7,
+    "size": 0.2,
     "tracking": 0.12,
     "style": "sea"
   },
