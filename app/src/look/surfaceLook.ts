@@ -3,6 +3,9 @@
 // the surface pools, per fragment, with the ocean and sea names inlaid in its lacquer
 // (seaNames.ts). A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
 // own shadows.
+// The faces the sea names are lettered in, declared wherever the look is made.
+import '@fontsource/libre-baskerville/400.css';
+import '@fontsource/source-serif-4/400-italic.css';
 import {
   Color,
   Matrix4,
