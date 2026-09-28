@@ -628,8 +628,8 @@ pages are built from the same JSON.
 mode adds every snapshot's overlay version and the previews' key (3.2, 3.3).
 
 `media` lists every key the stories' committed locks name (3.9), sorted, so `publish-data` uploads
-the images and `npm run check-release` reads one. It comes from the locks rather than a stage
-record, because the lock is what the app bundles: the release names exactly the images the
+the images and `npm run check-release` reads each story's first image. It comes from the locks
+rather than a stage record, because the lock is what the app bundles: the release names exactly the images the
 bundled stories show.
 
 The availability bitmap is 131,070 bits at L7 (16 KB raw) and sparse, so it compresses well inside the
@@ -1162,12 +1162,12 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   Hovering a story plaque for `hoverQueue` queues that story's core and beat-1 critical set at the head
   of next; hovering another plaque cancels it.
 
-  In milestone 1 (`app/src/lobby/`) the production entry boots into the lobby on every fresh load,
+  In the shipped app (`app/src/lobby/`) the production entry boots into the lobby on every fresh load,
   and a reload returns to it:
   - **Boot:** the roots (L0-L1) load into their fixed slots while every face the lobby, the walk
-    and the Credits panel draw loads for the characters of the story, Meanwhile and the credits
-    (`story/ui/fonts.ts`): a browser fetches a face, and each of its subsets, only when some text
-    first needs it, and nothing is fetched from Pages after boot (section 2). The boot waits at most
+    and the Credits panel draw loads for the characters of both stories, their Meanwhile entries
+    and the credits (`story/ui/fonts.ts`): a browser fetches a face, and each of its subsets, only
+    when some text first needs it, and nothing is fetched from Pages after boot (section 2). The boot waits at most
     3 s for them, so a face that stalls arrives late rather than holding the room. The precompile
     follows, then the first frame. The climate's years, which only the 1816 beats draw, load the
     first time the view settles with the streamer idle, after the tiles in view.
@@ -1184,9 +1184,13 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   - **Lobby:** the instrument turns eastward at 1° of longitude a second at world view, as the Earth
     does, stops at any input and turns on after 5 s without one; dragging and the wheel work as in
     the walk. The plaques stand in a column at the left, and the lens shifts right by half the
-    column's reach, which centers the instrument beside it. Tambora is the only plaque; no plaque
-    stands for a story not yet built. The ambient events are the lock's glows (3.9): small
-    pinpricks of lit brass with a slow, shallow breath, additive and unlit, in three's built-in
+    column's reach, which centers the instrument beside it. Tambora stands first, then
+    Magellan–Elcano (1519–1522), each with its title, years, blurb and Begin. Their medallions share
+    the same gilt cuts and dark brass bezel: Tambora's volcano and Magellan's ship under sail.
+    Hover and keyboard focus light each plaque's edge and ember. Short windows scroll the column.
+    The ambient events merge both locks' glows (3.9), alternating their ranked picks, keeping
+    each at least 450 km from those already taken and stopping at 120 across the whole lobby:
+    small pinpricks of lit brass with a slow, shallow breath, additive and unlit, in three's built-in
     points material, compiled in the precompile. They stay faint and apart, since ember orange
     belongs to the chosen story. There is no hover queue yet; the dive's readiness gate covers
     beat 1. The walk's knurled brass sound knob stands at the top right beside Credits. It and M
@@ -1205,13 +1209,16 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     effects fade as the ambient glows return, and the plaques and Credits come in at the landing.
     The turn resumes after the usual five seconds without input. The knob moves back beside
     Credits in one motion. The flight whirs while the cues and volcanic bed fade to museum room
-    tone. The next plaque choice starts paused on beat 1.
-    The lobby's DOM and glows, sound controller and room bed, compiled effects and loaded climate
-    and borders are reused. The story's keys stop at takeoff; the departing director, card images
-    and callbacks, ruler listener and UI are released at the landing, and the surface's story
-    layers and callouts clear.
-    A dev walk (`prototype.html?story=tambora`) still starts on beat 1 and returns to its initial
-    world view; every subsequent return goes to the view left at the plaque choice.
+    tone. The next plaque choice starts its story paused on beat 1, with a fresh director, cards,
+    ruler and Meanwhile. Focus returns to the plaque last chosen.
+    The lobby's DOM and glows, sound controller, compiled effects and loaded climate and borders
+    are reused. The bed is reused for the same voice; choosing another story crossfades beds at
+    its landing. Magellan has no bed of its own yet and plays the museum room tone. The story's
+    keys stop at takeoff; the departing director, card images and callbacks, ruler listener and UI
+    are released at the landing, and the surface's story layers and callouts clear.
+    A dev walk (`prototype.html?story=tambora|magellan`) starts on that story's beat 1 and returns
+    to the lobby with both plaques at its initial world view; every subsequent return goes to
+    the view left at the plaque choice.
   - Deep links (the Continue plate) and reduced motion wait for milestone 4 or later.
 - **Dive (~3 s):**
 
@@ -1221,8 +1228,13 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   | 0.4-2.6 s | flight into beat 1; the ruler slides to the story date | beat-1 core, critical, then desired |
   | 2.2-3.0 s | the title plate engraves in once `document.fonts.load()` resolves (fallback after `titleFontWait`); the text card slides in | beat 2 enters next |
 
-  In milestone 1 the dive is the walk's own flight into beat 1 (`createWalk` with `arrive: 'fly'`),
-  through its readiness gate, from wherever the visitor left the lobby's view. The walk starts in
+  The dive is the walk's own flight into the chosen story's beat 1 (`createWalk` with `arrive: 'fly'`),
+  through its readiness gate, from wherever the visitor left the lobby's view. Both entries read
+  `story/catalog.ts`: the stories' bundled text and locks joined once, with no image or route data
+  in the bundle. Boot keeps a prepared effects set per story and compiles with only that story's
+  lights present; only the chosen set draws on the shared globe, and the return clears it.
+  Magellan's route entries draw nothing until the route renderer arrives; its other effects,
+  cameras, images, Meanwhile and 1519–1522 ruler already follow its beats. The walk starts in
   the click that chose the plaque, and the page's sound controller creates and resumes the
   AudioContext in that click's handler (`walk/boot.ts`), once the walk has been built successfully,
   with the remembered mute already applied. The whir carries the flight; the bed
@@ -1734,7 +1746,9 @@ simpler piece carried the Tambora walk:
   for the L0 tiles, only a preconnect, since the room already opens 1.24 s after navigation cold
   at 25/50.
 - **Context loss:** a reload, then the story's card (owner decision 21), since in-place restore
-  needs the byte cache.
+  needs the byte cache. With two stories, a failure before a choice shows both titles and blurbs;
+  a failure in a dive or walk shows the chosen story. No WebGL offers no Reload; other failures
+  retain their existing Reload plates.
 - **Borders:** one six-face distance field for the one 1815 snapshot (3.3), not `.wot` tiles, 54
   previews and crossfades: 1815 is the nearest snapshot to every Tambora date, and one 1.27 MB
   field loaded in the lobby draws it wherever the walk goes.
@@ -1752,8 +1766,13 @@ simpler piece carried the Tambora walk:
   `look/ashHook.ts`), illustrative as the story's credits say, so there is no `fx` stage yet; the
   spread datasets the story names wait for the first effect drawn from data.
 - **Story:** no compiler. The app bundles `story.md`, parses it with a strict schema (`parseStory`,
-  which Vitest runs over every story) and joins the lock itself, since one story needs no compile
-  step; `npm run stories` comes with the article pages.
+  which Vitest runs over every story) and joins the lock itself, since this small catalog needs
+  no compile step; `npm run stories` comes with the article pages. Issue #63 adds Magellan–Elcano
+  after milestone 1: the shared catalog feeds both plaques and both entry points, and every
+  choice starts its own walk at beat 1. Magellan's route renderer and its own sound bed follow
+  separately; for now route entries are harmless and its bed is museum room tone. Credits lists
+  both stories' sources and images, and `check-release` probes the first image of each by joining
+  its opening beat to its lock.
 - **Publish:** `publish-data` signs R2's S3 API with aws4fetch (4.3), and CI's `check-release`
   gates the deploy; the publish check and the one-shot warm are deferred past go-live (4.3, 4.4).
 - **Fixture and CI:** the fixture builds surface, real ModE-RA mean and spread over Europe for

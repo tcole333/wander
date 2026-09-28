@@ -304,7 +304,10 @@ async function walkBeats(session: Session) {
   const runs: BeatRun[] = [];
   for (const [beat, b] of BEATS.entries()) {
     const n = beat + 1;
-    const press = beat === 0 ? await click(page, '.lobby-plaque') : await key(page, 'ArrowRight');
+    const press =
+      beat === 0
+        ? await click(page, '.lobby-plaque[data-story="tambora"]')
+        : await key(page, 'ArrowRight');
     // The flight's longest, from where the camera left: the lobby, or the last beat's dwell.
     const previous = runs.at(-1);
     const left = BEATS[beat - 1];
@@ -596,7 +599,7 @@ async function contextLossSession(): Promise<Record<string, unknown>> {
     await page.goto(entry, { waitUntil: 'commit' });
     await waitOpen(session);
     await waitLobby(page, 'idle');
-    await click(page, '.lobby-plaque');
+    await click(page, '.lobby-plaque[data-story="tambora"]');
     await waitLobby(page, 'gone');
     for (let i = 0; i < 2; i += 1) {
       await page.keyboard.press('ArrowRight');
@@ -683,7 +686,7 @@ async function leakSession(): Promise<Record<string, unknown>> {
     await bare.send('Page.navigate', { url: leakUrl.href }, page);
     await bare.until('window.__e3?.open != null');
     await bare.until("document.body.dataset.lobby === 'idle'");
-    await bare.click('.lobby-plaque');
+    await bare.click('.lobby-plaque[data-story="tambora"]');
     await bare.until("document.body.dataset.lobby === 'gone'");
     let firstLandingMs = await bare.evaluate<number>('performance.now()');
     await sleep(5000);
@@ -719,7 +722,7 @@ async function leakSession(): Promise<Record<string, unknown>> {
       // dive, with old cards, directors, event handlers and fading cues already released.
       await bare.click('.wu-mark');
       await bare.until("document.body.dataset.lobby === 'idle'");
-      await bare.click('.lobby-plaque');
+      await bare.click('.lobby-plaque[data-story="tambora"]');
       await bare.until("document.body.dataset.lobby === 'gone'");
       firstLandingMs = await bare.evaluate<number>('performance.now()');
       await sleep(5000);

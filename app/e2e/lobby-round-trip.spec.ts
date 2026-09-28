@@ -89,7 +89,7 @@ for (const entry of ['production', 'dev'] as const) {
     expect(await page.evaluate(() => localStorage.getItem('wander.muted'))).toBe('1');
     expect(await page.evaluate(() => window.lobbyCheck.contexts.length)).toBe(contextsBefore);
 
-    await page.locator('.lobby-plaque').click();
+    await page.locator('.lobby-plaque[data-story="tambora"]').click();
     await phase(page, 'diving');
     await expect(knob).toBeVisible();
     await expect(knob).toHaveAttribute('aria-pressed', 'true');
@@ -130,7 +130,7 @@ for (const entry of ['production', 'dev'] as const) {
     await phase(page, 'idle');
     await expect(page.locator('.wu-story')).toHaveCount(0);
     await expect(page.locator('.walk-callout')).toHaveCount(0);
-    await expect(page.locator('.lobby-plaque')).toBeFocused();
+    await expect(page.locator('.lobby-plaque[data-story="tambora"]')).toBeFocused();
     await expect(knob).toHaveAttribute('aria-pressed', 'true');
 
     // The focused plaque is usable by keyboard, and the new walk starts paused on beat 1.

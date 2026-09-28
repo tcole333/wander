@@ -138,7 +138,7 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   // The panel fades out over a few frames, which CI's software renderer draws seconds apart.
   await expect(panel).toBeHidden({ timeout: 30_000 });
 
-  await page.locator('.lobby-plaque').click();
+  await page.locator('.lobby-plaque[data-story="tambora"]').click();
   // The walk's card, not the Credits panel's sheet in the same frame.
   const title = page.locator('.wu .wu-card .wu-title');
   await expect(title).toHaveText(story.beats[0]?.title ?? '', { timeout: 30_000 });
