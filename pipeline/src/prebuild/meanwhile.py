@@ -215,8 +215,6 @@ def qualifies(event: Event, frame: Frame) -> bool:
     return (
         first <= frame.end
         and last >= frame.start
-        and event.t0 <= frame.end
-        and event.t1 >= frame.start
         and event.t1 - event.t0 + 1 <= frame.longest
         and apart_km(event.at, frame.target) > MIN_KM
         and event.qid not in frame.excluded
