@@ -1,0 +1,2780 @@
+{
+  "images": [
+    {
+      "commons": "File:Sanlucar barrameda vista panoramica 1567 Wijngaerde.jpg",
+      "sha1": "89fd30a8fc718f657b750660adc245fa23f3d937",
+      "crop": [
+        0.18,
+        0.02,
+        0.8,
+        0.98
+      ],
+      "files": [
+        {
+          "key": "img/9d2cbecc58a93bd0-1024.jpg",
+          "w": 873,
+          "h": 334,
+          "bytes": 83386
+        },
+        {
+          "key": "img/9d2cbecc58a93bd0-256.jpg",
+          "w": 256,
+          "h": 98,
+          "bytes": 7720
+        }
+      ],
+      "credit": "Anton van den Wyngaerde",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Sanlucar_barrameda_vista_panoramica_1567_Wijngaerde.jpg"
+    },
+    {
+      "commons": "File:AtlasMiller BNF desplegable Atlantico.jpg",
+      "sha1": "134645b3ecaa42a0a3dcbf1fa1c8fc732f695cc3",
+      "crop": [
+        0.02,
+        0.03,
+        0.98,
+        0.96
+      ],
+      "files": [
+        {
+          "key": "img/d4c6b1031333b4f4-1024.jpg",
+          "w": 582,
+          "h": 299,
+          "bytes": 54063
+        },
+        {
+          "key": "img/d4c6b1031333b4f4-256.jpg",
+          "w": 256,
+          "h": 132,
+          "bytes": 11117
+        }
+      ],
+      "credit": "Attributed to Lopo Homem, Pedro Reinel, Jorge Reinel and António de Holanda",
+      "collection": "Source gallica.bnf.fr / Bibliothèque nationale de France",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:AtlasMiller_BNF_desplegable_Atlantico.jpg"
+    },
+    {
+      "commons": "File:Plan du port de St. Julien suivant les observations des Espagnols en 1746 - par M. Bellin Ing(énieur) de la Marine - btv1b53121656g.jpg",
+      "sha1": "125b21594c715f242715b5163f3f44c6d1845127",
+      "crop": [
+        0.14,
+        0.14,
+        0.86,
+        0.83
+      ],
+      "files": [
+        {
+          "key": "img/64610671411184aa-1024.jpg",
+          "w": 1024,
+          "h": 1376,
+          "bytes": 396280
+        },
+        {
+          "key": "img/64610671411184aa-256.jpg",
+          "w": 256,
+          "h": 344,
+          "bytes": 28284
+        }
+      ],
+      "credit": "Jacques-Nicolas Bellin",
+      "collection": "Source gallica.bnf.fr / Bibliothèque nationale de France",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Plan_du_port_de_St._Julien_suivant_les_observations_des_Espagnols_en_1746_-_par_M._Bellin_Ing(%C3%A9nieur)_de_la_Marine_-_btv1b53121656g.jpg"
+    },
+    {
+      "commons": "File:The First Map of the Strait of Magellan, 1520 WDL3972.png",
+      "sha1": "990280db353192df52327fb74880ced9411a3ea3",
+      "crop": [
+        0.08,
+        0.065,
+        0.9,
+        0.925
+      ],
+      "files": [
+        {
+          "key": "img/90052e5ceeea73c7-1024.jpg",
+          "w": 840,
+          "h": 1229,
+          "bytes": 357010
+        },
+        {
+          "key": "img/90052e5ceeea73c7-256.jpg",
+          "w": 256,
+          "h": 375,
+          "bytes": 34570
+        }
+      ],
+      "credit": "Antonio Pigafetta, reproduced in Carlo Amoretti's 1800 edition",
+      "collection": "Biblioteca Nacional de Chile, via the World Digital Library",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:The_First_Map_of_the_Strait_of_Magellan,_1520_WDL3972.png"
+    },
+    {
+      "commons": "File:Ortelius - Maris Pacifici 1589.jpg",
+      "sha1": "763244422d912d6aec4b2b8724cfe9e24fde130f",
+      "crop": [
+        0.02,
+        0.02,
+        0.98,
+        0.98
+      ],
+      "files": [
+        {
+          "key": "img/7c5bd8e73b6a4c77-1024.jpg",
+          "w": 1024,
+          "h": 709,
+          "bytes": 310534
+        },
+        {
+          "key": "img/7c5bd8e73b6a4c77-256.jpg",
+          "w": 256,
+          "h": 177,
+          "bytes": 18858
+        }
+      ],
+      "credit": "Abraham Ortelius",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Ortelius_-_Maris_Pacifici_1589.jpg"
+    },
+    {
+      "commons": "File:Antonio Pigafetta Ladroni.jpg",
+      "sha1": "70546f09c6fc14c38b9920a6c0f91a9b4b6610d6",
+      "crop": [
+        0.02,
+        0.025,
+        0.98,
+        0.665
+      ],
+      "files": [
+        {
+          "key": "img/e85fa6bd543781d6-1024.jpg",
+          "w": 508,
+          "h": 517,
+          "bytes": 32753
+        },
+        {
+          "key": "img/e85fa6bd543781d6-256.jpg",
+          "w": 256,
+          "h": 261,
+          "bytes": 12044
+        }
+      ],
+      "credit": "After Antonio Pigafetta, in Stanislaus von Prowazek's Die deutschen Marianen (1913)",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Antonio_Pigafetta_Ladroni.jpg"
+    },
+    {
+      "commons": "File:Magellans death.jpg",
+      "sha1": "294c87736bcde9e8803f269e6990e63f428896f6",
+      "crop": [
+        0.015,
+        0.2,
+        0.985,
+        0.985
+      ],
+      "files": [
+        {
+          "key": "img/a7ebc0481f36d64b-1024.jpg",
+          "w": 680,
+          "h": 745,
+          "bytes": 169528
+        },
+        {
+          "key": "img/a7ebc0481f36d64b-256.jpg",
+          "w": 256,
+          "h": 280,
+          "bytes": 37399
+        }
+      ],
+      "credit": "Unknown engraver, about 1860",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Magellans_death.jpg"
+    },
+    {
+      "commons": "File:B26056059K - Les Isles Molvcqves; Celebes, Gilolo.jpg",
+      "sha1": "6ee77374db82486a0c7d280dc961338416e9c002",
+      "crop": [
+        0.545,
+        0.64,
+        0.985,
+        0.975
+      ],
+      "files": [
+        {
+          "key": "img/c9d7ba661785db24-1024.jpg",
+          "w": 1024,
+          "h": 605,
+          "bytes": 145900
+        },
+        {
+          "key": "img/c9d7ba661785db24-256.jpg",
+          "w": 256,
+          "h": 151,
+          "bytes": 13849
+        }
+      ],
+      "credit": "Nicolas Sanson; A. Peyrounin, engraver",
+      "collection": "NLB Singapore, David Parry Southeast Asian Map Collection",
+      "license": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:B26056059K_-_Les_Isles_Molvcqves;_Celebes,_Gilolo.jpg"
+    },
+    {
+      "commons": "File:1591 map of Africa by Filippo Pigafetta.jpg",
+      "sha1": "e153d7e657e59782b3e6ee6c2f7102a672eb0595",
+      "crop": [
+        0.025,
+        0.43,
+        0.98,
+        0.99
+      ],
+      "files": [
+        {
+          "key": "img/75974a291958750f-1024.jpg",
+          "w": 1024,
+          "h": 849,
+          "bytes": 334973
+        },
+        {
+          "key": "img/75974a291958750f-256.jpg",
+          "w": 256,
+          "h": 212,
+          "bytes": 20518
+        }
+      ],
+      "credit": "Filippo Pigafetta",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:1591_map_of_Africa_by_Filippo_Pigafetta.jpg"
+    },
+    {
+      "commons": "File:Detail from a map of Ortelius - Magellan's ship Victoria.png",
+      "sha1": "9cdc6a76e957a5fabdb3a6ef1593cf5c362aca19",
+      "crop": [
+        0.02,
+        0.02,
+        0.98,
+        0.98
+      ],
+      "files": [
+        {
+          "key": "img/5097218c4b129f03-1024.jpg",
+          "w": 1024,
+          "h": 624,
+          "bytes": 325849
+        },
+        {
+          "key": "img/5097218c4b129f03-256.jpg",
+          "w": 256,
+          "h": 156,
+          "bytes": 17904
+        }
+      ],
+      "credit": "Abraham Ortelius",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Detail_from_a_map_of_Ortelius_-_Magellan%27s_ship_Victoria.png"
+    }
+  ],
+  "meanwhile": {
+    "beats": {
+      "sanlucar-out": [
+        {
+          "qid": "Q4087402",
+          "label": "Battle of Sokal",
+          "date": "1519-08-12",
+          "precision": "day",
+          "at": [
+            24.28333,
+            50.48333
+          ],
+          "source": {
+            "title": "Battle of Sokal (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sokal"
+          }
+        },
+        {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-11-03",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
+          }
+        }
+      ],
+      "brazil": [
+        {
+          "qid": "Q3297424",
+          "label": "Cholula Massacre",
+          "date": "1519-11-03",
+          "precision": "day",
+          "at": [
+            -98.31,
+            19.06
+          ],
+          "source": {
+            "title": "Cholula massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Cholula_massacre"
+          }
+        },
+        {
+          "qid": "Q1606958",
+          "label": "Battle of Bogesund",
+          "date": "1520-01-19",
+          "precision": "day",
+          "at": [
+            13.3953,
+            57.77
+          ],
+          "source": {
+            "title": "Battle of Bogesund (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+          }
+        }
+      ],
+      "san-julian": [
+        {
+          "qid": "Q10572590",
+          "label": "Battle of Uppsala",
+          "date": "1520-04-16",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Battle of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q4872151",
+          "label": "Battle of Raichur",
+          "date": "1520-05-01",
+          "precision": "month",
+          "at": [
+            77.35056,
+            16.2
+          ],
+          "source": {
+            "title": "Battle of Raichur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Raichur"
+          }
+        },
+        {
+          "qid": "Q1131442",
+          "label": "Massacre in the Great Temple of Tenochtitlan",
+          "date": "1520-06-01",
+          "precision": "day",
+          "at": [
+            -99.13139,
+            19.435
+          ],
+          "source": {
+            "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
+          }
+        }
+      ],
+      "strait": [
+        {
+          "qid": "Q134238639",
+          "label": "Battle of Beirut",
+          "date": "1520-10-19",
+          "precision": "day",
+          "at": [
+            35.51306,
+            33.88694
+          ],
+          "source": {
+            "title": "Battle of Beirut (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Beirut_(1520)"
+          }
+        },
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q28109023",
+          "label": "Battle of Tordesillas",
+          "date": "1520-12-15",
+          "precision": "day",
+          "at": [
+            -5.00048,
+            41.50086
+          ],
+          "source": {
+            "title": "Battle of Tordesillas (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        }
+      ],
+      "pacific": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q28109023",
+          "label": "Battle of Tordesillas",
+          "date": "1520-12-15",
+          "precision": "day",
+          "at": [
+            -5.00048,
+            41.50086
+          ],
+          "source": {
+            "title": "Battle of Tordesillas (1520) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Tordesillas_(1520)"
+          }
+        },
+        {
+          "qid": "Q10431431",
+          "label": "Nydala Abbey Bloodbath",
+          "date": "1521-02-12",
+          "precision": "day",
+          "at": [
+            14.34127,
+            57.32299
+          ],
+          "source": {
+            "title": "Nydala Abbey Bloodbath (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Nydala_Abbey_Bloodbath"
+          }
+        }
+      ],
+      "guam": [
+        {
+          "qid": "Q4870578",
+          "label": "Battle of Brunnbäck Ferry",
+          "date": "1521-04-01",
+          "precision": "month",
+          "at": [
+            16.25333,
+            60.13139
+          ],
+          "source": {
+            "title": "Battle of Brunnbäck Ferry (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Brunnb%C3%A4ck_Ferry"
+          }
+        }
+      ],
+      "mactan": [
+        {
+          "qid": "Q2890338",
+          "label": "Battle of Villalar",
+          "date": "1521-04-23",
+          "precision": "day",
+          "at": [
+            -5.13333,
+            41.55
+          ],
+          "source": {
+            "title": "Battle of Villalar (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
+          }
+        },
+        {
+          "qid": "Q3656504",
+          "label": "Battle of Västerås",
+          "date": "1521-04-29",
+          "precision": "day",
+          "at": [
+            16.61667,
+            59.63333
+          ],
+          "source": {
+            "title": "Battle of Västerås (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_V%C3%A4ster%C3%A5s"
+          }
+        }
+      ],
+      "tidore": [
+        {
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
+          "date": "1521-07-10",
+          "precision": "day",
+          "at": [
+            -99.13528,
+            19.44339
+          ],
+          "source": {
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+          }
+        },
+        {
+          "qid": "Q958133",
+          "label": "Battle of Oriola",
+          "date": "1521-09-09",
+          "precision": "day",
+          "at": [
+            -0.94694,
+            38.08556
+          ],
+          "source": {
+            "title": "Battle of Oriola (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+          }
+        },
+        {
+          "qid": "Q118900813",
+          "label": "Attack on Bintan",
+          "date": "1521-10-01",
+          "precision": "month",
+          "at": [
+            104.61944,
+            0.95
+          ],
+          "source": {
+            "title": "Attack on Bintan (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Attack_on_Bintan_(1521)"
+          }
+        }
+      ],
+      "good-hope": [
+        {
+          "qid": "Q683341",
+          "label": "Battle of Bicocca",
+          "date": "1522-04-27",
+          "precision": "day",
+          "at": [
+            9.21,
+            45.518
+          ],
+          "source": {
+            "title": "Battle of Bicocca (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
+          }
+        },
+        {
+          "qid": "Q137785089",
+          "label": "Bukkur Massacre",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            68.8875,
+            27.69528
+          ],
+          "source": {
+            "title": "Bukkur Massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Bukkur_Massacre"
+          }
+        }
+      ],
+      "sanlucar-home": [
+        {
+          "qid": "Q3180568",
+          "label": "Luso Sundanese padrão",
+          "date": "1522-08-31",
+          "precision": "day",
+          "at": [
+            106.80861,
+            -6.12387
+          ],
+          "source": {
+            "title": "Luso-Sundanese padrão (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Luso-Sundanese_padr%C3%A3o"
+          }
+        }
+      ]
+    },
+    "months": {
+      "1519-01": [],
+      "1519-02": [],
+      "1519-03": [],
+      "1519-04": [
+        {
+          "qid": "Q1700886",
+          "label": "Battle of Soltau",
+          "date": "1519-07-08",
+          "precision": "day",
+          "at": [
+            9.7725,
+            53.0576
+          ],
+          "source": {
+            "title": "Battle of Soltau (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        }
+      ],
+      "1519-05": [
+        {
+          "qid": "Q1700886",
+          "label": "Battle of Soltau",
+          "date": "1519-07-08",
+          "precision": "day",
+          "at": [
+            9.7725,
+            53.0576
+          ],
+          "source": {
+            "title": "Battle of Soltau (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        }
+      ],
+      "1519-06": [
+        {
+          "qid": "Q1700886",
+          "label": "Battle of Soltau",
+          "date": "1519-07-08",
+          "precision": "day",
+          "at": [
+            9.7725,
+            53.0576
+          ],
+          "source": {
+            "title": "Battle of Soltau (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        }
+      ],
+      "1519-07": [
+        {
+          "qid": "Q1700886",
+          "label": "Battle of Soltau",
+          "date": "1519-07-08",
+          "precision": "day",
+          "at": [
+            9.7725,
+            53.0576
+          ],
+          "source": {
+            "title": "Battle of Soltau (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        }
+      ],
+      "1519-08": [
+        {
+          "qid": "Q1700886",
+          "label": "Battle of Soltau",
+          "date": "1519-07-08",
+          "precision": "day",
+          "at": [
+            9.7725,
+            53.0576
+          ],
+          "source": {
+            "title": "Battle of Soltau (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        }
+      ],
+      "1519-09": [
+        {
+          "qid": "Q1700886",
+          "label": "Battle of Soltau",
+          "date": "1519-07-08",
+          "precision": "day",
+          "at": [
+            9.7725,
+            53.0576
+          ],
+          "source": {
+            "title": "Battle of Soltau (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Soltau"
+          }
+        }
+      ],
+      "1519-10": [],
+      "1519-11": [
+        {
+          "qid": "Q108542187",
+          "label": "Algiers Expedition",
+          "date": "1519-08-01",
+          "precision": "month",
+          "at": [
+            3.05861,
+            36.75972
+          ],
+          "source": {
+            "title": "Algiers expedition (1519) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Algiers_expedition_(1519)"
+          }
+        },
+        {
+          "qid": "Q1606958",
+          "label": "Battle of Bogesund",
+          "date": "1520-01-19",
+          "precision": "day",
+          "at": [
+            13.3953,
+            57.77
+          ],
+          "source": {
+            "title": "Battle of Bogesund (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+          }
+        }
+      ],
+      "1519-12": [
+        {
+          "qid": "Q1606958",
+          "label": "Battle of Bogesund",
+          "date": "1520-01-19",
+          "precision": "day",
+          "at": [
+            13.3953,
+            57.77
+          ],
+          "source": {
+            "title": "Battle of Bogesund (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+          }
+        }
+      ],
+      "1520-01": [
+        {
+          "qid": "Q1606958",
+          "label": "Battle of Bogesund",
+          "date": "1520-01-19",
+          "precision": "day",
+          "at": [
+            13.3953,
+            57.77
+          ],
+          "source": {
+            "title": "Battle of Bogesund (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+          }
+        }
+      ],
+      "1520-02": [
+        {
+          "qid": "Q1606958",
+          "label": "Battle of Bogesund",
+          "date": "1520-01-19",
+          "precision": "day",
+          "at": [
+            13.3953,
+            57.77
+          ],
+          "source": {
+            "title": "Battle of Bogesund (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bogesund"
+          }
+        }
+      ],
+      "1520-03": [
+        {
+          "qid": "Q10572590",
+          "label": "Battle of Uppsala",
+          "date": "1520-04-16",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Battle of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q1131442",
+          "label": "Massacre in the Great Temple of Tenochtitlan",
+          "date": "1520-06-01",
+          "precision": "day",
+          "at": [
+            -99.13139,
+            19.435
+          ],
+          "source": {
+            "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
+          }
+        }
+      ],
+      "1520-04": [
+        {
+          "qid": "Q10572590",
+          "label": "Battle of Uppsala",
+          "date": "1520-04-16",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Battle of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q1131442",
+          "label": "Massacre in the Great Temple of Tenochtitlan",
+          "date": "1520-06-01",
+          "precision": "day",
+          "at": [
+            -99.13139,
+            19.435
+          ],
+          "source": {
+            "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
+          }
+        },
+        {
+          "qid": "Q1308854",
+          "label": "La Noche Triste",
+          "date": "1520-07-10",
+          "precision": "day",
+          "at": [
+            -109.23457,
+            30.66411
+          ],
+          "source": {
+            "title": "La Noche Triste (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
+          }
+        }
+      ],
+      "1520-05": [
+        {
+          "qid": "Q10572590",
+          "label": "Battle of Uppsala",
+          "date": "1520-04-16",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Battle of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q1131442",
+          "label": "Massacre in the Great Temple of Tenochtitlan",
+          "date": "1520-06-01",
+          "precision": "day",
+          "at": [
+            -99.13139,
+            19.435
+          ],
+          "source": {
+            "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
+          }
+        },
+        {
+          "qid": "Q1308854",
+          "label": "La Noche Triste",
+          "date": "1520-07-10",
+          "precision": "day",
+          "at": [
+            -109.23457,
+            30.66411
+          ],
+          "source": {
+            "title": "La Noche Triste (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
+          }
+        }
+      ],
+      "1520-06": [
+        {
+          "qid": "Q10572590",
+          "label": "Battle of Uppsala",
+          "date": "1520-04-16",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Battle of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q1131442",
+          "label": "Massacre in the Great Temple of Tenochtitlan",
+          "date": "1520-06-01",
+          "precision": "day",
+          "at": [
+            -99.13139,
+            19.435
+          ],
+          "source": {
+            "title": "Massacre in the Great Temple of Tenochtitlan (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Massacre_in_the_Great_Temple_of_Tenochtitlan"
+          }
+        },
+        {
+          "qid": "Q1308854",
+          "label": "La Noche Triste",
+          "date": "1520-07-10",
+          "precision": "day",
+          "at": [
+            -109.23457,
+            30.66411
+          ],
+          "source": {
+            "title": "La Noche Triste (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
+          }
+        }
+      ],
+      "1520-07": [
+        {
+          "qid": "Q1308854",
+          "label": "La Noche Triste",
+          "date": "1520-07-10",
+          "precision": "day",
+          "at": [
+            -109.23457,
+            30.66411
+          ],
+          "source": {
+            "title": "La Noche Triste (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
+          }
+        },
+        {
+          "qid": "Q2888038",
+          "label": "Battle of Otumba",
+          "date": "1520-07-17",
+          "precision": "day",
+          "at": [
+            -98.7547,
+            19.6969
+          ],
+          "source": {
+            "title": "Battle of Otumba (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Otumba"
+          }
+        }
+      ],
+      "1520-08": [
+        {
+          "qid": "Q1308854",
+          "label": "La Noche Triste",
+          "date": "1520-07-10",
+          "precision": "day",
+          "at": [
+            -109.23457,
+            30.66411
+          ],
+          "source": {
+            "title": "La Noche Triste (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
+          }
+        },
+        {
+          "qid": "Q2888038",
+          "label": "Battle of Otumba",
+          "date": "1520-07-17",
+          "precision": "day",
+          "at": [
+            -98.7547,
+            19.6969
+          ],
+          "source": {
+            "title": "Battle of Otumba (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Otumba"
+          }
+        }
+      ],
+      "1520-09": [
+        {
+          "qid": "Q1308854",
+          "label": "La Noche Triste",
+          "date": "1520-07-10",
+          "precision": "day",
+          "at": [
+            -109.23457,
+            30.66411
+          ],
+          "source": {
+            "title": "La Noche Triste (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/La_Noche_Triste"
+          }
+        },
+        {
+          "qid": "Q2888038",
+          "label": "Battle of Otumba",
+          "date": "1520-07-17",
+          "precision": "day",
+          "at": [
+            -98.7547,
+            19.6969
+          ],
+          "source": {
+            "title": "Battle of Otumba (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Otumba"
+          }
+        },
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        }
+      ],
+      "1520-10": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            19.81671,
+            54.38354
+          ],
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        }
+      ],
+      "1520-11": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            19.81671,
+            54.38354
+          ],
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        },
+        {
+          "qid": "Q4870998",
+          "label": "Battle of Falun",
+          "date": "1521-02-05",
+          "precision": "day",
+          "at": [
+            15.63111,
+            60.60722
+          ],
+          "source": {
+            "title": "Battle of Falun (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Falun"
+          }
+        }
+      ],
+      "1520-12": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            19.81671,
+            54.38354
+          ],
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        },
+        {
+          "qid": "Q4870998",
+          "label": "Battle of Falun",
+          "date": "1521-02-05",
+          "precision": "day",
+          "at": [
+            15.63111,
+            60.60722
+          ],
+          "source": {
+            "title": "Battle of Falun (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Falun"
+          }
+        }
+      ],
+      "1521-01": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            19.81671,
+            54.38354
+          ],
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        },
+        {
+          "qid": "Q4870998",
+          "label": "Battle of Falun",
+          "date": "1521-02-05",
+          "precision": "day",
+          "at": [
+            15.63111,
+            60.60722
+          ],
+          "source": {
+            "title": "Battle of Falun (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Falun"
+          }
+        }
+      ],
+      "1521-02": [
+        {
+          "qid": "Q22936045",
+          "label": "Siege of Mandsaur",
+          "date": "1520-12-01",
+          "precision": "month",
+          "at": [
+            75.08,
+            24.03
+          ],
+          "source": {
+            "title": "Siege of Mandsaur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Mandsaur"
+          }
+        },
+        {
+          "qid": "Q10431431",
+          "label": "Nydala Abbey Bloodbath",
+          "date": "1521-02-12",
+          "precision": "day",
+          "at": [
+            14.34127,
+            57.32299
+          ],
+          "source": {
+            "title": "Nydala Abbey Bloodbath (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Nydala_Abbey_Bloodbath"
+          }
+        },
+        {
+          "qid": "Q2890338",
+          "label": "Battle of Villalar",
+          "date": "1521-04-23",
+          "precision": "day",
+          "at": [
+            -5.13333,
+            41.55
+          ],
+          "source": {
+            "title": "Battle of Villalar (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
+          }
+        }
+      ],
+      "1521-03": [
+        {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            19.81671,
+            54.38354
+          ],
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        },
+        {
+          "qid": "Q4870578",
+          "label": "Battle of Brunnbäck Ferry",
+          "date": "1521-04-01",
+          "precision": "month",
+          "at": [
+            16.25333,
+            60.13139
+          ],
+          "source": {
+            "title": "Battle of Brunnbäck Ferry (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Brunnb%C3%A4ck_Ferry"
+          }
+        },
+        {
+          "qid": "Q2890338",
+          "label": "Battle of Villalar",
+          "date": "1521-04-23",
+          "precision": "day",
+          "at": [
+            -5.13333,
+            41.55
+          ],
+          "source": {
+            "title": "Battle of Villalar (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
+          }
+        }
+      ],
+      "1521-04": [
+        {
+          "qid": "Q7509804",
+          "label": "Siege of Allenstein",
+          "date": "1521-01-01",
+          "precision": "month",
+          "at": [
+            19.81671,
+            54.38354
+          ],
+          "source": {
+            "title": "Siege of Allenstein (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Allenstein"
+          }
+        },
+        {
+          "qid": "Q2890338",
+          "label": "Battle of Villalar",
+          "date": "1521-04-23",
+          "precision": "day",
+          "at": [
+            -5.13333,
+            41.55
+          ],
+          "source": {
+            "title": "Battle of Villalar (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Villalar"
+          }
+        },
+        {
+          "qid": "Q3656504",
+          "label": "Battle of Västerås",
+          "date": "1521-04-29",
+          "precision": "day",
+          "at": [
+            16.61667,
+            59.63333
+          ],
+          "source": {
+            "title": "Battle of Västerås (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_V%C3%A4ster%C3%A5s"
+          }
+        }
+      ],
+      "1521-05": [
+        {
+          "qid": "Q5162452",
+          "label": "Conquest of Uppsala",
+          "date": "1521-05-29",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Conquest of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Conquest_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q3174545",
+          "label": "Battle of Pamplona",
+          "date": "1521-05-30",
+          "precision": "day",
+          "at": [
+            -1.65,
+            42.81667
+          ],
+          "source": {
+            "title": "Battle of Pampeluna (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Pampeluna"
+          }
+        },
+        {
+          "qid": "Q1293343",
+          "label": "Siege of Šabac",
+          "date": "1521-06-30",
+          "precision": "day",
+          "at": [
+            19.69389,
+            44.75583
+          ],
+          "source": {
+            "title": "Siege of Šabac (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_%C5%A0abac_(1521)"
+          }
+        }
+      ],
+      "1521-06": [
+        {
+          "qid": "Q5162452",
+          "label": "Conquest of Uppsala",
+          "date": "1521-05-29",
+          "precision": "day",
+          "at": [
+            17.64472,
+            59.85806
+          ],
+          "source": {
+            "title": "Conquest of Uppsala (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Conquest_of_Uppsala"
+          }
+        },
+        {
+          "qid": "Q2889540",
+          "label": "Battle of Noáin",
+          "date": "1521-06-30",
+          "precision": "day",
+          "at": [
+            -1.654,
+            42.758
+          ],
+          "source": {
+            "title": "Battle of Noáin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_No%C3%A1in"
+          }
+        },
+        {
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
+          "date": "1521-07-10",
+          "precision": "day",
+          "at": [
+            -99.13528,
+            19.44339
+          ],
+          "source": {
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+          }
+        }
+      ],
+      "1521-07": [
+        {
+          "qid": "Q535542",
+          "label": "Siege of Belgrade",
+          "date": "1521-07-05",
+          "precision": "day",
+          "at": [
+            20.46667,
+            44.81667
+          ],
+          "source": {
+            "title": "Siege of Belgrade (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Belgrade_(1521)"
+          }
+        },
+        {
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
+          "date": "1521-07-10",
+          "precision": "day",
+          "at": [
+            -99.13528,
+            19.44339
+          ],
+          "source": {
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+          }
+        },
+        {
+          "qid": "Q4870274",
+          "label": "Battle of Almenara",
+          "date": "1521-07-28",
+          "precision": "day",
+          "at": [
+            -0.21667,
+            39.75
+          ],
+          "source": {
+            "title": "Battle of Almenara (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Almenara_(1521)"
+          }
+        }
+      ],
+      "1521-08": [
+        {
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
+          "date": "1521-07-10",
+          "precision": "day",
+          "at": [
+            -99.13528,
+            19.44339
+          ],
+          "source": {
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+          }
+        },
+        {
+          "qid": "Q4870274",
+          "label": "Battle of Almenara",
+          "date": "1521-07-28",
+          "precision": "day",
+          "at": [
+            -0.21667,
+            39.75
+          ],
+          "source": {
+            "title": "Battle of Almenara (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Almenara_(1521)"
+          }
+        },
+        {
+          "qid": "Q7879248",
+          "label": "Siege of Mézières",
+          "date": "1521-08-01",
+          "precision": "month",
+          "at": [
+            4.71652,
+            49.76085
+          ],
+          "source": {
+            "title": "Siege of Mézières (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_M%C3%A9zi%C3%A8res"
+          }
+        }
+      ],
+      "1521-09": [
+        {
+          "qid": "Q112811996",
+          "label": "Battle of Colhuacatonco",
+          "date": "1521-07-10",
+          "precision": "day",
+          "at": [
+            -99.13528,
+            19.44339
+          ],
+          "source": {
+            "title": "Battle of Colhuacatonco (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Colhuacatonco"
+          }
+        },
+        {
+          "qid": "Q7879248",
+          "label": "Siege of Mézières",
+          "date": "1521-08-01",
+          "precision": "month",
+          "at": [
+            4.71652,
+            49.76085
+          ],
+          "source": {
+            "title": "Siege of Mézières (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_M%C3%A9zi%C3%A8res"
+          }
+        },
+        {
+          "qid": "Q958133",
+          "label": "Battle of Oriola",
+          "date": "1521-09-09",
+          "precision": "day",
+          "at": [
+            -0.94694,
+            38.08556
+          ],
+          "source": {
+            "title": "Battle of Oriola (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+          }
+        }
+      ],
+      "1521-10": [
+        {
+          "qid": "Q7879248",
+          "label": "Siege of Mézières",
+          "date": "1521-08-01",
+          "precision": "month",
+          "at": [
+            4.71652,
+            49.76085
+          ],
+          "source": {
+            "title": "Siege of Mézières (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_M%C3%A9zi%C3%A8res"
+          }
+        },
+        {
+          "qid": "Q958133",
+          "label": "Battle of Oriola",
+          "date": "1521-09-09",
+          "precision": "day",
+          "at": [
+            -0.94694,
+            38.08556
+          ],
+          "source": {
+            "title": "Battle of Oriola (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+          }
+        }
+      ],
+      "1521-11": [
+        {
+          "qid": "Q7879248",
+          "label": "Siege of Mézières",
+          "date": "1521-08-01",
+          "precision": "month",
+          "at": [
+            4.71652,
+            49.76085
+          ],
+          "source": {
+            "title": "Siege of Mézières (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_M%C3%A9zi%C3%A8res"
+          }
+        },
+        {
+          "qid": "Q958133",
+          "label": "Battle of Oriola",
+          "date": "1521-09-09",
+          "precision": "day",
+          "at": [
+            -0.94694,
+            38.08556
+          ],
+          "source": {
+            "title": "Battle of Oriola (1521) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Oriola_(1521)"
+          }
+        }
+      ],
+      "1521-12": [],
+      "1522-01": [],
+      "1522-02": [
+        {
+          "qid": "Q683341",
+          "label": "Battle of Bicocca",
+          "date": "1522-04-27",
+          "precision": "day",
+          "at": [
+            9.21,
+            45.518
+          ],
+          "source": {
+            "title": "Battle of Bicocca (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
+          }
+        },
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        }
+      ],
+      "1522-03": [
+        {
+          "qid": "Q683341",
+          "label": "Battle of Bicocca",
+          "date": "1522-04-27",
+          "precision": "day",
+          "at": [
+            9.21,
+            45.518
+          ],
+          "source": {
+            "title": "Battle of Bicocca (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
+          }
+        },
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        }
+      ],
+      "1522-04": [
+        {
+          "qid": "Q683341",
+          "label": "Battle of Bicocca",
+          "date": "1522-04-27",
+          "precision": "day",
+          "at": [
+            9.21,
+            45.518
+          ],
+          "source": {
+            "title": "Battle of Bicocca (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Bicocca"
+          }
+        },
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        }
+      ],
+      "1522-05": [
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        },
+        {
+          "qid": "Q9291683",
+          "label": "Siege of Genoa",
+          "date": "1522-05-30",
+          "precision": "day",
+          "at": [
+            8.93398,
+            44.40719
+          ],
+          "source": {
+            "title": "Siege of Genoa (1522) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Genoa_(1522)"
+          }
+        }
+      ],
+      "1522-06": [
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        },
+        {
+          "qid": "Q9291683",
+          "label": "Siege of Genoa",
+          "date": "1522-05-30",
+          "precision": "day",
+          "at": [
+            8.93398,
+            44.40719
+          ],
+          "source": {
+            "title": "Siege of Genoa (1522) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Genoa_(1522)"
+          }
+        }
+      ],
+      "1522-07": [
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        }
+      ],
+      "1522-08": [
+        {
+          "qid": "Q18713116",
+          "label": "Siege of Knin",
+          "date": "1522-05-01",
+          "precision": "month",
+          "at": [
+            16.1833,
+            44.0333
+          ],
+          "source": {
+            "title": "Siege of Knin (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Knin"
+          }
+        }
+      ],
+      "1522-09": [],
+      "1522-10": [],
+      "1522-11": [],
+      "1522-12": []
+    }
+  },
+  "glows": [
+    {
+      "qid": "Q178810",
+      "label": "Syrian Civil War",
+      "at": [
+        38.0,
+        35.0
+      ]
+    },
+    {
+      "qid": "Q48249",
+      "label": "Falklands War",
+      "at": [
+        -59.0,
+        -51.75
+      ]
+    },
+    {
+      "qid": "Q81545",
+      "label": "Libyan Civil War",
+      "at": [
+        16.52141,
+        31.19562
+      ]
+    },
+    {
+      "qid": "Q620735",
+      "label": "Russo-Georgian War",
+      "at": [
+        44.41778,
+        41.98944
+      ]
+    },
+    {
+      "qid": "Q170850",
+      "label": "Anglo-Zanzibar War",
+      "at": [
+        39.33655,
+        -6.14056
+      ]
+    },
+    {
+      "qid": "Q470596",
+      "label": "Year of the Four Emperors",
+      "at": [
+        12.5,
+        41.9
+      ]
+    },
+    {
+      "qid": "Q1413732",
+      "label": "Kashmir conflict",
+      "at": [
+        74.6667,
+        34.0333
+      ]
+    },
+    {
+      "qid": "Q165058",
+      "label": "Holodomor",
+      "at": [
+        32.0,
+        49.0
+      ]
+    },
+    {
+      "qid": "Q213394",
+      "label": "Sri Lankan civil war",
+      "at": [
+        81.0,
+        7.0
+      ]
+    },
+    {
+      "qid": "Q638530",
+      "label": "Texas Revolution",
+      "at": [
+        -100.0,
+        31.0
+      ]
+    },
+    {
+      "qid": "Q223126",
+      "label": "Chaco War",
+      "at": [
+        -59.73667,
+        -21.32722
+      ]
+    },
+    {
+      "qid": "Q475678",
+      "label": "Mexican drug war",
+      "at": [
+        -99.1456,
+        19.4194
+      ]
+    },
+    {
+      "qid": "Q134301",
+      "label": "Katyn massacre",
+      "at": [
+        31.78889,
+        54.77333
+      ]
+    },
+    {
+      "qid": "Q322607",
+      "label": "War of Attrition",
+      "at": [
+        33.83333,
+        29.5
+      ]
+    },
+    {
+      "qid": "Q736268",
+      "label": "Finnish War",
+      "at": [
+        22.96667,
+        62.0
+      ]
+    },
+    {
+      "qid": "Q1127302",
+      "label": "Estonian War of Independence",
+      "at": [
+        26.03111,
+        57.77694
+      ]
+    },
+    {
+      "qid": "Q163891",
+      "label": "St. Bartholomew's Day massacre",
+      "at": [
+        2.3522,
+        48.8567
+      ]
+    },
+    {
+      "qid": "Q170334",
+      "label": "Srebrenica massacre",
+      "at": [
+        19.3,
+        44.1
+      ]
+    },
+    {
+      "qid": "Q2946372",
+      "label": "Mali War",
+      "at": [
+        -8.00056,
+        12.65
+      ]
+    },
+    {
+      "qid": "Q31944",
+      "label": "Mahdist War",
+      "at": [
+        32.0,
+        15.0
+      ]
+    },
+    {
+      "qid": "Q2002975",
+      "label": "Nepalese Civil War",
+      "at": [
+        84.0,
+        28.0
+      ]
+    },
+    {
+      "qid": "Q257724",
+      "label": "Ethiopian Civil War",
+      "at": [
+        40.0,
+        9.0
+      ]
+    },
+    {
+      "qid": "Q1676845",
+      "label": "Boer Wars",
+      "at": [
+        24.0,
+        -29.0
+      ]
+    },
+    {
+      "qid": "Q832273",
+      "label": "Eritrean–Ethiopian War",
+      "at": [
+        39.0,
+        15.0
+      ]
+    },
+    {
+      "qid": "Q1044829",
+      "label": "Polish–Muscovite War",
+      "at": [
+        19.93,
+        50.05
+      ]
+    },
+    {
+      "qid": "Q1616064",
+      "label": "Mithridatic Wars",
+      "at": [
+        35.0,
+        39.0
+      ]
+    },
+    {
+      "qid": "Q127912",
+      "label": "United States Declaration of Independence",
+      "at": [
+        -75.15,
+        39.9489
+      ]
+    },
+    {
+      "qid": "Q1282732",
+      "label": "Guatemalan Civil War",
+      "at": [
+        -90.5,
+        14.63333
+      ]
+    },
+    {
+      "qid": "Q385676",
+      "label": "Ōnin War",
+      "at": [
+        135.8006,
+        34.8819
+      ]
+    },
+    {
+      "qid": "Q2885072",
+      "label": "Cambodian genocide",
+      "at": [
+        105.6,
+        12.25
+      ]
+    },
+    {
+      "qid": "Q193245",
+      "label": "Carnation Revolution",
+      "at": [
+        -9.0,
+        39.0
+      ]
+    },
+    {
+      "qid": "Q696389",
+      "label": "Soviet–Japanese border conflicts",
+      "at": [
+        118.59,
+        47.7303
+      ]
+    },
+    {
+      "qid": "Q15353665",
+      "label": "South Sudanese Civil War",
+      "at": [
+        30.0,
+        7.0
+      ]
+    },
+    {
+      "qid": "Q165136",
+      "label": "Swabian War",
+      "at": [
+        8.23197,
+        46.79856
+      ]
+    },
+    {
+      "qid": "Q85125",
+      "label": "population transfer in the Soviet Union",
+      "at": [
+        90.0,
+        65.0
+      ]
+    },
+    {
+      "qid": "Q164983",
+      "label": "Gallipoli Campaign",
+      "at": [
+        26.2775,
+        40.2375
+      ]
+    },
+    {
+      "qid": "Q184637",
+      "label": "Ten Years' War",
+      "at": [
+        -80.0,
+        21.5
+      ]
+    },
+    {
+      "qid": "Q1064335",
+      "label": "Pig War",
+      "at": [
+        -123.00661,
+        48.46164
+      ]
+    },
+    {
+      "qid": "Q85754778",
+      "label": "persecution of Uyghurs in China",
+      "at": [
+        87.61379,
+        43.8253
+      ]
+    },
+    {
+      "qid": "Q617321",
+      "label": "Anglo-Mysore wars",
+      "at": [
+        77.0,
+        13.0
+      ]
+    },
+    {
+      "qid": "Q36204",
+      "label": "2011 Tōhoku earthquake and tsunami",
+      "at": [
+        142.369,
+        38.322
+      ]
+    },
+    {
+      "qid": "Q130754",
+      "label": "2004 Indian Ocean earthquake",
+      "at": [
+        95.982,
+        3.295
+      ]
+    },
+    {
+      "qid": "Q979845",
+      "label": "Naxalite–Maoist insurgency",
+      "at": [
+        85.8167,
+        22.5667
+      ]
+    },
+    {
+      "qid": "Q43777",
+      "label": "2010 Haiti earthquake",
+      "at": [
+        -72.44519,
+        18.45139
+      ]
+    },
+    {
+      "qid": "Q68478",
+      "label": "Peruvian War of Independence",
+      "at": [
+        -77.0375,
+        -12.06
+      ]
+    },
+    {
+      "qid": "Q517578",
+      "label": "King George's War",
+      "at": [
+        -100.0,
+        50.0
+      ]
+    },
+    {
+      "qid": "Q3411181",
+      "label": "Central African Republic Civil War",
+      "at": [
+        20.9,
+        6.7
+      ]
+    },
+    {
+      "qid": "Q133574091",
+      "label": "2025 Myanmar earthquake",
+      "at": [
+        95.922,
+        22.013
+      ]
+    },
+    {
+      "qid": "Q1474893",
+      "label": "Cleomenean War",
+      "at": [
+        22.3522,
+        37.3497
+      ]
+    },
+    {
+      "qid": "Q1341539",
+      "label": "Saur Revolution",
+      "at": [
+        69.17833,
+        34.52528
+      ]
+    },
+    {
+      "qid": "Q217981",
+      "label": "Allied invasion of Sicily",
+      "at": [
+        14.43333,
+        36.88333
+      ]
+    },
+    {
+      "qid": "Q188371",
+      "label": "Great Irish Famine",
+      "at": [
+        -7.921,
+        53.351
+      ]
+    },
+    {
+      "qid": "Q150939",
+      "label": "Operation Weserübung",
+      "at": [
+        10.73333,
+        59.91667
+      ]
+    },
+    {
+      "qid": "Q171328",
+      "label": "Charter of the United Nations",
+      "at": [
+        -122.4164,
+        37.7775
+      ]
+    },
+    {
+      "qid": "Q580961",
+      "label": "Agacher Strip War",
+      "at": [
+        -0.4,
+        14.9
+      ]
+    },
+    {
+      "qid": "Q2656995",
+      "label": "Northwest Indian War",
+      "at": [
+        -86.0,
+        41.0
+      ]
+    },
+    {
+      "qid": "Q191293",
+      "label": "1556 Shaanxi earthquake",
+      "at": [
+        109.7,
+        34.5
+      ]
+    },
+    {
+      "qid": "Q122351413",
+      "label": "2023 Marrakesh-Safi earthquake",
+      "at": [
+        -8.44001,
+        31.11009
+      ]
+    },
+    {
+      "qid": "Q217145",
+      "label": "Guadalcanal campaign",
+      "at": [
+        160.0,
+        -9.41667
+      ]
+    },
+    {
+      "qid": "Q170170",
+      "label": "Ramsar Convention",
+      "at": [
+        50.6481,
+        36.9181
+      ]
+    },
+    {
+      "qid": "Q151187",
+      "label": "Potsdam Conference",
+      "at": [
+        13.07083,
+        52.41917
+      ]
+    },
+    {
+      "qid": "Q2350166",
+      "label": "War of Canudos",
+      "at": [
+        -39.16389,
+        -9.96389
+      ]
+    },
+    {
+      "qid": "Q152033",
+      "label": "2008 Sichuan earthquake",
+      "at": [
+        103.367,
+        31.021
+      ]
+    },
+    {
+      "qid": "Q140352499",
+      "label": "2026 Venezuela earthquakes",
+      "at": [
+        -67.217,
+        10.605
+      ]
+    },
+    {
+      "qid": "Q151835",
+      "label": "2010 Chile earthquake",
+      "at": [
+        -72.733,
+        -35.909
+      ]
+    },
+    {
+      "qid": "Q462195",
+      "label": "1976 Tangshan earthquake",
+      "at": [
+        118.401,
+        39.664
+      ]
+    },
+    {
+      "qid": "Q529723",
+      "label": "Anfal campaign",
+      "at": [
+        43.0,
+        33.0
+      ]
+    },
+    {
+      "qid": "Q1354920",
+      "label": "Djiboutian–Eritrean border conflict",
+      "at": [
+        43.13333,
+        12.70833
+      ]
+    },
+    {
+      "qid": "Q2606574",
+      "label": "Acre War",
+      "at": [
+        -73.80111,
+        -7.11417
+      ]
+    },
+    {
+      "qid": "Q3063789",
+      "label": "Colombian War of Independence",
+      "at": [
+        -73.4303,
+        5.4504
+      ]
+    },
+    {
+      "qid": "Q3082702",
+      "label": "Brazilian War of Independence",
+      "at": [
+        -53.0,
+        -14.0
+      ]
+    },
+    {
+      "qid": "Q2092033",
+      "label": "Conquest of Mecca",
+      "at": [
+        39.82333,
+        21.4225
+      ]
+    },
+    {
+      "qid": "Q696462",
+      "label": "Philippines Campaign",
+      "at": [
+        121.0,
+        15.0
+      ]
+    },
+    {
+      "qid": "Q1150973",
+      "label": "1931 China floods",
+      "at": [
+        114.273,
+        30.5812
+      ]
+    },
+    {
+      "qid": "Q188532",
+      "label": "Bretton Woods system",
+      "at": [
+        -71.44787,
+        44.25436
+      ]
+    },
+    {
+      "qid": "Q541369",
+      "label": "Anglo-Soviet invasion of Iran",
+      "at": [
+        53.0,
+        32.0
+      ]
+    },
+    {
+      "qid": "Q84055514",
+      "label": "COVID-19 pandemic in India",
+      "at": [
+        77.0,
+        22.0
+      ]
+    },
+    {
+      "qid": "Q852365",
+      "label": "Tunisia campaign",
+      "at": [
+        9.0,
+        34.0
+      ]
+    },
+    {
+      "qid": "Q105570",
+      "label": "20 July plot",
+      "at": [
+        21.49639,
+        54.08056
+      ]
+    },
+    {
+      "qid": "Q772814",
+      "label": "Caste War of Yucatán",
+      "at": [
+        -87.984,
+        19.5857
+      ]
+    },
+    {
+      "qid": "Q6165880",
+      "label": "Soviet invasion of Manchuria",
+      "at": [
+        125.0,
+        49.0
+      ]
+    },
+    {
+      "qid": "Q135502884",
+      "label": "2025 Kamchatka earthquake",
+      "at": [
+        160.261,
+        52.51
+      ]
+    },
+    {
+      "qid": "Q151850",
+      "label": "February 2011 Christchurch earthquake",
+      "at": [
+        172.701,
+        -43.5834
+      ]
+    },
+    {
+      "qid": "Q249708",
+      "label": "Aleutian Islands Campaign",
+      "at": [
+        173.0725,
+        52.8325
+      ]
+    },
+    {
+      "qid": "Q1763834",
+      "label": "Azov campaigns",
+      "at": [
+        39.417,
+        47.1
+      ]
+    },
+    {
+      "qid": "Q501866",
+      "label": "1983 Invasion of Grenada",
+      "at": [
+        -61.75,
+        12.05
+      ]
+    },
+    {
+      "qid": "Q84166704",
+      "label": "COVID-19 pandemic in Spain",
+      "at": [
+        -3.0,
+        40.0
+      ]
+    },
+    {
+      "qid": "Q125289722",
+      "label": "2024 Hualien earthquake",
+      "at": [
+        121.666,
+        23.77
+      ]
+    },
+    {
+      "qid": "Q592550",
+      "label": "British expedition to Tibet",
+      "at": [
+        89.27694,
+        26.08889
+      ]
+    },
+    {
+      "qid": "Q10360270",
+      "label": "Bougainville conflict",
+      "at": [
+        155.0,
+        -6.0
+      ]
+    },
+    {
+      "qid": "Q749811",
+      "label": "Mutiny on the Bounty",
+      "at": [
+        179.05,
+        -47.75
+      ]
+    },
+    {
+      "qid": "Q2238546",
+      "label": "Gilbert and Marshall Islands Campaign",
+      "at": [
+        168.662,
+        6.926
+      ]
+    },
+    {
+      "qid": "Q269442",
+      "label": "2010 eruptions of Eyjafjallajökull",
+      "at": [
+        -19.6,
+        63.63333
+      ]
+    },
+    {
+      "qid": "Q21175521",
+      "label": "Hurricane Patricia",
+      "at": [
+        -104.6,
+        20.2
+      ]
+    },
+    {
+      "qid": "Q625798",
+      "label": "Western Desert campaign",
+      "at": [
+        28.95,
+        30.83333
+      ]
+    },
+    {
+      "qid": "Q1052780",
+      "label": "Sherman's March to the Sea",
+      "at": [
+        -81.15191,
+        32.1287
+      ]
+    },
+    {
+      "qid": "Q1816561",
+      "label": "Palestinian Declaration of Independence",
+      "at": [
+        3.0586,
+        36.7764
+      ]
+    },
+    {
+      "qid": "Q749610",
+      "label": "1964 Alaska great earthquake and tsunami",
+      "at": [
+        -147.65,
+        61.02
+      ]
+    },
+    {
+      "qid": "Q56768333",
+      "label": "2018 Sulawesi earthquake and tsunami",
+      "at": [
+        119.85,
+        -0.18
+      ]
+    },
+    {
+      "qid": "Q60042839",
+      "label": "2018 Sunda Strait tsunami",
+      "at": [
+        105.423,
+        -6.103
+      ]
+    },
+    {
+      "qid": "Q84098939",
+      "label": "COVID-19 pandemic in Russia",
+      "at": [
+        100.0,
+        62.0
+      ]
+    },
+    {
+      "qid": "Q722051",
+      "label": "Anglo-Ashanti wars",
+      "at": [
+        -0.97,
+        5.45
+      ]
+    },
+    {
+      "qid": "Q139236054",
+      "label": "Ngogo chimpanzee war",
+      "at": [
+        30.38333,
+        0.43333
+      ]
+    },
+    {
+      "qid": "Q1773984",
+      "label": "Battle of Chamdo",
+      "at": [
+        97.1775,
+        31.13722
+      ]
+    },
+    {
+      "qid": "Q698421",
+      "label": "Italian invasion of Egypt",
+      "at": [
+        30.0,
+        26.0
+      ]
+    },
+    {
+      "qid": "Q23835355",
+      "label": "2016 Ecuador earthquake",
+      "at": [
+        -79.94,
+        0.371
+      ]
+    },
+    {
+      "qid": "Q83872398",
+      "label": "COVID-19 pandemic in South Korea",
+      "at": [
+        128.0,
+        36.0
+      ]
+    },
+    {
+      "qid": "Q86847911",
+      "label": "COVID-19 pandemic in Austria",
+      "at": [
+        14.0,
+        48.0
+      ]
+    },
+    {
+      "qid": "Q110567218",
+      "label": "2022 Hunga Tonga–Hunga Haʻapai eruption and tsunami",
+      "at": [
+        -175.39,
+        -20.546
+      ]
+    },
+    {
+      "qid": "Q500067",
+      "label": "Treaty of Bucharest",
+      "at": [
+        26.09778,
+        44.41336
+      ]
+    },
+    {
+      "qid": "Q27058656",
+      "label": "Hurricane Matthew",
+      "at": [
+        -75.1,
+        34.9
+      ]
+    },
+    {
+      "qid": "Q122971939",
+      "label": "2023 Herat earthquakes",
+      "at": [
+        61.924,
+        34.61
+      ]
+    },
+    {
+      "qid": "Q83873580",
+      "label": "COVID-19 pandemic in Canada",
+      "at": [
+        -109.0,
+        56.0
+      ]
+    },
+    {
+      "qid": "Q2632175",
+      "label": "Dunmore's War",
+      "at": [
+        -80.8048,
+        39.918
+      ]
+    },
+    {
+      "qid": "Q16512674",
+      "label": "Herero Wars",
+      "at": [
+        17.0,
+        -22.0
+      ]
+    },
+    {
+      "qid": "Q192055",
+      "label": "Nanjing Massacre",
+      "at": [
+        118.7375,
+        32.0375
+      ]
+    },
+    {
+      "qid": "Q140119396",
+      "label": "2026 Mindanao earthquake",
+      "at": [
+        124.98,
+        5.57
+      ]
+    },
+    {
+      "qid": "Q827212",
+      "label": "Gadsden Purchase",
+      "at": [
+        -110.6,
+        33.1
+      ]
+    },
+    {
+      "qid": "Q700937",
+      "label": "Crimean Campaign",
+      "at": [
+        34.1,
+        44.9333
+      ]
+    },
+    {
+      "qid": "Q2391429",
+      "label": "1948 Ashgabat earthquake",
+      "at": [
+        58.32,
+        37.95
+      ]
+    }
+  ]
+}
