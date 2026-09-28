@@ -192,7 +192,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     const days: [number, number] | null =
       target === null ? null : [day, landingDay(beatAt(target), day)];
     const route = routeName === undefined ? undefined : options.route?.(routeName);
-    const voyage = route && days ? voyagePath(control.current, to, route, ...days) : null;
+    const voyage = route && days ? voyagePath({ ...control.current }, to, route, ...days) : null;
     const path = voyage ?? flightPath({ ...control.current }, to);
     const durationS = path.durationS ?? flightSeconds(path.length);
     const lead = path.length > 0 ? Math.min(MAX_LEAD, (pace * durationS) / path.length) : 0;
