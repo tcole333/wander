@@ -28,7 +28,7 @@ effects:
 audio: {cues: []}
 meanwhile: auto
 sources:
-  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 35–41, 58)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/35/mode/2up"}
+  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 35–41, 58, 127, 161)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/35/mode/2up"}
   - {title: "The First Voyage Round the World, by Magellan (letter of Maximilianus Transylvanus, pp. 187–188)", author: "Maximilianus Transylvanus, in Lord Stanley of Alderley (ed.)", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/187/mode/2up"}
 ```
 
@@ -37,7 +37,7 @@ the Atlantic. Ferdinand Magellan, a Portuguese captain in the service of Charles
 looking for a western passage to the Moluccas, the islands where cloves grow. Somewhere beyond
 the coast of South America, he hopes to find a way through. At night a light burns at the stern
 of his flagship, the Trinidad, for the other ships to follow. Among those aboard is Antonio
-Pigafetta, who means to see the world for himself and write down what he finds.
+Pigafetta, eager to see these things for himself. He will keep a record of the voyage.
 
 ## Fresh Food Across the Atlantic
 
@@ -62,8 +62,9 @@ effects:
 audio: {cues: []}
 meanwhile: auto
 sources:
-  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 41–44; chronology, p. lix)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/41/mode/2up"}
+  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 41–44, 57; chronology, p. lix)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/41/mode/2up"}
   - {title: "The First Voyage Round the World, by Magellan (Albo's log, pp. 211–213)", author: "Francisco Albo, in Lord Stanley of Alderley (ed.)", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/211/mode/2up"}
+  - {title: "The First Voyage Round the World, by Magellan (letter of Maximilianus Transylvanus, p. 188)", author: "Maximilianus Transylvanus, in Lord Stanley of Alderley (ed.)", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/188/mode/2up"}
 ```
 
 Rain and contrary winds delay the ships off Africa. South of the equator, the North Star slips
@@ -163,12 +164,12 @@ effects:
 audio: {cues: []}
 meanwhile: auto
 sources:
-  - {title: "Magellan's Voyage Around the World, vol. 1 (pp. 83–85)", author: "Antonio Pigafetta, translated and edited by James Alexander Robertson", publisher: "The Arthur H. Clark Company, Cleveland", year: 1906, url: "https://archive.org/details/magellansvoyagea01piga/page/83/mode/2up"}
+  - {title: "Magellan's Voyage Around the World, vol. 1 (pp. 55–61, 83–85)", author: "Antonio Pigafetta, translated and edited by James Alexander Robertson", publisher: "The Arthur H. Clark Company, Cleveland", year: 1906, url: "https://archive.org/details/magellansvoyagea01piga/page/83/mode/2up"}
   - {title: "The First Voyage Round the World, by Magellan (Albo's log, pp. 220–223, entries for December 1520 to March 1521)", author: "Francisco Albo, in Lord Stanley of Alderley (ed.)", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/220/mode/2up"}
 ```
 
-The sea stays calm, and the food runs out. The biscuit is dust crawling with worms and fouled
-by rats; the drinking water is yellow and rotten. Sailors cut the oxhide that protects the
+The sea stays calm. Fresh provisions run out. The biscuit is dust crawling with worms and
+fouled by rats; the drinking water is yellow and rotten. Sailors cut the oxhide that protects the
 rigging, soak it in the sea, then warm it over embers to make it chewable. Even rats become
 scarce. Gums swell over teeth until men cannot eat. Pigafetta counts nineteen deaths from the
 sickness, besides a captive Patagonian and a man from Brazil. The islands they find offer only
@@ -197,12 +198,13 @@ meanwhile: auto
 sources:
   - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 68–71)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/68/mode/2up"}
   - {title: "The First Voyage Round the World, by Magellan (Albo's log, pp. 223–224, 6–9 March 1521)", author: "Francisco Albo, in Lord Stanley of Alderley (ed.)", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/223/mode/2up"}
+  - {title: "Magellan's Voyage Around the World, vol. 1 (p. 247, note 179, identifying Guam)", author: "James Alexander Robertson, editor and translator of Antonio Pigafetta", publisher: "The Arthur H. Clark Company, Cleveland", year: 1906, url: "https://archive.org/details/magellansvoyagea01piga/page/247/mode/2up"}
 ```
 
 On 6 March 1521, canoes come out from Guam to meet the ships. Their triangular mat sails drive
 them so swiftly that Albo thinks they fly. Either end can serve as the bow. Islanders board
-the ships, and a party takes the flagship's skiff. Magellan sends armed men ashore to recover
-it. They burn houses and boats; Pigafetta records seven islanders killed. As the fleet leaves,
+the ships, and a party takes the flagship's skiff. Magellan goes ashore with armed men to
+recover it. They burn houses and boats; Pigafetta records seven islanders killed. As the fleet leaves,
 canoes pursue it and stones fly toward the decks. Pigafetta sees women crying and tearing their
 hair. The ships sail on, leaving grief behind them.
 
@@ -263,7 +265,7 @@ effects:
 audio: {cues: []}
 meanwhile: auto
 sources:
-  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 104–106, 122–129, 144–146)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/124/mode/2up"}
+  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 103–106, 122–129, 144–146)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/124/mode/2up"}
 ```
 
 With too few men to work three ships, the survivors burn the Concepción. The Trinidad and
@@ -295,7 +297,7 @@ effects:
 audio: {cues: []}
 meanwhile: auto
 sources:
-  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 159–161)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/159/mode/2up"}
+  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 146, 159–161)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/159/mode/2up"}
   - {title: "The First Voyage Round the World, by Magellan (Albo's log, pp. 233–235, February–May 1522)", author: "Francisco Albo, in Lord Stanley of Alderley (ed.)", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/233/mode/2up"}
   - {title: "Magellan's Voyage Around the World, vol. 2 (p. 236, note 637, on the Cape passage; pp. 238–239, crew list)", author: "Antonio Pigafetta, translated and edited by James Alexander Robertson", publisher: "The Arthur H. Clark Company, Cleveland", year: 1906, url: "https://archive.org/details/magellansvoyagea02piga/page/236/mode/2up"}
 ```
@@ -328,7 +330,7 @@ effects:
 audio: {cues: []}
 meanwhile: auto
 sources:
-  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 161–162)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/161/mode/2up"}
+  - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 39, 161–162)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/161/mode/2up"}
   - {title: "Letter to Charles V, Sanlúcar, 6 September 1522 (extract in The Longest Voyage: The Return, section Elcano's letter to Emperor Charles V)", author: "Juan Sebastián Elcano", publisher: "Archivo General de Indias and Acción Cultural Española, Google Arts & Culture", year: 1522, url: "https://artsandculture.google.com/story/the-longest-voyage-the-return/zAVhmCkls3oeTA"}
 ```
 
