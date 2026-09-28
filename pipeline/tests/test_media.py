@@ -72,6 +72,7 @@ def test_the_stage_writes_both_keys_and_locks_them_with_the_credit_and_license(t
     assert image["credit"] == "Test Pattern, L. Hebert"
     assert image["license"] == "Public domain"
     assert image["source"] == "https://commons.wikimedia.org/wiki/File:Wander_test_quadrants.jpg"
+    assert "collection" not in image
 
 
 def test_a_beats_own_credit_and_license_stand_in_for_commons(tmp_path):
@@ -83,3 +84,16 @@ def test_a_beats_own_credit_and_license_stand_in_for_commons(tmp_path):
 
     [image] = json.loads((story.parent / "story.lock.json").read_text(encoding="utf-8"))["images"]
     assert (image["credit"], image["license"]) == ("L. Hebert", "No known copyright restrictions")
+
+
+def test_a_beats_collection_is_locked_as_the_story_words_it(tmp_path):
+    story = tmp_path / "stories" / "test" / "story.md"
+    story.parent.mkdir(parents=True)
+    rumsey = "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries"
+    story.write_text(
+        STORY.replace("  crop:", f'  collection: "{rumsey}"\n  crop:'), encoding="utf-8"
+    )
+    media.run(make_context(Profile.FIXTURE, 1, tmp_path, story="test", offline=True))
+
+    [image] = json.loads((story.parent / "story.lock.json").read_text(encoding="utf-8"))["images"]
+    assert image["collection"] == rumsey

@@ -2,7 +2,8 @@
 originals into the profile's output root, with the story's committed lock.
 
 `uv run prebuild media --story <id>` reads the `image` of every beat in
-`stories/<id>/story.md` (`{commons, sha1, crop, alt, credit?, license?}`), and for each:
+`stories/<id>/story.md` (`{commons, sha1, crop, alt, credit?, license?, collection?}`), and for
+each:
 
 - asks Commons' API for the file by title, takes the revision whose sha1 is the one the story
   pins, and downloads that original into `build/cache/commons/` (once; later runs reuse it after
@@ -20,8 +21,10 @@ credit, the license and the file's page. The credit names the artists from Commo
 Credit field; the license is Commons' LicenseShortName as it stands. A beat's own `credit` and
 `license` stand in for Commons' where the story words them better: the makers when Commons' Artist
 names an uploader or spells a name otherwise than the credits page, and the source's own rights
-statement where Commons gives only its template's short name. The release names every key a lock
-lists (app/scripts/release.ts), so `npm run publish-data` uploads them.
+statement where Commons gives only its template's short name. A beat's `collection`, the holding
+collection's own credit line where it asks to be credited so (the David Rumsey Map Collection's),
+is locked beside the credit. The release names every key a lock lists (app/scripts/release.ts), so
+`npm run publish-data` uploads them.
 
 `--offline` reads the committed sources in `pipeline/tests/data/media/` instead of Commons: the
 files themselves and, in `commons.json`, the metadata the API would give for each title. The stage
@@ -82,6 +85,7 @@ class StoryImage:
     crop: Crop  # fractions of the original: x0, y0, x1, y1
     credit: str | None  # the makers, as the story words them, over Commons' Artist field
     license: str | None  # the rights statement, as the story words it, over Commons' short name
+    collection: str | None  # the holding collection's credit line, where it asks for one
 
 
 @dataclass(frozen=True)
@@ -160,6 +164,7 @@ def story_images(markdown: str) -> list[StoryImage]:
         if not SHA1.fullmatch(sha1):
             raise MediaError(f"{where}: sha1 {sha1!r} is not 40 hex digits")
         credit, license = image.get("credit"), image.get("license")
+        collection = image.get("collection")
         images.append(
             StoryImage(
                 beat=str(beat["id"]),
@@ -168,6 +173,7 @@ def story_images(markdown: str) -> list[StoryImage]:
                 crop=(crop[0], crop[1], crop[2], crop[3]),
                 credit=None if credit is None else str(credit),
                 license=None if license is None else str(license),
+                collection=None if collection is None else str(collection),
             )
         )
     return images
@@ -234,12 +240,14 @@ def lock_entry(
         {"key": keys[w], "w": baked[w].w, "h": baked[w].h, "bytes": len(baked[w].data)}
         for w in WIDTHS
     ]
+    collection = {} if image.collection is None else {"collection": image.collection}
     return {
         "commons": image.commons,
         "sha1": image.sha1,
         "crop": list(image.crop),
         "files": files,
         "credit": image.credit or credit_line(original.artist, original.credit),
+        **collection,
         "license": image.license or plain_text(original.license),
         "source": original.source,
     }
