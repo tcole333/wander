@@ -59,20 +59,6 @@ MIN_KM = 2000.0  # from the beat's target, and between entries
 GLOW_COUNT = 120
 GLOW_MIN_KM = 450.0
 EARTH_KM = 6371.0088
-MONTH_NAMES = (
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-)
 
 type LonLat = tuple[float, float]
 
@@ -449,9 +435,9 @@ def entry(
     event: Event, written: Mapping[str, Any] | None = None, *, line: bool = True
 ) -> dict[str, Any]:
     """An entry as the lock gives it: the label with its first letter capitalized, the date and
-    its label at its precision, the place, the source, and for a beat's entry (`line`) its written
-    line. Where the event has a written line, the entry cites its source, and takes the date the
-    source gives where that differs from Wikidata's."""
+    its precision, the place, the source, and for a beat's entry (`line`) its written line. Where
+    the event has a written line, the entry cites its source, and takes the date the source gives
+    where that differs from Wikidata's."""
     day, precision = event.date, event.precision
     if written is not None and "date" in written:
         day, precision = iso_day(str(written["date"])), events.DAY
@@ -459,7 +445,7 @@ def entry(
         "qid": event.qid,
         "label": event.label[:1].upper() + event.label[1:],
         "date": events.iso(civil(day)),
-        "dateLabel": date_label(day, precision),
+        "precision": precision_name(precision),
         "at": list(event.at),
     }
     if written is not None and line:
@@ -479,15 +465,11 @@ def article(event: Event) -> dict[str, str]:
     return {"title": f"{event.enwiki} (Wikipedia)", "url": f"https://en.wikipedia.org/wiki/{path}"}
 
 
-def date_label(day: int, precision: int) -> str:
-    """'18 June 1815', 'June 1815' or '1815', as the date's precision allows."""
-    year, month, date = civil(day)
-    shown = str(year) if year > 0 else f"{1 - year} BC"
+def precision_name(precision: int) -> str:
+    """Wikidata's precision as the app's dates.ts names it."""
     if precision <= events.YEAR:
-        return shown
-    if precision == events.MONTH:
-        return f"{MONTH_NAMES[month - 1]} {shown}"
-    return f"{date} {MONTH_NAMES[month - 1]} {shown}"
+        return "year"
+    return "month" if precision == events.MONTH else "day"
 
 
 # Day numbers: days since 0001-01-01, proleptic Gregorian, astronomical years (as dates.ts)

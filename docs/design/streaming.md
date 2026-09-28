@@ -707,9 +707,9 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
 - **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages, committed):
   `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?, license, source}], audio:
   [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry, …]}, months: {"YYYY-MM":
-  [entry, …]}}, glows: [{qid, label, at}]}`, an entry being `{qid, label, date, dateLabel, at,
-  line?, source: {title, url}}` with `dateLabel` at the date's precision ('18 June 1815', 'June
-  1815', '1816'). Each stage rewrites its own sections and keeps the rest. An image's entry is found by its sha1 and crop, so a recrop needs a new
+  [entry, …]}}, glows: [{qid, label, at}]}`, an entry being `{qid, label, date, precision, at,
+  line?, source: {title, url}}`: an ISO date and its precision (day, month or year), which the app
+  prints with `dates.ts` as it prints a beat's ('18 June 1815', 'June 1815', '1816'). Each stage rewrites its own sections and keeps the rest. An image's entry is found by its sha1 and crop, so a recrop needs a new
   bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the Artist
   field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else Commons'
   Credit; `collection` is the story's own, when the beat names one; `license` is the story's own `license` when the beat gives one, else Commons'

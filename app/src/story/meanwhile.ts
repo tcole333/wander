@@ -1,9 +1,10 @@
 // Meanwhile's entries as the walk's UI takes them, from the story's lock (lock.ts), where the
 // prebuild's meanwhile stage puts them (streaming.md 3.9): each beat's, which show the lines the
 // story's writers give them, and each month's for scrubbing, which show the Wikidata label. The
-// lock gives each date as an ISO string; the UI's entries carry day numbers (dates.ts).
+// lock gives each date as an ISO string with its precision; the UI's entries carry day numbers and
+// the date as the panel prints it (dates.ts).
 import type { Meanwhile, MeanwhileEntry, MeanwhileMonth } from './contract';
-import { civilFromDay, dayFromCivil, dayFromIso } from './dates';
+import { civilFromDay, dayFromCivil, dayFromIso, formatDay, type Precision } from './dates';
 import type { LockedEvent, StoryLock } from './lock';
 import type { LonLat } from './story';
 
@@ -35,14 +36,20 @@ export function glowsFromLock(lock: StoryLock): LonLat[] {
 }
 
 function fromLock(event: LockedEvent): MeanwhileEntry {
+  const day = dayFromIso(event.date);
   return {
     label: event.line ?? event.label,
-    day: dayFromIso(event.date),
-    dateLabel: event.dateLabel,
+    day,
+    dateLabel: formatDay(day, precision(event.precision, event.label)),
     at: lonLat(event.at, event.label),
     qid: event.qid,
     source: event.source,
   };
+}
+
+function precision(value: string, label: string): Precision {
+  if (value === 'day' || value === 'month' || value === 'year') return value;
+  throw new RangeError(`Meanwhile's '${label}' has no precision day, month or year: ${value}`);
 }
 
 function lonLat(at: number[], label: string): LonLat {

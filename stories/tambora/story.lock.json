@@ -227,7 +227,7 @@
           "qid": "Q1359641",
           "label": "Battle of Tolentino",
           "date": "1815-05-03",
-          "dateLabel": "3 May 1815",
+          "precision": "day",
           "at": [
             13.29111,
             43.21361
@@ -242,7 +242,7 @@
           "qid": "Q3538392",
           "label": "Kandyan Convention",
           "date": "1815-03-02",
-          "dateLabel": "2 March 1815",
+          "precision": "day",
           "at": [
             80.64139,
             7.29361
@@ -257,7 +257,7 @@
           "qid": "Q54322416",
           "label": "Treaty of Nicolls' Outpost",
           "date": "1815-03-10",
-          "dateLabel": "10 March 1815",
+          "precision": "day",
           "at": [
             -84.8568,
             30.7006
@@ -274,7 +274,7 @@
           "qid": "Q14833923",
           "label": "Takovo Meeting",
           "date": "1815-04-23",
-          "dateLabel": "23 April 1815",
+          "precision": "day",
           "at": [
             20.37328,
             44.04343
@@ -289,7 +289,7 @@
           "qid": "Q25412993",
           "label": "New Granadan Siege of Cartagena de Indias",
           "date": "1815-03-26",
-          "dateLabel": "26 March 1815",
+          "precision": "day",
           "at": [
             -75.52528,
             10.42361
@@ -304,7 +304,7 @@
           "qid": "Q3538392",
           "label": "Kandyan Convention",
           "date": "1815-03-02",
-          "dateLabel": "2 March 1815",
+          "precision": "day",
           "at": [
             80.64139,
             7.29361
@@ -321,7 +321,7 @@
           "qid": "Q298864",
           "label": "Neapolitan War",
           "date": "1815-05-20",
-          "dateLabel": "20 May 1815",
+          "precision": "day",
           "at": [
             12.5,
             42.5
@@ -336,7 +336,7 @@
           "qid": "Q54322416",
           "label": "Treaty of Nicolls' Outpost",
           "date": "1815-03-10",
-          "dateLabel": "10 March 1815",
+          "precision": "day",
           "at": [
             -84.8568,
             30.7006
@@ -351,7 +351,7 @@
           "qid": "Q3538392",
           "label": "Kandyan Convention",
           "date": "1815-03-02",
-          "dateLabel": "2 March 1815",
+          "precision": "day",
           "at": [
             80.64139,
             7.29361
@@ -368,7 +368,7 @@
           "qid": "Q46362",
           "label": "Congress of Vienna",
           "date": "1815-01-01",
-          "dateLabel": "1815",
+          "precision": "year",
           "at": [
             16.36381,
             48.2085
@@ -383,7 +383,7 @@
           "qid": "Q3248484",
           "label": "Argentine Declaration of Independence",
           "date": "1816-07-09",
-          "dateLabel": "9 July 1816",
+          "precision": "day",
           "at": [
             -65.20333,
             -26.83333
@@ -398,7 +398,7 @@
           "qid": "Q1757487",
           "label": "Battle of Seven Oaks",
           "date": "1816-06-19",
-          "dateLabel": "19 June 1816",
+          "precision": "day",
           "at": [
             -97.121,
             49.932
@@ -415,7 +415,7 @@
           "qid": "Q48314",
           "label": "Battle of Waterloo",
           "date": "1815-06-18",
-          "dateLabel": "18 June 1815",
+          "precision": "day",
           "at": [
             4.41222,
             50.67806
@@ -430,7 +430,7 @@
           "qid": "Q5010928",
           "label": "Slachter's Nek Rebellion",
           "date": "1815-01-01",
-          "dateLabel": "1815",
+          "precision": "year",
           "at": [
             18.0,
             -33.0
@@ -445,7 +445,7 @@
           "qid": "Q2890016",
           "label": "Battle of Sipe-Sipe",
           "date": "1815-11-29",
-          "dateLabel": "29 November 1815",
+          "precision": "day",
           "at": [
             -66.34781,
             -17.45613
@@ -462,7 +462,7 @@
           "qid": "Q3248484",
           "label": "Argentine Declaration of Independence",
           "date": "1816-07-09",
-          "dateLabel": "9 July 1816",
+          "precision": "day",
           "at": [
             -65.20333,
             -26.83333
@@ -477,7 +477,7 @@
           "qid": "Q1757487",
           "label": "Battle of Seven Oaks",
           "date": "1816-06-19",
-          "dateLabel": "19 June 1816",
+          "precision": "day",
           "at": [
             -97.121,
             49.932
@@ -492,7 +492,7 @@
           "qid": "Q2890524",
           "label": "Battle of Cuchilla del Tambo",
           "date": "1816-06-29",
-          "dateLabel": "29 June 1816",
+          "precision": "day",
           "at": [
             -76.8178,
             2.45417
@@ -509,7 +509,7 @@
           "qid": "Q1425658",
           "label": "Battle of Chacabuco",
           "date": "1817-02-12",
-          "dateLabel": "12 February 1817",
+          "precision": "day",
           "at": [
             -70.68389,
             -32.99306
@@ -524,7 +524,7 @@
           "qid": "Q7837193",
           "label": "Treaty of Poona",
           "date": "1817-06-13",
-          "dateLabel": "13 June 1817",
+          "precision": "day",
           "at": [
             73.85528,
             18.52111
@@ -539,7 +539,7 @@
           "qid": "Q7165306",
           "label": "Pentrich Rising",
           "date": "1817-06-09",
-          "dateLabel": "9 June 1817",
+          "precision": "day",
           "at": [
             -1.42,
             53.07
@@ -556,7 +556,7 @@
           "qid": "Q617210",
           "label": "Third Anglo-Maratha War",
           "date": "1817-11-05",
-          "dateLabel": "5 November 1817",
+          "precision": "day",
           "at": [
             75.71389,
             19.75148
@@ -571,7 +571,7 @@
           "qid": "Q233688",
           "label": "Treaty of Paris",
           "date": "1815-11-20",
-          "dateLabel": "20 November 1815",
+          "precision": "day",
           "at": [
             2.35222,
             48.85667
@@ -586,7 +586,7 @@
           "qid": "Q3248484",
           "label": "Argentine Declaration of Independence",
           "date": "1816-07-09",
-          "dateLabel": "9 July 1816",
+          "precision": "day",
           "at": [
             -65.20333,
             -26.83333
@@ -605,7 +605,7 @@
           "qid": "Q1324198",
           "label": "Treaty of Ghent",
           "date": "1814-12-24",
-          "dateLabel": "24 December 1814",
+          "precision": "day",
           "at": [
             3.72167,
             51.05167
@@ -619,7 +619,7 @@
           "qid": "Q41894",
           "label": "Battle of New Orleans",
           "date": "1815-01-08",
-          "dateLabel": "8 January 1815",
+          "precision": "day",
           "at": [
             -89.99083,
             29.9425
@@ -633,7 +633,7 @@
           "qid": "Q5723109",
           "label": "Battle of Urica",
           "date": "1814-12-05",
-          "dateLabel": "5 December 1814",
+          "precision": "day",
           "at": [
             -64.008,
             9.714
@@ -649,7 +649,7 @@
           "qid": "Q4871048",
           "label": "Battle of Fort Peter",
           "date": "1815-01-13",
-          "dateLabel": "13 January 1815",
+          "precision": "day",
           "at": [
             -81.51667,
             30.75694
@@ -663,7 +663,7 @@
           "qid": "Q25412993",
           "label": "New Granadan Siege of Cartagena de Indias",
           "date": "1815-03-26",
-          "dateLabel": "26 March 1815",
+          "precision": "day",
           "at": [
             -75.52528,
             10.42361
@@ -677,7 +677,7 @@
           "qid": "Q65150830",
           "label": "Battle of Montélimar",
           "date": "1815-03-30",
-          "dateLabel": "30 March 1815",
+          "precision": "day",
           "at": [
             4.75083,
             44.55806
@@ -693,7 +693,7 @@
           "qid": "Q3538392",
           "label": "Kandyan Convention",
           "date": "1815-03-02",
-          "dateLabel": "2 March 1815",
+          "precision": "day",
           "at": [
             80.64139,
             7.29361
@@ -707,7 +707,7 @@
           "qid": "Q14833923",
           "label": "Takovo Meeting",
           "date": "1815-04-23",
-          "dateLabel": "23 April 1815",
+          "precision": "day",
           "at": [
             20.37328,
             44.04343
@@ -721,7 +721,7 @@
           "qid": "Q54322416",
           "label": "Treaty of Nicolls' Outpost",
           "date": "1815-03-10",
-          "dateLabel": "10 March 1815",
+          "precision": "day",
           "at": [
             -84.8568,
             30.7006
@@ -737,7 +737,7 @@
           "qid": "Q298864",
           "label": "Neapolitan War",
           "date": "1815-05-20",
-          "dateLabel": "20 May 1815",
+          "precision": "day",
           "at": [
             12.5,
             42.5
@@ -751,7 +751,7 @@
           "qid": "Q25412993",
           "label": "New Granadan Siege of Cartagena de Indias",
           "date": "1815-03-26",
-          "dateLabel": "26 March 1815",
+          "precision": "day",
           "at": [
             -75.52528,
             10.42361
@@ -765,7 +765,7 @@
           "qid": "Q3538392",
           "label": "Kandyan Convention",
           "date": "1815-03-02",
-          "dateLabel": "2 March 1815",
+          "precision": "day",
           "at": [
             80.64139,
             7.29361
@@ -781,7 +781,7 @@
           "qid": "Q233505",
           "label": "Second Barbary War",
           "date": "1815-06-17",
-          "dateLabel": "17 June 1815",
+          "precision": "day",
           "at": [
             17.0,
             38.0
@@ -795,7 +795,7 @@
           "qid": "Q4873014",
           "label": "Battle of the Sink Hole",
           "date": "1815-05-24",
-          "dateLabel": "24 May 1815",
+          "precision": "day",
           "at": [
             -90.68707,
             38.93338
@@ -811,7 +811,7 @@
           "qid": "Q48314",
           "label": "Battle of Waterloo",
           "date": "1815-06-18",
-          "dateLabel": "18 June 1815",
+          "precision": "day",
           "at": [
             4.41222,
             50.67806
@@ -825,7 +825,7 @@
           "qid": "Q16825552",
           "label": "Capture of East India Company ship Nautilus",
           "date": "1815-06-30",
-          "dateLabel": "30 June 1815",
+          "precision": "day",
           "at": [
             105.76972,
             -5.97028
@@ -839,7 +839,7 @@
           "qid": "Q613183",
           "label": "Battle of the Palo River",
           "date": "1815-07-05",
-          "dateLabel": "5 July 1815",
+          "precision": "day",
           "at": [
             -76.40778,
             3.03556
@@ -855,7 +855,7 @@
           "qid": "Q233505",
           "label": "Second Barbary War",
           "date": "1815-06-17",
-          "dateLabel": "17 June 1815",
+          "precision": "day",
           "at": [
             17.0,
             38.0
@@ -869,7 +869,7 @@
           "qid": "Q2888313",
           "label": "Battle of Châteauneuf-du-Faou",
           "date": "1815-07-01",
-          "dateLabel": "1 July 1815",
+          "precision": "day",
           "at": [
             -3.81306,
             48.1875
@@ -883,7 +883,7 @@
           "qid": "Q16848306",
           "label": "Invasion of Guadeloupe",
           "date": "1815-08-10",
-          "dateLabel": "10 August 1815",
+          "precision": "day",
           "at": [
             -61.5,
             16.25
@@ -899,7 +899,7 @@
           "qid": "Q4871288",
           "label": "Battle of Issy",
           "date": "1815-07-03",
-          "dateLabel": "3 July 1815",
+          "precision": "day",
           "at": [
             2.27,
             48.8239
@@ -913,7 +913,7 @@
           "qid": "Q613183",
           "label": "Battle of the Palo River",
           "date": "1815-07-05",
-          "dateLabel": "5 July 1815",
+          "precision": "day",
           "at": [
             -76.40778,
             3.03556
@@ -927,7 +927,7 @@
           "qid": "Q4871304",
           "label": "Battle of Jaithak",
           "date": "1815-09-25",
-          "dateLabel": "25 September 1815",
+          "precision": "day",
           "at": [
             77.3372,
             30.59593
@@ -943,7 +943,7 @@
           "qid": "Q115663901",
           "label": "Pronunciamiento of Porlier",
           "date": "1815-09-17",
-          "dateLabel": "17 September 1815",
+          "precision": "day",
           "at": [
             -8.39611,
             43.37111
@@ -957,7 +957,7 @@
           "qid": "Q6394693",
           "label": "Battle of Venta y Media",
           "date": "1815-10-20",
-          "dateLabel": "20 October 1815",
+          "precision": "day",
           "at": [
             -67.66667,
             -18.66667
@@ -971,7 +971,7 @@
           "qid": "Q16848306",
           "label": "Invasion of Guadeloupe",
           "date": "1815-08-10",
-          "dateLabel": "10 August 1815",
+          "precision": "day",
           "at": [
             -61.5,
             16.25
@@ -987,7 +987,7 @@
           "qid": "Q4870957",
           "label": "Battle of El Roble",
           "date": "1815-10-17",
-          "dateLabel": "17 October 1815",
+          "precision": "day",
           "at": [
             -72.41338,
             -36.75627
@@ -1001,7 +1001,7 @@
           "qid": "Q4871304",
           "label": "Battle of Jaithak",
           "date": "1815-09-25",
-          "dateLabel": "25 September 1815",
+          "precision": "day",
           "at": [
             77.3372,
             30.59593
@@ -1015,7 +1015,7 @@
           "qid": "Q26160634",
           "label": "Batalla de Santa Bárbara",
           "date": "1815-10-07",
-          "dateLabel": "7 October 1815",
+          "precision": "day",
           "at": [
             -60.64972,
             -16.87917
@@ -1031,7 +1031,7 @@
           "qid": "Q233688",
           "label": "Treaty of Paris",
           "date": "1815-11-20",
-          "dateLabel": "20 November 1815",
+          "precision": "day",
           "at": [
             2.35222,
             48.85667
@@ -1045,7 +1045,7 @@
           "qid": "Q2890016",
           "label": "Battle of Sipe-Sipe",
           "date": "1815-11-29",
-          "dateLabel": "29 November 1815",
+          "precision": "day",
           "at": [
             -66.34781,
             -17.45613
@@ -1059,7 +1059,7 @@
           "qid": "Q4870957",
           "label": "Battle of El Roble",
           "date": "1815-10-17",
-          "dateLabel": "17 October 1815",
+          "precision": "day",
           "at": [
             -72.41338,
             -36.75627
@@ -1075,7 +1075,7 @@
           "qid": "Q233688",
           "label": "Treaty of Paris",
           "date": "1815-11-20",
-          "dateLabel": "20 November 1815",
+          "precision": "day",
           "at": [
             2.35222,
             48.85667
@@ -1089,7 +1089,7 @@
           "qid": "Q2890016",
           "label": "Battle of Sipe-Sipe",
           "date": "1815-11-29",
-          "dateLabel": "29 November 1815",
+          "precision": "day",
           "at": [
             -66.34781,
             -17.45613
@@ -1105,7 +1105,7 @@
           "qid": "Q4872303",
           "label": "Battle of Santa Ana",
           "date": "1816-02-22",
-          "dateLabel": "22 February 1816",
+          "precision": "day",
           "at": [
             -53.15,
             -29.75
@@ -1119,7 +1119,7 @@
           "qid": "Q109236872",
           "label": "1816 North Atlantic earthquake",
           "date": "1816-02-02",
-          "dateLabel": "2 February 1816",
+          "precision": "day",
           "at": [
             -19.8,
             37.8
@@ -1133,7 +1133,7 @@
           "qid": "Q2888225",
           "label": "Battle of Cachirí",
           "date": "1816-02-22",
-          "dateLabel": "22 February 1816",
+          "precision": "day",
           "at": [
             -72.98611,
             7.53833
@@ -1149,7 +1149,7 @@
           "qid": "Q118143703",
           "label": "Battle of Ceja Alta del Cancán",
           "date": "1816-03-18",
-          "dateLabel": "18 March 1816",
+          "precision": "day",
           "at": [
             -75.56667,
             6.68333
@@ -1163,7 +1163,7 @@
           "qid": "Q4872303",
           "label": "Battle of Santa Ana",
           "date": "1816-02-22",
-          "dateLabel": "22 February 1816",
+          "precision": "day",
           "at": [
             -53.15,
             -29.75
@@ -1177,7 +1177,7 @@
           "qid": "Q109236872",
           "label": "1816 North Atlantic earthquake",
           "date": "1816-02-02",
-          "dateLabel": "2 February 1816",
+          "precision": "day",
           "at": [
             -19.8,
             37.8
@@ -1193,7 +1193,7 @@
           "qid": "Q2888225",
           "label": "Battle of Cachirí",
           "date": "1816-02-22",
-          "dateLabel": "22 February 1816",
+          "precision": "day",
           "at": [
             -72.98611,
             7.53833
@@ -1207,7 +1207,7 @@
           "qid": "Q2518869",
           "label": "Treaty of Munich (1816)",
           "date": "1816-04-14",
-          "dateLabel": "14 April 1816",
+          "precision": "day",
           "at": [
             11.575,
             48.1375
@@ -1221,7 +1221,7 @@
           "qid": "Q4872303",
           "label": "Battle of Santa Ana",
           "date": "1816-02-22",
-          "dateLabel": "22 February 1816",
+          "precision": "day",
           "at": [
             -53.15,
             -29.75
@@ -1237,7 +1237,7 @@
           "qid": "Q41790626",
           "label": "Appin massacre",
           "date": "1816-04-17",
-          "dateLabel": "17 April 1816",
+          "precision": "day",
           "at": [
             150.742,
             -34.23
@@ -1251,7 +1251,7 @@
           "qid": "Q118143703",
           "label": "Battle of Ceja Alta del Cancán",
           "date": "1816-03-18",
-          "dateLabel": "18 March 1816",
+          "precision": "day",
           "at": [
             -75.56667,
             6.68333
@@ -1265,7 +1265,7 @@
           "qid": "Q2518869",
           "label": "Treaty of Munich (1816)",
           "date": "1816-04-14",
-          "dateLabel": "14 April 1816",
+          "precision": "day",
           "at": [
             11.575,
             48.1375
@@ -1281,7 +1281,7 @@
           "qid": "Q1757487",
           "label": "Battle of Seven Oaks",
           "date": "1816-06-19",
-          "dateLabel": "19 June 1816",
+          "precision": "day",
           "at": [
             -97.121,
             49.932
@@ -1295,7 +1295,7 @@
           "qid": "Q2518869",
           "label": "Treaty of Munich (1816)",
           "date": "1816-04-14",
-          "dateLabel": "14 April 1816",
+          "precision": "day",
           "at": [
             11.575,
             48.1375
@@ -1309,7 +1309,7 @@
           "qid": "Q2890524",
           "label": "Battle of Cuchilla del Tambo",
           "date": "1816-06-29",
-          "dateLabel": "29 June 1816",
+          "precision": "day",
           "at": [
             -76.8178,
             2.45417
@@ -1325,7 +1325,7 @@
           "qid": "Q25230631",
           "label": "1816 Guatemala earthquake",
           "date": "1816-07-22",
-          "dateLabel": "22 July 1816",
+          "precision": "day",
           "at": [
             -91.5,
             15.5
@@ -1339,7 +1339,7 @@
           "qid": "Q3248484",
           "label": "Argentine Declaration of Independence",
           "date": "1816-07-09",
-          "dateLabel": "9 July 1816",
+          "precision": "day",
           "at": [
             -65.20333,
             -26.83333
@@ -1353,7 +1353,7 @@
           "qid": "Q1757487",
           "label": "Battle of Seven Oaks",
           "date": "1816-06-19",
-          "dateLabel": "19 June 1816",
+          "precision": "day",
           "at": [
             -97.121,
             49.932
@@ -1369,7 +1369,7 @@
           "qid": "Q2890524",
           "label": "Battle of Cuchilla del Tambo",
           "date": "1816-06-29",
-          "dateLabel": "29 June 1816",
+          "precision": "day",
           "at": [
             -76.8178,
             2.45417
@@ -1383,7 +1383,7 @@
           "qid": "Q4871874",
           "label": "Negro Fort",
           "date": "1816-07-27",
-          "dateLabel": "27 July 1816",
+          "precision": "day",
           "at": [
             -85.01127,
             29.93824
@@ -1397,7 +1397,7 @@
           "qid": "Q3248484",
           "label": "Argentine Declaration of Independence",
           "date": "1816-07-09",
-          "dateLabel": "9 July 1816",
+          "precision": "day",
           "at": [
             -65.20333,
             -26.83333
@@ -1413,7 +1413,7 @@
           "qid": "Q28433158",
           "label": "Treaty of St. Louis",
           "date": "1816-08-24",
-          "dateLabel": "24 August 1816",
+          "precision": "day",
           "at": [
             -90.3431,
             38.9264
@@ -1427,7 +1427,7 @@
           "qid": "Q25230631",
           "label": "1816 Guatemala earthquake",
           "date": "1816-07-22",
-          "dateLabel": "22 July 1816",
+          "precision": "day",
           "at": [
             -91.5,
             15.5
@@ -1441,7 +1441,7 @@
           "qid": "Q137845888",
           "label": "Arichuna mutiny",
           "date": "1816-09-16",
-          "dateLabel": "16 September 1816",
+          "precision": "day",
           "at": [
             -67.1201,
             7.7148
@@ -1457,7 +1457,7 @@
           "qid": "Q4870666",
           "label": "Battle of Carumbé",
           "date": "1816-10-27",
-          "dateLabel": "27 October 1816",
+          "precision": "day",
           "at": [
             -53.15,
             -29.75
@@ -1471,7 +1471,7 @@
           "qid": "Q12241904",
           "label": "Al-Jawazi massacre",
           "date": "1816-09-05",
-          "dateLabel": "5 September 1816",
+          "precision": "day",
           "at": [
             20.06667,
             32.11667
@@ -1485,7 +1485,7 @@
           "qid": "Q28433158",
           "label": "Treaty of St. Louis",
           "date": "1816-08-24",
-          "dateLabel": "24 August 1816",
+          "precision": "day",
           "at": [
             -90.3431,
             38.9264
@@ -1501,7 +1501,7 @@
           "qid": "Q5722534",
           "label": "Battle of Ibiraocaí",
           "date": "1816-10-19",
-          "dateLabel": "19 October 1816",
+          "precision": "day",
           "at": [
             -53.15,
             -29.75
@@ -1515,7 +1515,7 @@
           "qid": "Q137845888",
           "label": "Arichuna mutiny",
           "date": "1816-09-16",
-          "dateLabel": "16 September 1816",
+          "precision": "day",
           "at": [
             -67.1201,
             7.7148
@@ -1529,7 +1529,7 @@
           "qid": "Q12241904",
           "label": "Al-Jawazi massacre",
           "date": "1816-09-05",
-          "dateLabel": "5 September 1816",
+          "precision": "day",
           "at": [
             20.06667,
             32.11667
@@ -1545,7 +1545,7 @@
           "qid": "Q2887992",
           "label": "Battle of India Muerta",
           "date": "1816-11-18",
-          "dateLabel": "18 November 1816",
+          "precision": "day",
           "at": [
             -54.295,
             -34.09389
@@ -1559,7 +1559,7 @@
           "qid": "Q5722449",
           "label": "Batalla de El Pari",
           "date": "1816-11-21",
-          "dateLabel": "21 November 1816",
+          "precision": "day",
           "at": [
             -63.19217,
             -17.79809
@@ -1575,7 +1575,7 @@
           "qid": "Q5723296",
           "label": "Battle of Catalán",
           "date": "1817-01-04",
-          "dateLabel": "4 January 1817",
+          "precision": "day",
           "at": [
             -56.32444,
             -30.53139
@@ -1589,7 +1589,7 @@
           "qid": "Q5722350",
           "label": "Battle of Clarines",
           "date": "1817-01-09",
-          "dateLabel": "9 January 1817",
+          "precision": "day",
           "at": [
             -65.16611,
             9.94333
@@ -1605,7 +1605,7 @@
           "qid": "Q5722190",
           "label": "Battle of Angostura",
           "date": "1817-01-18",
-          "dateLabel": "18 January 1817",
+          "precision": "day",
           "at": [
             -63.54827,
             8.13793
@@ -1619,7 +1619,7 @@
           "qid": "Q5722200",
           "label": "Battle of Arapey",
           "date": "1817-01-03",
-          "dateLabel": "3 January 1817",
+          "precision": "day",
           "at": [
             -57.9339,
             -31.39063
@@ -1635,7 +1635,7 @@
           "qid": "Q1425658",
           "label": "Battle of Chacabuco",
           "date": "1817-02-12",
-          "dateLabel": "12 February 1817",
+          "precision": "day",
           "at": [
             -70.68389,
             -32.99306
@@ -1649,7 +1649,7 @@
           "qid": "Q5722350",
           "label": "Battle of Clarines",
           "date": "1817-01-09",
-          "dateLabel": "9 January 1817",
+          "precision": "day",
           "at": [
             -65.16611,
             9.94333
@@ -1663,7 +1663,7 @@
           "qid": "Q44533886",
           "label": "1817 Arnedo and Prejano earthquake",
           "date": "1817-03-18",
-          "dateLabel": "18 March 1817",
+          "precision": "day",
           "at": [
             -2.1715,
             42.2002
@@ -1679,7 +1679,7 @@
           "qid": "Q4872823",
           "label": "Battle of Tarija",
           "date": "1817-04-14",
-          "dateLabel": "14 April 1817",
+          "precision": "day",
           "at": [
             -64.73428,
             -21.53392
@@ -1693,7 +1693,7 @@
           "qid": "Q47808370",
           "label": "Siege of Barcelona",
           "date": "1817-02-07",
-          "dateLabel": "7 February 1817",
+          "precision": "day",
           "at": [
             -64.68333,
             10.13333
@@ -1707,7 +1707,7 @@
           "qid": "Q44533886",
           "label": "1817 Arnedo and Prejano earthquake",
           "date": "1817-03-18",
-          "dateLabel": "18 March 1817",
+          "precision": "day",
           "at": [
             -2.1715,
             42.2002
@@ -1723,7 +1723,7 @@
           "qid": "Q5722885",
           "label": "Battle of San Félix",
           "date": "1817-04-11",
-          "dateLabel": "11 April 1817",
+          "precision": "day",
           "at": [
             -62.6221,
             8.31764
@@ -1737,7 +1737,7 @@
           "qid": "Q4870816",
           "label": "Battle of Curapalihue",
           "date": "1817-04-04",
-          "dateLabel": "4 April 1817",
+          "precision": "day",
           "at": [
             -72.7158,
             -36.8656
@@ -1751,7 +1751,7 @@
           "qid": "Q44533886",
           "label": "1817 Arnedo and Prejano earthquake",
           "date": "1817-03-18",
-          "dateLabel": "18 March 1817",
+          "precision": "day",
           "at": [
             -2.1715,
             42.2002
@@ -1767,7 +1767,7 @@
           "qid": "Q6123581",
           "label": "Second Battle of Angostura",
           "date": "1817-05-02",
-          "dateLabel": "2 May 1817",
+          "precision": "day",
           "at": [
             -63.54827,
             8.13793
@@ -1781,7 +1781,7 @@
           "qid": "Q545795",
           "label": "Battle of Valle de Maíz",
           "date": "1817-06-18",
-          "dateLabel": "18 June 1817",
+          "precision": "day",
           "at": [
             -99.6,
             22.4
@@ -1795,7 +1795,7 @@
           "qid": "Q4872823",
           "label": "Battle of Tarija",
           "date": "1817-04-14",
-          "dateLabel": "14 April 1817",
+          "precision": "day",
           "at": [
             -64.73428,
             -21.53392
@@ -1811,7 +1811,7 @@
           "qid": "Q7837193",
           "label": "Treaty of Poona",
           "date": "1817-06-13",
-          "dateLabel": "13 June 1817",
+          "precision": "day",
           "at": [
             73.85528,
             18.52111
@@ -1825,7 +1825,7 @@
           "qid": "Q7165306",
           "label": "Pentrich Rising",
           "date": "1817-06-09",
-          "dateLabel": "9 June 1817",
+          "precision": "day",
           "at": [
             -1.42,
             53.07
@@ -1839,7 +1839,7 @@
           "qid": "Q16531744",
           "label": "Battle of Pagallos",
           "date": "1817-07-08",
-          "dateLabel": "8 July 1817",
+          "precision": "day",
           "at": [
             -61.0,
             8.53
@@ -1855,7 +1855,7 @@
           "qid": "Q6394358",
           "label": "Battle of Apósteles",
           "date": "1817-07-02",
-          "dateLabel": "2 July 1817",
+          "precision": "day",
           "at": [
             -55.76667,
             -27.91667
@@ -1869,7 +1869,7 @@
           "qid": "Q545795",
           "label": "Battle of Valle de Maíz",
           "date": "1817-06-18",
-          "dateLabel": "18 June 1817",
+          "precision": "day",
           "at": [
             -99.6,
             22.4
@@ -1883,7 +1883,7 @@
           "qid": "Q5024088",
           "label": "Treaty of Madrid",
           "date": "1817-08-11",
-          "dateLabel": "11 August 1817",
+          "precision": "day",
           "at": [
             -3.70333,
             40.41694
@@ -1899,7 +1899,7 @@
           "qid": "Q16531744",
           "label": "Battle of Pagallos",
           "date": "1817-07-08",
-          "dateLabel": "8 July 1817",
+          "precision": "day",
           "at": [
             -61.0,
             8.53
@@ -1913,7 +1913,7 @@
           "qid": "Q1713044",
           "label": "Treaty of Fort Meigs",
           "date": "1817-09-29",
-          "dateLabel": "29 September 1817",
+          "precision": "day",
           "at": [
             -83.65167,
             41.55278
@@ -1927,7 +1927,7 @@
           "qid": "Q6394358",
           "label": "Battle of Apósteles",
           "date": "1817-07-02",
-          "dateLabel": "2 July 1817",
+          "precision": "day",
           "at": [
             -55.76667,
             -27.91667
@@ -1943,7 +1943,7 @@
           "qid": "Q5024088",
           "label": "Treaty of Madrid",
           "date": "1817-08-11",
-          "dateLabel": "11 August 1817",
+          "precision": "day",
           "at": [
             -3.70333,
             40.41694
@@ -1957,7 +1957,7 @@
           "qid": "Q1713044",
           "label": "Treaty of Fort Meigs",
           "date": "1817-09-29",
-          "dateLabel": "29 September 1817",
+          "precision": "day",
           "at": [
             -83.65167,
             41.55278
@@ -1973,7 +1973,7 @@
           "qid": "Q4871419",
           "label": "Battle of Khadki",
           "date": "1817-11-05",
-          "dateLabel": "5 November 1817",
+          "precision": "day",
           "at": [
             73.851,
             18.564
@@ -1987,7 +1987,7 @@
           "qid": "Q1713044",
           "label": "Treaty of Fort Meigs",
           "date": "1817-09-29",
-          "dateLabel": "29 September 1817",
+          "precision": "day",
           "at": [
             -83.65167,
             41.55278
@@ -2003,7 +2003,7 @@
           "qid": "Q4871633",
           "label": "Battle of Mahidpur",
           "date": "1817-12-21",
-          "dateLabel": "21 December 1817",
+          "precision": "day",
           "at": [
             75.65722,
             23.48722
@@ -2017,7 +2017,7 @@
           "qid": "Q54322448",
           "label": "Battle of Ocheesee",
           "date": "1817-12-15",
-          "dateLabel": "15 December 1817",
+          "precision": "day",
           "at": [
             -84.9775,
             29.72667
@@ -2031,7 +2031,7 @@
           "qid": "Q6130149",
           "label": "Siege of Talcahuano",
           "date": "1817-12-05",
-          "dateLabel": "5 December 1817",
+          "precision": "day",
           "at": [
             -73.1141,
             -36.7145
@@ -2047,7 +2047,7 @@
           "qid": "Q3630511",
           "label": "Battle of Koregaon",
           "date": "1818-01-01",
-          "dateLabel": "1 January 1818",
+          "precision": "day",
           "at": [
             74.05917,
             18.64556
@@ -2061,7 +2061,7 @@
           "qid": "Q123746470",
           "label": "Dhurma Massacre",
           "date": "1818-01-01",
-          "dateLabel": "January 1818",
+          "precision": "month",
           "at": [
             46.22558,
             24.61726
@@ -2075,7 +2075,7 @@
           "qid": "Q6130149",
           "label": "Siege of Talcahuano",
           "date": "1817-12-05",
-          "dateLabel": "5 December 1817",
+          "precision": "day",
           "at": [
             -73.1141,
             -36.7145
