@@ -13,7 +13,7 @@ import './walkUi.css';
 import type { CreateWalkUi, WalkUi } from '../contract';
 import { BeatCard } from './card';
 import { ClimateLegend } from './climateLegend';
-import { button, el } from './dom';
+import { button, el, passFocus } from './dom';
 import { MeanwhilePanel } from './meanwhile';
 import { CraftRuler } from './rulerCraft';
 import { SoundKnob } from './soundKnob';
@@ -50,6 +50,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
         away = state.mode === 'breakout';
         resume.classList.toggle('is-shown', away);
         resume.tabIndex = away ? 0 : -1;
+        if (!away) passFocus(resume, ruler.play);
       }
     },
     rulerUnit: () => ruler.unit,
