@@ -1,5 +1,6 @@
-// The look's borders hook (streaming.md 3.3): the 1815 borders as a fine groove engraved in the
-// land, darkened like the coast's and a touch rougher, a constant width on screen. Lakes count as
+// The look's borders hook (streaming.md 3.3): the 1815 borders as a fine dotted groove engraved in
+// the land, as engraved maps of the period tell frontiers from rivers, darkened like the coast's
+// and a touch rougher, a constant width and pitch on screen. Lakes count as
 // land, so a border runs on across them, and each ends where the look draws the coast; at sea the
 // field's borders run on unseen. The field is one R8 array of six faces, allocated with the look,
 // given its bytes once its file has arrived and uploaded a face at a time (story/effects/borders.ts),
@@ -10,10 +11,12 @@ import { BORDER_APRON, BORDER_FACES, BORDER_TEXELS } from '../data/borders';
 
 /** How the groove is cut. */
 export const BORDER_LOOK = {
-  /** Its width in pixels, whatever the zoom: a little finer than the coast's line. */
-  widthPx: 1.5,
+  /** Its width in pixels, whatever the zoom. */
+  widthPx: 2,
+  /** The pitch of its dots along the border, in pixels: each dot about half of it. */
+  dotPx: 5,
   /** How much it darkens the metal, and how much rougher it leaves it. */
-  darken: 0.6,
+  darken: 0.75,
   roughen: 0.2,
   /**
    * Field texels a pixel over which it fades out as the view widens: past about 5, the field's
@@ -102,8 +105,13 @@ void lookBorders(inout LookSurface s) {
   if (lookBorderStrength <= 0.0 || lookDebug != 0) return;
   float texPx = max(max(length(dFdx(vLookSt)), length(dFdy(vLookSt))) * ${f(INTERIOR / 2)}, 1e-4);
   float d = lookBorderDist(vLookSt, vLookFace);
+  // Dots along the border: its screen tangent is across the gradient of d.
+  vec2 g = vec2(dFdx(d), dFdy(d));
+  vec2 along = vec2(-g.y, g.x) / max(length(g), 1e-6);
+  float phase = abs(fract(dot(gl_FragCoord.xy, along) / ${f(BORDER_LOOK.dotPx)}) - 0.5);
+  float dots = 1.0 - smoothstep(0.22, 0.32, phase);
   float wide = 1.0 - smoothstep(${f(BORDER_LOOK.fadeTexPx[0])}, ${f(BORDER_LOOK.fadeTexPx[1])}, texPx);
-  float line = lookLine(abs(d) / texPx, ${f(BORDER_LOOK.widthPx)}) * wide;
+  float line = lookLine(abs(d) / texPx, ${f(BORDER_LOOK.widthPx)}) * dots * wide;
   float groove = line * s.ground * lookBorderStrength;
   s.albedo *= 1.0 - ${f(BORDER_LOOK.darken)} * groove;
   s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughen)} * groove);
