@@ -33,7 +33,7 @@ describe('the Magellan story and its source route', () => {
   ) as RouteSource;
   const { properties: data, geometry } = route;
 
-  it('keeps ten sourced beats within the bake and names the route on moving beats', () => {
+  it('keeps ten sourced beats within the bake and the route on every beat, including ports', () => {
     expect(story.beats).toHaveLength(10);
     for (const beat of story.beats) {
       const words = beat.paragraphs.join(' ').split(/\s+/).length;
@@ -48,7 +48,7 @@ describe('the Magellan story and its source route', () => {
         expect(source.year).toBeTruthy();
       }
       const tracks = beat.effects.filter((effect) => effect.kind === 'route');
-      expect(tracks).toHaveLength(beat.id === 'san-julian' ? 0 : 1);
+      expect(tracks).toHaveLength(1);
       for (const track of tracks) expect(track.dataset).toBe('route');
     }
   });

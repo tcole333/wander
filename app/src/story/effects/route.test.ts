@@ -124,8 +124,13 @@ describe('the route core and material hook', () => {
     effects.update(on('pacific'), 0.016, 1);
     expect(state()).toEqual(forward);
     effects.update(on('san-julian'), 0.25, 1);
+    expect(state()[3]).toBe(1);
+    // An effect omitted from a beat still fades out; Magellan now keeps it at every port.
+    const hidden = on('san-julian');
+    hidden.story = { ...story, beats: story.beats.map((b) => ({ ...b, effects: [] })) };
+    effects.update(hidden, 0.25, 1);
     expect(state()[3]).toBeCloseTo(0.5);
-    effects.update(on('san-julian'), 0.25, 1);
+    effects.update(hidden, 0.25, 1);
     expect(uniforms.lookRouteCount.value).toBe(0);
     effects.update(on('pacific', '1519-09-19'), 1, 1);
     expect(uniforms.lookRouteCount.value).toBe(0);

@@ -92,6 +92,7 @@ image:
   alt: "Bellin's chart of San Julián, published in 1756 from Spanish observations of 1746: a narrow entrance, soundings and islands inside the long harbor."
 layers: [relief, bathymetry, coastline, landSea, water, labels, events]
 effects:
+  - route: {dataset: route, wDays: 7, style: fleet}
   - callout: {at: [-67.7, -49.3], text: San Julián}
 audio: {cues: []}
 meanwhile: auto
