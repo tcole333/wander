@@ -7,7 +7,6 @@
 // fading each in and out by that size and by its view widths, and hands the SEA_NAMES_MAX
 // strongest to the shader.
 import {
-  CanvasTexture,
   DataTexture,
   LinearFilter,
   LinearMipmapLinearFilter,
@@ -197,7 +196,7 @@ export class SeaNameLayer {
     this.uniforms.lookSeaAtlas.value.dispose();
   }
 
-  /** Loads the faces, letters every name into one canvas and makes it the atlas. */
+  /** Loads the faces, letters every name into one canvas and makes its red channel the atlas. */
   async #letter(): Promise<void> {
     const upper = (name: SeaName) => (name.style === 'ocean' ? name.text.toUpperCase() : name.text);
     const faces = Promise.all(
@@ -276,12 +275,17 @@ export class SeaNameLayer {
       });
     });
 
-    const atlas = new CanvasTexture(canvas);
-    atlas.format = RedFormat;
-    atlas.flipY = false;
+    // Only the red channel is kept, as the R8 texture's own bytes, and the canvas's pixels go.
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const red = new Uint8Array(canvas.width * canvas.height);
+    for (let i = 0; i < red.length; i++) red[i] = data[i * 4] ?? 0;
+    const atlas = new DataTexture(red, canvas.width, canvas.height, RedFormat);
+    canvas.width = 0;
+    atlas.generateMipmaps = true;
     atlas.minFilter = LinearMipmapLinearFilter;
     atlas.magFilter = LinearFilter;
     atlas.anisotropy = 8;
+    atlas.needsUpdate = true;
     this.uniforms.lookSeaAtlas.value.dispose();
     this.uniforms.lookSeaAtlas.value = atlas;
     boxes.forEach((box, n) => {
