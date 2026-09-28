@@ -17,6 +17,7 @@ import {
   type Texture,
 } from 'three';
 import { tunables } from '../config/tunables';
+import { releaseDataAfterUpload } from '../gpu/uploadOnce';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
 import list from './seaNames.json';
@@ -288,7 +289,9 @@ export class SeaNameLayer {
     const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const red = new Uint8Array(canvas.width * canvas.height);
     for (let i = 0; i < red.length; i++) red[i] = data[i * 4] ?? 0;
-    const atlas = new DataTexture(red, canvas.width, canvas.height, RedFormat);
+    const atlas = releaseDataAfterUpload(
+      new DataTexture(red, canvas.width, canvas.height, RedFormat),
+    );
     canvas.width = 0;
     atlas.generateMipmaps = true;
     atlas.minFilter = LinearMipmapLinearFilter;
