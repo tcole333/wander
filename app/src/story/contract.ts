@@ -134,7 +134,8 @@ export interface WalkUi {
   rulerUnit(): Precision;
   /**
    * How far right of the page's left edge the beat card reaches where it is laid out, in CSS px,
-   * whatever slides it for a moment (the lobby's veil).
+   * whatever slides it for a moment (the lobby's veil); 0 while the card is folded, when it no
+   * longer stands in the globe's way.
    */
   cardReach(): number;
   /** Keeps the departing card and ruler out of the tab order and pointer input. */
@@ -154,6 +155,8 @@ export type CreateWalkUi = (
   meanwhile: Meanwhile,
   /** The data host, which serves the card's images. */
   dataHost: string,
+  /** Called when the card's reach changes with no resize: the card is folded or unfolded. */
+  reachChanged?: () => void,
 ) => WalkUi;
 
 /**

@@ -19,9 +19,15 @@ import { button, el, passFocus } from './dom';
 import { MeanwhilePanel } from './meanwhile';
 import { CraftRuler } from './rulerCraft';
 
-export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, dataHost): WalkUi => {
+export const createWalkUi: CreateWalkUi = (
+  root,
+  walk,
+  meanwhile,
+  dataHost,
+  reachChanged,
+): WalkUi => {
   const layer = el('div', 'wu wu-story');
-  const card = new BeatCard(dataHost);
+  const card = new BeatCard(dataHost, reachChanged);
   const ruler = new CraftRuler(walk, walk.state().story);
   const panel = new MeanwhilePanel(walk, meanwhile);
   const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
@@ -47,7 +53,7 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, dataHost): Wal
       }
     },
     rulerUnit: () => ruler.unit,
-    cardReach: () => card.element.offsetLeft + card.element.offsetWidth,
+    cardReach: () => card.reach(),
     leave() {
       layer.inert = true;
     },

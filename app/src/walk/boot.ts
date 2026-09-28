@@ -280,7 +280,9 @@ async function assemble(
   // the shifted projection. In the lobby, the story plaques: by half their reach, which centers
   // the instrument in the room beside them. In a story, the card: by LENS_SHIFT of its reach, so
   // each beat's place lands right of it and what lies around it clears both the card and
-  // Meanwhile. The lens eases from one to the other during the dive.
+  // Meanwhile. The lens eases from one to the other during the dive. A folded card reaches
+  // nothing, so folding it eases the lens back to the center; the card has the lens measured
+  // again as it folds or unfolds, as a resize does.
   let cardShift = 0;
   let shift = 0;
   let drawnShift = NaN;
@@ -323,6 +325,7 @@ async function assemble(
         const s = streamer.stats();
         return s.inFlight + s.decoding + s.uploading === 0;
       },
+      measureLens,
     );
     endStory = end;
     leaveStory = leave;
@@ -564,11 +567,12 @@ function startStory(
   sound: WalkAudio,
   arrive: 'jump' | 'fly',
   ready: () => boolean,
+  reachChanged: () => void,
 ): [StoryParts, () => void, () => void] {
   const walk = createWalk(story, control, { ready, arrive, route: (name) => effects.route(name) });
   let ui: WalkUi;
   try {
-    ui = createWalkUi(root, walk, meanwhile, dataHost);
+    ui = createWalkUi(root, walk, meanwhile, dataHost, reachChanged);
   } catch (error) {
     walk.dispose();
     throw error;
