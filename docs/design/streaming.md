@@ -399,7 +399,7 @@ u8 d[6][size][size]   min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels, +
   across zero) as far from any border. The 1815 field stores 1.27 MB (25 MiB inflated) and builds in
   31 s on the M5.
 - **Runtime:** one R8 array texture, 2048² × 6 (24 MiB), allocated with the look and filled after
-  the room opens: the file is fetched and inflated as it streams (`DecompressionStream`), and each
+  the room opens: the file is fetched and inflated, yielding to the page every 4 MiB, and then each
   face goes to the GPU on its own frame through three's layer updates (`texSubImage3D`), so no frame
   hitches. The look reads it at the face coordinates it already has, bilinear from four texel
   fetches, and draws a groove of constant on-screen width on land and lakes, ending at the drawn

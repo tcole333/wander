@@ -1,10 +1,10 @@
 // The look's borders hook (streaming.md 3.3): the 1815 borders as a fine groove engraved in the
 // land, darkened like the coast's and a touch rougher, a constant width on screen. Lakes count as
 // land, so a border runs on across them, and each ends where the look draws the coast; at sea the
-// field's borders run on unseen. The field is one R8 array of six faces, allocated with the look
-// and filled a face at a time as its file arrives (story/effects/borders.ts), and read at the face
-// coordinates the look already has. With its strength at 0, the default, the look is unchanged; the
-// walk compiles it at 0 before it starts.
+// field's borders run on unseen. The field is one R8 array of six faces, allocated with the look,
+// given its bytes once its file has arrived and uploaded a face at a time (story/effects/borders.ts),
+// and read at the face coordinates the look already has. With its strength at 0, the default, the
+// look is unchanged; the walk compiles it at 0 before it starts.
 import { DataArrayTexture, NearestFilter, RedFormat, UnsignedByteType, type Material } from 'three';
 import { BORDER_APRON, BORDER_FACES, BORDER_TEXELS } from '../data/borders';
 
@@ -25,16 +25,11 @@ export interface BorderUniforms {
 }
 
 /**
- * The uniforms, with the field allocated on the GPU at its first draw but not filled: its bytes
- * are 0, as far from any border as a field reaches, until faces arrive.
+ * The uniforms, with the field allocated on the GPU at its first draw but not filled, and no bytes
+ * of its own until its file arrives.
  */
 export function createBorderUniforms(): BorderUniforms {
-  const field = new DataArrayTexture(
-    new Uint8Array(BORDER_FACES * BORDER_TEXELS * BORDER_TEXELS),
-    BORDER_TEXELS,
-    BORDER_TEXELS,
-    BORDER_FACES,
-  );
+  const field = new DataArrayTexture(null, BORDER_TEXELS, BORDER_TEXELS, BORDER_FACES);
   field.format = RedFormat;
   field.type = UnsignedByteType;
   field.minFilter = field.magFilter = NearestFilter;
@@ -45,10 +40,16 @@ export function createBorderUniforms(): BorderUniforms {
   return { lookBorderStrength: { value: 0 }, lookBorderField: { value: field } };
 }
 
-/** Uploads one face of the field, whose bytes are in place, at the next draw. */
+/** Gives the field its six faces' bytes, one face after another, to upload a face at a time. */
+export function fillBorderField(uniforms: BorderUniforms, faces: Uint8Array): void {
+  const field = uniforms.lookBorderField.value;
+  field.image.data = faces;
+  field.source.dataReady = true;
+}
+
+/** Uploads one face of the filled field at the next draw. */
 export function uploadBorderFace(uniforms: BorderUniforms, face: number): void {
   const field = uniforms.lookBorderField.value;
-  field.source.dataReady = true;
   field.addLayerUpdate(face);
   field.needsUpdate = true;
 }

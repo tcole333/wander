@@ -1,16 +1,16 @@
-// The globe's historical borders in the walk (streaming.md 3.3): the snapshot nearest the story's
-// first date (every Tambora date falls nearest 1815), drawn on the beats whose layers list
-// borders. Its field loads in the background once the room is open: fetched from the data host,
-// inflated as it arrives and uploaded one face a frame, so no frame hitches. Once every face is in,
-// the look's groove eases in and out over borderFade as beats change, and fades as the view closes
-// in from 400 to 220 km across, where one of the field's texels spans tens of pixels. Without a
-// borders section in the release, or once the file fails, it logs once and draws no borders: the
-// walk never breaks over them.
+// The globe's historical borders in the walk (streaming.md 3.3): the release's one snapshot, 1815,
+// the nearest to every Tambora date, drawn on the beats whose layers list borders. Its field loads
+// in the background once the room is open: fetched from the data host, inflated a few MiB at a
+// time and uploaded one face a frame, so no frame hitches. Once every face is in, the look's groove
+// eases in and out over borderFade as beats change, and fades as the view closes in from 400 to
+// 220 km across, where one of the field's texels spans tens of pixels. Without a borders section in
+// the release, or once the file fails, it logs once and draws no borders: the walk never breaks
+// over them.
 import { tunables } from '../../config/tunables';
-import { BORDER_FACES, inflateBorders, snapshotFor } from '../../data/borders';
+import { BORDER_FACES, inflateBorders } from '../../data/borders';
 import type { BordersRelease } from '../../data/release';
 import { fetchData } from '../../data/surfaceLayer';
-import { uploadBorderFace, type BorderUniforms } from '../../look/bordersHook';
+import { fillBorderField, uploadBorderFace, type BorderUniforms } from '../../look/bordersHook';
 import type { BordersShown, WalkState } from '../contract';
 import type { Story } from '../story';
 import { smoothstep } from './timeline';
@@ -29,10 +29,10 @@ export class WalkBorders {
   readonly #url: string | null;
   readonly #year: number;
   readonly #load: (url: string) => Promise<ArrayBuffer>;
-  /** Faces whose bytes are in place and wait for their upload, and how many are uploaded. */
-  readonly #arrived: number[] = [];
-  #uploaded = 0;
   #started = false;
+  /** Whether the field holds its bytes, and how many of its faces are uploaded. */
+  #filled = false;
+  #uploaded = 0;
   /** 0 to 1, before its easing curve, and the strength drawn. */
   #shown = 0;
   #strength = 0;
@@ -48,9 +48,9 @@ export class WalkBorders {
     this.#load = load;
     const { borders } = source;
     const drawn = story.beats.some((beat) => beat.layers.includes('borders'));
-    const stem = borders && story.beats[0] ? snapshotFor(borders, story.beats[0].day) : undefined;
+    const stem = borders?.stems[0];
     const file = stem === undefined ? undefined : borders?.files[stem];
-    this.#year = stem === undefined ? 0 : (borders?.years[borders.stems.indexOf(stem)] ?? 0);
+    this.#year = borders?.years[0] ?? 0;
     this.#url = file ? `${source.dataHost}/${file.key}` : null;
     this.#off = uniforms === undefined || !drawn;
     if (!this.#off && !this.#url) this.#stop('the release has no borders section');
@@ -68,20 +68,24 @@ export class WalkBorders {
 
   /**
    * Every frame from the room's opening, story or not: starts the field's load the first time,
-   * then uploads at most one face that has arrived.
+   * then, once it has arrived, uploads one face a frame.
    */
   background(): void {
-    if (this.#off || !this.#uniforms || !this.#url) return;
+    const uniforms = this.#uniforms;
+    if (this.#off || !uniforms || !this.#url) return;
     if (!this.#started) {
       this.#started = true;
-      const into = this.#uniforms.lookBorderField.value.image.data as Uint8Array;
       this.#load(this.#url)
-        .then((stored) => inflateBorders(stored, into, (face) => this.#arrived.push(face)))
+        .then(inflateBorders)
+        .then((faces) => {
+          if (this.#off) return;
+          fillBorderField(uniforms, faces);
+          this.#filled = true;
+        })
         .catch((error: unknown) => this.#stop(String(error)));
     }
-    const face = this.#arrived.shift();
-    if (face === undefined) return;
-    uploadBorderFace(this.#uniforms, face);
+    if (!this.#filled || this.ready) return;
+    uploadBorderFace(uniforms, this.#uploaded);
     this.#uploaded += 1;
   }
 
@@ -107,7 +111,6 @@ export class WalkBorders {
     if (!this.#off && why) console.warn(`The globe shows no borders: ${why}`);
     this.#off = true;
     this.#strength = 0;
-    this.#arrived.length = 0;
     if (this.#uniforms) this.#uniforms.lookBorderStrength.value = 0;
   }
 }
