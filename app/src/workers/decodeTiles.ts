@@ -19,14 +19,18 @@ export interface DecodedTile {
   bytes: number;
 }
 
-/** Resolves with the tiles that failed, once every tile has been visited or has failed. */
+/**
+ * Resolves with the tiles that failed, once every tile has been visited or has failed. The tiles
+ * decode in `pool`, or in a pool of their own that is released after.
+ */
 export async function decodeTiles(
   layer: SurfaceLayer,
   tiles: Tile[],
   visit: (decoded: DecodedTile) => void | Promise<void>,
+  pool?: DecodePool,
 ): Promise<{ key: string; error: string }[]> {
   const queue = [...tiles];
-  const pool = DecodePool.create();
+  const decoder = pool ?? DecodePool.create();
   const errors: { key: string; error: string }[] = [];
   const bytes = new Map<string, number>();
   let visited = 0;
@@ -42,7 +46,7 @@ export async function decodeTiles(
         fetchData(layer.url(t))
           .then((buf) => {
             bytes.set(key, buf.byteLength);
-            pool.submit(key, buf);
+            decoder.submit(key, buf);
           })
           .catch((error: unknown) => errors.push({ key, error: String(error) }))
           .finally(() => {
@@ -52,9 +56,9 @@ export async function decodeTiles(
       }
       if (visited + errors.length === tiles.length) done();
     };
-    pool.onready = () => {
+    decoder.onready = () => {
       void Promise.all(
-        pool.drain().map(async (result) => {
+        decoder.drain().map(async (result) => {
           if ('error' in result) return errors.push(result);
           const { key, tile, ms } = result;
           await visit({ key, tile, ms, bytes: bytes.get(key) ?? 0 });
@@ -65,6 +69,7 @@ export async function decodeTiles(
     pump();
   });
 
-  pool.dispose();
+  decoder.onready = null;
+  if (!pool) decoder.dispose();
   return errors;
 }

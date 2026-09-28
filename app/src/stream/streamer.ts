@@ -116,19 +116,27 @@ export const createSurfaceStreamer = (async (
   /** codeMid of every tile that holds a slot. */
   const codeMids = new Map<string, number>();
 
-  // The roots, into their fixed slots before the first frame.
+  // The roots, into their fixed slots before the first frame, through the workers that decode the
+  // rest, so every worker starts with the boot.
+  const decoder = DecodePool.create();
   const roots = layer.tiles().filter((tile) => tile.level <= ROOT_LEVEL);
-  const rootErrors = await decodeTiles(layer, roots, ({ key, tile }) => {
-    const slot = table.reserve(key);
-    if (slot === undefined) throw new Error(`no fixed slot for ${key}`);
-    codeMids.set(key, tile.header.codeMid);
-    uploads.enqueue({
-      key,
-      parts: surfaceParts(pools, slot, tile),
-      onDone: () => table.publish(key),
-    });
-  });
+  const rootErrors = await decodeTiles(
+    layer,
+    roots,
+    ({ key, tile }) => {
+      const slot = table.reserve(key);
+      if (slot === undefined) throw new Error(`no fixed slot for ${key}`);
+      codeMids.set(key, tile.header.codeMid);
+      uploads.enqueue({
+        key,
+        parts: surfaceParts(pools, slot, tile),
+        onDone: () => table.publish(key),
+      });
+    },
+    decoder,
+  );
   if (rootErrors.length > 0 || roots.filter((t) => t.level === 0).length < 6) {
+    decoder.dispose();
     for (const pool of [pools.height, pools.shoreWater, pools.edges]) pool.dispose();
     throw new DataError(`the roots did not load: ${JSON.stringify(rootErrors)}`);
   }
@@ -143,7 +151,6 @@ export const createSurfaceStreamer = (async (
     hMin: lowestBound(layer),
   });
   const instances = createInstanceGeometry(GRID_SEGMENTS.full, CAPACITY);
-  const decoder = DecodePool.create();
   const params = {
     refinePx: tunables.refinePx.full as number,
     maxLevel: 7,
