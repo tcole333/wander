@@ -2,12 +2,12 @@
 // a camera that flies from the whole instrument down to a few tens of km. The gimbal turns the
 // view center toward the lamp and the camera, as the spike's did. Given a story, the walk plays
 // over it: the director flies between its beats (story/director.ts), the card, time ruler,
-// Meanwhile and climate legend sit over the globe (story/ui/), the ember, plume, plaques, ash, veil
-// and climate follow story time (story/effects/), and its sound follows the walk from the
-// visitor's first gesture (audio/walkAudio.ts). It starts paused on the first beat; Left and Right
-// step beats, Space plays or pauses, Escape resumes after the visitor breaks out to explore, and M
-// mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing the story's plaque starts the
-// walk and flies into its first beat.
+// Meanwhile, climate legend and borders' year plate sit over the globe (story/ui/), the ember,
+// plume, plaques, ash, veil, climate and borders follow story time (story/effects/), and its sound
+// follows the walk from the visitor's first gesture (audio/walkAudio.ts). It starts paused on the
+// first beat; Left and Right step beats, Space plays or pauses, Escape resumes after the visitor
+// breaks out to explore, and M mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing
+// the story's plaque starts the walk and flies into its first beat.
 //
 // The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
 // precompile; in the lobby the opening starts on it. The climate's years load the first time the
@@ -269,7 +269,8 @@ async function assemble(
   };
 
   // A story's effects hang in the globe frame from the start, so the precompile readies their
-  // programs, the climate's too, whose files come from the release's data host. Its page steps
+  // programs, the climate's and the borders' too, whose files come from the release's data host;
+  // the borders' field loads in the background from the room's first frame. Its page steps
   // through its beats: the walk flies the camera, and holds a late landing until the streamer has
   // nothing in hand. It starts on its first beat, or in the lobby, which starts it in the press
   // that chooses its plaque.
@@ -383,6 +384,7 @@ async function assemble(
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
     lobby?.update(dt, camera);
+    effects?.background();
     riseEffects(dt);
     story?.walk.update(now, dt);
     control.step(now, dt);
@@ -414,7 +416,7 @@ async function assemble(
     museum.render(camera);
     if (story) {
       const state = story.walk.state();
-      story.ui.update(state, drawn, story.effects.climate());
+      story.ui.update(state, drawn, story.effects.climate(), story.effects.borders());
       story.sound.update(state, story.ui.rulerUnit(), drawn, dt);
     }
 

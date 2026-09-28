@@ -6,6 +6,7 @@ import type { Params, SurfaceLook, ViewportCss } from '../contract';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Precision } from './dates';
+import type { BordersSource } from './effects/borders';
 import type { ClimateSource } from './effects/climate';
 import type { LonLat, Story } from './story';
 
@@ -86,16 +87,28 @@ export interface ClimateShown {
   strength: number;
 }
 
+/** The borders the globe draws: their snapshot's astronomical year, and how strongly. */
+export interface BordersShown {
+  year: number;
+  /** 0 to 1, easing in and out with the layer and fading as the view closes in. */
+  strength: number;
+}
+
 /**
- * The card, the time ruler, Meanwhile, the Resume plaque, the climate legend and the story's
- * controls, in the DOM.
+ * The card, the time ruler, Meanwhile, the Resume plaque, the climate legend, the borders' year
+ * plate and the story's controls, in the DOM.
  */
 export interface WalkUi {
   /**
-   * Every frame: the state, the drawn view (for Meanwhile's compass bearings) and the climate the
-   * globe draws, if any.
+   * Every frame: the state, the drawn view (for Meanwhile's compass bearings), and the climate and
+   * borders the globe draws, if any.
    */
-  update(state: WalkState, view: ViewState, climate?: ClimateShown | null): void;
+  update(
+    state: WalkState,
+    view: ViewState,
+    climate?: ClimateShown | null,
+    borders?: BordersShown | null,
+  ): void;
   /** The finest unit the time ruler engraves now, whose marks the detents sound. */
   rulerUnit(): Precision;
   /**
@@ -122,10 +135,11 @@ export type CreateWalkUi = (
 ) => WalkUi;
 
 /**
- * The ember, plume, pulses, callout labels, illustrative ash and veil, and the real climate, as
- * functions of story time: scrubbing backward shows the right state. `group` hangs from the
- * museum's globeMount (the globe frame, radius 1); labels go into `labelRoot`. Ash and climate tint
- * the surface through the look; climate reads its files from `climate`'s data host.
+ * The ember, plume, pulses, callout labels, illustrative ash and veil, the real climate and the
+ * historical borders, as functions of story time: scrubbing backward shows the right state.
+ * `group` hangs from the museum's globeMount (the globe frame, radius 1); labels go into
+ * `labelRoot`. Ash, climate and borders reach the surface through the look; climate and borders
+ * read their files from `source`'s data host.
  */
 export interface WalkEffects {
   group: Object3D;
@@ -139,8 +153,15 @@ export interface WalkEffects {
   ): void;
   /** Starts fetching what the effects draw from the data host: the climate's years. */
   load(): void;
+  /**
+   * Every frame from the room's opening, the story started or not: what loads in the background
+   * (the borders' field, a face a frame).
+   */
+  background(): void;
   /** The climate drawn, for its legend; null while none is. */
   climate(): ClimateShown | null;
+  /** The borders drawn, for their year plate; null while none are. */
+  borders(): BordersShown | null;
   dispose(): void;
 }
 
@@ -148,5 +169,5 @@ export type CreateWalkEffects = (
   story: Story,
   look: SurfaceLook,
   labelRoot: HTMLElement,
-  climate?: ClimateSource,
+  source?: ClimateSource & BordersSource,
 ) => WalkEffects;
