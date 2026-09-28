@@ -41,6 +41,7 @@ def test_the_registry_pins_the_inputs_of_the_landed_stages():
             "ModE-readme.txt",
         ],
         "historical-basemaps": ["world_1815.geojson"],
+        "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
 
