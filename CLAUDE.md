@@ -161,6 +161,9 @@ works without the raw-data folder.
 ## Working here
 
 - Work is tracked in GitHub issues on `tcole333/wander`.
+- Codex agents take tasks here through `AGENTS.md`: Claude writes each brief, prepares the
+  worktree, runs the browser and GPU checks Codex's sandbox cannot, and reviews the branch before
+  its pull request.
 - Small commits in conventional-commit form (`feat(app): ...`, `fix(pipeline): ...`).
 - Every test passes before a push. CI runs on every pull request.
 - Check visual work in a real browser with a real GPU. Headless Chromium on this Mac can use the
