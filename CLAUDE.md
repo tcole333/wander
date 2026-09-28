@@ -57,8 +57,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   :8792 with R2's headers, plus the build's release at `/release.json` (`docs/design/streaming.md`
   7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin`, L0 tiles, the climate years the walk starts with and the first story image, and
-  checks R2's headers. CI runs it as its own job, which the Pages deploy waits for; it fails,
+  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field and the
+  first story image, and checks R2's headers. CI runs it as its own job, which the Pages deploy waits for; it fails,
   naming `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
@@ -83,10 +83,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
-  every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`, and
+  every stage in order except `excerpts` and `media`; the fixture profile also skips `fetch`,
+  `borders` (its tests draw synthetic snapshots, since the GPL source is never committed) and
   `modera` until the climate layer has an excerpt. `uv run prebuild --profile region` bakes the
   milestone-1 region into `build/region/` (about 2.5 min on the M5, plus 50 s for `modera`, which
-  writes all of ModE-RA whatever the profile).
+  writes all of ModE-RA whatever the profile, and 30 s for `borders`, the whole 1815 field).
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
