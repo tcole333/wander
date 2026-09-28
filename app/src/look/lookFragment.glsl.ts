@@ -3,6 +3,7 @@
 // surface pools. The relief is evaluated at the fragment and four taps around it, and its
 // gradient perturbs the normal, as the spike's normal map did.
 import { glslFaceTable, SURFACE_LEVELS } from '../globe/surfaceVertex.glsl';
+import { SEA_NAMES_MAX } from './seaNames';
 
 /** Global declarations and functions, after three's `#include <common>` in the fragment. */
 export const LOOK_FRAGMENT_PARS = /* glsl */ `
@@ -36,6 +37,14 @@ uniform float lookCoarse;
 // The camera in the globe frame, set before each draw.
 uniform vec3 lookCamLocal;
 uniform int lookDebug;
+
+// The sea names the look picked for this view (seaNames.ts, SeaNameUniforms).
+#define LOOK_SEA_NAMES_MAX ${SEA_NAMES_MAX}
+uniform int lookSeaCount;
+uniform vec4 lookSeaPlace[LOOK_SEA_NAMES_MAX];
+uniform vec4 lookSeaFrame[LOOK_SEA_NAMES_MAX];
+uniform vec4 lookSeaBox[LOOK_SEA_NAMES_MAX];
+uniform sampler2D lookSeaAtlas;
 
 flat in int vLookSlot;
 flat in int vLookSrc;
@@ -261,6 +270,41 @@ float lookGraticuleAt(vec2 lonlat, float degPx) {
   return max(meridian, parallel);
 }
 
+// The sea names' ink at a sea-level direction and its longitude and latitude, 0 to 1. Each name
+// lies in its own frame: degrees east along its center's parallel and north of it, turned to its
+// baseline's angle and bent along an arc, then scaled into its box in the atlas. The atlas is read
+// with the frame's own gradients, so a name stays sharp however the view tilts. Names fade toward
+// the limb, where they would crowd into slivers.
+float lookSeaNamesAt(vec3 dir, vec2 ll) {
+  if (lookSeaCount == 0) return 0.0;
+  vec4 dll = vec4(dFdx(ll), dFdy(ll));
+  dll.xz -= 360.0 * floor(dll.xz / 360.0 + 0.5);
+  float limb = smoothstep(0.05, 0.35, dot(dir, normalize(lookCamLocal - dir)));
+  vec2 atlas = vec2(textureSize(lookSeaAtlas, 0));
+  float ink = 0.0;
+  for (int i = 0; i < LOOK_SEA_NAMES_MAX; i++) {
+    if (i >= lookSeaCount) break;
+    vec4 place = lookSeaPlace[i];
+    vec4 frame = lookSeaFrame[i];
+    vec4 box = lookSeaBox[i];
+    mat2 turn = mat2(frame.x, -frame.y, frame.y, frame.x);
+    float east = (fract((ll.x - place.x) / 360.0 + 0.5) - 0.5) * 360.0 * place.z;
+    vec2 p = turn * vec2(east, ll.y - place.y);
+    if (frame.z != 0.0) {
+      vec2 q = vec2(frame.z * p.x, 1.0 + frame.z * p.y);
+      p = vec2(atan(q.x, q.y), length(q) - 1.0) / frame.z;
+    }
+    vec2 t = p * frame.w;
+    if (abs(t.x) > box.z || abs(t.y) > box.w) continue;
+    vec2 scale = vec2(frame.w, -frame.w) / atlas;
+    vec2 gx = turn * (dll.xy * vec2(place.z, 1.0)) * scale;
+    vec2 gy = turn * (dll.zw * vec2(place.z, 1.0)) * scale;
+    float a = textureGrad(lookSeaAtlas, (box.xy + vec2(t.x, -t.y)) / atlas, gx, gy).r;
+    ink = max(ink, a * place.w);
+  }
+  return ink * limb;
+}
+
 // floor(depth / 1000) up to 10: the spike's depth terraces, a step at each 1000 m with edges
 // widthM wide (under 500 m).
 float lookTerraces(float depth, float widthM) {
@@ -358,6 +402,8 @@ struct LookSurface {
   float land;
   // 1 on land and lakes, 0 at sea: the ground inside the drawn coast.
   float ground;
+  // The sea names' ink, 0 to 1.
+  float names;
 };
 
 LookSurface lookSurface() {
@@ -458,12 +504,14 @@ LookSurface lookSurface() {
   seaColor = mix(seaColor, lookShelf, shelf * 0.22) * mottleScale;
   vec3 gratDir = lookSeaLevelDir();
   float gratDegPx = max(degrees(max(length(dFdx(gratDir)), length(dFdy(gratDir)))), 1e-7);
-  float grat = lookGraticule * lookGraticuleAt(lookLonLat(gratDir), gratDegPx);
-  float inlay = max(grat * 0.5, coast * 0.55);
+  vec2 seaLonLat = lookLonLat(gratDir);
+  float grat = lookGraticule * lookGraticuleAt(seaLonLat, gratDegPx);
+  float names = lookSeaNamesAt(gratDir, seaLonLat);
+  float inlay = max(max(grat * 0.5, coast * 0.55), names * 0.8);
   seaColor = mix(seaColor, lookInlay, inlay);
   // Rougher than the spike's 0.62: at low tilts the lamp's reflection lies mid-screen, and a
   // narrower lobe spreads over the sea as a pale sheen.
-  float seaRough = 0.75 + mottle * 0.3 + (fine - 0.5) * 0.18 - inlay * 0.2;
+  float seaRough = 0.75 + mottle * 0.3 + (fine - 0.5) * 0.18 - inlay * 0.2 - names * 0.15;
   float seaMetal = 0.08 + inlay * 0.85;
 
   // Lakes take the shelf's lacquer.
@@ -474,6 +522,7 @@ LookSurface lookSurface() {
 
   o.land = land * (1.0 - lake);
   o.ground = land;
+  o.names = names * (1.0 - land);
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
   o.roughness = clamp(mix(seaRough, landRough, land), 0.05, 1.0);
   o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);
@@ -531,10 +580,11 @@ export const LOOK_FRAGMENT_METALNESS = /* glsl */ `
 /**
  * After three's `#include <lights_fragment_end>`: the sea's lacquer reflects the lamp less in
  * regional and close views, where its broad lobe lies mid-screen and veils the sea in warm grey;
- * the world view keeps the spike's.
+ * the world view keeps the spike's. The sea names' brass keeps all of it, as the land does.
  */
 export const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
-  float lookSeaSpec = mix(mix(0.3, 1.0, smoothstep(0.45, 1.0, lookS.zoom)), 1.0, lookS.land);
+  float lookSeaLit = max(lookS.land, lookS.names);
+  float lookSeaSpec = mix(mix(0.3, 1.0, smoothstep(0.45, 1.0, lookS.zoom)), 1.0, lookSeaLit);
   reflectedLight.directSpecular *= lookSeaSpec;
   reflectedLight.indirectSpecular *= lookSeaSpec;
 `;

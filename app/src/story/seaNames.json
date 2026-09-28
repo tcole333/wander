@@ -1,0 +1,419 @@
+[
+  {
+    "text": "Indian Ocean",
+    "lon": 78,
+    "lat": -9,
+    "size": 3.4,
+    "tracking": 0.5,
+    "style": "ocean",
+    "minKm": 25000
+  },
+  {
+    "text": "Indian Ocean",
+    "lon": 90,
+    "lat": -15,
+    "size": 2.8,
+    "tracking": 0.5,
+    "style": "ocean",
+    "minKm": 8000,
+    "maxKm": 25000
+  },
+  {
+    "text": "Indian Ocean",
+    "lon": 114.5,
+    "lat": -10.5,
+    "size": 0.6,
+    "tracking": 0.55,
+    "style": "ocean",
+    "minKm": 2400,
+    "maxKm": 8000
+  },
+  {
+    "text": "Indian Ocean",
+    "lon": 115.2,
+    "lat": -10.6,
+    "size": 0.26,
+    "tracking": 0.55,
+    "style": "ocean",
+    "maxKm": 2400
+  },
+  {
+    "text": "North Atlantic\nOcean",
+    "lon": -42,
+    "lat": 30,
+    "size": 3.4,
+    "tracking": 0.55,
+    "style": "ocean",
+    "minKm": 8000
+  },
+  {
+    "text": "South Atlantic\nOcean",
+    "lon": -18,
+    "lat": -24,
+    "size": 3.4,
+    "tracking": 0.55,
+    "style": "ocean",
+    "minKm": 8000
+  },
+  {
+    "text": "Atlantic\nOcean",
+    "lon": -20,
+    "lat": 46,
+    "size": 0.9,
+    "tracking": 0.55,
+    "style": "ocean",
+    "minKm": 2400,
+    "maxKm": 8000
+  },
+  {
+    "text": "Atlantic Ocean",
+    "lon": -71.8,
+    "lat": 40.35,
+    "size": 0.19,
+    "tracking": 0.35,
+    "style": "ocean",
+    "maxKm": 2400
+  },
+  {
+    "text": "North Pacific\nOcean",
+    "lon": -160,
+    "lat": 26,
+    "size": 3.4,
+    "tracking": 0.55,
+    "style": "ocean",
+    "minKm": 8000
+  },
+  {
+    "text": "South Pacific\nOcean",
+    "lon": -128,
+    "lat": -26,
+    "size": 3.4,
+    "tracking": 0.55,
+    "style": "ocean",
+    "minKm": 8000
+  },
+  {
+    "text": "Java Sea",
+    "lon": 111.5,
+    "lat": -4.9,
+    "size": 0.62,
+    "tracking": 0.12,
+    "style": "sea",
+    "minKm": 2400
+  },
+  {
+    "text": "Java Sea",
+    "lon": 112.4,
+    "lat": -5.6,
+    "size": 0.22,
+    "tracking": 0.12,
+    "style": "sea",
+    "maxKm": 2400
+  },
+  {
+    "text": "Bali Sea",
+    "lon": 115.9,
+    "lat": -7.45,
+    "size": 0.16,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Flores Sea",
+    "lon": 121,
+    "lat": -7.2,
+    "size": 0.5,
+    "tracking": 0.12,
+    "style": "sea",
+    "minKm": 2400
+  },
+  {
+    "text": "Flores Sea",
+    "lon": 118.9,
+    "lat": -7.6,
+    "size": 0.18,
+    "tracking": 0.12,
+    "style": "sea",
+    "minKm": 700,
+    "maxKm": 2400
+  },
+  {
+    "text": "Flores Sea",
+    "lon": 117.4,
+    "lat": -8.0,
+    "size": 0.045,
+    "tracking": 0.12,
+    "style": "sea",
+    "maxKm": 700
+  },
+  {
+    "text": "Saleh Bay",
+    "lon": 117.93,
+    "lat": -8.58,
+    "size": 0.035,
+    "tracking": 0.12,
+    "style": "sea",
+    "maxKm": 700
+  },
+  {
+    "text": "Savu Sea",
+    "lon": 122,
+    "lat": -9.55,
+    "size": 0.3,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Banda Sea",
+    "lon": 127.5,
+    "lat": -5.6,
+    "size": 0.6,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Timor Sea",
+    "lon": 127,
+    "lat": -11.6,
+    "size": 0.62,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Arafura Sea",
+    "lon": 136,
+    "lat": -9.6,
+    "size": 0.8,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Makassar Strait",
+    "lon": 118.3,
+    "lat": -2.2,
+    "size": 0.3,
+    "tracking": 0.12,
+    "angle": 72,
+    "style": "sea"
+  },
+  {
+    "text": "Celebes Sea",
+    "lon": 122,
+    "lat": 3.8,
+    "size": 0.6,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "South China Sea",
+    "lon": 115,
+    "lat": 13.5,
+    "size": 1.0,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Gulf of Thailand",
+    "lon": 101.6,
+    "lat": 9.6,
+    "size": 0.45,
+    "tracking": 0.12,
+    "angle": -50,
+    "style": "sea"
+  },
+  {
+    "text": "Andaman Sea",
+    "lon": 96.3,
+    "lat": 11.5,
+    "size": 0.6,
+    "tracking": 0.12,
+    "angle": -80,
+    "style": "sea"
+  },
+  {
+    "text": "Philippine Sea",
+    "lon": 134,
+    "lat": 18,
+    "size": 1.2,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Coral Sea",
+    "lon": 155,
+    "lat": -16,
+    "size": 1.1,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Great Australian Bight",
+    "lon": 129.3,
+    "lat": -35.3,
+    "size": 0.75,
+    "tracking": 0.12,
+    "bend": 15,
+    "style": "sea"
+  },
+  {
+    "text": "Bay of Bengal",
+    "lon": 88.5,
+    "lat": 14.5,
+    "size": 1.4,
+    "tracking": 0.12,
+    "style": "sea",
+    "minKm": 8000
+  },
+  {
+    "text": "Bay of Bengal",
+    "lon": 89,
+    "lat": 18,
+    "size": 0.75,
+    "tracking": 0.12,
+    "style": "sea",
+    "maxKm": 8000
+  },
+  {
+    "text": "Arabian Sea",
+    "lon": 64,
+    "lat": 14,
+    "size": 1.4,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Red Sea",
+    "lon": 38.6,
+    "lat": 20,
+    "size": 0.8,
+    "tracking": 0.12,
+    "angle": -58,
+    "style": "sea"
+  },
+  {
+    "text": "Mozambique Channel",
+    "lon": 40.8,
+    "lat": -18.5,
+    "size": 0.6,
+    "tracking": 0.12,
+    "angle": 68,
+    "style": "sea"
+  },
+  {
+    "text": "Black Sea",
+    "lon": 34.5,
+    "lat": 43.2,
+    "size": 0.8,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Mediterranean Sea",
+    "lon": 18,
+    "lat": 34.2,
+    "size": 1.1,
+    "tracking": 0.12,
+    "style": "sea",
+    "minKm": 8000
+  },
+  {
+    "text": "Mediterranean Sea",
+    "lon": 5.8,
+    "lat": 38.9,
+    "size": 0.5,
+    "tracking": 0.12,
+    "style": "sea",
+    "maxKm": 8000
+  },
+  {
+    "text": "Tyrrhenian Sea",
+    "lon": 12.4,
+    "lat": 39.9,
+    "size": 0.32,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Ionian Sea",
+    "lon": 18.8,
+    "lat": 37.4,
+    "size": 0.38,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Adriatic Sea",
+    "lon": 15.6,
+    "lat": 42.9,
+    "size": 0.32,
+    "tracking": 0.12,
+    "angle": -37,
+    "style": "sea"
+  },
+  {
+    "text": "North Sea",
+    "lon": 3.4,
+    "lat": 56,
+    "size": 0.7,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Baltic Sea",
+    "lon": 19.2,
+    "lat": 56.2,
+    "size": 0.5,
+    "tracking": 0.12,
+    "angle": 48,
+    "style": "sea"
+  },
+  {
+    "text": "Bay of Biscay",
+    "lon": -4.6,
+    "lat": 45.3,
+    "size": 0.4,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Celtic Sea",
+    "lon": -8,
+    "lat": 50.3,
+    "size": 0.3,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Gulf of Maine",
+    "lon": -68.4,
+    "lat": 43.1,
+    "size": 0.26,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Long Island Sound",
+    "lon": -72.9,
+    "lat": 41.1,
+    "size": 0.08,
+    "tracking": 0.12,
+    "angle": 10,
+    "style": "sea"
+  },
+  {
+    "text": "Gulf of Mexico",
+    "lon": -90,
+    "lat": 25,
+    "size": 1.0,
+    "tracking": 0.12,
+    "style": "sea"
+  },
+  {
+    "text": "Caribbean Sea",
+    "lon": -75,
+    "lat": 15,
+    "size": 1.1,
+    "tracking": 0.12,
+    "style": "sea"
+  }
+]
