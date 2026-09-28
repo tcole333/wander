@@ -26,6 +26,7 @@ import {
 import { dirOf, EARTH_KM, tangents } from './geo';
 import type { PlumeEffect, PlumeState } from './timeline';
 import { smoothstep } from './timeline';
+import { releaseDataAfterUpload } from '../../gpu/uploadOnce';
 
 /** Tambora's summit today, as the bake's heights have it: the vent the plume rises from. */
 export const VENT_M = 2850;
@@ -102,7 +103,9 @@ function puffAtlas(seed: number): DataTexture {
       }
     }
   }
-  const texture = new DataTexture(data, size, size, RGBAFormat, UnsignedByteType);
+  const texture = releaseDataAfterUpload(
+    new DataTexture(data, size, size, RGBAFormat, UnsignedByteType),
+  );
   texture.magFilter = LinearFilter;
   texture.minFilter = LinearMipmapLinearFilter;
   texture.generateMipmaps = true;

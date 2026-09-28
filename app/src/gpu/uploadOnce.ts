@@ -5,8 +5,18 @@ import {
   InterleavedBufferAttribute,
   type BufferGeometry,
   type CanvasTexture,
+  type DataTexture,
   type Texture,
 } from 'three';
+
+/** A complete, immutable 2D field; dimensions remain available to uniforms and inspection. */
+export function releaseDataAfterUpload(texture: DataTexture): DataTexture {
+  texture.onUpdate = () => {
+    texture.image.data = null;
+    texture.onUpdate = null;
+  };
+  return texture;
+}
 
 export function releaseCanvasAfterUpload(texture: CanvasTexture): CanvasTexture {
   texture.onUpdate = () => {
