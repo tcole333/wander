@@ -502,11 +502,11 @@ LookSurface lookSurface() {
   vec2 seaLonLat = lookLonLat(gratDir);
   float grat = lookGraticule * lookGraticuleAt(seaLonLat, gratDegPx);
   float names = lookSeaNamesAt(gratDir, seaLonLat);
-  float inlay = max(max(grat * 0.5, coast * 0.55), names * 0.8);
+  float inlay = max(max(grat * 0.5, coast * 0.55), names * 0.65);
   seaColor = mix(seaColor, lookInlay, inlay);
   // Rougher than the spike's 0.62: at low tilts the lamp's reflection lies mid-screen, and a
   // narrower lobe spreads over the sea as a pale sheen.
-  float seaRough = 0.75 + mottle * 0.3 + (fine - 0.5) * 0.18 - inlay * 0.2 - names * 0.15;
+  float seaRough = 0.75 + mottle * 0.3 + (fine - 0.5) * 0.18 - inlay * 0.2;
   float seaMetal = 0.08 + inlay * 0.85;
 
   // Lakes take the shelf's lacquer.
@@ -575,10 +575,11 @@ export const LOOK_FRAGMENT_METALNESS = /* glsl */ `
 /**
  * After three's `#include <lights_fragment_end>`: the sea's lacquer reflects the lamp less in
  * regional and close views, where its broad lobe lies mid-screen and veils the sea in warm grey;
- * the world view keeps the spike's. The sea names' brass keeps all of it, as the land does.
+ * the world view keeps the spike's. The sea names' brass keeps more of it than the lacquer, not all:
+ * they stay a recessed inlay, never brighter than the lit land.
  */
 export const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
-  float lookSeaLit = max(lookS.land, lookS.names);
+  float lookSeaLit = max(lookS.land, lookS.names * 0.4);
   float lookSeaSpec = mix(mix(0.3, 1.0, smoothstep(0.45, 1.0, lookS.zoom)), 1.0, lookSeaLit);
   reflectedLight.directSpecular *= lookSeaSpec;
   reflectedLight.indirectSpecular *= lookSeaSpec;
