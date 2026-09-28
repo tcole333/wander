@@ -1,8 +1,8 @@
-// The look's Labels layer: the ocean and sea names of seaNames.json, engraved in the
-// lacquer. They are lettered once at boot into an atlas in the walk's own faces, the oceans in
-// Libre Baskerville's tracked capitals and the seas in Source Serif 4's italic, both bundled and
-// loaded before anything is drawn, so nothing is fetched later. The look inlays them at sea level,
-// as it does the graticule, so relief never bends them (lookFragment.glsl.ts, lookSeaNamesAt).
+// The look's Labels layer: the ocean and sea names of seaNames.json, engraved in the lacquer.
+// They are lettered once at boot into an atlas in the walk's own faces, the oceans in Libre
+// Baskerville's tracked capitals and the seas in Source Serif 4's italic, both bundled and loaded
+// before anything is drawn, so nothing is fetched later. The look inlays them at sea level, as it
+// does the graticule, so relief never bends them (lookFragment.glsl.ts, lookSeaNamesAt).
 // Each frame the look picks the names in the view whose letters stand between about 7 and 48 px on
 // screen, fading each in and out by that size and by its view widths, and hands the SEA_NAMES_MAX
 // strongest to the shader.
