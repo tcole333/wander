@@ -1,9 +1,10 @@
 // The fold on the beat card and on Meanwhile: a small brass knob in the panel's head, the sound
 // knob's metal in miniature (soundKnob.ts) with a chevron cut into its face. Pressing it folds the
-// panel down to its head; pressing it again unfolds the panel. What folds away is a grid row that
-// shrinks to nothing, as the card's sources do (card.ts), and it is out of reach while it does. A
-// fold holds across beats and across stories, and is remembered per viewer in localStorage, as the
-// mute is (audio/walkAudio.ts); where storage refuses, it holds for this visit alone.
+// panel down to its head, and pressing it again unfolds the panel. What folds away is a grid row
+// that shrinks to nothing, as the card's sources do (card.ts), and stays out of reach of the
+// keyboard and of screen readers while folded. A fold holds across beats and across stories, and
+// is remembered per viewer in localStorage, as the mute is (audio/walkAudio.ts); where storage
+// refuses, it holds for this visit alone.
 import { button, el, passFocus, svg } from './dom';
 import { smallKnob } from './rulerCraft';
 
