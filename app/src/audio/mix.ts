@@ -14,7 +14,7 @@ export interface Mix {
     clunk: number;
     whir: number;
   };
-  bed: { room: number; rumble: number };
+  bed: { room: number; rumble: number; surf: number; timber: number; rigging: number };
   cues: Record<CueName, number>;
 }
 
@@ -22,8 +22,10 @@ export const mix: Mix = {
   master: 0,
   buses: { ui: 0, bed: 0, cue: 0 },
   voices: { detentDay: -33, detentMonth: -29, detentYear: -26, clunk: -24, whir: -31 },
-  bed: { room: -42, rumble: -25 },
+  bed: { room: -42, rumble: -25, surf: -35, timber: -33, rigging: -46 },
   cues: {
+    'ship-bell': -30,
+    'surf-shallows': -29,
     'rumble-far': -27,
     'cannon-far': -29,
     eruption: -16,

@@ -25,7 +25,7 @@ image:
 layers: [relief, bathymetry, coastline, landSea, water, graticule, labels, events]
 effects:
   - route: {dataset: route, wDays: 7, style: fleet}
-audio: {cues: []}
+audio: {cues: [ship-bell]}
 meanwhile: auto
 sources:
   - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 35–41, 58, 127, 161)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/35/mode/2up"}
@@ -228,7 +228,7 @@ effects:
   - route: {dataset: route, wDays: 7, style: fleet}
   - callout: {at: [123.91, 10.29], text: Cebu}
   - callout: {at: [124.015, 10.311], text: Mactan}
-audio: {cues: []}
+audio: {cues: [surf-shallows]}
 meanwhile: auto
 sources:
   - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 71–74, 99–103)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/99/mode/2up"}
@@ -327,7 +327,7 @@ image:
 layers: [relief, bathymetry, coastline, landSea, graticule, labels, events]
 effects:
   - route: {dataset: route, wDays: 7, style: fleet}
-audio: {cues: []}
+audio: {cues: [ship-bell]}
 meanwhile: auto
 sources:
   - {title: "The First Voyage Round the World, by Magellan (Pigafetta's account, pp. 39, 161–162)", author: "Antonio Pigafetta, translated and edited by Lord Stanley of Alderley", publisher: "Hakluyt Society, London", year: 1874, url: "https://archive.org/details/firstvoyageround00piga/page/161/mode/2up"}

@@ -3,9 +3,11 @@
 // is a few distant booms, spaced; rumble-far is low grumbles now and then; the eruption is one
 // blast, then a roar that settles and sinks low. Textures loop noise of prime lengths behind
 // swaying filters, as the bed does (bed.ts), and every event jitters its pitch, level and filters.
+// Magellan adds one bell strike at departure and return, and breaking surf at Mactan.
 import type { SoundEngine } from './engine';
 import { gainOf } from './mix';
 import {
+  crossfadeLoop,
   every,
   grainSamples,
   jitter,
@@ -35,6 +37,65 @@ interface Cue {
 }
 
 export const CUES = {
+  'ship-bell': {
+    fadeIn: 0,
+    play(engine, out, at, sources) {
+      // One modest strike at departure or homecoming, then leave the reader with the sea.
+      const ctx = engine.ctx;
+      const t = at + rand(0.2, 0.45);
+      const pitch = 392 * jitter(0.025);
+      const size = jitterDb(0, 1.5);
+      for (const [ratio, level, decay] of [
+        [1, 0.34, 1.7],
+        [2, 0.62, 1.25],
+        [2.76, 0.24, 0.85],
+        [4.07, 0.14, 0.55],
+        [5.43, 0.06, 0.3],
+      ] as const) {
+        const end = t + decay * 8;
+        const partial = sources.add(
+          new OscillatorNode(ctx, { frequency: pitch * ratio * jitter(0.002) }),
+          end,
+        );
+        const gain = new GainNode(ctx, { gain: 0 });
+        strike(gain.gain, t, size * level, 0.003, decay);
+        partial.connect(gain).connect(out);
+        partial.start(t);
+        partial.stop(end);
+        releaseOnEnd(partial, gain);
+      }
+    },
+  },
+  'surf-shallows': {
+    fadeIn: 2,
+    play(engine, out, at, sources) {
+      const ctx = engine.ctx;
+      // A wave gathers, breaks across the shallows and drains away. Each break has a fresh
+      // duration, brightness and weight; the underlying noise is shared with the ocean bed.
+      const wash = new GainNode(ctx, { gain: 0 });
+      const foam = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 1500, Q: 0.5 });
+      const pan = new StereoPannerNode(ctx, { pan: 0 });
+      foam.connect(wash).connect(pan).connect(out);
+      crossfadeLoop(engine, engine.noise('pink', 7.3, sources), at, sources)
+        .connect(new BiquadFilterNode(ctx, { type: 'highpass', frequency: 180, Q: 0.5 }))
+        .connect(foam);
+      every(engine, at + rand(0.3, 0.8), sources, (t) => {
+        const rise = rand(1.1, 2.1);
+        const length = rise + rand(3.5, 5.5);
+        const size = jitterDb(0, 2);
+        wash.gain.setValueAtTime(0, t);
+        wash.gain.linearRampToValueAtTime(size * 0.45, t + rise * 0.7);
+        wash.gain.linearRampToValueAtTime(size, t + rise);
+        wash.gain.setTargetAtTime(0, t + rise, (length - rise) / 5);
+        wash.gain.setValueAtTime(0, t + length);
+        foam.frequency.setValueAtTime(rand(650, 950), t);
+        foam.frequency.linearRampToValueAtTime(rand(2200, 3400), t + rise);
+        foam.frequency.exponentialRampToValueAtTime(rand(550, 800), t + length);
+        pan.pan.setTargetAtTime(rand(-0.3, 0.3), t, 0.8);
+        return t + length + rand(1.5, 4);
+      });
+    },
+  },
   'rumble-far': {
     fadeIn: 0,
     play(engine, out, at, sources) {

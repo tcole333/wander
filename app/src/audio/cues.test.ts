@@ -18,6 +18,19 @@ describe('the cues', () => {
     expect(named.length).toBeGreaterThan(0);
     expect(named.filter((name) => !isCueName(name))).toEqual([]);
   });
+
+  it('places the bell at departure and return, and the breaking surf at Mactan', () => {
+    const story = parseStory(readFileSync(new URL('magellan/story.md', stories), 'utf8'));
+    expect(
+      story.beats
+        .filter((beat) => beat.audioCues.length > 0)
+        .map((beat) => [beat.id, beat.audioCues]),
+    ).toEqual([
+      ['sanlucar-out', ['ship-bell']],
+      ['mactan', ['surf-shallows']],
+      ['sanlucar-home', ['ship-bell']],
+    ]);
+  });
 });
 
 /** An engine's clock and scheduler without audio: `wake` runs its pumps as a live timer does. */

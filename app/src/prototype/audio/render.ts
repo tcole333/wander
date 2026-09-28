@@ -1,9 +1,9 @@
 // Every sound rendered offline for listening away from the page (scripts/renderSounds.ts): each
 // voice several times over, a scrub by months and one by days, a flight, the Tambora bed at three
-// moments (and room tone alone), each cue, and a stretch of the walk as it sounds, as 48 kHz
+// moments (and room tone alone), Magellan's ocean, each cue, and a stretch of the walk, as 48 kHz
 // 16-bit stereo WAV with its peak and RMS.
 import storyText from '../../../../stories/tambora/story.md?raw';
-import { tamboraBed } from '../../audio/bed';
+import { magellanBed, tamboraBed } from '../../audio/bed';
 import { CUE_NAMES, startCue, type CueName } from '../../audio/cues';
 import { SoundEngine } from '../../audio/engine';
 import type { Mix } from '../../audio/mix';
@@ -83,6 +83,12 @@ export const TAKES: Record<string, Take> = {
   'bed-1816-07-01': bed('1816-07-01'),
   // Room tone alone, once the mountain is quiet.
   'bed-1818-01-01': bed('1818-01-01'),
+  'bed-magellan': {
+    seconds: 90,
+    play(engine, seconds) {
+      magellanBed(engine, dayFromIso('1519-09-20'), 0).stop(seconds - 1.5, 1.2);
+    },
+  },
   ...Object.fromEntries(CUE_NAMES.map((name) => [`cue-${name}`, cue(name)])),
   // The walk from its first beat onto the distant cannon, then on to the eruption.
   'walk-stretch': {
