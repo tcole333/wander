@@ -4,7 +4,7 @@ export in `pipeline/sources.toml`.
 
 The step runs `pipeline/queries/events.rq` once for each class in
 `pipeline/config/event-classes.yaml`, one request at a time with a pause between them, backing off
-for minutes whenever the endpoint answers that it is busy (429 or 503), and writes:
+for minutes whenever the endpoint answers that it is busy or failed (429 or 5xx), and writes:
 
 - `events.tsv.gz`: the endpoint's TSV rows under one header, each led by its class's qid
   (gzip level 9, mtime 0);
@@ -37,7 +37,8 @@ ENDPOINT = "https://qlever.dev/api/wikidata"
 USER_AGENT = "wander-prebuild/0 (https://github.com/tcole333/wander)"
 TIMEOUT_S = 600  # the largest class takes about 30 s
 PAUSE_S = 5.0  # between requests
-BUSY_WAITS_S = (60, 180, 600)  # after each 429 or 503 answer, unless it names a wait
+BUSY_WAITS_S = (60, 180, 600)  # after each busy or failed answer, unless it names a wait
+BUSY = frozenset({429, 500, 502, 503, 504})  # answers another try may not get
 QUERY = REPO_ROOT / "pipeline" / "queries" / "events.rq"
 SOURCE_PREFIX = "wikidata-events-"  # the source id is this plus the export's date, YYYYMMDD
 TABLE = "events.tsv.gz"
@@ -201,11 +202,11 @@ def _post(query: str) -> str:
         try:
             return _answer(request)
         except urllib.error.HTTPError as error:
-            if error.code not in (429, 503):
+            if error.code not in BUSY:
                 raise
             retry_after = error.headers.get("Retry-After", "")
             seconds = int(retry_after) if retry_after.isdigit() else wait
-            print(f"wikidata: the endpoint is busy ({error.code}); waiting {seconds} s", flush=True)
+            print(f"wikidata: the endpoint answered {error.code}; waiting {seconds} s", flush=True)
             time.sleep(seconds)
     return _answer(request)
 
