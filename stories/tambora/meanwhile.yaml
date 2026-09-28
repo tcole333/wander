@@ -4,26 +4,26 @@
 # merges them into story.lock.json.
 
 Q3538392:
-  line: The chiefs of Kandy cede their kingdom to the British Crown
+  line: Kandy's chiefs depose their king and cede his kingdom to Britain
   date: "1815-03-02"
   source: {title: Kandyan Convention (Wikipedia), url: "https://en.wikipedia.org/wiki/Kandyan_Convention"}
 
 Q54322416:
-  line: A British colonel promises Creek refugees the Crown's protection
+  line: In Florida, Creek refugees swear allegiance to the British Crown
   source: {title: Treaty of Nicolls' Outpost (Wikipedia), url: "https://en.wikipedia.org/wiki/Treaty_of_Nicolls%27_Outpost"}
 
 Q25412993:
-  line: Bolívar besieges Cartagena, held by his patriot rival Castillo
+  line: Bolívar besieges Cartagena, held against him by fellow patriots
   date: "1815-03-26"
   source: {title: Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia), url: "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"}
 
 Q14833923:
-  line: At Takovo, Miloš Obrenović raises the Serbs against Ottoman rule
+  line: At Takovo, Miloš Obrenović raises the Serbs in revolt against the Ottomans
   date: "1815-04-23"
   source: {title: Takovo Meeting (Wikipedia), url: "https://en.wikipedia.org/wiki/Takovo_Meeting"}
 
 Q1359641:
-  line: Austria routs Murat's Neapolitan army at Tolentino
+  line: At Tolentino, Austria crushes the army of Murat, Napoleon's King of Naples
   source: {title: Battle of Tolentino (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Tolentino"}
 
 Q298864:
@@ -31,15 +31,15 @@ Q298864:
   source: {title: Neapolitan War (Wikipedia), url: "https://en.wikipedia.org/wiki/Neapolitan_War"}
 
 Q46362:
-  line: The Congress of Vienna redraws the map of Europe
+  line: At Vienna, diplomats keep redrawing Europe's map despite Napoleon's return
   source: {title: Congress of Vienna (Wikipedia), url: "https://en.wikipedia.org/wiki/Congress_of_Vienna"}
 
 Q48314:
-  line: Wellington and Blücher defeat Napoleon at Waterloo
+  line: At Waterloo, Wellington and Blücher defeat Napoleon for the last time
   source: {title: Battle of Waterloo (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Waterloo"}
 
 Q5010928:
-  line: On the Cape's eastern frontier, Boer farmers rise against British rule
+  line: On the Cape frontier, Boer farmers rise against British rule
   source: {title: Slachter's Nek Rebellion (Wikipedia), url: "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"}
 
 Q233688:
@@ -47,23 +47,24 @@ Q233688:
   source: {title: Treaty of Paris (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"}
 
 Q2890016:
-  line: Spain's royalists crush the army of Buenos Aires at Sipe-Sipe
+  line: At Sipe-Sipe, Spain's royalists rout the army of Buenos Aires
+  date: "1815-11-29"
   source: {title: Battle of Viluma (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Viluma"}
 
 Q1757487:
-  line: At Seven Oaks, Métis fighters kill Governor Semple and twenty men
+  line: At Seven Oaks, Métis riders kill Governor Semple and twenty men
   source: {title: Battle of Seven Oaks (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"}
 
 Q2890524:
-  line: Near Popayán, Spain's victory ends New Granada's first republic
+  line: On a ridge near Popayán, Spain's army ends New Granada's first republic
   source: {title: Battle of Cuchilla del Tambo (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Cuchilla_del_Tambo"}
 
 Q3248484:
-  line: At Tucumán, Argentina declares its independence from Spain
+  line: In a house at Tucumán, a congress declares Argentina independent of Spain
   source: {title: Argentine Declaration of Independence (Wikipedia), url: "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"}
 
 Q1425658:
-  line: Across the Andes, San Martín's army beats Spain's at Chacabuco
+  line: After crossing the Andes, San Martín's army routs Spain's at Chacabuco
   source: {title: Battle of Chacabuco (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Chacabuco"}
 
 Q7837193:
@@ -72,10 +73,10 @@ Q7837193:
   source: {title: Treaty of Poona (1817) (Wikipedia), url: "https://en.wikipedia.org/wiki/Treaty_of_Poona_(1817)"}
 
 Q7165306:
-  line: Hungry Derbyshire workers march on Nottingham with pikes and scythes
+  line: Egged on by a government spy, Derbyshire men march on Nottingham with pikes
   source: {title: Pentrich rising (Wikipedia), url: "https://en.wikipedia.org/wiki/Pentrich_rising"}
 
 Q617210:
-  line: The Peshwa's army attacks the British at Pune
+  line: At Pune, the Peshwa turns on the British and burns their Residency
   date: "1817-11-05"
-  source: {title: Third Anglo-Maratha War (Wikipedia), url: "https://en.wikipedia.org/wiki/Third_Anglo-Maratha_War"}
+  source: {title: Battle of Khadki (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Khadki"}
