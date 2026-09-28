@@ -93,7 +93,7 @@ image:
 layers: [relief, bathymetry, coastline, landSea, water, labels, events]
 effects:
   - route: {dataset: route, wDays: 7, style: fleet}
-  - callout: {at: [-67.7, -49.3], text: San Julián}
+  - callout: {at: [-67.61, -49.36], text: San Julián}
 audio: {cues: []}
 meanwhile: auto
 sources:
