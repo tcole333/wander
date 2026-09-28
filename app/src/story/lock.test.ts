@@ -12,7 +12,7 @@ const story = withLock(parseStory(read('../../../stories/tambora/story.md')), lo
 describe("Tambora's lock", () => {
   it('holds every beat image as story.md crops it, at 1024 and 256 px wide, credited', () => {
     for (const beat of story.beats) {
-      const locked = beat.image?.locked;
+      const locked = beat.image.locked;
       expect(locked, `beat ${beat.id}: run uv run prebuild media --story tambora`).toBeDefined();
       expect(locked?.files.map((file) => file.key.replace(/^img\/[\da-f]{16}/, ''))).toEqual([
         '-1024.jpg',

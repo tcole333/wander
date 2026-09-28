@@ -267,7 +267,7 @@ export function yearsIn(span: Span): { year: number; start: number; end: number 
 
 /** The story's whole years: from the first of the year its first date falls in, to the end of the last's. */
 export function storyYears(beats: StoryBeat[]): Span {
-  const days = beats.flatMap((beat) => [beat.day, ...(beat.window ?? [])]);
+  const days = beats.flatMap((beat) => beat.window);
   const first = civilFromDay(Math.min(...days)).year;
   const last = civilFromDay(Math.max(...days)).year;
   return {

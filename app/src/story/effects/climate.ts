@@ -57,7 +57,7 @@ export function climateYears(story: Story): number[] {
   const years = new Set<number>();
   story.beats.forEach((beat, i) => {
     if (!showsMonthly(beat)) return;
-    const days = [beat.day, ...(beat.window ?? []), story.beats[i - 1]?.day ?? beat.day];
+    const days = [...beat.window, story.beats[i - 1]?.day ?? beat.day];
     const first = monthsAround(Math.min(...days)).from.year;
     const last = monthsAround(Math.max(...days)).to.year;
     for (let year = first; year <= last; year += 1) years.add(year);
