@@ -25,8 +25,8 @@ keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The 
 scrubs: the month's window, the target of the beat dated nearest it, none of the story's
 focal events, and no event any beat hides.
 
-A beat's entries show their written lines; a month's show the Wikidata label, and cite the
-event's written source where it has one, else its Wikipedia article. The lobby's glows are the
+An entry shows its written line where it has one, else its Wikidata label, and cites the line's
+source, else its Wikipedia article; each list is in date order. The lobby's glows are the
 `GLOW_COUNT` best-scored events of every era with a place of their own (an inherited place is
 often a continent's or an ocean's middle), each at least `GLOW_MIN_KM` from the others.
 
@@ -37,6 +37,7 @@ everything else in it (the media stage's images). It writes no record: the lock 
 
 import gzip
 import math
+import re
 import time
 import urllib.parse
 from collections.abc import Iterable, Mapping, Sequence
@@ -59,6 +60,7 @@ MIN_KM = 2000.0  # from the beat's target, and between entries
 GLOW_COUNT = 120
 GLOW_MIN_KM = 450.0
 EARTH_KM = 6371.0088
+DISAMBIGUATOR = re.compile(r" \(\d{3,4}\)$")  # a title's year: 'Treaty of Munich (1816)'
 
 type LonLat = tuple[float, float]
 
@@ -151,11 +153,9 @@ def run(ctx: Context) -> None:
     lock_path = folder / "story.lock.json"
     lock = read_lock(lock_path)
     lock["meanwhile"] = {
-        "beats": {
-            beat: [entry(e, lines.get(e.qid)) for e in chosen] for beat, chosen in by_beat.items()
-        },
+        "beats": {beat: entries(chosen, lines) for beat, chosen in by_beat.items()},
         "months": {
-            f"{year:04d}-{month:02d}": [entry(e, lines.get(e.qid), line=False) for e in chosen]
+            f"{year:04d}-{month:02d}": entries(chosen, lines)
             for (year, month), chosen in by_month.items()
         },
     }
@@ -454,20 +454,24 @@ def read_table(lines: Iterable[str]) -> list[Event]:
 # What the lock holds
 
 
-def entry(
-    event: Event, written: Mapping[str, Any] | None = None, *, line: bool = True
-) -> dict[str, Any]:
-    """An entry as the lock gives it: the label with its first letter capitalized, the date and
-    its precision, the place, the source, and for a beat's entry (`line`) its written line. Where
-    the event has a written line, the entry cites its source."""
+def entries(chosen: Iterable[Event], lines: Mapping[str, Mapping[str, Any]]) -> list[dict]:
+    """A list as the lock gives it, in date order."""
+    return [entry(e, lines.get(e.qid)) for e in sorted(chosen, key=lambda e: e.date)]
+
+
+def entry(event: Event, written: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """An entry as the lock gives it: the label with its first letter capitalized and without a
+    year in brackets, the date and its precision, the place, and where the event has a written
+    line, the line and its source, else the event's article."""
+    label = DISAMBIGUATOR.sub("", event.label)
     fields: dict[str, Any] = {
         "qid": event.qid,
-        "label": event.label[:1].upper() + event.label[1:],
+        "label": label[:1].upper() + label[1:],
         "date": events.iso(civil(event.date)),
         "precision": precision_name(event.precision),
         "at": list(event.at),
     }
-    if written is not None and line:
+    if written is not None:
         fields["line"] = written["line"]
     fields["source"] = dict(written["source"]) if written is not None else article(event)
     return fields

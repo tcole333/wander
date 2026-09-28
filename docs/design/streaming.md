@@ -700,10 +700,10 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   it, none of the story's focal events and nothing a beat hides.
 - **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
   present-tense line in the story's voice and its source (`qid: {line, date?, source: {title,
-  url}}`), with the source's date where it differs from Wikidata's. A month's entries show the
-  Wikidata label, its first letter capitalized, and cite the written source where the event has
-  one (taking its date too), else its Wikipedia article. The stage
-  names any beat entry without a line.
+  url}}`), with the source's date where it differs from Wikidata's. Every entry, a beat's or a
+  month's, shows the written line where there is one, else the Wikidata label (its first letter
+  capitalized, without a title's year in brackets), and cites the written source, else its
+  Wikipedia article. Each list is in date order. The stage names any beat entry without a line.
 - **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages, committed):
   `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?, license, source}], audio:
   [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry, …]}, months: {"YYYY-MM":

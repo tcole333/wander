@@ -1,6 +1,6 @@
 // Meanwhile's entries as the walk's UI takes them, from the story's lock (lock.ts), where the
-// prebuild's meanwhile stage puts them (streaming.md 3.9): each beat's, which show the lines the
-// story's writers give them, and each month's for scrubbing, which show the Wikidata label. The
+// prebuild's meanwhile stage puts them (streaming.md 3.9): each beat's and each month's for
+// scrubbing, which show the line the story's writers give an event, else its Wikidata label. The
 // lock gives each date as an ISO string with its precision; the UI's entries carry day numbers and
 // the date as the panel prints it (dates.ts).
 import type { Meanwhile, MeanwhileEntry, MeanwhileMonth } from './contract';
