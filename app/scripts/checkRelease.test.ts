@@ -1,7 +1,7 @@
 // check-release against the local data server on the fixture build, which serves R2's headers:
 // from a root that also holds the release's copy and its first image it passes, and from the build
 // alone, which holds neither, it names the missing copy and fetches nothing else. On the bundled
-// release it reads every climate year the walk loads as it starts.
+// release it reads every climate year the walk loads as it starts, and the 1815 border field.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -66,5 +66,12 @@ describe('check-release', () => {
     );
     const { data } = releaseKeys(release);
     expect(data.filter((key) => key.startsWith('fd/modera/'))).toEqual(climate);
+  });
+
+  test('reads the 1815 border field', () => {
+    const release = bundled as Release;
+    const field = release.borders?.files['1815']?.key;
+    expect(field).toMatch(/^fd\/borders\/[0-9a-f]{8}\/1815\.bin$/);
+    expect(releaseKeys(release).data).toContain(field);
   });
 });
