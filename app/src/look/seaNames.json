@@ -234,8 +234,8 @@
   },
   {
     "text": "Bay of Bengal",
-    "lon": 87.8,
-    "lat": 14.5,
+    "lon": 87.0,
+    "lat": 13.3,
     "size": 1.4,
     "style": "sea",
     "minKm": 8000
@@ -250,8 +250,8 @@
   },
   {
     "text": "Arabian Sea",
-    "lon": 62.5,
-    "lat": 14,
+    "lon": 60.5,
+    "lat": 13.2,
     "size": 1.4,
     "style": "sea"
   },
