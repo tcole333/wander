@@ -4,9 +4,9 @@
 // Credits panel opens from the lobby and closes; the Tambora plaque dives into beat 1, whose title
 // shows with its image from the data host, and the Right arrow brings beat 2's; M mutes; the
 // card's Credits link opens the panel too; the credits page still loads on its own; nothing logs
-// an error; no request goes to Wikimedia: the images are the media stage's, on the data host; and
-// once the room opens, nothing more is fetched from the app's own host: every face and worker came
-// with the boot.
+// an error; no request goes to Wikimedia: the images are the media stage's, on the data host;
+// bounds.bin is fetched once; and once the room opens, nothing more is fetched from the app's own
+// host: every face and worker came with the boot.
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
@@ -167,5 +167,6 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   expect(requested.filter((url) => url.startsWith(`${DATA_URL.fixture}/img/`))).not.toEqual([]);
   const wikimedia = requested.filter((url) => /(^|\.)wikimedia\.org$/.test(new URL(url).hostname));
   expect(wikimedia).toEqual([]);
+  expect(requested.filter((url) => url.endsWith('/bounds.bin'))).toHaveLength(1);
   expect(fromApp).toEqual([]);
 });
