@@ -44,21 +44,23 @@ describe('a pressed control', () => {
 });
 
 describe('a control going out of reach', () => {
-  /** A plaque and a knob on one page, each taking the page's focus when asked. */
+  /** A plaque with a link inside it, and a knob, on one page, each taking its focus when asked. */
   function page() {
     const doc: { activeElement: object | null } = { activeElement: null };
-    const control = () => {
+    const control = (parts: object[] = []) => {
       const c = {
         ownerDocument: doc,
+        contains: (node: object) => node === c || parts.includes(node),
         focus: () => {
           doc.activeElement = c;
         },
       };
       return c;
     };
-    const [plaque, knob] = [control(), control()];
+    const link = control();
+    const [plaque, knob] = [control([link]), control()];
     const pass = () => passFocus(plaque as unknown as HTMLElement, knob as unknown as HTMLElement);
-    return { doc, plaque, knob, pass };
+    return { doc, plaque, link, knob, pass };
   }
 
   it('hands the focus it holds to its heir, and takes none it does not hold', () => {
@@ -70,5 +72,12 @@ describe('a control going out of reach', () => {
       true,
       null,
     ]);
+  });
+
+  it('hands on the focus of anything inside it too', () => {
+    const inside = page();
+    inside.link.focus();
+    inside.pass();
+    expect(inside.doc.activeElement === inside.knob).toBe(true);
   });
 });
