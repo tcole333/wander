@@ -38,9 +38,9 @@ export interface LockedEvent {
   qid: string;
   /** The Wikidata label, its first letter capitalized. */
   label: string;
-  /** An ISO date, and as the panel prints it at its precision: '18 June 1815', 'June 1815', '1816'. */
+  /** An ISO date, and the precision the panel prints it at, 'day', 'month' or 'year'. */
   date: string;
-  dateLabel: string;
+  precision: string;
   /** [lon, lat]. */
   at: number[];
   /** A beat's entry: the line the story's writers give it, in the story's voice. */

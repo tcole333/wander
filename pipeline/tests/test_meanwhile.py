@@ -92,3 +92,11 @@ def test_an_event_index_built_from_other_configs_is_refused(tmp_path):
     (ctx.stages_dir / "events.json").write_text(json.dumps({"inputs": stale}), encoding="utf-8")
     with pytest.raises(m.MeanwhileError, match="run `uv run prebuild --profile global events`"):
         m.run(ctx)
+
+
+def test_an_entry_gives_its_date_with_its_precision():
+    war = event("Q617210", 4.8, (75.7, 19.8), "1817-11-01", precision=10)
+    assert {k: m.entry(war)[k] for k in ("date", "precision")} == {
+        "date": "1817-11-01",
+        "precision": "month",
+    }

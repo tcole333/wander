@@ -10,7 +10,7 @@ const waterloo: LockedEvent = {
   qid: 'Q48314',
   label: 'Battle of Waterloo',
   date: '1815-06-18',
-  dateLabel: '18 June 1815',
+  precision: 'day',
   at: [4.41222, 50.67806],
   line: 'Wellington and Blücher defeat Napoleon at Waterloo',
   source: { title: 'Battle of Waterloo (Wikipedia)', url: 'https://example.org' },
@@ -27,9 +27,25 @@ describe('Meanwhile entries', () => {
     expect(entry?.day).toBe(dayFromIso('1815-06-18'));
   });
 
+  it('print their dates at the precision the lock gives', () => {
+    const entries = [waterloo, { ...waterloo, date: '1816-01-01', precision: 'year' }];
+    const meanwhile = meanwhileFromLock({
+      images: [],
+      meanwhile: { beats: { veil: entries }, months: {} },
+    });
+    expect(meanwhile.beats.veil?.map((entry) => entry.dateLabel)).toEqual(['18 June 1815', '1816']);
+  });
+
   it('scrubbed to a day, are the entries of its month, or of the nearest month', () => {
     const month = (label: string): LockedEvent[] => [
-      { qid: 'Q1', label, date: '1815-06-18', dateLabel: '', at: [0, 0], source: waterloo.source },
+      {
+        qid: 'Q1',
+        label,
+        date: '1815-06-18',
+        precision: 'day',
+        at: [0, 0],
+        source: waterloo.source,
+      },
     ];
     const meanwhile = meanwhileFromLock({
       images: [],
