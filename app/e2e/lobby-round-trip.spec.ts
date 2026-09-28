@@ -121,10 +121,35 @@ for (const entry of ['production', 'dev'] as const) {
     await phase(page, 'gone');
     await expect(title).toHaveText(story.beats[0]!.title);
 
+    // The card and Meanwhile fold to their heads. At this spec's 640x400, Meanwhile lies over the
+    // card's head, so a keyboard visitor presses the knobs: Enter one, and Space the other, which
+    // the walk's own Space leaves alone.
+    const cardKnob = page.getByRole('button', { name: 'Story card', exact: true });
+    const meanwhileKnob = page.getByRole('button', { name: 'Meanwhile', exact: true });
+    const cardBody = page.locator('.wu-story .wu-body');
+    await cardKnob.focus();
+    await page.keyboard.press('Enter');
+    await meanwhileKnob.focus();
+    await page.keyboard.press(' ');
+    for (const fold of [cardKnob, meanwhileKnob]) {
+      await expect(fold).toHaveAttribute('aria-expanded', 'false');
+    }
+    await expect(cardBody).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
+
     await page.keyboard.press('ArrowRight');
     await expect(title).toHaveText(story.beats[1]!.title, { timeout: TIMEOUT });
     // The date reaches 5 April only when the flight has reached beat 2.
     await expect(page.locator('.rc-plate-top').first()).toHaveText('5 APRIL', { timeout: TIMEOUT });
+
+    // The folds held from beat to beat, and the folded card shows beat 2's title (above).
+    for (const fold of [cardKnob, meanwhileKnob]) {
+      await expect(fold).toHaveAttribute('aria-expanded', 'false');
+      await fold.focus();
+      await page.keyboard.press('Enter');
+      await expect(fold).toHaveAttribute('aria-expanded', 'true');
+    }
+    await expect(cardBody).toBeVisible();
 
     await mark.click();
     await phase(page, 'returning');
