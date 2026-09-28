@@ -83,7 +83,6 @@ export class BeatCard {
 
   #showSources(beat: StoryBeat): void {
     this.#openSources(false);
-    this.#foot.hidden = beat.sources.length === 0;
     const hand = el('span', 'wu-sources-hand', '☞');
     hand.setAttribute('aria-hidden', 'true');
     this.#sourcesToggle.replaceChildren(
