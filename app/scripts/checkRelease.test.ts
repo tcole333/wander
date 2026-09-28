@@ -1,6 +1,6 @@
 // check-release against the local data server on the fixture build, which serves R2's headers:
-// from a root that also holds the release's copy and its first image it passes, and from the build
-// alone, which holds neither, it names the missing copy and fetches nothing else. On the bundled
+// from a root that also holds the release's copy and each story's first image it passes; from the
+// build alone, which holds neither, it names the missing copy and fetches nothing else. On the bundled
 // release it reads every climate year the walk loads as it starts, and the 1815 border field.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -47,10 +47,11 @@ describe('check-release', () => {
     );
     const release = await serve(scratch);
     writeFileSync(join(root, 'rel', `${release.id}.json`), JSON.stringify(release));
-    // The fixture bakes no story images, so a stand-in answers for the one the check reads.
-    const [image] = release.media.images;
+    // The fixture bakes no story images, so stand-ins answer for the openings the check reads.
     mkdirSync(join(root, 'img'), { recursive: true });
-    writeFileSync(join(root, image ?? 'img/none.jpg'), Buffer.alloc(64));
+    for (const key of releaseKeys(release).data.filter((key) => key.startsWith('img/'))) {
+      writeFileSync(join(root, key), Buffer.alloc(64));
+    }
     expect(await checkRelease(release)).toEqual([]);
   });
 
