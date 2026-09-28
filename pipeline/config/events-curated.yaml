@@ -1,6 +1,8 @@
-# Hand-made corrections to the event index (streaming.md 3.4). `boosts` adds to an event's score,
-# log2(1 + Wikipedia editions) x class weight, where the edition count misjudges how much an event
-# mattered: each entry is {qid, boost, why}.
+# Hand-made corrections to the event index (streaming.md 3.4), each with its reason (`why`).
+# `boosts` adds to an event's score, log2(1 + Wikipedia editions) x class weight, where the edition
+# count misjudges how much an event mattered: each entry is {qid, boost, why}. `dates` gives the
+# day a better source dates an event to where Wikidata's date is wrong: {qid, date, why}, the date
+# a quoted ISO day.
 boosts:
   - qid: Q48314
     boost: 1.5
@@ -8,3 +10,16 @@ boosts:
       Waterloo has 94 Wikipedia editions, more than any other event of 1815, but a battle's
       weight ranks it below the lesser wars of its month, such as the Second Barbary War (24), so
       June 1815 in Meanwhile would lack it.
+dates:
+  - qid: Q3656338
+    date: "1816-09-30"
+    why: >-
+      The Nejd Expedition begins when Ibrahim Pasha lands at Yanbu, which the 1911 Britannica
+      ('Ibrahim Pasha') dates to 30 September 1816; Wikidata's start, 29 September 1817, copies
+      an infobox.
+  - qid: Q4870957
+    date: "1813-10-17"
+    why: >-
+      The Battle of El Roble, on the Itata, is fought on 17 October 1813, as its article and the
+      Academia de Historia Militar de Chile ('Combate de El Roble') give it; Wikidata's 1815 is
+      two years late.

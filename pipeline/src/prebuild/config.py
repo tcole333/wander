@@ -1,6 +1,6 @@
 """The YAML configs under `pipeline/config/`: the fixture's tiles and excerpts (streaming.md 7.3),
 the water set (3.1), the regions that bound L5-L7 (7.1), and the event index's classes and
-curated boosts (3.4)."""
+curated corrections (3.4)."""
 
 import re
 from collections.abc import Mapping
@@ -15,7 +15,9 @@ from prebuild.paths import config_dir
 
 CONFIG_DIR = config_dir()
 EVENT_CLASSES = CONFIG_DIR / "event-classes.yaml"
-EVENT_BOOSTS = CONFIG_DIR / "events-curated.yaml"
+EVENT_CURATED = CONFIG_DIR / "events-curated.yaml"
+CURATED_KEYS = frozenset({"boosts", "dates"})
+ISO_DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 SCALERANKS = range(13)  # NE river scalerank runs 0-12
 _QID = re.compile(r"Q[1-9][0-9]*")
 _WATER_KEYS = (
@@ -171,11 +173,10 @@ def load_event_classes(path: Path = EVENT_CLASSES) -> list[EventClass]:
     return classes
 
 
-def load_event_boosts(path: Path = EVENT_BOOSTS) -> dict[str, float]:
+def load_event_boosts(path: Path = EVENT_CURATED) -> dict[str, float]:
     """Score boosts by event qid (events-curated.yaml)."""
-    doc = _mapping(_load(path), path.name, {"boosts"})
     boosts: dict[str, float] = {}
-    for row in _list(doc["boosts"], "boosts"):
+    for row in _curated(path, "boosts"):
         fields = _mapping(row, f"{path.name} boost", {"qid", "boost", "why"})
         qid = _qid(fields["qid"], f"{path.name} boost")
         _text(fields["why"], f"boost {qid} why")
@@ -183,6 +184,30 @@ def load_event_boosts(path: Path = EVENT_BOOSTS) -> dict[str, float]:
             raise ConfigError(f"{path.name} boosts {qid} twice")
         boosts[qid] = _number(fields["boost"], f"boost {qid}")
     return boosts
+
+
+def load_event_dates(path: Path = EVENT_CURATED) -> dict[str, str]:
+    """Curated dates by event qid (events-curated.yaml): the ISO day a better source gives."""
+    dates: dict[str, str] = {}
+    for row in _curated(path, "dates"):
+        fields = _mapping(row, f"{path.name} date", {"qid", "date", "why"})
+        qid = _qid(fields["qid"], f"{path.name} date")
+        _text(fields["why"], f"date {qid} why")
+        if not isinstance(fields["date"], str) or not ISO_DAY.fullmatch(fields["date"]):
+            raise ConfigError(f"{path.name}: {qid}'s date is a quoted ISO day, 'YYYY-MM-DD'")
+        if qid in dates:
+            raise ConfigError(f"{path.name} dates {qid} twice")
+        dates[qid] = fields["date"]
+    return dates
+
+
+def _curated(path: Path, key: str) -> list[Any]:
+    """One list of events-curated.yaml, empty when the file leaves it out."""
+    doc = _mapping(_load(path), path.name)
+    unknown = sorted(set(doc) - CURATED_KEYS)
+    if unknown:
+        raise ConfigError(f"{path.name}: unknown key {', '.join(unknown)}")
+    return _list(doc.get(key, []), f"{path.name} {key}")
 
 
 def _qid(value: Any, where: str) -> str:

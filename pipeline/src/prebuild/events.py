@@ -10,7 +10,8 @@ Wikipedia edition. Per event it takes:
 
 - the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`);
 - the date: its point in time (P585), else its start (P580), else its end (P582); among several of
-  one property, the most precise, then the earliest;
+  one property, the most precise, then the earliest; or the day `dates` in
+  `pipeline/config/events-curated.yaml` gives it, where a better source dates it otherwise;
 - the span `t0`-`t1` it covers: from the earliest of its date and start times to the latest of its
   date and end times, each widened to its precision (a year runs 1 January to 31 December), so a
   war with a point in time still spans its years;
@@ -37,11 +38,12 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
 from prebuild.config import (
-    EVENT_BOOSTS,
     EVENT_CLASSES,
+    EVENT_CURATED,
     EventClass,
     load_event_boosts,
     load_event_classes,
+    load_event_dates,
 )
 from prebuild.hashing import sha256_file
 from prebuild.profiles import Context
@@ -134,7 +136,7 @@ def run(ctx: Context) -> None:
             f"{source.id} lacks the classes {', '.join(missing)}: run `uv run prebuild wikidata`"
         )
     with gzip.open(verified_path(ctx, source.id, TABLE), "rt", encoding="utf-8") as stream:
-        events = index(read_export(stream), classes, load_event_boosts())
+        events = index(read_export(stream), classes, load_event_boosts(), load_event_dates())
     payload = encode(events)
     stored = gzip.compress(payload, compresslevel=9, mtime=0)
     target = ctx.out / KEY
@@ -169,7 +171,7 @@ def inputs(export: str) -> dict[str, str]:
     return {
         "export": export,
         "classes": sha256_file(EVENT_CLASSES),
-        "curated": sha256_file(EVENT_BOOSTS),
+        "curated": sha256_file(EVENT_CURATED),
     }
 
 
@@ -221,8 +223,10 @@ def index(
     statements: Iterable[Statement],
     classes: Sequence[EventClass],
     boosts: Mapping[str, float],
+    dates: Mapping[str, str] | None = None,
 ) -> list[Event]:
-    """The cleaned, scored events, in score order, then by qid, at most `MAX_ROWS`."""
+    """The cleaned, scored events, in score order, then by qid, at most `MAX_ROWS`. A curated
+    date (`dates`, an ISO day by qid) stands in for Wikidata's, and the span widens to hold it."""
     by_qid = {c.qid: c for c in classes}
     grouped: dict[str, list[Statement]] = {}
     for s in statements:
@@ -241,16 +245,18 @@ def index(
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
         starts = [dated, *(s for s in group if s.prop == "P580")]
         ends = [dated, *(s for s in group if s.prop == "P582")]
+        curated = _day(f"{dates[qid]}T") if dates and qid in dates else None
+        day, precision = (curated, DAY) if curated else (dated.day, dated.precision)
         events.append(
             Event(
                 qid=qid,
                 label=label,
                 enwiki=next((s.enwiki for s in group if s.enwiki), ""),
                 cls=cls.name,
-                day=dated.day,
-                precision=dated.precision,
-                t0=min(_first_day(s) for s in starts),
-                t1=max(_last_day(s) for s in ends),
+                day=day,
+                precision=precision,
+                t0=min(day, *(_first_day(s) for s in starts)),
+                t1=max(day, *(_last_day(s) for s in ends)),
                 lon=lon_lat[0],
                 lat=lon_lat[1],
                 inherited=coord is None,

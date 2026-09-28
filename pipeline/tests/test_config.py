@@ -6,6 +6,8 @@ from prebuild.config import (
     CONFIG_DIR,
     SCALERANKS,
     ConfigError,
+    load_event_boosts,
+    load_event_dates,
     load_fixture,
     load_regions,
     load_water,
@@ -132,3 +134,23 @@ def test_the_regions_have_a_radius_per_level():
 def test_a_region_off_the_globe_is_refused(tmp_path):
     with pytest.raises(ConfigError, match="not at a lon/lat"):
         load_regions(write(tmp_path, "- {name: x, lon: 200, lat: 0, radiusKm: {5: 10}}\n"))
+
+
+def test_the_curated_corrections_give_boosts_and_dates():
+    assert load_event_boosts()["Q48314"] == 1.5
+    assert load_event_dates()["Q3656338"] == "1816-09-30"
+
+
+@pytest.mark.parametrize(
+    ("text", "complaint"),
+    [
+        ("boosts: []\nhides: []\n", "unknown key hides"),
+        ("dates: [{qid: Q1, date: 1816-09-30, why: w}]\n", "quoted ISO day"),
+        ("dates: [{qid: Q1, date: '1816-09-30'}]\n", "exactly the keys"),
+    ],
+)
+def test_malformed_curated_corrections_are_refused(tmp_path, text, complaint):
+    path = tmp_path / "events-curated.yaml"
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ConfigError, match=complaint):
+        load_event_dates(path)
