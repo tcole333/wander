@@ -105,11 +105,31 @@ export function payloadBytes(sides: number): number {
 /** The longest payload, an L0 tile's, with all four sides stored: 284,222 bytes. */
 export const MAX_PAYLOAD_BYTES = payloadBytes(EDGES.length);
 
-/** Gunzip `buf` (left intact), refusing output longer than `maxBytes`. */
+/** The stored bytes the inflater takes at a time, and the bytes it inflates between yields. */
+const INFLATE_SLICE = 64 * 1024;
+const INFLATE_YIELD = 4 * 1024 * 1024;
+
+/**
+ * Gunzip `buf` (left intact), refusing output longer than `maxBytes`. It is fed a slice at a time
+ * and yields to the event loop after every INFLATE_YIELD bytes, so a large file (the 25 MiB border
+ * field) never holds the main thread for more than a few ms; a tile never reaches a yield.
+ */
 export async function inflate(buf: ArrayBuffer, maxBytes: number): Promise<Uint8Array> {
-  const reader = new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+  let at = 0;
+  const slices = new ReadableStream<BufferSource>(
+    {
+      pull(controller) {
+        if (at >= buf.byteLength) return controller.close();
+        controller.enqueue(new Uint8Array(buf, at, Math.min(INFLATE_SLICE, buf.byteLength - at)));
+        at += INFLATE_SLICE;
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  const reader = slices.pipeThrough(new DecompressionStream('gzip')).getReader();
   const out = new Uint8Array(maxBytes);
   let length = 0;
+  let yielded = 0;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) return out.subarray(0, length);
@@ -119,6 +139,10 @@ export async function inflate(buf: ArrayBuffer, maxBytes: number): Promise<Uint8
     }
     out.set(value, length);
     length += value.length;
+    if (length - yielded >= INFLATE_YIELD) {
+      yielded = length;
+      await new Promise((resolve) => setTimeout(resolve));
+    }
   }
 }
 
