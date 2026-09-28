@@ -14,6 +14,8 @@ from prebuild.cube import Tile, parse_tile_key
 from prebuild.paths import config_dir
 
 CONFIG_DIR = config_dir()
+EVENT_CLASSES = CONFIG_DIR / "event-classes.yaml"
+EVENT_BOOSTS = CONFIG_DIR / "events-curated.yaml"
 SCALERANKS = range(13)  # NE river scalerank runs 0-12
 _QID = re.compile(r"Q[1-9][0-9]*")
 _WATER_KEYS = (
@@ -150,7 +152,7 @@ def load_regions(path: Path) -> list[Region]:
     return regions
 
 
-def load_event_classes(path: Path = CONFIG_DIR / "event-classes.yaml") -> list[EventClass]:
+def load_event_classes(path: Path = EVENT_CLASSES) -> list[EventClass]:
     doc = _mapping(_load(path), path.name, {"classes"})
     classes = []
     for row in _list(doc["classes"], "classes"):
@@ -169,7 +171,7 @@ def load_event_classes(path: Path = CONFIG_DIR / "event-classes.yaml") -> list[E
     return classes
 
 
-def load_event_boosts(path: Path = CONFIG_DIR / "events-curated.yaml") -> dict[str, float]:
+def load_event_boosts(path: Path = EVENT_BOOSTS) -> dict[str, float]:
     """Score boosts by event qid (events-curated.yaml)."""
     doc = _mapping(_load(path), path.name, {"boosts"})
     boosts: dict[str, float] = {}
