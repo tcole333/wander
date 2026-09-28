@@ -257,17 +257,14 @@ ongoing work that starts in v1.
 
 ## Milestones
 
-1. **Tambora slice, deployed.** Done, live since 27 September 2026 and accepted on 28 September:
-   the lobby, the Tambora story, the globe around it, its climate and 1815 border layers, ocean and
-   sea names, Meanwhile drawn from events worldwide during Tambora's years (out of the all-eras
-   event index, which this milestone builds), synthesized sound, and deployment. Five v1 features
-   move to later milestones, below.
-2. **Magellan,** with Read more and polity names. Magellan sails between Spain's and Portugal's
-   claims, so the names on the borders read as part of the story.
-3. **The Century of Oil, the Black Death, and the Gold Rush,** with the layers panel, the globe's
-   events layer and its detail budget, and the time ruler's zoom out to centuries with its
-   deep-time segment. These stories bring the thematic layers the panel toggles, and the Century
-   of Oil spans four decades of events.
+1. **Tambora slice, deployed.** Done, live since 27 September 2026: the lobby, the Tambora story,
+   the globe around it, its climate and 1815 border layers, ocean and sea names, Meanwhile drawn
+   from events worldwide during Tambora's years (out of the all-eras event index, which this
+   milestone builds), synthesized sound, and deployment. The layers panel, polity names, Read more,
+   the globe's events layer, and the time ruler's zoom out to centuries with its deep-time segment
+   stay in v1 and move to later milestones, and the polish items to milestone 4.
+2. **Magellan.**
+3. **The Century of Oil, the Black Death, and the Gold Rush.**
 4. **Polish to the v1 bar,** including the article view, reduced motion, deep links, a way back to
    the lobby, quality tiers, and the checks on lower-end machines and in Safari and Firefox.
 5. **v1.1: open-world exploration.**
