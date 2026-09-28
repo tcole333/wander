@@ -1108,7 +1108,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   So a GPU's code, shore, land and h equal the mirror's bit for bit at every point, shared or not,
   and its positions lie within 1e-6 R of the mirror's (the readback measures 1.2e-7 R, a float32
   step, on SwiftShader and on Metal). On the mirror, Vitest proves the seams of the fixture's
-  scenarios and `npm run verify:bake` those of every same-level pair of the region bake (7.3); the
+  scenarios and `npm run verify:bake` those of every same-level pair of the selected bake (7.3); the
   GPU readback proves them on the GPU.
 - **Reveals:** on a still camera (no flight or gesture; a slow drift counts as still), new tiles wait
   until every visible desired tile of that level is ready, or `revealHold`, then morph together over
@@ -1294,19 +1294,22 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 ## 6. Budgets
 
-Rows marked "reported" are not gates: the story walks in `npm run e2e:gpu` (7.3) print any beat or
-story above them.
+Rows marked "reported" are not gates. E3 records each beat's fetched bytes; the story walks that
+will print beats and stories above these lines in `npm run e2e:gpu` come with the per-beat plans
+(7.3, 8.1). The full tier's entry and transfer rows take milestone 1's live measurements: the room
+opens within the PRD's 3 s at cold 25 Mbps / 50 ms, and every beat lands whole at 5 Mbps / 150 ms
+while refinement arrives [M `e3/results/live-2026-09-28.json`].
 
 | Budget | Number | Basis |
 |---|---|---|
-| **Before the first live frame** | **~0.99 MB** [E]. The requirement is a live frame < 3 s at cold 25 Mbps / 50 ms (the definition of "normal broadband" is owner decision 5). | HTML + poster ≤ 50 KB (inline AVIF; in milestone 1 the CSS room, owner decision 21); one JS entry ≤ 500 KB br (three, app, `release.json`, 5 story JSONs) [E; unminified three alone is 131 + 287 KB gz, M]; worker modules ≤ 40 KB [E]; fonts 69 KB [M proxy: EB Garamond, the earlier choice; Source Serif 4 is re-measured]; L0 surface 326 KB, 6 tiles at 54.3 KB mean [M `work/surface-bake/region-bake-v2.json`]. The instrument and environment are procedural; there is no transcoder. |
-| **First paint / first live frame** | poster ~0.3-0.6 s; live frame ≤ 2.5 s | TLS + HTML ~150 ms, 0.99 MB ≈ 0.3 s, JS parse ~250 ms, then pool allocation and compiles behind the poster (E1 and E3 measure) [E] |
-| **Lobby settle** (background) | ≤ 3 MB before L2 | L1 1.29 MB, 24 tiles [M `work/surface-bake/region-bake-v2.json`]; event overview ~90 KB [D from 18-22 B/row]; border previews ~1 MB [E]; thematic indexes, metas and L0 tiles ~0.15 MB [E]; label and display fonts ≤ 160 KB. Then L2 and the event pages. |
+| **Before the first live frame** | **2.20 MB** [M `e3/results/live-2026-09-28.json`]. The requirement stays a live frame < 3 s at cold 25 Mbps / 50 ms (owner decision 5). | The room waits for L0-L1 and the page's fonts: 0.515 MB from Pages and 1.684 MB from the data host arrive before it opens. Keep the entry's ≤ 500 KB br and the worker modules' ≤ 40 KB allowances for growth; the instrument and environment are procedural. |
+| **First paint / first live frame** | **0.19 s / 1.24 s** cold at 25/50; live frame **< 3 s** required | Medians of three cold live loads [M `e3/results/live-2026-09-28.json`]. The CSS room covers pool allocation, compiles and L0-L1. At 5/150 the medians are 0.47 s / 4.51 s; that connection's requirement is whole beat landings. |
+| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview ~90 KB [D from 18-22 B/row], border previews ~1 MB [E], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
-| **Critical set per beat** | reported above (median flight 1.7 s + `holdMax`) × the floor bandwidth: 2.0 MB at 5 Mbps (the floor is owner decision 5) | model, full: median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors. |
-| **New bytes per beat** | reported above 8 MiB | model, full: median 2.2 / p90 5.0 / max 6.3 MB; lite: 1.1 / 2.1 / 2.4 [model]. Mountain tiles run ~30% over the mean, so p90 ≈ 6.5 MB [D from `alt/gebco_tiles.json`]. Plus overlays 0.05-0.4 MB and the card 0.11-0.18 MB. |
-| **Per story** | reported above 35 MiB (full) / 18 MiB (lite) | model tiles 15.8-23.3 MB full, 7.5-11.3 MB lite [model], ×1.3 for mountains; images ~1.2 MB; audio ≤ 0.32 MiB; overlays and effects 0.5-2 MB. Worst case 33.8 / 18.2 MB [D]. |
-| **Reading pace** | the next beat hides behind reading | a beat takes at least 15 s to read, so the full next beat needs 1.2 Mbps at the median and 3.4 Mbps at the maximum [D] |
+| **Critical set per beat** | planning line: (median flight 1.7 s + `holdMax`) × the floor bandwidth, 2.0 MB at 5 Mbps (owner decision 5) | For the per-beat plans deferred in 8.1: model, full, median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors, as milestone 1's queue already does. |
+| **New bytes per beat** | reported above **10 MiB** | Beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each on the full tier [M `e3/results/live-2026-09-28.json`]. Round the measured maximum up to a whole MiB to flag growth in later walks. Every beat lands whole at 5/150, so this line reports refinement traffic without holding navigation. |
+| **Per story** | reported above **48 MiB** (full) / 18 MiB (lite, model) | Tambora fetches 47.8 MiB across its eight beats, rounded up to a whole MiB for the full tier's reporting line [M `e3/results/live-2026-09-28.json`]. The lite tier is unmeasured; its planning allowance remains: model tiles 7.5-11.3 MB ×1.3 for mountains, images ~1.2 MB, audio ≤ 0.32 MiB, overlays and effects 0.5-2 MB, about 18.2 MB at the upper estimates [D]. |
+| **Reading pace** | navigation stays on ancestors while refinement arrives | The measured 9.5 MiB maximum needs about 16 s at 5 Mbps before round trips, so a 15 s read need not hide all refinement [D from `e3/results/live-2026-09-28.json`]. Next-beat prefetch remains deferred (8.1); its later plan must account for that transfer time. |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **227**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **166**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. |
 | **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
@@ -1403,6 +1406,13 @@ release's `media` section lists every key the locks name (3.8).
   `build/stages/fixture/stamp.json`, a hash over the same paths plus `pipeline/tests/data`, which
   the Vitest fixture loader checks (7.3). The fixture's events record also hashes its excerpt TSV
   and sidecar in `inputs`, so it cannot be mistaken for an index of the full export.
+
+  The region and global surface bakes predate the other stages. Their old code hash has one audited
+  compatibility pair in `app/src/test/bakeInputs.ts`: the added stages and the extraction of
+  surface publication leave the surface bytes unchanged [M `work/surface-bake/provenance.md`].
+  Verification checks that exact surface-code fingerprint, all shared modules and dependency pins
+  included, plus the profile's recorded config and source hashes. An unknown old code hash or any
+  further surface edit still fails. The records and the bake are read without changing them.
 
 ### 7.3 Fixture, dev and CI
 
@@ -1566,8 +1576,9 @@ release's `media` section lists every key the locks name (3.8).
      walk's climate off. It runs as its own job on every pull request and push, so a page naming
      data that is not live cannot merge, and the Pages deploy of the tested build on `main` waits
      for it; the deployment is then checked for `/`, `/credits` and a real 404.
-- **Bake check (local):** after `uv run prebuild --profile region`, `npm run verify:bake` decodes
-  every tile in `build/region/` and checks, with the fixture's seam code:
+- **Bake check (local):** `npm run verify:bake -- [region|global]` decodes every tile in
+  `build/region/` (the default) or `build/out/`, reading `build/stages/<profile>/`, and checks,
+  with the fixture's seam code:
   - within a face, mip 0-2 border identity for every pair of available neighbors; across a face
     edge, edge-profile identity at every mip, codes and shore bytes alike, for every pair of
     available neighbors, and each entry within 0.5 of the owner tile's own mip-m corner mean where
@@ -1585,19 +1596,25 @@ release's `media` section lists every key the locks name (3.8).
     resampled from the neighbor's grid.
   - the vertex mirror (5.6) on every same-level pair of available neighbors, both drawn as nodes of
     their own level at d = 0 on the full tier: within faces and across all 12 face edges at L0-L4,
-    and every baked pair at L5-L7, 5,134 pairs in all. Both tiles give each of the shared edge's 33
-    vertices the same code, shore, land, h, direction and position, bit for bit (169,422 vertices),
-    so they choose land or sea alike at all 13,695 face-edge vertices, where each tile's own grid
-    would split 13 [M `work/surface-bake/face-edge-crease.json`]
+    and every baked pair at L5-L7, 5,134 pairs in the region bake. Both tiles give each of the
+    shared edge's 33 vertices the same code, shore, land, h, direction and position, bit for bit
+    (169,422 vertices), so they choose land or sea alike at all 13,695 face-edge vertices, where each tile's own grid
+    would split 13 [M `work/surface-bake/face-edge-crease.json`]. The global bake gives the same
+    exact agreement on 29,118 pairs and 960,894 shared vertices [M
+    `work/surface-bake/global-verify-2026-09-28.json`]
   - the non-owner crease: a face-edge vertex takes its owner's profile entry, while the non-owner
     tile's vertices beside it follow that tile's own grid, so the edge creases by the gap between
     the entry and the non-owner's own mip-m corner mean there. Its p95 and max per level go to
-    `build/lab/crease.json`, and a level fails when either grows more than 10% past the values
-    measured on the version 2 bake: p95 44.2 / 24.5 / 16.0 m and max 345.9 / 98.0 / 118.5 m at
-    L4 / L5 / L6, up to p95 156.4 m and max 469.1 m at L0, where the grids are coarsest. At ×16 the
-    L4-L6 p95 is 0.24 / 0.27 / 0.35 px where each level refines, but 34 / 19 / 12 px when a tile of
+    `build/lab/crease-<profile>.json`, and a comparable level fails when either grows more than
+    10% past the values measured on the region's version 2 bake: p95 44.2 / 24.5 / 16.0 m and max
+    345.9 / 98.0 / 118.5 m at L4 / L5 / L6, up to p95 156.4 m and max 469.1 m at L0, where the
+    grids are coarsest. At ×16 the L4-L6 p95 is 0.24 / 0.27 / 0.35 px where each level refines,
+    but 34 / 19 / 12 px when a tile of
     that level draws in a 30 km view at 1440 px, which happens only where nothing finer is baked or
-    resident; E2 judges it (8.2)
+    resident; E2 judges it (8.2). Global L0-L4 keep that gate. Global L5-L6 cover more terrain
+    and use different qLand, so their creases are measured for E2 without the region's regression
+    bound: p95 26.4 / 17.7 m, max 217.3 / 117.4 m [M
+    `work/surface-bake/global-face-edge-crease.json`]
   - each header's codeMin and codeMax against its planes and stored profile entries, and
     `bounds.bin` against the decoded meter bounds
   - availability against the files present, which hash to the layer's version
@@ -1607,10 +1624,21 @@ release's `media` section lists every key the locks name (3.8).
     summit texel at L7 decodes no lower than its texel mean (2,586.3 m) less qLand/2 and no higher
     than GEBCO's 2,605 m there, since a texel mean cannot reach the highest single cell
 
-  It fails, naming the command, when the bake is missing or was built from other prebuild code,
-  configs or pinned sources. It covers what the fixture never exercises: the overviews, global reads
+  Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
+  which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
+  region's 2,649 tiles passed all 31 checks in 33.38 s. The global bake's 15,740 tiles took
+  152.41 s: 30 checks passed, but 12 border texels on eight L5-L6 tiles fell outside the unchanged
+  cross-face terrain bound. Those misses remain for investigation, with their keys and code
+  ranges recorded [M `work/surface-bake/global-verify-2026-09-28.json`]. They do not establish a
+  visible crack; the exact shared-vertex checks passed.
+
+  It fails, naming the command, when the bake is missing or its surface code, configs or pinned
+  sources differ (7.2). It covers what the fixture never exercises: the overviews, global reads
   with the longitude wrap and pole clamp, full NE data, and owner-frame rasters on real face edges.
-  It needs the raw data, so it stays out of `npm test` and CI.
+  Building the bake needs the raw data, so the check stays out of `npm test` and CI. Verification
+  reads only the built files and their records; it does not rehash raw sources. It checks owner
+  means only where the owner tile is baked, and the mirror covers same-level neighbors at d = 0.
+  The mixed-level, moving and GPU checks remain with the fixture and E2.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
   starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
   matrix as WebKit and Firefox projects join. It runs when renderer, streaming or format code
@@ -1731,7 +1759,7 @@ pre-launch checks or a later milestone:
 | | In milestone 1 | Left |
 |---|---|---|
 | **E1** | Re-scoped to the look prototype (owner decision 27) and answered by what shipped: material (a), relief normals from the fragment and four taps around it in the spike's look; the zoom floor and relief by zoom, judged by eye on the global bake (owner decisions 1 and 19); MSAA as shipped (8.1). In the lab no browser flattens a branch on a uniform that is off, and a tile decodes in 1.7-2 ms at the median [M `e1/results/`]. In the look reviews, headless rAF on Metal showed no missed ticks (not presented frames). Compression stays gzip-9 and zstd is dropped: no browser's `DecompressionStream` takes zstd [M `e1/results/`], so it would need a decoder of its own. | For the pre-launch checks: the factorial run, headed, with presented-frame p95 on both tiers, unmeasured until then (owner decision 29); compile times; the soak; the AA and material comparisons; and the Windows checks on the Iris Xe laptop. |
-| **E2** | Re-scoped likewise and answered by construction: every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of the region bake by `npm run verify:bake` (the shipped global bake shares its code but has not been through `verify:bake`, which checks `build/region/`), and on the GPU by the readback on SwiftShader and Metal. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, and upload timing on the target machines. |
+| **E2** | Every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of both real bakes by `npm run verify:bake`, and on the GPU by the fixture readback on SwiftShader and Metal. The shipped global bake's 15,740 tiles took 152.41 s: 30 of 31 checks passed, with 12 border texels on eight L5-L6 tiles outside the cross-face terrain bound (7.3); the region passed all 31 [M `work/surface-bake/global-verify-2026-09-28.json`]. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | Resolve the global bake's cross-face bound misses before calling its verification complete. For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, the global L5-L6 crease, and upload timing on the target machines. |
 | **E3** | Passed on the live site except CPU memory (below) [M `e3/results/`]: the renderer holds 270-288 MiB against the 256 MiB line (section 6). The GPU cap and the lite tier were not measured, since the GPU process's ~1.0 GB footprint and 750 MB of graphics memory cannot be split into the app's share. In a run by hand, with no record in the repo, headless WebKit 26.6 and Firefox 155 walked the live lobby, dive and beats 1-3 on WebGL 2 with no console error or failed request. | For the pre-launch checks: the renderer's memory against the CPU line, frame times, the lite tier, tilt, GPU memory, the overlay pool peak (after E6), in-place restore, reload with URL state, and the loop seams by ear in Safari and Firefox. |
 | **E4** | At 24 h and 72 h after the warm, all 50 first reads of each cohort hit at the Boston edge: wait p50 27 ms, TTFB p90 128 and 79 ms, far under the 500 ms break point [M `e4/results/`]. No re-warm and no quad packs so far. The 1 h cohort was not read, and HTTP/3 (the probe runs over HTTP/2), browser revisits and Class B charges were not measured. | The 7 d cohort, due on 2 October; it decides the scheduled re-warm (section 9). |
 | **E5** | The light answer below: 29,649 events in 1.18 MB, parsed in 31-39 ms, so the whole corpus fits one `all.wev`. | The query benchmark, with the globe's events layer in a later milestone (owner decision 26). |
@@ -1813,8 +1841,10 @@ acceptance).**
   decided (owner decision 21). Nothing is fetched from Pages after the room opens, and ten walks
   leave memory flat. In a check by hand, an old tab loaded on release d2c7ca91d12a3ec4 walks on
   and breaks out after 9b3f8312bae73f83 deploys [M `e3/results/old-tab.json`].
-  - **Over their reported rows** (section 6): beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each against
-    8 MiB, and the story 47.8 MiB against 35 MiB.
+  - **Transfer lines** (section 6): beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each, and the story
+    47.8 MiB. The reporting lines take those measures, rounded up to 10 MiB per beat and 48 MiB
+    per full-tier story, since every landing holds at 5/150. The lite tier keeps its model until
+    it is measured.
   - **Over its gate:** the renderer holds 270-288 MiB against the CPU budget's 256.
   - **Not measured:** the GPU cap, since the GPU process reads about 1.0 GB of footprint and
     750 MB of graphics memory, which cannot be split into the app's own share; the lite tier;
