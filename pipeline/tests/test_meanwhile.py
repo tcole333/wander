@@ -108,3 +108,16 @@ def test_a_written_date_and_place_stand_in_for_the_index_s():
     moved = m.as_written(rising, written)
     assert (moved.date, moved.precision, moved.at) == (m.iso_day("1815-11-18"), 11, (25.8, -32.8))
     assert moved.dated == (moved.date, moved.date)
+
+
+def test_a_list_reads_in_date_order_with_the_written_lines_and_no_title_years():
+    munich = m.replace(
+        event("Q2518869", 2.0, (11.6, 48.1), "1816-04-14"), label="Treaty of Munich (1816)"
+    )
+    chosen = [event("Q48314", 5.0, WATERLOO, "1816-06-18"), munich]
+    lines = {"Q48314": {"line": "At Waterloo…", "source": {"title": "t", "url": "u"}}}
+    listed = m.entries(chosen, lines)
+    assert [(e["label"], e.get("line")) for e in listed] == [
+        ("Treaty of Munich", None),
+        ("Q48314", "At Waterloo…"),
+    ]

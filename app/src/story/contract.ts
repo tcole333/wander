@@ -62,7 +62,7 @@ export type CreateWalk = (story: Story, control: ViewControl, options: WalkOptio
 
 /** A notable event elsewhere, from the event index (story/meanwhile.ts). */
 export interface MeanwhileEntry {
-  /** A beat's entry reads as its written line; a month's as its Wikidata label. */
+  /** The entry's written line, else its Wikidata label. */
   label: string;
   /** Day number, and the date as the panel prints it ('18 June 1815', 'June 1815', '1816'). */
   day: number;
