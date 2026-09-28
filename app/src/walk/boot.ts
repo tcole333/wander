@@ -290,7 +290,7 @@ async function assemble(
   const measureLens = () => {
     cardShift = story ? LENS_SHIFT * story.ui.cardReach() : 0;
   };
-  const cardFolded = () => {
+  const cardReachChanged = () => {
     measureLens();
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) shift = cardShift;
   };
@@ -330,7 +330,7 @@ async function assemble(
         const s = streamer.stats();
         return s.inFlight + s.decoding + s.uploading === 0;
       },
-      cardFolded,
+      cardReachChanged,
     );
     endStory = end;
     leaveStory = leave;
