@@ -136,3 +136,25 @@ path = "sources/historical-basemaps/world_1815.geojson"
 source_url = "https://raw.githubusercontent.com/aourednik/historical-basemaps/da7a4b735ecef70aebdc9c73e409d8a2500d50f3/geojson/world_1815.geojson"
 bytes = 2413409
 sha256 = "fb654f734583f550904cfa45f361e395c1a488c4960050da2632cb2ac7d1cd1e"
+
+# Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
+# endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry, and
+# its next export replaces it.
+[wikidata-events-20260928]
+name = "Wikidata events, exported class by class with pipeline/queries/events.rq"
+version = "exported 2026-09-28T01:11:12Z from QLever: Complete Wikidata, TTL from https://dumps.wikimedia.org/wikidatawiki/entities (latest-all.ttl.bz2 from 10.08.2026 munged, latest-lexemes.ttl.bz2 from 07.08.2026), updated LIVE"
+license = "CC0-1.0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+attribution = "Wikidata contributors."
+landing_page = "https://qlever.dev/wikidata"
+retrieved = "2026-09-28"
+
+[[wikidata-events-20260928.files]]
+path = "sources/wikidata-events-20260928/events.tsv.gz"
+bytes = 2272787
+sha256 = "7b05d96c758f56b8a60d17d44f2f4f5b753486006cd9593990ffeb29d8786f4f"
+
+[[wikidata-events-20260928.files]]
+path = "sources/wikidata-events-20260928/export.json"
+bytes = 1201
+sha256 = "111b84ed9cb9d6d09aaae54c4ac157f55cb1cb264fcf6c6420b08362f8b3b2c6"
