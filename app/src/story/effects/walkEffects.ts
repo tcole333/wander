@@ -1,12 +1,13 @@
 // The walk's story effects (contract.ts WalkEffects): the ember, the plume, pulses, callout
-// plaques, the illustrative ash and veil, and ModE-RA's real climate, each a function of story
-// time, so scrubbing backward shows the right state. The plume, ash and veil belong to the story:
-// any beat that lists them turns them on for every beat, and story time alone shows or hides them,
-// so they never vanish as a flight leaves the beat that lists them. Pulses and plaques come from
-// the beat's effect list, and its layers switch the look's lines, bathymetry and climate
-// (climate.ts). Where the climate's data is drawn, the illustrative veil gives way to it. Every
-// mesh is made up front, the story's pulses too, so their shaders compile before the walk starts
-// (walk/boot.ts). `group` hangs from the museum's globeMount (the globe frame, radius 1).
+// plaques, the illustrative ash and veil, ModE-RA's real climate and the 1815 borders, each a
+// function of story time, so scrubbing backward shows the right state. The plume, ash and veil
+// belong to the story: any beat that lists them turns them on for every beat, and story time alone
+// shows or hides them, so they never vanish as a flight leaves the beat that lists them. Pulses and
+// plaques come from the beat's effect list, and its layers switch the look's lines, bathymetry,
+// climate (climate.ts) and borders (borders.ts). Where the climate's data is drawn, the
+// illustrative veil gives way to it. Every mesh is made up front, the story's pulses too, so their
+// shaders compile before the walk starts (walk/boot.ts). `group` hangs from the museum's
+// globeMount (the globe frame, radius 1).
 import {
   Group,
   MathUtils,
@@ -17,11 +18,13 @@ import {
   type SpotLight,
 } from 'three';
 import { ashUniformsOf } from '../../look/ashHook';
+import { borderUniformsOf } from '../../look/bordersHook';
 import { climateUniformsOf } from '../../look/climateHook';
 import type { Params, ViewportCss } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
 import { dayFromIso } from '../dates';
 import type { LonLat, Story, StoryBeat } from '../story';
+import { WalkBorders } from './borders';
 import { Callouts } from './callouts';
 import { WalkClimate } from './climate';
 import { Ember } from './ember';
@@ -76,7 +79,16 @@ export const createWalkEffects: CreateWalkEffects = (
   labelRoot,
   source = { dataHost: '' },
 ) => {
-  const params: Params = { ember: 1, plume: 1, pulses: 1, labels: 1, ash: 1, veil: 1, climate: 1 };
+  const params: Params = {
+    ember: 1,
+    plume: 1,
+    pulses: 1,
+    labels: 1,
+    ash: 1,
+    veil: 1,
+    climate: 1,
+    borders: 1,
+  };
   const group = new Group();
   group.name = 'walk-effects';
   const ember = new Ember();
@@ -85,6 +97,7 @@ export const createWalkEffects: CreateWalkEffects = (
   const callouts = new Callouts(labelRoot);
   const ash = ashUniformsOf(look.material);
   const climate = new WalkClimate(story, source, climateUniformsOf(look.material));
+  const borders = new WalkBorders(story, source, borderUniformsOf(look.material));
   /** How strongly climate is drawn, under the dev shell's climate param. */
   const climateShown = () => Math.min(1, climate.drawn * Math.max(0, Number(params.climate)));
   let lastS: number | null = null;
@@ -205,9 +218,11 @@ export const createWalkEffects: CreateWalkEffects = (
       // Climate, through the look.
       climate.update(state, dtS, strength('climate'));
 
-      // Veil, by the view's width under the camera, giving way where climate data is drawn.
+      // Borders and the veil, by the view's width under the camera. The veil gives way where
+      // climate data is drawn.
       const altitude = Math.max(0, camera.length() - 1);
       const wideKm = 2 * altitude * tanHalf * cam.aspect * EARTH_KM;
+      borders.update(state, dtS, wideKm, strength('borders'));
       const veilStrength = veilOn ? strength('veil') * (1 - climateShown()) : 0;
       veil.update(day, kLand, wideKm, camera, lampLocal, veilStrength, t);
 
@@ -216,6 +231,10 @@ export const createWalkEffects: CreateWalkEffects = (
 
     load() {
       climate.load();
+    },
+
+    background() {
+      borders.background();
     },
 
     climate() {
@@ -230,9 +249,12 @@ export const createWalkEffects: CreateWalkEffects = (
       };
     },
 
+    borders: () => borders.shown,
+
     dispose() {
       if (ash) ash.lookAshStrength.value = 0;
       climate.dispose();
+      borders.dispose();
       for (const [param, value] of defaults) if (value !== undefined) look.params[param] = value;
       plume?.draw.dispose();
       for (const pulse of allPulses) pulse.dispose();
