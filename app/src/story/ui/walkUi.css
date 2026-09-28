@@ -1043,7 +1043,7 @@
 
 /* The borders' year plate: a small plate of Meanwhile's dark cast brass, riveted at its ends, at
    the top of the page between the mark and the sound knob, its year engraved in gilt capitals. It
-   fades with the borders (bordersPlate.ts). */
+   settles into view while the borders are drawn and fades as they ease out (bordersPlate.ts). */
 
 .wu-borders {
   position: absolute;
@@ -1054,6 +1054,10 @@
   margin: 0 auto;
   padding: 9px 32px 8px;
   opacity: 0;
+  translate: 0 -6px;
+  transition:
+    opacity 0.5s,
+    translate 0.5s;
   pointer-events: none;
   background:
     var(--rivet) left 11px center / 6px 6px no-repeat,
@@ -1062,6 +1066,11 @@
     var(--brushed),
     linear-gradient(160deg, #2c2117, #1a130c 45%, #0e0a06);
   outline-offset: -6px;
+}
+
+.wu-borders.is-shown {
+  opacity: 1;
+  translate: 0 0;
 }
 
 .wu-borders-label {
