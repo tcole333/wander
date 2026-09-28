@@ -3,7 +3,7 @@
 // is the walk's stand-in for `npm run stories` (issue #9) and holds the story schema: it rejects a
 // key the schema does not name, a layer shared/constants.json does not list and a precision other
 // than day, month or year, and it needs every beat to have a window holding its date, an image
-// with alt text and a source with an https link. Dates become day numbers (dates.ts).
+// with alt text and sources, each with an https link. Dates become day numbers (dates.ts).
 import constants from '@shared/constants.json' with { type: 'json' };
 import { parse } from 'yaml';
 import { dayFromIso, isoFromDay, type Precision } from './dates';
@@ -158,9 +158,7 @@ function parseBeat(section: string): StoryBeat {
   known(audio, ['cues'], `${where} audio`);
   checkMeanwhile(b.meanwhile, where);
   const sources = list(b.sources, `${where} sources`).map((s) => parseSource(s, where));
-  if (!sources.some((source) => /^https:\/\/\S+$/.test(source.url))) {
-    throw new StoryError(`${where} needs a source with an https link`);
-  }
+  if (sources.length === 0) throw new StoryError(`${where} needs a source`);
   return {
     id,
     title,
@@ -306,12 +304,17 @@ function parseSource(entry: unknown, where: string): StorySource {
   const s = record(entry, `${where} source`);
   known(s, ['title', 'author', 'publisher', 'year', 'url'], `${where} source`);
   const year = s.year;
+  const title = text(s.title, `${where} source title`);
+  const url = text(s.url, `${where} source url`);
+  if (!/^https:\/\/\S+$/.test(url)) {
+    throw new StoryError(`${where} source '${title}' needs an https link`);
+  }
   return {
-    title: text(s.title, `${where} source title`),
+    title,
     author: text(s.author ?? '', `${where} source author`),
     publisher: s.publisher === undefined ? undefined : text(s.publisher, 'publisher'),
     year: typeof year === 'number' || typeof year === 'string' ? year : null,
-    url: text(s.url, `${where} source url`),
+    url,
   };
 }
 
