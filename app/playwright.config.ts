@@ -3,9 +3,12 @@ import type { Profile } from './scripts/release';
 import { DATA_URL, DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/servers';
 
 // CI's software renderer. SwiftShader screenshots misrepresent the look and timing, so this
-// project only proves that a frame renders and that the GPU pools behave.
+// project only proves that a frame renders and that the GPU pools behave. It never lists tests
+// tagged @gpu, walks too long for CI's four cores: a test skipped from inside its body still sets
+// up a browser context first, and under that load the setup can pass its 30 s.
 const swiftshader: Project = {
   name: 'swiftshader',
+  grepInvert: /@gpu\b/,
   use: {
     ...devices['Desktop Chrome'],
     viewport: { width: 960, height: 600 },
