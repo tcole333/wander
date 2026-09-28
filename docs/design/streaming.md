@@ -1340,7 +1340,7 @@ export in `sources.toml`, and `media` lists what it wrote in the committed lock 
 | borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}`; milestone 1: `{ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`, 3.8's section as is |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
-| events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` with the `.wev` files; in milestone 1 `{key, export, exported, rows, bytes, decoded, classes}`: the table's key, the pinned export and its timestamp, its rows, stored and decoded bytes, and rows per class |
+| events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` with the `.wev` files; in milestone 1 `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the table's key, the pinned export and its timestamp, its rows, stored and decoded bytes, rows per class, and the export's id with the sha256s of `event-classes.yaml` and `events-curated.yaml`, which a stage reading the table checks against the current ones |
 | modera | `{ver, years[first, last], lat[96], lon0, dlon, bytes{mean: {year}, spread: {year}, annual}}`: 3.8's `modera` section as is, the latitudes north first to 6 decimals |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |

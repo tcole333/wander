@@ -148,3 +148,4 @@ def test_the_stage_writes_the_table_in_score_order_with_its_record(monkeypatch, 
         "rows": 2,
     }
     assert record["bytes"] == (ctx.out / events.KEY).stat().st_size
+    assert record["inputs"] == events.inputs("wikidata-events-20260927")

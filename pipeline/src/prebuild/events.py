@@ -1,6 +1,7 @@
 """The events stage (streaming.md 3.4, 7.1, 7.2): the all-eras event index as one cleaned, scored
 table, `ev/events.tsv.gz` in the profile's output root, read from the pinned Wikidata export
-(`uv run prebuild wikidata`), with the record `build/stages/<profile>/events.json`.
+(`uv run prebuild wikidata`), with the record `build/stages/<profile>/events.json`, whose `inputs`
+name the export and hash the two configs, so a stage reading the table can tell when it is stale.
 
 Each row of the export is one dated statement of an event, exported under one class
 (`pipeline/queries/events.rq`). The stage keeps the statements dated to the year or finer, groups
@@ -35,7 +36,14 @@ import time
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
-from prebuild.config import EventClass, load_event_boosts, load_event_classes
+from prebuild.config import (
+    EVENT_BOOSTS,
+    EVENT_CLASSES,
+    EventClass,
+    load_event_boosts,
+    load_event_classes,
+)
+from prebuild.hashing import sha256_file
 from prebuild.profiles import Context
 from prebuild.records import write_record
 from prebuild.sources import Source, SourcesError, load_sources, verified_path
@@ -145,6 +153,7 @@ def run(ctx: Context) -> None:
         "bytes": len(stored),
         "decoded": len(payload),
         "classes": by_class,
+        "inputs": inputs(source.id),
     }
     write_record(ctx, STAGE, record)
     seconds = time.perf_counter() - started
@@ -153,6 +162,15 @@ def run(ctx: Context) -> None:
         f"({len(payload) / 1e6:.1f} MB decoded) into {KEY}, {seconds:.1f} s",
         flush=True,
     )
+
+
+def inputs(export: str) -> dict[str, str]:
+    """What the table is built from: the export's id and the configs' sha256s."""
+    return {
+        "export": export,
+        "classes": sha256_file(EVENT_CLASSES),
+        "curated": sha256_file(EVENT_BOOSTS),
+    }
 
 
 def export_source(registry: Mapping[str, Source]) -> Source:
