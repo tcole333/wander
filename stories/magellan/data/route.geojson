@@ -1,0 +1,2760 @@
+{
+  "type": "Feature",
+  "properties": {
+    "kind": "route",
+    "epoch": "1519-09-20",
+    "grid": null,
+    "title": "Magellan–Elcano circumnavigation, 1519–1522",
+    "credit": "Drafted by Codex from Pigafetta and Albo; illustrative reconstruction between recorded places and latitudes.",
+    "calendar": "Historical civil date labels as printed in the cited accounts, retained to match the story and brief, not converted from Julian to proleptic Gregorian. Westbound shipboard dates are one day behind local reckoning at Cape Verde; no invented dateline crossing or intermediate calendar correction is imposed. The final return uses 6 September 1522.",
+    "positionMethod": "WGS84 longitude/latitude. Named places are approximately geocoded on the modern coast, not surveyed anchorages. At vertices marked latitude, only the latitude is taken from the log: longitude is reconstructed, not converted from its unreliable historical longitude estimates. Course and channel points are authored controls. These positions do not support navigation or claims about a particular beach. Modern coastal controls were checked against Natural Earth 1:10m land (see sources); this does not establish the historical course.",
+    "dateMethod": "The dates array aligns with geometry.coordinates and vertices. Recorded means a dated event, diary entry or explicitly stated following day; estimated dates lie inside the cited dateRange. Dates during undated island calls and the strait are illustrative timings, not new historical claims. A repeated position spans a stay.",
+    "interpolation": "Join consecutive vertices along the short great-circle arc, including the Pacific antimeridian crossing; interpolate dates by distance when densifying, as streaming 3.6 specifies. Every leg is uncertain and at sea. Long sparse legs omit tacks, including the final North Atlantic passage.",
+    "provenance": "Each leg inherits the citations at its two endpoint vertices. Book citations give printed pages, not scan numbers; the modern coastline reference names its layer. The vertices, legs and vesselChange fields document this source dataset; they are not a built fx format.",
+    "sources": {
+      "pigafetta-1874": {
+        "title": "The First Voyage Round the World, by Magellan: Pigafetta’s account",
+        "author": "Antonio Pigafetta; translated and edited by Lord Stanley of Alderley",
+        "publisher": "Hakluyt Society, London",
+        "year": 1874,
+        "url": "https://archive.org/details/firstvoyageround00piga/page/35/mode/2up"
+      },
+      "albo-1874": {
+        "title": "The First Voyage Round the World, by Magellan: Log-Book of Francisco Alvo or Alvaro",
+        "author": "Francisco Albo; in Lord Stanley of Alderley (ed.)",
+        "publisher": "Hakluyt Society, London",
+        "year": 1874,
+        "url": "https://archive.org/details/firstvoyageround00piga/page/211/mode/2up"
+      },
+      "robertson-1906-ii": {
+        "title": "Magellan’s Voyage Around the World, vol. 2, note 637",
+        "author": "James Alexander Robertson, editor and translator of Antonio Pigafetta",
+        "publisher": "The Arthur H. Clark Company, Cleveland",
+        "year": 1906,
+        "url": "https://archive.org/details/magellansvoyagea02piga/page/236/mode/2up"
+      },
+      "natural-earth": {
+        "title": "Natural Earth, 1:10m land polygons, version 5.1.1",
+        "author": "Natural Earth contributors",
+        "publisher": "Natural Earth",
+        "year": 2022,
+        "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/",
+        "use": "Modern coastline reference only: checked the authored channel and offshore joins against the land polygons, not evidence for historical dates or anchorages."
+      }
+    },
+    "vesselChange": {
+      "atVertex": 65,
+      "date": "1521-04-27",
+      "from": "Trinidad",
+      "to": "Victoria",
+      "note": "Follow the Trinidad through Mactan, then the Victoria. Both remain at Cebu while the landing party goes to Mactan in boats; do not send the ship to the battlefield."
+    },
+    "dates": [
+      "1519-09-20",
+      "1519-09-26",
+      "1519-10-03",
+      "1519-10-15",
+      "1519-10-30",
+      "1519-12-08",
+      "1519-12-12",
+      "1519-12-13",
+      "1519-12-27",
+      "1520-01-07",
+      "1520-01-09",
+      "1520-01-10",
+      "1520-02-02",
+      "1520-02-07",
+      "1520-02-09",
+      "1520-02-22",
+      "1520-03-02",
+      "1520-03-20",
+      "1520-03-31",
+      "1520-08-24",
+      "1520-08-25",
+      "1520-08-26",
+      "1520-10-18",
+      "1520-10-21",
+      "1520-10-26",
+      "1520-10-29",
+      "1520-10-31",
+      "1520-10-31",
+      "1520-10-31",
+      "1520-11-08",
+      "1520-11-08",
+      "1520-11-09",
+      "1520-11-10",
+      "1520-11-11",
+      "1520-11-15",
+      "1520-11-16",
+      "1520-11-16",
+      "1520-11-19",
+      "1520-11-22",
+      "1520-11-28",
+      "1520-11-29",
+      "1520-12-01",
+      "1520-12-13",
+      "1521-01-01",
+      "1521-01-13",
+      "1521-01-24",
+      "1521-02-01",
+      "1521-02-13",
+      "1521-02-24",
+      "1521-03-05",
+      "1521-03-06",
+      "1521-03-09",
+      "1521-03-16",
+      "1521-03-17",
+      "1521-03-17",
+      "1521-03-17",
+      "1521-03-25",
+      "1521-03-26",
+      "1521-03-27",
+      "1521-03-28",
+      "1521-04-04",
+      "1521-04-05",
+      "1521-04-06",
+      "1521-04-07",
+      "1521-04-07",
+      "1521-04-27",
+      "1521-05-01",
+      "1521-05-03",
+      "1521-05-05",
+      "1521-05-07",
+      "1521-05-12",
+      "1521-05-24",
+      "1521-06-07",
+      "1521-06-15",
+      "1521-06-20",
+      "1521-06-25",
+      "1521-06-28",
+      "1521-07-29",
+      "1521-08-02",
+      "1521-08-05",
+      "1521-08-10",
+      "1521-08-15",
+      "1521-09-26",
+      "1521-10-01",
+      "1521-10-10",
+      "1521-10-18",
+      "1521-10-22",
+      "1521-10-24",
+      "1521-10-26",
+      "1521-10-28",
+      "1521-10-31",
+      "1521-11-03",
+      "1521-11-06",
+      "1521-11-08",
+      "1521-12-21",
+      "1521-12-23",
+      "1521-12-25",
+      "1521-12-29",
+      "1522-01-01",
+      "1522-01-08",
+      "1522-01-09",
+      "1522-01-10",
+      "1522-01-25",
+      "1522-01-26",
+      "1522-02-11",
+      "1522-02-13",
+      "1522-03-18",
+      "1522-05-08",
+      "1522-05-16",
+      "1522-05-19",
+      "1522-07-09",
+      "1522-07-15",
+      "1522-07-16",
+      "1522-07-20",
+      "1522-08-10",
+      "1522-09-04",
+      "1522-09-06"
+    ],
+    "vertices": [
+      {
+        "name": "Sanlúcar departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "40"
+          }
+        ],
+        "note": "Approximate outer river mouth; the channel and bar are not resolved as a surveyed track."
+      },
+      {
+        "name": "Tenerife",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "40"
+          }
+        ]
+      },
+      {
+        "name": "Tenerife departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "41"
+          }
+        ]
+      },
+      {
+        "name": "Off the African coast",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1519-10-03",
+          "1519-12-08"
+        ],
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "41–42"
+          }
+        ],
+        "note": "Offshore control for the southward course; day and longitude reconstructed."
+      },
+      {
+        "name": "Off the Guinea coast",
+        "dateBasis": "estimated",
+        "positionBasis": "course",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "41–42"
+          }
+        ],
+        "dateRange": [
+          "1519-10-03",
+          "1519-12-08"
+        ],
+        "note": "Illustrative turn off Africa, within the Atlantic crossing; neither this day nor this longitude is a fix."
+      },
+      {
+        "name": "Off Brazil",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "212"
+          }
+        ],
+        "note": "Latitude 19°59′ S from the log; longitude reconstructed."
+      },
+      {
+        "name": "Off Cabo Frio",
+        "dateBasis": "estimated",
+        "positionBasis": "course",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "212–213"
+          }
+        ],
+        "dateRange": [
+          "1519-12-09",
+          "1519-12-13"
+        ],
+        "note": "The log describes rounding Cabo Frio before entering Rio; placement and intermediate day approximate."
+      },
+      {
+        "name": "Rio de Janeiro",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "213"
+          }
+        ],
+        "note": "Bay entrance, not an exact anchorage."
+      },
+      {
+        "name": "Rio departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "213"
+          }
+        ],
+        "note": "Albo dates departure to 27 December; Stanley’s introductory chronology gives 26 December."
+      },
+      {
+        "name": "Off southern Brazil",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "213"
+          }
+        ],
+        "note": "Latitude 32°56′ S from Albo; longitude reconstructed."
+      },
+      {
+        "name": "Off Uruguay",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "214"
+          }
+        ],
+        "note": "Latitude 34°31′ S from Albo; longitude reconstructed."
+      },
+      {
+        "name": "Cape Santa María",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "214"
+          }
+        ],
+        "note": "Approximate modern position off Punta del Este; Albo gives 35° S."
+      },
+      {
+        "name": "Off Montevideo",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "214"
+          }
+        ],
+        "note": "Albo’s Monte Vidi; no detour following the Santiago’s river reconnaissance."
+      },
+      {
+        "name": "Cape San Antonio",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "215"
+          }
+        ]
+      },
+      {
+        "name": "Off the Argentine coast",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "215"
+          }
+        ],
+        "note": "Latitude 38°30′ S from Albo; longitude reconstructed."
+      },
+      {
+        "name": "Patagonian coast",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "217"
+          }
+        ],
+        "note": "Latitude 43°26′ S from the log; longitude reconstructed."
+      },
+      {
+        "name": "Patagonian coast",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ],
+        "note": "Latitude 47° S from the log; longitude reconstructed."
+      },
+      {
+        "name": "Off the Patagonian headlands",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1520-03-02",
+          "1520-03-31"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ],
+        "note": "Offshore control between the last latitude and San Julián; date reconstructed."
+      },
+      {
+        "name": "San Julián",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ]
+      },
+      {
+        "name": "San Julián departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ]
+      },
+      {
+        "name": "Toward Santa Cruz",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1520-08-24",
+          "1520-08-26"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ],
+        "note": "Coastal control between the dated ports; day reconstructed."
+      },
+      {
+        "name": "Santa Cruz",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ]
+      },
+      {
+        "name": "Santa Cruz departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218"
+          }
+        ]
+      },
+      {
+        "name": "Strait entrance",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "57"
+          }
+        ]
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Strait channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1520-10-21",
+          "1520-11-28"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "218–220"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "57–64"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Strait of Magellan"
+          }
+        ],
+        "note": "Authored join through the modern channel described by the accounts; date interpolated by distance within Pigafetta’s dated passage. Neither a daily fix nor a surveyed historical course."
+      },
+      {
+        "name": "Pacific entrance",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "64"
+          }
+        ],
+        "note": "Approximate western mouth off Cape of Desire."
+      },
+      {
+        "name": "Off the Chilean islands",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1520-11-28",
+          "1520-12-01"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "220"
+          }
+        ],
+        "note": "Offshore control on leaving the strait, before the dated northward latitude; date reconstructed."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "220"
+          }
+        ],
+        "note": "Latitude 48° S from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "220"
+          }
+        ],
+        "note": "Latitude 40° S from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "221"
+          }
+        ],
+        "note": "Latitude 25° S from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "221"
+          }
+        ],
+        "note": "Latitude 21° S from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "221"
+          }
+        ],
+        "note": "Latitude 16°15′ S from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "222"
+          }
+        ],
+        "note": "Latitude 13° S from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "222"
+          }
+        ],
+        "note": "Latitude 0°30′ N from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Pacific latitude",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "223"
+          }
+        ],
+        "note": "Latitude 12° N from the log; longitude reconstructed to trace the westward crossing. This is not a two-coordinate fix or an identification of an Unfortunate Island."
+      },
+      {
+        "name": "Approaching Guam",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-02-24",
+          "1521-03-06"
+        ],
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "68"
+          }
+        ],
+        "note": "Illustrative approach south of Guam to its western waters; no recorded fix for this day."
+      },
+      {
+        "name": "Guam",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "68–71"
+          }
+        ],
+        "note": "Approximate west-coast landfall, not a claim to a particular landing beach."
+      },
+      {
+        "name": "Guam departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "224"
+          }
+        ]
+      },
+      {
+        "name": "Samar sighted",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "71"
+          }
+        ],
+        "note": "Offshore near Suluan; Pigafetta’s sighting, not an anchorage on Samar."
+      },
+      {
+        "name": "East of Suluan",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "71–74"
+          }
+        ],
+        "note": "Coastal control for the landfalls described by Pigafetta; day inferred.",
+        "dateRange": [
+          "1521-03-16",
+          "1521-03-17"
+        ]
+      },
+      {
+        "name": "South of Suluan",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-03-16",
+          "1521-03-17"
+        ],
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "71–74"
+          }
+        ],
+        "note": "Control around Suluan and Homonhon, not an independently observed position."
+      },
+      {
+        "name": "Homonhon",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "71–74"
+          }
+        ],
+        "note": "Pigafetta’s following-day arrival at Humunu."
+      },
+      {
+        "name": "Homonhon departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "75"
+          }
+        ]
+      },
+      {
+        "name": "Surigao Strait",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-03-25",
+          "1521-03-28"
+        ],
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "75–76"
+          }
+        ],
+        "note": "Modern channel control between Homonhon and Mazaua; date reconstructed."
+      },
+      {
+        "name": "South of Panaon",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-03-25",
+          "1521-03-28"
+        ],
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "75–76"
+          }
+        ],
+        "note": "Modern channel control between Homonhon and Mazaua; date reconstructed."
+      },
+      {
+        "name": "Mazaua",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "75–76, 83"
+          }
+        ],
+        "note": "Provisionally identified with Limasawa, as in Stanley’s note on p. 83; approximate waters south of the island."
+      },
+      {
+        "name": "West of southern Leyte",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "83–84"
+          }
+        ],
+        "dateRange": [
+          "1521-03-28",
+          "1521-04-07"
+        ],
+        "note": "Course through the islands after the seven-day Mazaua stay; exact day and position reconstructed."
+      },
+      {
+        "name": "West of Leyte",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "225"
+          }
+        ],
+        "dateRange": [
+          "1521-03-28",
+          "1521-04-07"
+        ],
+        "note": "Control point for Albo’s northward run beside Leyte, followed by a westward turn toward Cebu."
+      },
+      {
+        "name": "Toward Cebu",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "84"
+          }
+        ],
+        "dateRange": [
+          "1521-03-28",
+          "1521-04-07"
+        ],
+        "note": "Between the Leyte–Camotes passage and Cebu; day interpolated."
+      },
+      {
+        "name": "Cebu channel control",
+        "dateBasis": "estimated",
+        "dateRange": [
+          "1521-04-06",
+          "1521-04-07"
+        ],
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "225"
+          },
+          {
+            "source": "pigafetta-1874",
+            "pages": "84"
+          },
+          {
+            "source": "natural-earth",
+            "pages": "1:10m land polygons, Cebu–Mactan channel"
+          }
+        ],
+        "note": "Authored channel join on the arrival day; not an independently timed or observed fix."
+      },
+      {
+        "name": "Cebu",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "84"
+          }
+        ]
+      },
+      {
+        "name": "Cebu at the time of Mactan",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "99–103"
+          }
+        ],
+        "note": "Ship remains at Cebu: the battle expedition travels in boats. Change the representative vessel here from Trinidad to Victoria."
+      },
+      {
+        "name": "Departure from Cebu",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "104–106"
+          }
+        ]
+      },
+      {
+        "name": "Bohol; Concepción burned",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "105–106"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Relative sequence after Cebu; this day is an estimate."
+      },
+      {
+        "name": "East of Siquijor",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "225–226"
+          }
+        ],
+        "note": "Offshore control between Bohol and Kipit; date estimated within the undated island sequence.",
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ]
+      },
+      {
+        "name": "South of Negros",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "225–226"
+          }
+        ],
+        "note": "Offshore control between Bohol and Kipit; date estimated within the undated island sequence."
+      },
+      {
+        "name": "Kipit, Mindanao",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "106–108"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Undated call in the account; date placed in the sequence between Cebu and Brunei."
+      },
+      {
+        "name": "Cagayan Sulu",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "108"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Modern Mapun; date estimated within the account’s sequence."
+      },
+      {
+        "name": "Palawan",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "108–110"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Approximate waters off the southeastern coast; date estimated within the account’s sequence."
+      },
+      {
+        "name": "Around southern Palawan",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "226–227"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Albo describes returning southward along Palawan before sailing to Borneo; control point and date reconstructed."
+      },
+      {
+        "name": "Northern Borneo",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "227"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Coastal approach to Brunei, with reconstructed date."
+      },
+      {
+        "name": "Northwest Borneo coast",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "227"
+          }
+        ],
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "note": "Control point offshore, with reconstructed date."
+      },
+      {
+        "name": "Approaching Brunei",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-05-01",
+          "1521-07-29"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "227"
+          }
+        ],
+        "note": "Coastal control west of Labuan; date reconstructed."
+      },
+      {
+        "name": "Brunei",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "110–114"
+          }
+        ],
+        "note": "Date of the encounter with boats at Brunei, not the arrival date."
+      },
+      {
+        "name": "Leaving Brunei",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "227"
+          }
+        ],
+        "note": "Coastal control west of Labuan; date reconstructed."
+      },
+      {
+        "name": "Retracing the Borneo coast",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "227"
+          }
+        ],
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "note": "Albo describes retracing the approach; day estimated."
+      },
+      {
+        "name": "Around northern Borneo",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "227"
+          }
+        ],
+        "note": "Coastal control rounding northern Borneo toward the refit port; date reconstructed.",
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ]
+      },
+      {
+        "name": "Refit off northern Borneo",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "118–119"
+          }
+        ],
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "note": "Approximate harbor between northern Borneo and Balambangan (Cimbonbon); arrival date estimated."
+      },
+      {
+        "name": "Refit ends",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "118–120"
+          }
+        ],
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "note": "Estimated departure, 42 days after the estimated arrival; only the duration and sequence are reported."
+      },
+      {
+        "name": "Cagayan Sulu again",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "120"
+          }
+        ],
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "note": "Date estimated after the refit and before the dated storm of 26 October."
+      },
+      {
+        "name": "Off Basilan",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "120–121"
+          }
+        ],
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "note": "Date estimated in the island sequence."
+      },
+      {
+        "name": "Southern Mindanao coast",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "228"
+          }
+        ],
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "note": "Control point south of Mindanao for Albo’s coastal route; day estimated."
+      },
+      {
+        "name": "Off southern Mindanao",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "228"
+          }
+        ],
+        "note": "Offshore control around the southern capes; date reconstructed."
+      },
+      {
+        "name": "Toward Sarangani",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1521-07-29",
+          "1521-10-26"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "228"
+          }
+        ],
+        "note": "Offshore control around the southern capes; date reconstructed."
+      },
+      {
+        "name": "Storm near Sarangani",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "122"
+          }
+        ],
+        "note": "Approximate waters near Birabam Batolac and Sarangani; identification and position uncertain."
+      },
+      {
+        "name": "Sarangani departure",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "122"
+          }
+        ],
+        "dateRange": [
+          "1521-10-26",
+          "1521-11-08"
+        ],
+        "note": "Following a one-day stay after the storm; the account gives a sequence, not this exact departure date."
+      },
+      {
+        "name": "Sanghir",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "123"
+          }
+        ],
+        "dateRange": [
+          "1521-10-26",
+          "1521-11-08"
+        ],
+        "note": "Approximate waters west of Sangihe; date estimated."
+      },
+      {
+        "name": "Siau",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "123"
+          }
+        ],
+        "dateRange": [
+          "1521-10-26",
+          "1521-11-08"
+        ],
+        "note": "Approximate waters west of the island; date estimated."
+      },
+      {
+        "name": "Moluccas sighted",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "124"
+          }
+        ],
+        "note": "Approximate waters toward Tifore; the date belongs to the sighting, not a measured fix."
+      },
+      {
+        "name": "Tidore",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "124"
+          }
+        ],
+        "note": "Approximate waters west of Tidore, not an exact anchorage."
+      },
+      {
+        "name": "Victoria leaves Tidore",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "144–146"
+          }
+        ]
+      },
+      {
+        "name": "West of Bacan",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "230"
+          }
+        ],
+        "dateRange": [
+          "1521-12-21",
+          "1521-12-29"
+        ],
+        "note": "Albo’s route between the Moluccan islands toward Buru; date estimated."
+      },
+      {
+        "name": "Toward Buru",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "230"
+          }
+        ],
+        "dateRange": [
+          "1521-12-21",
+          "1521-12-29"
+        ],
+        "note": "Control point following the southward course past the Sula islands; date estimated."
+      },
+      {
+        "name": "Between Buru and Ambon",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "231"
+          }
+        ],
+        "note": "Latitude 3°51′ S from Albo, opposite Ambon; longitude reconstructed."
+      },
+      {
+        "name": "Banda Sea",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "231"
+          }
+        ],
+        "note": "Latitude 4°45′ S from Albo; longitude reconstructed."
+      },
+      {
+        "name": "Lesser Sunda passage",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "232"
+          }
+        ],
+        "note": "Latitude 8°7′ S from Albo; modern channel placement approximate. Identifications of his island names are uncertain."
+      },
+      {
+        "name": "Toward Malua",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "232"
+          }
+        ],
+        "dateRange": [
+          "1522-01-08",
+          "1522-01-25"
+        ],
+        "note": "Control point north of Pantar; date reconstructed before Pigafetta’s fifteen-day refit ending 25 January."
+      },
+      {
+        "name": "Malua",
+        "dateBasis": "estimated",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "150–151"
+          }
+        ],
+        "dateRange": [
+          "1522-01-08",
+          "1522-01-25"
+        ],
+        "note": "Approximate western waters of Alor (Malua); arrival inferred from the fifteen-day stay and 25 January departure."
+      },
+      {
+        "name": "Malua departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "151"
+          }
+        ]
+      },
+      {
+        "name": "Timor",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "151–152"
+          }
+        ],
+        "note": "Arrival on the day following departure from Malua; approximate northwest coast."
+      },
+      {
+        "name": "Timor departure",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "233"
+          }
+        ],
+        "note": "Latitude 9°35′ S from Albo; longitude reconstructed off western Timor. Pigafetta dates departure to the night of 11 February (p. 159)."
+      },
+      {
+        "name": "Islands west of Timor",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "233"
+          }
+        ],
+        "note": "Latitude 10°32′ S from Albo; approximate longitude near Rote, not a certain identification of the unnamed islands."
+      },
+      {
+        "name": "Amsterdam Island sighted",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "233–234"
+          }
+        ],
+        "note": "Latitude 37°35′ S from Albo; approximate modern longitude of the island identified by Stanley."
+      },
+      {
+        "name": "Off the Great Fish River",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "234"
+          }
+        ],
+        "note": "Approximate offshore point; Albo reports the river eight leagues distant."
+      },
+      {
+        "name": "East-southeast of the Cape",
+        "dateBasis": "recorded",
+        "positionBasis": "latitude",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235"
+          }
+        ],
+        "note": "Latitude 35°39′ S from Albo; longitude reconstructed from the reported bearing and distance."
+      },
+      {
+        "name": "Rounding the Cape of Good Hope",
+        "dateBasis": "estimated",
+        "positionBasis": "course",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235"
+          },
+          {
+            "source": "robertson-1906-ii",
+            "pages": "236, note 637"
+          }
+        ],
+        "dateRange": [
+          "1522-05-18",
+          "1522-05-22"
+        ],
+        "note": "Stanley’s bracket dates rounding to 18–19 May; Robertson II p. 236 n. 637 gives 22 May for finally clearing the Cape. Nominal date, not an exact fix."
+      },
+      {
+        "name": "Santiago, Cape Verde",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235"
+          }
+        ],
+        "note": "Shipboard date: Wednesday 9 July; the inhabitants count Thursday. Approximate anchorage off Ribeira Grande."
+      },
+      {
+        "name": "Cape Verde departure",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235–236"
+          }
+        ],
+        "note": "Albo’s shipboard date."
+      },
+      {
+        "name": "Southwest of Santiago",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235–236"
+          }
+        ],
+        "note": "Offshore control on leaving the port; date reconstructed.",
+        "dateRange": [
+          "1522-07-15",
+          "1522-09-04"
+        ]
+      },
+      {
+        "name": "Clear of Cape Verde",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "dateRange": [
+          "1522-07-15",
+          "1522-09-04"
+        ],
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235–236"
+          }
+        ],
+        "note": "Illustrative offshore control before the next sighting in the abridged log; not a recorded fix."
+      },
+      {
+        "name": "North Atlantic",
+        "dateBasis": "estimated",
+        "positionBasis": "channel",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "235–236"
+          }
+        ],
+        "note": "Offshore control between dated endpoints of the abridged log, west of the Canaries; neither day nor position is a recorded fix.",
+        "dateRange": [
+          "1522-07-15",
+          "1522-09-04"
+        ]
+      },
+      {
+        "name": "Cape St. Vincent sighted",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "albo-1874",
+            "pages": "236"
+          }
+        ],
+        "note": "Cape lay northeast of the ship; approximate point southwest of the cape. Intermediate North Atlantic tacks are not supplied by Stanley’s abridged log."
+      },
+      {
+        "name": "Sanlúcar return",
+        "dateBasis": "recorded",
+        "positionBasis": "landfall",
+        "citations": [
+          {
+            "source": "pigafetta-1874",
+            "pages": "162"
+          }
+        ],
+        "note": "Approximate outer river mouth; the channel and bar are not resolved as a surveyed track."
+      }
+    ],
+    "legs": [
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 4,
+        "to": 5
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 5,
+        "to": 6
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 6,
+        "to": 7
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 7,
+        "to": 8
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 8,
+        "to": 9
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 9,
+        "to": 10
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 10,
+        "to": 11
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 11,
+        "to": 12
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 12,
+        "to": 13
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 13,
+        "to": 14
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 14,
+        "to": 15
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 15,
+        "to": 16
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 16,
+        "to": 17
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 17,
+        "to": 18
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 18,
+        "to": 19
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 19,
+        "to": 20
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 20,
+        "to": 21
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 21,
+        "to": 22
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 22,
+        "to": 23
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 23,
+        "to": 24
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 24,
+        "to": 25
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 25,
+        "to": 26
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 26,
+        "to": 27
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 27,
+        "to": 28
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 28,
+        "to": 29
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 29,
+        "to": 30
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 30,
+        "to": 31
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 31,
+        "to": 32
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 32,
+        "to": 33
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 33,
+        "to": 34
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 34,
+        "to": 35
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 35,
+        "to": 36
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 36,
+        "to": 37
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 37,
+        "to": 38
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 38,
+        "to": 39
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 39,
+        "to": 40
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 40,
+        "to": 41
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 41,
+        "to": 42
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 42,
+        "to": 43
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 43,
+        "to": 44
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 44,
+        "to": 45
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 45,
+        "to": 46
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 46,
+        "to": 47
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 47,
+        "to": 48
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 48,
+        "to": 49
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 49,
+        "to": 50
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 50,
+        "to": 51
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 51,
+        "to": 52
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 52,
+        "to": 53
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 53,
+        "to": 54
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 54,
+        "to": 55
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 55,
+        "to": 56
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 56,
+        "to": 57
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 57,
+        "to": 58
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 58,
+        "to": 59
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 59,
+        "to": 60
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 60,
+        "to": 61
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 61,
+        "to": 62
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 62,
+        "to": 63
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 63,
+        "to": 64
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 64,
+        "to": 65
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 65,
+        "to": 66
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 66,
+        "to": 67
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 67,
+        "to": 68
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 68,
+        "to": 69
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 69,
+        "to": 70
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 70,
+        "to": 71
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 71,
+        "to": 72
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 72,
+        "to": 73
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 73,
+        "to": 74
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 74,
+        "to": 75
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 75,
+        "to": 76
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 76,
+        "to": 77
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 77,
+        "to": 78
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 78,
+        "to": 79
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 79,
+        "to": 80
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 80,
+        "to": 81
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 81,
+        "to": 82
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 82,
+        "to": 83
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 83,
+        "to": 84
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 84,
+        "to": 85
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 85,
+        "to": 86
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 86,
+        "to": 87
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 87,
+        "to": 88
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 88,
+        "to": 89
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 89,
+        "to": 90
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 90,
+        "to": 91
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 91,
+        "to": 92
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 92,
+        "to": 93
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 93,
+        "to": 94
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 94,
+        "to": 95
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 95,
+        "to": 96
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 96,
+        "to": 97
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 97,
+        "to": 98
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 98,
+        "to": 99
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 99,
+        "to": 100
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 100,
+        "to": 101
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 101,
+        "to": 102
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 102,
+        "to": 103
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 103,
+        "to": 104
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 104,
+        "to": 105
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 105,
+        "to": 106
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 106,
+        "to": 107
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 107,
+        "to": 108
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 108,
+        "to": 109
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 109,
+        "to": 110
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 110,
+        "to": 111
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 111,
+        "to": 112
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 112,
+        "to": 113
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 113,
+        "to": 114
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 114,
+        "to": 115
+      },
+      {
+        "uncertain": true,
+        "sea": true,
+        "from": 115,
+        "to": 116
+      }
+    ]
+  },
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [-6.45, 36.8],
+      [-16.19, 28.48],
+      [-16.19, 28.48],
+      [-20, 15],
+      [-18, 8],
+      [-38.3, -19.983333],
+      [-41.85, -23.08],
+      [-43.14, -23.02],
+      [-43.14, -23.02],
+      [-51.5, -32.933333],
+      [-53.2, -34.516667],
+      [-54.85, -35.02],
+      [-56.24, -35.02],
+      [-56.6, -36.25],
+      [-56.8, -38.5],
+      [-62, -43.433333],
+      [-65, -47],
+      [-66.1, -49.2],
+      [-67.61, -49.36],
+      [-67.61, -49.36],
+      [-67.5, -49.9],
+      [-68.25, -50.18],
+      [-68.25, -50.18],
+      [-68.3, -52.42],
+      [-69.425, -52.445],
+      [-70.0, -52.655],
+      [-70.415, -52.75],
+      [-70.425, -52.76],
+      [-70.43, -52.765],
+      [-70.975, -53.77],
+      [-70.995, -53.795],
+      [-71.055, -53.825],
+      [-71.26, -53.89],
+      [-71.51, -53.89],
+      [-72.325, -53.625],
+      [-72.515, -53.55],
+      [-72.53, -53.55],
+      [-73.045, -53.345],
+      [-73.555, -53.07],
+      [-74.7, -52.6],
+      [-76, -52.3],
+      [-77, -48],
+      [-78, -40],
+      [-100, -25],
+      [-120, -21],
+      [-141, -16.25],
+      [-152, -13],
+      [-172, 0.5],
+      [160, 12],
+      [144.6, 13.0],
+      [144.65, 13.3],
+      [144.65, 13.3],
+      [126.0, 10.85],
+      [126.04, 10.58],
+      [125.85, 10.62],
+      [125.68, 10.69],
+      [125.68, 10.69],
+      [125.45, 10.53],
+      [125.35, 9.82],
+      [125.06, 9.89],
+      [124.78, 10.1],
+      [124.6, 10.55],
+      [124.0, 10.35],
+      [123.9684, 10.3222],
+      [123.92, 10.29],
+      [123.92, 10.29],
+      [123.92, 10.29],
+      [123.7, 9.56],
+      [123.75, 9.0],
+      [123.38, 9.0],
+      [122.46, 8.47],
+      [118.32, 6.85],
+      [117.7, 8.6],
+      [117.4, 7.65],
+      [116.7, 7.3],
+      [115.8, 6.4],
+      [114.95, 5.45],
+      [115.12, 5.13],
+      [114.95, 5.45],
+      [115.8, 6.4],
+      [116.7, 7.3],
+      [116.95, 7.1],
+      [116.95, 7.1],
+      [118.32, 6.85],
+      [122.1, 6.8],
+      [123.3, 6.7],
+      [124.1, 5.6],
+      [124.9, 5.35],
+      [125.45, 5.55],
+      [125.43, 5.37],
+      [125.35, 3.65],
+      [125.3, 2.75],
+      [126.23, 0.72],
+      [127.32, 0.67],
+      [127.32, 0.67],
+      [127, -0.75],
+      [126.75, -1.8],
+      [127.65, -3.85],
+      [126, -4.75],
+      [123.86, -8.116667],
+      [124.3, -8.05],
+      [124.34, -8.32],
+      [124.34, -8.32],
+      [124.1, -9.27],
+      [123.35, -9.583333],
+      [122.7, -10.533333],
+      [77.58, -37.583333],
+      [27.15, -33.8],
+      [19.8, -35.65],
+      [18, -35],
+      [-23.62, 14.9],
+      [-23.62, 14.9],
+      [-24.7, 14.5],
+      [-26, 17],
+      [-21, 29],
+      [-9.4, 36.8],
+      [-6.45, 36.8]
+    ]
+  }
+}
