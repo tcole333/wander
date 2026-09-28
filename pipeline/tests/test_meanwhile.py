@@ -68,6 +68,24 @@ def test_an_event_goes_to_the_neighbour_dated_nearer_it_and_neighbours_repeat_wh
     assert [[e.qid for e in chosen] for chosen in lists] == [["Q2", "Q3", "Q4"], ["Q1", "Q2", "Q3"]]
 
 
+def test_an_event_whose_date_the_sources_dispute_is_left_out():
+    beat = m.Beat(
+        id="summer",
+        date=m.iso_day("1816-09-05"),
+        window=(m.iso_day("1816-09-01"), m.iso_day("1816-09-30")),
+        target=(-72.0, 43.0),
+        focal="Q0",
+        pins=(),
+        hides=(),
+    )
+    index = [
+        m.replace(event("Q12241904", 2.0, (20.07, 32.12), "1816-09-05"), enwiki="Al-Jawazi"),
+        m.replace(event("Q2", 1.0, (80.0, 20.0), "1816-09-10"), enwiki="Two"),
+    ]
+    lists = m.beat_lists([beat], index, contested={"Q12241904"})
+    assert [e.qid for e in lists["summer"]] == ["Q2"]
+
+
 def test_a_long_window_takes_the_events_near_its_date_first():
     index = [
         event("Q1", 9.0, WATERLOO, "1816-07-09"),  # a year on, in the window

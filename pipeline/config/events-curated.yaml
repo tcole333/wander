@@ -2,7 +2,8 @@
 # `boosts` adds to an event's score, log2(1 + Wikipedia editions) x class weight, where the edition
 # count misjudges how much an event mattered: each entry is {qid, boost, why}. `dates` gives the
 # day a better source dates an event to where Wikidata's date is wrong: {qid, date, why}, the date
-# a quoted ISO day.
+# a quoted ISO day. `contested` names the events whose date the sources dispute, which Meanwhile,
+# printing one date for each, leaves out: {qid, why}.
 boosts:
   - qid: Q48314
     boost: 1.5
@@ -23,3 +24,13 @@ dates:
       The Battle of El Roble, on the Itata, is fought on 17 October 1813, as its article and the
       Academia de Historia Militar de Chile ('Combate de El Roble') give it; Wikidata's 1815 is
       two years late.
+contested:
+  - qid: Q12241904
+    why: >-
+      The Al-Jawazi massacre falls on 5 September: 1816 in its own article and Wikidata, 1817 in
+      Wikipedia's Yusuf Karamanli and Ottoman Tripolitania articles and in Arabic sources.
+  - qid: Q4871304
+    why: >-
+      The Battle of Jaithak's article dates it 25 September 1815 in its infobox, which Wikidata
+      copies, and to the night of 25 December 1814 in its account; Wikipedia's Anglo-Nepalese War
+      article puts the attack on 27 December 1814.

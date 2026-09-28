@@ -14,6 +14,8 @@ elsewhere at the beat's time:
   for a month of it;
 - more than `MIN_KM` from the beat's camera target;
 - never the beat's focal event nor its part-of (P361) relatives, and never a parent with its child;
+- never one whose date the sources dispute (`contested` in `pipeline/config/events-curated.yaml`),
+  since Meanwhile prints one date for each;
 - first those dated within `PAD_DAYS` of the beat's date, greedy by score, then the rest of the
   window, nearest the date first, each at least `MIN_KM` from those already taken;
 - while enough others qualify, none the previous beat shows, nor any the next beat would show
@@ -50,6 +52,7 @@ from typing import Any
 import yaml
 
 from prebuild import events
+from prebuild.config import load_contested_events
 from prebuild.media import BEAT_BLOCK, read_lock, write_lock
 from prebuild.profiles import Context
 from prebuild.records import read_record
@@ -149,8 +152,9 @@ def run(ctx: Context) -> None:
     lines = read_lines(folder / "meanwhile.yaml")
     with gzip.open(table, "rt", encoding="utf-8") as stream:
         index = [as_written(e, lines.get(e.qid)) for e in read_table(stream)]
-    by_beat = beat_lists(beats, index, written=set(lines))
-    by_month = month_lists(beats, index, written=set(lines))
+    contested = load_contested_events()
+    by_beat = beat_lists(beats, index, written=set(lines), contested=contested)
+    by_month = month_lists(beats, index, written=set(lines), contested=contested)
     unwritten = sorted({e.qid for chosen in by_beat.values() for e in chosen} - set(lines))
     if unwritten:
         print(f"meanwhile: no written line in meanwhile.yaml for {', '.join(unwritten)}")
@@ -256,13 +260,16 @@ def in_turn(
 
 
 def beat_lists(
-    beats: Sequence[Beat], index: Sequence[Event], written: Iterable[str] = ()
+    beats: Sequence[Beat],
+    index: Sequence[Event],
+    written: Iterable[str] = (),
+    contested: Iterable[str] = (),
 ) -> dict[str, list[Event]]:
     """Each beat's entries, by beat id in story order. Only the events in `written`, or with an
-    English article, qualify, and any the beats pin."""
+    English article, qualify, and any the beats pin; none whose date is `contested`."""
     by_qid = {e.qid: e for e in index}
     ancestors = lineage(index)
-    has_line = set(written)
+    has_line, disputed = set(written), frozenset(contested)
     pool = [e for e in index if e.qid in has_line or e.enwiki]
     frames = []
     for beat in beats:
@@ -279,7 +286,7 @@ def beat_lists(
                 end=max(end, near[1]),
                 longest=max(end - start + 1, SHORTEST_DAYS),
                 target=beat.target,
-                excluded=relatives({beat.focal}, index, ancestors) | set(beat.hides),
+                excluded=relatives({beat.focal}, index, ancestors) | set(beat.hides) | disputed,
             )
         )
     pins = [[by_qid[qid] for qid in beat.pins] for beat in beats]
@@ -288,15 +295,20 @@ def beat_lists(
 
 
 def month_lists(
-    beats: Sequence[Beat], index: Sequence[Event], written: Iterable[str] = ()
+    beats: Sequence[Beat],
+    index: Sequence[Event],
+    written: Iterable[str] = (),
+    contested: Iterable[str] = (),
 ) -> dict[tuple[int, int], list[Event]]:
     """Each month's entries, from January of the year the story's windows open to December of
     the year they close. Only the events in `written`, or with an English article and a place of
-    their own, qualify."""
+    their own, qualify; none whose date is `contested`."""
     ancestors = lineage(index)
-    excluded = relatives({b.focal for b in beats}, index, ancestors) | {
-        qid for b in beats for qid in b.hides
-    }
+    excluded = (
+        relatives({b.focal for b in beats}, index, ancestors)
+        | {qid for b in beats for qid in b.hides}
+        | set(contested)
+    )
     has_line = set(written)
     pool = [e for e in index if e.qid in has_line or (e.enwiki and not e.inherited)]
     year, month = civil(min(b.window[0] for b in beats))[0], 1
