@@ -107,7 +107,11 @@ sources:
       /outside its window/,
     ],
     ['no window', BEAT.replace(/^window: .*\n/m, ''), /window must be text/],
-    ['no source with an https link', BEAT.replace('https:', 'http:'), /an https link/],
+    [
+      'a source without an https link',
+      `${BEAT}\n  - {title: Another history, url: "http://example.org/another"}`,
+      /'Another history' needs an https link/,
+    ],
     ['no sources', BEAT.replace(/^sources:[\s\S]*/m, ''), /sources must be a list/],
     ['an image without alt text', BEAT.replace('"A map of Sumbawa."', '""'), /needs alt text/],
     ['no image', BEAT.replace(/^image: .*\n/m, ''), /image must be a mapping/],

@@ -591,8 +591,8 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
     `{dataset, wDays, style}`
   - `audio: {cues: [...]}`
   - `meanwhile: auto | [qids]`
-  - `sources`: a list of `{title, author?, publisher?, year?, url}`, at least one of them with an
-    https link, since the card's sources are the beat's grounding
+  - `sources`: a list of `{title, author?, publisher?, year?, url}`, at least one, each with an
+    https link, since the card's sources are the beat's grounding and the card links every one
 - **Datasets:** `stories/<story>/data/<name>.geojson`, with kind, epoch and grid in top-level properties
   that Python reads. A spread is isochrone polygons, each with a `by` date. A route is a LineString with
   a per-vertex date array.
