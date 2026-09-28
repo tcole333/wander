@@ -453,8 +453,31 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
 - **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
   1700, 1800, 1850, 1900, 1950, 2000, +∞); `pipeline/config/macro-regions.geojson` (8 macro-regions);
-  `pipeline/config/classes.yaml` (the class allowlist and weights, which keep out sporting seasons and
-  similar noise); `pipeline/queries/*.rq` with each export's timestamp.
+  `pipeline/config/event-classes.yaml` (the class allowlist and weights, which keep out sporting
+  seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, each
+  with its reason; the overrides for unlocated parents join it with the hierarchy);
+  `pipeline/queries/events.rq`, the one query, run once per class.
+- **Export:** `uv run prebuild wikidata` runs `events.rq` for each class against QLever's public
+  Wikidata endpoint, one request at a time with a pause between them, and writes the rows as gzip
+  TSV with the export's timestamp to `$WANDER_DATA/sources/wikidata-events-<date>/`, which it pins
+  verify-only in `pipeline/sources.toml` in place of the previous export. The export stays out of
+  the repo with the other raw data; the pin makes every build from it reproducible. Wikidata is
+  CC0. A row is one dated statement that is not deprecated (P585, P580 or P582, with its
+  precision) of an event, with its English label and Wikipedia title, its coordinates and its
+  location's, its count of Wikipedia editions and its P361 parents.
+- **Milestone 1:** the `events` stage writes the cleaned, scored table `ev/events.tsv.gz` (7.1),
+  one row per event, which Meanwhile and the lobby's glows draw from. It keeps statements dated to
+  the year or finer, and events with an English label, a place other than 0°, 0° (their own, else
+  their location's, flagged) and a Wikipedia edition. An event takes its heaviest class; its date
+  is its point in time, else its start, else its end, the most precise and then the earliest; and
+  its span `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and
+  ends, widened to their precision, so a war dated at its armistice still spans its years. Its
+  score is `log2(1 + editions)` times the class weight plus any curated boost, unscaled. Parents
+  stay as Wikidata gives them. The table is TSV with a header line, in score order, at most 100K
+  rows, with the columns qid, label, enwiki, class, date, precision, t0, t1, lon, lat, inherited,
+  editions, score and parents; dates are ISO days in astronomical years, as `dates.ts` reads them.
+  The `.wev` files, their era bins, macro-regions, percentile score, details and display parents
+  come with the globe's events layer, since only that layer queries the index at run time.
 - **Cleaning (build):**
   - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
     go to `details/<n>.json` (built in v1, loaded in v1.1).
@@ -1250,25 +1273,26 @@ story above them.
 
 `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or,
 when none is named, every prebuild stage from `fetch` to `minerals` in the order below except
-`excerpts`. `excerpts` and `media` run only when named: `excerpts` because it rewrites committed
-files, and `media` because it builds one story, named with `--story <id>`. A bare run builds the
-global profile (owner decision 17). Each profile has its own output root: `build/out/` for global,
-`build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3);
-`publish-data` takes the same `--profile` (4.3). The fixture profile skips `fetch` and `excerpts`,
-so it needs no raw data, and `modera` until the climate layer has its excerpt (7.3). `--jobs`
-defaults to min(8, CPUs), with spawn-context worker processes.
+`wikidata`, `excerpts` and `media`, which run only when named: `wikidata` and `excerpts` because
+they rewrite committed files, and `media` because it builds one story, named with `--story <id>`.
+A bare run builds the global profile (owner decision 17). Each profile has its own output root:
+`build/out/` for global, `build/region/` for the milestone-1 bake (8.1) and `build/fixture/` for
+the fixture (7.3); `publish-data` takes the same `--profile` (4.3). The fixture profile skips
+`fetch`, `wikidata` and `excerpts`, so it needs no raw data, and `events` and `modera` until their
+layers have excerpts (7.3). `--jobs` defaults to min(8, CPUs), with spawn-context worker processes.
 `media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
-| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive, and historical-basemaps' `world_1815.geojson` at commit da7a4b7 (GPL-3.0, never committed); later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
+| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive, and historical-basemaps' `world_1815.geojson` at commit da7a4b7 (GPL-3.0, never committed), and the Wikidata events export (verify-only, pinned by `wikidata`); later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
+| `wikidata` | `pipeline/queries/events.rq` once per class of `pipeline/config/event-classes.yaml`, against QLever's public Wikidata endpoint, one request at a time with a 5 s pause, waiting 1, 3 and 10 min on a 429 or 5xx → `events.tsv.gz` and `export.json` in `$WANDER_DATA/sources/wikidata-events-<date>/`, pinned verify-only in `sources.toml` in place of the previous export (3.4) | 6.5-17 min for 39 classes and 94K rows (2.3 MB), as busy as the endpoint is [M] | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews. Milestone 1: each `world_<stem>.geojson` pinned in `sources.toml` (1815) + `pipeline/config/borders-<stem>.yaml` → `fd/borders/<ver8>/<stem>.bin`, its notice and corrected source under `lic/` (3.3); the fixture skips it, and its tests draw synthetic snapshots | 31 s for 1815 [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | range names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
-| `events` | pinned exports in `pipeline/queries/` → `.wev` + details | build < 1 min [E] | local |
+| `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → in milestone 1 the scored table `ev/events.tsv.gz` (3.4); `.wev` + details with the globe's events layer | 1 s for 29,649 events [M] | local |
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points, and focal resolution and Meanwhile lists against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
@@ -1303,9 +1327,9 @@ defaults to min(8, CPUs), with spawn-context worker processes.
 
 Every stage writes its profile's output root in the exact R2 key layout, plus a record at
 `build/stages/<profile>/<stage>.json`, outside the tree `publish-data` uploads, so records never
-become R2 keys. `fetch`, `excerpts` and `media` write no record: `media` lists what it wrote in the
-committed lock (3.9), which `npm run stories` reads, and the release's `media` section lists
-every key the locks name (3.8).
+become R2 keys. `fetch`, `wikidata`, `excerpts` and `media` write no record: `wikidata` pins its
+export in `sources.toml`, and `media` lists what it wrote in the committed lock (3.9), which
+`npm run stories` reads, and the release's `media` section lists every key the locks name (3.8).
 
 | Stage | Record |
 |---|---|
@@ -1314,7 +1338,7 @@ every key the locks name (3.8).
 | borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}`; milestone 1: `{ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`, 3.8's section as is |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
-| events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` |
+| events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` with the `.wev` files; in milestone 1 `{key, export, exported, rows, bytes, decoded, classes}`: the table's key, the pinned export and its timestamp, its rows, stored and decoded bytes, and rows per class |
 | modera | `{ver, years[first, last], lat[96], lon0, dlon, bytes{mean: {year}, spread: {year}, annual}}`: 3.8's `modera` section as is, the latitudes north first to 6 decimals |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |
@@ -1674,6 +1698,13 @@ acceptance).**
 - **Pass:** results reach the main thread within 2 frames (~33 ms) of a camera or ruler change, at no
   more than 0.5 ms of main-thread work per result. Overview decode time is reported.
 - **If it fails:** add spatial sub-pages (cube L2 cells) inside the busiest era bins.
+- **Milestone 1's light answer (2026-09-28):** the export `wikidata-events-20260928` (39 classes,
+  94,025 dated statements) gives an accepted corpus of 29,649 events: 1.18 MB stored as the table
+  `ev/events.tsv.gz` and 3.77 MB decoded. Node 22 on the M5 inflates and parses it into typed
+  columns in 35-42 ms [M `e5/results/light.json`]. That is under a third of the split rule's 100K
+  rows and about 2.2 MB in the worker's typed arrays at 73 B a row [D], so the whole corpus fits
+  one `all.wev` and no page is ever evicted. The query benchmark needs the event worker and the
+  `.wev` files, so it moves with the globe's events layer, after milestone 1.
 
 **E6. Overlay fidelity at island zoom.**
 - **Setup:** bake ecoregions, petroleum, mountains and borders 1815 + 1878 as L0-L5 `.wot`.

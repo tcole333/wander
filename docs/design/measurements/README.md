@@ -19,6 +19,10 @@ vertex mirror on the version 2 region bake (2026-09-25): the non-owner crease al
 level, in meters and in px at ×8 and ×16, the land choice on face edges, and the pairs and vertices
 of the mirror's seam proof.
 
+`e5/results/light.json` is E5's light answer (streaming.md 8.2), measured by `e5/parse.mjs`: the
+milestone-1 events table built from the Wikidata export of 2026-09-28, its rows, stored and decoded
+bytes, and the time Node 22 on the M5 takes to inflate and parse it into typed columns.
+
 `e1/results/` and `e2/results/` hold the experiments' lab runs (`npm run lab`, streaming.md 7.3),
 copied from `build/lab/`. The first ones ran on 2026-09-25 on the M5 (macOS 26.5) in Chromium 153 on
 Metal through Playwright, Safari 26.5 and Firefox 156:
