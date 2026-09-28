@@ -13,13 +13,15 @@ describe("Tambora's lock", () => {
   it('holds every beat image as story.md crops it, at 1024 and 256 px wide, credited', () => {
     for (const beat of story.beats) {
       const locked = beat.image.locked;
-      expect(locked, `beat ${beat.id}: run uv run prebuild media --story tambora`).toBeDefined();
+      const rerun = `beat ${beat.id}: run uv run prebuild media --story tambora`;
+      expect(locked, rerun).toBeDefined();
       expect(locked?.files.map((file) => file.key.replace(/^img\/[\da-f]{16}/, ''))).toEqual([
         '-1024.jpg',
         '-256.jpg',
       ]);
       expect(locked?.credit).not.toBe('');
       expect(locked?.license).not.toBe('');
+      expect(locked?.collection, rerun).toBe(beat.image.collection);
     }
   });
 
@@ -28,17 +30,5 @@ describe("Tambora's lock", () => {
     if (!image) throw new Error('beat 1 has no image');
     expect(lockedImage(lock, image)).toBe(image.locked);
     expect(lockedImage(lock, { ...image, crop: [0, 0, 0.5, 0.5] })).toBeUndefined();
-  });
-
-  it('credits the maps from the David Rumsey Map Collection with its whole credit line', () => {
-    const held = story.beats
-      .filter((beat) => beat.image.locked?.collection !== undefined)
-      .map((beat) => [beat.id, beat.image.locked?.collection]);
-    const rumsey = 'David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries';
-    expect(held).toEqual([
-      ['world-1815', rumsey],
-      ['sunda', rumsey],
-      ['ash', rumsey],
-    ]);
   });
 });
