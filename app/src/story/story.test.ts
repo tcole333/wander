@@ -90,11 +90,6 @@ sources:
     expect(beat?.window).toEqual([dayFromIso('1815-04-05'), dayFromIso('1815-04-12')]);
   });
 
-  it('takes Meanwhile as auto, or lists to pin and hide', () => {
-    const pinned = BEAT.replace('meanwhile: auto', 'meanwhile: {pin: [Q1], hide: [Q2]}');
-    expect(() => parseStory(storyWith(pinned))).not.toThrow();
-  });
-
   it.each([
     ['a key it does not name', `${BEAT}\nmood: grim`, /unknown key 'mood'/],
     ['a misspelled camera field', BEAT.replace('viewKm', 'viewkm'), /unknown key 'viewkm'/],
@@ -114,7 +109,11 @@ sources:
     ['no sources', BEAT.replace(/^sources:[\s\S]*/m, ''), /sources must be a list/],
     ['an image without alt text', BEAT.replace('"A map of Sumbawa."', '""'), /needs alt text/],
     ['no image', BEAT.replace(/^image: .*\n/m, ''), /image must be a mapping/],
-    ['Meanwhile of neither kind', BEAT.replace('meanwhile: auto', 'meanwhile: often'), /auto, or/],
+    [
+      'Meanwhile of neither kind',
+      BEAT.replace('meanwhile: auto', 'meanwhile: often'),
+      /auto or a list/,
+    ],
   ])('rejects %s', (_, beat, message) => {
     expect(() => parseStory(storyWith(beat))).toThrow(message);
   });

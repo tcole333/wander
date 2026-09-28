@@ -227,17 +227,12 @@ function parseLayers(value: unknown, where: string): Pick<StoryBeat, 'layers' | 
 }
 
 /**
- * Meanwhile's list for the beat: `auto`, or the entries it pins and hides. Read loosely here, as
- * the walk still takes its entries from meanwhile.<story>.json.
+ * Meanwhile's list for the beat: `auto`, or a list of qids. Read loosely here, as the walk still
+ * takes its entries from meanwhile.<story>.json.
  */
 function checkMeanwhile(value: unknown, where: string): void {
   if (value === undefined || value === 'auto' || Array.isArray(value)) return;
-  if (typeof value !== 'object' || value === null) {
-    throw new StoryError(`${where} meanwhile must be auto, or lists to pin and hide`);
-  }
-  const lists = value as Record<string, unknown>;
-  known(lists, ['pin', 'hide'], `${where} meanwhile`);
-  for (const key of ['pin', 'hide']) list(lists[key] ?? [], `${where} meanwhile ${key}`);
+  throw new StoryError(`${where} meanwhile must be auto or a list of qids`);
 }
 
 function parseImage(image: Record<string, unknown>, where: string): StoryImage {
