@@ -173,7 +173,7 @@ layers: [relief, coastline, landSea, graticule, labels, events]
 effects:
   - spread: {dataset: veil-1815, wDays: 20, style: haze}
 audio: {cues: []}
-meanwhile: auto
+meanwhile: {hide: [Q7109933]}
 sources:
   - {title: "Tambora 1815 as a test case for high impact volcanic eruptions: Earth system effects", author: "Christoph C. Raible, Stefan Brönnimann, Renate Auchmann, Philip Brohan et al.", publisher: "WIREs Climate Change 7: 569-589, doi:10.1002/wcc.407 (open access at PubMed Central)", year: 2016, url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6686350/"}
   - {title: "Tambora und das «Jahr ohne Sommer» 1816: Klima, Mensch und Gesellschaft (Geographica Bernensia G90)", author: "Stefan Brönnimann and Daniel Krämer", publisher: "Geographica Bernensia, University of Bern", year: 2016, url: "https://doi.org/10.4480/GB2016.G90.02"}
@@ -279,7 +279,7 @@ effects:
   - pulse: {at: [89.2167, 23.1667], start: "1817-08-28", end: "1817-12-31", radiusKm: 300, style: contagion}
   - callout: {at: [102.7061, 25.0433], text: Yunnan}
 audio: {cues: []}
-meanwhile: {hide: [Q46362]}
+meanwhile: {hide: [Q46362, Q124296290]}
 sources:
   - {title: "嘉庆云南大饥荒(1815—1817)与坦博拉火山喷发 [A serious famine in Yunnan (1815-1817) and the eruption of Tambora volcano] (pp. 79, 82-83)", author: "Yang Yuda, Man Zhimin and Zheng Jingyun", publisher: "Fudan Journal (Social Sciences) 2005(1): 79-85", year: 2005, url: "https://web.archive.org/web/20090326133019/http://www.igsnrr.ac.cn/lwzzImg/1161151232919.pdf"}
   - {title: "Report on the Epidemick Cholera Morbus, as it visited the territories subject to the Presidency of Bengal, in the years 1817, 1818 and 1819 (Introduction pp. xliii-xlv and lx; pp. 3-4)", author: "James Jameson, for the Bengal Medical Board", publisher: "Government Gazette Press, Calcutta", year: 1820, url: "https://archive.org/details/b21971547"}

@@ -318,33 +318,18 @@
       ],
       "sumbawa": [
         {
-          "qid": "Q3538392",
-          "label": "Kandyan Convention",
-          "date": "1815-03-02",
+          "qid": "Q25412993",
+          "label": "New Granadan Siege of Cartagena de Indias",
+          "date": "1815-03-26",
           "precision": "day",
           "at": [
-            80.64139,
-            7.29361
+            -75.52528,
+            10.42361
           ],
-          "line": "Kandy's chiefs depose their king and cede his kingdom to Britain",
+          "line": "Bolívar besieges Cartagena, held against him by fellow patriots",
           "source": {
-            "title": "Kandyan Convention (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Kandyan_Convention"
-          }
-        },
-        {
-          "qid": "Q54322416",
-          "label": "Treaty of Nicolls' Outpost",
-          "date": "1815-03-10",
-          "precision": "day",
-          "at": [
-            -84.8568,
-            30.7006
-          ],
-          "line": "In Florida, Creek refugees promise allegiance to the British Crown",
-          "source": {
-            "title": "Treaty of Nicolls' Outpost (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Treaty_of_Nicolls%27_Outpost"
+            "title": "Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia)",
+            "url": "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"
           }
         },
         {
@@ -360,6 +345,21 @@
           "source": {
             "title": "Neapolitan War (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Neapolitan_War"
+          }
+        },
+        {
+          "qid": "Q4873014",
+          "label": "Battle of the Sink Hole",
+          "date": "1815-05-24",
+          "precision": "day",
+          "at": [
+            -90.68707,
+            38.93338
+          ],
+          "line": "In Missouri, Black Hawk's warriors fight US rangers from a sinkhole after the peace",
+          "source": {
+            "title": "Battle of the Sink Hole (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"
           }
         }
       ],
@@ -380,52 +380,37 @@
           }
         },
         {
-          "qid": "Q25412993",
-          "label": "New Granadan Siege of Cartagena de Indias",
-          "date": "1815-03-26",
+          "qid": "Q5010928",
+          "label": "Slachter's Nek Rebellion",
+          "date": "1815-11-18",
           "precision": "day",
           "at": [
-            -75.52528,
-            10.42361
+            25.8,
+            -32.8
           ],
-          "line": "Bolívar besieges Cartagena, held against him by fellow patriots",
+          "line": "On the Cape frontier, Boer farmers rise against British rule",
           "source": {
-            "title": "Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia)",
-            "url": "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"
+            "title": "Slachter's Nek Rebellion (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
           }
         },
         {
-          "qid": "Q4873014",
-          "label": "Battle of the Sink Hole",
-          "date": "1815-05-24",
+          "qid": "Q2890016",
+          "label": "Battle of Sipe-Sipe",
+          "date": "1815-11-29",
           "precision": "day",
           "at": [
-            -90.68707,
-            38.93338
+            -66.34781,
+            -17.45613
           ],
-          "line": "In Missouri, Black Hawk's warriors fight US rangers from a sinkhole after the peace",
+          "line": "At Sipe-Sipe, Spain's royalists rout the army of Buenos Aires",
           "source": {
-            "title": "Battle of the Sink Hole (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"
+            "title": "Battle of Viluma (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
           }
         }
       ],
       "veil": [
-        {
-          "qid": "Q7109933",
-          "label": "Ottoman invasion of Mani",
-          "date": "1815-01-01",
-          "precision": "year",
-          "at": [
-            22.5,
-            36.66667
-          ],
-          "line": "At Skoutari in the Mani, villagers drive an Ottoman landing back into the sea",
-          "source": {
-            "title": "Ottoman invasion of Mani (1815) (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Ottoman_invasion_of_Mani_(1815)"
-          }
-        },
         {
           "qid": "Q48314",
           "label": "Battle of Waterloo",
@@ -454,6 +439,21 @@
           "source": {
             "title": "Battle of the Palo River (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
+          }
+        },
+        {
+          "qid": "Q16848306",
+          "label": "Invasion of Guadeloupe",
+          "date": "1815-08-10",
+          "precision": "day",
+          "at": [
+            -61.5,
+            16.25
+          ],
+          "line": "On Guadeloupe, British troops force its Bonapartist governor to surrender",
+          "source": {
+            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
           }
         }
       ],
@@ -536,35 +536,35 @@
           }
         },
         {
-          "qid": "Q12241904",
-          "label": "Al-Jawazi massacre",
-          "date": "1816-09-05",
+          "qid": "Q5722534",
+          "label": "Battle of Ibiraocaí",
+          "date": "1816-10-19",
           "precision": "day",
           "at": [
-            20.06667,
-            32.11667
+            -56.72,
+            -29.43
           ],
-          "line": "At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them",
+          "line": "By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262",
           "source": {
-            "title": "Al-Jawazi massacre (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
+            "title": "Battle of Ibiraocaí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
           }
         }
       ],
       "yunnan-bengal-1817": [
         {
-          "qid": "Q3656338",
-          "label": "Nejd Expedition",
-          "date": "1817-09-29",
+          "qid": "Q16531744",
+          "label": "Battle of Pagallos",
+          "date": "1817-07-08",
           "precision": "day",
           "at": [
-            38.06,
-            24.09
+            -61.0,
+            8.53
           ],
-          "line": "At Yanbu, Ibrahim Pasha's Egyptian army arrives to march on the Wahhabi state",
+          "line": "On the Orinoco, patriot gunboats drive a royalist flotilla from the river",
           "source": {
-            "title": "Najd Expedition (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Expedition_to_Najd_(1817%E2%80%931818)"
+            "title": "Battle of Pagallos (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Pagallos"
           }
         },
         {
@@ -815,6 +815,20 @@
             "title": "Battle of the Sink Hole (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"
           }
+        },
+        {
+          "qid": "Q2889756",
+          "label": "Battle of Redon",
+          "date": "1815-06-04",
+          "precision": "day",
+          "at": [
+            -2.08361,
+            47.65222
+          ],
+          "source": {
+            "title": "Battle of Redon (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Redon_(1815)"
+          }
         }
       ],
       "1815-06": [
@@ -893,6 +907,21 @@
             "title": "Battle of the Palo River (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
           }
+        },
+        {
+          "qid": "Q16848306",
+          "label": "Invasion of Guadeloupe",
+          "date": "1815-08-10",
+          "precision": "day",
+          "at": [
+            -61.5,
+            16.25
+          ],
+          "line": "On Guadeloupe, British troops force its Bonapartist governor to surrender",
+          "source": {
+            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
+          }
         }
       ],
       "1815-08": [
@@ -926,77 +955,49 @@
           }
         },
         {
-          "qid": "Q4871304",
-          "label": "Battle of Jaithak",
-          "date": "1815-09-25",
+          "qid": "Q16848306",
+          "label": "Invasion of Guadeloupe",
+          "date": "1815-08-10",
           "precision": "day",
           "at": [
-            77.3372,
-            30.59593
+            -61.5,
+            16.25
           ],
+          "line": "On Guadeloupe, British troops force its Bonapartist governor to surrender",
           "source": {
-            "title": "Battle of Jaithak (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Jaithak"
+            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
           }
         }
       ],
       "1815-09": [
         {
-          "qid": "Q4871304",
-          "label": "Battle of Jaithak",
-          "date": "1815-09-25",
+          "qid": "Q4871288",
+          "label": "Battle of Issy",
+          "date": "1815-07-03",
           "precision": "day",
           "at": [
-            77.3372,
-            30.59593
+            2.27,
+            48.8239
           ],
           "source": {
-            "title": "Battle of Jaithak (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Jaithak"
+            "title": "Battle of Issy (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Issy"
           }
         },
         {
-          "qid": "Q4870957",
-          "label": "Battle of El Roble",
-          "date": "1815-10-17",
+          "qid": "Q16848306",
+          "label": "Invasion of Guadeloupe",
+          "date": "1815-08-10",
           "precision": "day",
           "at": [
-            -72.41338,
-            -36.75627
+            -61.5,
+            16.25
           ],
+          "line": "On Guadeloupe, British troops force its Bonapartist governor to surrender",
           "source": {
-            "title": "Battle of El Roble (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_El_Roble"
-          }
-        }
-      ],
-      "1815-10": [
-        {
-          "qid": "Q4871304",
-          "label": "Battle of Jaithak",
-          "date": "1815-09-25",
-          "precision": "day",
-          "at": [
-            77.3372,
-            30.59593
-          ],
-          "source": {
-            "title": "Battle of Jaithak (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Jaithak"
-          }
-        },
-        {
-          "qid": "Q4870957",
-          "label": "Battle of El Roble",
-          "date": "1815-10-17",
-          "precision": "day",
-          "at": [
-            -72.41338,
-            -36.75627
-          ],
-          "source": {
-            "title": "Battle of El Roble (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_El_Roble"
+            "title": "Invasion of Guadeloupe (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"
           }
         },
         {
@@ -1012,6 +1013,53 @@
           "source": {
             "title": "Slachter's Nek Rebellion (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
+          }
+        }
+      ],
+      "1815-10": [
+        {
+          "qid": "Q5010928",
+          "label": "Slachter's Nek Rebellion",
+          "date": "1815-11-18",
+          "precision": "day",
+          "at": [
+            25.8,
+            -32.8
+          ],
+          "line": "On the Cape frontier, Boer farmers rise against British rule",
+          "source": {
+            "title": "Slachter's Nek Rebellion (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
+          }
+        },
+        {
+          "qid": "Q233688",
+          "label": "Treaty of Paris",
+          "date": "1815-11-20",
+          "precision": "day",
+          "at": [
+            2.35222,
+            48.85667
+          ],
+          "line": "In Paris, France signs a peace that orders it to pay 700 million francs",
+          "source": {
+            "title": "Treaty of Paris (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Paris_(1815)"
+          }
+        },
+        {
+          "qid": "Q2890016",
+          "label": "Battle of Sipe-Sipe",
+          "date": "1815-11-29",
+          "precision": "day",
+          "at": [
+            -66.34781,
+            -17.45613
+          ],
+          "line": "At Sipe-Sipe, Spain's royalists rout the army of Buenos Aires",
+          "source": {
+            "title": "Battle of Viluma (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
           }
         }
       ],
@@ -1064,21 +1112,6 @@
       ],
       "1815-12": [
         {
-          "qid": "Q5010928",
-          "label": "Slachter's Nek Rebellion",
-          "date": "1815-11-18",
-          "precision": "day",
-          "at": [
-            25.8,
-            -32.8
-          ],
-          "line": "On the Cape frontier, Boer farmers rise against British rule",
-          "source": {
-            "title": "Slachter's Nek Rebellion (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
-          }
-        },
-        {
           "qid": "Q233688",
           "label": "Treaty of Paris",
           "date": "1815-11-20",
@@ -1107,9 +1140,39 @@
             "title": "Battle of Viluma (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
           }
+        },
+        {
+          "qid": "Q7162128",
+          "label": "Spanish Siege of Cartagena de Indias",
+          "date": "1815-12-06",
+          "precision": "day",
+          "at": [
+            -75.5,
+            10.4
+          ],
+          "line": "Morillo's troops enter Cartagena, starved out after a 105-day siege",
+          "source": {
+            "title": "Siege of Cartagena (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Siege_of_Cartagena_(1815)"
+          }
         }
       ],
       "1816-01": [
+        {
+          "qid": "Q2890016",
+          "label": "Battle of Sipe-Sipe",
+          "date": "1815-11-29",
+          "precision": "day",
+          "at": [
+            -66.34781,
+            -17.45613
+          ],
+          "line": "At Sipe-Sipe, Spain's royalists rout the army of Buenos Aires",
+          "source": {
+            "title": "Battle of Viluma (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
+          }
+        },
         {
           "qid": "Q109236872",
           "label": "1816 North Atlantic earthquake",
@@ -1167,6 +1230,20 @@
             "title": "Battle of Cachirí (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Cachir%C3%AD"
           }
+        },
+        {
+          "qid": "Q41790626",
+          "label": "Appin massacre",
+          "date": "1816-04-17",
+          "precision": "day",
+          "at": [
+            150.742,
+            -34.23
+          ],
+          "source": {
+            "title": "Appin massacre (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Appin_massacre"
+          }
         }
       ],
       "1816-03": [
@@ -1215,6 +1292,20 @@
       ],
       "1816-04": [
         {
+          "qid": "Q2888225",
+          "label": "Battle of Cachirí",
+          "date": "1816-02-22",
+          "precision": "day",
+          "at": [
+            -72.98611,
+            7.53833
+          ],
+          "source": {
+            "title": "Battle of Cachirí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cachir%C3%AD"
+          }
+        },
+        {
           "qid": "Q41790626",
           "label": "Appin massacre",
           "date": "1816-04-17",
@@ -1226,6 +1317,21 @@
           "source": {
             "title": "Appin massacre (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Appin_massacre"
+          }
+        },
+        {
+          "qid": "Q1757487",
+          "label": "Battle of Seven Oaks",
+          "date": "1816-06-19",
+          "precision": "day",
+          "at": [
+            -97.121,
+            49.932
+          ],
+          "line": "At Seven Oaks, Métis riders kill Governor Semple and twenty men",
+          "source": {
+            "title": "Battle of Seven Oaks (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"
           }
         }
       ],
@@ -1386,6 +1492,53 @@
           }
         },
         {
+          "qid": "Q25230631",
+          "label": "1816 Guatemala earthquake",
+          "date": "1816-07-22",
+          "precision": "day",
+          "at": [
+            -91.5,
+            15.5
+          ],
+          "line": "In Guatemala, a great earthquake rips along the Chixoy-Polochic fault",
+          "source": {
+            "title": "1816 Guatemala earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
+          }
+        },
+        {
+          "qid": "Q4871874",
+          "label": "Negro Fort",
+          "date": "1816-07-27",
+          "precision": "day",
+          "at": [
+            -85.01127,
+            29.93824
+          ],
+          "line": "On the Apalachicola, a US gunboat's hot shot blows up a fort held by escaped slaves",
+          "source": {
+            "title": "Negro Fort (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Negro_Fort"
+          }
+        }
+      ],
+      "1816-09": [
+        {
+          "qid": "Q25230631",
+          "label": "1816 Guatemala earthquake",
+          "date": "1816-07-22",
+          "precision": "day",
+          "at": [
+            -91.5,
+            15.5
+          ],
+          "line": "In Guatemala, a great earthquake rips along the Chixoy-Polochic fault",
+          "source": {
+            "title": "1816 Guatemala earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
+          }
+        },
+        {
           "qid": "Q4871874",
           "label": "Negro Fort",
           "date": "1816-07-27",
@@ -1401,52 +1554,35 @@
           }
         },
         {
-          "qid": "Q12241904",
-          "label": "Al-Jawazi massacre",
-          "date": "1816-09-05",
+          "qid": "Q5722534",
+          "label": "Battle of Ibiraocaí",
+          "date": "1816-10-19",
           "precision": "day",
           "at": [
-            20.06667,
-            32.11667
+            -56.72,
+            -29.43
           ],
-          "line": "At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them",
+          "line": "By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262",
           "source": {
-            "title": "Al-Jawazi massacre (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
-          }
-        }
-      ],
-      "1816-09": [
-        {
-          "qid": "Q12241904",
-          "label": "Al-Jawazi massacre",
-          "date": "1816-09-05",
-          "precision": "day",
-          "at": [
-            20.06667,
-            32.11667
-          ],
-          "line": "At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them",
-          "source": {
-            "title": "Al-Jawazi massacre (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
+            "title": "Battle of Ibiraocaí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
           }
         }
       ],
       "1816-10": [
         {
-          "qid": "Q12241904",
-          "label": "Al-Jawazi massacre",
-          "date": "1816-09-05",
+          "qid": "Q5722534",
+          "label": "Battle of Ibiraocaí",
+          "date": "1816-10-19",
           "precision": "day",
           "at": [
-            20.06667,
-            32.11667
+            -56.72,
+            -29.43
           ],
-          "line": "At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them",
+          "line": "By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262",
           "source": {
-            "title": "Al-Jawazi massacre (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
+            "title": "Battle of Ibiraocaí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
           }
         },
         {
@@ -1462,9 +1598,52 @@
             "title": "Battle of Yavi (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Yavi"
           }
+        },
+        {
+          "qid": "Q2887992",
+          "label": "Battle of India Muerta",
+          "date": "1816-11-18",
+          "precision": "day",
+          "at": [
+            -54.295,
+            -34.09389
+          ],
+          "source": {
+            "title": "Battle of India Muerta (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_India_Muerta"
+          }
         }
       ],
       "1816-11": [
+        {
+          "qid": "Q5722534",
+          "label": "Battle of Ibiraocaí",
+          "date": "1816-10-19",
+          "precision": "day",
+          "at": [
+            -56.72,
+            -29.43
+          ],
+          "line": "By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262",
+          "source": {
+            "title": "Battle of Ibiraocaí (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
+          }
+        },
+        {
+          "qid": "Q4872774",
+          "label": "Battle of Yavi",
+          "date": "1816-11-15",
+          "precision": "day",
+          "at": [
+            -65.46333,
+            -22.13167
+          ],
+          "source": {
+            "title": "Battle of Yavi (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Yavi"
+          }
+        },
         {
           "qid": "Q2887992",
           "label": "Battle of India Muerta",
@@ -1496,6 +1675,20 @@
           }
         },
         {
+          "qid": "Q2887992",
+          "label": "Battle of India Muerta",
+          "date": "1816-11-18",
+          "precision": "day",
+          "at": [
+            -54.295,
+            -34.09389
+          ],
+          "source": {
+            "title": "Battle of India Muerta (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_India_Muerta"
+          }
+        },
+        {
           "qid": "Q5722350",
           "label": "Battle of Clarines",
           "date": "1817-01-09",
@@ -1511,6 +1704,20 @@
         }
       ],
       "1817-01": [
+        {
+          "qid": "Q2887992",
+          "label": "Battle of India Muerta",
+          "date": "1816-11-18",
+          "precision": "day",
+          "at": [
+            -54.295,
+            -34.09389
+          ],
+          "source": {
+            "title": "Battle of India Muerta (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_India_Muerta"
+          }
+        },
         {
           "qid": "Q5722190",
           "label": "Battle of Angostura",
@@ -1570,9 +1777,37 @@
             "title": "Battle of Chacabuco (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Chacabuco"
           }
+        },
+        {
+          "qid": "Q4872823",
+          "label": "Battle of Tarija",
+          "date": "1817-04-14",
+          "precision": "day",
+          "at": [
+            -64.73428,
+            -21.53392
+          ],
+          "source": {
+            "title": "Battle of la Tablada de Tolomosa (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_la_Tablada_de_Tolomosa"
+          }
         }
       ],
       "1817-03": [
+        {
+          "qid": "Q4870816",
+          "label": "Battle of Curapalihue",
+          "date": "1817-04-04",
+          "precision": "day",
+          "at": [
+            -72.7158,
+            -36.8656
+          ],
+          "source": {
+            "title": "Battle of Curapalihue (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Curapalihue"
+          }
+        },
         {
           "qid": "Q5722885",
           "label": "Battle of San Félix",
@@ -1630,9 +1865,7 @@
             "title": "Battle of San Félix (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_San_F%C3%A9lix"
           }
-        }
-      ],
-      "1817-05": [
+        },
         {
           "qid": "Q4872823",
           "label": "Battle of Tarija",
@@ -1646,7 +1879,9 @@
             "title": "Battle of la Tablada de Tolomosa (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_la_Tablada_de_Tolomosa"
           }
-        },
+        }
+      ],
+      "1817-05": [
         {
           "qid": "Q6123581",
           "label": "Second Battle of Angostura",
@@ -1674,6 +1909,20 @@
           "source": {
             "title": "Pentrich rising (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Pentrich_rising"
+          }
+        },
+        {
+          "qid": "Q5778746",
+          "label": "Battle of Sopachuy",
+          "date": "1817-06-12",
+          "precision": "day",
+          "at": [
+            -64.47361,
+            -19.48583
+          ],
+          "source": {
+            "title": "Battle of Sopachuy (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Sopachuy"
           }
         }
       ],
@@ -1762,6 +2011,7 @@
             -61.0,
             8.53
           ],
+          "line": "On the Orinoco, patriot gunboats drive a royalist flotilla from the river",
           "source": {
             "title": "Battle of Pagallos (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Pagallos"
@@ -1778,6 +2028,7 @@
             -61.0,
             8.53
           ],
+          "line": "On the Orinoco, patriot gunboats drive a royalist flotilla from the river",
           "source": {
             "title": "Battle of Pagallos (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Pagallos"
@@ -1796,6 +2047,21 @@
           "source": {
             "title": "Treaty of Fort Meigs (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"
+          }
+        },
+        {
+          "qid": "Q3534806",
+          "label": "Great Rebellion of 1817–1818",
+          "date": "1817-10-16",
+          "precision": "day",
+          "at": [
+            81.03,
+            6.59
+          ],
+          "line": "In Uva, rebels kill the British Assistant Resident, and a rising against British rule begins",
+          "source": {
+            "title": "Great Rebellion of 1817–1818 (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"
           }
         }
       ],
@@ -1829,6 +2095,21 @@
             "title": "Great Rebellion of 1817–1818 (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"
           }
+        },
+        {
+          "qid": "Q4871419",
+          "label": "Battle of Khadki",
+          "date": "1817-11-05",
+          "precision": "day",
+          "at": [
+            73.851,
+            18.564
+          ],
+          "line": "At Pune, the Peshwa turns on the British and burns their Residency",
+          "source": {
+            "title": "Battle of Khadki (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Khadki"
+          }
         }
       ],
       "1817-10": [
@@ -1861,9 +2142,7 @@
             "title": "Great Rebellion of 1817–1818 (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"
           }
-        }
-      ],
-      "1817-11": [
+        },
         {
           "qid": "Q4871419",
           "label": "Battle of Khadki",
@@ -1880,7 +2159,37 @@
           }
         }
       ],
-      "1817-12": [
+      "1817-11": [
+        {
+          "qid": "Q3534806",
+          "label": "Great Rebellion of 1817–1818",
+          "date": "1817-10-16",
+          "precision": "day",
+          "at": [
+            81.03,
+            6.59
+          ],
+          "line": "In Uva, rebels kill the British Assistant Resident, and a rising against British rule begins",
+          "source": {
+            "title": "Great Rebellion of 1817–1818 (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"
+          }
+        },
+        {
+          "qid": "Q4871419",
+          "label": "Battle of Khadki",
+          "date": "1817-11-05",
+          "precision": "day",
+          "at": [
+            73.851,
+            18.564
+          ],
+          "line": "At Pune, the Peshwa turns on the British and burns their Residency",
+          "source": {
+            "title": "Battle of Khadki (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Khadki"
+          }
+        },
         {
           "qid": "Q4871633",
           "label": "Battle of Mahidpur",
@@ -1893,6 +2202,51 @@
           "source": {
             "title": "Battle of Mahidpur (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Mahidpur"
+          }
+        }
+      ],
+      "1817-12": [
+        {
+          "qid": "Q3534806",
+          "label": "Great Rebellion of 1817–1818",
+          "date": "1817-10-16",
+          "precision": "day",
+          "at": [
+            81.03,
+            6.59
+          ],
+          "line": "In Uva, rebels kill the British Assistant Resident, and a rising against British rule begins",
+          "source": {
+            "title": "Great Rebellion of 1817–1818 (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"
+          }
+        },
+        {
+          "qid": "Q4871633",
+          "label": "Battle of Mahidpur",
+          "date": "1817-12-21",
+          "precision": "day",
+          "at": [
+            75.65722,
+            23.48722
+          ],
+          "source": {
+            "title": "Battle of Mahidpur (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Mahidpur"
+          }
+        },
+        {
+          "qid": "Q3630511",
+          "label": "Battle of Koregaon",
+          "date": "1818-01-01",
+          "precision": "day",
+          "at": [
+            74.05917,
+            18.64556
+          ],
+          "source": {
+            "title": "Battle of Koregaon (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Koregaon"
           }
         }
       ]

@@ -18,6 +18,11 @@ Q25412993:
   date: "1815-03-26"
   source: {title: Asedio neogranadino de Cartagena de Indias (1815) (Spanish Wikipedia), url: "https://es.wikipedia.org/wiki/Asedio_neogranadino_de_Cartagena_de_Indias_(1815)"}
 
+Q7162128:
+  line: Morillo's troops enter Cartagena, starved out after a 105-day siege
+  date: "1815-12-06"
+  source: {title: Siege of Cartagena (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Siege_of_Cartagena_(1815)"}
+
 Q14833923:
   line: At Takovo, Miloš Obrenović raises the Serbs in revolt against the Ottomans
   date: "1815-04-23"
@@ -39,6 +44,10 @@ Q46362:
 Q48314:
   line: At Waterloo, Wellington and Blücher defeat Napoleon in his last battle
   source: {title: Battle of Waterloo (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Waterloo"}
+
+Q16848306:
+  line: On Guadeloupe, British troops force its Bonapartist governor to surrender
+  source: {title: Invasion of Guadeloupe (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Invasion_of_Guadeloupe_(1815)"}
 
 Q5010928:
   line: On the Cape frontier, Boer farmers rise against British rule
@@ -131,3 +140,12 @@ Q1713044:
 Q4873014:
   line: In Missouri, Black Hawk's warriors fight US rangers from a sinkhole after the peace
   source: {title: Battle of the Sink Hole (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"}
+
+Q5722534:
+  line: By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262
+  at: [-56.72, -29.43]
+  source: {title: Battle of Ibiraocaí (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"}
+
+Q16531744:
+  line: On the Orinoco, patriot gunboats drive a royalist flotilla from the river
+  source: {title: Battle of Pagallos (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Pagallos"}
