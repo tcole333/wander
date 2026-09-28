@@ -29,4 +29,16 @@ describe("Tambora's lock", () => {
     expect(lockedImage(lock, image)).toBe(image.locked);
     expect(lockedImage(lock, { ...image, crop: [0, 0, 0.5, 0.5] })).toBeUndefined();
   });
+
+  it('credits the maps from the David Rumsey Map Collection with its whole credit line', () => {
+    const held = story.beats
+      .filter((beat) => beat.image.locked?.collection !== undefined)
+      .map((beat) => [beat.id, beat.image.locked?.collection]);
+    const rumsey = 'David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries';
+    expect(held).toEqual([
+      ['world-1815', rumsey],
+      ['sunda', rumsey],
+      ['ash', rumsey],
+    ]);
+  });
 });

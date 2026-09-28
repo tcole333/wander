@@ -19,6 +19,7 @@ focal: {qid: Q3591483, date: "1815-04-05"}
 image:
   commons: "File:(Composite of) The World on Mercator's projection. Drawn under the direction of Mr. Pinkerton by L. Hebert. Neele sculpt. 352 (IA dr composite-of-the-world-on-mercators-projection-drawn-under-the-directio-00374032).jpg"
   sha1: "c88a5aa67af1f833c8ce86f5cd14ac437c026722"
+  collection: "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries"
   crop: [0.01, 0.02, 0.99, 0.965]
   alt: "A hand-colored map of the world on Mercator's projection, engraved in London in 1812 for Pinkerton's Modern Atlas."
 layers: [relief, bathymetry, coastline, landSea, water, graticule, labels, borders, events]
@@ -52,6 +53,7 @@ focal: {qid: Q3591483, date: "1815-04-05"}
 image:
   commons: "File:East India Isles. Drawn under the direction of Mr. Pinkerton by L. Hebert. Neele sculpt. 352 Strand. London- published April (IA dr east-india-isles-drawn-under-the-direction-of-mr-pinkerton-by-l-hebert-00364021).jpg"
   sha1: "b5f82f9d02c8e96651f4d01fd0d9ba1da889228d"
+  collection: "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries"
   crop: [0.38, 0.42, 0.86, 0.89]
   alt: "A hand-colored map of the East India Isles, published in London in 1813: Java and the chain of islands east of it to Timor, Sumbawa among them, with Borneo, Celebes and the Moluccas to the north."
 layers: [relief, bathymetry, coastline, landSea, water, labels, borders, events]
@@ -127,6 +129,7 @@ focal: {qid: Q3591483, date: "1815-04-05"}
 image:
   commons: "File:Asiatic Archipelago, by J. Arrowsmith. London, pubd. 15 Feby. 1832 by J. Arrowsmith, 35 Essex Street, Strand. (IA dr asiatic-archipelago-by-j-arrowsmith-london-pubd-15-feby-1832-by-j-ar-0036034).jpg"
   sha1: "a8877be3a365e17d97e65968380eb010246b70dc"
+  collection: "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries"
   crop: [0.405, 0.63, 0.56, 0.81]
   alt: "Detail of an 1832 map of the Asiatic Archipelago, from the eastern tip of Java to Flores, with a printed note on the 1815 eruption of 'Tumbora'."
 layers: [relief, bathymetry, coastline, landSea, water, labels, events]
