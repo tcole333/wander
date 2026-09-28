@@ -138,8 +138,8 @@ bytes = 2413409
 sha256 = "fb654f734583f550904cfa45f361e395c1a488c4960050da2632cb2ac7d1cd1e"
 
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
-# endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry, and
-# its next export replaces it.
+# endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
+# delete it by hand before the next export.
 [wikidata-events-20260928]
 name = "Wikidata events, exported class by class with pipeline/queries/events.rq"
 version = "exported 2026-09-28T01:11:12Z from QLever: Complete Wikidata, TTL from https://dumps.wikimedia.org/wikidatawiki/entities (latest-all.ttl.bz2 from 10.08.2026 munged, latest-lexemes.ttl.bz2 from 07.08.2026), updated LIVE"

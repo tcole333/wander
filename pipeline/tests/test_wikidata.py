@@ -1,6 +1,15 @@
 import tomllib
 
-from prebuild.wikidata import QUERY, class_query, pin, source_entry
+import pytest
+
+from prebuild.wikidata import (
+    QUERY,
+    WikidataError,
+    check_unpinned,
+    class_query,
+    pin,
+    source_entry,
+)
 
 OTHERS = """# GEBCO, as pinned.
 [gebco-2026]
@@ -16,11 +25,6 @@ name = "old"
 [[wikidata-events-20260101.files]]
 path = "sources/wikidata-events-20260101/events.tsv.gz"
 """
-AFTER = """
-# ModE-RA, as pinned.
-[mode-ra-temp2]
-name = "ModE-RA"
-"""
 
 
 def test_the_query_asks_for_one_class_with_its_subclasses():
@@ -29,14 +33,14 @@ def test_the_query_asks_for_one_class_with_its_subclasses():
     assert "wd:Q178561" not in query
 
 
-def test_an_export_takes_the_place_of_the_last_and_keeps_every_other_source():
+def test_an_export_is_appended_after_every_other_source():
     entry = source_entry("wikidata-events-20260927", "2026-09-27T20:00:00Z", "index", {"x": b"1"})
-    pinned = tomllib.loads(pin(OTHERS + "\n" + OLD + AFTER, entry))
-    assert list(pinned) == ["gebco-2026", "wikidata-events-20260927", "mode-ra-temp2"]
+    pinned = tomllib.loads(pin(OTHERS, entry))
+    assert list(pinned) == ["gebco-2026", "wikidata-events-20260927"]
     assert pinned["wikidata-events-20260927"]["files"][0]["bytes"] == 1
     assert "source_url" not in pinned["wikidata-events-20260927"]["files"][0]
 
 
-def test_the_first_export_is_appended():
-    entry = source_entry("wikidata-events-20260927", "2026-09-27T20:00:00Z", "index", {"x": b"1"})
-    assert list(tomllib.loads(pin(OTHERS, entry))) == ["gebco-2026", "wikidata-events-20260927"]
+def test_an_export_waits_until_the_last_is_unpinned_by_hand():
+    with pytest.raises(WikidataError, match="wikidata-events-20260101"):
+        check_unpinned(OTHERS + "\n" + OLD)
