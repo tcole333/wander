@@ -26,12 +26,13 @@ def event(qid, score, at, date, *, until=None, precision=11, parents=()):
     )
 
 
-def frame(date, excluded=()):
+def frame(date, until=None, excluded=()):
     day = m.iso_day(date)
     return m.Frame(
         day=day,
+        near=(day - m.PAD_DAYS, day + m.PAD_DAYS),
         start=day - m.PAD_DAYS,
-        end=day + m.PAD_DAYS,
+        end=m.iso_day(until) if until else day + m.PAD_DAYS,
         longest=m.SHORTEST_DAYS,
         target=TAMBORA,
         excluded=frozenset(excluded),
@@ -65,6 +66,35 @@ def test_an_event_goes_to_the_neighbour_dated_nearer_it_and_neighbours_repeat_wh
     may, june = frame("1815-05-20"), frame("1815-06-28")
     lists = m.in_turn([may, june], index, m.lineage(index))
     assert [[e.qid for e in chosen] for chosen in lists] == [["Q2", "Q3", "Q4"], ["Q1", "Q2", "Q3"]]
+
+
+def test_a_long_window_takes_the_events_near_its_date_first():
+    index = [
+        event("Q1", 9.0, WATERLOO, "1816-07-09"),  # a year on, in the window
+        event("Q2", 3.0, (-65.2, -26.8), "1815-04-20"),
+        event("Q3", 2.0, (80.6, 7.3), "1815-11-01"),
+        event("Q4", 1.0, (150.0, -33.9), "1815-05-01"),
+    ]
+    chosen = m.choose(index, frame("1815-04-12", until="1816-10-26"), m.lineage(index))
+    assert [e.qid for e in chosen] == ["Q2", "Q4", "Q3"]
+
+
+def test_a_month_shows_its_own_events_before_its_neighbours():
+    beat = m.Beat(
+        id="veil",
+        date=m.iso_day("1817-10-15"),
+        window=(m.iso_day("1817-10-01"), m.iso_day("1817-10-31")),
+        target=TAMBORA,
+        focal="Q0",
+        pins=(),
+        hides=(),
+    )
+    index = [
+        m.replace(event("Q1", 9.0, WATERLOO, "1817-11-05"), enwiki="Khadki"),
+        m.replace(event("Q2", 1.0, (-83.7, 41.6), "1817-10-02"), enwiki="Fort Meigs"),
+    ]
+    october = m.month_lists([beat], index)[(1817, 10)]
+    assert [e.qid for e in october] == ["Q2", "Q1"]
 
 
 def test_scrubbing_covers_the_years_of_the_story_s_windows():

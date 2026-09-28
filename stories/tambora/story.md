@@ -245,7 +245,7 @@ effects:
   - callout: {at: [-70.8985, 42.5168], text: Salem}
   - callout: {at: [-72.2961, 44.4013], text: Cabot}
 audio: {cues: [wind-cold]}
-meanwhile: {hide: [Q3536898, Q3536856]}
+meanwhile: {pin: [Q1757487], hide: [Q3536898, Q3536856]}
 sources:
   - {title: "Historic Storms of New England (ch. 53, The Cold Summer of 1816)", author: "Sidney Perley", publisher: "Salem Press Publishing and Printing Co., Salem, Mass.", year: 1891, url: "https://archive.org/details/historicstormsof00perl"}
   - {title: "Diary of Thomas Robbins, D.D., 1796-1854, vol. 1 (entries of 4 and 5 September 1816)", author: "Thomas Robbins, ed. Increase N. Tarbox", publisher: "Beacon Press, Boston", year: 1886, url: "https://archive.org/details/diaryofthomasrob01robb"}

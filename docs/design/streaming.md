@@ -691,19 +691,29 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   beat's date (a date of year or month precision counts as its whole year or month); spanning no
   longer than the window or 92 days, whichever is longer, so a decade's war does not stand for a
   month of it; more than 2,000 km from the beat's target; never the beat's focal event or its
-  part-of relatives, and never a parent with its child; then greedy by score, each 2,000 km from
-  those taken. While enough others qualify, a beat shows none of the previous beat's, nor any the
-  next beat would show that is dated nearer to it, so Waterloo goes to the beat of late June 1815,
-  not the April one whose window also holds it. The same rule picks three per month of the story's
-  years (from January of the year its beats' windows open to December of the year they close) for
-  scrubbing: the month's window, the target of the beat dated nearest
-  it, none of the story's focal events and nothing a beat hides.
+  part-of relatives, and never a parent with its child; with an English Wikipedia article or a
+  written line, so a writer can cite it. It takes first those dated within 45 days of the beat's
+  date, greedy by score, then the rest of the window, nearest the date first, each 2,000 km from
+  those taken, since Meanwhile is what happens at the beat's date, which the ruler reads, not
+  anywhere in its window: a beat of April 1815 whose window runs into 1816 shows April's events,
+  not 1816's. While enough others qualify, a beat shows none of those the previous beat took
+  from its own 45 days, nor any the next beat would show that is dated nearer to it. The same
+  rule picks three per month of the story's years (from January of the year its beats' windows
+  open to December of the year they close) for scrubbing: first those dated in the month, then
+  those within 45 days of its middle, so an event borrowed from a neighbouring month only fills a
+  thin one; the target of the beat dated nearest it; none of the story's focal events and nothing
+  a beat hides. No writer reads a month's picks, so they are events with a written line, or with
+  an English article and a place of their own, since an inherited place is often a region's
+  middle (three battles of 1816 stand at one point, the middle of Rio Grande do Sul).
 - **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
-  present-tense line in the story's voice and its source (`qid: {line, date?, source: {title,
-  url}}`), with the source's date where it differs from Wikidata's. Every entry, a beat's or a
-  month's, shows the written line where there is one, else the Wikidata label (its first letter
-  capitalized, without a title's year in brackets), and cites the written source, else its
-  Wikipedia article. Each list is in date order. The stage names any beat entry without a line.
+  present-tense line in the story's voice and its source (`qid: {line, date?, at?, source:
+  {title, url}}`). `date` gives the day the source dates the event to where Wikidata's differs
+  (or knows only the year), and `at` its place where Wikidata's is its location's middle; the rule
+  picks by both, so a rising Wikidata dates only to 1815 leaves a June beat once its line dates it
+  to November. Every entry, a beat's or a month's, shows the written line where there is one, else
+  the Wikidata label (its first letter capitalized, without a title's year in brackets), and cites
+  the written source, else its Wikipedia article. Each list is in date order. The stage names any
+  beat entry without a line.
 - **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages, committed):
   `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?, license, source}], audio:
   [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry, …]}, months: {"YYYY-MM":

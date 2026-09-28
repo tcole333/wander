@@ -14,21 +14,23 @@ elsewhere at the beat's time:
   for a month of it;
 - more than `MIN_KM` from the beat's camera target;
 - never the beat's focal event nor its part-of (P361) relatives, and never a parent with its child;
-- greedy by score, each at least `MIN_KM` from those already taken;
+- first those dated within `PAD_DAYS` of the beat's date, greedy by score, then the rest of the
+  window, nearest the date first, each at least `MIN_KM` from those already taken;
 - while enough others qualify, none the previous beat shows, nor any the next beat would show
-  that is dated nearer to it (so Waterloo goes to the beat of late June 1815, not the April one
-  before it, whose window also holds it).
+  that is dated nearer to it.
 
 A beat's `meanwhile: {pin: [qids], hide: [qids]}` puts its pins first, whatever the rule says, and
 keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The same rule gives
 `COUNT` events for each month of the story's years, which Meanwhile shows while the visitor
-scrubs: the month's window, the target of the beat dated nearest it, none of the story's
-focal events, and no event any beat hides.
+scrubs: first those dated in the month, then those within `PAD_DAYS` of its middle; the target of
+the beat dated nearest it; none of the story's focal events and nothing a beat hides. Since no
+writer has read a month's picks, they are events with a written line, or with an English
+Wikipedia article and a place of their own (an inherited place is often a region's middle).
 
 An entry shows its written line where it has one, else its Wikidata label, and cites the line's
 source, else its Wikipedia article; each list is in date order. The lobby's glows are the
-`GLOW_COUNT` best-scored events of every era with a place of their own (an inherited place is
-often a continent's or an ocean's middle), each at least `GLOW_MIN_KM` from the others.
+`GLOW_COUNT` best-scored events of every era with a place of their own, each at least
+`GLOW_MIN_KM` from the others.
 
 The stage refuses an event index built from another export or other configs than the current
 ones (the events record's `inputs`). It rewrites the lock's `meanwhile` and `glows` and keeps
@@ -104,10 +106,12 @@ class Event:
 
 @dataclass(frozen=True)
 class Frame:
-    """Where and when one list looks: its date, its padded window, the longest span it admits,
-    the place its entries keep away from, and the events it leaves out."""
+    """Where and when one list looks: its date, the days it takes its entries from first, its
+    padded window, the longest span it admits, the place its entries keep away from, and the
+    events it leaves out."""
 
     day: int
+    near: tuple[int, int]
     start: int
     end: int
     longest: int
@@ -145,8 +149,8 @@ def run(ctx: Context) -> None:
     lines = read_lines(folder / "meanwhile.yaml")
     with gzip.open(table, "rt", encoding="utf-8") as stream:
         index = [as_written(e, lines.get(e.qid)) for e in read_table(stream)]
-    by_beat = beat_lists(beats, index)
-    by_month = month_lists(beats, index)
+    by_beat = beat_lists(beats, index, written=set(lines))
+    by_month = month_lists(beats, index, written=set(lines))
     unwritten = sorted({e.qid for chosen in by_beat.values() for e in chosen} - set(lines))
     if unwritten:
         print(f"meanwhile: no written line in meanwhile.yaml for {', '.join(unwritten)}")
@@ -187,18 +191,22 @@ def choose(
     avoid: Iterable[str] = (),
     count: int = COUNT,
 ) -> list[Event]:
-    """Up to `count` events for `frame`: the pins, then by score (`index`'s order) each that
-    qualifies, keeps `MIN_KM` from those taken and is neither parent nor child of one of them
-    (`ancestors`, from `lineage`), first leaving out those in `avoid` and then, if too few are
-    left, taking them too."""
+    """Up to `count` events for `frame`: the pins, then of those that qualify, first the ones
+    dated in its near days by score (`index`'s order), then the rest nearest its day first. Each
+    keeps `MIN_KM` from those taken and is neither parent nor child of one of them (`ancestors`,
+    from `lineage`). Those in `avoid` are taken only once the others run out."""
     chosen = list(pins)
     qualifying = [e for e in index if qualifies(e, frame) and e not in chosen]
+    near = [e for e in qualifying if is_near(e, frame)]
+    rest = sorted(
+        (e for e in qualifying if not is_near(e, frame)), key=lambda e: abs(e.middle - frame.day)
+    )
     shunned = set(avoid)
     for allow_shunned in (False, True):
-        for event in qualifying:
+        for event in (*near, *rest):
             if len(chosen) >= count:
                 return chosen
-            if event in chosen or (event.qid in shunned and not allow_shunned):
+            if event in chosen or (event.qid in shunned) != allow_shunned:
                 continue
             if any(apart_km(event.at, c.at) < MIN_KM for c in chosen):
                 continue
@@ -206,6 +214,11 @@ def choose(
                 continue
             chosen.append(event)
     return chosen
+
+
+def is_near(event: Event, frame: Frame) -> bool:
+    first, last = event.dated
+    return first <= frame.near[1] and last >= frame.near[0]
 
 
 def qualifies(event: Event, frame: Frame) -> bool:
@@ -226,13 +239,13 @@ def in_turn(
     pins: Sequence[Sequence[Event]] | None = None,
 ) -> list[list[Event]]:
     """Each frame's entries, in order. Where the pool allows, a list shuns the events the list
-    before it took, and those the next list would take on its own that are dated nearer to it:
-    Waterloo goes to the beat of June 1815 rather than to the one of April before it."""
+    before it took from its own near days, and those the next list would take on its own that are
+    dated nearer to it, so a month's event is not left to the month before, which borrowed it."""
     pinned = pins or [()] * len(frames)
     alone = [choose(index, f, ancestors, pins=p) for f, p in zip(frames, pinned, strict=True)]
     lists: list[list[Event]] = []
     for i, frame in enumerate(frames):
-        shunned = {e.qid for e in lists[-1]} if lists else set()
+        shunned = {e.qid for e in lists[-1] if is_near(e, frames[i - 1])} if lists else set()
         if i + 1 < len(frames):
             after = frames[i + 1]
             shunned |= {
@@ -242,40 +255,50 @@ def in_turn(
     return lists
 
 
-def beat_lists(beats: Sequence[Beat], index: Sequence[Event]) -> dict[str, list[Event]]:
-    """Each beat's entries, by beat id in story order."""
+def beat_lists(
+    beats: Sequence[Beat], index: Sequence[Event], written: Iterable[str] = ()
+) -> dict[str, list[Event]]:
+    """Each beat's entries, by beat id in story order. Only the events in `written`, or with an
+    English article, qualify, and any the beats pin."""
     by_qid = {e.qid: e for e in index}
     ancestors = lineage(index)
+    has_line = set(written)
+    pool = [e for e in index if e.qid in has_line or e.enwiki]
     frames = []
     for beat in beats:
         missing = [qid for qid in beat.pins if qid not in by_qid]
         if missing:
             raise MeanwhileError(f"beat {beat.id!r} pins {', '.join(missing)}, not in the index")
         start, end = beat.window
+        near = (beat.date - PAD_DAYS, beat.date + PAD_DAYS)
         frames.append(
             Frame(
                 day=beat.date,
-                start=min(start, beat.date - PAD_DAYS),
-                end=max(end, beat.date + PAD_DAYS),
+                near=near,
+                start=min(start, near[0]),
+                end=max(end, near[1]),
                 longest=max(end - start + 1, SHORTEST_DAYS),
                 target=beat.target,
                 excluded=relatives({beat.focal}, index, ancestors) | set(beat.hides),
             )
         )
     pins = [[by_qid[qid] for qid in beat.pins] for beat in beats]
-    lists = in_turn(frames, index, ancestors, pins)
+    lists = in_turn(frames, pool, ancestors, pins)
     return {beat.id: chosen for beat, chosen in zip(beats, lists, strict=True)}
 
 
 def month_lists(
-    beats: Sequence[Beat], index: Sequence[Event]
+    beats: Sequence[Beat], index: Sequence[Event], written: Iterable[str] = ()
 ) -> dict[tuple[int, int], list[Event]]:
     """Each month's entries, from January of the year the story's windows open to December of
-    the year they close."""
+    the year they close. Only the events in `written`, or with an English article and a place of
+    their own, qualify."""
     ancestors = lineage(index)
     excluded = relatives({b.focal for b in beats}, index, ancestors) | {
         qid for b in beats for qid in b.hides
     }
+    has_line = set(written)
+    pool = [e for e in index if e.qid in has_line or (e.enwiki and not e.inherited)]
     year, month = civil(min(b.window[0] for b in beats))[0], 1
     last = (civil(max(b.window[1] for b in beats))[0], 12)
     months: list[tuple[int, int]] = []
@@ -289,6 +312,7 @@ def month_lists(
         frames.append(
             Frame(
                 day=middle,
+                near=(start, end),
                 start=min(start, middle - PAD_DAYS),
                 end=max(end, middle + PAD_DAYS),
                 longest=SHORTEST_DAYS,
@@ -297,7 +321,7 @@ def month_lists(
             )
         )
         year, month = (year + 1, 1) if month == 12 else (year, month + 1)
-    return dict(zip(months, in_turn(frames, index, ancestors), strict=True))
+    return dict(zip(months, in_turn(frames, pool, ancestors), strict=True))
 
 
 def glows(index: Sequence[Event], count: int = GLOW_COUNT) -> list[Event]:
