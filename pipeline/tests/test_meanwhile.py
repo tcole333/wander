@@ -80,6 +80,17 @@ def test_a_list_repeats_an_earlier_list_s_entry_only_when_it_must_and_then_the_l
     ]
 
 
+def test_a_list_leaves_the_next_list_s_pins_to_it():
+    places = [WATERLOO, (-65.2, -26.8), (80.6, 7.3), (150.0, -33.9), (30.0, -1.0), (-97.1, 49.9)]
+    index = [event(f"Q{i}", 9.0 - i, at, f"1815-06-0{i}") for i, at in enumerate(places, start=1)]
+    frames = [frame("1815-06-01"), frame("1815-06-20")]
+    lists = m.in_turn(frames, index, m.lineage(index), pins=[[], [index[0]]])
+    assert [sorted(e.qid for e in chosen) for chosen in lists] == [
+        ["Q2", "Q3", "Q4"],
+        ["Q1", "Q5", "Q6"],
+    ]
+
+
 def test_a_sparse_month_relaxes_the_spacing_between_its_entries_then_its_reach():
     beat = m.Beat(
         id="veil",

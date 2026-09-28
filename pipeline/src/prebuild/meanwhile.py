@@ -19,7 +19,8 @@ elsewhere at the beat's time:
 - first those dated within `PAD_DAYS` of the beat's date, greedy by score, then the rest of the
   window, nearest the date first, each at least `MIN_KM` from those already taken;
 - while enough others qualify, none the beats before it took from their own `PAD_DAYS`, nor any
-  the next beat would show that is dated nearer to it; where too few do, the ones shown least.
+  the next beat pins, or would show and is dated nearer to it; where too few do, the ones shown
+  least.
 
 A beat's `meanwhile: {pin: [qids], hide: [qids]}` puts its pins first, whatever the rule says, and
 keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The same rule gives
@@ -251,9 +252,9 @@ def in_turn(
     sparse: Sequence[tuple[float, int]] = (),
 ) -> list[list[Event]]:
     """Each frame's entries, in order. Where the pool allows, a list shuns the events the lists
-    before it took from their own near days, and those the next list would take on its own that
-    are dated nearer to it, so a month's event is not left to the month before, which borrowed it;
-    where it does not, a list repeats the entries shown least. A list still short of `COUNT`
+    before it took from their own near days, and those the next list pins or would take on its own
+    that are dated nearer to it, so a month's event is not left to the month before, which borrowed
+    it; where it does not, a list repeats the entries shown least. A list still short of `COUNT`
     relaxes by the steps in `sparse`, each a spacing and a reach either side of the frame's day,
     keeping what it has."""
     pinned = pins or [()] * len(frames)
@@ -266,7 +267,9 @@ def in_turn(
         if i + 1 < len(frames):
             after = frames[i + 1]
             shown.update(
-                e.qid for e in alone[i + 1] if abs(e.middle - after.day) < abs(e.middle - frame.day)
+                e.qid
+                for e in alone[i + 1]
+                if e in pinned[i + 1] or abs(e.middle - after.day) < abs(e.middle - frame.day)
             )
         chosen = choose(index, frame, ancestors, pins=pinned[i], avoid=shown)
         for spacing, reach in sparse:

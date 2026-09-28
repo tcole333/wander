@@ -702,7 +702,7 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   each 2,000 km from those taken, since Meanwhile is what happens at the beat's date, which the
   ruler reads, not anywhere in its window: a beat of April 1815 whose window runs into 1816 shows
   April's events, not 1816's. While enough others qualify, a beat shows none of those the beats
-  before it took from their own 45 days, nor any the next beat would show that is dated nearer to
+  before it took from their own 45 days, nor any the next beat pins or would show dated nearer to
   it; where too few do, it repeats the ones shown least, so no entry runs through three beats in a
   row when a neighbour's would do. The same rule picks three per month of the story's years (from
   January of the year its beats' windows open to December of the year they close) for scrubbing:
