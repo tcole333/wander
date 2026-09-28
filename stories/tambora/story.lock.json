@@ -459,21 +459,6 @@
       ],
       "europe-1816": [
         {
-          "qid": "Q1757487",
-          "label": "Battle of Seven Oaks",
-          "date": "1816-06-19",
-          "precision": "day",
-          "at": [
-            -97.121,
-            49.932
-          ],
-          "line": "At Seven Oaks, Métis riders kill Governor Semple and twenty men",
-          "source": {
-            "title": "Battle of Seven Oaks (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Seven_Oaks"
-          }
-        },
-        {
           "qid": "Q2890524",
           "label": "Battle of Cuchilla del Tambo",
           "date": "1816-06-29",
@@ -502,6 +487,21 @@
             "title": "Argentine Declaration of Independence (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
           }
+        },
+        {
+          "qid": "Q25230631",
+          "label": "1816 Guatemala earthquake",
+          "date": "1816-07-22",
+          "precision": "day",
+          "at": [
+            -91.5,
+            15.5
+          ],
+          "line": "In Guatemala, a great earthquake rips along the Chixoy-Polochic fault",
+          "source": {
+            "title": "1816 Guatemala earthquake (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
+          }
         }
       ],
       "new-england-1816": [
@@ -521,21 +521,6 @@
           }
         },
         {
-          "qid": "Q25230631",
-          "label": "1816 Guatemala earthquake",
-          "date": "1816-07-22",
-          "precision": "day",
-          "at": [
-            -91.5,
-            15.5
-          ],
-          "line": "In Guatemala, a great earthquake rips along the Chixoy-Polochic fault",
-          "source": {
-            "title": "1816 Guatemala earthquake (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
-          }
-        },
-        {
           "qid": "Q5722534",
           "label": "Battle of Ibiraocaí",
           "date": "1816-10-19",
@@ -548,6 +533,21 @@
           "source": {
             "title": "Battle of Ibiraocaí (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
+          }
+        },
+        {
+          "qid": "Q8001257",
+          "label": "Burning of Wildgoose Lodge",
+          "date": "1816-10-29",
+          "precision": "day",
+          "at": [
+            -6.62391,
+            53.92688
+          ],
+          "line": "In County Louth, a mob burns Wildgoose Lodge, killing all eight inside",
+          "source": {
+            "title": "Burning of Wildgoose Lodge (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Burning_of_Wildgoose_Lodge"
           }
         }
       ],
