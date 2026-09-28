@@ -31,8 +31,11 @@ bytes, and the time Node 22 on the M5 takes to inflate and parse it into typed c
 `e3/results/` holds E3, milestone 1's acceptance (streaming.md 8.2), run on the live site on
 2026-09-28 by `app/scripts/e3.ts`. `live-2026-09-28.json` has the raw results: the cold loads, the
 walk at 5 Mbps / 150 ms with its landings and holds, hostile input, offline, context loss,
-requests to the app host, and the leak walks. `old-tab.json` is the old-tab check across the
-borders deploy.
+requests to the app host, and the leak walks. `old-tab.json` is the old-tab check, run by hand
+rather than by `e3.ts`: a tab loaded on release d2c7ca91d12a3ec4 (the bundle it names) walked
+beats 3-8 and broke out after 9b3f8312bae73f83 deployed, with no failed request or console error.
+The walk of the live lobby, dive and beats 1-3 in headless WebKit 26.6 and Firefox 155 was also
+run by hand, and has no record here.
 
 `e1/results/` and `e2/results/` hold the experiments' lab runs (`npm run lab`, streaming.md 7.3),
 copied from `build/lab/`. The first ones ran on 2026-09-25 on the M5 (macOS 26.5) in Chromium 153 on
