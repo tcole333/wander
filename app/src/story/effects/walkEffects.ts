@@ -1,5 +1,6 @@
 // The walk's story effects (contract.ts WalkEffects): the ember, the plume, pulses, callout
-// plaques, the illustrative ash and veil, ModE-RA's real climate and the 1815 borders, each a
+// plaques, the illustrative ash and veil, ModE-RA's real climate, the 1815 borders and the dated
+// routes, each a
 // function of story time, so scrubbing backward shows the right state. The plume, ash and veil
 // belong to the story: any beat that lists them turns them on for every beat, and story time alone
 // shows or hides them, so they never vanish as a flight leaves the beat that lists them. Pulses and
@@ -20,6 +21,7 @@ import {
 import { ashUniformsOf } from '../../look/ashHook';
 import { borderUniformsOf } from '../../look/bordersHook';
 import { climateUniformsOf } from '../../look/climateHook';
+import { routeUniformsOf } from '../../look/routeHook';
 import type { Params, ViewportCss } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
 import { dayFromIso } from '../dates';
@@ -31,6 +33,7 @@ import { Ember } from './ember';
 import { dirOf, EARTH_KM, EARTH_M, tangents } from './geo';
 import { Plume, VENT_M } from './plume';
 import { PulseDisc } from './pulses';
+import { WalkRoutes } from './route';
 import { emberHeat, plumeState, pulseState, type PlumeEffect, type PulseEffect } from './timeline';
 import { Veil } from './veil';
 
@@ -89,6 +92,7 @@ export const createWalkEffects: CreateWalkEffects = (
     veil: 1,
     climate: 1,
     borders: 1,
+    routes: 1,
   };
   const group = new Group();
   group.name = 'walk-effects';
@@ -99,6 +103,7 @@ export const createWalkEffects: CreateWalkEffects = (
   const ash = ashUniformsOf(look.material);
   const climate = new WalkClimate(story, source, climateUniformsOf(look.material));
   const borders = new WalkBorders(story, source, borderUniformsOf(look.material));
+  const routes = new WalkRoutes(story, source, routeUniformsOf(look.material));
   /** How strongly climate is drawn, under the dev shell's climate param. */
   const climateShown = () => Math.min(1, climate.drawn * Math.max(0, Number(params.climate)));
   let lastS: number | null = null;
@@ -223,8 +228,9 @@ export const createWalkEffects: CreateWalkEffects = (
         }
       }
 
-      // Climate, through the look.
+      // Climate and the dated routes, through the look.
       climate.update(state, dtS, strength('climate'));
+      routes.update(state, dtS, strength('routes'));
 
       // Borders and the veil, by the view's width under the camera. The veil gives way where
       // climate data is drawn.
@@ -239,6 +245,7 @@ export const createWalkEffects: CreateWalkEffects = (
 
     load() {
       climate.load();
+      void routes.load();
     },
 
     background() {
@@ -277,6 +284,7 @@ export const createWalkEffects: CreateWalkEffects = (
       if (ash) ash.lookAshStrength.value = 0;
       climate.dispose();
       borders.dispose();
+      routes.dispose();
       for (const [param, value] of defaults) if (value !== undefined) look.params[param] = value;
       plume?.draw.dispose();
       for (const pulse of allPulses) pulse.dispose();

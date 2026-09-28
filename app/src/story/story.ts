@@ -64,7 +64,7 @@ export interface StoryCamera {
   drift: 'none' | 'slow';
 }
 
-/** Effects, their dates as day numbers. Spread and route datasets are named, not yet built. */
+/** Effects, their dates as day numbers. Route datasets resolve through the release's fx section. */
 export type StoryEffect =
   | {
       kind: 'plume';
