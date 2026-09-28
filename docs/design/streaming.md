@@ -585,7 +585,8 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   - `layers`: the listed layers are on and anything omitted is off. The canonical order, which is also
     the `?l=` bit order: relief, bathymetry, coastline, landSea, water, graticule, labels, borders,
     ecoregions, petroleum, mountains, minerals, climate, events. The schema takes the names and
-    their order from `shared/constants.json`. `climate` may carry `{mode: monthly | annual}`.
+    their order from `shared/constants.json`. `climate` names its mode, as
+    `{climate: {mode: monthly | annual}}`.
   - `effects`: a list of `{plume | spread | route | pulse | callout: params}`; spread and route take
     `{dataset, wDays, style}`
   - `audio: {cues: [...]}`
