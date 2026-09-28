@@ -47,6 +47,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  sound.unlock.mockReset();
   vi.useRealTimers();
 });
 
@@ -129,5 +131,19 @@ describe('one sound setting for the lobby and the walk', () => {
     audio.dispose();
     vi.runAllTimers();
     expect(sound.engine.ctx.suspend).not.toHaveBeenCalled();
+  });
+
+  it('leaves silence when audio fails on either the plaque or a later gesture', () => {
+    const p = page();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    sound.unlock.mockImplementation(() => {
+      throw new Error('no audio');
+    });
+    const audio = createWalkAudio();
+    expect(() => audio.start(true)).not.toThrow();
+    expect(() => p.key()).not.toThrow();
+    expect(audio.muted).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+    audio.dispose();
   });
 });
