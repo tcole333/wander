@@ -4,12 +4,14 @@
 // all of it shows without scrolling. The image is the story's crop, baked by the media stage and
 // read from the data host; its credit comes from the story's lock (../lock.ts). The sources fold
 // into a footnote at its foot, with the Credits link beside them, which opens the Credits panel.
-// The story's controls live on the time ruler.
+// A small brass knob in its head folds all but the date line and the title away (fold.ts), and the
+// card, folded, no longer stands in the globe's way. The story's controls live on the time ruler.
 import { creditsLink } from '../../page/creditsPanel';
 import type { WalkState } from '../contract';
 import type { LockedFile } from '../lock';
 import type { StoryBeat, StoryImage } from '../story';
 import { button, el, onPress } from './dom';
+import { Fold } from './fold';
 import { curlyQuotes, dateLine } from './format';
 
 /** The frame's width, CSS px, when the card has not been laid out to measure it. */
@@ -25,6 +27,7 @@ export class BeatCard {
   readonly #foot = el('footer', 'wu-foot');
   readonly #sources = el('ol', 'wu-sources');
   readonly #sourcesToggle: HTMLButtonElement;
+  readonly #fold: Fold;
   /** Where the images are, as the release's other keys are. */
   readonly #dataHost: string;
   #beat: StoryBeat | null = null;
@@ -32,7 +35,8 @@ export class BeatCard {
   #previewTimer: ReturnType<typeof setTimeout> | undefined;
   #overflowFrame = 0;
 
-  constructor(dataHost: string) {
+  /** `reachChanged` is called when folding or unfolding changes how far the card reaches. */
+  constructor(dataHost: string, reachChanged: () => void = () => {}) {
     this.#dataHost = dataHost;
     const head = el('header', 'wu-card-head');
     head.append(this.#date, this.#title, el('div', 'wu-rule'));
@@ -51,9 +55,33 @@ export class BeatCard {
     line.append(this.#sourcesToggle, creditsLink('wu-card-credits'));
     this.#foot.append(line, fold);
 
+    this.#fold = new Fold({
+      id: 'card',
+      name: 'Story card',
+      panel: this.element,
+      content: [this.#body, this.#foot],
+      changed: () => {
+        this.#checkNextFrame();
+        reachChanged();
+      },
+    });
+    const region = this.#fold.region;
+    region.addEventListener('transitionend', (event) => {
+      if (event.target === region) this.#checkOverflow();
+    });
+    head.append(this.#fold.control);
+
     const sheet = el('div', 'wu-sheet');
-    sheet.append(head, this.#body, this.#foot);
+    sheet.append(head, region);
     this.element.append(sheet);
+  }
+
+  /**
+   * How far right of the page's left edge the card reaches where it is laid out, CSS px, or 0
+   * once it is folded, when it no longer stands in the globe's way.
+   */
+  reach(): number {
+    return this.#fold.folded ? 0 : this.element.offsetLeft + this.element.offsetWidth;
   }
 
   update(state: WalkState): void {
