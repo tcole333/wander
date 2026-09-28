@@ -64,7 +64,7 @@ export interface StoryCamera {
   drift: 'none' | 'slow';
 }
 
-/** Effects, their dates as day numbers. The spread datasets are named, not yet built. */
+/** Effects, their dates as day numbers. Spread and route datasets are named, not yet built. */
 export type StoryEffect =
   | {
       kind: 'plume';
@@ -79,7 +79,8 @@ export type StoryEffect =
     }
   | { kind: 'pulse'; at: LonLat; start: number; end: number; radiusKm: number; style: string }
   | { kind: 'callout'; at: LonLat; text: string }
-  | { kind: 'spread'; dataset: string; wDays: number; style: string };
+  | { kind: 'spread'; dataset: string; wDays: number; style: string }
+  | { kind: 'route'; dataset: string; wDays: number; style: string };
 
 export interface StoryBeat {
   id: string;
@@ -309,12 +310,13 @@ function parseEffect(entry: unknown, where: string): StoryEffect {
       keys('at', 'text');
       return { kind, at: lonLat(p.at, `${where} callout at`), text: text(p.text, 'callout text') };
     case 'spread':
+    case 'route':
       keys('dataset', 'wDays', 'style');
       return {
         kind,
         dataset: text(p.dataset, 'dataset'),
         wDays: num(p.wDays ?? 1, 'wDays'),
-        style: text(p.style ?? 'spread', 'style'),
+        style: text(p.style ?? kind, 'style'),
       };
     default:
       throw new StoryError(`${where}: unknown effect '${String(kind)}'`);
