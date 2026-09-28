@@ -1,0 +1,28 @@
+# Corrections to historical-basemaps' 1815 snapshot (world_1815.geojson), applied before the borders
+# stage draws it (streaming.md 3.3): only where a Tambora beat would otherwise show a border that did
+# not exist in 1815, each with its source. A correction gives a polity's land, or only the part of
+# it that holds `at` (longitude, latitude), to another polity, both named as the snapshot names
+# them. The corrected source is published beside the borders, with a notice dated `modified` that
+# lists these corrections (owner decision 6).
+modified: 2026-09-27
+corrections:
+  - polity: Austrian Empire
+    at: [4.35, 50.85]  # Brussels
+    becomes: United Kingdom of Netherlands
+    why: >-
+      The snapshot still gives the Belgic provinces to the Austrian Empire. The Final Act of the
+      Congress of Vienna (9 June 1815, Article 65) joins them to the United Provinces as the
+      Kingdom of the Netherlands.
+    source:
+      title: Final Act of the Congress of Vienna, General Treaty, Article 65
+      publisher: Wikisource
+      url: https://en.wikisource.org/wiki/Final_Act_of_the_Congress_of_Vienna/General_Treaty
+  - polity: Hong Kong
+    becomes: Manchu Empire
+    why: >-
+      Hong Kong Island stays part of the Qing Empire, the snapshot's Manchu Empire, until the
+      Treaty of Nanking cedes it to Britain on 29 August 1842 (Article 3).
+    source:
+      title: Treaty of Nanking, Article 3
+      publisher: Wikisource
+      url: https://en.wikisource.org/wiki/Treaty_of_Nanking
