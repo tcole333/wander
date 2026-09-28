@@ -742,6 +742,7 @@
   display: block;
   font: 400 15px/1.25 var(--reading);
   color: var(--ink);
+  text-wrap: pretty;
 }
 
 .wu-mw-date {
