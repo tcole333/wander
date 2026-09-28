@@ -139,6 +139,22 @@ def test_a_long_window_takes_the_events_near_its_date_first():
     assert [e.qid for e in chosen] == ["Q2", "Q4", "Q3"]
 
 
+def test_a_long_window_repeats_an_entry_before_it_reaches_far_from_its_date():
+    index = [
+        event("Q1", 9.0, WATERLOO, "1815-04-01"),
+        event("Q2", 8.0, (-65.2, -26.8), "1815-04-05"),
+        event("Q3", 7.0, (80.6, 7.3), "1815-04-10"),
+        event("Q4", 6.0, (30.0, -1.0), "1815-06-11"),  # 60 days on
+        event("Q5", 5.0, (150.0, -33.9), "1815-11-18"),  # 220 days on
+    ]
+    frames = [frame("1815-04-01"), frame("1815-04-12", until="1816-10-26")]
+    lists = m.in_turn(frames, index, m.lineage(index))
+    assert [sorted(e.qid for e in chosen) for chosen in lists] == [
+        ["Q1", "Q2", "Q3"],
+        ["Q1", "Q2", "Q4"],
+    ]
+
+
 def test_a_month_shows_its_own_events_before_its_neighbours():
     beat = m.Beat(
         id="veil",
