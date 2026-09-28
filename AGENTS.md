@@ -17,9 +17,10 @@ its own git worktree, naming the issue, the design sections to read and when the
 
 ## Checks
 
-Your sandbox writes only inside the worktree and cannot open a browser. Run `npm run lint`,
-`npm test`, `npm run build`, `uv run pytest` and the ruff checks there. Claude runs `npm run e2e`,
-`npm run e2e:gpu` and every render on the Mac's GPU; when a task needs a browser measurement, write
+Your sandbox writes only inside the worktree and can open neither a browser nor a local port, so the
+tests that start a local server fail there. Run `npm run lint`, `npm test`, `npm run build`,
+`uv run pytest` and the ruff checks there. Claude runs `npm run e2e`, `npm run e2e:gpu`, the
+local-server tests and every render on the Mac's GPU; when a task needs a browser measurement, write
 the script and give the command that runs it.
 
 ## Standing rules
