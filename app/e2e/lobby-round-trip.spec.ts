@@ -108,17 +108,21 @@ for (const entry of ['production', 'dev'] as const) {
     await page.keyboard.press(' ');
     await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
 
-    await page.keyboard.press('ArrowRight');
-    await expect(title).toHaveText(story.beats[1]!.title, { timeout: TIMEOUT });
-    // The date reaches 5 April only when the flight has reached beat 2.
-    await expect(page.locator('.rc-plate-top').first()).toHaveText('5 APRIL', { timeout: TIMEOUT });
-    await page.locator('.wu-card-credits').click();
+    // Escape closes an open Credits panel before it would leave the story. A keyboard visitor
+    // opens it here: at this spec's 640x400, Meanwhile can lie over the card's Credits link.
+    await page.locator('.wu-card-credits').focus();
+    await page.keyboard.press('Enter');
     const credits = page.getByRole('dialog', { name: 'Credits' });
     await expect(credits).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(credits).toBeHidden({ timeout: TIMEOUT });
     await phase(page, 'gone');
-    await expect(title).toHaveText(story.beats[1]!.title);
+    await expect(title).toHaveText(story.beats[0]!.title);
+
+    await page.keyboard.press('ArrowRight');
+    await expect(title).toHaveText(story.beats[1]!.title, { timeout: TIMEOUT });
+    // The date reaches 5 April only when the flight has reached beat 2.
+    await expect(page.locator('.rc-plate-top').first()).toHaveText('5 APRIL', { timeout: TIMEOUT });
 
     await mark.click();
     await phase(page, 'returning');
