@@ -88,6 +88,17 @@ describe('the walk climate', () => {
     expect([uniforms.lookClimateStrength.value, climate.month]).toEqual([0, null]);
   });
 
+  it('clears the lobby and draws again without fetching the years again', async () => {
+    const { climate, uniforms } = await shownOnEurope();
+    const requests = loadSynthetic.mock.calls.length;
+    climate.hide();
+    expect([uniforms.lookClimateStrength.value, climate.month]).toEqual([0, null]);
+    climate.load();
+    aSecondOn(climate, pausedOn('europe-1816'));
+    expect(uniforms.lookClimateStrength.value).toBe(1);
+    expect(loadSynthetic.mock.calls).toHaveLength(requests);
+  });
+
   it("eases out when a scrub passes the data's years", async () => {
     const { climate, uniforms } = await shownOnEurope();
     aSecondOn(climate, { ...pausedOn('europe-1816', '1818-07-01'), mode: 'breakout' });

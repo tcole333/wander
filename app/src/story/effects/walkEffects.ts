@@ -137,7 +137,14 @@ export const createWalkEffects: CreateWalkEffects = (
     group,
     params,
 
-    update(state: WalkState, cam: PerspectiveCamera, globe: Object3D, viewport: ViewportCss, t) {
+    update(
+      state: WalkState,
+      cam: PerspectiveCamera,
+      globe: Object3D,
+      viewport: ViewportCss,
+      t,
+      fade = 1,
+    ) {
       const beat = state.story.beats[state.beat];
       if (!beat) return;
       if (state.beat !== shown) {
@@ -146,7 +153,7 @@ export const createWalkEffects: CreateWalkEffects = (
       }
       const day = state.day;
       const kLand = look.params.flatRelief === true ? 0 : Number(look.params.kLand);
-      const strength = (name: string) => Math.max(0, Number(params[name]));
+      const strength = (name: string) => Math.max(0, Number(params[name])) * fade;
       const dtS = lastS === null ? 0 : Math.min(0.1, Math.max(0, t - lastS));
       lastS = t;
 
@@ -251,6 +258,16 @@ export const createWalkEffects: CreateWalkEffects = (
     },
 
     borders: () => borders.shown,
+    hide() {
+      group.visible = false;
+      shown = -1;
+      lastS = null;
+      callouts.clear();
+      if (ash) ash.lookAshStrength.value = 0;
+      climate.hide();
+      borders.hide();
+      for (const [param, value] of defaults) if (value !== undefined) look.params[param] = value;
+    },
     inspectMemory(account) {
       climate.inspectMemory(account);
       plume?.draw.inspectMemory(account);

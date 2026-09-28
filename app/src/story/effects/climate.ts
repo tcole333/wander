@@ -205,6 +205,12 @@ export class WalkClimate {
     return null;
   }
 
+  /** Clears the lobby while retaining the loaded years and blend for the next walk. */
+  hide(): void {
+    this.#shown = 0;
+    if (this.#uniforms) this.#uniforms.lookClimateStrength.value = 0;
+  }
+
   /** Draws no more climate. */
   dispose(): void {
     this.#stop('');

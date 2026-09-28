@@ -358,18 +358,19 @@ function ease(t: number): number {
 
 /**
  * The story's keys: Left and Right step beats (from a break-out they resume on the way), Space
- * plays or pauses, and Escape resumes. Returns a function that removes them.
+ * plays or pauses. Escape belongs to the page's lobby (or the open Credits panel).
+ * Returns a function that removes them.
  */
 export function bindWalkKeys(walk: Walk): () => void {
   const onKey = (event: KeyboardEvent) => {
-    if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.defaultPrevented || event.repeat || event.metaKey || event.ctrlKey || event.altKey)
+      return;
     if (isFormField(event.target)) return;
     // A focused button or link takes Space itself; the walk does not act on it twice.
     if (event.key === ' ' && isControl(event.target)) return;
     if (event.key === 'ArrowRight') walk.next();
     else if (event.key === 'ArrowLeft') walk.back();
     else if (event.key === ' ') walk.togglePlay();
-    else if (event.key === 'Escape') walk.resume();
     else return;
     event.preventDefault();
   };

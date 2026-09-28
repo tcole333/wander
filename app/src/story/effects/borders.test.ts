@@ -82,6 +82,12 @@ describe('the walk borders', () => {
     aSecondOn(borders, pausedOn('europe-1816'));
     expect(borders.shown).toEqual({ year: 1815, strength: 1 });
     expect(uniforms.lookBorderStrength.value).toBe(1);
+    borders.hide();
+    expect([borders.shown, uniforms.lookBorderStrength.value]).toEqual([null, 0]);
+    borders.background();
+    aSecondOn(borders, pausedOn('europe-1816'));
+    expect(borders.shown).toEqual({ year: 1815, strength: 1 });
+    expect(load).toHaveBeenCalledOnce();
   });
 
   it('ease out on a beat without them, and as the view closes in', async () => {

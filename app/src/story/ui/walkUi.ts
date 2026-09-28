@@ -1,9 +1,10 @@
-// The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the Wander mark, the beat
-// card, the time ruler with the story's controls on it (rulerCraft.ts), the sound knob, Meanwhile,
+// The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the beat card, the time ruler
+// with the story's controls on it (rulerCraft.ts), Meanwhile,
 // the Resume plaque, the climate legend (climateLegend.ts) and the borders' year plate
 // (bordersPlate.ts), in the instrument's materials: aged vellum in brass, dark cast brass and
 // engraved gilt, lit by the scene's lamp from the upper left and under its lens (walkUi.css, its
-// materials in tokens.css). Libre Baskerville for display and Source Serif 4 for reading.
+// materials in tokens.css). Libre Baskerville for display and Source Serif 4 for reading. The mark
+// and sound knob belong to the page's persistent chrome.ts, shared with the lobby.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -17,28 +18,17 @@ import { ClimateLegend } from './climateLegend';
 import { button, el, passFocus } from './dom';
 import { MeanwhilePanel } from './meanwhile';
 import { CraftRuler } from './rulerCraft';
-import { SoundKnob } from './soundKnob';
 
-export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHost): WalkUi => {
-  const layer = el('div', 'wu');
+export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, dataHost): WalkUi => {
+  const layer = el('div', 'wu wu-story');
   const card = new BeatCard(dataHost);
   const ruler = new CraftRuler(walk, walk.state().story);
-  const knob = new SoundKnob(sound);
   const panel = new MeanwhilePanel(walk, meanwhile);
   const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
   resume.textContent = 'Resume story';
   const legend = new ClimateLegend();
   const plate = new BordersPlate();
-  layer.append(
-    mark(),
-    plate.element,
-    card.element,
-    knob.element,
-    panel.element,
-    legend.element,
-    ruler.element,
-    resume,
-  );
+  layer.append(plate.element, card.element, panel.element, legend.element, ruler.element, resume);
   root.append(layer);
 
   let away: boolean | null = null;
@@ -46,7 +36,6 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
     update(state, view, climate, borders) {
       card.update(state);
       ruler.update(state);
-      knob.update();
       panel.update(state, view);
       legend.update(state.flight === null ? climate : null);
       plate.update(borders);
@@ -59,6 +48,9 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
     },
     rulerUnit: () => ruler.unit,
     cardReach: () => card.element.offsetLeft + card.element.offsetWidth,
+    leave() {
+      layer.inert = true;
+    },
     dispose() {
       card.dispose();
       ruler.dispose();
@@ -66,16 +58,3 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
     },
   };
 };
-
-/** The spike's wordmark: WANDER over a rule and its line. */
-function mark(): HTMLElement {
-  const header = el('header', 'wu-mark');
-  const rule = el('div', 'wu-mark-rule');
-  rule.append(el('span'), el('i', undefined, '✦'), el('span'));
-  header.append(
-    el('div', 'wu-mark-word', 'WANDER'),
-    rule,
-    el('div', 'wu-mark-sub', 'AN INTERACTIVE HISTORY'),
-  );
-  return header;
-}

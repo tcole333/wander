@@ -12,6 +12,8 @@ export interface Bed {
   /** Story time moved: the rumble glides to that day's level. */
   setDay(day: number, at?: number): void;
   setMix(mix: Mix, at?: number): void;
+  /** Leaves only the museum's room tone, keeping the bed ready for another walk. */
+  toRoom(at?: number): void;
   stop(at?: number, fade?: number): void;
 }
 
@@ -119,6 +121,9 @@ export function tamboraBed(engine: SoundEngine, day: number, at = engine.ctx.cur
     setMix(mix, when = ctx.currentTime) {
       room.gain.setTargetAtTime(gainOf(mix.bed.room), when, 0.05);
       rumble.gain.setTargetAtTime(rumbleGain(mix, rumbleLevel(current)), when, 0.05);
+    },
+    toRoom(when = ctx.currentTime) {
+      rumble.gain.setTargetAtTime(0, when, tunables.bedCrossfade / 3000);
     },
     stop(when = ctx.currentTime, fade = tunables.bedCrossfade / 1000) {
       out.gain.setTargetAtTime(0, when, fade / 4);

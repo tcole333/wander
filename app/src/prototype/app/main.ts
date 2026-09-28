@@ -125,7 +125,7 @@ async function main(): Promise<void> {
     view: PRESETS[preset],
     tune: (params) => applyQuery(params, query),
   });
-  const { museum, look, streamer, control, cameraParams, story } = page;
+  const { museum, look, streamer, control, cameraParams } = page;
   const go = (name: string, instant = false) => {
     const view = PRESETS[name];
     if (!view) return;
@@ -146,19 +146,18 @@ async function main(): Promise<void> {
       2,
     );
   // A story's page steps through its beats instead of the presets.
-  if (story) {
+  if (source) {
     document.body.classList.add('story');
     document.getElementById('presets')?.remove();
   }
   if (showUi) {
-    buildUi({ museum, look, streamer, cameraParams, control, go, settings, story });
+    buildUi({ museum, look, streamer, cameraParams, control, go, settings, story: page.story });
   } else {
     document.body.classList.add('clean');
   }
-  const walk = story?.walk ?? null;
 
   addEventListener('keydown', (event) => {
-    if (walk || event.target instanceof HTMLInputElement) return;
+    if (source || event.target instanceof HTMLInputElement) return;
     const name = Object.keys(PRESETS)[PRESET_KEYS.indexOf(event.key)];
     if (name) go(name);
   });
@@ -176,7 +175,7 @@ async function main(): Promise<void> {
     },
     settings,
   };
-  if (walk) serveWalk(walk, ready);
+  if (source) serveWalk(() => page.story?.walk ?? null, ready);
 
   const hud = document.getElementById('hud');
   if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);
@@ -190,22 +189,27 @@ async function loadStory(name: string | null): Promise<StorySource | null> {
 }
 
 /** window.__walk, for scripts: `ready` is the page's own check that the streamer is idle. */
-function serveWalk(walk: DirectedWalk, ready: () => boolean): void {
+function serveWalk(current: () => DirectedWalk | null, ready: () => boolean): void {
+  const walk = () => {
+    const active = current();
+    if (!active) throw new Error('No story is running');
+    return active;
+  };
   window.__walk = {
     state: () => {
-      const { beat, mode, flight, flying, day, advanceIn } = walk.state();
+      const { beat, mode, flight, flying, day, advanceIn } = walk().state();
       return { beat, mode, flight, flying, day, advanceIn };
     },
-    next: () => walk.next(),
-    back: () => walk.back(),
-    goTo: (beat) => walk.goTo(beat),
-    togglePlay: () => walk.togglePlay(),
-    resume: () => walk.resume(),
-    scrub: (day) => walk.scrub(day),
-    breakOut: () => walk.breakOut(),
-    flyTo: (target, viewKm) => walk.flyTo(target, viewKm),
-    landed: () => walk.state().flight === null && ready(),
-    flights: () => walk.flights(),
+    next: () => walk().next(),
+    back: () => walk().back(),
+    goTo: (beat) => walk().goTo(beat),
+    togglePlay: () => walk().togglePlay(),
+    resume: () => walk().resume(),
+    scrub: (day) => walk().scrub(day),
+    breakOut: () => walk().breakOut(),
+    flyTo: (target, viewKm) => walk().flyTo(target, viewKm),
+    landed: () => current()?.state().flight === null && ready(),
+    flights: () => current()?.flights() ?? [],
   };
 }
 

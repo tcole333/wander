@@ -46,13 +46,28 @@ export class ViewControl {
   onInput: () => void = () => {};
   /** Whether the arrow keys pan and tilt. */
   arrowKeys = true;
+  /** Input rests while the lobby takes the camera back. */
+  #enabled = true;
   #held = new Set<string>();
   #shift = false;
   #widthPx = 1440;
+  #drag: { x: number; y: number; tilt: boolean } | null = null;
 
   constructor(initial: ViewState) {
     this.current = { ...initial };
     this.goal = { ...initial };
+  }
+
+  get enabled(): boolean {
+    return this.#enabled;
+  }
+
+  set enabled(on: boolean) {
+    this.#enabled = on;
+    if (!on) {
+      this.#held.clear();
+      this.#drag = null;
+    }
   }
 
   /** Flies to `view`, or jumps there. */
@@ -123,6 +138,7 @@ export class ViewControl {
     addEventListener(
       'keydown',
       (event) => {
+        if (!this.enabled) return;
         this.#shift = event.shiftKey;
         if (!KEYS.has(event.key) || isFormField(event.target)) return;
         if (!this.arrowKeys && event.key.startsWith('Arrow')) return;
@@ -141,13 +157,17 @@ export class ViewControl {
       { signal },
     );
     addEventListener('blur', () => this.#held.clear(), { signal });
-    let drag: { x: number; y: number; tilt: boolean } | null = null;
     element.addEventListener(
       'pointerdown',
       (event) => {
+        if (!this.enabled) return;
         if (event.button !== 0 && event.button !== 2) return;
         this.stop();
-        drag = { x: event.clientX, y: event.clientY, tilt: event.button === 2 || event.shiftKey };
+        this.#drag = {
+          x: event.clientX,
+          y: event.clientY,
+          tilt: event.button === 2 || event.shiftKey,
+        };
         element.setPointerCapture(event.pointerId);
       },
       { signal },
@@ -155,6 +175,8 @@ export class ViewControl {
     element.addEventListener(
       'pointermove',
       (event) => {
+        if (!this.enabled) return;
+        const drag = this.#drag;
         if (!drag) return;
         const dx = event.clientX - drag.x;
         const dy = event.clientY - drag.y;
@@ -171,7 +193,7 @@ export class ViewControl {
       },
       { signal },
     );
-    const end = () => (drag = null);
+    const end = () => (this.#drag = null);
     element.addEventListener('pointerup', end, { signal });
     element.addEventListener('pointercancel', end, { signal });
     element.addEventListener('contextmenu', (event) => event.preventDefault(), { signal });
@@ -179,6 +201,7 @@ export class ViewControl {
       'wheel',
       (event) => {
         event.preventDefault();
+        if (!this.enabled) return;
         this.stop();
         this.onInput();
         const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
@@ -189,7 +212,11 @@ export class ViewControl {
       },
       { passive: false, signal },
     );
-    return () => listeners.abort();
+    return () => {
+      listeners.abort();
+      this.#held.clear();
+      this.#drag = null;
+    };
   }
 
   /** The goal after `dtS` seconds of the held keys. */

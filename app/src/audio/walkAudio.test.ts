@@ -8,13 +8,22 @@ import { mix } from './mix';
 import { WalkScore } from './walkAudio';
 
 /** The cues and bed the score starts, and the levels it sets cues to, heard without audio. */
-const heard = vi.hoisted(() => ({ started: [] as string[], levels: [] as [string, number][] }));
+const heard = vi.hoisted(() => ({
+  started: [] as string[],
+  levels: [] as [string, number][],
+  stopped: [] as string[],
+  rooms: 0,
+  days: [] as number[],
+}));
 
 vi.mock('./cues', async (original) => ({
   ...(await original<typeof import('./cues')>()),
   startCue: (_engine: unknown, name: string) => {
     heard.started.push(name);
-    return { setLevel: (db: number) => heard.levels.push([name, db]), stop() {} };
+    return {
+      setLevel: (db: number) => heard.levels.push([name, db]),
+      stop: () => heard.stopped.push(name),
+    };
   },
 }));
 vi.mock('./voices', () => ({
@@ -27,7 +36,11 @@ vi.mock('./voices', () => ({
 vi.mock('./bed', () => ({
   tamboraBed() {
     heard.started.push('bed');
-    return { setDay() {}, stop() {} };
+    return {
+      setDay: (day: number) => heard.days.push(day),
+      toRoom: () => heard.rooms++,
+      stop: () => heard.stopped.push('bed'),
+    };
   },
 }));
 
@@ -59,13 +72,16 @@ function setup(arrive: 'jump' | 'fly' = 'jump') {
       score.frame({ state, unit: 'day', pace: 0, at: engine.soon(), dt: DT });
     }
   };
-  return { walk, run };
+  return { walk, run, score, engine };
 }
 
 describe("the walk's score", () => {
   beforeEach(() => {
     heard.started = [];
     heard.levels = [];
+    heard.stopped = [];
+    heard.days = [];
+    heard.rooms = 0;
   });
 
   it("starts a beat's cues on landing there, not on breaking out of the flight", () => {
@@ -105,5 +121,34 @@ describe("the walk's score", () => {
       ['eruption', mix.cues.eruption - 12],
       ['eruption', mix.cues.eruption],
     ]);
+  });
+
+  it('fades cues to the room and reuses the same bed after another dive', () => {
+    const { walk, run, score, engine } = setup();
+    walk.goTo(2);
+    run(8);
+    const room = score.toRoom(engine.soon());
+    expect(heard.stopped).toContain('eruption');
+    expect(heard.stopped).not.toContain('bed');
+    expect(heard.rooms).toBe(1);
+    expect(room).not.toBeNull();
+    const control = new ViewControl({ lon: 75, lat: 15, viewKm: 30000, tilt: 0, heading: 0 });
+    const next = createWalk(story, control, { ready: () => true, arrive: 'fly' });
+    const again = new WalkScore(
+      engine as unknown as SoundEngine,
+      next.state(),
+      engine.soon(),
+      room,
+    );
+    const daysBeforeLanding = heard.days.length;
+    next.update(0, DT);
+    again.frame({ state: next.state(), unit: 'day', pace: 0, at: engine.soon(), dt: DT });
+    expect(heard.days).toHaveLength(daysBeforeLanding);
+    for (let t = 0; t < 6; t += DT) next.update(0, DT);
+    again.frame({ state: next.state(), unit: 'day', pace: 0, at: engine.soon(), dt: DT });
+    expect(heard.started.filter((name) => name === 'bed')).toHaveLength(1);
+    expect(heard.days.at(-1)).toBe(next.state().day);
+    again.stop(engine.soon());
+    expect(heard.stopped.filter((name) => name === 'bed')).toHaveLength(1);
   });
 });
