@@ -646,17 +646,18 @@
       ],
       "1815-02": [
         {
-          "qid": "Q4871048",
-          "label": "Battle of Fort Peter",
-          "date": "1815-01-13",
+          "qid": "Q7510025",
+          "label": "Siege of Fort St. Philip",
+          "date": "1815-01-09",
           "precision": "day",
           "at": [
-            -81.51667,
-            30.75694
+            -89.4628,
+            29.3639
           ],
+          "line": "On the Mississippi below New Orleans, British bomb ships shell Fort St. Philip",
           "source": {
-            "title": "Battle of Fort Peter (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Fort_Peter"
+            "title": "Bombardment of Fort St. Philip (1815) (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Bombardment_of_Fort_St._Philip_(1815)"
           }
         },
         {
@@ -793,6 +794,7 @@
             -90.68707,
             38.93338
           ],
+          "line": "In Missouri, Black Hawk's warriors fight US rangers from a sinkhole after the peace",
           "source": {
             "title": "Battle of the Sink Hole (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"
@@ -852,6 +854,7 @@
             -76.40778,
             3.03556
           ],
+          "line": "By the Palo River, New Granada's patriots defeat a royalist army and win back Popayán",
           "source": {
             "title": "Battle of the Palo River (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
@@ -926,6 +929,7 @@
             -76.40778,
             3.03556
           ],
+          "line": "By the Palo River, New Granada's patriots defeat a royalist army and win back Popayán",
           "source": {
             "title": "Battle of the Palo River (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
@@ -1390,6 +1394,7 @@
             -91.5,
             15.5
           ],
+          "line": "In Guatemala, a great earthquake rips along the Chixoy-Polochic fault",
           "source": {
             "title": "1816 Guatemala earthquake (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
@@ -1436,6 +1441,7 @@
             -85.01127,
             29.93824
           ],
+          "line": "On the Apalachicola, a US gunboat's hot shot blows up a fort held by escaped slaves",
           "source": {
             "title": "Negro Fort (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Negro_Fort"
@@ -1452,6 +1458,7 @@
             -91.5,
             15.5
           ],
+          "line": "In Guatemala, a great earthquake rips along the Chixoy-Polochic fault",
           "source": {
             "title": "1816 Guatemala earthquake (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"
@@ -1510,6 +1517,7 @@
             20.06667,
             32.11667
           ],
+          "line": "At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them",
           "source": {
             "title": "Al-Jawazi massacre (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
@@ -1540,6 +1548,7 @@
             20.06667,
             32.11667
           ],
+          "line": "At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them",
           "source": {
             "title": "Al-Jawazi massacre (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"
@@ -1969,6 +1978,7 @@
             -83.65167,
             41.55278
           ],
+          "line": "At Fort Meigs, seven Native nations cede nearly all their remaining Ohio lands",
           "source": {
             "title": "Treaty of Fort Meigs (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"
@@ -1999,9 +2009,25 @@
             -83.65167,
             41.55278
           ],
+          "line": "At Fort Meigs, seven Native nations cede nearly all their remaining Ohio lands",
           "source": {
             "title": "Treaty of Fort Meigs (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"
+          }
+        },
+        {
+          "qid": "Q3534806",
+          "label": "Great Rebellion of 1817–1818",
+          "date": "1817-10-16",
+          "precision": "day",
+          "at": [
+            81.03,
+            6.59
+          ],
+          "line": "In Uva, rebels kill the British Assistant Resident, and a rising against British rule begins",
+          "source": {
+            "title": "Great Rebellion of 1817–1818 (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"
           }
         }
       ],
@@ -2015,6 +2041,7 @@
             -83.65167,
             41.55278
           ],
+          "line": "At Fort Meigs, seven Native nations cede nearly all their remaining Ohio lands",
           "source": {
             "title": "Treaty of Fort Meigs (Wikipedia)",
             "url": "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"

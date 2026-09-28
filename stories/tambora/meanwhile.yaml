@@ -84,3 +84,51 @@ Q617210:
   line: At Pune, the Peshwa turns on the British and burns their Residency
   date: "1817-11-05"
   source: {title: Battle of Khadki (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Khadki"}
+
+Q7510025:
+  line: On the Mississippi below New Orleans, British bomb ships shell Fort St. Philip
+  date: "1815-01-09"
+  source: {title: Bombardment of Fort St. Philip (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Bombardment_of_Fort_St._Philip_(1815)"}
+
+Q7109933:
+  line: At Skoutari in the Mani, villagers drive an Ottoman landing back into the sea
+  source: {title: Ottoman invasion of Mani (1815) (Wikipedia), url: "https://en.wikipedia.org/wiki/Ottoman_invasion_of_Mani_(1815)"}
+
+Q613183:
+  line: By the Palo River, New Granada's patriots defeat a royalist army and win back Popayán
+  source: {title: Battle of the Palo River (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"}
+
+Q8001257:
+  line: In County Louth, some hundred men set Wildgoose Lodge ablaze, killing all eight inside
+  date: "1816-10-29"
+  source: {title: Burning of Wildgoose Lodge (Wikipedia), url: "https://en.wikipedia.org/wiki/Burning_of_Wildgoose_Lodge"}
+
+Q25230631:
+  line: In Guatemala, a great earthquake rips along the Chixoy-Polochic fault
+  source: {title: 1816 Guatemala earthquake (Wikipedia), url: "https://en.wikipedia.org/wiki/1816_Guatemala_earthquake"}
+
+Q12241904:
+  line: At Benghazi, Tripoli's pasha lures the al-Jawazi to talk peace, then massacres them
+  source: {title: Al-Jawazi massacre (Wikipedia), url: "https://en.wikipedia.org/wiki/Al-Jawazi_massacre"}
+
+Q4871874:
+  line: On the Apalachicola, a US gunboat's hot shot blows up a fort held by escaped slaves
+  source: {title: Negro Fort (Wikipedia), url: "https://en.wikipedia.org/wiki/Negro_Fort"}
+
+Q3534806:
+  line: In Uva, rebels kill the British Assistant Resident, and a rising against British rule begins
+  date: "1817-10-16"
+  source: {title: Great Rebellion of 1817–1818 (Wikipedia), url: "https://en.wikipedia.org/wiki/Great_Rebellion_of_1817%E2%80%931818"}
+
+Q3656338:
+  line: At Yanbu, Ibrahim Pasha's Egyptian army arrives to march on the Wahhabi state
+  at: [38.06, 24.09]
+  source: {title: Najd Expedition (Wikipedia), url: "https://en.wikipedia.org/wiki/Expedition_to_Najd_(1817%E2%80%931818)"}
+
+Q1713044:
+  line: At Fort Meigs, seven Native nations cede nearly all their remaining Ohio lands
+  source: {title: Treaty of Fort Meigs (Wikipedia), url: "https://en.wikipedia.org/wiki/Treaty_of_Fort_Meigs"}
+
+Q4873014:
+  line: In Missouri, Black Hawk's warriors fight US rangers from a sinkhole after the peace
+  source: {title: Battle of the Sink Hole (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_the_Sink_Hole"}
