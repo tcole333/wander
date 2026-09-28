@@ -40,7 +40,7 @@ export const tunables = {
   // Score margin, on the 0-1000 event score scale, a newcomer needs to displace an incumbent.
   hysteresisScore: 20,
   eventFade: 300,
-  meanwhileCount: 6,
+  meanwhileCount: 3,
   meanwhileMinKm: 2000,
   placeLabelsMax: 30,
   // clamp(S / speed, min, max), with S the van Wijk-Nuij path length and rho its curvature.

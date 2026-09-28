@@ -16,7 +16,7 @@ import { DATA_SERVERS } from '../../page/dataOrigin';
 import type { WalkState } from '../../story/contract';
 import type { DirectedWalk, FlightRecord } from '../../story/director';
 import { withLock } from '../../story/lock';
-import { meanwhileFromJson } from '../../story/meanwhile';
+import { glowsFromLock, meanwhileFromLock } from '../../story/meanwhile';
 import { parseStory, type LonLat } from '../../story/story';
 import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
@@ -51,16 +51,19 @@ const PRESETS: Record<string, ViewState> = {
   magellan: { lon: -71, lat: -53.5, viewKm: 300, tilt: 45, heading: 0 },
 };
 
-/** The stories ?story= walks: the text, read by Vite, and Meanwhile's stand-in entries. */
+/** The stories ?story= walks: the text, read by Vite, and its lock. */
 const STORIES: Record<string, () => Promise<StorySource>> = {
   tambora: async () => {
-    const [text, lock, meanwhile] = await Promise.all([
+    const [text, lock] = await Promise.all([
       import('../../../../stories/tambora/story.md?raw'),
       import('../../../../stories/tambora/story.lock.json'),
-      import('../../story/meanwhile.tambora.json'),
     ]);
     const story = withLock(parseStory(text.default), lock.default);
-    return { story, meanwhile: meanwhileFromJson(meanwhile.default) };
+    return {
+      story,
+      meanwhile: meanwhileFromLock(lock.default),
+      glows: glowsFromLock(lock.default),
+    };
   },
 };
 

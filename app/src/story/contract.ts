@@ -60,10 +60,11 @@ export interface WalkOptions {
 
 export type CreateWalk = (story: Story, control: ViewControl, options: WalkOptions) => Walk;
 
-/** A notable event elsewhere during a beat: a stand-in until the event index exists. */
+/** A notable event elsewhere, from the event index (story/meanwhile.ts). */
 export interface MeanwhileEntry {
+  /** A beat's entry reads as its written line; a month's as its Wikidata label. */
   label: string;
-  /** Day number, and the date as the panel prints it ('18 June 1815', '1815-1816'). */
+  /** Day number, and the date as the panel prints it ('18 June 1815', 'June 1815', '1816'). */
   day: number;
   dateLabel: string;
   at: LonLat;
@@ -73,6 +74,19 @@ export interface MeanwhileEntry {
 
 /** Keyed by beat id. */
 export type MeanwhileByBeat = Record<string, MeanwhileEntry[]>;
+
+/** A month's entries, shown while the visitor scrubs; `start` and `end` are its first and last day. */
+export interface MeanwhileMonth {
+  start: number;
+  end: number;
+  entries: MeanwhileEntry[];
+}
+
+/** Each beat's entries, and each month's in story order for scrubbing. */
+export interface Meanwhile {
+  beats: MeanwhileByBeat;
+  months: MeanwhileMonth[];
+}
 
 /** The climate the globe draws: the month, its palette's range and middle, and how strongly. */
 export interface ClimateShown {
@@ -128,7 +142,7 @@ export interface SoundSwitch {
 export type CreateWalkUi = (
   root: HTMLElement,
   walk: Walk,
-  meanwhile: MeanwhileByBeat,
+  meanwhile: Meanwhile,
   sound: SoundSwitch,
   /** The data host, which serves the card's images. */
   dataHost: string,

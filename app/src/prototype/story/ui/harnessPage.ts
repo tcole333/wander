@@ -11,8 +11,7 @@ import storyText from '../../../../../stories/tambora/story.md?raw';
 import storyLock from '../../../../../stories/tambora/story.lock.json';
 import { DATA_SERVERS, dataOverride } from '../../../page/dataOrigin';
 import { withLock } from '../../../story/lock';
-import { meanwhileFromJson } from '../../../story/meanwhile';
-import tambora from '../../../story/meanwhile.tambora.json';
+import { meanwhileFromLock } from '../../../story/meanwhile';
 import { parseStory } from '../../../story/story';
 import { createWalkUi } from '../../../story/ui/walkUi';
 import { HarnessWalk } from './harnessWalk';
@@ -22,8 +21,6 @@ declare global {
     __walkUi?: { walk: HarnessWalk; jump(beat: number): void };
   }
 }
-
-const meanwhile = meanwhileFromJson(tambora);
 
 const story = withLock(parseStory(storyText), storyLock);
 const start = Math.max(0, Number(new URLSearchParams(location.search).get('beat') ?? 1) - 1);
@@ -36,7 +33,7 @@ const sound = {
   },
 };
 const dataHost = dataOverride(location) ?? DATA_SERVERS.global ?? '';
-const ui = createWalkUi(document.body, walk, meanwhile, sound, dataHost);
+const ui = createWalkUi(document.body, walk, meanwhileFromLock(storyLock), sound, dataHost);
 window.__walkUi = { walk, jump: (beat) => walk.jump(beat) };
 
 addEventListener('keydown', (event) => {

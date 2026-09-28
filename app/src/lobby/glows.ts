@@ -1,7 +1,7 @@
 // The lobby's ambient glows (PRD, "First visit: the lobby": faint ambient events glowing on the
-// globe). Until the global event index exists they are Meanwhile's stand-in entries
-// (story/meanwhile.tambora.json), each a pinprick of lamp-lit brass with a slow, shallow breath of
-// its own: small, so neighbors stay apart, and never ember-hot, since ember orange is the chosen
+// globe): the best-scored events of every era in the event index, spread over the globe, which the
+// prebuild's meanwhile stage puts in the story's lock (streaming.md 3.9). Each is a pinprick of
+// lamp-lit brass with a slow, shallow breath of its own: small, so neighbors stay apart, and never ember-hot, since ember orange is the chosen
 // story's. One Points object in three's built-in points material, additive and lit by nothing, so
 // it compiles with the rest of the scene before the lobby opens. The points are sized in pixels
 // and fade out toward the horizon rather than being depth-tested, since the exaggerated relief
