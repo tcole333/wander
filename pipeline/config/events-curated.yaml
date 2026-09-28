@@ -1,4 +1,10 @@
 # Hand-made corrections to the event index (streaming.md 3.4). `boosts` adds to an event's score,
 # log2(1 + Wikipedia editions) x class weight, where the edition count misjudges how much an event
-# mattered: each entry is {qid, boost, why}. None is needed yet.
-boosts: []
+# mattered: each entry is {qid, boost, why}.
+boosts:
+  - qid: Q48314
+    boost: 1.5
+    why: >-
+      Waterloo has 94 Wikipedia editions, more than any other event of 1815, but a battle's
+      weight ranks it below the lesser wars of its month, such as the Second Barbary War (24), so
+      June 1815 in Meanwhile would lack it.
