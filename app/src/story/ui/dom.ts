@@ -15,12 +15,16 @@ export function el<K extends keyof HTMLElementTagNameMap>(
  * Runs `action` on click. A pointer's click gives up focus, so Space and the arrow keys stay with
  * the director rather than pressing or scrolling whatever was clicked last; a click the keyboard
  * made (Enter or Space, with no pointer detail) keeps it, so a keyboard visitor stays where they
- * were.
+ * were. A held Enter presses once, as a held arrow key steps the walk once, rather than at the
+ * key's repeat rate.
  */
 export function onPress(element: HTMLElement, action: (event: MouseEvent) => void): void {
   element.addEventListener('click', (event) => {
     action(event);
     if (event.detail > 0) element.blur();
+  });
+  element.addEventListener('keydown', (event) => {
+    if (event.repeat && event.key === 'Enter') event.preventDefault();
   });
 }
 

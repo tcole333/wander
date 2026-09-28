@@ -14,7 +14,16 @@ function control() {
   });
   // A click's detail counts the pointer's clicks; one the keyboard makes has none.
   const press = (detail: number) => element.dispatchEvent(new CustomEvent('click', { detail }));
-  return { state, press };
+  // Enter's keydown, first or repeated while held; whether the control cancels its press.
+  const enter = (repeat: boolean) => {
+    const keydown = Object.assign(new Event('keydown', { cancelable: true }), {
+      key: 'Enter',
+      repeat,
+    });
+    element.dispatchEvent(keydown);
+    return keydown.defaultPrevented;
+  };
+  return { state, press, enter };
 }
 
 describe('a pressed control', () => {
@@ -26,6 +35,11 @@ describe('a pressed control', () => {
       { presses: 1, focused: false },
       { presses: 1, focused: true },
     ]);
+  });
+
+  it('is pressed once by a held Enter, its repeats cancelled', () => {
+    const { enter } = control();
+    expect([enter(false), enter(true), enter(true)]).toEqual([false, true, true]);
   });
 });
 
