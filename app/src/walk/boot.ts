@@ -335,6 +335,8 @@ async function assemble(
         })
       : null;
   if (lobby) made.push(() => lobby.dispose());
+  // The sea names are lettered before the first frame, in faces loaded now, so none pops in.
+  await look.ready;
   if (effects) {
     await precompile(
       renderer,
