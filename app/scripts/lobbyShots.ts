@@ -2,7 +2,8 @@
 // Chromium on Metal at 1440x900. The first run shoots the opening at 0 to 4 s after it starts, the
 // settled lobby, the plaque hovered, the Credits panel over the lobby, the dive at a few moments
 // on its way, the landing on beat 1 with the sound knob, the Credits panel over the walk, and the
-// Europe beat with the climate legend. The second run records the opening and the dive to video,
+// Europe beat with the climate legend, the return, and a muted second dive. The second run
+// records the opening, dive, return and re-entry to video,
 // untouched by screenshots. Writes <out>/*.png, <out>/lobby.webm and <out>/lobby.json (each shot's
 // time, fonts, the sound's state after the dive, any request to Wikimedia and any console errors).
 // The page's data-lobby attribute names the lobby's phase (lobby/lobby.ts). Plain Node, run from
@@ -112,12 +113,30 @@ try {
   await page.waitForTimeout(FADE_MS);
   await shoot('europe');
 
+  await page.click('.wu-mark');
+  const returning = Date.now();
+  for (const ms of DIVE_AT) {
+    await page.waitForTimeout(Math.max(0, returning + ms - Date.now()));
+    await shoot(`return-${ms}ms`, Date.now() - returning);
+  }
+  await phase(page, 'idle');
+  await page.waitForTimeout(FADE_MS);
+  await shoot('lobby-returned');
+  await page.click('.wu-sound');
+  await shoot('lobby-muted');
+  await page.click('.lobby-plaque');
+  await phase(page, 'gone');
+  await page.waitForTimeout(FADE_MS);
+  await shoot('beat-1-muted-again');
+
   const report = await page.evaluate(() => ({
     fonts: {
       libreBaskerville: document.fonts.check('16px "Libre Baskerville"'),
       sourceSerif4: document.fonts.check('16px "Source Serif 4"'),
     },
     panelClosed: !document.querySelector<HTMLDialogElement>('dialog.cp')?.open,
+    knobs: document.querySelectorAll('.wu-sound').length,
+    mutedAfterReturn: document.querySelector('.wu-sound')?.getAttribute('aria-pressed'),
   }));
   await shooting.close();
 
@@ -135,6 +154,15 @@ try {
   await filmed.click('.lobby-plaque');
   await phase(filmed, 'gone');
   await filmed.waitForTimeout(FADE_MS + 1500);
+  await filmed.keyboard.press('ArrowRight');
+  await filmed.waitForTimeout(6500);
+  await filmed.click('.wu-mark');
+  await phase(filmed, 'idle');
+  await filmed.waitForTimeout(FADE_MS);
+  await filmed.click('.wu-sound');
+  await filmed.click('.lobby-plaque');
+  await phase(filmed, 'gone');
+  await filmed.waitForTimeout(FADE_MS);
   const video = filmed.video();
   await recording.close();
   if (video) renameSync(await video.path(), join(out, 'lobby.webm'));

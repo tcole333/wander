@@ -17,7 +17,8 @@
 //  5. context loss (WEBGL_lose_context): the first reloads the page, and a second within five
 //     minutes brings the story's card in the room (owner decision 21);
 //  6. no request to the app's own host once the room has opened, on every page load above;
-//  7. leaks: after each of --walks walks through all eight beats, unthrottled, the renderer's and
+//  7. leaks: after each of --walks walks through all eight beats and a lobby round trip,
+//     unthrottled, the renderer's and
 //     the GPU process's footprint, the renderer's allocators from a Chromium memory dump, the JS
 //     heap and the DOM's counts. This one drives the headless shell over a bare CDP connection:
 //     Playwright keeps the Network domain on, whose agent holds response bodies in the renderer.
@@ -526,7 +527,7 @@ async function offlineSteps(session: Session) {
   // A tile that failed draws from its ancestors for degradeFor (30 s), then is wanted again.
   const recovered = await recovery(session, onlineAt, 90_000);
   await shoot(page, 'online-1-recovered');
-  await page.keyboard.press('Escape');
+  await page.locator('.wu-resume').click();
   await page.waitForTimeout(6000);
   await page.keyboard.press('ArrowLeft');
   await page.waitForTimeout(6000);
@@ -664,7 +665,8 @@ async function loseContext(page: Page): Promise<void> {
 // 7. Leaks
 
 /**
- * Walks every beat --walks times in a browser driven over a bare CDP connection, not Playwright:
+ * Walks every beat, returns to the lobby and dives again --walks times, in a browser driven over
+ * a bare CDP connection, not Playwright:
  * Playwright keeps the Network domain on for every page, and DevTools' network agent then keeps
  * response bodies in the renderer, which grows with every tile fetched. No domain is enabled
  * here but Page; gc() is exposed, and runs in the page and its decode workers before each sample.
@@ -683,6 +685,7 @@ async function leakSession(): Promise<Record<string, unknown>> {
     await bare.until("document.body.dataset.lobby === 'idle'");
     await bare.click('.lobby-plaque');
     await bare.until("document.body.dataset.lobby === 'gone'");
+    let firstLandingMs = await bare.evaluate<number>('performance.now()');
     await sleep(5000);
     const samples = [
       { walks: -1, ...blank },
@@ -697,7 +700,12 @@ async function leakSession(): Promise<Record<string, unknown>> {
         const press = beat === 0 ? await bare.click('.rc-dot') : await bare.key('ArrowRight');
         const previous = flights.at(-1);
         const left = BEATS[beat === 0 ? LAST : beat - 1];
-        const dwell = previous ? (press - previous.pressMs) / 1000 - previous.plannedS : 0;
+        const dwell =
+          beat === 1
+            ? (press - firstLandingMs) / 1000
+            : previous
+              ? (press - previous.pressMs) / 1000 - previous.plannedS
+              : 0;
         const from = left ? director.dwellView(left, Math.max(0, dwell)) : null;
         flights.push({
           beat,
@@ -707,6 +715,14 @@ async function leakSession(): Promise<Record<string, unknown>> {
         });
         await sleep(6500);
       }
+      // Include the lifetime boundary, then sample at the same point as walk 0: beat 1 after a
+      // dive, with old cards, directors, event handlers and fading cues already released.
+      await bare.click('.wu-mark');
+      await bare.until("document.body.dataset.lobby === 'idle'");
+      await bare.click('.lobby-plaque');
+      await bare.until("document.body.dataset.lobby === 'gone'");
+      firstLandingMs = await bare.evaluate<number>('performance.now()');
+      await sleep(5000);
       const taken = { walks: w, ...(await sample(bare)) };
       samples.push(taken);
       console.log(

@@ -1188,14 +1188,30 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     pinpricks of lit brass with a slow, shallow breath, additive and unlit, in three's built-in
     points material, compiled in the precompile. They stay faint and apart, since ember orange
     belongs to the chosen story. There is no hover queue yet; the dive's readiness gate covers
-    beat 1.
+    beat 1. The walk's knurled brass sound knob stands at the top right beside Credits. It and M
+    show and change the same remembered mute before any audio context exists; neither unlocks
+    sound in the lobby. One mark and one knob stay mounted for the whole visit (`story/ui/chrome.ts`).
   - **Credits:** an engraved link in the lobby, and the card's Credits link in the walk, open the
     PRD's Credits panel in place: the credits page's own sheet (`app/credits.html`, one source for
     both) in the card's brass frame, on the room darkened as if the lamp had turned to the sheet.
     Its attributions open in a tab of their own, so the walk keeps its place. `/credits` stays for
     direct links and new tabs.
-  - A way back to the lobby from a story, deep links (the Continue plate) and reduced motion wait
-    for milestone 4 or later.
+  - **Return:** WANDER at the top left and Escape bring the lobby back from a beat, a break-out or
+    an unfinished dive. Escape first closes Credits when its panel is open. The card and Meanwhile
+    withdraw along their arrival paths, with the Resume plaque, legend and borders' year plate;
+    the ruler lowers as the camera flies back to the view the visitor left in the lobby, using the
+    walk's van Wijk-Nuij path and easing. The lens eases back beside the plaques, the story's
+    effects fade as the ambient glows return, and the plaques and Credits come in at the landing.
+    The turn resumes after the usual five seconds without input. The knob moves back beside
+    Credits in one motion. The flight whirs while the cues and volcanic bed fade to museum room
+    tone. The next plaque choice starts paused on beat 1.
+    The lobby's DOM and glows, sound controller and room bed, compiled effects and loaded climate
+    and borders are reused. The story's keys stop at takeoff; the departing director, card images
+    and callbacks, ruler listener and UI are released at the landing, and the surface's story
+    layers and callouts clear.
+    A dev walk (`prototype.html?story=tambora`) still starts on beat 1 and returns to its initial
+    world view; every subsequent return goes to the view left at the plaque choice.
+  - Deep links (the Continue plate) and reduced motion wait for milestone 4 or later.
 - **Dive (~3 s):**
 
   | Time | On screen | Loading |
@@ -1206,14 +1222,15 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
   In milestone 1 the dive is the walk's own flight into beat 1 (`createWalk` with `arrive: 'fly'`),
   through its readiness gate, from wherever the visitor left the lobby's view. The walk starts in
-  the click that chose the plaque, and the boot creates and resumes the AudioContext in that click's
-  handler first (`walk/boot.ts`), since the walk's sound, made in the click, hears only the gestures
-  after it, and suspends it again if the story does not start. The whir carries the flight; the bed
+  the click that chose the plaque, and the page's sound controller creates and resumes the
+  AudioContext in that click's handler (`walk/boot.ts`), once the walk has been built successfully,
+  with the remembered mute already applied. The whir carries the flight; the bed
   and beat 1's cues come in at the landing. The plaques slide away, the turn stops, the glows go as
   the story's ember and pulses come up, the time ruler rises from below the page during the flight
   with its plate on beat 1's date as the card gives it, the lens eases from the column's shift to
-  the card's, and the card, and Meanwhile with the sound knob over it, come in at the landing. The
-  rings do not swing open; the camera passes through them as on any flight.
+  the card's, and the card and Meanwhile come in at the landing. The mark stays in place; the same
+  sound knob stays visible, sliding from beside Credits to its place over Meanwhile in 0.8 s.
+  The rings do not swing open; the camera passes through them as on any flight.
 
 - **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years, snapshot
   index and meta) are resident and prepared, N's critical surface and overlay tiles are uploaded, and the
@@ -1745,7 +1762,8 @@ simpler piece carried the Tambora walk:
   `?data=fixture` serves the fixture to the app). CI's Playwright runs the smoke tests, the pool
   smoke test and the vertex readback; 7.3's other checks come with what they test.
 - **Later** (owner decision 30): reduced motion, the article view with the no-WebGL redirect, URL
-  state and deep links, and a way back to the lobby.
+  state and deep links. The lobby's shared sound knob and WANDER/Escape return are implemented
+  (5.7); a return disposes the walk's UI and director, and the next plaque choice starts at beat 1.
 
 ### 8.2 Experiments
 
