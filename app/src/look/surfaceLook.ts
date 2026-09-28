@@ -1,8 +1,17 @@
 // The globe's material (SurfaceLook in ../contract.ts): a MeshStandardMaterial whose vertex stage
 // is the merged surface vertex chunk and whose fragment stage computes the spike's baked look from
-// the surface pools, per fragment. A MeshDepthMaterial with the same vertex stage lets the
-// displaced globe cast its own shadows.
-import { Color, Matrix4, MeshDepthMaterial, MeshStandardMaterial, Vector3 } from 'three';
+// the surface pools, per fragment, with the ocean and sea names inlaid in its lacquer
+// (seaNames.ts). A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
+// own shadows.
+import {
+  Color,
+  Matrix4,
+  MeshDepthMaterial,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  Vector2,
+  Vector3,
+} from 'three';
 import { tunables } from '../config/tunables';
 import type { CreateSurfaceLook, Params } from '../contract';
 import {
@@ -32,6 +41,7 @@ import {
   LOOK_FRAGMENT_SPECULAR,
 } from './lookFragment.glsl';
 import { LOOK_VERTEX_MAIN, LOOK_VERTEX_PARS } from './lookVertex.glsl';
+import { SeaNameLayer } from './seaNames';
 
 /** The spike's art-direction palette (surface.js PAL), as sRGB hex. */
 export const PALETTE = {
@@ -107,6 +117,8 @@ export function defaultLookParams(): Params {
     coastLine: 1.2,
     riverLine: 1,
     graticule: 1,
+    // The Labels layer's strength: the ocean and sea names.
+    seaNames: 1,
     noise: 1,
     // How polished the high ground gets below the world scale (the whole globe keeps the spike's
     // 1): lower dulls the lamp's glare on broad highlands such as Tibet at 3,000-10,000 km, at the
@@ -145,7 +157,15 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   const ash = createAshUniforms();
   const climate = createClimateUniforms();
   const borders = createBorderUniforms();
-  const uniforms: Uniforms = { ...vertex, ...look, ...ash, ...climate, ...borders };
+  const seaNames = new SeaNameLayer();
+  const uniforms: Uniforms = {
+    ...vertex,
+    ...look,
+    ...ash,
+    ...climate,
+    ...borders,
+    ...seaNames.uniforms,
+  };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
   material.name = 'wander-surface-look';
@@ -153,11 +173,17 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   registerClimate(material, climate);
   registerBorders(material, borders);
   material.defines = { ...material.defines, ...chunk.defines };
-  // The graticule needs the camera in the globe frame: the mesh's local frame.
+  // The graticule and the sea names need the camera in the globe frame: the mesh's local frame.
+  // The names also need the CSS px a length spans at the same distance in front of the camera.
   const toLocal = new Matrix4();
-  material.onBeforeRender = (_renderer, _scene, camera, _geometry, object) => {
+  const viewport = new Vector2();
+  material.onBeforeRender = (renderer, _scene, camera, _geometry, object) => {
     toLocal.copy(object.matrixWorld).invert();
     camLocal.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(toLocal);
+    if (!(camera instanceof PerspectiveCamera)) return;
+    renderer.getSize(viewport);
+    const pxPerUnit = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.y;
+    seaNames.place({ camera: camLocal, pxPerUnit, width: viewport.x }, Number(params.seaNames));
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -215,11 +241,13 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     depthMaterial,
     params,
     update,
+    ready: seaNames.ready,
     dispose() {
       material.dispose();
       depthMaterial.dispose();
       climate.lookClimateField.value.dispose();
       borders.lookBorderField.value.dispose();
+      seaNames.dispose();
     },
   };
 };

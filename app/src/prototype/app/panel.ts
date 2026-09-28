@@ -33,6 +33,7 @@ const RANGES: Record<string, [number, number, number?]> = {
   coastLine: [0, 4, 0.05],
   riverLine: [0, 4, 0.05],
   graticule: [0, 2, 0.05],
+  seaNames: [0, 1, 0.01],
   noise: [0, 2, 0.05],
   polish: [0, 1.5, 0.01],
   coarseRelief: [0, 1, 0.01],

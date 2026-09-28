@@ -69,6 +69,8 @@ export interface SurfaceLook {
   /** Includes at least `kLand`, `kSea`, `bathymetry` and `flatRelief`. */
   params: Params;
   update(elapsedS: number): void;
+  /** Resolves once the look's ocean and sea names are lettered; it never rejects. */
+  ready: Promise<void>;
   dispose(): void;
 }
 
