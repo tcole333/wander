@@ -22,6 +22,7 @@ STAND_INS = {
         "borders",
         "events",
         "modera",
+        "fx",
         "media",
         "meanwhile",
     )
@@ -35,9 +36,12 @@ def planned(*argv: str) -> list[str]:
 @pytest.mark.parametrize(
     ("argv", "stages"),
     [
-        ((), ["fetch", "coverage", "surface", "borders", "events", "modera"]),
-        (("--profile", "region"), ["fetch", "coverage", "surface", "borders", "events", "modera"]),
-        (("--profile", "fixture"), ["coverage", "surface", "events", "modera"]),
+        ((), ["fetch", "coverage", "surface", "borders", "events", "modera", "fx"]),
+        (
+            ("--profile", "region"),
+            ["fetch", "coverage", "surface", "borders", "events", "modera", "fx"],
+        ),
+        (("--profile", "fixture"), ["coverage", "surface", "events", "modera", "fx"]),
         (("surface", "coverage"), ["coverage", "surface"]),
         (("coverage", "coverage"), ["coverage"]),
         (("excerpts",), ["excerpts"]),
@@ -141,7 +145,7 @@ def test_a_full_fixture_build_writes_the_sidecars_and_stamp(tmp_path):
     stages = recording_stages(ran)
     ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
     run(ctx, names, stages)
-    assert ran == ["coverage", "surface", "events", "modera"]
+    assert ran == ["coverage", "surface", "events", "modera", "fx"]
     assert (ctx.stages_dir / "expect" / "cube-samples.json").is_file()
     assert "inputs" in json.loads((ctx.stages_dir / "stamp.json").read_text())
 
@@ -203,6 +207,7 @@ def test_the_stages_that_have_landed_are_registered_in_order():
         "borders",
         "events",
         "modera",
+        "fx",
         "media",
         "meanwhile",
     ]

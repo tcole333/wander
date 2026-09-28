@@ -54,6 +54,19 @@ export interface MediaRelease {
   images: string[];
 }
 
+/** Story route assets, keyed by story/dataset (dataset names are local to each story). */
+export type FxRelease = Record<
+  string,
+  {
+    key: string;
+    kind: 'route';
+    epochDay: number;
+    /** West, south, east, north; east may exceed 180 across the dateline. */
+    bbox: [number, number, number, number];
+    bytes: number;
+  }
+>;
+
 /** The part of release.json built so far: every stage adds its section. */
 export interface Release {
   id: string;
@@ -64,5 +77,7 @@ export interface Release {
   modera?: ModeraRelease;
   /** Present once the build has run the borders stage. */
   borders?: BordersRelease;
+  /** Present once the build has run the fx stage. */
+  fx?: FxRelease;
   media: MediaRelease;
 }
