@@ -1,7 +1,9 @@
 // The borders' year plate, at the top of the page between the mark and the sound knob, clear of
 // the card, Meanwhile, the climate legend and the ruler: a small riveted plate of Meanwhile's dark
 // cast brass naming the snapshot's year in engraved gilt capitals ("Borders · 1815"), as the
-// globe's borders always carry their year. It fades with the borders.
+// globe's borders always carry their year. Like the climate legend, it settles into view once the
+// borders are drawn at half strength or more and fades as they ease out, never lingering
+// half-seen while the view holds inside the borders' zoom fade.
 import type { BordersShown } from '../contract';
 import { yearLabel } from '../dates';
 import { el } from './dom';
@@ -14,7 +16,7 @@ export function bordersLabel(year: number): string {
 export class BordersPlate {
   readonly element = el('aside', 'wu-borders wu-brass wu-lit');
   readonly #label = el('span', 'wu-borders-label');
-  #opacity = -1;
+  #shown = false;
   #year: number | null = null;
 
   constructor() {
@@ -24,11 +26,11 @@ export class BordersPlate {
 
   /** Every frame: the borders drawn, or null while none are. */
   update(borders: BordersShown | null | undefined): void {
-    const opacity = Math.round(100 * (borders?.strength ?? 0)) / 100;
-    if (opacity !== this.#opacity) {
-      this.#opacity = opacity;
-      this.element.style.opacity = String(opacity);
-      this.element.setAttribute('aria-hidden', String(opacity < 0.5));
+    const shown = (borders?.strength ?? 0) >= 0.5;
+    if (shown !== this.#shown) {
+      this.#shown = shown;
+      this.element.classList.toggle('is-shown', shown);
+      this.element.setAttribute('aria-hidden', String(!shown));
     }
     if (!borders || borders.year === this.#year) return;
     this.#year = borders.year;
