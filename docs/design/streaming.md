@@ -1751,7 +1751,7 @@ acceptance).**
 - **Milestone 1's light answer (2026-09-28):** the export `wikidata-events-20260928` (39 classes,
   94,025 dated statements) gives an accepted corpus of 29,649 events: 1.18 MB stored as the table
   `ev/events.tsv.gz` and 3.77 MB decoded. Node 22 on the M5 inflates and parses it into typed
-  columns in 31-38 ms [M `e5/results/light.json`]. That is under a third of the split rule's 100K
+  columns in 31-39 ms [M `e5/results/light.json`]. That is under a third of the split rule's 100K
   rows and about 2.2 MB in the worker's typed arrays at 73 B a row [D], so the whole corpus fits
   one `all.wev` and no page is ever evicted. The query benchmark needs the event worker and the
   `.wev` files, so it moves with the globe's events layer, after milestone 1.
