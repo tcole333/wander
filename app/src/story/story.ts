@@ -241,7 +241,7 @@ function checkMeanwhile(value: unknown, where: string): void {
   const chosen = value as Record<string, unknown>;
   known(chosen, ['pin', 'hide'], `${where} meanwhile`);
   for (const key of ['pin', 'hide'] as const) {
-    for (const qid of list(chosen[key] ?? [], `${where} meanwhile ${key}`)) {
+    for (const qid of list(key in chosen ? chosen[key] : [], `${where} meanwhile ${key}`)) {
       if (typeof qid !== 'string' || !/^Q[1-9][0-9]*$/.test(qid)) {
         throw new StoryError(`${where} meanwhile ${key}: '${String(qid)}' is not a Wikidata qid`);
       }

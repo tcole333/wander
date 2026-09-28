@@ -138,6 +138,11 @@ sources:
       /meanwhile pin must be a list/,
     ],
     [
+      'a pin given as null',
+      BEAT.replace('meanwhile: auto', 'meanwhile: {pin: null}'),
+      /meanwhile pin must be a list/,
+    ],
+    [
       'a hide that is not a qid',
       BEAT.replace('meanwhile: auto', 'meanwhile: {hide: [Waterloo]}'),
       /'Waterloo' is not a Wikidata qid/,
