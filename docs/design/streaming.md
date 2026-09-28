@@ -694,8 +694,9 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   part-of relatives, and never a parent with its child; then greedy by score, each 2,000 km from
   those taken. While enough others qualify, a beat shows none of the previous beat's, nor any the
   next beat would show that is dated nearer to it, so Waterloo goes to the beat of late June 1815,
-  not the April one whose window also holds it. The same rule picks three per month from January
-  1815 to December 1817 for scrubbing: the month's window, the target of the beat dated nearest
+  not the April one whose window also holds it. The same rule picks three per month of the story's
+  years (from January of the year its beats' windows open to December of the year they close) for
+  scrubbing: the month's window, the target of the beat dated nearest
   it, none of the story's focal events and nothing a beat hides.
 - **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
   present-tense line in the story's voice and its source (`qid: {line, date?, source: {title,
@@ -1320,7 +1321,7 @@ the fixture (7.3); `publish-data` takes the same `--profile` (4.3). The fixture 
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points and focal resolution against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
-| `meanwhile --story <id>` | the story's beats + `ev/events.tsv.gz` in the profile's output root + `stories/<id>/meanwhile.yaml` → the lock's `meanwhile` (each beat's three entries and each month's from 1815 to 1817) and `glows` (3.9) | 1 s [M] | local |
+| `meanwhile --story <id>` | the story's beats + `ev/events.tsv.gz` in the profile's output root + `stories/<id>/meanwhile.yaml` → the lock's `meanwhile` (each beat's three entries and each month's of the story's years) and `glows` (3.9) | 1 s [M] | local |
 | `npm run poster` | Deferred past milestone 1, whose poster is the CSS room (owner decision 21). Playwright renders the lobby at 1440×900 → `app/src/generated/poster.avif` (≤ 40 KB), committed and inlined by a Vite plugin. The lobby camera frames the instrument to the viewport height, and the poster uses `object-fit: cover` with the same center. | seconds | local |
 | `npm run publish-data` | stage records → `release.json`; uploads (4.3) | minutes | local |
 | `npm run stories` | `story.md` + lock + `release.json` → bundled JSON + article pages | seconds | CI and dev |
