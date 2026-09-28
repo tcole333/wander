@@ -1,0 +1,20 @@
+{
+  "source": "mode-ra-temp2",
+  "file": "sources/mode-ra-temp2/ModE-RA_ensstd_temp2_anom_wrt_1901-2000_1421-2008_mon.nc",
+  "sha256": "e4c4a111c84f83c1be0a03b6b01e5aed097a6b5af4a3bb1423dfeb299c74a835",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "attribution": "Valler et al. (2023), ModE-RA, WDCC at DKRZ, DOI 10.26050/WDCC/ModE-RA_s14203-18501; publication DOI 10.1038/s41597-023-02733-8.",
+  "landing_page": "https://www.wdc-climate.de/ui/entry?acronym=ModE-RA_s14203-18501",
+  "years": [
+    1815,
+    1817
+  ],
+  "bounds": [
+    -15,
+    35,
+    35,
+    65
+  ],
+  "selection": "Original float32 cells with centers inside bounds; missing elsewhere. All 12 months per year, in source order, on the full native latitude/longitude grid."
+}
