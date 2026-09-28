@@ -572,13 +572,16 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   - `camera`: `target` [lon, lat] in degrees; `viewKm`, the visible width at the target; `tilt` in
     degrees from nadir; `heading` in degrees clockwise from north; `drift`, none or slow
   - `focal`: `{qid, at?, date?}` (overrides Wikidata)
-  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?, license?}`, on every beat, with
-    alt text that describes the image for a reader who cannot see it. `credit` names the makers
-    where Commons' Artist field names an uploader instead (the Internet Archive's Flickr account for
-    a book's engraving) or spells a name otherwise than the credits page ('J.A.Gradmann' for J. A.
-    Gradmann); `license` gives the source's own rights statement where Commons gives only its
-    template's short name ('No restrictions' for No known copyright restrictions). Otherwise both
-    come from Commons.
+  - `image`: `{commons, sha1, crop: [x0, y0, x1, y1], alt, credit?, license?, collection?}`, on
+    every beat, with alt text that describes the image for a reader who cannot see it. `credit`
+    names the makers where Commons' Artist field names an uploader instead (the Internet Archive's
+    Flickr account for a book's engraving) or spells a name otherwise than the credits page
+    ('J.A.Gradmann' for J. A. Gradmann); `license` gives the source's own rights statement where
+    Commons gives only its template's short name ('No restrictions' for No known copyright
+    restrictions). Otherwise both come from Commons. `collection` is the holding collection's own
+    credit line where it asks to be credited so: the David Rumsey Map Collection asks for 'David
+    Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries', which the card's caption
+    (under the makers), the credits page and the Credits panel give in full.
   - `layers`: the listed layers are on and anything omitted is off. The canonical order, which is also
     the `?l=` bit order: relief, bathymetry, coastline, landSea, water, graticule, labels, borders,
     ecoregions, petroleum, mountains, minerals, climate, events. The schema takes the names and
@@ -600,17 +603,18 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
 - **Meanwhile, auto:** the top `meanwhileCount` events by score inside the beat window that lie more
   than `meanwhileMinKm` from the target, at most one per macro-region.
 - **Lock** (`stories/<story>/story.lock.json`, written by the media stage, committed):
-  `{eventsVer, images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, license,
-  source}], audio: [{key, bytes, loopStart, loopEnd}], events: {qid: {label, t, at}}, meanwhile:
-  {beatId: [qid, …]}}`. An image's entry is found by its sha1 and crop, so a recrop needs a new
-  bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the Artist
-  field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else Commons'
-  Credit; `license` is the story's own `license` when the beat gives one, else Commons'
-  LicenseShortName as it stands; `source` is the file's page. The media stage writes `images` so
-  far; `eventsVer`, `events` and `meanwhile` join with the events build and `audio` with the first
-  CC0 sample. Until `npm run stories` compiles the story, the app joins the lock to the parsed
-  story itself (`app/src/story/lock.ts`), and the card reads its image from the data host and its
-  credit from the lock, so a visitor's browser never calls Commons.
+  `{eventsVer, images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?,
+  license, source}], audio: [{key, bytes, loopStart, loopEnd}], events: {qid: {label, t, at}},
+  meanwhile: {beatId: [qid, …]}}`. An image's entry is found by its sha1 and crop, so a recrop needs
+  a new bake. `credit` is the makers: the story's own `credit` when the beat gives one, else the
+  Artist field's names (a catalog's 'Pinkerton, John, 1758-1826' as 'John Pinkerton'), else
+  Commons' Credit; `collection` is the story's own, when the beat names one; `license` is the
+  story's own `license` when the beat gives one, else Commons' LicenseShortName as it stands;
+  `source` is the file's page. The media stage writes `images` so far; `eventsVer`, `events` and
+  `meanwhile` join with the events build and `audio` with the first CC0 sample. Until
+  `npm run stories` compiles the story, the app joins the lock to the parsed story itself
+  (`app/src/story/lock.ts`), and the card reads its image from the data host and its credit from
+  the lock, so a visitor's browser never calls Commons.
 
 ---
 

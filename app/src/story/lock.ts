@@ -20,6 +20,11 @@ export interface LockedImage {
   files: LockedFile[];
   /** The makers, as the card's caption names them. */
   credit: string;
+  /**
+   * The holding collection's own credit line, where it asks to be credited so (the David Rumsey
+   * Map Collection's), which the caption gives in full under the makers.
+   */
+  collection?: string;
   /** The license as Commons states it, or the source's rights statement as the story words it. */
   license: string;
   /** The file's page on Commons. */

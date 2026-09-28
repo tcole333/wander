@@ -241,7 +241,11 @@ function checkMeanwhile(value: unknown, where: string): void {
 }
 
 function parseImage(image: Record<string, unknown>, where: string): StoryImage {
-  known(image, ['commons', 'sha1', 'crop', 'alt', 'credit', 'license'], `${where} image`);
+  known(
+    image,
+    ['commons', 'sha1', 'crop', 'alt', 'credit', 'license', 'collection'],
+    `${where} image`,
+  );
   const alt = text(image.alt, `${where} image alt`).trim();
   if (alt === '') throw new StoryError(`${where} image needs alt text`);
   const crop = list(image.crop ?? [0, 0, 1, 1], `${where} crop`).map((c) => num(c, 'crop'));
