@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from prebuild import borders, coverage, excerpts, fetch, media, modera, surface
+from prebuild import borders, coverage, events, excerpts, fetch, media, modera, surface, wikidata
 from prebuild.expect import clear_stamp, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
@@ -16,20 +16,23 @@ type Runner = Callable[[Context], None]
 # Every stage, in the order a run takes them. Each stage registers here when it lands.
 STAGES: dict[str, Runner] = {
     "fetch": fetch.run,
+    "wikidata": wikidata.run,
     "excerpts": excerpts.run,
     "coverage": coverage.run,
     "surface": surface.run,
     "borders": borders.run,
+    "events": events.run,
     "modera": modera.run,
     "media": media.run,
 }
 
-# A run with no stage named leaves these out: excerpts rewrites committed files, and media
-# builds the one story named with --story.
-NAMED_ONLY = frozenset({"excerpts", "media"})
+# A run with no stage named leaves these out: wikidata and excerpts rewrite committed files, and
+# media builds the one story named with --story.
+NAMED_ONLY = frozenset({"wikidata", "excerpts", "media"})
 # The fixture reads only committed excerpts, so it never runs the stages that read raw data.
-# modera has no excerpt yet (modera.py); the borders tests draw synthetic snapshots (borders.py).
-RAW_DATA_ONLY = frozenset({"fetch", "excerpts", "borders", "modera"})
+# events and modera have no excerpt yet (events.py, modera.py); the borders tests draw synthetic
+# snapshots (borders.py).
+RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "borders", "events", "modera"})
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
@@ -96,7 +99,8 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         description="Turn Wander's raw sources into web-ready assets (streaming.md 7.1).",
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
-            "excerpts and media; the fixture profile also skips fetch, borders and modera."
+            "wikidata, excerpts and media; the fixture profile also skips fetch, borders, events "
+            "and modera."
         ),
     )
     parser.add_argument(
