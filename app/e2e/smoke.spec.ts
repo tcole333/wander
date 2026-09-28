@@ -4,11 +4,13 @@
 // Credits panel opens from the lobby and closes; the Tambora plaque dives into beat 1, whose title
 // shows with its image from the data host, and the Right arrow brings beat 2's; M mutes; the
 // card's Credits link opens the panel too; the credits page still loads on its own; nothing logs
-// an error; and no request goes to Wikimedia: the images are the media stage's, on the data host.
+// an error; no request goes to Wikimedia: the images are the media stage's, on the data host; and
+// once the room opens, nothing more is fetched from the app's own host: every face and worker came
+// with the boot.
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
-import { DATA_URL } from './servers';
+import { DATA_URL, PREVIEW_URL } from './servers';
 
 const story = parseStory(
   readFileSync(new URL('../../stories/tambora/story.md', import.meta.url), 'utf8'),
@@ -87,7 +89,9 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   // The room is the poster until the lobby's opening starts, then fades out of the way. Any key
   // runs the rest of the opening, which CI's software renderer would otherwise draw many slow
   // frames of.
-  await expect(page.locator('#room')).toBeHidden({ timeout: 60_000 });
+  await expect(page.locator('#room')).toHaveClass(/\bis-open\b/, { timeout: 60_000 });
+  const opened = requested.length;
+  await expect(page.locator('#room')).toBeHidden({ timeout: 30_000 });
   await page.keyboard.press('Shift');
   await expect.poll(() => litFraction(page), { timeout: 90_000 }).toBeGreaterThan(0.05);
 
@@ -119,6 +123,7 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   await expect(sheet).toBeVisible();
   await panel.getByRole('button', { name: 'Close' }).click();
   await expect(panel).toBeHidden({ timeout: 30_000 });
+  const fromApp = requested.slice(opened).filter((url) => new URL(url).origin === PREVIEW_URL);
 
   const credits = await page.goto('/credits');
   expect(credits?.status()).toBe(200);
@@ -128,4 +133,5 @@ test('enters the Tambora walk from the lobby and opens its credits', async ({ pa
   expect(requested.filter((url) => url.startsWith(`${DATA_URL.fixture}/img/`))).not.toEqual([]);
   const wikimedia = requested.filter((url) => /(^|\.)wikimedia\.org$/.test(new URL(url).hostname));
   expect(wikimedia).toEqual([]);
+  expect(fromApp).toEqual([]);
 });

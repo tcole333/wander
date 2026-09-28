@@ -10,8 +10,10 @@
 // walk and flies into its first beat.
 //
 // The first frame follows the roots (L0-L1) and the precompile, and in the lobby the opening starts
-// on it: the finer tiles stream in as the lamp comes up. The climate's years, which only the 1816
-// beats draw, load once the opening has started, after everything the first frame needs.
+// on it: the finer tiles stream in as the lamp comes up. Every face the page draws loads beside the
+// roots (story/ui/fonts.ts), so nothing comes from the app's host after the boot. The climate's
+// years, which only the 1816 beats draw, load once the opening has started, after everything the
+// first frame needs.
 //
 // The host fills the window: the canvas goes first in it, the story's plaques over the canvas, and
 // the story's UI last (walk.css). The production entry (main.ts) and the dev shell
@@ -26,6 +28,7 @@ import {
   type Material,
   type Object3D,
 } from 'three';
+import creditsPage from '../../credits.html?raw';
 import { unlockSound } from '../audio/engine';
 import { createWalkAudio, type WalkAudio } from '../audio/walkAudio';
 import type { MuseumScene, Params, StreamerStats, SurfaceLook, SurfaceStreamer } from '../contract';
@@ -40,6 +43,7 @@ import type { MeanwhileByBeat, Walk, WalkEffects, WalkUi } from '../story/contra
 import { bindWalkKeys, createWalk, type DirectedWalk } from '../story/director';
 import { createWalkEffects } from '../story/effects/walkEffects';
 import type { Story } from '../story/story';
+import { loadFaces } from '../story/ui/fonts';
 import { createWalkUi } from '../story/ui/walkUi';
 import { createSurfaceStreamer } from '../stream/streamer';
 import { faceOf, faceSt, lonLatToDir, tileOf } from '../surface/cube';
@@ -197,6 +201,10 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
+  // The faces load beside the roots, for every character of the story, Meanwhile and the credits.
+  const faces = source
+    ? loadFaces(JSON.stringify(source.story) + JSON.stringify(source.meanwhile) + creditsPage)
+    : null;
   const streamer = await createSurfaceStreamer(renderer, release);
   made.push(() => streamer.dispose());
   const layer = streamer.layer;
@@ -341,6 +349,7 @@ async function assemble(
   if (lobby && effects) effects.group.visible = false;
   else if (source) begin('jump');
   if (effects) void (lobby?.opened ?? Promise.resolve()).then(() => effects.load());
+  await faces;
 
   const frameLens = (dtS: number) => {
     const target = lobby?.lensShift() ?? cardShift;
