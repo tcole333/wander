@@ -59,6 +59,15 @@ export function fillBorderField(uniforms: BorderUniforms, faces: Uint8Array): vo
 export function uploadBorderFace(uniforms: BorderUniforms, face: number): void {
   const field = uniforms.lookBorderField.value;
   field.addLayerUpdate(face);
+  if (face === BORDER_FACES - 1) {
+    // Faces are scheduled in order. three calls this only after uploading every pending layer;
+    // clearing here, rather than when the last face is scheduled, keeps all partial reads valid.
+    // The field never changes again, and a lost context reloads the page (owner decision 21).
+    field.onUpdate = () => {
+      field.image.data = null;
+      field.onUpdate = null;
+    };
+  }
   field.needsUpdate = true;
 }
 
