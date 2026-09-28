@@ -195,7 +195,8 @@
     "lon": 115,
     "lat": 13.5,
     "size": 1.0,
-    "style": "sea"
+    "style": "sea",
+    "minKm": 6500
   },
   {
     "text": "Gulf of Thailand",
@@ -211,7 +212,8 @@
     "lat": 11.5,
     "size": 0.6,
     "angle": -80,
-    "style": "sea"
+    "style": "sea",
+    "maxKm": 3500
   },
   {
     "text": "Philippine Sea",
