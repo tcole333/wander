@@ -106,7 +106,11 @@ for (const entry of ['production', 'dev'] as const) {
     await expect(page.locator('.wu-mw-entry')).toHaveCount(firstBeatMeanwhile('magellan'));
     await page.keyboard.press('ArrowRight');
     await expect(title).toHaveText(stories.magellan!.beats[1]!.title);
-    await expect(page.locator('.rc-plate-top').first()).toHaveText('13 DECEMBER');
+    // The date lands with the voyage across the Atlantic, about 11 s of flight, which SwiftShader
+    // draws at a frame a second at the walk's step of 0.1 s a frame.
+    await expect(page.locator('.rc-plate-top').first()).toHaveText('13 DECEMBER', {
+      timeout: 4 * TIMEOUT,
+    });
     await page.keyboard.press('Escape');
     await phase(page, 'idle');
     await expect(page.locator('.wu-story')).toHaveCount(0);
