@@ -103,7 +103,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   release names that R2 lacks, canary first and never overwriting a key, then writes
   `app/src/generated/release.json` (commit it) and `rel/<id>.json` (`docs/design/streaming.md`
   4.3). `--dry-run` lists R2 and reports what it would upload. Local only; the fixture is never
-  published.
+  published. When the borders' `ver` is new, tag the commit that built them `borders-<ver>` and
+  push the tag first: their GPL notice links the build scripts there, and the run stops, naming
+  the commands, until origin holds it.
 - `uv run prebuild fetch` downloads what is missing from `pipeline/sources.toml` into the raw-data
   folder and checks every sha256. `uv run prebuild excerpts` rewrites the committed excerpts in
   `pipeline/tests/data/` from it, reproducing them byte for byte; commit what it changes.

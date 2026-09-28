@@ -4,12 +4,14 @@
 // so a key present with another size stops the run before any upload. The canary (bounds.bin and
 // the L0 tiles) goes up first and the headers R2 stored with it are checked, because a key is never
 // overwritten and the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
-// If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. Last
+// If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. A
+// borders notice goes up only once origin holds the tag it links the build scripts at. Last
 // come the bundled app/src/generated/release.json and its copy rel/<id>.json; CI's
 // `npm run check-release` reads the same roots through the data host. The fixture never leaves
 // this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
 //
 //   npm run publish-data -- [--profile global|region] [--dry-run]
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
@@ -132,6 +134,28 @@ function bordersSections(borders: BordersRelease, root: string): Section[] {
   ];
 }
 
+/**
+ * The tag the borders' GPL notice links the build scripts at, `borders-<ver8>` (streaming.md 3.3),
+ * when the upload sends that notice; null when it sends none.
+ */
+export function noticeTag(release: Release, missing: LocalObject[]): string | null {
+  const { borders } = release;
+  if (!borders) return null;
+  const notices = new Set(Object.values(borders.files).map(({ notice }) => notice));
+  return missing.some(({ key }) => notices.has(key)) ? `borders-${borders.ver}` : null;
+}
+
+/** Whether origin holds the tag. */
+function onOrigin(tag: string): boolean {
+  try {
+    const args = ['ls-remote', '--exit-code', '--tags', 'origin', `refs/tags/${tag}`];
+    execFileSync('git', args, { cwd: REPO_ROOT, stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** The stories' images under img/, each baked by the media stage into this output root. */
 function mediaSection(media: MediaRelease, root: string): Section {
   const missing = media.images.filter((key) => !existsSync(join(root, key)));
@@ -195,6 +219,14 @@ export async function publish(options: PublishOptions): Promise<void> {
     );
   }
   const missing = plans.flatMap((p) => p.missing);
+  // The notice's key is never overwritten, so the link in it must resolve before it goes up.
+  const tag = noticeTag(release, missing);
+  if (tag !== null && !onOrigin(tag)) {
+    throw new PublishError(
+      `origin has no tag ${tag}, where the borders' GPL notice links the build scripts: on the ` +
+        `commit that built them, run \`git tag ${tag} && git push origin ${tag}\``,
+    );
+  }
   if (dryRun) {
     console.log(`dry run: ${missing.length} keys to upload, ${sizeOf(missing)}; nothing written`);
     return;
