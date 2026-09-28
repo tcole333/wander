@@ -44,6 +44,13 @@ import {
   LOOK_FRAGMENT_SPECULAR,
 } from './lookFragment.glsl';
 import { LOOK_VERTEX_MAIN, LOOK_VERTEX_PARS } from './lookVertex.glsl';
+import {
+  createRouteUniforms,
+  disposeRouteTextures,
+  registerRoutes,
+  ROUTE_FRAGMENT_APPLY,
+  ROUTE_FRAGMENT_PARS,
+} from './routeHook';
 import { SeaNameLayer } from './seaNames';
 
 /** The spike's art-direction palette (surface.js PAL), as sRGB hex. */
@@ -160,6 +167,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   const ash = createAshUniforms();
   const climate = createClimateUniforms();
   const borders = createBorderUniforms();
+  const routes = createRouteUniforms();
   const seaNames = new SeaNameLayer();
   const uniforms: Uniforms = {
     ...vertex,
@@ -167,6 +175,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     ...ash,
     ...climate,
     ...borders,
+    ...routes,
     ...seaNames.uniforms,
   };
 
@@ -175,6 +184,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   registerAsh(material, ash);
   registerClimate(material, climate);
   registerBorders(material, borders);
+  registerRoutes(material, routes);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule and the sea names need the camera in the globe frame: the mesh's local frame.
   // The names also need the CSS px a length spans at the same distance in front of the camera, and
@@ -187,6 +197,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     camLocal.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(toLocal);
     if (!(camera instanceof PerspectiveCamera)) return;
     renderer.getSize(viewport);
+    routes.lookRoutePixelRatio.value = renderer.getPixelRatio();
     const pxPerUnit = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.y;
     toClip
       .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
@@ -200,11 +211,11 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${LOOK_FRAGMENT_PARS}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}`,
+        `#include <common>\n${LOOK_FRAGMENT_PARS}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${ROUTE_FRAGMENT_PARS}`,
       ],
       [
         '#include <color_fragment>',
-        `${LOOK_FRAGMENT_COLOR}\n${CLIMATE_FRAGMENT_APPLY}\n${BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}`,
+        `${LOOK_FRAGMENT_COLOR}\n${CLIMATE_FRAGMENT_APPLY}\n${BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
       ],
       ['#include <roughnessmap_fragment>', LOOK_FRAGMENT_ROUGHNESS],
       ['#include <metalnessmap_fragment>', LOOK_FRAGMENT_METALNESS],
@@ -255,12 +266,17 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       account.texture('borders.1815', borders.lookBorderField.value);
       account.texture('climate.uploadField', climate.lookClimateField.value);
       account.texture('labels.seaAtlas', seaNames.uniforms.lookSeaAtlas.value);
+      account.texture('routes.segments', routes.lookRouteSegments.value);
+      account.texture('routes.cells', routes.lookRouteCells.value);
+      account.texture('routes.indices', routes.lookRouteIndices.value);
+      account.texture('routes.state', routes.lookRouteState.value);
     },
     dispose() {
       material.dispose();
       depthMaterial.dispose();
       climate.lookClimateField.value.dispose();
       borders.lookBorderField.value.dispose();
+      disposeRouteTextures(routes);
       seaNames.dispose();
     },
   };

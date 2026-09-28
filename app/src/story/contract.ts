@@ -8,6 +8,7 @@ import type { ViewState } from '../view/viewState';
 import type { Precision } from './dates';
 import type { BordersSource } from './effects/borders';
 import type { ClimateSource } from './effects/climate';
+import type { RouteSource } from './effects/route';
 import type { LonLat, Story } from './story';
 
 /** Playing advances by itself after each landing; breakout means the visitor is exploring. */
@@ -174,7 +175,7 @@ export interface WalkEffects {
   ): void;
   /** Clears the story from the lobby while keeping its compiled effects and loaded data. */
   hide(): void;
-  /** Starts fetching what the effects draw from the data host: the climate's years. */
+  /** Starts fetching the story's climate years and named routes from the data host. */
   load(): void;
   /**
    * Every frame from the room's opening, the story started or not: what loads in the background
@@ -192,5 +193,5 @@ export type CreateWalkEffects = (
   story: Story,
   look: SurfaceLook,
   labelRoot: HTMLElement,
-  source?: ClimateSource & BordersSource,
+  source?: ClimateSource & BordersSource & RouteSource,
 ) => WalkEffects;
