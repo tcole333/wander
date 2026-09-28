@@ -1648,8 +1648,9 @@ After milestone 1: E6 with the other thematic layers, then the other four storie
 
 #### Milestone 1 as shipped
 
-Milestone 1 went live on 27 September 2026 and passed E3, its acceptance, on 28 September (8.2).
-Where it departs from the design, a simpler piece carried the Tambora walk:
+Milestone 1 went live on 27 September 2026. E3, its acceptance, passed on the live site on 28
+September except the memory caps (8.2). Where it departs from the design, a simpler piece carried
+the Tambora walk:
 
 - **Surface:** the global bake (15,740 tiles: L5-L6 on all land and shelf, L7 at Sumbawa), not the
   region bake, since the look prototype had baked it and a break-out can reach anywhere.
@@ -1718,7 +1719,7 @@ pre-launch checks or a later milestone:
 |---|---|---|
 | **E1** | Re-scoped to the look prototype (owner decision 27) and answered by what shipped: material (a), relief normals from the fragment and four taps around it in the spike's look; the zoom floor and relief by zoom, judged by eye on the global bake (owner decisions 1 and 19); MSAA as shipped (8.1). In the lab no browser flattens a branch on a uniform that is off, and a tile decodes in 1.7-2 ms at the median [M `e1/results/`]. The look prototype's reviews held 60 fps at 1440×900 on the M5. | For the pre-launch checks: the factorial run, headed, with presented-frame p95 on both tiers, unmeasured until then (owner decision 29); compile times; the soak; the AA and material comparisons; zstd; and the Windows checks on the Iris Xe laptop. |
 | **E2** | Re-scoped likewise and answered by construction: every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of the region bake by `npm run verify:bake`, and on the GPU by the readback on SwiftShader and Metal. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, and upload timing on the target machines. |
-| **E3** | Passed on the live site (below; results in [`docs/design/measurements/e3/`](measurements/e3/)). An old tab walked on across a deploy, and headless WebKit 26.6 and Firefox 155 walked the live lobby, dive and beats 1-3 on WebGL 2 with no console error or failed request. | For the pre-launch checks: frame times, the lite tier, tilt, GPU memory, the overlay pool peak (after E6), in-place restore, reload with URL state, and the loop seams by ear in Safari and Firefox. |
+| **E3** | Passed on the live site except the memory caps (below) [M `e3/results/`]: the renderer holds 270-288 MiB against the CPU line of 256 MiB (section 6), and GPU memory and the lite tier were not measured. Headless WebKit 26.6 and Firefox 155 walked the live lobby, dive and beats 1-3 on WebGL 2 with no console error or failed request. | For the pre-launch checks: the renderer's memory against the CPU line, frame times, the lite tier, tilt, GPU memory, the overlay pool peak (after E6), in-place restore, reload with URL state, and the loop seams by ear in Safari and Firefox. |
 | **E4** | At 24 h and 72 h after the warm, all 50 first reads of each cohort hit at the Boston edge: wait p50 27 ms, TTFB p90 128 and 79 ms, far under the 500 ms break point [M `e4/results/`]. No re-warm and no quad packs so far. | The 7 d cohort, read on 2 October; it decides the scheduled re-warm (section 9). |
 | **E5** | The light answer below: 29,649 events in 1.18 MB, parsed in 31-39 ms, so the whole corpus fits one `all.wev`. | The query benchmark, with the globe's events layer (milestone 3). |
 | **E6** | Not run. | With the thematic layers (milestone 3). |
@@ -1788,17 +1789,23 @@ acceptance).**
 - **If it fails:** grow the story core (for example, with beats 1-2 critical tiles). If the pools
   overflow under tilt, drop N+1 critical to desired−2. Move any fetch that breaks across a deploy to R2.
 - **Milestone 1's run (2026-09-28):** `app/scripts/e3.ts` ran on the live site at release
-  9b3f8312bae73f83, over the eight-beat Tambora walk rather than the three-beat setup above. Cold
-  at 25/50, the room opens 1.24 s after navigation (4.5 s at 5/150), after 2.20 MB, since the
-  first frame waits for L0-L1. At 5/150 every beat lands whole, on coarser ancestors where its
-  tiles are still arriving. The gate holds every flight about its full 0.4 s and never longer.
-  Hostile input, a dropped connection and two context losses leave the card and the globe
-  whole, or bring the card as decided (owner decision 21). An old tab walks on across a deploy,
-  nothing is fetched from Pages after the room opens, and ten walks leave memory flat [M
-  `e3/results/live-2026-09-28.json`]. Reported past their lines: beats 1, 2, 6 and 7 fetch
-  8.3-9.5 MiB each, the story 47.8 MiB, and the renderer holds 270-288 MiB against the CPU
-  budget's 256. Frame times, the lite tier, tilt, overlays and the app's own GPU memory wait for
-  the pre-launch checks.
+  9b3f8312bae73f83, over the eight-beat Tambora walk rather than the three-beat setup above, on
+  the full tier only [M `e3/results/live-2026-09-28.json`]. Cold at 25/50, the room opens 1.24 s
+  after navigation (4.5 s at 5/150), after 2.20 MB, since the first frame waits for L0-L1. At
+  5/150 every beat lands whole, on coarser ancestors where its tiles are still arriving. Each
+  observable flight lands 0.28-0.35 s late, within about 70 ms of the director's full hold and
+  under its 0.4 s limit. Unthrottled, 44 of 69 observed flights hold too, and the median lands
+  265 ms late, so the gate's hold is close to a fixed landing delay. Hostile input, a dropped
+  connection and two context losses leave the card and the globe whole, or bring the card as
+  decided (owner decision 21). Nothing is fetched from Pages after the room opens, and ten walks
+  leave memory flat. An old tab loaded on release d2c7ca91d12a3ec4 walks on and breaks out after
+  9b3f8312bae73f83 deploys [M `e3/results/old-tab.json`].
+  - **Over their reported rows** (section 6): beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each against
+    8 MiB, and the story 47.8 MiB against 35 MiB.
+  - **Over its gate:** the renderer holds 270-288 MiB against the CPU budget's 256.
+  - **Not measured:** the GPU cap, since the GPU process reads about 1.0 GB of footprint and
+    750 MB of graphics memory, which cannot be split into the app's own share; the lite tier;
+    frame times; tilt; and overlays. They wait for the pre-launch checks.
 
 **E4. Cold-edge retention and fill latency on a low-traffic domain.**
 - **Setup:** the infrastructure from 8.1 step 0. Upload 200 × 40 KB gzip-in-file objects under `_e4/`
