@@ -54,7 +54,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders, range names follow Mountains, ocean and sea names follow Labels. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. |
-| **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders: 1878 snapshot"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
+| **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders: 1878 snapshot"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. Milestone 1 draws only 1815, from one global field of distances loaded in the lobby (3.3). | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
 | **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, noted as illustrative in Credits. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
@@ -370,6 +370,51 @@ u8 dist[54][256][512]   equirect (3.0); min(255, 16·d) in preview texels to the
 
 On the GPU this is one R8 array of 54 layers, 6.75 MiB [D].
 
+**Milestone 1: one field per snapshot, `fd/borders/<ver8>/<stem>.bin`.** Milestone 1 draws one
+snapshot, 1815, the nearest to every Tambora date, so it draws it from one global field instead of
+the overlay tiles and previews above, which come with explore mode and the other snapshots. The
+`borders` stage (`pipeline/src/prebuild/borders.py`) writes, per snapshot pinned in `sources.toml`:
+
+```
+'WBF1' u8 version | u8 faces (6) | u16 size (2048) | u16 apron (4) | i16 year | u32 pad
+u8 d[6][size][size]   min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels, + on the higher polity id
+```
+
+- **Polities:** a feature's NAME, else its SUBJECTO; features with neither are one unclaimed
+  polity, so the lines between unnamed features never draw, while a polity's edge against unclaimed
+  land does. Cited corrections in `pipeline/config/borders-<stem>.yaml` apply first, only where a
+  beat would show a border that did not exist: for 1815, the Belgic provinces join the United
+  Kingdom of the Netherlands (the Congress of Vienna's Final Act, Article 65) and Hong Kong stays
+  with the Qing (ceded only by the Treaty of Nanking, 1842).
+- **Field:** each face is 2,040 texels across (about 4.9 km at a face center) plus a 4-texel apron
+  past each edge, computed from the same polygons, so lines run on across face edges; texel (i, j)
+  is centered at s = −1 + (2(i − 4) + 1)/2040, t likewise, row 0 the smallest t. Polities rasterize
+  largest first at 4×4 subpixels per texel in face-global subpixels, as the shore field does (3.1);
+  every subpixel no polity holds, the sea and the slivers between the source's coarse coast and
+  Natural Earth's, takes the nearest polity, so no border follows a coast. D = E − 0.5, E the
+  distance to the nearest subpixel center of another polity, signed + on the side of the higher id,
+  and a texel's d the mean of its 2×2 central subpixels over 4. Where the nearest border changes,
+  in a polity's middle, the sign flips without passing a border; there a texel takes the mean size
+  of its subpixels, and the look treats four texels that span such a jump (more than 2 texels apart
+  across zero) as far from any border. The 1815 field stores 1.27 MB (25 MiB inflated) and builds in
+  31 s on the M5.
+- **Runtime:** one R8 array texture, 2048² × 6 (24 MiB), allocated with the look and filled after
+  the room opens: the file is fetched and inflated as it streams (`DecompressionStream`), and each
+  face goes to the GPU on its own frame through three's layer updates (`texSubImage3D`), so no frame
+  hitches. The look reads it at the face coordinates it already has, bilinear from four texel
+  fetches, and draws a groove of constant on-screen width on land and lakes, ending at the drawn
+  coast, darkened like the coast's line and a touch rougher (`app/src/look/bordersHook.ts`), after
+  the climate wash and before the ash. It eases over `borderFade` with the beat's `borders` layer
+  once every face is in, and fades out as the view closes in from 400 to 220 km across, where a
+  texel spans tens of pixels. Its program is compiled at strength 0 in the lobby's precompile.
+- **Year plate:** whenever borders are drawn, a small riveted plate of Meanwhile's cast brass at the
+  top of the page, between the mark and the sound knob, names the snapshot ("Borders · 1815") and
+  fades with them; it never crowds the card, Meanwhile, the climate legend or the ruler.
+- **License:** the notice `lic/<sha16>.txt` (the GPL-3.0's canonical URL, the source file at its
+  commit, a notice dated by the corrections file listing what changed, and the build scripts at the
+  tag `borders-<ver8>`, made at publish time) and the corrected source `lic/<sha16>.geojson` go
+  beside the field (owner decision 6), and the Credits panel links both.
+
 ### 3.4 Event files `ev/<ver8>/{overview,all,p00..p23,long}.wev`
 
 These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score order within each file.
@@ -530,8 +575,9 @@ pages are built from the same JSON.
   "surface": {"ver", "maxLevel":7, "qLand":[…per level], "c200":[…], "avail":"<base64, 1 bit per node>",
               "bounds":"surf/<ver8>/bounds.bin"},
   "thematic": {"ecoregions":{"ver","maxLevel":5}, "petroleum":{…}, "mountains":{…}},
-  "borders": {"stems":["bc123000", …, "2010"], "years":[-122999, …, 2010], "ver":{"1815":"…", …},
-              "previews":"ov/borders-previews/<ver8>/previews.bin"},
+  "borders": {"ver", "stems":["1815"], "years":[1815],
+              "files":{"1815":{"key":"fd/borders/<ver8>/1815.bin", "bytes",
+                               "notice":"lic/<sha16>.txt", "source":"lic/<sha16>.geojson"}}},
   "events": {"ver", "overview", "files":[{"key","t0","t1","rows","bytes"}]},
   "modera": {"ver", "years":[1421,2008], "lat":[88.57, …], "lon0":-180, "dlon":1.875,
              "bytes":{"mean":{"1815":…}, "spread":{…}, "annual":…}},
@@ -540,6 +586,9 @@ pages are built from the same JSON.
   "fonts": {"display":"fn/<sha16>.woff2", "labels":"fn/<sha16>.woff"},
   "media": {"images":["img/<sha16>-1024.jpg", "img/<sha16>-256.jpg", …]} }
 ```
+
+`borders` is milestone 1's (3.3): a field per snapshot, with its notice and corrected source. Explore
+mode adds every snapshot's overlay version and the previews' key (3.2, 3.3).
 
 `media` lists every key the stories' committed locks name (3.9), sorted, so `publish-data` uploads
 the images and `npm run check-release` reads one. It comes from the locks rather than a stage
@@ -631,11 +680,12 @@ ov/<layer>/<ver8>/index.bin | meta.json | <L>/<face>/<x>/<y>.wot     overlays (b
 ov/borders-previews/<ver8>/previews.bin
 ev/<ver8>/overview.wev | all.wev | pNN.wev | long.wev | details/<n>.json
 fd/modera/<ver8>/mean/<year>.bin | spread/<year>.bin | annual.bin
+fd/borders/<ver8>/<stem>.bin                            milestone 1's border field per snapshot (3.3)
 fx/<sha16>.bin | fx/<sha16>.json                        story datasets
 pt/<sha16>.json  lb/<sha16>.json                        minerals, curated labels
 img/<sha16>-1024.jpg | -256.jpg                         story images (AVIF deferred)
 aud/<sha16>.m4a    fn/<sha16>.woff | .woff2
-lic/<sha16>.txt                                         GPL-3.0 text, source commit, build-script link, attributions (owner decision 6)
+lic/<sha16>.txt | lic/<sha16>.geojson                   GPL notice (license URL, source commit, changes, build-script link) and corrected source (owner decision 6)
 rel/<id>.json                                           immutable copy of each release.json
 _smoke/<sha16>.*  _e4/…                                 hosting checks (issue #1), E4 test objects; in no release
 ```
@@ -663,8 +713,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   `app/scripts/objectHeaders.ts` that the local data server also serves):
   `Cache-Control: public, max-age=31536000, immutable` and an explicit Content-Type:
   `application/octet-stream` for `.wst`, `.wot`, `.wev` and `.bin`, then `application/json`,
-  `image/avif`, `image/jpeg`, `audio/mp4`, `font/woff` and `font/woff2`. Custom extensions keep dev
-  servers from guessing an encoding.
+  `application/geo+json`, `text/plain; charset=utf-8` (the `lic/` notices), `image/avif`,
+  `image/jpeg`, `audio/mp4`, `font/woff` and `font/woff2`. Custom extensions keep dev servers from
+  guessing an encoding.
 
 ### 4.3 Publish order and retention
 
@@ -1201,11 +1252,11 @@ defaults to min(8, CPUs), with spawn-context worker processes.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
-| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, and ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive; later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
+| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive, and historical-basemaps' `world_1815.geojson` at commit da7a4b7 (GPL-3.0, never committed); later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
-| `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews | ~5-15 s per snapshot [E; an 8192×4096 id raster took 1.0 s, M] | local |
+| `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews. Milestone 1: each `world_<stem>.geojson` pinned in `sources.toml` (1815) + `pipeline/config/borders-<stem>.yaml` → `fd/borders/<ver8>/<stem>.bin`, its notice and corrected source under `lic/` (3.3); the fixture skips it, and its tests draw synthetic snapshots | 31 s for 1815 [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | curated names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | pinned exports in `pipeline/queries/` → `.wev` + details | build < 1 min [E] | local |
@@ -1251,7 +1302,7 @@ every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}` |
+| borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}`; milestone 1: `{ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`, 3.8's section as is |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` |
@@ -1502,7 +1553,8 @@ every key the locks name (3.8).
    (b), the lite tap count, the seam rules and the AA method, and give the owner a zoom-floor look.
 3. **Globe runtime:** `lod.ts`, the scheduler, the byte cache, the instanced globe, and the lobby with
    its poster and precompile.
-4. **Data stages:** borders (all 54 snapshots and previews), labels, modera, events (run E5 here), and
+4. **Data stages:** borders (the 1815 snapshot as one global field, 3.3; the other snapshots, the
+   previews and the overlay tiles come with explore mode), labels, modera, events (run E5 here), and
    fx for Tambora.
 5. **Story:** the story compiler, media, the Tambora story (owner decision 7), the director and flights,
    and audio (UI synthesis and the Tambora bed).
