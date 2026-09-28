@@ -35,11 +35,12 @@ async function serve(repo?: string): Promise<Release> {
 
 describe('check-release', () => {
   test('passes a release whose copy and data are on the host', async () => {
-    // A repo whose fixture root is the build's surface plus the release's copy.
+    // A repo whose fixture root is the build's surface and climate plus the release's copy.
     const root = join(scratch, 'build', 'fixture');
     mkdirSync(join(root, 'rel'), { recursive: true });
     mkdirSync(join(scratch, 'build', 'stages'), { recursive: true });
     symlinkSync(join(REPO_ROOT, 'build', 'fixture', 'surf'), join(root, 'surf'));
+    symlinkSync(join(REPO_ROOT, 'build', 'fixture', 'fd'), join(root, 'fd'));
     symlinkSync(
       join(REPO_ROOT, 'build', 'stages', 'fixture'),
       join(scratch, 'build', 'stages', 'fixture'),
