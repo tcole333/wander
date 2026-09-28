@@ -151,3 +151,46 @@ def test_a_list_reads_in_date_order_with_the_written_lines_and_no_title_years():
         ("Treaty of Munich", None),
         ("Q48314", "At Waterloo…"),
     ]
+
+
+BEAT = """```beat
+id: one
+date: "1815-04-10"
+window: "1815-04-05..1815-04-12"
+camera: {target: [118.0, -8.25], viewKm: 300}
+focal: {qid: Q3591483}
+MEANWHILE
+```"""
+
+
+@pytest.mark.parametrize(
+    ("meanwhile", "pins", "hides"),
+    [
+        ("meanwhile: auto", (), ()),
+        ("", (), ()),
+        (
+            "meanwhile: {pin: [Q48314], hide: [Q46362, Q1757487]}",
+            ("Q48314",),
+            ("Q46362", "Q1757487"),
+        ),
+        ("meanwhile: {hide: [Q46362]}", (), ("Q46362",)),
+    ],
+)
+def test_a_beat_s_meanwhile_is_auto_or_its_pins_and_hides(meanwhile, pins, hides):
+    [beat] = m.story_beats(BEAT.replace("MEANWHILE", meanwhile))
+    assert (beat.pins, beat.hides) == (pins, hides)
+
+
+@pytest.mark.parametrize(
+    "meanwhile",
+    [
+        "meanwhile: often",
+        "meanwhile: [Q48314]",
+        "meanwhile: {pin: [Q48314], show: [Q46362]}",
+        "meanwhile: {pin: Q48314}",
+        "meanwhile: {hide: [Waterloo]}",
+    ],
+)
+def test_a_beat_s_meanwhile_of_another_form_is_refused(meanwhile):
+    with pytest.raises(m.MeanwhileError, match="meanwhile"):
+        m.story_beats(BEAT.replace("MEANWHILE", meanwhile))

@@ -396,6 +396,12 @@ def story_beats(markdown: str) -> list[Beat]:
             chosen = {}
         if not isinstance(chosen, dict) or set(chosen) - {"pin", "hide"}:
             raise MeanwhileError(f"{where}: meanwhile is auto or {{pin: [...], hide: [...]}}")
+        for key in ("pin", "hide"):
+            qids = chosen.get(key, [])
+            if not isinstance(qids, list) or not all(
+                isinstance(qid, str) and events.QID.fullmatch(qid) for qid in qids
+            ):
+                raise MeanwhileError(f"{where}: meanwhile's {key} is a list of Wikidata qids")
         lon, lat = beat["camera"]["target"]
         beats.append(
             Beat(
@@ -404,8 +410,8 @@ def story_beats(markdown: str) -> list[Beat]:
                 window=(iso_day(window[0]), iso_day(window[-1])),
                 target=(float(lon), float(lat)),
                 focal=str(beat["focal"]["qid"]),
-                pins=tuple(str(qid) for qid in chosen.get("pin", ())),
-                hides=tuple(str(qid) for qid in chosen.get("hide", ())),
+                pins=tuple(chosen.get("pin", ())),
+                hides=tuple(chosen.get("hide", ())),
             )
         )
     return beats
