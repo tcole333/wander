@@ -30,8 +30,9 @@ lobby's glows are the `GLOW_COUNT` best-scored events of every era with a place 
 inherited place is often a continent's or an ocean's middle), each at least `GLOW_MIN_KM` from the
 others.
 
-The stage rewrites the lock's `meanwhile` and `glows` and keeps everything else in it (the media
-stage's images). It writes no record: the lock is its record.
+The stage refuses an event index built from another export or other configs than the current
+ones (the events record's `inputs`). It rewrites the lock's `meanwhile` and `glows` and keeps
+everything else in it (the media stage's images). It writes no record: the lock is its record.
 """
 
 import gzip
@@ -48,6 +49,8 @@ import yaml
 from prebuild import events
 from prebuild.media import BEAT_BLOCK, read_lock, write_lock
 from prebuild.profiles import Context
+from prebuild.records import read_record
+from prebuild.sources import load_sources
 
 COUNT = 3  # entries per beat and per month
 PAD_DAYS = 45  # a beat's window reaches at least this far either side of its date
@@ -146,6 +149,11 @@ def run(ctx: Context) -> None:
     table = ctx.out / events.KEY
     if not table.exists():
         raise MeanwhileError(f"{table} is missing: run `uv run prebuild events` first")
+    if read_record(ctx, events.STAGE).get("inputs") != current_inputs():
+        raise MeanwhileError(
+            f"{table} was built from another export or other configs: "
+            f"run `uv run prebuild --profile {ctx.profile} events`"
+        )
     with gzip.open(table, "rt", encoding="utf-8") as stream:
         index = read_table(stream)
     lines = read_lines(folder / "meanwhile.yaml")
@@ -174,6 +182,11 @@ def run(ctx: Context) -> None:
         f"into {lock_path.relative_to(ctx.repo)}, {seconds:.1f} s",
         flush=True,
     )
+
+
+def current_inputs() -> dict[str, str]:
+    """The events record's `inputs` for the export and configs as they stand."""
+    return events.inputs(events.export_source(load_sources()).id)
 
 
 # The rule

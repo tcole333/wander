@@ -101,7 +101,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   in `stories/<id>/meanwhile.yaml`, and writes them with the lobby's glows into
   `stories/<id>/story.lock.json` (commit it), keeping the media stage's images
   (`docs/design/streaming.md` 3.9). A beat's `meanwhile: {pin: [...], hide: [...]}` in `story.md`
-  overrides the rule; the stage names any beat entry still lacking a written line.
+  overrides the rule; the stage names any beat entry still lacking a written line, and stops when
+  the table was built from another export or other event configs.
 - `npm run verify:bake`, after the region bake: decodes every tile of `build/region/` and checks
   its seams, headers, `bounds.bin`, availability and known places (`docs/design/streaming.md`
   7.3). Local only, since the bake needs the raw data; it fails, naming the command, when the bake

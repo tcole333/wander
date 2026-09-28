@@ -1,4 +1,9 @@
+import json
+
+import pytest
+
 from prebuild import meanwhile as m
+from prebuild.profiles import Profile, make_context
 
 TAMBORA = (118.0, -8.25)
 WATERLOO = (4.41, 50.68)
@@ -74,3 +79,16 @@ def test_scrubbing_covers_the_years_of_the_story_s_windows():
     )
     months = list(m.month_lists([beat], []))
     assert (months[0], months[-1], len(months)) == ((1519, 1), (1522, 12), 48)
+
+
+def test_an_event_index_built_from_other_configs_is_refused(tmp_path):
+    ctx = make_context(Profile.GLOBAL, 1, tmp_path, story="tambora")
+    (tmp_path / "stories" / "tambora").mkdir(parents=True)
+    (tmp_path / "stories" / "tambora" / "story.md").write_text("", encoding="utf-8")
+    (ctx.out / "ev").mkdir(parents=True)
+    (ctx.out / "ev" / "events.tsv.gz").write_bytes(b"")
+    ctx.stages_dir.mkdir(parents=True)
+    stale = {**m.current_inputs(), "curated": "0" * 64}
+    (ctx.stages_dir / "events.json").write_text(json.dumps({"inputs": stale}), encoding="utf-8")
+    with pytest.raises(m.MeanwhileError, match="run `uv run prebuild --profile global events`"):
+        m.run(ctx)
