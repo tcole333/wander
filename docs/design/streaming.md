@@ -1201,6 +1201,15 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     both) in the card's brass frame, on the room darkened as if the lamp had turned to the sheet.
     Its attributions open in a tab of their own, so the walk keeps its place. `/credits` stays for
     direct links and new tabs.
+  - **Folds:** the beat card and Meanwhile each fold down to their heads, so a visitor can clear
+    the globe of either without leaving the story (`story/ui/fold.ts`). A small brass knob in the
+    head, the sound knob's metal in miniature, folds and unfolds on a click, Enter or Space. The
+    card keeps its date line and title and follows the walk on to each beat; Meanwhile keeps its
+    heading. A folded card no longer pushes the globe aside: its reach counts as 0 for the lens
+    shift, so the lens eases back to the page's center, and unfolding brings the shift back. A
+    fold holds across beats and across both stories, remembered per viewer in `localStorage`
+    (`wander.fold.card`, `wander.fold.meanwhile`), or for the visit alone where storage refuses.
+    Reduced motion otherwise waits (below); under `prefers-reduced-motion` a fold is instant.
   - **Return:** WANDER at the top left and Escape bring the lobby back from a beat, a break-out or
     an unfinished dive. Escape first closes Credits when its panel is open. The card and Meanwhile
     withdraw along their arrival paths, with the Resume plaque, legend and borders' year plate;
