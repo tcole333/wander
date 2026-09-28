@@ -13,8 +13,8 @@ CODE_PATHS = (
     "pipeline/uv.lock",
     "shared/constants.json",
 )
-# The fixture build also depends on the committed excerpts.
-FIXTURE_PATHS = (*CODE_PATHS, "pipeline/tests/data")
+# The fixture build also depends on the excerpts and the stories' named route datasets.
+FIXTURE_PATHS = (*CODE_PATHS, "pipeline/tests/data", "stories")
 
 SKIPPED_NAMES = frozenset({"__pycache__", ".DS_Store"})
 

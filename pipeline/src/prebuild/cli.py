@@ -11,6 +11,7 @@ from prebuild import (
     events,
     excerpts,
     fetch,
+    fx,
     meanwhile,
     media,
     modera,
@@ -34,6 +35,7 @@ STAGES: dict[str, Runner] = {
     "borders": borders.run,
     "events": events.run,
     "modera": modera.run,
+    "fx": fx.run,
     "media": media.run,
     "meanwhile": meanwhile.run,
 }

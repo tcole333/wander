@@ -19,6 +19,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type {
   BordersRelease,
+  FxRelease,
   MediaRelease,
   ModeraRelease,
   Release,
@@ -58,6 +59,7 @@ export function releaseSections(release: Release, root: string): Section[] {
   const sections = [surfaceSection(release.surface, root)];
   if (release.modera) sections.push(moderaSection(release.modera, root));
   if (release.borders) sections.push(...bordersSections(release.borders, root));
+  if (release.fx) sections.push(fxSection(release.fx, root));
   sections.push(mediaSection(release.media, root));
   return sections;
 }
@@ -166,6 +168,27 @@ function mediaSection(media: MediaRelease, root: string): Section {
     );
   }
   return { prefix: 'img/', objects: media.images.map((key) => localObject(root, key)) };
+}
+
+/** Named story datasets only, deduplicated when stories share identical bytes. */
+function fxSection(fx: FxRelease, root: string): Section {
+  const objects = new Map<string, LocalObject>();
+  for (const { key, bytes } of Object.values(fx)) {
+    if (!existsSync(join(root, key))) {
+      throw new PublishError(
+        `${root} lacks ${key}: run \`uv run prebuild fx\` in pipeline/ with the same --profile`,
+      );
+    }
+    const object = localObject(root, key);
+    if (object.size !== bytes) {
+      throw new PublishError(`${object.path} holds ${object.size} B, not the record's ${bytes} B`);
+    }
+    objects.set(key, object);
+  }
+  return {
+    prefix: 'fx/',
+    objects: [...objects.values()].sort((a, b) => a.key.localeCompare(b.key)),
+  };
 }
 
 function keysUnder(root: string, prefix: string): string[] {

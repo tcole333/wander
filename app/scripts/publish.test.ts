@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import type { Release } from '../src/data/release';
+import type { FxRelease, Release } from '../src/data/release';
 import { noticeTag, plan, releaseSections } from './publish';
 import type { R2Bucket } from './r2';
 
@@ -25,6 +25,8 @@ const FILES: Record<string, number> = {
   'lic/5555666677778888.geojson': 900,
   'img/cccc3333cccc3333-1024.jpg': 400,
   'img/cccc3333cccc3333-256.jpg': 40,
+  'fx/1111222233334444.json': 80,
+  'fx/5555666677778888.json': 90,
 };
 const MODERA = {
   ver: 'cccc3333',
@@ -74,6 +76,29 @@ function holding(held: Record<string, number>): Pick<R2Bucket, 'list'> {
 }
 
 describe('releaseSections', () => {
+  const route = {
+    key: 'fx/1111222233334444.json',
+    kind: 'route' as const,
+    epochDay: 554699,
+    bbox: [-180, -54, 180, 37] as [number, number, number, number],
+    bytes: 80,
+  };
+  const fx: FxRelease = { 'magellan/route': route, 'another/route': route };
+
+  test('names only released effects, once each, leaving older fx assets behind', () => {
+    const section = releaseSections({ ...release(SEVEN), fx }, root).find(
+      (s) => s.prefix === 'fx/',
+    );
+    expect(section?.objects.map(({ key, size }) => [key, size])).toEqual([[route.key, 80]]);
+  });
+
+  test('refuses missing and wrong-sized effect files before publishing', () => {
+    const wrongSize = { 'magellan/route': { ...route, bytes: 81 } };
+    expect(() => releaseSections({ ...release(SEVEN), fx: wrongSize }, root)).toThrow(/80 B, not/);
+    const missing = { 'magellan/route': { ...route, key: 'fx/missing.json' } };
+    expect(() => releaseSections({ ...release(SEVEN), fx: missing }, root)).toThrow(/prebuild fx/);
+  });
+
   test("names bounds.bin and every tile of the release's version, with their sizes", () => {
     const [surface] = releaseSections(release(SEVEN), root);
     const expected = Object.entries(FILES).filter(([key]) => key.startsWith('surf/aaaa1111/'));

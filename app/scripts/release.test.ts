@@ -5,7 +5,33 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import bundled from '../src/generated/release.json';
-import { mediaRelease, surfaceRelease } from './release';
+import { localRelease, mediaRelease, surfaceRelease } from './release';
+
+test('the release carries the fx record unchanged, and its bytes change the release id', () => {
+  const stages = mkdtempSync(join(tmpdir(), 'wander-fx-release-'));
+  const fx = {
+    'magellan/route': {
+      key: 'fx/1234567890abcdef.json',
+      kind: 'route',
+      epochDay: 554699,
+      bbox: [-180, -54, 180, 37],
+      bytes: 240,
+    },
+  };
+  try {
+    writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
+    writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
+    const before = localRelease(stages, 'https://data.example');
+    expect(before.fx).toBeUndefined();
+    writeFileSync(join(stages, 'fx.json'), JSON.stringify(fx));
+    const release = localRelease(stages, 'https://data.example');
+    expect(release.fx).toEqual(fx);
+    expect(release.id).not.toBe(before.id);
+    expect(localRelease(stages, 'https://data.example').id).toBe(release.id);
+  } finally {
+    rmSync(stages, { recursive: true, force: true });
+  }
+});
 
 const coverage = { qLand: [39.09375, 2], c200: [-5, -100], avail: 'Pw==' };
 const surface = { ver: '4359ef83', maxLevel: 1, avail: 'Pw==', bounds: 'surf/4359ef83/bounds.bin' };
