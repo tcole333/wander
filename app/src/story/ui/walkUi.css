@@ -1040,3 +1040,40 @@
   color: #bfa87c;
   text-shadow: 0.5px 1px 0 rgb(0 0 0 / 0.8);
 }
+
+/* The borders' year plate: a small plate of Meanwhile's dark cast brass, riveted at its ends, at
+   the top of the page between the mark and the sound knob, its year engraved in gilt capitals. It
+   fades with the borders (bordersPlate.ts). */
+
+.wu-borders {
+  position: absolute;
+  top: 27px;
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin: 0 auto;
+  padding: 9px 32px 8px;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    var(--rivet) left 11px center / 6px 6px no-repeat,
+    var(--rivet) right 11px center / 6px 6px no-repeat,
+    radial-gradient(120% 90% at 0% 0%, rgb(var(--lamp) / 0.11), transparent 60%),
+    var(--brushed),
+    linear-gradient(160deg, #2c2117, #1a130c 45%, #0e0a06);
+  outline-offset: -6px;
+}
+
+.wu-borders-label {
+  display: block;
+  font: 400 11px/1.2 var(--display);
+  letter-spacing: 0.26em;
+  margin-right: -0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: linear-gradient(172deg, #f6e2ae, #d6b06a 45%, #a67c3c 70%, #cfa862);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.5px 1px 0.5px rgb(0 0 0 / 0.9));
+}

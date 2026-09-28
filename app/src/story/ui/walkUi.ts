@@ -1,9 +1,9 @@
 // The Tambora walk's UI in the DOM (CreateWalkUi in ../contract.ts): the Wander mark, the beat
 // card, the time ruler with the story's controls on it (rulerCraft.ts), the sound knob, Meanwhile,
-// the Resume plaque and the climate legend (climateLegend.ts), in the instrument's materials: aged
-// vellum in brass, dark cast brass and engraved gilt, lit by the scene's lamp from the upper left
-// and under its lens (walkUi.css, its materials in tokens.css). Libre Baskerville for display and
-// Source Serif 4 for reading.
+// the Resume plaque, the climate legend (climateLegend.ts) and the borders' year plate
+// (bordersPlate.ts), in the instrument's materials: aged vellum in brass, dark cast brass and
+// engraved gilt, lit by the scene's lamp from the upper left and under its lens (walkUi.css, its
+// materials in tokens.css). Libre Baskerville for display and Source Serif 4 for reading.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -11,6 +11,7 @@ import '@fontsource/source-serif-4/600.css';
 import './tokens.css';
 import './walkUi.css';
 import type { CreateWalkUi, WalkUi } from '../contract';
+import { BordersPlate } from './bordersPlate';
 import { BeatCard } from './card';
 import { ClimateLegend } from './climateLegend';
 import { button, el, passFocus } from './dom';
@@ -27,8 +28,10 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
   const resume = button('wu-resume wu-lit', 'Resume story', () => walk.resume());
   resume.textContent = 'Resume story';
   const legend = new ClimateLegend();
+  const plate = new BordersPlate();
   layer.append(
     mark(),
+    plate.element,
     card.element,
     knob.element,
     panel.element,
@@ -40,12 +43,13 @@ export const createWalkUi: CreateWalkUi = (root, walk, meanwhile, sound, dataHos
 
   let away: boolean | null = null;
   return {
-    update(state, view, climate) {
+    update(state, view, climate, borders) {
       card.update(state);
       ruler.update(state);
       knob.update();
       panel.update(state, view);
       legend.update(state.flight === null ? climate : null);
+      plate.update(borders);
       if ((state.mode === 'breakout') !== away) {
         away = state.mode === 'breakout';
         resume.classList.toggle('is-shown', away);
