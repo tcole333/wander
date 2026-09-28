@@ -48,12 +48,12 @@ export class BeatCard {
       this.#openSources(this.#sourcesToggle.getAttribute('aria-expanded') !== 'true'),
     );
     this.#sourcesToggle.setAttribute('aria-controls', this.#sources.id);
-    const fold = el('div', 'wu-sources-fold');
-    fold.append(this.#sources);
-    fold.addEventListener('transitionend', () => this.#checkOverflow());
+    const sourcesFold = el('div', 'wu-sources-fold');
+    sourcesFold.append(this.#sources);
+    sourcesFold.addEventListener('transitionend', () => this.#checkOverflow());
     const line = el('div', 'wu-foot-line');
     line.append(this.#sourcesToggle, creditsLink('wu-card-credits'));
-    this.#foot.append(line, fold);
+    this.#foot.append(line, sourcesFold);
 
     this.#fold = new Fold({
       id: 'card',
