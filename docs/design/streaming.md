@@ -1027,12 +1027,12 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     first time the view settles with the streamer idle, after the tiles in view.
   - **Opening (~4 s):** it starts at that first frame, and the room crossfades into it, its Wander
     mark gliding onto the lobby's at the top left, so one mark stands throughout. L2 streams in
-    during the lamp-up, which starts dark; waiting for L2 and an idle streamer instead held the room
-    past 3 s at 25 Mbps / 50 ms. The lamp comes up out of the dark room from the first moment, so
-    the poster dissolves into it rather than into black; both rings swing into place from nearly
-    edge-on with a small overshoot, as pendulums do; and the globe coasts in from a spin of 24° into
-    the lobby's turn without stopping or swinging back, as a heavy globe on its bearings does, the
-    gears following it. One progress value gives the whole pose (`opening.ts`): the scene's `lamp`
+    during the lamp-up, which starts dark, so the room opens within the live-frame budget
+    (section 6). The lamp comes up out of the dark room from the first moment, so the poster
+    dissolves into it rather than into black; both rings swing into place from nearly edge-on with
+    a small overshoot, as pendulums do; and the globe coasts in from a spin of 24° into the lobby's
+    turn without stopping or swinging back, as a heavy globe on its bearings does, the gears
+    following it. One progress value gives the whole pose (`opening.ts`): the scene's `lamp`
     and ring-swing params and the view's longitude, so the opening needs no program of its own. Any
     press, key or wheel runs the rest of it in 250 ms.
   - **Lobby:** the instrument turns eastward at 1° of longitude a second at world view, as the Earth
