@@ -23,6 +23,12 @@ of the mirror's seam proof.
 milestone-1 events table built from the Wikidata export of 2026-09-28, its rows, stored and decoded
 bytes, and the time Node 22 on the M5 takes to inflate and parse it into typed columns.
 
+`e3/results/` holds E3, milestone 1's acceptance (streaming.md 8.2), run on the live site on
+2026-09-28 by `app/scripts/e3.ts`. `live-2026-09-28.json` has the raw results: the cold loads, the
+walk at 5 Mbps / 150 ms with its landings and holds, hostile input, offline, context loss,
+requests to the app host, and the leak walks. `old-tab.json` is the old-tab check across the
+borders deploy.
+
 `e1/results/` and `e2/results/` hold the experiments' lab runs (`npm run lab`, streaming.md 7.3),
 copied from `build/lab/`. The first ones ran on 2026-09-25 on the M5 (macOS 26.5) in Chromium 153 on
 Metal through Playwright, Safari 26.5 and Firefox 156:
