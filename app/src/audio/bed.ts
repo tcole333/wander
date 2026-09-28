@@ -83,7 +83,7 @@ function makeBed(engine: SoundEngine, day: number | null, at: number): Bed {
     const dark = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 820 * jitter(0.06) });
     const pan = new StereoPannerNode(ctx, { pan: side * 0.75 });
     lfo(engine, dark.frequency, rate * jitter(0.1), 220, at, sources);
-    loop(engine, engine.noise('pink', seconds), at, sources)
+    loop(engine, engine.noise('pink', seconds, sources), at, sources)
       .connect(low)
       .connect(dark)
       .connect(pan)
@@ -94,7 +94,7 @@ function makeBed(engine: SoundEngine, day: number | null, at: number): Bed {
   const hushGain = new GainNode(ctx, { gain: 0.5 });
   lfo(engine, hush.frequency, 0.0129 * jitter(0.1), 45, at, sources);
   lfo(engine, hushGain.gain, 0.0093 * jitter(0.1), 0.14, at, sources);
-  loop(engine, engine.noise('brown', 10.1), at, sources)
+  loop(engine, engine.noise('brown', 10.1, sources), at, sources)
     .connect(hush)
     .connect(hushGain)
     .connect(room);
@@ -104,7 +104,7 @@ function makeBed(engine: SoundEngine, day: number | null, at: number): Bed {
     // The mountain: brown noise under 100 Hz, its color and weight drifting on slow cycles.
     rumble = new GainNode(ctx, { gain: rumbleGain(engine.mix, rumbleLevel(day)) });
     rumble.connect(out);
-    const deep = loop(engine, engine.noise('brown', 11.3), at, sources);
+    const deep = loop(engine, engine.noise('brown', 11.3, sources), at, sources);
     const body = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 85, Q: 0.9 });
     const swell = new GainNode(ctx, { gain: 0.8 });
     lfo(engine, body.frequency, 0.0371 * jitter(0.1), 22, at, sources);
@@ -113,7 +113,7 @@ function makeBed(engine: SoundEngine, day: number | null, at: number): Bed {
     deep.connect(body).connect(swell).connect(rumble);
     // Its floor: a second loop lower still.
     const floor = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 42, Q: 0.7 });
-    loop(engine, engine.noise('brown', 12.7), at, sources)
+    loop(engine, engine.noise('brown', 12.7, sources), at, sources)
       .connect(floor)
       .connect(new GainNode(ctx, { gain: 0.9 }))
       .connect(rumble);

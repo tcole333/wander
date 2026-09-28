@@ -6,7 +6,14 @@
 // as well on an OfflineAudioContext, to render sounds to files.
 import { tunables } from '../config/tunables';
 import { gainOf, mix as defaultMix, type Mix } from './mix';
-import { noiseSamples, primeAtLeast, toBuffer, type NoiseColor } from './synth';
+import { noiseSamples, primeAtLeast, toBuffer, type NoiseColor, type Sources } from './synth';
+
+interface CachedNoise {
+  buffer: AudioBuffer;
+  /** Unscoped callers (the existing cues and mechanism) keep their approved noise cached. */
+  retained: boolean;
+  owners: Set<Sources>;
+}
 
 export type Bus = 'ui' | 'bed' | 'cue';
 
@@ -21,7 +28,7 @@ const GLIDE = 0.05;
 
 export class SoundEngine {
   inspectMemory(account: import('../perf/memory').MemoryAccount): void {
-    for (const [key, buffer] of this.#noise) account.audio(`audio.noise.${key}`, buffer);
+    for (const [key, { buffer }] of this.#noise) account.audio(`audio.noise.${key}`, buffer);
     account.details.audio = {
       sampleRate: this.ctx.sampleRate,
       state: this.ctx.state,
@@ -37,7 +44,7 @@ export class SoundEngine {
   readonly #presence: GainNode;
   readonly #pumps = new Set<Pump>();
   #timer: ReturnType<typeof setInterval> | undefined;
-  readonly #noise = new Map<string, AudioBuffer>();
+  readonly #noise = new Map<string, CachedNoise>();
 
   constructor(ctx: BaseAudioContext, mix: Mix = defaultMix, muted = false) {
     this.ctx = ctx;
@@ -131,17 +138,31 @@ export class SoundEngine {
 
   /**
    * Noise of `color`, about `seconds` long, at a prime length in samples: a loop that never lines
-   * up with another. The same request returns the same buffer.
+   * up with another. The same request returns the same buffer. A bed supplies its `owner` so
+   * its exclusive noise is released after its sources end; shared or unscoped users keep it.
    */
-  noise(color: NoiseColor, seconds: number): AudioBuffer {
+  noise(color: NoiseColor, seconds: number, owner?: Sources): AudioBuffer {
     const length = primeAtLeast(seconds * this.ctx.sampleRate);
     const key = `${color} ${length}`;
-    let buffer = this.#noise.get(key);
-    if (!buffer) {
-      buffer = toBuffer(this.ctx, noiseSamples(color, length));
-      this.#noise.set(key, buffer);
+    let entry = this.#noise.get(key);
+    if (!entry) {
+      entry = {
+        buffer: toBuffer(this.ctx, noiseSamples(color, length)),
+        retained: false,
+        owners: new Set(),
+      };
+      this.#noise.set(key, entry);
     }
-    return buffer;
+    if (!owner) entry.retained = true;
+    else if (!entry.owners.has(owner)) {
+      entry.owners.add(owner);
+      const held = entry;
+      owner.onEnded(() => {
+        held.owners.delete(owner);
+        if (!held.retained && held.owners.size === 0) this.#noise.delete(key);
+      });
+    }
+    return entry.buffer;
   }
 
   #glideMaster(): void {
