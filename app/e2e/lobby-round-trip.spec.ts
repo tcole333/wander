@@ -31,7 +31,13 @@ test.use({ viewport: { width: 640, height: 400 } });
 for (const entry of ['production', 'dev'] as const) {
   test(`${entry}: chooses silence, walks to beat 2, returns and starts afresh`, async ({
     page,
-  }) => {
+  }, testInfo) => {
+    // CI's four-core SwiftShader walks each entry in minutes; it carries the production entry,
+    // and the dev page's walk runs on the GPU project (npm run e2e:gpu).
+    test.skip(
+      testInfo.project.name === 'swiftshader' && entry === 'dev',
+      'dev entry on the GPU only',
+    );
     test.setTimeout(600_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
