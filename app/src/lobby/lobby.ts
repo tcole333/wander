@@ -1,14 +1,14 @@
 // The lobby (PRD, "First visit: the lobby"; streaming.md 5.7): the instrument at world view in the
 // lamp-lit room, the story's plaque at its left (plaques.ts) and faint glows on the globe
-// (glows.ts). Once the shaders are compiled and the streamer has settled at world view, or after
-// OPEN_WAIT_S, the opening plays (opening.ts) and the room's poster gives way to it; any press,
-// key or wheel runs the rest of it in SKIP_S. Then the instrument turns slowly eastward, as the
-// Earth does, stopping at any input and turning on after TURN_IDLE_S without one; dragging and the
-// wheel move it as in the walk. Choosing a plaque dives: the plaques slide away, the walk starts in
-// that press, its sound unlocking in the press's own handler (walk/boot.ts), and the camera flies
-// into the story's first beat by the walk's own flight and readiness gate while the time ruler
-// rises; the card and Meanwhile come in at the landing. The turn stops, and the glows go as the
-// story's own effects come up (walk/boot.ts).
+// (glows.ts). At the first frame, once the roots are resident and the shaders compiled, the opening
+// plays (opening.ts) and the room's poster gives way to it; the finer tiles stream in as the lamp
+// comes up out of the dark. Any press, key or wheel runs the rest of it in SKIP_S. Then the
+// instrument turns slowly eastward, as the Earth does, stopping at any input and turning on after
+// TURN_IDLE_S without one; dragging and the wheel move it as in the walk. Choosing a plaque dives:
+// the plaques slide away, the walk starts in that press, its sound unlocking in the press's own
+// handler (walk/boot.ts), and the camera flies into the story's first beat by the walk's own flight
+// and readiness gate while the time ruler rises; the card and Meanwhile come in at the landing. The
+// turn stops, and the glows go as the story's own effects come up (walk/boot.ts).
 //
 // While it stands, the lobby holds the scene's lamp and ring swings and the view's longitude. The
 // walk's boot (walk/boot.ts) calls update() every frame before the view steps, and shifts its lens
@@ -23,8 +23,6 @@ import { Glows } from './glows';
 import { OPENING_S, openingPose, SKIP_S, TURN_DEG_S } from './opening';
 import { Plaques } from './plaques';
 
-/** The longest the opening waits for the streamer to settle at world view, in seconds. */
-const OPEN_WAIT_S = 4;
 /** The turn (TURN_DEG_S) eases up to its pace over this long after input, in seconds. */
 const TURN_EASE_S = 1.5;
 /** How long the lobby waits after the visitor's last input before it turns again, in seconds. */
@@ -38,8 +36,8 @@ export const GLOW_FADE_S = 0.8;
 const ARRIVE_MS = 800;
 
 /**
- * Waiting for the streamer, the opening, the turning lobby, the dive into a story, and gone once
- * the walk has landed.
+ * Waiting for the first frame, the opening, the turning lobby, the dive into a story, and gone
+ * once the walk has landed.
  */
 type LobbyPhase = 'waiting' | 'opening' | 'idle' | 'diving' | 'gone';
 
@@ -52,8 +50,6 @@ export interface LobbyParts {
   places: LonLat[];
   museum: MuseumScene;
   control: ViewControl;
-  /** True once the view has settled and the streamer has been idle for a while. */
-  ready: () => boolean;
   /** Starts the story's walk, flying in from the view, inside the press that chose its plaque. */
   enter: () => Walk;
   /** Called when enter() throws: the lobby has gone, and the page brings its plate. */
@@ -71,7 +67,7 @@ export interface Lobby {
    */
   readonly mark: HTMLElement;
   /** One frame, before the view steps; `camera` stands where the last frame drew from. */
-  update(nowMs: number, dtS: number, camera: PerspectiveCamera): void;
+  update(dtS: number, camera: PerspectiveCamera): void;
   /**
    * CSS px the lens shifts right while the plaques stand, which centers the instrument in the
    * room beside them; null once a story is chosen.
@@ -85,7 +81,6 @@ export function createLobby(parts: LobbyParts): Lobby {
   /** The view the opening settles on and the turn starts from: the widest the zoom allows. */
   const rest = { ...control.goal, viewKm: Infinity };
   let phase: LobbyPhase = 'waiting';
-  let waitingSince: number | null = null;
   let progress = 0;
   let rate = 1 / OPENING_S;
   let lastInput = -Infinity;
@@ -172,14 +167,11 @@ export function createLobby(parts: LobbyParts): Lobby {
     opened,
     mark: plaques.mark,
 
-    update(nowMs, dtS, camera) {
+    update(dtS, camera) {
       elapsed += dtS;
       if (phase === 'waiting') {
-        waitingSince ??= nowMs;
-        if (parts.ready() || nowMs - waitingSince >= OPEN_WAIT_S * 1000) {
-          become('opening');
-          open();
-        }
+        become('opening');
+        open();
       } else if (progress < 1) {
         progress = Math.min(1, progress + rate * dtS);
       }

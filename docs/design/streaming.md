@@ -1033,15 +1033,18 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
   In milestone 1 (`app/src/lobby/`) the production entry boots into the lobby on every fresh load,
   and a reload returns to it:
-  - **Opening (~4 s):** it starts once the precompile is done and the streamer is idle at world
-    view, or after 4 s, and the room crossfades into it, its Wander mark gliding onto the lobby's
-    at the top left, so one mark stands throughout. The lamp comes up out of the dark room from the
-    first moment, so the poster dissolves into it rather than into black; both rings swing into
-    place from nearly edge-on with a small overshoot, as pendulums do; and the globe coasts in from
-    a spin of 24° into the lobby's turn without stopping or swinging back, as a heavy globe on its
-    bearings does, the gears following it. One progress value gives the whole pose (`opening.ts`):
-    the scene's `lamp` and ring-swing params and the view's longitude, so the opening needs no
-    program of its own. Any press, key or wheel runs the rest of it in 250 ms.
+  - **Boot:** the roots (L0-L1) load into their fixed slots, the precompile follows, then the first
+    frame.
+  - **Opening (~4 s):** it starts at that first frame, and the room crossfades into it, its Wander
+    mark gliding onto the lobby's at the top left, so one mark stands throughout. L2 streams in
+    during the lamp-up, which starts dark; waiting for L2 and an idle streamer instead held the room
+    past 3 s at 25 Mbps / 50 ms. The lamp comes up out of the dark room from the first moment, so
+    the poster dissolves into it rather than into black; both rings swing into place from nearly
+    edge-on with a small overshoot, as pendulums do; and the globe coasts in from a spin of 24° into
+    the lobby's turn without stopping or swinging back, as a heavy globe on its bearings does, the
+    gears following it. One progress value gives the whole pose (`opening.ts`): the scene's `lamp`
+    and ring-swing params and the view's longitude, so the opening needs no program of its own. Any
+    press, key or wheel runs the rest of it in 250 ms.
   - **Lobby:** the instrument turns eastward at 1° of longitude a second at world view, as the Earth
     does, stops at any input and turns on after 5 s without one; dragging and the wheel work as in
     the walk. The plaques stand in a column at the left, and the lens shifts right by half the
