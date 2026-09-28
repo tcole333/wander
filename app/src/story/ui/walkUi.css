@@ -993,11 +993,11 @@ button.wu-mark:not(:disabled) {
   stroke-width: 1.7;
   transform-box: fill-box;
   transform-origin: center;
-  transition: rotate 0.35s ease;
+  transition: transform 0.35s ease;
 }
 
 .is-folded .wu-fold-mark .wu-niello-line {
-  rotate: 180deg;
+  transform: rotate(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
