@@ -18,8 +18,8 @@ elsewhere at the beat's time:
   since Meanwhile prints one date for each;
 - first those dated within `PAD_DAYS` of the beat's date, greedy by score, then the rest of the
   window, nearest the date first, each at least `MIN_KM` from those already taken;
-- while enough others qualify, none the previous beat shows, nor any the next beat would show
-  that is dated nearer to it.
+- while enough others qualify, none the beats before it took from their own `PAD_DAYS`, nor any
+  the next beat would show that is dated nearer to it; where too few do, the ones shown least.
 
 A beat's `meanwhile: {pin: [qids], hide: [qids]}` puts its pins first, whatever the rule says, and
 keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The same rule gives
@@ -44,6 +44,7 @@ import math
 import re
 import time
 import urllib.parse
+from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -192,25 +193,26 @@ def choose(
     ancestors: Mapping[str, frozenset[str]],
     *,
     pins: Sequence[Event] = (),
-    avoid: Iterable[str] = (),
+    avoid: Mapping[str, int] | None = None,
     count: int = COUNT,
 ) -> list[Event]:
     """Up to `count` events for `frame`: the pins, then of those that qualify, first the ones
     dated in its near days by score (`index`'s order), then the rest nearest its day first. Each
     keeps `MIN_KM` from those taken and is neither parent nor child of one of them (`ancestors`,
-    from `lineage`). Those in `avoid` are taken only once the others run out."""
+    from `lineage`). Those in `avoid`, which counts how often each is shown nearby, are taken only
+    once the others run out, the least shown first."""
     chosen = list(pins)
     qualifying = [e for e in index if qualifies(e, frame) and e not in chosen]
     near = [e for e in qualifying if is_near(e, frame)]
     rest = sorted(
         (e for e in qualifying if not is_near(e, frame)), key=lambda e: abs(e.middle - frame.day)
     )
-    shunned = set(avoid)
-    for allow_shunned in (False, True):
+    shown = avoid or {}
+    for most in sorted({0, *shown.values()}):
         for event in (*near, *rest):
             if len(chosen) >= count:
                 return chosen
-            if event in chosen or (event.qid in shunned) != allow_shunned:
+            if event in chosen or shown.get(event.qid, 0) > most:
                 continue
             if any(apart_km(event.at, c.at) < MIN_KM for c in chosen):
                 continue
@@ -242,20 +244,23 @@ def in_turn(
     ancestors: Mapping[str, frozenset[str]],
     pins: Sequence[Sequence[Event]] | None = None,
 ) -> list[list[Event]]:
-    """Each frame's entries, in order. Where the pool allows, a list shuns the events the list
-    before it took from its own near days, and those the next list would take on its own that are
-    dated nearer to it, so a month's event is not left to the month before, which borrowed it."""
+    """Each frame's entries, in order. Where the pool allows, a list shuns the events the lists
+    before it took from their own near days, and those the next list would take on its own that
+    are dated nearer to it, so a month's event is not left to the month before, which borrowed it;
+    where it does not, a list repeats the entries shown least."""
     pinned = pins or [()] * len(frames)
     alone = [choose(index, f, ancestors, pins=p) for f, p in zip(frames, pinned, strict=True)]
     lists: list[list[Event]] = []
     for i, frame in enumerate(frames):
-        shunned = {e.qid for e in lists[-1] if is_near(e, frames[i - 1])} if lists else set()
+        shown = Counter(
+            e.qid for before, f in zip(lists, frames, strict=False) for e in before if is_near(e, f)
+        )
         if i + 1 < len(frames):
             after = frames[i + 1]
-            shunned |= {
+            shown.update(
                 e.qid for e in alone[i + 1] if abs(e.middle - after.day) < abs(e.middle - frame.day)
-            }
-        lists.append(choose(index, frame, ancestors, pins=pinned[i], avoid=shunned))
+            )
+        lists.append(choose(index, frame, ancestors, pins=pinned[i], avoid=shown))
     return lists
 
 

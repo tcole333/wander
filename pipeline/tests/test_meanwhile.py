@@ -68,6 +68,18 @@ def test_an_event_goes_to_the_neighbour_dated_nearer_it_and_neighbours_repeat_wh
     assert [[e.qid for e in chosen] for chosen in lists] == [["Q2", "Q3", "Q4"], ["Q1", "Q2", "Q3"]]
 
 
+def test_a_list_repeats_an_earlier_list_s_entry_only_when_it_must_and_then_the_least_shown():
+    places = [WATERLOO, (-65.2, -26.8), (-97.1, 49.9), (150.0, -33.9), (30.0, -1.0)]
+    index = [event(f"Q{i}", 6.0 - i, at, "1815-03-20") for i, at in enumerate(places, start=1)]
+    frames = [frame("1815-04-01"), frame("1815-04-05"), frame("1815-04-10")]
+    lists = m.in_turn(frames, index, m.lineage(index))
+    assert [sorted(e.qid for e in chosen) for chosen in lists] == [
+        ["Q1", "Q2", "Q3"],
+        ["Q1", "Q4", "Q5"],
+        ["Q2", "Q3", "Q4"],
+    ]
+
+
 def test_an_event_whose_date_the_sources_dispute_is_left_out():
     beat = m.Beat(
         id="summer",
