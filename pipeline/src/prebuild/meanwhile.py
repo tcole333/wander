@@ -16,11 +16,12 @@ elsewhere at the beat's time:
 - never the beat's focal event nor its part-of (P361) relatives, and never a parent with its child;
 - never one whose date the sources dispute (`contested` in `pipeline/config/events-curated.yaml`),
   since Meanwhile prints one date for each;
-- first those dated within `PAD_DAYS` of the beat's date, greedy by score, then the rest of the
-  window, nearest the date first, each at least `MIN_KM` from those already taken;
+- first those dated within `PAD_DAYS` of the beat's date, greedy by score, then those within
+  `REACH_DAYS`, nearest the date first, each at least `MIN_KM` from those already taken;
 - while enough others qualify, none the beats before it took from their own `PAD_DAYS`, nor any
   the next beat pins, or would show and is dated nearer to it; where too few do, the ones shown
-  least.
+  least; and only then the rest of the window, nearest the date first, so a long window's beat
+  repeats an entry rather than reach far from the date the ruler reads.
 
 A beat's `meanwhile: {pin: [qids], hide: [qids]}` puts its pins first, whatever the rule says, and
 keeps its hides out; `meanwhile: auto`, the default, leaves the rule alone. The same rule gives
@@ -64,6 +65,7 @@ from prebuild.sources import load_sources
 COUNT = 3  # entries per beat and per month
 PAD_DAYS = 45  # a beat's window reaches at least this far either side of its date
 SHORTEST_DAYS = 92  # the longest span a short window admits
+REACH_DAYS = 90  # how far from its date a list takes events before it repeats one
 MIN_KM = 2000.0  # from the beat's target, and between entries
 # How a month holding fewer than COUNT relaxes, a step at a time until it holds COUNT: the spacing
 # between its entries (km), then how far its window reaches either side of its middle (days).
@@ -203,28 +205,31 @@ def choose(
     count: int = COUNT,
 ) -> list[Event]:
     """Up to `count` events for `frame`: the pins, then of those that qualify, first the ones
-    dated in its near days by score (`index`'s order), then the rest nearest its day first. Each
-    keeps `spacing` km from those taken and is neither parent nor child of one of them
-    (`ancestors`, from `lineage`). Those in `avoid`, which counts how often each is shown nearby,
-    are taken only once the others run out, the least shown first."""
+    dated in its near days by score (`index`'s order), then those within `REACH_DAYS` of its day,
+    nearest first. Each keeps `spacing` km from those taken and is neither parent nor child of
+    one of them (`ancestors`, from `lineage`). Those in `avoid`, which counts how often each is
+    shown nearby, are taken only once the others run out, the least shown first. The rest of the
+    frame's window comes last, nearest its day first, again the least shown first."""
     chosen = list(pins)
     qualifying = [e for e in index if qualifies(e, frame) and e not in chosen]
     near = [e for e in qualifying if is_near(e, frame)]
     rest = sorted(
         (e for e in qualifying if not is_near(e, frame)), key=lambda e: abs(e.middle - frame.day)
     )
+    close = [e for e in rest if abs(e.middle - frame.day) <= REACH_DAYS]
     shown = avoid or {}
-    for most in sorted({0, *shown.values()}):
-        for event in (*near, *rest):
-            if len(chosen) >= count:
-                return chosen
-            if event in chosen or shown.get(event.qid, 0) > most:
-                continue
-            if any(apart_km(event.at, c.at) < spacing for c in chosen):
-                continue
-            if any(related(event.qid, c.qid, ancestors) for c in chosen):
-                continue
-            chosen.append(event)
+    for tier in ((*near, *close), rest[len(close) :]):
+        for most in sorted({0, *shown.values()}):
+            for event in tier:
+                if len(chosen) >= count:
+                    return chosen
+                if event in chosen or shown.get(event.qid, 0) > most:
+                    continue
+                if any(apart_km(event.at, c.at) < spacing for c in chosen):
+                    continue
+                if any(related(event.qid, c.qid, ancestors) for c in chosen):
+                    continue
+                chosen.append(event)
     return chosen
 
 

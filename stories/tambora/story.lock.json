@@ -380,33 +380,33 @@
           }
         },
         {
-          "qid": "Q5010928",
-          "label": "Slachter's Nek Rebellion",
-          "date": "1815-11-18",
+          "qid": "Q54322416",
+          "label": "Treaty of Nicolls' Outpost",
+          "date": "1815-03-10",
           "precision": "day",
           "at": [
-            25.8,
-            -32.8
+            -84.8568,
+            30.7006
           ],
-          "line": "On the Cape frontier, Boer rebels confront British troops at Slachter's Nek",
+          "line": "In Florida, Creek refugees promise allegiance to the British Crown",
           "source": {
-            "title": "Slachter's Nek Rebellion (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Slachter%27s_Nek_Rebellion"
+            "title": "Treaty of Nicolls' Outpost (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Treaty_of_Nicolls%27_Outpost"
           }
         },
         {
-          "qid": "Q2890016",
-          "label": "Battle of Sipe-Sipe",
-          "date": "1815-11-29",
+          "qid": "Q613183",
+          "label": "Battle of the Palo River",
+          "date": "1815-07-05",
           "precision": "day",
           "at": [
-            -66.34781,
-            -17.45613
+            -76.40778,
+            3.03556
           ],
-          "line": "At Sipe-Sipe, Spain's royalists rout the army of Buenos Aires",
+          "line": "At the Palo River, patriots rout the royalists and retake Popayán",
           "source": {
-            "title": "Battle of Viluma (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Viluma"
+            "title": "Battle of the Palo River (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_the_Palo_River"
           }
         }
       ],
@@ -521,33 +521,33 @@
           }
         },
         {
-          "qid": "Q5722534",
-          "label": "Battle of Ibiraocaí",
-          "date": "1816-10-19",
+          "qid": "Q2890524",
+          "label": "Battle of Cuchilla del Tambo",
+          "date": "1816-06-29",
           "precision": "day",
           "at": [
-            -56.72,
-            -29.43
+            -76.8178,
+            2.45417
           ],
-          "line": "By the Ibiraocaí, Portuguese troops rout Artigas's men, killing or taking 262",
+          "line": "On a ridge near Popayán, Spain's army ends New Granada's first republic",
           "source": {
-            "title": "Battle of Ibiraocaí (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Battle_of_Ibiraoca%C3%AD"
+            "title": "Battle of Cuchilla del Tambo (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Battle_of_Cuchilla_del_Tambo"
           }
         },
         {
-          "qid": "Q8001257",
-          "label": "Burning of Wildgoose Lodge",
-          "date": "1816-10-29",
+          "qid": "Q3248484",
+          "label": "Argentine Declaration of Independence",
+          "date": "1816-07-09",
           "precision": "day",
           "at": [
-            -6.62391,
-            53.92688
+            -65.20333,
+            -26.83333
           ],
-          "line": "In County Louth, a mob burns Wildgoose Lodge, killing all eight inside",
+          "line": "In a house at Tucumán, the United Provinces declare independence from Spain",
           "source": {
-            "title": "Burning of Wildgoose Lodge (Wikipedia)",
-            "url": "https://en.wikipedia.org/wiki/Burning_of_Wildgoose_Lodge"
+            "title": "Argentine Declaration of Independence (Wikipedia)",
+            "url": "https://en.wikipedia.org/wiki/Argentine_Declaration_of_Independence"
           }
         }
       ],

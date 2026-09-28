@@ -698,23 +698,23 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   relatives, and never a parent with its child; never an event whose date the sources dispute
   (`contested` in `events-curated.yaml`), since Meanwhile prints one date for each; with an English
   Wikipedia article or a written line, so a writer can cite it. It takes first those dated within 45
-  days of the beat's date, greedy by score, then the rest of the window, nearest the date first,
-  each 2,000 km from those taken, since Meanwhile is what happens at the beat's date, which the
-  ruler reads, not anywhere in its window: a beat of April 1815 whose window runs into 1816 shows
-  April's events, not 1816's. While enough others qualify, a beat shows none of those the beats
+  days of the beat's date, greedy by score, then those within 90 days, nearest the date first, each
+  2,000 km from those taken. While enough others qualify, a beat shows none of those the beats
   before it took from their own 45 days, nor any the next beat pins or would show dated nearer to
   it; where too few do, it repeats the ones shown least, so no entry runs through three beats in a
-  row when a neighbour's would do. The same rule picks three per month of the story's years (from
-  January of the year its beats' windows open to December of the year they close) for scrubbing:
-  first those dated in the month, then those within 45 days of its middle, so an event borrowed from
-  a neighbouring month only fills a thin one; the target of the beat dated nearest it; none of the
-  story's focal events and nothing a beat hides. A month still short of three relaxes a step at a
-  time until it holds three: the spacing between its entries to 1,000 km, then 500 km, then its
-  reach to 60, 75 and 90 days either side of its middle, keeping 2,000 km from the target, since a
-  month of one entry reads as a quiet world. No writer reads a month's picks, so they are events
-  with a written line, or with an English article and a place of their own, since an inherited place
-  is often a region's middle (three battles of 1816 stand at one point, the middle of Rio Grande do
-  Sul).
+  row when a neighbour's would do. Only then does it reach further into its window, nearest the date
+  first, since Meanwhile is what happens at the beat's date, which the ruler reads, not anywhere in
+  its window: a beat of April 1815 whose window runs into 1816 repeats an entry of March rather than
+  show November's. The same rule picks three per month of the story's years (from January of the
+  year its beats' windows open to December of the year they close) for scrubbing: first those dated
+  in the month, then those within 45 days of its middle, so an event borrowed from a neighbouring
+  month only fills a thin one; the target of the beat dated nearest it; none of the story's focal
+  events and nothing a beat hides. A month still short of three relaxes a step at a time until it
+  holds three: the spacing between its entries to 1,000 km, then 500 km, then its reach to 60, 75
+  and 90 days either side of its middle, keeping 2,000 km from the target, since a month of one
+  entry reads as a quiet world. No writer reads a month's picks, so they are events with a written
+  line, or with an English article and a place of their own, since an inherited place is often a
+  region's middle (three battles of 1816 stand at one point, the middle of Rio Grande do Sul).
 - **Meanwhile's lines:** `stories/<story>/meanwhile.yaml` gives each event a beat shows a
   present-tense line in the story's voice and its source (`qid: {line, date?, at?, source:
   {title, url}}`). `date` gives the day the source dates the event to where Wikidata's differs
