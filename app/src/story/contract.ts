@@ -75,7 +75,10 @@ export interface MeanwhileEntry {
 /** Keyed by beat id. */
 export type MeanwhileByBeat = Record<string, MeanwhileEntry[]>;
 
-/** A month's entries, shown while the visitor scrubs; `start` and `end` are its first and last day. */
+/**
+ * A month's entries, shown while the visitor scrubs; `start` and `end` are its first and last
+ * day.
+ */
 export interface MeanwhileMonth {
   start: number;
   end: number;
