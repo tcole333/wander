@@ -23,6 +23,11 @@ of the mirror's seam proof.
 milestone-1 events table built from the Wikidata export of 2026-09-28, its rows, stored and decoded
 bytes, and the time Node 22 on the M5 takes to inflate and parse it into typed columns.
 
+`e4/` holds E4 (streaming.md 8.2): `e4.py` uploaded and warmed 200 objects under `_e4/` on
+2026-09-25, as `state.json` records, and reads one cohort of 50 at each checkpoint from this Mac.
+`results/warm.json` is the warm, `results/24h.json` and `results/72h.json` the checkpoints, and
+`results/summary.md` the table the script writes from them.
+
 `e3/results/` holds E3, milestone 1's acceptance (streaming.md 8.2), run on the live site on
 2026-09-28 by `app/scripts/e3.ts`. `live-2026-09-28.json` has the raw results: the cold loads, the
 walk at 5 Mbps / 150 ms with its landings and holds, hostile input, offline, context loss,
