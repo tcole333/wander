@@ -210,6 +210,9 @@ areas, climate data, and the thematic layers.
 - Every beat cites at least one source (title, author or publisher, link). Dates, numbers, and
   quotes come from a cited source. Illustrative visuals do not need sources.
 - Before a story ships, a separate fact-check pass verifies each claim against its cited source.
+- A claim that one thing caused another cites a source that makes that claim. The globe draws what
+  physically moved, and interpretation stays in the text (`docs/design/globe-language.md`).
+- Stories stop where historians have some distance, so present-day disputes stay out of them.
 - Stories may be more liberal in sourcing than the future open-world mode, which leans on Wikidata.
 
 ## Data
