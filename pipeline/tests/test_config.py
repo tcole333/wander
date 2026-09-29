@@ -138,7 +138,8 @@ def test_a_region_off_the_globe_is_refused(tmp_path):
 
 
 def test_the_curated_corrections_give_boosts_dates_and_contested_events():
-    assert load_event_boosts()["Q48314"] == 1.5
+    assert load_event_boosts()["Q48314"] == pytest.approx(76 / 2551)
+    assert load_event_boosts(legacy=True)["Q48314"] == 1.5
     assert load_event_dates()["Q3656338"] == "1816-09-30"
     assert "Q12241904" in load_contested_events()
 

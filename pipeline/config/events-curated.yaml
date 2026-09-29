@@ -1,6 +1,6 @@
 # Hand-made corrections to the event index (streaming.md 3.4), each with its reason (`why`).
-# `boosts` adds to an event's score, log2(1 + Wikipedia editions) x class weight, where the edition
-# count misjudges how much an event mattered: each entry is {qid, boost, why}. `dates` gives the
+# `boosts` adds percentile points before class weighting in .wev, capped at 1: {qid, boost, why}.
+# Optional `legacyBoost` preserves the TSV's log2(1 + editions) x weight score. `dates` gives the
 # day a better source dates an event to where Wikidata's date is wrong: {qid, date, why}, the date
 # a quoted ISO day. `contested` names the events whose date the sources dispute, which Meanwhile,
 # printing one date for each, leaves out: {qid, why}.
@@ -10,11 +10,14 @@
 places: []
 boosts:
   - qid: Q48314
-    boost: 1.5
+    boost: 0.029792238337906744
+    legacyBoost: 1.5
     why: >-
       Waterloo has 94 Wikipedia editions, more than any other event of 1815, but a battle's
       weight ranks it below the lesser wars of its month, such as the Second Barbary War (24), so
-      June 1815 in Meanwhile would lack it.
+      June 1815 in Meanwhile would lack it. In the 2026-09-28 table's 1800-1850 era (2,551 rows),
+      the legacy +1.5 moves it from rank 104 to 28: 76 / 2551 = 0.029792238337906744 percentile
+      points. The runtime uses that gain; legacyBoost keeps the table and Meanwhile unchanged.
 dates:
   - qid: Q3656338
     date: "1816-09-30"

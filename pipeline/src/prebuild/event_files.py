@@ -181,8 +181,8 @@ def prepare(table: list[events.Event], statements: list[events.Statement]) -> li
     edges = era_edges()
     rows = [Row(e, bisect.bisect_right(edges, day_number(*e.day))) for e in accepted.values()]
     weights = {c.name: c.weight for c in classes}
-    # Percentile first, then class weight and boosts. Ties share their upper cumulative rank;
-    # singleton eras get 1000 before weighting. Curated boosts retain their prebuild score units.
+    # Ties share their upper cumulative rank; singleton eras get 1 before weighting.
+    # Curated boosts are percentile points, capped before applying the class weight.
     by_era: dict[int, list[int]] = defaultdict(list)
     for r in rows:
         by_era[r.era].append(r.event.editions)
@@ -193,10 +193,8 @@ def prepare(table: list[events.Event], statements: list[events.Statement]) -> li
         e = r.event
         values = by_era[r.era]
         percentile = bisect.bisect_right(values, e.editions) / len(values)
-        r.score = min(
-            1000,
-            max(0, round(1000 * (percentile * weights[e.cls] + boosts.get(e.qid, 0)) / max_weight)),
-        )
+        boosted = min(1, max(0, percentile + boosts.get(e.qid, 0)))
+        r.score = round(1000 * boosted * weights[e.cls] / max_weight)
     rows.sort(key=lambda r: (-r.score, int(r.event.qid[1:])))
     by_qid = {r.event.qid: r for r in rows}
     source: dict[str, list[events.Statement]] = defaultdict(list)

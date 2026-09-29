@@ -151,7 +151,7 @@ def test_the_stage_writes_the_table_in_score_order_with_its_record(monkeypatch, 
     monkeypatch.setattr(events, "load_sources", lambda: {source.id: source})
     paths = {"events.tsv.gz": export, "export.json": meta}
     monkeypatch.setattr(events, "verified_path", lambda ctx, source_id, name: paths[name])
-    monkeypatch.setattr(events, "load_event_boosts", dict)  # the committed boosts include Waterloo
+    monkeypatch.setattr(events, "load_event_boosts", lambda **_: {})  # ignore Waterloo's boost
     ctx = make_context(Profile.GLOBAL, 1, tmp_path)
     events.run(ctx)
     table = gzip.decompress((ctx.out / events.KEY).read_bytes()).decode().splitlines()

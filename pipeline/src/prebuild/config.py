@@ -173,16 +173,23 @@ def load_event_classes(path: Path = EVENT_CLASSES) -> list[EventClass]:
     return classes
 
 
-def load_event_boosts(path: Path = EVENT_CURATED) -> dict[str, float]:
-    """Score boosts by event qid (events-curated.yaml)."""
+def load_event_boosts(path: Path = EVENT_CURATED, *, legacy: bool = False) -> dict[str, float]:
+    """Percentile-point boosts, or the legacy table's separate log-score additions."""
     boosts: dict[str, float] = {}
     for row in _curated(path, "boosts"):
-        fields = _mapping(row, f"{path.name} boost", {"qid", "boost", "why"})
+        fields = _mapping(row, f"{path.name} boost")
+        if (
+            set(fields) - {"qid", "boost", "legacyBoost", "why"}
+            or not {"qid", "boost", "why"} <= fields.keys()
+        ):
+            raise ConfigError(f"{path.name} boost needs qid, boost, why and optional legacyBoost")
         qid = _qid(fields["qid"], f"{path.name} boost")
         _text(fields["why"], f"boost {qid} why")
         if qid in boosts:
             raise ConfigError(f"{path.name} boosts {qid} twice")
-        boosts[qid] = _number(fields["boost"], f"boost {qid}")
+        boost = _number(fields["boost"], f"boost {qid}")
+        legacy_boost = _number(fields.get("legacyBoost", 0), f"legacyBoost {qid}")
+        boosts[qid] = legacy_boost if legacy else boost
     return boosts
 
 

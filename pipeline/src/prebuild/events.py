@@ -17,7 +17,7 @@ Wikipedia edition. Per event it takes:
   war with a point in time still spans its years; a curated day leaves out the statement it
   corrects, so a one-day battle Wikidata dates two years late spans its one day;
 - the place: its own coordinates, else those of its location (`inherited` 1);
-- the score: log2(1 + Wikipedia editions) times the class's weight, plus any boost in
+- the score: log2(1 + Wikipedia editions) times the class's weight, plus any legacyBoost in
   `pipeline/config/events-curated.yaml`;
 - its part-of parents (P361) as Wikidata gives them, whether or not they are in the index.
 
@@ -26,9 +26,10 @@ all accepted events are kept (event-files pages larger corpora). Columns: qid, l
 class, date, precision, t0, t1,
 lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in
 astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
-precision: 9 year, 10 month, 11 day. Milestone 1 publishes none of it: the `.wev` files (3.4) come
-with the globe's events layer. The fixture reads a committed slice of the export, retaining all
-statements of events dated in 1815-1817 and their exported ancestors.
+precision: 9 year, 10 month, 11 day. The table stays build-only for Meanwhile and lobby picks.
+The separate event-files stage reads it and the pinned export to publish the runtime `.wev`
+files, with percentile scores and display parents (3.4). The fixture reads a committed slice of
+the export, retaining all statements of events dated in 1815-1817 and their exported ancestors.
 """
 
 import gzip
@@ -148,7 +149,9 @@ def run(ctx: Context) -> None:
             f"{source.id} lacks the classes {', '.join(missing)}: run `uv run prebuild wikidata`"
         )
     with gzip.open(paths[TABLE], "rt", encoding="utf-8") as stream:
-        events = index(read_export(stream), classes, load_event_boosts(), load_event_dates())
+        events = index(
+            read_export(stream), classes, load_event_boosts(legacy=True), load_event_dates()
+        )
     payload = encode(events)
     stored = gzip.compress(payload, compresslevel=9, mtime=0)
     target = ctx.out / KEY
