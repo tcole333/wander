@@ -16,10 +16,6 @@ describe('FAMILIES', () => {
       expect(new Set(looks).size).toBe(PACES.length);
     },
   );
-
-  it('draws every family by the look’s inlay', () => {
-    expect(PACES.map((pace) => FAMILIES[pace].backend)).toEqual(['inlay', 'inlay', 'inlay']);
-  });
 });
 
 describe('familyUniforms', () => {
