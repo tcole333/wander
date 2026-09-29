@@ -1,0 +1,107 @@
+{
+  "measured": "2026-09-29T17:27:30.045Z",
+  "machine": {
+    "cpu": "Apple M5",
+    "platform": "darwin",
+    "os": "25.5.0",
+    "arch": "arm64",
+    "node": "v22.23.2"
+  },
+  "method": {
+    "script": "app/scripts/benchmarkEvents.ts",
+    "viewportCssPixels": [
+      1440,
+      900
+    ],
+    "warmupQueries": 50,
+    "measuredQueries": 300,
+    "queryHz": 30,
+    "camera": "40-degree perspective; longitude offset sin(query / 20) * 10 degrees",
+    "queryTiming": "EventQueryEngine.query only; excludes fetch, messaging, camera construction and rendering",
+    "decodeTiming": "decodePage: gzip inflation, JSON parsing, validation and typed-array packing",
+    "bytes": "Stored gzip, inflated JSON and resident typed-array buffers including labels, offsets, extents and qid lookup; excludes object headers and transient allocations"
+  },
+  "version": "332beb81",
+  "rows": 30070,
+  "residentArrayBytes": 2241992,
+  "pages": [
+    {
+      "key": "ev/332beb81/overview.wev",
+      "rows": 4096,
+      "stored": 142271,
+      "json": 407902,
+      "arrays": 332381,
+      "decodeMs": 11.108208
+    },
+    {
+      "key": "ev/332beb81/all.wev",
+      "rows": 25974,
+      "stored": 778911,
+      "json": 2288524,
+      "arrays": 1909611,
+      "decodeMs": 24.098792000000003
+    }
+  ],
+  "runs": [
+    {
+      "name": "world-all-history",
+      "tier": "lite",
+      "queries": 300,
+      "p50Ms": 5.135084000000006,
+      "p95Ms": 5.418708000000038,
+      "maxMs": 5.998999999999796,
+      "markerCount": 80,
+      "labelCount": 24
+    },
+    {
+      "name": "europe-1815",
+      "tier": "lite",
+      "queries": 300,
+      "p50Ms": 0.334041999999954,
+      "p95Ms": 0.3661250000000109,
+      "maxMs": 0.5730829999999969,
+      "markerCount": 39,
+      "labelCount": 24
+    },
+    {
+      "name": "asia-1900-2000",
+      "tier": "lite",
+      "queries": 300,
+      "p50Ms": 1.0876670000002377,
+      "p95Ms": 1.3895419999998921,
+      "maxMs": 2.0559579999999187,
+      "markerCount": 80,
+      "labelCount": 24
+    },
+    {
+      "name": "world-all-history",
+      "tier": "full",
+      "queries": 300,
+      "p50Ms": 5.248250000000098,
+      "p95Ms": 5.579499999999825,
+      "maxMs": 5.849459000000024,
+      "markerCount": 140,
+      "labelCount": 40
+    },
+    {
+      "name": "europe-1815",
+      "tier": "full",
+      "queries": 300,
+      "p50Ms": 0.3405000000002474,
+      "p95Ms": 0.3828750000002401,
+      "maxMs": 0.5148330000001806,
+      "markerCount": 39,
+      "labelCount": 40
+    },
+    {
+      "name": "asia-1900-2000",
+      "tier": "full",
+      "queries": 300,
+      "p50Ms": 1.1379170000000158,
+      "p95Ms": 1.4089999999996508,
+      "maxMs": 1.6092500000004293,
+      "markerCount": 140,
+      "labelCount": 40
+    }
+  ]
+}
