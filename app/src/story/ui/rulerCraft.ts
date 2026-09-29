@@ -2,7 +2,9 @@
 // of the view, between two knurled knobs with gearwork behind them, drawn in SVG over the canvas.
 // Its geometry and scale are rulerScale.ts's.
 // With ExploreTime instead of a walk it reads the world clock, wheels through calendar scales,
-// and uses the knobs to zoom and the bottom tier to range across all of history.
+// and uses the knobs to zoom and the bottom tier to range across all of history. A walk's ruler
+// reads its story's proleptic Gregorian dates; Explore's reads the historical calendar (dates.ts),
+// Julian before 15 October 1582, as the sources of its events do.
 //
 // The band zooms to each beat's own time (beatSpan), easing from span to span during flights,
 // engraved with years, months and, once wide enough, days. A garnet playhead marks story time:
@@ -26,7 +28,16 @@
 // engraves the band again only while its span changes.
 import './rulerCraft.css';
 import { KEY_LAMP, KEY_LAMP_CSS, LENS } from '../../scene/lens';
-import { civilFromDay, formatDay, monthName, yearLabel, type Precision } from '../dates';
+import {
+  formatDay,
+  formatHistorical,
+  GREGORIAN,
+  HISTORICAL,
+  monthName,
+  yearLabel,
+  type Calendar,
+  type Precision,
+} from '../dates';
 import type { Walk, WalkState } from '../contract';
 import type { Story } from '../story';
 import { ExploreTime, wheelZoom } from '../../time/exploreTime';
@@ -136,6 +147,8 @@ export class CraftRuler {
   readonly #walk: Walk | null;
   readonly #story: Story | null;
   readonly #explore: ExploreTime | null;
+  /** The calendar the band and plaque read: the story's Gregorian, or Explore's historical. */
+  readonly #calendar: Calendar;
   #unsubscribe: (() => void) | undefined;
   /** The story's whole years, which the tier on the base plate shows. */
   readonly #years: Span;
@@ -202,6 +215,7 @@ export class CraftRuler {
   constructor(source: Walk | ExploreTime, story?: Story) {
     this.#explore = source instanceof ExploreTime ? source : null;
     this.#walk = source instanceof ExploreTime ? null : source;
+    this.#calendar = this.#explore ? HISTORICAL : GREGORIAN;
     this.#story = story ?? null;
     const beats = story?.beats ?? [];
     this.#years = this.#explore?.extent ?? storyYears(beats);
@@ -414,7 +428,7 @@ export class CraftRuler {
     this.#place(day, this.#unit);
     this.#turn(day);
     this.#plate.setAttribute('aria-valuenow', String(day));
-    const date = civilFromDay(day);
+    const date = this.#calendar.civil(day);
     this.#plate.setAttribute(
       'aria-valuetext',
       `${date.day} ${monthName(date.month)} ${calendarYearLabel(date.year, true)}`,
@@ -563,10 +577,12 @@ export class CraftRuler {
     this.#clearPlate(plateAngle);
     if (this.#explore) this.#clearExploreLabels();
 
-    const text = formatDay(dayNumber, precision);
+    const text = this.#explore
+      ? formatHistorical(dayNumber, precision)
+      : formatDay(dayNumber, precision);
     if (text === this.#plateText) return;
     this.#plateText = text;
-    const { day, month, year } = civilFromDay(dayNumber);
+    const { day, month, year } = this.#calendar.civil(dayNumber);
     const upper =
       precision === 'year'
         ? ''
@@ -780,9 +796,9 @@ export class CraftRuler {
     this.#laidOut = true;
     const arc = this.#arc;
     const span = this.#span;
-    const unit = engravedUnit(arc, span);
+    const unit = engravedUnit(arc, span, this.#calendar);
     this.#unit = unit === 'day' || unit === 'month' ? unit : 'year';
-    const scale = engraveScale(arc, span, (day) => this.#angle(day));
+    const scale = engraveScale(arc, span, (day) => this.#angle(day), this.#calendar);
     for (const kind of TICK_KINDS) {
       for (const path of this.#ticks.get(kind) ?? []) path.setAttribute('d', scale[kind]);
     }

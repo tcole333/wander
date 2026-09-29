@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { civilFromDay, dayFromIso } from '../dates';
+import { civilFromDay, dayFromHistorical, dayFromIso, HISTORICAL } from '../dates';
 import { parseStory } from '../story';
 import {
   arcFor,
@@ -42,11 +42,19 @@ describe('review: narrow story tiers', () => {
   });
 });
 
+/** Explore's band: the historical calendar. */
 function band(span: Span, width = 1440) {
   const arc = arcFor(width);
   const angle = (day: number) =>
     ((2 * (day - span.start)) / (span.end - span.start) - 1) * arc.reach;
-  return engraveScale(arc, span, angle).labels.filter((label) => label.row === LOWER_ROW);
+  return engraveScale(arc, span, angle, HISTORICAL).labels.filter(
+    (label) => label.row === LOWER_ROW,
+  );
+}
+
+/** The day number of a date history writes as this ISO day, in the Julian before the reform. */
+function historical(iso: string): number {
+  return dayFromHistorical(civilFromDay(dayFromIso(iso)));
 }
 
 describe('review: free ruler calendar', () => {
@@ -62,7 +70,7 @@ describe('review: free ruler calendar', () => {
   });
 
   it('keeps round decades instead of the exact view edges', () => {
-    const span = { start: dayFromIso('-0069-01-01'), end: dayFromIso('0071-01-01') };
+    const span = { start: historical('-0069-01-01'), end: historical('0071-01-01') };
     expect(band(span).map((label) => label.text)).toEqual([
       '60 BCE',
       '40 BCE',
@@ -75,7 +83,7 @@ describe('review: free ruler calendar', () => {
   });
 
   it('keeps 800 CE beside an unround 801 CE view end', () => {
-    const span = { start: dayFromIso('-0799-01-01'), end: dayFromIso('0801-01-01') };
+    const span = { start: historical('-0799-01-01'), end: historical('0801-01-01') };
     expect(band(span).at(-1)?.text).toBe('800 CE');
   });
 
@@ -96,7 +104,7 @@ describe('review: free ruler calendar', () => {
     expect(right).toBeLessThanOrEqual(arc.reach * arc.r);
     const round = labels.find((label) => label.text === '9000 BCE')!;
     expect(round.tickAngle).toBeCloseTo(
-      ((2 * (dayFromIso('-8999-01-01') - span.start)) / (span.end - span.start) - 1) * arc.reach,
+      ((2 * (historical('-8999-01-01') - span.start)) / (span.end - span.start) - 1) * arc.reach,
     );
   });
 

@@ -3,10 +3,11 @@
 import type { WalkState } from '../contract';
 import {
   civilFromDay,
-  dayFromCivil,
   formatDay,
+  GREGORIAN,
   monthName,
   yearLabel,
+  type Calendar,
   type Precision,
 } from '../dates';
 import type { LonLat, StoryBeat } from '../story';
@@ -83,19 +84,20 @@ export interface YearMark extends Span {
 /**
  * Calendar intervals touching the view, jumping straight to its first interval. Coarse marks
  * align with historical multiples (1000 BCE is astronomical -999), with 1 CE at the era seam.
+ * Each year begins on 1 January in `calendar`.
  */
-export function yearsIn(span: Span, step = 1): YearMark[] {
+export function yearsIn(span: Span, step = 1, calendar: Calendar = GREGORIAN): YearMark[] {
   if (!Number.isInteger(step) || step < 1)
     throw new RangeError('Year step must be a positive integer');
   const years: YearMark[] = [];
-  const first = civilFromDay(span.start).year;
+  const first = calendar.civil(span.start).year;
   let year =
     step === 1
       ? first
       : first <= 0
         ? 1 - Math.ceil((1 - first) / step) * step
         : Math.max(1, Math.floor(first / step) * step);
-  let start = dayFromCivil({ year, month: 1, day: 1 });
+  let start = calendar.day({ year, month: 1, day: 1 });
   while (start <= span.end) {
     const next =
       step === 1
@@ -105,7 +107,7 @@ export function yearsIn(span: Span, step = 1): YearMark[] {
           : year === 1
             ? step
             : year + step;
-    const end = dayFromCivil({ year: next, month: 1, day: 1 });
+    const end = calendar.day({ year: next, month: 1, day: 1 });
     years.push({ year, start, end });
     [year, start] = [next, end];
   }
@@ -149,21 +151,24 @@ export interface MonthMark {
   end: number;
 }
 
-/** Every `step` months the view touches, aligned to January, without walking from an epoch. */
-export function monthsIn(span: Span, step = 1): MonthMark[] {
+/**
+ * Every `step` months the view touches, in `calendar`, aligned to January, without walking from
+ * an epoch.
+ */
+export function monthsIn(span: Span, step = 1, calendar: Calendar = GREGORIAN): MonthMark[] {
   if (!Number.isInteger(step) || step < 1)
     throw new RangeError('Month step must be a positive integer');
   const months: MonthMark[] = [];
-  const first = civilFromDay(span.start);
+  const first = calendar.civil(span.start);
   let index = Math.floor((first.year * 12 + first.month - 1) / step) * step;
   let year = Math.floor(index / 12);
   let month = index - year * 12 + 1;
-  let start = dayFromCivil({ year, month, day: 1 });
+  let start = calendar.day({ year, month, day: 1 });
   while (start < span.end) {
     index += step;
     const nextYear = Math.floor(index / 12);
     const nextMonth = index - nextYear * 12 + 1;
-    const end = dayFromCivil({ year: nextYear, month: nextMonth, day: 1 });
+    const end = calendar.day({ year: nextYear, month: nextMonth, day: 1 });
     months.push({ year, month, start, end });
     [year, month, start] = [nextYear, nextMonth, end];
   }
