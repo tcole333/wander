@@ -54,6 +54,32 @@ export interface MediaRelease {
   images: string[];
 }
 
+/** One gzip-in-file columnar event page (streaming.md 3.4). */
+export interface EventFile {
+  key: string;
+  t0: number;
+  t1: number;
+  rows: number;
+  bytes: number;
+  /** Exact resident typed-array bytes, including labels, extents and the qid lookup. */
+  decoded: number;
+  /** Inflated JSON bytes, released after decoding. */
+  jsonBytes: number;
+  /** Era page, 0–23; absent for overview, all and long. */
+  bin?: number;
+}
+
+export interface EventsRelease {
+  ver: string;
+  overview: string;
+  /** Unique rows across the corpus. */
+  rows: number;
+  /** The 23 finite bin boundaries, as Gregorian day numbers. */
+  eraEdges: number[];
+  /** Includes the overview, so its sizes are known before fetching it. */
+  files: EventFile[];
+}
+
 /** Story route assets, keyed by story/dataset (dataset names are local to each story). */
 export type FxRelease = Record<
   string,
@@ -80,5 +106,7 @@ export interface Release {
   borders?: BordersRelease;
   /** Present once the build has run the fx stage. */
   fx?: FxRelease;
+  /** Present once the build has run event-files. */
+  events?: EventsRelease;
   media: MediaRelease;
 }

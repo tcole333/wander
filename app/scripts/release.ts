@@ -11,6 +11,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type {
   BordersRelease,
+  EventsRelease,
   FxRelease,
   MediaRelease,
   ModeraRelease,
@@ -117,6 +118,7 @@ export function localRelease(stages: string, dataHost: string): Release {
     modera: optional<ModeraRelease>('modera'),
     borders: optional<BordersRelease>('borders'),
     fx: optional<FxRelease>('fx'),
+    events: optional<EventsRelease>('event-files'),
     media: mediaRelease(),
   };
   const id = createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 16);
