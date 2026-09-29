@@ -158,10 +158,13 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec2 fromCenter = px - slot.xy;
     if (dot(fromCenter, fromCenter) > slot.z * slot.z) continue;
     int m = ${MARK_ROW * 512} + ${MARK_TEXELS} * int(slot.w);
-    // The anchor and r, the mark's radius at sea level, and its frame there, north up.
+    // The anchor and r, the mark's radius at sea level, and its frame there, north up; the lamp's
+    // shadow offset and a hovered parent's ring, in r, and the least cosine from the anchor at
+    // which the mark still draws.
     vec4 t1 = lookMarkTexel(m);
+    vec4 t3 = lookMarkTexel(m + 2);
     vec3 anchor = t1.xyz;
-    if (dot(g, anchor) < 0.9) continue;
+    if (dot(g, anchor) < t3.w) continue;
     float r = t1.w;
     vec3 east = vec3(anchor.z, 0.0, -anchor.x);
     float eastLength = length(east);
@@ -173,10 +176,8 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec2 qx = vec2(dot(gx, east), dot(gx, north)) / r;
     vec2 qy = vec2(dot(gy, east), dot(gy, north)) / r;
     float pxR = max(max(length(qx), length(qy)), 1e-4);
-    // The glyph's cell, the family and flags, and the mark's strength; the lamp's shadow offset
-    // and a hovered parent's ring, in r.
+    // The glyph's cell, the family and flags, and the mark's strength.
     vec4 t2 = lookMarkTexel(m + 1);
-    vec4 t3 = lookMarkTexel(m + 2);
     int familyFlags = int(t2.z);
     int flags = familyFlags & 15;
     bool soft = (flags & ${FLAG.soft}) != 0;
@@ -280,7 +281,8 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     rough = mix(rough, f2.w, cGlyph);
     metal = mix(metal, f3.y, cGlyph);
 
-    // A hovered parent's extent: a dashed ring engraved at t3.z.
+    // A hovered parent's extent: a dashed ring engraved at t3.z, the circle its arc from the
+    // anchor makes, seen straight down on the anchor's tangent plane.
     if (t3.z > 0.0) {
       float extent =
         1.0 - smoothstep(0.5 * pxRad, ${float(RING_PX.hover)} * pxRad, abs(rq - t3.z));
