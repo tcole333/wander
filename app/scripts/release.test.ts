@@ -1,5 +1,7 @@
 // The release's surface section (streaming.md 3.8) from the coverage and surface records (7.2),
+// its events section from the event-files record, which must hold the committed openings (3.4),
 // and its media section from the stories' locks (3.9), which the bundled release must match.
+import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -7,25 +9,80 @@ import { describe, expect, test } from 'vitest';
 import bundled from '../src/generated/release.json';
 import type { EventsRelease } from '../src/data/release';
 import { readStageRecord } from '../src/test/fixture';
-import { localRelease, mediaRelease, surfaceRelease } from './release';
+import { eventsRelease, localRelease, mediaRelease, surfaceRelease } from './release';
 
-test('the event-files record becomes the release events section, including sizes and era edges', () => {
+test('the event-files record, less its inputs, becomes the release events section', () => {
   const stages = mkdtempSync(join(tmpdir(), 'wander-events-release-'));
-  const events = readStageRecord<EventsRelease>('event-files');
+  const record = readStageRecord<EventsRelease & { inputs: unknown }>('event-files');
   try {
     writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
     writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
     const before = localRelease(stages, 'https://data.example');
-    writeFileSync(join(stages, 'event-files.json'), JSON.stringify(events));
+    writeFileSync(join(stages, 'event-files.json'), JSON.stringify(record));
     const release = localRelease(stages, 'https://data.example');
-    expect(release.events).toEqual(events);
+    expect(release.events).toEqual({ ...record, inputs: undefined });
+    expect(release.events).not.toHaveProperty('inputs');
     expect(release.id).not.toBe(before.id);
     expect(localRelease(stages, 'https://data.example').id).toBe(release.id);
   } finally {
-    for (const name of ['coverage.json', 'surface.json', 'event-files.json']) {
-      rmSync(join(stages, name));
-    }
+    rmSync(stages, { recursive: true, force: true });
   }
+});
+
+describe('the events section', () => {
+  const record = { ver: '65f8a73a', overview: 'ev/65f8a73a/overview.wev', rows: 1, eraEdges: [] };
+  const sha256 = (text: string) => createHash('sha256').update(text).digest('hex');
+
+  /** A lock of `text` in a folder of its own, and stage records under `<folder>/global`. */
+  function build(text: string): { lock: string; stages: string; done: () => void } {
+    const folder = mkdtempSync(join(tmpdir(), 'wander-openings-'));
+    const lock = join(folder, 'openings.lock.json');
+    const stages = join(folder, 'global');
+    writeFileSync(lock, text);
+    mkdirSync(stages);
+    writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
+    writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
+    return { lock, stages, done: () => rmSync(folder, { recursive: true, force: true }) };
+  }
+
+  test('is refused, naming the stage, when the overview holds another openings lock', () => {
+    const { lock, stages, done } = build('{"openings": ["Q48314"]}');
+    try {
+      const stale = { ...record, files: [], inputs: { openings: sha256('{"openings": []}') } };
+      expect(() => eventsRelease(stale, stages, lock)).toThrow(
+        'run `uv run prebuild --profile global event-files` in pipeline/',
+      );
+    } finally {
+      done();
+    }
+  });
+
+  test('is refused when the record names no openings lock', () => {
+    const { lock, stages, done } = build('{"openings": ["Q48314"]}');
+    try {
+      expect(() => eventsRelease({ ...record, files: [] }, stages, lock)).toThrow(
+        /another explore\/openings.lock.json/,
+      );
+    } finally {
+      done();
+    }
+  });
+
+  // A line edited in the lock changes no .wev byte, so no key and no release.
+  test('keeps the release id when only the openings lock changed', () => {
+    const { lock, stages, done } = build('{"line": "one"}');
+    try {
+      const ids = ['{"line": "one"}', '{"line": "two"}'].map((text) => {
+        writeFileSync(lock, text);
+        const current = { ...record, files: [], inputs: { openings: sha256(text) } };
+        writeFileSync(join(stages, 'event-files.json'), JSON.stringify(current));
+        return localRelease(stages, 'https://data.example', lock).id;
+      });
+      expect(ids[1]).toBe(ids[0]);
+    } finally {
+      done();
+    }
+  });
 });
 
 test('the release carries the fx record unchanged, and its bytes change the release id', () => {
