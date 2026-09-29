@@ -468,14 +468,14 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   extents, average about 75 B per row [M `e5/results/runtime-2026-09-29.json`]. Compressed bytes,
   JSON and per-row strings are released after packing, to stay within section 6. The build
   asserts that every t0 and t1 round-trips exactly.
-- **Split rule:** `overview.wev` holds 4,096 rows, with equal quotas per era bin × macro-region cell
-  (~21 rows each), filled by score, and leftovers by score. If the corpus is at most 100K rows and
-  16 MiB decoded, the rest goes into `all.wev`. Otherwise it is split into `p00..p23` by era bin: a row
-  goes into every bin it overlaps, except rows spanning more than 3 bins, which go into `long.wev`.
-  The overview is at most 4,096 rows plus Explore's openings (below); rest files exclude its
-  rows, and empty non-overview files are omitted so small fixtures need no empty fetch. The 100K
-  row limit decides paging, never truncation. Overlapping pages retain the same global row ids for
-  deduplication.
+- **Split rule:** `overview.wev` holds 4,096 quota rows, with equal quotas per era bin ×
+  macro-region cell (~21 rows each), filled by score, and leftovers by score, plus Explore's
+  openings (below). If the corpus is at most 100K rows and 16 MiB decoded, the rest goes into
+  `all.wev`. Otherwise it is split into `p00..p23` by era bin: a row goes into every bin it
+  overlaps, except rows spanning more than 3 bins, which go into `long.wev`. Rest files exclude the
+  overview's rows, and empty non-overview files are omitted so small fixtures need no empty fetch.
+  The 100K row limit decides paging, never truncation. Overlapping pages retain the same global row
+  ids for deduplication.
 - **Overview regions:** eight rectangles cover the whole sphere, including oceans: North and
   South America, Europe, Africa, North Asia, South Asia, East/Southeast Asia and Oceania. These
   are sampling cells, so simple complete coverage matters more than political borders; their
@@ -488,21 +488,27 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   best-known events up to 2000 across pace layers, continents and eras, each with its qid, a
   present-tense line in the walk's voice and the source it rests on (title and https URL), in the
   form of a story's `meanwhile.yaml`, with an optional `date` (ISO day or month, proleptic
-  Gregorian as the index's) where a source dates the event more finely than the index. `uv run
-  prebuild openings`, named-only, reads the list with Meanwhile's readers and writes the committed
-  `explore/openings.lock.json`, `{table, openings: [{qid, label, date, precision, at, line,
-  source: {title, url}, class}]}`, `table` being the sha256 of the `events.tsv.gz` it checked. It
-  stops on a qid the index lacks, an opening part of another (P361 through the index's parents,
-  since two of one family open on one view), a start after 2000, an index built from another export
-  or other configs, or a line naming a day and month other than the event's date as its sources
-  give it (Julian before 15 October 1582) or a day where the date is a month or year. `event-files`
-  forces every opening into `overview.wev` on top of its quota, so the first view never waits on a
-  rest file: an opening the index lacks fails the global and region builds and is left out of the
-  fixture's slice with a logged count, and a lock checked against another table fails them, naming
-  the stage. Its record's `inputs` hold the lock's sha256, and `explore` joins the fixture stamp's
-  paths. The app bundles the lock (`app/src/explore/openings.ts`) and picks one opening per dive,
-  never one of the visitor's last `openingsRecent`, kept in `localStorage`; `?opening=Q…` pins one
-  on loopback. Until the overview decodes, or if it fails, the lock draws the opening's mark.
+  Gregorian as the index's) where a source dates the event more finely than the index, within the
+  index's span for it. The place is always the index's, and a date the index has wrong is curated
+  in `events-curated.yaml`: the overview's mark keeps the index's dates and place, and the lock
+  draws the same mark until the overview decodes. `uv run prebuild openings`, named-only, reads the
+  list with Meanwhile's readers and writes the committed `explore/openings.lock.json`, `{table,
+  openings: [{qid, label, date, precision, at, line, source: {title, url}, class}]}`, `table`
+  being the sha256 of the `events.tsv.gz` it checked. It stops on a qid the index lacks, a written
+  date outside the index's span or any written `at`, an opening part of another (P361 through the
+  index's parents, since two of one family open on one view), a start after 2000, an index built
+  from another export or other configs, or a line naming a day and month other than the event's
+  date as its sources give it (Julian before 15 October 1582) or a day where the date is a month or
+  year. `event-files` forces every opening into `overview.wev` on top of its quota, so the first
+  view never waits on a rest file: an opening the index lacks fails the global and region builds
+  and is left out of the fixture's slice with a logged count, and a lock checked against another
+  table fails them, naming the stage. Its record's `inputs` hold the lock's sha256, and the release
+  (`publish-data`, the data server) stops, naming `event-files`, until they match the committed
+  lock; `explore` joins the fixture stamp's paths. So after a change to `events.tsv.gz`, run
+  `openings`, then `event-files`, and commit the lock. The app bundles the lock
+  (`app/src/explore/openings.ts`) and picks one opening per dive, never one of the visitor's last
+  `openingsRecent`, kept in `localStorage`; `?opening=Q…` pins one on loopback, and a pin the list
+  lacks throws. Until the overview decodes, or if it fails, the lock draws the opening's mark.
 - **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
   1700, 1800, 1850, 1900, 1950, 2000, +∞, each finite edge its year's 1 January in the historical
@@ -1602,7 +1608,7 @@ and the release's `media` section lists every key the locks name (3.8).
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
-| event-files | `{ver, overview, rows, eraEdges, files[{key, t0, t1, rows, bytes, decoded, jsonBytes, bin?}], inputs: {openings}}`: copied as the optional release `events` section (3.8); counts unique rows, lists the overview and nonempty rest files, and supplies exact byte sizes and bin edges for the worker's admission and inflation limits; `inputs.openings` is the sha256 of the openings lock the overview holds |
+| event-files | `{ver, overview, rows, eraEdges, files[{key, t0, t1, rows, bytes, decoded, jsonBytes, bin?}], inputs: {openings}}`: copied, less `inputs`, as the optional release `events` section (3.8); counts unique rows, lists the overview and nonempty rest files, and supplies exact byte sizes and bin edges for the worker's admission and inflation limits; `inputs.openings` is the sha256 of the openings lock the overview holds, which the release checks against the committed lock (3.4) |
 | modera | `{ver, years[first, last], lat[96], lon0, dlon, bytes{mean: {year}, spread: {year}, annual}}`: 3.8's `modera` section as is, the latitudes north first to 6 decimals |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |

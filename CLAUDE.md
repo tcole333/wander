@@ -127,8 +127,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv run prebuild openings`, after `events`: checks `explore/openings.yaml` against
   `ev/events.tsv.gz` and writes `explore/openings.lock.json` (commit it), whose events `event-files`
   forces into the overview (`docs/design/streaming.md` 3.4). It stops on an opening the index
-  lacks, one part of another, one starting after 2000, a stale table, or a line naming a day its
-  date does not hold; `event-files` stops, naming it, until the lock matches the global table.
+  lacks, a written date outside the index's span or a written place, one part of another, one
+  starting after 2000, a stale table, or a line naming a day its date does not hold. `event-files`
+  stops, naming it, until the lock matches the global table, and the release stops, naming
+  `event-files`, until that record holds the committed lock: after any change to the table, run
+  `openings`, then `event-files`, and commit the lock.
 - `npm run verify:bake -- [region|global]`: decodes every tile of `build/region/` (the default)
   or `build/out/`, reading `build/stages/<profile>/`, and checks its seams, headers, `bounds.bin`,
   availability and known places (`docs/design/streaming.md` 7.3). Local only, since building the
