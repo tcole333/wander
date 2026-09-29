@@ -1,9 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
+import type { EventReply } from '../events/runtime';
+import type { MarkLayer, MarkSpec } from '../marks/marks';
+import { MemoryAccount } from '../perf/memory';
+import { FrameContext } from '../scene/frameContext';
 import { dayFromIso } from '../story/dates';
+import { lonLatToDir, toThree } from '../surface/cube';
+import { pageOf, releaseOf } from '../test/events';
 import { WorldClock } from '../time/worldClock';
 import { ViewControl } from '../view/viewControl';
 import type { WalkAudio } from '../audio/walkAudio';
-import { startExplore, waterloo, worldViewOn } from './explore';
+import { startExplore, waterloo, worldViewOn, type EventsSource } from './explore';
 
 // The real clock, flight and view control, with the ruler and its layer standing in for the DOM.
 const drawn = vi.hoisted(() => ({
@@ -11,16 +18,79 @@ const drawn = vi.hoisted(() => ({
   disposed: 0,
   layers: [] as FakeLayer[],
   /** The part that throws as it is built, if any. */
-  broken: null as 'ruler' | 'flight' | null,
+  broken: null as 'ruler' | 'flight' | 'worker' | null,
+  /** The event clients started, standing in for the worker. */
+  clients: [] as FakeClient[],
 }));
 interface FakeLayer {
   className: string;
   children: unknown[];
   inert: boolean;
   removed: boolean;
+  dataset: Record<string, string>;
   append(...nodes: unknown[]): void;
   remove(): void;
 }
+/** The event client, answering each query with Waterloo's mark. */
+interface FakeClient {
+  asked: { focalQids?: number[] }[];
+  disposed: boolean;
+  query(query: { focalQids?: number[] }): void;
+  drain(now: number): EventReply[];
+  idle(): boolean;
+  dispose(): void;
+}
+vi.mock('../events/client', () => ({
+  EventClient: {
+    create() {
+      if (drawn.broken === 'worker') throw new Error('the worker cannot start');
+      const classes = ['battle'];
+      const client: FakeClient = {
+        asked: [],
+        disposed: false,
+        query(query) {
+          client.asked.push(query);
+        },
+        drain(now) {
+          if (client.asked.length === 0) return [];
+          const plan = { needs: [], resident: [], bytes: 4096, complete: true };
+          const fade = { phase: 'steady' as const, from: 1, to: 1, start: now, duration: 0 };
+          const [lon, lat] = [4.41222, 50.67806];
+          const mark = {
+            row: 39,
+            qid: 48314,
+            at: [lon, lat] as [number, number],
+            x: 0,
+            y: 0,
+            anchorVisible: true,
+            score: 900,
+            cls: 0,
+            t0: 662717,
+            t1: 662717,
+            prec: 11,
+            flags: 0,
+            unc: 0,
+            parent: -1,
+            focal: true,
+            context: false,
+            fade,
+          };
+          const result = { markers: [mark], labels: [], outlines: [], missingFocal: [] };
+          return [
+            { type: 'state', plan, classes },
+            { type: 'result', generation: client.asked.length, result, plan },
+          ];
+        },
+        idle: () => true,
+        dispose() {
+          client.disposed = true;
+        },
+      };
+      drawn.clients.push(client);
+      return client;
+    },
+  },
+}));
 vi.mock('../story/ui/rulerCraft', () => ({
   CraftRuler: class {
     element = { ruler: true };
@@ -51,6 +121,7 @@ vi.mock('../story/ui/dom', () => ({
       children: [],
       inert: false,
       removed: false,
+      dataset: {},
       append(...nodes) {
         this.children.push(...nodes);
       },
@@ -66,8 +137,36 @@ vi.mock('../story/ui/dom', () => ({
 const DT = 1 / 60;
 const WORLD_KM = 30000;
 
-function setup(arrive: 'fly' | 'jump' = 'fly') {
-  Object.assign(drawn, { rulers: 0, disposed: 0, layers: [], broken: null });
+/** The look's marks as Explore's events set them. */
+function marksLayer() {
+  const layer = {
+    specs: [] as MarkSpec[],
+    strength: 1,
+    set(_source: string, specs: readonly MarkSpec[]) {
+      layer.specs = [...specs];
+    },
+    placed: () => layer.specs.map((s) => ({ id: s.id, x: 100, y: 100, rPx: 8, alpha: 1 })),
+  };
+  return layer;
+}
+
+/** The frame the boot places, the camera 9 radii above (lon, lat). */
+function frameOver(lon: number, lat: number): FrameContext {
+  const scene = new Scene();
+  const globe = new Group();
+  scene.add(globe);
+  const cam = new PerspectiveCamera(30, 1440 / 900, 0.01, 100);
+  cam.position.copy(new Vector3(...toThree(lonLatToDir(lon, lat)))).multiplyScalar(10);
+  cam.lookAt(0, 0, 0);
+  scene.add(cam);
+  scene.updateMatrixWorld(true);
+  const frame = new FrameContext();
+  frame.place(cam, globe, { width: 1440, height: 900 });
+  return frame;
+}
+
+function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = null) {
+  Object.assign(drawn, { rulers: 0, disposed: 0, layers: [], broken: null, clients: [] });
   const clock = new WorldClock();
   const control = new ViewControl({ lon: 75, lat: 15, viewKm: WORLD_KM, tilt: 0, heading: 0 });
   control.maxKm = WORLD_KM;
@@ -77,7 +176,7 @@ function setup(arrive: 'fly' | 'jump' = 'fly') {
   const append = vi.fn();
   const sound = { leave: leaveSound } as unknown as WalkAudio;
   const root = { append } as unknown as HTMLElement;
-  const mode = startExplore({ root, control, sound, arrive, clock });
+  const mode = startExplore({ root, control, sound, arrive, clock, events });
   let now = 0;
   const tick = () => {
     now += DT * 1000;
@@ -178,6 +277,64 @@ describe('Explore', () => {
       expect(window.__worldTime).toBeUndefined();
     },
   );
+
+  describe('with events', () => {
+    const source = () => {
+      const marks = marksLayer();
+      const events = {
+        release: releaseOf([pageOf([])]),
+        dataHost: 'https://example.invalid',
+        marks: marks as unknown as MarkLayer,
+      };
+      return { marks, events };
+    };
+
+    it('marks the opening focal, counting the marks drawn in view on its layer', () => {
+      const { marks, events } = source();
+      const { mode } = setup('fly', events);
+      const [client] = drawn.clients;
+      expect(marks.strength).toBe(0);
+      mode.afterPlace(frameOver(4.4, 35), 0);
+      expect(client!.asked[0]!.focalQids).toEqual([48314]);
+      expect(marks.specs).toMatchObject([{ id: 'Q48314', glyph: 'battle', focal: true }]);
+      mode.ui({ lon: 4.4, lat: 35, viewKm: 30000, tilt: 0, heading: 0 }, 0);
+      expect(drawn.layers[0]!.dataset.exploreMarks).toBe('1');
+      expect(window.__exploreEvents?.focal()).toBe('Q48314');
+      expect(window.__exploreEvents?.placed().map((m) => m.id)).toEqual(['Q48314']);
+      const account = new MemoryAccount();
+      mode.inspectMemory(account);
+      expect(account.owners['explore.events']?.arrayBuffers).toBe(4096);
+    });
+
+    it('stops asking as it leaves, then ends the worker and takes the marks off', () => {
+      const { marks, events } = source();
+      const { mode } = setup('fly', events);
+      const [client] = drawn.clients;
+      mode.afterPlace(frameOver(4.4, 35), 0);
+      mode.leave();
+      mode.afterPlace(frameOver(40, 0), 16);
+      expect(client!.asked).toHaveLength(1);
+      mode.end();
+      expect(client!.disposed).toBe(true);
+      expect(marks.specs).toEqual([]);
+      expect(window.__exploreEvents).toBeUndefined();
+    });
+
+    it('fails the dive, leaving nothing behind, when the event worker cannot start', () => {
+      const { events } = source();
+      const control = new ViewControl({ lon: 75, lat: 15, viewKm: WORLD_KM, tilt: 0, heading: 0 });
+      control.maxKm = WORLD_KM;
+      const append = vi.fn();
+      const root = { append } as unknown as HTMLElement;
+      const sound = { leave: vi.fn() } as unknown as WalkAudio;
+      Object.assign(drawn, { rulers: 0, disposed: 0, layers: [], broken: 'worker', clients: [] });
+      expect(() => startExplore({ root, control, sound, arrive: 'fly', events })).toThrow('worker');
+      expect(append).not.toHaveBeenCalled();
+      expect(drawn.rulers - drawn.disposed).toBe(0);
+      expect(events.marks.strength).toBe(1);
+      expect(window.__exploreEvents).toBeUndefined();
+    });
+  });
 
   it('holds the dive view within 35 degrees of the equator', () => {
     expect(worldViewOn([10, -60], 1)).toMatchObject({ lon: 10, lat: -35 });
