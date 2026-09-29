@@ -20,7 +20,7 @@ names, Meanwhile and the lobby's glows from the all-eras Wikidata index, synthes
 Credits panel. The production entry (`app/index.html`, `app/src/main.ts`) plays them from the
 bundled release, `app/src/generated/release.json`, whose data is on R2; the dev page
 `app/prototype.html?story=tambora|magellan` boots the same walk (`app/src/walk/boot.ts`) under a
-tuning panel. Next is milestone 3, the globe through time and three more stories (`docs/PRD.md`).
+tuning panel. Next is milestone 3, open-world exploration, live as it grows (`docs/PRD.md`).
 
 ## Layout
 
