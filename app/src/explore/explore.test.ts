@@ -3,7 +3,7 @@ import { dayFromIso } from '../story/dates';
 import { WorldClock } from '../time/worldClock';
 import { ViewControl } from '../view/viewControl';
 import type { WalkAudio } from '../audio/walkAudio';
-import { startExplore, WATERLOO, worldViewOn } from './explore';
+import { startExplore, waterloo, worldViewOn } from './explore';
 
 // The real clock, flight and view control, with the ruler and its layer standing in for the DOM.
 const drawn = vi.hoisted(() => ({
@@ -112,7 +112,7 @@ describe('Explore', () => {
     mode.landed(landed);
     for (let frame = 0; frame < 600 && !landed.mock.calls.length; frame++) tick();
     expect(landed).toHaveBeenCalledTimes(1);
-    expect(control.current.lon).toBeCloseTo(WATERLOO.at[0], 6);
+    expect(control.current.lon).toBeCloseTo(waterloo().at[0], 6);
     // Waterloo's 50.7°N is held to 35°N, so the event stands on the lit face.
     expect(control.current.lat).toBeCloseTo(35, 6);
     expect(control.current.viewKm).toBeCloseTo(WORLD_KM, 3);
