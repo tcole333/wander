@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import type { EventsRelease } from '../data/release';
+import { dayFromIso } from '../story/dates';
 import { readFixtureFile, readStageRecord } from '../test/fixture';
 import { viewOf } from '../test/events';
 import { EventRuntime } from './runtime';
@@ -48,7 +49,7 @@ test('a query can use current residency while another page awaits inflation', as
   expect(await loading).toMatchObject({ type: 'state', plan: { complete: true } });
 });
 
-test('the handler describes rows, naming those it cannot find', async () => {
+test('the handler describes rows and answers Meanwhile, naming what it cannot find', async () => {
   const release = readStageRecord<EventsRelease>('event-files');
   const runtime = new EventRuntime();
   await runtime.handle({ type: 'init', release, tier: 'full' });
@@ -58,14 +59,37 @@ test('the handler describes rows, naming those it cannot find', async () => {
   expect(described).toMatchObject({ type: 'described', missing: [2 ** 31 - 1] });
   if (described.type === 'described')
     expect(described.events).toEqual([expect.objectContaining({ row: 0, qid: 78994 })]);
+  const meanwhile = await runtime.handle({
+    type: 'meanwhile',
+    generation: 3,
+    t0: dayFromIso('1815-01-01'),
+    t1: dayFromIso('1815-12-31'),
+    center: [4.41222, 50.67806],
+    viewKm: 3000,
+    count: 3,
+    exclude: [],
+  });
+  expect(meanwhile).toMatchObject({ type: 'meanwhile', generation: 3 });
+  if (meanwhile.type === 'meanwhile') expect(meanwhile.events).toHaveLength(3);
 });
 
-test('a failed description names its request and leaves the worker running', async () => {
+test('a failed Meanwhile or description names its request and leaves the worker running', async () => {
   const runtime = new EventRuntime();
   const early = await runtime.handle({ type: 'describe', rows: [1] });
   expect(early).toMatchObject({ type: 'error', request: 'describe' });
   const release = readStageRecord<EventsRelease>('event-files');
   await runtime.handle({ type: 'init', release, tier: 'lite' });
+  const bad = await runtime.handle({
+    type: 'meanwhile',
+    generation: 9,
+    t0: 2,
+    t1: 1,
+    center: [0, 0],
+    viewKm: 3000,
+    count: 3,
+    exclude: [],
+  });
+  expect(bad).toMatchObject({ type: 'error', request: 'meanwhile', generation: 9 });
   expect(await runtime.handle({ type: 'query', generation: 10, query, now: 0 })).toMatchObject({
     type: 'result',
     generation: 10,

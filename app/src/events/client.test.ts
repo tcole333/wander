@@ -1,6 +1,8 @@
 import { describe, expect, test, vi } from 'vitest';
+import { tunables } from '../config/tunables';
 import { DESCRIPTION_ROWS, EventClient, type EventWorker } from './client';
 import type { EventDescription } from './describe';
+import type { MeanwhileQuery } from './meanwhile';
 import { type EventReply, type EventRequest } from './runtime';
 import { pageOf, releaseOf, viewOf } from '../test/events';
 
@@ -161,6 +163,14 @@ test('fetch and worker errors surface through drain; disposal drops late arrival
 });
 
 const host = 'https://example.invalid';
+const standing: MeanwhileQuery = {
+  t0: 100,
+  t1: 136,
+  center: [4.4, 50.7],
+  viewKm: 3000,
+  count: 3,
+  exclude: [48314, 855429],
+};
 const sentOf = <T extends EventRequest['type']>(worker: FakeWorker, type: T) =>
   worker.sent.filter((m): m is Extract<EventRequest, { type: T }> => m.type === type);
 const described = (row: number): EventDescription => ({
@@ -170,6 +180,77 @@ const described = (row: number): EventDescription => ({
   t0: 1,
   t1: 1,
   prec: 11,
+});
+
+describe('Meanwhile', () => {
+  test('is asked once its question has stood for meanwhileRest, one question at a time', () => {
+    vi.useFakeTimers();
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    try {
+      const wake = vi.fn();
+      client.onready = wake;
+      client.meanwhile(standing);
+      client.drain(0);
+      client.meanwhile({ ...standing, t0: 101 });
+      client.drain(200);
+      client.meanwhile({ ...standing, t0: 101 });
+      client.drain(200 + tunables.meanwhileRest - 50);
+      expect(sentOf(worker, 'meanwhile')).toEqual([]);
+      wake.mockClear();
+      vi.advanceTimersByTime(50);
+      expect(wake).toHaveBeenCalledOnce();
+      client.drain(200 + tunables.meanwhileRest);
+      expect(sentOf(worker, 'meanwhile')).toEqual([
+        { type: 'meanwhile', generation: 1, ...standing, t0: 101 },
+      ]);
+      client.meanwhile({ ...standing, t0: 102 });
+      client.drain(500);
+      client.drain(1000);
+      expect(sentOf(worker, 'meanwhile')).toHaveLength(1);
+      worker.reply({ type: 'meanwhile', generation: 1, events: [] });
+      expect(client.drain(1010)).toEqual([{ type: 'meanwhile', generation: 1, events: [] }]);
+      expect(sentOf(worker, 'meanwhile').at(-1)).toMatchObject({ generation: 2, t0: 102 });
+    } finally {
+      client.dispose();
+      vi.useRealTimers();
+    }
+  });
+
+  test('an unchanged question waits for a page to load before it is asked again', () => {
+    const worker = new FakeWorker();
+    const release = releaseOf([pageOf([])]);
+    const client = new EventClient(worker, release, host);
+    client.meanwhile(standing);
+    client.drain(0);
+    client.drain(tunables.meanwhileRest);
+    worker.reply({ type: 'meanwhile', generation: 1, events: [] });
+    client.drain(300);
+    worker.reply({ type: 'meanwhile', generation: 1, events: [] });
+    expect(client.drain(310)).toEqual([]);
+    client.meanwhile({ ...standing, exclude: [...standing.exclude].reverse() });
+    client.drain(1000);
+    expect(sentOf(worker, 'meanwhile')).toHaveLength(1);
+    worker.reply({ type: 'state', loaded: release.overview, classes: [], plan });
+    client.drain(1010);
+    expect(sentOf(worker, 'meanwhile').at(-1)).toMatchObject({ generation: 2, t0: 100 });
+    client.dispose();
+  });
+
+  test('its picks describe themselves without another request', () => {
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    client.meanwhile(standing);
+    client.drain(0);
+    client.drain(tunables.meanwhileRest);
+    const pick = { ...described(7), at: [10, 20] as [number, number], cls: 0, flags: 0, score: 5 };
+    worker.reply({ type: 'meanwhile', generation: 1, events: [pick] });
+    client.drain(300);
+    expect(client.description(7)).toEqual(pick);
+    client.drain(310);
+    expect(sentOf(worker, 'describe')).toEqual([]);
+    client.dispose();
+  });
 });
 
 describe('descriptions', () => {
@@ -233,17 +314,25 @@ describe('descriptions', () => {
   });
 });
 
-test('a failed description frees its slot and leaves the worker running', () => {
+test('a failed Meanwhile or description frees its slot and leaves the worker running', () => {
   const worker = new FakeWorker();
   const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+  client.meanwhile(standing);
   client.description(5);
   client.drain(0);
-  const failure: EventReply = { type: 'error', message: 'bad', request: 'describe' };
-  worker.reply(failure);
-  expect(client.drain(10)).toEqual([failure]);
+  client.drain(tunables.meanwhileRest);
+  const failures: EventReply[] = [
+    { type: 'error', message: 'bad', request: 'describe' },
+    { type: 'error', message: 'bad', request: 'meanwhile', generation: 1 },
+  ];
+  for (const failure of failures) worker.reply(failure);
+  expect(client.drain(300)).toEqual(failures);
   expect(worker.terminate).not.toHaveBeenCalled();
   client.description(5);
-  client.drain(20);
+  client.meanwhile({ ...standing, t0: 101 });
+  client.drain(400);
+  client.drain(400 + tunables.meanwhileRest);
   expect(sentOf(worker, 'describe')).toHaveLength(2);
+  expect(sentOf(worker, 'meanwhile').at(-1)).toMatchObject({ generation: 2, t0: 101 });
   client.dispose();
 });
