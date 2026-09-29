@@ -216,6 +216,69 @@ source_url = "https://storage.googleapis.com/teow2016/Ecoregions2017.zip"
 bytes = 149248653
 sha256 = "be36d6209e443038d02e309f0447c6e7f2a62f5fe60c605ffe90d064952f2a60"
 
+# USGS's geologic provinces of the world as defined for the 2000 World Petroleum Assessment: one
+# shapefile set (EPSG:4326, 1,023 polygons), loose on ScienceBase rather than zipped, with its FGDC
+# metadata and a preview image. The attributes carry each province's CODE, NAME and TYPE and the
+# assessment's oil, gas and NGL volumes (the CUM_, REM_, KWN_, UNDS_, ENDO_, MATR_ and FUTR_
+# columns). The metadata's lineage names the Petroconsultants and NRG Associates databases among
+# its inputs.
+[usgs-world-petroleum-provinces-2000]
+name = "USGS Geologic Provinces of the World, World Petroleum Assessment 2000"
+version = "2000 assessment, USGS data release published 2021-05-25"
+license = "Public domain (US government work)"
+license_url = "https://www.usgs.gov/information-policies-and-instructions/acknowledging-or-crediting-usgs"
+attribution = "U.S. Geological Survey, Geologic Provinces of the World, World Petroleum Assessment 2000, DOI 10.5066/P9RMSU2R."
+landing_page = "https://www.sciencebase.gov/catalog/item/60ad2fd7d34e4043c850edb3"
+retrieved = "2026-07-17"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.SHP"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__b7%2F8d%2F12%2Fb78d12ab86e23b39a61dcae106f847a641a58dbd"
+bytes = 14642852
+sha256 = "15d779ee238e599d531c956f5d9d96ba5a473a7a8129f33cb20a6a9899cb1298"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.SHX"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__f9%2Fbf%2Ffa%2Ff9bffab6a71a35efdb93bc69dba77ffcfaa63076"
+bytes = 8284
+sha256 = "055a633ece84c34200bfe84a07df763e439e5f347e8f5e73a1665c22d32ac4c9"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.DBF"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__79%2F38%2Fa5%2F7938a5543cfe1b5d8257b40fc05dde1d6258be3c"
+bytes = 545518
+sha256 = "e9dcb7824486e307cb347c1bceac3cdf1cf2493e1c0ead5dc0737a5ab5ded7d7"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.prj"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__f7%2F2c%2F28%2Ff72c289fb462cf9fdfe3fd23f9f45e6298813c00"
+bytes = 145
+sha256 = "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.sbn"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__56%2F82%2F7e%2F56827e606baa8f318df80baeb79c894f3ae740f4"
+bytes = 11092
+sha256 = "e0f3dbde60a038ba69e2171ab0599728118930c1503796499d62755c23f9efa7"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.sbx"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__44%2Fff%2F31%2F44ff311e9a3b1ceb810c6aa2d58555517181e7cd"
+bytes = 1060
+sha256 = "ea80f9f743ef454735eae58f9a1b26c823f765d2800bf69648cc0d782d7c2270"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/WEP_PRVG.xml"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__9a%2F4a%2F55%2F9a4a55811394847494d7feca761c5ad46b138a9f"
+bytes = 47854
+sha256 = "6da48765e208d031fc9a793c737869721d01a67e0869c65db8212ea813f556a7"
+
+[[usgs-world-petroleum-provinces-2000.files]]
+path = "sources/usgs-world-petroleum-provinces-2000/wep_prvg.jpg"
+source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850edb3?f=__disk__88%2Fc0%2F76%2F88c076825d5ebddd618987b9851fe98e693d1668"
+bytes = 22757
+sha256 = "d5dc8aa15e5f6767750bc234466ca3bf80731d382dd2b6e19bba69ea54c109fa"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
