@@ -1,10 +1,12 @@
 // ?markDemo on the dev page (prototype.html): the lobby's glows as marks, cut into the look with the
-// four test glyphs, the three pace layers' families taken in turn so every glyph shows in every
-// family, and one place in eight hollow or soft; a few more on the Alps' valleys, for a close view
-// among ridges; and a specimen tray in the Sahara, each family's row of the four glyphs over a row
-// of the states (a hovered hollow parent with its extent, a soft mark, a plain one, a hollow one). ?markVariant=0-3 picks the families' materials,
-// ?marks=0 turns the marks off (the GPU time's baseline), and ?markStress=<n> sets n marks spread
-// over the view instead. window.__markDemo serves scripts/exploreShots.ts.
+// event glyphs, the three pace layers' families taken in turn, each mark in a glyph of its own
+// family (eventSymbols.ts), and one place in eight hollow or soft; a few more on the Alps' valleys,
+// for a close view among ridges; and a specimen tray in the Sahara, each family's row of four of
+// its glyphs over a row of the states (a hovered hollow parent with its extent, a soft mark, a
+// plain one, a hollow one). ?markVariant=0-3 picks the families' materials, ?marks=0 turns the
+// marks off (the GPU time's baseline), and ?markStress=<n> sets n marks spread over the view
+// instead. The page boots without the event index while the demo runs (main.ts), so Explore sets
+// no event marks beside the demo's. window.__markDemo serves scripts/exploreShots.ts.
 import {
   HalfFloatType,
   Mesh,
@@ -15,8 +17,9 @@ import {
   type WebGLRenderer,
 } from 'three';
 import type { MuseumScene, Params } from '../../contract';
-import { PACES } from '../../marks/families';
-import { TEST_GLYPHS } from '../../marks/glyphs';
+import { EVENT_CLASS_SYMBOLS } from '../../marks/eventSymbols';
+import { PACES, type Pace } from '../../marks/families';
+import type { GlyphId } from '../../marks/symbols';
 import type { MarkLayer, MarkSpec, PlacedMark } from '../../marks/marks';
 import { lobbyPlaces } from '../../lobby/places';
 import { GpuTimer } from '../../perf/gpuTimer';
@@ -60,7 +63,23 @@ declare global {
   }
 }
 
-const GLYPHS = Object.keys(TEST_GLYPHS);
+/** Each family's glyphs, as the event classes give them. */
+const FAMILY_GLYPHS: Record<Pace, GlyphId[]> = { nature: [], governance: [], infrastructure: [] };
+for (const { pace, glyph } of Object.values(EVENT_CLASS_SYMBOLS)) {
+  if (!FAMILY_GLYPHS[pace].includes(glyph)) FAMILY_GLYPHS[pace].push(glyph);
+}
+
+/** The family's `k`th glyph, round again past its last. */
+function glyphOf(pace: Pace, k: number): GlyphId {
+  const glyphs = FAMILY_GLYPHS[pace];
+  return glyphs[k % glyphs.length] ?? 'battle';
+}
+
+/** The `i`th mark's family, the families taken in turn, and a glyph of that family. */
+function inTurn(i: number): { pace: Pace; glyph: GlyphId } {
+  const pace = PACES[i % PACES.length] ?? 'nature';
+  return { pace, glyph: glyphOf(pace, Math.floor(i / PACES.length)) };
+}
 /**
  * Demo marks near the 300 km mountain view, which looks north over the Alps: on the valley floors
  * and lakes of their southern side, which face the camera, and behind the main ridge, where the
@@ -87,13 +106,13 @@ function specimenMarks(): MarkSpec[] {
       marks.push({
         id: `specimen-${pace}-${col}`,
         at: [lon, TRAY.lats[row] ?? 0],
-        glyph: GLYPHS[col] ?? 'test-star',
+        glyph: glyphOf(pace, col),
         pace,
         opacity: 1,
       }),
     ),
   );
-  const states: Partial<MarkSpec>[] = [
+  const states: (Partial<MarkSpec> & { pace: Pace })[] = [
     { pace: 'nature', hollow: true, hover: true, ringRad: 0.011 },
     { pace: 'governance', soft: true },
     { pace: 'infrastructure' },
@@ -103,8 +122,7 @@ function specimenMarks(): MarkSpec[] {
     marks.push({
       id: `specimen-state-${col}`,
       at: [TRAY.lons[col] ?? 0, TRAY.lats[3]],
-      glyph: GLYPHS[col] ?? 'test-star',
-      pace: 'nature',
+      glyph: glyphOf(state.pace, col),
       opacity: 1,
       ...state,
     }),
@@ -117,8 +135,7 @@ function demoMarks(glows: readonly StorySource[]): MarkSpec[] {
   const demo = places.map((at, i) => ({
     id: `demo-${i}`,
     at,
-    glyph: GLYPHS[i % GLYPHS.length] ?? 'test-star',
-    pace: PACES[i % PACES.length] ?? 'nature',
+    ...inTurn(i),
     opacity: 1,
     hollow: i % 8 === 5,
     soft: i % 8 === 6,
@@ -148,8 +165,7 @@ function stressMarks(n: number, [lon, lat]: LonLat, radiusDeg: number): MarkSpec
     marks.push({
       id: `stress-${i}`,
       at: [((lon1 / DEG + 540) % 360) - 180, lat1 / DEG],
-      glyph: GLYPHS[i % GLYPHS.length] ?? 'test-star',
-      pace: PACES[i % PACES.length] ?? 'nature',
+      ...inTurn(i),
       opacity: 1,
     });
   }

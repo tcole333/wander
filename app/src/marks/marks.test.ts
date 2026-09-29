@@ -48,11 +48,11 @@ function over([lon, lat]: LonLat, altitude: number): MarkView {
   };
 }
 
-const cells = new Map([['test-star', { x: 0, y: 1638, extent: 0.95 }]]);
+const cells = new Map([['battle', { x: 0, y: 1638, extent: 0.95 }]]);
 const mark = (id: string, at: LonLat, extra: Partial<MarkSpec> = {}): MarkSpec => ({
   id,
   at,
-  glyph: 'test-star',
+  glyph: 'battle',
   pace: 'nature',
   opacity: 1,
   ...extra,

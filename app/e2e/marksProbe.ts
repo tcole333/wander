@@ -231,7 +231,7 @@ function spec(id: string, at: LonLat, i: number): MarkSpec {
   return {
     id,
     at,
-    glyph: GLYPHS[i % GLYPHS.length] ?? 'test-star',
+    glyph: GLYPHS[i % GLYPHS.length] ?? 'battle',
     pace: PACES[i % PACES.length] ?? 'nature',
     opacity: 1,
   };
