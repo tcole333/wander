@@ -4,7 +4,8 @@
 // the classes its rows index (events/page.ts). Nature takes the disasters, epidemics, drought and
 // famine; governance the wars, battles, sieges, treaties, uprisings and atrocities, with one glyph
 // for every atrocity; infrastructure the shipwrecks, expeditions and conflagrations. A glyph
-// belongs to one family, so every class that shares a glyph shares its pace layer.
+// belongs to one family, so every class that shares a glyph shares its pace layer. A storm's glyph
+// turns with its hemisphere, so an event's glyph goes through glyphAt with its latitude.
 import type { GlyphId, Pace } from './symbols';
 
 /** An event's mark: the pace layer it belongs to and its glyph. */
@@ -66,4 +67,16 @@ export function eventSymbol(cls: string): EventSymbol | undefined {
 /** The marks for a .wev's class list, by the class index its rows carry. */
 export function eventSymbols(classes: readonly string[]): (EventSymbol | undefined)[] {
   return classes.map(eventSymbol);
+}
+
+/** The glyphs that turn with the hemisphere, and the form each takes south of the equator. */
+export const SOUTHERN_GLYPHS = {
+  cyclone: 'cycloneSouth',
+} as const satisfies Partial<Record<GlyphId, GlyphId>>;
+
+/** The glyph drawn for an event at latitude `lat`: storms south of the equator turn the other way. */
+export function glyphAt(glyph: GlyphId, lat: number): GlyphId {
+  return lat < 0 && Object.hasOwn(SOUTHERN_GLYPHS, glyph)
+    ? SOUTHERN_GLYPHS[glyph as keyof typeof SOUTHERN_GLYPHS]
+    : glyph;
 }

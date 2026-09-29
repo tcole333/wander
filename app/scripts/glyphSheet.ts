@@ -9,7 +9,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from '@playwright/test';
-import { EVENT_CLASS_SYMBOLS } from '../src/marks/eventSymbols.ts';
+import { EVENT_CLASS_SYMBOLS, SOUTHERN_GLYPHS } from '../src/marks/eventSymbols.ts';
 import { EVENT_GLYPHS, GLYPH_UNITS, PACES, type GlyphId, type Pace } from '../src/marks/symbols.ts';
 
 const { values } = parseArgs({
@@ -42,6 +42,10 @@ const family = new Map<GlyphId, Pace>();
 for (const [name, { pace, glyph }] of Object.entries(EVENT_CLASS_SYMBOLS)) {
   classes.set(glyph, [...(classes.get(glyph) ?? []), name]);
   family.set(glyph, pace);
+}
+for (const [north, south] of Object.entries(SOUTHERN_GLYPHS) as [GlyphId, GlyphId][]) {
+  classes.set(south, [...(classes.get(north) ?? []), 'south of the equator']);
+  family.set(south, family.get(north)!);
 }
 const ids = Object.keys(EVENT_GLYPHS) as GlyphId[];
 
@@ -82,7 +86,14 @@ function card(id: GlyphId, x: number, y: number): string {
     `<rect x="${x + 20 + 4 * unit}" y="${y + 28 + 4 * unit}" width="${56 * unit}" height="${56 * unit}"/>`,
     `<circle cx="${x + 20 + 32 * unit}" cy="${y + 28 + 32 * unit}" r="${28 * unit}"/></g>`,
     glyph(id, x + 20, y + 28, BIG, INK),
-    text(x + 172, y + 36, id.toUpperCase(), 13, BRASS, 'letter-spacing="2.5"'),
+    text(
+      x + 172,
+      y + 36,
+      id.replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase(),
+      13,
+      BRASS,
+      'letter-spacing="2.5"',
+    ),
     ...lines(classes.get(id) ?? [], 30).map((line, i) =>
       text(x + 172, y + 56 + i * 15, line, 11.5, FAINT, 'font-style="italic"'),
     ),
