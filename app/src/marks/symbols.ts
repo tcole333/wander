@@ -108,6 +108,11 @@ function rotate(points: readonly Point[], degrees: number, about: Point = C): Po
   });
 }
 
+/** Points mirrored east to west across the cell's north-south axis. */
+function mirror(points: readonly Point[]): Point[] {
+  return points.map(([x, y]) => [2 * C[0] - x, y] as const);
+}
+
 function translate(points: readonly Point[], dx: number, dy: number): Point[] {
   return points.map(([x, y]) => [x + dx, y + dy] as const);
 }
@@ -288,8 +293,8 @@ const eruption = [
 /** Three bands of water. */
 const flood = [wave(12, 8), wave(28, 8), wave(44, 8)].map((band) => polygon(band)).join('');
 
-/** A storm's eye and two trailing arms, turning as the northern hemisphere's do. */
-const cyclone = (() => {
+/** A storm's two trailing arms, turning as the northern hemisphere's do. */
+const stormArms = (() => {
   const steps = 14;
   const spiral = Array.from({ length: steps + 1 }, (_, i) => {
     const t = i / steps;
@@ -299,8 +304,14 @@ const cyclone = (() => {
   });
   const widths = spiral.map((_, i) => 10 * (1 - i / steps) + 1.5);
   const arm = stroke(spiral, widths);
-  return [circle(C, 10), polygon(arm), polygon(rotate(arm, 180))].join('');
+  return [arm, rotate(arm, 180)];
 })();
+
+/** A storm's eye and two trailing arms, turning as the northern hemisphere's do. */
+const cyclone = [circle(C, 10), ...stormArms.map((arm) => polygon(arm))].join('');
+
+/** The same storm south of the equator, where it turns the other way. */
+const cycloneSouth = [circle(C, 10), ...stormArms.map((arm) => polygon(mirror(arm)))].join('');
 
 /** A slope and the boulders tumbling from it. */
 const slide = [
@@ -546,6 +557,7 @@ export const EVENT_GLYPHS = {
   eruption,
   flood,
   cyclone,
+  cycloneSouth,
   slide,
   fire,
   heat,
