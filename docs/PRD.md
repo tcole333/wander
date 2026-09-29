@@ -18,7 +18,7 @@ prototype source in `docs/reference/spike/` for the three.js prototype that prov
 - **Grounded in real history.** The narrative is sourced. The visuals may dramatize, the way a good
   documentary or museum diorama does.
 - **Built to grow.** v1's data, time model, and rendering are the foundation for open-world
-  exploration, which follows v1 as the next release.
+  exploration, which grows on the live site beside the stories.
 
 ## Experience
 
@@ -144,7 +144,7 @@ synthesis falls short. A music score and narration are candidates for after v1.
 
 Every story is also readable as a plain illustrated article: the same text, images, dates, and
 sources on a normal web page. It is linkable and shareable, and it is what visitors see when WebGL
-is unavailable. It arrives in milestone 4; until then those visitors get the story's card, its
+is unavailable. It arrives in milestone 5; until then those visitors get the story's card, its
 title and blurb.
 
 ### Credits
@@ -272,7 +272,6 @@ ongoing work that starts in v1.
 ## Out of scope for v1
 
 - Phones and tablets.
-- The open-world explore entry in the lobby (built behind a flag, shipped in v1.1).
 - Search, accounts, saved views, and user-made stories.
 - Translation.
 - A music score and narration (decided after hearing v1's audio).
@@ -284,15 +283,16 @@ ongoing work that starts in v1.
    from events worldwide during Tambora's years (out of the all-eras event index, which this
    milestone builds), synthesized sound, and deployment. The layers panel, polity names, Read more,
    the globe's events layer, and the time ruler's zoom out to centuries with its deep-time segment
-   stay in v1 and move to later milestones, and the polish items to milestone 4.
+   stay in v1 and move to later milestones, and the polish items to milestone 5.
 2. **Magellan.** Live since 28 September 2026.
-3. **The globe through time, and three more stories.** The six pace layers' marks, chosen on
-   renders; where people lived, with the time ruler's zoom out to centuries; and the stories: the
-   Century of Oil, with the petroleum provinces lit by each country's production, then the Black
-   Death and the Gold Rush.
-4. **Polish to the v1 bar,** including the article view, reduced motion, deep links, quality tiers,
+3. **Open world, live as it grows.** An Explore entry in the lobby, time free from 10,000 BCE to
+   2000, and the globe's layers added one after another, each live once its renders are approved
+   (`docs/design/globe-language.md`): events, borders through time, where people lived, nature's
+   ground, connections, resources and what moves, the instrument, a wider event index, and
+   culture.
+4. **The Century of Oil, the Black Death, and the Gold Rush.**
+5. **Polish to the v1 bar,** including the article view, reduced motion, deep links, quality tiers,
    and the checks on lower-end machines and in Safari and Firefox.
-5. **v1.1: open-world exploration.**
 
 ## Open questions
 
