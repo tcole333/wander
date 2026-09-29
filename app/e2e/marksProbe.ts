@@ -2,8 +2,8 @@
 // fixture at ?data=<origin> and checks, in the browser, what the look draws of them. Each check
 // renders the scene as the composer's first pass does, linear and before the bloom, into a float
 // target, once with the marks off and once on:
-// - samplers: the look's program with marks reads at most 13 of the 16 a fragment stage is sure of,
-//   the 12 it reads without them and the marks' table;
+// - samplers: the look's program with marks reads at most 12 of the 16 a fragment stage is sure
+//   of, as many as without them, since there the routes' cells head their index table;
 // - sea names: the atlas with the glyph shelf letters its names exactly as the atlas without;
 // - coverage: every mark placed in view changes the pixels of its disc;
 // - the limb: marks past it change nothing anywhere;
