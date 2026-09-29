@@ -1,13 +1,14 @@
 // The release (streaming.md 3.8), merged from the stage records (7.2) of a profile's build as
 // `npm run publish-data` publishes it: the surface section from the coverage and surface records,
 // the modera and borders sections as their records have them, when the build has run those stages,
-// and the media section, every key the stories' committed locks name (3.9). The local data server
-// (dataServer.ts) serves a release of this shape for a profile's build, so lab and dev pages read
-// what a published release will give them; both find the build with profileBuild. Plain Node, so
-// it runs outside Vite.
+// the events section from the event-files record less its `inputs`, once they show its overview
+// holds the committed openings (3.4), and the media section, every key the stories' committed
+// locks name (3.9). The local data server (dataServer.ts) serves a release of this shape for a
+// profile's build, so lab and dev pages read what a published release will give them; both find
+// the build with profileBuild. Plain Node, so it runs outside Vite.
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type {
   BordersRelease,
@@ -98,19 +99,53 @@ export function mediaRelease(stories = join(REPO_ROOT, 'stories')): MediaRelease
   return { images: [...new Set(keys)].sort() };
 }
 
+/** Explore's openings, whose events event-files forces into the overview (streaming.md 3.4). */
+export const OPENINGS_LOCK = join(REPO_ROOT, 'explore', 'openings.lock.json');
+
+interface EventFilesRecord extends EventsRelease {
+  /** The sha256 of the openings lock whose events the overview holds. */
+  inputs?: { openings?: string };
+}
+
+/**
+ * The events section: the event-files record without its `inputs`, which name what built it and
+ * no key, once they show its overview holds the openings `lock` lists now. `stages` is
+ * build/stages/<profile>/, which names the command that rebuilds it.
+ */
+export function eventsRelease(
+  record: EventFilesRecord,
+  stages: string,
+  lock = OPENINGS_LOCK,
+): EventsRelease {
+  const { inputs, ...events } = record;
+  const current = createHash('sha256').update(readFileSync(lock)).digest('hex');
+  if (inputs?.openings !== current) {
+    const profile = basename(stages);
+    const rebuild =
+      profile === 'fixture'
+        ? REBUILD.fixture
+        : `run \`uv run prebuild --profile ${profile} event-files\` in pipeline/`;
+    throw new ReleaseError(
+      `the event-files record was built from another explore/openings.lock.json: ${rebuild}`,
+    );
+  }
+  return events;
+}
+
 /**
  * The release for the build whose stage records are in `stages`, served from `dataHost`. Its id
  * follows 3.8, the first 16 hex digits of the sha256 of its JSON without the id, and `built` is
  * when the surface record was written, so the same build and locks always give the same release.
  * The modera and borders records are 3.8's sections as is (7.2), so each goes in unchanged when the
- * build has one.
+ * build has one; the event-files record goes in without its `inputs` (`eventsRelease`).
  */
-export function localRelease(stages: string, dataHost: string): Release {
+export function localRelease(stages: string, dataHost: string, lock = OPENINGS_LOCK): Release {
   const coverage = readRecord<CoverageRecord>(stages, 'coverage');
   const surface = readRecord<SurfaceRecord>(stages, 'surface');
   const built = statSync(join(stages, 'surface.json')).mtime.toISOString();
   const optional = <T>(stage: string): T | undefined =>
     existsSync(join(stages, `${stage}.json`)) ? readRecord<T>(stages, stage) : undefined;
+  const eventFiles = optional<EventFilesRecord>('event-files');
   const body = {
     built,
     dataHost,
@@ -118,7 +153,7 @@ export function localRelease(stages: string, dataHost: string): Release {
     modera: optional<ModeraRelease>('modera'),
     borders: optional<BordersRelease>('borders'),
     fx: optional<FxRelease>('fx'),
-    events: optional<EventsRelease>('event-files'),
+    events: eventFiles ? eventsRelease(eventFiles, stages, lock) : undefined,
     media: mediaRelease(),
   };
   const id = createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 16);
