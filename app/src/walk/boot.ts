@@ -37,6 +37,7 @@ import { ClearanceField } from '../globe/clearance';
 import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
 import { lobbyPlaces } from '../lobby/places';
 import { createSurfaceLook } from '../look/surfaceLook';
+import { MARK_GLYPHS } from '../marks/glyphs';
 import { summarizeFrames } from '../perf/frameStats';
 import type { MemoryAccount } from '../perf/memory';
 import { FrameContext } from '../scene/frameContext';
@@ -104,6 +105,8 @@ export interface BootOptions {
   lobby?: boolean;
   /** Where the view starts. */
   view?: ViewState;
+  /** Explore is enabled: the look cuts event marks into the globe (look.marks). */
+  explore?: boolean;
   /**
    * Called when the chosen story or Explore does not start from the lobby's plaque, after the boot
    * has resolved, so the page can bring its plate. Without it, the error goes on uncaught.
@@ -188,6 +191,7 @@ async function assemble(
     explore = false,
     lobby: inLobby = start === null,
     view = WORLD,
+    explore = false,
     tune = () => {},
     onFail = (error) => {
       throw error;
@@ -238,9 +242,15 @@ async function assemble(
   const streamer = await createSurfaceStreamer(renderer, release);
   made.push(() => streamer.dispose());
   const layer = streamer.layer;
-  const look = createSurfaceLook(streamer.pools, release.surface);
+  const look = createSurfaceLook(
+    streamer.pools,
+    release.surface,
+    explore ? { marks: MARK_GLYPHS } : {},
+  );
   made.push(() => look.dispose());
-  const rig = new CameraRig(new ClearanceField(layer));
+  const clearance = new ClearanceField(layer);
+  const rig = new CameraRig(clearance);
+  look.marks?.useClearance(clearance);
 
   const globe = new Mesh(streamer.geometry, look.material);
   // The grid's positions are lattice indices; the vertex shader places them.
