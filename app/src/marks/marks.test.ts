@@ -215,6 +215,23 @@ describe('MarkLayer', () => {
     expect(reachPx).toBeGreaterThanOrEqual(1.35 * rPx + Math.max(0.07 * rPx, 0.9) + 1);
   });
 
+  it('reaches past the ember’s ring, which a tilt widens, toward the limb', () => {
+    const marks = layer();
+    const world = over([20, 10], 2);
+    const at = dirOf([75, 10]);
+    const toCamera = world.camera.clone().sub(at).normalize();
+    const facing = at.dot(toCamera);
+    expect(facing).toBeLessThan(0.5);
+    marks.set('events', [mark('a', [75, 10], { focal: true })]);
+    marks.place(world);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const reachPx = data[SLOT_ROW * TABLE_WIDTH * 4 + 2] ?? 0;
+    const rPx = marks.placed()[0]?.rPx ?? 0;
+    // A pixel spans up to 1 / (rPx × facing) of r there: the ring's half width is 0.9 of that,
+    // and its edge one more.
+    expect(reachPx).toBeGreaterThanOrEqual(1.35 * rPx + 1.9 / facing);
+  });
+
   it('reaches, and looks as far as, a hovered parent’s wide ring', () => {
     const marks = layer();
     const world = over([20, 10], 2);
