@@ -13,16 +13,7 @@
 //   screen and may overlap, and each hole winds against the one solid it is cut from.
 // Which glyph and pace layer each class of event takes is eventSymbols.ts's, and the material
 // that sets each family apart is the look's.
-
-/** The pace layers whose events mark the globe (globe-language.md, Speeds and pace layers). */
-export type Pace = 'nature' | 'governance' | 'infrastructure';
-export const PACES: readonly Pace[] = ['nature', 'governance', 'infrastructure'];
-
-/** Glyph names to SVG path data on a 64-unit grid, y down, nonzero fill. */
-export type GlyphSet = Readonly<Record<string, string>>;
-
-/** The grid a glyph is drawn on, in units. */
-export const GLYPH_UNITS = 64;
+import type { GlyphSet } from './glyphs';
 
 type Point = readonly [number, number];
 

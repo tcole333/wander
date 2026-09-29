@@ -6,7 +6,8 @@
 // for every atrocity; infrastructure the shipwrecks, expeditions and conflagrations. A glyph
 // belongs to one family, so every class that shares a glyph shares its pace layer. A storm's glyph
 // turns with its hemisphere, so an event's glyph goes through glyphAt with its latitude.
-import type { GlyphId, Pace } from './symbols';
+import type { Pace } from './families';
+import type { GlyphId } from './symbols';
 
 /** An event's mark: the pace layer it belongs to and its glyph. */
 export interface EventSymbol {
