@@ -54,6 +54,7 @@ import {
   SLOTS_MAX,
   TABLE_ROWS,
   TABLE_WIDTH,
+  TILE_COUNT_MAX,
   TILES_MAX,
 } from './marks.glsl';
 
@@ -527,12 +528,13 @@ export class MarkLayer {
     if (candidates.length > MARKS_MAX) candidates.length = MARKS_MAX;
     const bins = binDiscs(candidates, view.width, view.height, tunables.markTileCap);
 
-    // The table (marks.glsl.ts): each tile's first slot times 16 plus its count, four a texel;
+    // The table (marks.glsl.ts): each tile's first slot and its count, four a texel;
     // each slot's mark's screen disc and index; three texels a mark.
     const next = table.next;
     const ranges = Math.ceil(bins.counts.length / 4) * 4;
     next.fill(0, 0, ranges);
-    bins.counts.forEach((count, t) => (next[t] = (bins.starts[t] ?? 0) * 16 + count));
+    const perStart = TILE_COUNT_MAX + 1;
+    bins.counts.forEach((count, t) => (next[t] = (bins.starts[t] ?? 0) * perStart + count));
     const slotBase = SLOT_ROW * TABLE_WIDTH * 4;
     const slots = bins.used * 4;
     bins.slots.forEach((m, slot) => {

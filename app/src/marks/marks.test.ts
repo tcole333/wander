@@ -7,7 +7,7 @@ import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
-import { MARK_ROW, SLOT_ROW, TABLE_WIDTH } from './marks.glsl';
+import { MARK_ROW, SLOT_ROW, SLOTS_MAX, TABLE_WIDTH, TILE_COUNT_MAX } from './marks.glsl';
 import {
   binDiscs,
   limbFade,
@@ -70,6 +70,13 @@ describe('limbFade', () => {
     const near = limbFade(dirOf([66, 0]), camera);
     expect(near).toBeGreaterThan(0);
     expect(near).toBeLessThan(1);
+  });
+});
+
+describe('the table', () => {
+  it('counts every mark a tile can hold, and places every slot exactly', () => {
+    expect(tunables.markTileCap).toBeLessThanOrEqual(TILE_COUNT_MAX);
+    expect(SLOTS_MAX * (TILE_COUNT_MAX + 1) + TILE_COUNT_MAX).toBeLessThan(2 ** 24);
   });
 });
 
