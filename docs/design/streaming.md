@@ -487,7 +487,7 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   that layer queries the index at run time.
 - **Cleaning (build):**
   - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
-    go to `details/<n>.json` (built in v1, loaded in v1.1).
+    go to `details/<n>.json` (built in v1, loaded once exploration shows an event's details).
   - **Places:** direct coordinates first, then inherited ones (flagged). Unlocated parents take the
     centroid of their children, then the P17 centroid, then an override.
   - **Hierarchy:** one canonical display parent per event.
@@ -1228,7 +1228,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     A dev walk (`prototype.html?story=tambora|magellan`) starts on that story's beat 1 and returns
     to the lobby with both plaques at its initial world view; every subsequent return goes to
     the view left at the plaque choice.
-  - Deep links (the Continue plate) and reduced motion wait for milestone 4 or later.
+  - Deep links (the Continue plate) and reduced motion wait for milestone 5 or later.
 - **Dive (~3 s):**
 
   | Time | On screen | Loading |
@@ -1958,11 +1958,10 @@ acceptance).**
 
 ---
 
-## 9. Deferred to v1.1, and the hook v1 leaves
+## 9. Deferred, and the hook v1 leaves
 
 | Deferred | Hook in v1 |
 |---|---|
-| Explore mode UI | The entry is built but hidden. The streamer, the full event index, the worker query, all toggles, and the monthly and annual climate paths already run in v1. |
 | Hover and click on layer features | `.wot` ids are exact, `meta.json` names them, and picking is one `texelFetch` or 1-pixel read at the cursor. |
 | Flight-corridor prefetch, N+2, promote-on-hover-Next | The same enqueue API with class and generation; `lod.ts` can plan any camera. |
 | Event detail panel (descriptions, sources, alternate dates) | `details/<n>.json` is built and published in v1, just not loaded. |
@@ -2125,7 +2124,7 @@ Decided at go-live (issues #6 and #13), 2026-09-27:
     Zustand are no longer planned. The approved walk is plain three.js, and its bundle is smaller
     without them.
 21. **Milestone 1 goes live early, with plain failures:** the article pages (and with them the
-    no-WebGL redirect and `?gl=software`) wait for milestone 4, and in-place context restore, which
+    no-WebGL redirect and `?gl=software`) wait for milestone 5, and in-place context restore, which
     needs the byte cache, and the AVIF poster (`npm run poster`) are deferred. Until then a browser
     that cannot draw the globe (no WebGL 2 context, or a shader that does not link) gets the story's
     card, its title and blurb, in the room; data that does not arrive gets a brass plate with
