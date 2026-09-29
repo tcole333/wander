@@ -2,14 +2,21 @@
 // a data server running locally (fixture by default):
 //   node scripts/exploreClockShots.ts --url http://127.0.0.1:5173 --out ../build/explore-clock
 //     [--data fixture|region|global|<origin>]
-// Saves each calendar scale, both history ends, and measurements.json.
+// Saves each calendar scale, both history ends, days of October 1066 and of the 1582 reform in
+// the historical calendar Explore reads, and measurements.json.
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium, type Page } from '@playwright/test';
 import { DATA_SERVERS } from '../src/page/dataOrigin.ts';
-import { dayFromIso } from '../src/story/dates.ts';
+import {
+  dayFromHistorical,
+  dayFromIso,
+  formatHistorical,
+  monthName,
+  type Civil,
+} from '../src/story/dates.ts';
 import type { WorldTime } from '../src/time/worldClock.ts';
 import type { Span } from '../src/story/ui/format.ts';
 import type { ViewState } from '../src/view/viewState.ts';
@@ -190,6 +197,44 @@ try {
     }
     await capture(name);
   }
+  // Explore reads history's calendar: October 1066 in the Julian, Hastings on the 14th, the Ides
+  // of March in 44 BCE, and the reform's step from 4 to 15 October 1582.
+  const historical: { name: string; date: Civil; days: number; step?: string }[] = [
+    { name: '10-hastings-days', date: { year: 1066, month: 10, day: 14 }, days: 12 },
+    { name: '11-hastings-weeks', date: { year: 1066, month: 10, day: 14 }, days: 40 },
+    { name: '12-october-1066-start', date: { year: 1066, month: 10, day: 1 }, days: 12 },
+    { name: '13-october-1066-end', date: { year: 1066, month: 10, day: 31 }, days: 12 },
+    { name: '14-ides-of-march', date: { year: -43, month: 3, day: 15 }, days: 12 },
+    { name: '15-reform', date: { year: 1582, month: 10, day: 4 }, days: 10, step: '3 4 15 16' },
+  ];
+  for (const { name, date, days, step } of historical) {
+    const day = dayFromHistorical(date);
+    await page.evaluate(
+      ({ day, days }) => {
+        const world = (window as unknown as ClockPage).__worldTime;
+        world.zoom(days / world.state().spanDays, 0.5);
+        world.seek(day);
+      },
+      { day, days },
+    );
+    assert.equal((await clock()).day, day, name);
+    const read = await page.evaluate(() => ({
+      plate: [...document.querySelectorAll('.rc-plate-text .rc-cut')].map((t) => t.textContent),
+      days: [...document.querySelectorAll('.rc-labels .rc-day')].map((t) => t.textContent),
+      upper: [...document.querySelectorAll('.rc-labels .rc-upper')].map((t) => t.textContent),
+      value: document.querySelector('[aria-label="World date"]')?.getAttribute('aria-valuetext'),
+    }));
+    const month = monthName(date.month);
+    const year = date.year > 0 ? `${date.year} CE` : `${1 - date.year} BCE`;
+    assert.deepEqual(read.plate, [`${date.day} ${month}`.toUpperCase(), year], `${name}: plaque`);
+    assert.equal(read.value, `${date.day} ${month} ${year}`, `${name}: the slider's date`);
+    const band = formatHistorical(day, 'month').toUpperCase();
+    assert(read.upper.includes(band), `${name}: the band names ${band}, not ${read.upper.join()}`);
+    if (days <= 12) assert(read.days.includes(String(date.day)), `${name}: ${read.days.join()}`);
+    if (step) assert(read.days.join(' ').includes(step), `${name}: ${read.days.join(' ')}`);
+    await capture(name);
+  }
+
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.evaluate(() => (window as unknown as ClockPage).__worldTime.zoom(1e9, 0.5));
   await capture('09-history-1024');
