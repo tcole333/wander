@@ -3,7 +3,7 @@ import { gunzipSync } from 'node:zlib';
 import type { EventsRelease } from '../data/release';
 import { readFixtureFile, readStageRecord } from '../test/fixture';
 import { decodePage, extentAt, findQid, labelAt, parsePage } from './page';
-import { pageOf } from './testSupport';
+import { pageOf } from '../test/events';
 
 describe('.wev pages', () => {
   test('the fixture agrees with Python on every array byte, its labels and references', async () => {

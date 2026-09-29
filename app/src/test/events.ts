@@ -2,9 +2,9 @@
 import { OrthographicCamera, Matrix4 } from 'three';
 import type { EventsRelease } from '../data/release';
 import { lonLatToDir, toThree } from '../surface/cube';
-import { parsePage, type EventPage } from './page';
-import { EventIndex } from './residency';
-import type { EventView } from './view';
+import { parsePage, type EventPage } from '../events/page';
+import { EventIndex } from '../events/residency';
+import type { EventView } from '../events/view';
 
 export interface TestEvent {
   row: number;

@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { EventClient, type EventWorker } from './client';
 import { type EventReply, type EventRequest } from './runtime';
-import { pageOf, releaseOf, viewOf } from './testSupport';
+import { pageOf, releaseOf, viewOf } from '../test/events';
 
 class FakeWorker implements EventWorker {
   onmessage: EventWorker['onmessage'] = null;
