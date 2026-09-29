@@ -424,7 +424,11 @@ u8 d[6][size][size]   min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels, +
 
 ### 3.4 Event files `ev/<ver8>/{overview,all,p00..p23,long}.wev`
 
-These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score order within each file.
+The `event-files` stage writes these into every profile's output root, including the fixture.
+They are gzip'd UTF-8 JSON, one object of parallel arrays, in score order within each file. The
+current global build has 30,070 rows (29,649 table events and 421 recovered ancestors), a 142 KB
+overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arrays
+[M `e5/results/runtime-2026-09-29.json`].
 
 ```
 { "v": 1, "rows": n, "classes": [...],        // classes only in the overview
@@ -444,20 +448,32 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
 - **Typed arrays in the worker:** Float64 for t0 and t1 (Int32 days wrap silently before about
   5.88 Myr BCE, and Wikidata holds events at −15 Myr); Int32 for row, qid, lon, lat and parent;
   Uint16 for score and unc; Uint8 for prec, cls and flags; labels as one UTF-8 blob with Uint32
-  offsets. That is about 73 B per row decoded [D]. The build asserts that every t0 and t1 round-trips
-  exactly.
+  offsets, plus a Uint32 index sorted by qid for binary lookup. The sorted index costs 4 B per
+  row and avoids a JS Map entry per event. All resident buffers, including labels and sparse
+  extents, average about 75 B per row [M `e5/results/runtime-2026-09-29.json`]. Compressed bytes,
+  JSON and per-row strings are released after packing, to stay within section 6. The build
+  asserts that every t0 and t1 round-trips exactly.
 - **Split rule:** `overview.wev` holds 4,096 rows, with equal quotas per era bin × macro-region cell
   (~21 rows each), filled by score, and leftovers by score. If the corpus is at most 100K rows and
   16 MiB decoded, the rest goes into `all.wev`. Otherwise it is split into `p00..p23` by era bin: a row
   goes into every bin it overlaps, except rows spanning more than 3 bins, which go into `long.wev`.
+  The overview is at most 4,096 rows; rest files exclude its rows, and empty non-overview files
+  are omitted so small fixtures need no empty fetch. The 100K row limit decides paging, never
+  truncation. Overlapping pages retain the same global row ids for deduplication.
+- **Overview regions:** eight rectangles cover the whole sphere, including oceans: North and
+  South America, Europe, Africa, North Asia, South Asia, East/Southeast Asia and Oceania. These
+  are sampling cells, so simple complete coverage matters more than political borders; their
+  exact edges live in `macro-regions.geojson`. A shared edge takes the first covering feature;
+  a gap fails the build with the event and coordinate. The chosen date determines the era and
+  the placed point the region. Each of the 24 × 8 cells gets up to 21 rows by score, then unused
+  capacity fills by global score, so a dense recent European era cannot take the whole overview.
 - **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
   1700, 1800, 1850, 1900, 1950, 2000, +∞); `pipeline/config/macro-regions.geojson` (8 macro-regions);
   `pipeline/config/event-classes.yaml` (the class allowlist and weights, which keep out sporting
   seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, the
   days a better source dates an event to where Wikidata's date is wrong, and the events whose date
-  the sources dispute, each with its reason; the overrides for unlocated parents join it with the
-  hierarchy);
+  the sources dispute, and sourced placement fallbacks for unlocated parents, each with its reason);
   `pipeline/queries/events.rq`, the one query, run once per class.
 - **Export:** `uv run prebuild wikidata` runs `events.rq` for each class against QLever's public
   Wikidata endpoint, one request at a time with a pause between them, and writes the rows as gzip
@@ -469,7 +485,7 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   not deprecated (P585, P580 or P582, with its precision) of an event, with its English label and
   Wikipedia title, its coordinates and its location's, its count of Wikipedia editions and its P361
   parents.
-- **Milestone 1:** the `events` stage writes the cleaned, scored table `ev/events.tsv.gz` (7.1),
+- **Events table:** the `events` stage writes the cleaned, scored table `ev/events.tsv.gz` (7.1),
   one row per event, which Meanwhile and the lobby's glows draw from. It keeps statements dated to
   the year or finer, and events with an English label, a place other than 0°, 0° (their own, else
   their location's, flagged) and a Wikipedia edition. An event takes its heaviest class; its date
@@ -479,21 +495,45 @@ These are gzip'd UTF-8 JSON, one object of parallel arrays. Rows are in score or
   widened to their precision, so a war dated at its armistice still spans its years, leaving out
   the statement a curated day corrects. In milestone 1 the span only keeps a long event out of a
   short window's Meanwhile (3.9). Its score is `log2(1 + editions)` times the class weight plus
-  any curated boost, unscaled. Parents stay as Wikidata gives them. The table is TSV with a header
-  line, in score order, at most 100K rows, with the columns qid, label, enwiki, class, date,
-  precision, t0, t1, lon, lat, inherited, editions, score and parents; dates are ISO days in
-  astronomical years, as `dates.ts` reads them. The `.wev` files, their era bins, macro-regions,
-  percentile score, details and display parents come with the globe's events layer, since only
-  that layer queries the index at run time.
+  curated `legacyBoost`, unscaled. Parents stay as Wikidata gives them. The table is TSV with a
+  header line, in score order, keeping every accepted row, with the columns qid, label, enwiki,
+  class, date, precision, t0, t1, lon, lat, inherited, editions, score and parents; dates are ISO days in
+  astronomical years, as `dates.ts` reads them. The table remains build-only.
+- **Separate runtime stage:** `event-files` follows `events` and verifies the table's export and
+  config inputs before reading it and that same pinned local export. The export supplies parents
+  and alternate claims that the table omits. Keeping runtime scoring and hierarchy here preserves
+  Meanwhile's table scores and lets paging grow independently. The stage now builds `.wev`;
+  details files remain future work.
 - **Cleaning (build):**
   - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
     go to `details/<n>.json` (built in v1, loaded once exploration shows an event's details).
-  - **Places:** direct coordinates first, then inherited ones (flagged). Unlocated parents take the
-    centroid of their children, then the P17 centroid, then an override.
-  - **Hierarchy:** one canonical display parent per event.
-- **Score:** the per-era percentile of `log2(1 + sitelinks)`, counting Wikipedia sitelinks only (the
-  PRD's language editions), times the class weight, plus curated
-  boosts, scaled to 0-1000. Owner decision 3 adopts the quotas above.
+  - **Places:** direct coordinates first, then inherited ones (flagged), to prefer the event's
+    own evidence. Unlocated parents take a spherical centroid of located children, walking
+    through unlocated descendants; this respects the dateline. Antipodal children use the first
+    point in longitude/latitude order for a deterministic fallback. Next is a sourced P17
+    `countryCentroid`, then a last-resort `at`, under curated `places`, each with qid and why.
+    The pinned export carries no P17, so these are supplied explicitly rather than guessed from
+    a label; the list is currently empty. Such a fallback can also admit an exported parent
+    whose children are unlocated. Still-unplaceable parents are omitted and leave children eligible.
+  - **Hierarchy:** choose one accepted P361 parent: prefer containment of the child's whole span,
+    then the shortest span, then higher score and numeric qid. This selects the nearest useful
+    historical context. Assign in qid order and reject cycle-closing edges so source cycles
+    cannot hide a whole family. A missing parent leaves the event at the root.
+  - **Extents:** cover observed source places and canonical descendants with the smallest
+    longitude arc. West stays in [−180, 180]; east may pass 180, so a dateline family stays narrow.
+    Source coordinates absent from the export cannot contribute. For derived positions, `unc`
+    is the greatest descendant distance, rounded up in km and capped at 65,535. Other positions
+    retain 0 because the export supplies no accuracy radius; the build invents none.
+- **Score:** rank Wikipedia edition counts within the chosen date's era, equivalent to ranking
+  their monotonic `log2(1 + editions)`. Equal counts take the upper cumulative rank (the fraction
+  of rows at or below the count): tied leaders and singleton eras reach 1 rather than losing
+  prominence to arbitrary tie order. Add curated `boost` in percentile points, clamp to [0, 1],
+  then multiply by class weight and 1000 / maximum class weight and round. This keeps a boost in
+  the percentile's units and respects class weights. Score ties use numeric qid for stable rows.
+  Waterloo's boost is 76 / 2551 = 0.029792238337906744: the old +1.5 moved it from rank 104 to 28
+  in the table's 1800–1850 era. Its separate `legacyBoost: 1.5` keeps the TSV and Meanwhile
+  unchanged. With the new cap-before-weight rule its runtime score is 550, the maximum for a
+  battle, rather than tying wars at 1000. Owner decision 3 adopts the quotas above.
 - **Deep time:** storage and bins take any date. Owner decision 2 admits only well-known deep-time
   events, such as the Ries impact at −15 Myr, shown in a compressed deep-time segment of the time
   ruler. The fixture has a −15 Myr row.
@@ -615,7 +655,8 @@ pages are built from the same JSON.
   "borders": {"ver", "stems":["1815"], "years":[1815],
               "files":{"1815":{"key":"fd/borders/<ver8>/1815.bin", "bytes",
                                "notice":"lic/<sha16>.txt", "source":"lic/<sha16>.geojson"}}},
-  "events": {"ver", "overview", "files":[{"key","t0","t1","rows","bytes"}]},
+  "events": {"ver", "overview", "rows", "eraEdges":[…23 finite day-number edges],
+             "files":[{"key","t0","t1","rows","bytes","decoded","jsonBytes","bin"?}]},
   "modera": {"ver", "years":[1421,2008], "lat":[88.57, …], "lon0":-180, "dlon":1.875,
              "bytes":{"mean":{"1815":…}, "spread":{…}, "annual":…}},
   "fx": {"<name>":{"key","kind","epochDay","bbox","w","h","bytes"}},
@@ -626,6 +667,14 @@ pages are built from the same JSON.
 
 `borders` is milestone 1's (3.3): a field per snapshot, with its notice and corrected source. Explore
 mode adds every snapshot's overlay version and the previews' key (3.2, 3.3).
+
+`events` is optional until the `event-files` stage has run. Its record is copied into the release:
+`rows` counts unique events, `eraEdges` converts the ruler window to bins, and `files` includes the
+overview and every nonempty rest file. Each file carries its inclusive time bounds and row count,
+stored gzip `bytes`, resident-array `decoded` bytes, inflated `jsonBytes`, and, for an era page,
+its zero-based `bin`. These sizes bound admission and inflation; keeping the edges in the release
+avoids duplicating Python configuration in TypeScript. Publishing takes exactly these keys and
+checks their stored sizes. The TSV is never published.
 
 `media` lists every key the stories' committed locks name (3.9), sorted, so `publish-data` uploads
 the images and `npm run check-release` reads each story's first image. It comes from the locks
@@ -918,21 +967,54 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 ### 5.3 Events at run time
 
-- **Residency:** if the accepted corpus fits the worker's index cap (section 6), every page stays
-  resident. Otherwise the worker keeps the overview plus the pages that overlap the ruler window ±1 bin,
-  evicts other pages in LRU order, and prefetches the next bin in the scrub direction. Rows are never
-  dropped to fit memory.
-- **Query:** over the ruler's visible span and the view, at up to `eventQueryHz` while moving, with
-  generation ids. Story focal events and Meanwhile lists are exempt from the budget.
-- **Detail budget:** `eventMarkers` and `eventLabels` per tier. Focal events always show. A parent
-  shows until its on-screen extent passes `parentSplitPx`, then its children replace it (and it returns
-  below `parentMergePx`). At most `declutterPerCell` events per 64 px cell. A newcomer needs `hysteresisScore`
-  more than an incumbent to displace it. Fades take `eventFade`.
-- **References:** story JSON and the lock name events by qid; the worker builds a qid → row map on load.
-- **Meanwhile panel:** while a beat is showing, its compiled list. During break-out, the worker runs the
-  same rule (3.9) on the ruler window and the view center. Until the events layer brings the worker,
-  a break-out scrubbed off the beat's date shows the lock's list for the month scrubbed to, or the
-  nearest month it holds.
+`app/src/events/` contains the worker, its main-thread `EventClient`, and plain modules for
+packing, residency, projection and queries. These modules run in Vitest without a worker. The UI
+queues `client.query({t0, t1, view, tier, focalQids?})` and consumes `client.drain(rAFTime)` replies;
+`onready` requests a frame. `EventQueryEngine.query(request, now)` is the synchronous counterpart.
+Results contain `markers`, `labels`, parent `outlines` and `missingFocal`, with fade states on each
+rendered item. `EventView` and `EventClient` TSDoc specify the matrix, CSS pixels and day numbers.
+
+- **Residency:** decode the overview before fetching anything else, so a useful global sample
+  arrives first. If the corpus fits the 16/24 MiB index cap (lite/full), keep every page. Otherwise
+  pin the overview and `long` when a window is known: broad events must not disappear at an era
+  boundary. Keep every bin overlapping the ruler window, plus one bin on either side, and
+  prefetch one further bin in the last nonzero scrub direction when it fits. This halo avoids
+  fetching anew on each small scrub. Stale pages stay cached until capacity is needed, then leave
+  in LRU order. A required set exceeding the cap returns `plan.error` and `complete: false`;
+  capacity failure must be explicit rather than silently thinning historical coverage.
+- **Query and transport:** the main thread uses the existing fetch watchdog, transfers each
+  compressed buffer, and queues arrivals until `drain()`, so asynchronous callbacks do not alter
+  frame state. Keep one fetch/decode and one query in flight to bound temporary memory and stale
+  work. A query can use current residency while another page awaits inflation. Coalesce requests
+  to the newest view and send near `eventQueryHz`, allowing half a frame of slack to avoid losing
+  a frame to fractional rAF timestamps. Assign generations on dispatch and deliver every reply
+  newer than the last delivered; comparing against unsent requests would starve a continuous
+  scrub. A failed file stays failed until explicit `retry()` clears it, avoiding a retry loop.
+  A timed retry after `degradeFor` (5.2) remains to be added, including a failed overview.
+- **Detail budget:** lite/full target 80/140 markers and 24/40 labels, each with at most two per
+  64 × 64 CSS-pixel cell. Resident focal Q numbers bypass time, nesting, cell and count budgets
+  because a story names them explicitly; view and horizon culling still apply. Missing focal Q
+  numbers are returned so the story can use its compiled place while loading.
+- **Nesting:** a parent shows until its projected extent exceeds 150 px, and returns below
+  120 px. Measure the largest width/height of a 5 × 5 extent lattice, through the horizon and
+  outside the viewport: clipping those samples first can collapse a large parent over a close
+  island view. Only split with a visible child available. Missing/out-of-window parents and
+  collapsed parents with invisible anchors never suppress a visible child. Expanded ancestors
+  return an outline with a context label, keeping the family readable while children replace
+  its point. Outlines take no point slots; context labels share the label budget. Clip outline
+  geometry independently from its label anchor's `anchorVisible`.
+- **Stability:** a newcomer displaces an incumbent at exactly +20 score points; the tie goes to
+  the newcomer so the stated margin is sufficient. Other ties use global row order. Fades are
+  linear over 300 ms in presentation time, reversing from their current opacity. Exits overlap
+  the target budget during those 300 ms so removing an event never makes it pop out; focal events
+  are additional. Interpolate fades on every frame between query replies, discard completed exits,
+  and keep frames running while fades move. Subsequent queries reproject exiting anchors.
+- **References:** story JSON and locks name qids. Each page's sorted typed qid index (3.4) resolves
+  them without a per-event JS object or Map; merging resident pages by global row deduplicates
+  overlaps without retaining a second copy of the corpus.
+- **Meanwhile panel:** its lists remain outside the globe budget. While a beat is showing, use
+  its compiled list. The worker query for break-out (5.1, 3.9) is still to be added; until then a
+  scrub off the beat's date uses the lock's list for that month or the nearest month it holds.
 
 ### 5.4 Uploads per frame
 
@@ -1354,7 +1436,7 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 |---|---|---|
 | **Before the first live frame** | **2.20 MB** [M `e3/results/live-2026-09-28.json`]. The requirement stays a live frame < 3 s at cold 25 Mbps / 50 ms (owner decision 5). | The room waits for L0-L1 and the page's fonts: 0.515 MB from Pages and 1.684 MB from the data host arrive before it opens. Keep the entry's ≤ 500 KB br and the worker modules' ≤ 40 KB allowances for growth; the instrument and environment are procedural. |
 | **First paint / first live frame** | **0.19 s / 1.24 s** cold at 25/50; live frame **< 3 s** required | Medians of three cold live loads [M `e3/results/live-2026-09-28.json`]. The CSS room covers pool allocation, compiles and L0-L1. At 5/150 the medians are 0.47 s / 4.51 s; that connection's requirement is whole beat landings. |
-| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview ~90 KB [D from 18-22 B/row], border previews ~1 MB [E], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. |
+| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], border previews ~1 MB [E], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
 | **Critical set per beat** | planning line: (median flight 1.7 s + `holdMax`) × the floor bandwidth, 2.0 MB at 5 Mbps (owner decision 5) | For the per-beat plans deferred in 8.1: model, full, median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors, as milestone 1's queue already does. |
 | **New bytes per beat** | reported above **10 MiB** | Beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each on the full tier [M `e3/results/live-2026-09-28.json`]. Round the measured maximum up to a whole MiB to flag growth in later walks. Every beat lands whole at 5/150, so this line reports refinement traffic without holding navigation. |
@@ -1394,7 +1476,8 @@ spawn-context worker processes. `media` also takes `--offline`.
 | `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews. Milestone 1: each `world_<stem>.geojson` pinned in `sources.toml` (1815) + `pipeline/config/borders-<stem>.yaml` → `fd/borders/<ver8>/<stem>.bin`, its notice and corrected source under `lic/` (3.3); the fixture skips it, and its tests draw synthetic snapshots | 31 s for 1815 [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | range names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
-| `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → in milestone 1 the scored table `ev/events.tsv.gz` (3.4); `.wev` + details with the globe's events layer | 1 s for 29,649 events [M] | local |
+| `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
+| `event-files` | that table and its pinned local export + the event, era and region configs → versioned overview and all-events `.wev`, or era pages above the thresholds, with percentile scores and display parents (3.4); runs for the fixture too | about 1 s for 30,070 rows [M] | local |
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points and focal resolution against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
@@ -1442,7 +1525,8 @@ release's `media` section lists every key the locks name (3.8).
 | borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}`; milestone 1: `{ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`, 3.8's section as is |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
-| events | `{ver, overview, files[{key, t0, t1, rows, bytes}]}` with the `.wev` files; in milestone 1 `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the table's key, the pinned export and its timestamp, its rows, stored and decoded bytes, rows per class, and the export's id with the sha256s of `event-classes.yaml` and `events-curated.yaml`, which a stage reading the table checks against the current ones |
+| events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
+| event-files | `{ver, overview, rows, eraEdges, files[{key, t0, t1, rows, bytes, decoded, jsonBytes, bin?}]}`: copied as the optional release `events` section (3.8); counts unique rows, lists the overview and nonempty rest files, and supplies exact byte sizes and bin edges for the worker's admission and inflation limits |
 | modera | `{ver, years[first, last], lat[96], lon0, dlon, bytes{mean: {year}, spread: {year}, annual}}`: 3.8's `modera` section as is, the latitudes north first to 6 decimals |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |
@@ -1821,7 +1905,7 @@ pre-launch checks or a later milestone:
 | **E2** | Every shared point is exact (5.6), proven on the vertex mirror in Vitest, on every same-level pair of both real bakes by `npm run verify:bake`, and on the GPU by the fixture readback on SwiftShader and Metal. The 28 September run checked the shipped global bake, built from the surface code at `3aca3c2` that the provenance note shows unchanged [M `work/surface-bake/provenance.md`]. Its 15,740 tiles took 152.41 s: 30 of 31 checks passed, with 12 border texels on eight L5-L6 tiles outside the cross-face terrain bound (7.3); the region passed all 31 [M `work/surface-bake/global-verify-2026-09-28.json`]. The raw-source replay found three footprint differences and nine coastal-clamp differences, with every sampled height and shore byte reproduced, so the encoder stays unchanged. The pool path holds in Safari and Firefox, and uploads fit the admission caps in all three browsers [M `e2/results/`]. The look reviews saw no crack, hole, skirt or face-edge seam, the Kirkuk corner at a 75° tilt included. | Re-verifying needs `uv run prebuild --profile global coverage surface` first; the cross-face bound still rejects these source-correct samples. For the pre-launch checks: the torture script (delayed children, reverse zoom, ×8 and ×16, toggles while moving), the key check and render scan, the global L5-L6 crease and coastal shading at the classified misses, and upload timing on the target machines. |
 | **E3** | Passed on the live site except CPU memory (below) [M `e3/results/`]: the renderer held 270-288 MiB against the 256 MiB line (section 6). Releasing the sources the walk has uploaded and never reads again (the 1815 field, the instrument's canvases and vertices, the label and puff atlases) brought a local production build from 282-288 to 250-253 MiB, and the live site to 252-258 MiB, so the line holds on some walks and not others [M `e3/results/local-2026-09-28-cpu-before.json`, `local-2026-09-28-cpu-after.json`, `live-2026-09-28-trims.json`]. The GPU cap and the lite tier were not measured, since the GPU process's ~1.0 GB footprint and 750 MB of graphics memory cannot be split into the app's share. In a run by hand, with no record in the repo, headless WebKit 26.6 and Firefox 155 walked the live lobby, dive and beats 1-3 on WebGL 2 with no console error or failed request. | For the pre-launch checks: margin under the CPU line, with the lower-end machines (owner decision 32), frame times, the lite tier, tilt, GPU memory, the overlay pool peak (after E6), in-place restore, reload with URL state, and the loop seams by ear in Safari and Firefox. |
 | **E4** | At 24 h and 72 h after the warm, all 50 first reads of each cohort hit at the Boston edge: wait p50 27 ms, TTFB p90 128 and 79 ms, far under the 500 ms break point [M `e4/results/`]. No re-warm and no quad packs so far. The 1 h cohort was not read, and HTTP/3 (the probe runs over HTTP/2), browser revisits and Class B charges were not measured. | The 7 d cohort, due on 2 October; it decides the scheduled re-warm (section 9). |
-| **E5** | The light answer below: 29,649 events in 1.18 MB, parsed in 31-39 ms, so the whole corpus fits one `all.wev`. | The query benchmark, with the globe's events layer in a later milestone (owner decision 26). |
+| **E5** | 30,070 runtime rows, 921,182 B gzip and 2,241,992 B resident arrays; overview 142,271 B gzip / 332,381 B arrays. Whole-history queries p95 5.42/5.58 ms (lite/full), Node 22 on the M5 [M `e5/results/runtime-2026-09-29.json`]. | Worker arrival/main-thread cost and browser memory, the 465K-row broad set, target machines, and a real-file paged run remain unmeasured. |
 | **E6** | Not run. | With the other thematic layers, before the other stories (8.1). |
 
 **E1. Surface shader cost, on the target machines, with a real GEBCO Sumbawa patch.**
@@ -1945,9 +2029,17 @@ acceptance).**
   94,025 dated statements) gives an accepted corpus of 29,649 events: 1.18 MB stored as the table
   `ev/events.tsv.gz` and 3.77 MB decoded. Node 22 on the M5 inflates and parses it into typed
   columns in 31-39 ms [M `e5/results/light.json`]. That is under a third of the split rule's 100K
-  rows and about 2.2 MB in the worker's typed arrays at 73 B a row [D], so the whole corpus fits
-  one `all.wev` and no page is ever evicted. The query benchmark needs the event worker and the
-  `.wev` files, so it moves with the globe's events layer, after milestone 1.
+  rows, so it motivated the single `all.wev` path.
+- **Runtime corpus and query (2026-09-29):** the same table plus 421 recovered ancestors gives
+  30,070 rows in an overview and `all.wev`: 921,182 B gzip, 2,696,426 B inflated JSON and 2,241,992 B
+  resident arrays (2.14 MiB, about 75 B/row including labels). The 4,096-row overview is 142,271 B
+  gzip and 332,381 B in arrays; its first decode took 11.11 ms. At 1440×900, after 50 warm-ups,
+  300 moving-view queries per case had whole-history p95 5.42 ms lite / 5.58 ms full, Europe 1815
+  0.37/0.38 ms, and Asia 1900–2000 1.39/1.41 ms [M `e5/results/runtime-2026-09-29.json`].
+  `app/scripts/benchmarkEvents.ts` records machine and method with the output. These are Node
+  query costs, excluding fetch, messaging and rendering; they do not establish the two-frame
+  arrival or 0.5 ms main-thread gates. Both tiers hold this whole corpus. Synthetic tests exercise
+  paging; a real-file paged run and the 465K-row set remain to be measured.
 
 **E6. Overlay fidelity at island zoom.**
 - **Setup:** bake ecoregions, petroleum, mountains and borders 1815 + 1878 as L0-L5 `.wot`.
