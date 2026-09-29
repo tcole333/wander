@@ -67,6 +67,7 @@ def test_the_registry_pins_each_source_and_its_files():
         "law-dome-co2-2019": ["law2018co2-noaa.txt", "law2018splines-noaa.txt"],
         "noaa-gml-mauna-loa-co2": ["co2_annmean_mlo.txt", "co2_mm_mlo.txt"],
         "owid-population": ["953903.metadata.json", "population.csv"],
+        "maddison-project-2023": ["mpd2023_web.xlsx"],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 

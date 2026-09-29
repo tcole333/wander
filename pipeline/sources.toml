@@ -469,6 +469,37 @@ source_url = "https://api.ourworldindata.org/v1/indicators/953903.metadata.json"
 bytes = 36727
 sha256 = "1bdb7d75acc983d436241c4e5b47c8fca5434f4df3f37b28f04e1d4364c17ec8"
 
+# The Maddison Project Database 2023, for the room's print of world output (issue #85): the Excel
+# release, whose sheets are Notes (the citation policy), Sources (the original papers behind each
+# country's series), GDPpc (real GDP per capita in 2011 dollars) and Population (mid-year,
+# thousands), both wide by country, Full data (the same, long: countrycode, country, region, year,
+# gdppc, pop), Regional data (the regions' and World's GDP per capita and population) and Maddison
+# original sources (Maddison's own 2010 list). World's aggregates start in 1820 (1820, 1850, 1870,
+# 1900, then every 10 or 20 years to 2010 and every year to 2022); before 1820 no year has both
+# GDP per capita and population for more than 17 countries (12 in year 1, 6 in 1000, 17 in 1700),
+# so the release holds no world output before 1820. Its citation policy: all original
+# papers must be cited when the data are shown in any graphical form, or when a subset of fewer
+# than twelve countries is used; otherwise the database as a whole is cited. The print is a
+# graphic, so its credits cite every paper the Sources sheet lists beside Bolt and Van Zanden
+# (2024). The Stata file beside it on DataverseNL (maddison2023_web.dta) holds the long table
+# without the sources and is not pinned. As with HYDE, the source_url is a Dataverse access
+# endpoint that answers 303 with an hour-long signed objectstore URL, which fetch follows; the
+# file's SHA-1 matches the record's 1480521f....
+[maddison-project-2023]
+name = "Maddison Project Database 2023, GDP per capita and population by country and region, AD 1 to 2022"
+version = "MPD 2023, DataverseNL record version 1.0 (2024-04-26)"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Bolt and Van Zanden (2024), Maddison style estimates of the evolution of the world economy: A new 2023 update, Journal of Economic Surveys, DOI 10.1111/joes.12618; data DOI 10.34894/INZBF2. Shown in a graphic, the data also cite every original paper the database's Sources sheet lists."
+landing_page = "https://www.rug.nl/ggdc/historicaldevelopment/maddison/releases/maddison-project-database-2023"
+retrieved = "2026-09-29"
+
+[[maddison-project-2023.files]]
+path = "sources/maddison-project-2023/mpd2023_web.xlsx"
+source_url = "https://dataverse.nl/api/access/datafile/421302"
+bytes = 4903804
+sha256 = "ecc5916ca12789b983fc4be437f8a354bbf4291323605324ac3e0aea4c57cbb6"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
