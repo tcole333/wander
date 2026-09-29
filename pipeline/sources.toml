@@ -402,6 +402,38 @@ source_url = "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/law/la
 bytes = 113746
 sha256 = "2088e8835d711e127a68c702952f0f36104ab4923b3fd5c0fa096a39c7f7e7ae"
 
+# NOAA GML's Mauna Loa CO2 in ppm, for the CO2 ring from 1958: co2_mm_mlo.txt holds monthly means
+# from March 1958 (year, month, decimal date, average, deseasonalized, days, stdev and uncertainty
+# of the mean, with interpolated months marked by negative days, stdev and uncertainty) and
+# co2_annmean_mlo.txt annual means from 1959 (year, mean, unc), each after a `#` header. Scripps
+# (C. David Keeling) measured March 1958 to April 1974; from December 2022 to July 2023 the values
+# come from Maunakea, after Mauna Loa's eruption. GML rewrites both files early each month (the
+# header's File Creation line) and may revise the latest year, so this pins the files it created on
+# 2026-09-05, through August 2026: once GML writes the next, a download fails its sha256, and
+# renewing the pin means new bytes, sha256, version and retrieved. The files carry GML's data use
+# statement, which makes the data freely available and asks for fair credit, and no license. The
+# attribution is the reference GML's data page asks for, which credits Scripps.
+[noaa-gml-mauna-loa-co2]
+name = "Mauna Loa monthly and annual mean CO2 (NOAA GML and Scripps Institution of Oceanography)"
+version = "files created 2026-09-05: monthly through August 2026, annual through 2025"
+license = "No license stated (NOAA GML's data use statement: freely available, with credit to GML and Scripps)"
+license_url = "https://gml.noaa.gov/ccgg/trends/data.html"
+attribution = "Dr. Xin Lan, NOAA/GML (gml.noaa.gov/ccgg/trends/) and Dr. Ralph Keeling, Scripps Institution of Oceanography (scrippsco2.ucsd.edu/)."
+landing_page = "https://gml.noaa.gov/ccgg/trends/data.html"
+retrieved = "2026-09-29"
+
+[[noaa-gml-mauna-loa-co2.files]]
+path = "sources/noaa-gml-mauna-loa-co2/co2_mm_mlo.txt"
+source_url = "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt"
+bytes = 59608
+sha256 = "c9a91a170d09d16afaaad56c4f383ed4fcb7fa0da967998694842d5c8168bcf3"
+
+[[noaa-gml-mauna-loa-co2.files]]
+path = "sources/noaa-gml-mauna-loa-co2/co2_annmean_mlo.txt"
+source_url = "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.txt"
+bytes = 3696
+sha256 = "3eea72f254116cd43275fa33b0ed201b14550e6ba21e4d6b4482c24a95f98ab7"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
