@@ -1,7 +1,7 @@
 # Wander: the globe's language
 
 What the globe shows as time passes, in which channel and material, and how it reveals itself. It
-governs everything visible, in stories and in exploration. The PRD says what Wander is and
+applies to how history appears, in stories and in exploration. The PRD says what Wander is and
 `streaming.md` how its data moves; this doc says how the globe carries meaning.
 
 ## North star
@@ -17,8 +17,8 @@ the man taking notes at the left (exploration).
 Stories carry history that has a narrative shape: a voyage, an eruption and its aftermath, the way
 jazz spread through American cities. Around them the globe itself changes with time everywhere, so
 a visitor exploring without a story still watches the ages pass and can notice why things happened
-where they did. Influences such as natural resources come out of that exploration rather than out
-of dedicated stories.
+where they did. Influences such as natural resources should come out of that exploration, without
+a dedicated story for each.
 
 ## Speeds and pace layers
 
@@ -92,7 +92,8 @@ The assignment below is the first one, to be judged on renders.
 - **The instrument** carries the slow global quantities in brass (principle 6).
 - **The room** can carry faster global quantities on paper: a framed print on the wall, barely lit
   by the lamp's spill, such as a chart of world output in the manner of William Playfair's line
-  charts, changing with the ruler. Output before 1820 is a rough estimate and is drawn as one.
+  charts, changing with the ruler. World output before 1820, as the Maddison Project estimates it,
+  is rough and is drawn that way.
 
 ## Revealing
 
@@ -103,8 +104,8 @@ The assignment below is the first one, to be judged on renders.
   condense into counted marks, so a century of battles reads as a short row rather than a smear.
 - **Globe zoom reveals finer events**, as the PRD's detail budget does: a war gives way to its
   battles.
-- **Attention brings words**: a label on hover or click, a card in a story. Every large pattern
-  meets one human life somewhere, the way Tambora's Rajah of Sanggar does.
+- **Attention brings words**: a label on hover or click, a card in a story. Where it can, a large
+  pattern meets one human life, as Tambora's famine does in the Rajah of Sanggar.
 
 ## Culture: faiths and names
 
@@ -114,7 +115,7 @@ names.
 - Faiths appear as pictograms of their places of worship, set where their people lived. A mixed
   place shows every faith present, repeated in rough proportion, as mosques beside a synagogue
   would for Tetouan in 1519. A building that carries two faiths' history, such as Córdoba's
-  mosque-cathedral or Seville's minaret bell tower, takes a combined mark.
+  mosque-cathedral or Seville's minaret bell tower, can take a combined mark.
 - Every faith people held has a mark, folk and indigenous traditions without buildings included, so
   no belief reads as absence. The marks are respectful, generic symbols.
 - Each place is engraved under the name it had at that date: Qurtuba, Tenochtitlan, Edo.
@@ -124,7 +125,7 @@ names.
 
 ## Where people lived
 
-The first new layer in time: settled land as polish and cities as raised seals, from population
+The first new layer in time: settled land as polish and cities as small cast seals, from population
 estimates such as HYDE's (Klein Goldewijk and others), which run from 10,000 BCE to the present. It
 comes first because it balances the event index. The index knows what was written down, while
 population estimates cover everyone, so inhabited land never reads as empty (Michel-Rolph
