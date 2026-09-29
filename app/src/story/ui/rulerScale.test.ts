@@ -18,6 +18,7 @@ import {
   engraveHistoryTier,
   engraveScale,
   engravedUnit,
+  labelledYearStep,
   LOWER_ROW,
   storyYears,
   TIER_REACH,
@@ -107,6 +108,24 @@ describe('the crafted ruler', () => {
     expect((scale.full + scale.major + scale.minor).split('M').length).toBeLessThan(500);
     expect(labels.length).toBeLessThan(100);
   });
+
+  it.each(broadSpans)(
+    'gives the step of the years it labels at $unit, which the detents follow',
+    ({ unit, span }) => {
+      const step = labelledYearStep(arc, span, HISTORICAL);
+      const least = { day: 1, month: 1, year: 1, decade: 10, century: 100, millennium: 1000 };
+      expect(step).toBeGreaterThanOrEqual(least[unit as keyof typeof least]);
+      expect(step).toBeLessThan(least[unit as keyof typeof least] * 10);
+      // Each year the band labels by its step is one the step reaches from 1 CE.
+      const years = engrave(span, HISTORICAL)
+        .filter((label) => label.key.startsWith('c'))
+        .map((label) => HISTORICAL.civil(Number(label.key.slice(1))).year);
+      if (step > 1) expect(years.length).toBeGreaterThan(1);
+      for (const year of years) {
+        expect(year <= 0 ? (1 - year) % step : year === 1 ? 0 : year % step).toBe(0);
+      }
+    },
+  );
 
   it('labels both full-history ends and keeps the overview bounded too', () => {
     const labels = engrave(HISTORY, HISTORICAL);

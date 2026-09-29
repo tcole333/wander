@@ -67,6 +67,7 @@ import {
   KNOB_FOOT,
   KNOB_R,
   KNOB_SIDE,
+  labelledYearStep,
   LIP,
   NUMERAL_ROW,
   RAIL_FOOT,
@@ -193,8 +194,9 @@ export class CraftRuler {
   #span: Span;
   #from: { span: Span; share: number };
   #to: Span;
-  /** The finest unit the band engraves now. */
+  /** The finest unit the band engraves now, and the years between the years it labels. */
   #unit: Precision = 'day';
+  #yearStep = 1;
   #flying = false;
   #beat = -1;
   #laidOut = false;
@@ -467,6 +469,14 @@ export class CraftRuler {
   /** The finest unit the band engraves now: days, months or years. */
   get unit(): Precision {
     return this.#unit;
+  }
+
+  /**
+   * The years between the years the band labels now: 1 while it engraves days, months or every
+   * year, else its labels' step of years, decades, centuries or millennia, whose detents sound.
+   */
+  get yearStep(): number {
+    return this.#yearStep;
   }
 
   /** The Play knob, where a keyboard visitor lands as the Resume plaque fades. */
@@ -798,6 +808,7 @@ export class CraftRuler {
     const span = this.#span;
     const unit = engravedUnit(arc, span, this.#calendar);
     this.#unit = unit === 'day' || unit === 'month' ? unit : 'year';
+    this.#yearStep = labelledYearStep(arc, span, this.#calendar);
     const scale = engraveScale(arc, span, (day) => this.#angle(day), this.#calendar);
     for (const kind of TICK_KINDS) {
       for (const path of this.#ticks.get(kind) ?? []) path.setAttribute('d', scale[kind]);
