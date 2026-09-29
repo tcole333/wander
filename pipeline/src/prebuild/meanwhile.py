@@ -583,10 +583,9 @@ def precision_name(precision: int) -> str:
     return "month" if precision == events.MONTH else "day"
 
 
-# Day numbers: days since 0001-01-01, proleptic Gregorian, astronomical years (events.day_number)
-
-
 def iso_day(text: str) -> int:
+    """An ISO day's day number (`events.day_number`): days since 0001-01-01, proleptic Gregorian,
+    astronomical years, as dates.ts counts them."""
     match = events.DATE.match(f"{text.strip()}T")
     if not match:
         raise MeanwhileError(f"{text!r} is not an ISO date")
