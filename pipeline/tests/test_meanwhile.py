@@ -218,7 +218,9 @@ def test_an_entry_gives_its_date_with_its_precision():
 )
 def test_a_story_reads_a_year_or_month_as_its_source_wrote_it(date, precision, first, last):
     t0, t1 = events.named_days(date, precision)  # as the events stage dates it
-    row = events.Event("Q1", "Siege", "", "battle", t0, precision, t0, t1, 0, 0, False, 1, 1, ())
+    row = events.Event(
+        "Q1", "Siege", "", "battle", "siege", t0, precision, t0, t1, 0, 0, False, 1, 1, ()
+    )
     (indexed,) = m.read_table(events.encode([row]).decode().splitlines())
     story = m.as_story_reads(indexed)
     assert (m.entry(story)["date"], story.dated) == (first, (m.iso_day(first), m.iso_day(last)))

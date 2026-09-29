@@ -6,9 +6,10 @@ the `event-files` stage forces into the overview.
 
 `uv run prebuild openings` writes `{table, openings}`: the sha256 of the index it checked, and
 each opening as Meanwhile's entries give an event (`meanwhile.entry`), with its line, its source
-and its class, in date order. A written `date` (an ISO day or month, proleptic Gregorian as the
-index's) stands in for the index's, as in Meanwhile, where it falls within the index's span for
-the event, which its mark in the overview keeps. Its place is always the index's, as its mark's is.
+and the class its mark draws (the index's `display`), in date order. A written `date` (an ISO day
+or month, proleptic Gregorian as the index's) stands in for the index's, as in Meanwhile, where it
+falls within the index's span for the event, which its mark in the overview keeps. Its place is
+always the index's, as its mark's is.
 It stops on:
 
 - an opening the index lacks;
@@ -124,7 +125,7 @@ def openings(
             )
         check_line(event, str(written[event.qid]["line"]))
     return [
-        {**meanwhile.entry(e, written[e.qid]), "class": e.cls}
+        {**meanwhile.entry(e, written[e.qid]), "class": e.display}
         for e in sorted(chosen, key=lambda e: (e.date, e.qid))
     ]
 

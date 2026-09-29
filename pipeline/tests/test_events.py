@@ -17,6 +17,7 @@ from prebuild.sources import Source, SourceFile
 from prebuild.wikidata import COLUMNS
 
 BATTLE, WAR = "Q178561", "Q198"
+DISASTER, ERUPTION, EARTHQUAKE = "Q8065", "Q7692360", "Q7944"
 HEADER = "\t".join(("?class", *COLUMNS))
 
 
@@ -64,8 +65,24 @@ def test_an_event_takes_its_heaviest_class_and_its_point_in_time_within_its_span
         row("Q3591483", "P585", "1815-01-01T00:00:00Z", 9, cls=WAR),
     )["Q3591483"]
     assert (tambora.cls, tambora.day, tambora.precision) == ("war", (1815, 1, 1), 9)
+    assert tambora.display == "war"  # its two classes hold one event each: the heavier shows
     assert (tambora.t0, tambora.t1) == ((1813, 4, 7), (1815, 12, 31))
     assert tambora.score == pytest.approx(math.log2(11) * 1.0)
+
+
+def test_an_event_is_displayed_as_its_most_specific_class_and_scored_by_its_heaviest():
+    kept = indexed(
+        row("Q3591483", "P585", "1815-04-10T00:00:00Z", 11, cls=DISASTER, editions=40),
+        row("Q3591483", "P585", "1815-04-10T00:00:00Z", 11, cls=ERUPTION, editions=40),
+        row("Q212618", "P585", "1960-05-22T00:00:00Z", 11, cls=DISASTER),
+        row("Q212618", "P585", "1960-05-22T00:00:00Z", 11, cls=EARTHQUAKE),
+        row("Q1", "P585", "1816-06-01T00:00:00Z", 11, cls=DISASTER),
+    )
+    tambora = kept["Q3591483"]
+    assert (tambora.cls, tambora.display) == ("natural disaster", "volcanic eruption")
+    assert tambora.score == pytest.approx(math.log2(41) * 0.75)
+    assert (kept["Q212618"].cls, kept["Q212618"].display) == ("natural disaster", "earthquake")
+    assert (kept["Q1"].cls, kept["Q1"].display) == ("natural disaster", "natural disaster")
 
 
 def test_a_war_dated_at_its_end_still_spans_its_years():
@@ -273,7 +290,9 @@ def test_the_stage_writes_the_table_in_score_order_with_its_record(monkeypatch, 
         ["Q48314", "Battle", "Battle"],
         ["Q10", 'The "Peace"', 'The "Peace"'],
     ]
-    assert table[1].split("\t")[4:] == [
+    assert table[1].split("\t")[3:] == [
+        "battle",
+        "battle",
         "1815-06-18",
         "11",
         "1815-06-18",
@@ -321,10 +340,16 @@ def test_fixture_scores_real_events_with_dates_places_classes_and_parents(tmp_pa
         rows = list(csv.DictReader(stream, delimiter="\t"))
     by_qid = {row["qid"]: row for row in rows}
     waterloo = by_qid["Q48314"]
-    assert (waterloo["date"], waterloo["precision"], waterloo["class"]) == (
+    assert (waterloo["date"], waterloo["precision"], waterloo["class"], waterloo["display"]) == (
         "1815-06-18",
         "11",
         "battle",
+        "battle",
+    )
+    # Tambora is scored as the heavier natural disaster and drawn as the eruption it is.
+    assert (by_qid["Q3591483"]["class"], by_qid["Q3591483"]["display"]) == (
+        "natural disaster",
+        "volcanic eruption",
     )
     assert (float(waterloo["lon"]), float(waterloo["lat"])) == pytest.approx((4.41222, 50.67806))
     assert waterloo["inherited"] == "0"

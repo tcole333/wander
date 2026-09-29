@@ -16,12 +16,13 @@ from prebuild.profiles import Profile, make_context
 from prebuild.records import read_record
 
 
-def event(qid, *, year=1815, editions=10, parent=(), at=(4.4, 50.7)):
+def event(qid, *, year=1815, editions=10, parent=(), at=(4.4, 50.7), display="battle"):
     return events.Event(
         f"Q{qid}",
         f"Event {qid}",
         "",
         "battle",
+        display,
         (year, 1, 1),
         9,
         (year, 1, 1),
@@ -41,7 +42,7 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     events.run(ctx)
     # The runtime's percentile boosts must not change the legacy table's scores or bytes.
     assert hashlib.sha256((ctx.out / events.KEY).read_bytes()).hexdigest() == (
-        "a6e7c6293eda786b2d67863f84cea26f61bb2137e276ad9c5a0761be68da4f54"
+        "061887223af7fcdb02cc1dae62f2a2a999e56ec5d48aeb6219c482b770dfcdc2"
     )
     wev.run(ctx)
     record = read_record(ctx, wev.STAGE)
@@ -61,6 +62,8 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     assert overview["parent"][rows[18643473]] == overview["row"][rows[199955]]
     assert overview["parent"][rows[199955]] == overview["row"][rows[78994]]
     assert overview["score"][waterloo] == 550
+    # Tambora's mark draws the eruption it is, though its score is weighed as a natural disaster.
+    assert overview["classes"][overview["cls"][rows[3591483]]] == "volcanic eruption"
     lock = REPO_ROOT / FOLDER / LOCK
     assert record["inputs"] == {"openings": hashlib.sha256(lock.read_bytes()).hexdigest()}
     assert len(record["files"]) == 1  # all rows fit in the overview; no empty all.wev
@@ -128,6 +131,13 @@ def test_percentiles_are_per_era_and_ties_share_a_score():
     scores = {r.event.qid: r.score for r in rows}
     assert scores["Q1"] == scores["Q3"] == scores["Q4"] == 550
     assert scores["Q2"] == 183
+
+
+def test_a_row_is_weighed_by_its_heaviest_class_and_drawn_as_its_most_specific():
+    rows = wev.prepare([event(1, display="siege")], [])
+    doc = wev.document(rows, [c.name for c in load_event_classes()])
+    assert doc["classes"][doc["cls"][0]] == "siege"
+    assert doc["score"] == [550]  # a battle's weight, at the top of its era
 
 
 def test_boosts_add_percentile_points_before_weighting_and_cap_at_one(monkeypatch):

@@ -3,6 +3,8 @@ its pinned local export supplies alternate places/dates and otherwise discarded 
 Neither the TSV nor the story locks are rewritten. The worker's exact array bytes set paging.
 Explore's openings (`explore/openings.lock.json`, the openings stage's) join the overview on top
 of its quota, so the first view never waits on a rest file; the record's `inputs` hash the lock.
+An event's score is weighed by its heaviest class, and its `cls` is the class its mark draws, its
+most specific (the table's `display`).
 """
 
 import bisect
@@ -89,6 +91,7 @@ def read_table(path: Path) -> list[events.Event]:
                 label=r["label"],
                 enwiki=r["enwiki"],
                 cls=r["class"],
+                display=r["display"],
                 day=civil(iso_day(r["date"])),
                 precision=int(r["precision"]),
                 t0=civil(iso_day(r["t0"])),
@@ -292,7 +295,7 @@ def document(rows: list[Row], classes: list[str] | None = None) -> dict:
             t0,
             t1,
             e.precision,
-            class_index[e.cls],
+            class_index[e.display],
             r.score,
             r.flags,
             r.unc,
