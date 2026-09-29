@@ -16,8 +16,9 @@
 // shows Explore's plaque in its lobby only with ?explore, as the production page does. ?memory=1
 // installs window.__wanderMemory() (perf/memoryHook.ts), as on the production page.
 //
-// ?markDemo boots with Explore's marks cut into the look and sets the demo's (markDemo.ts); the
-// panel gains a Marks folder, and ?markVariant=0-3, ?marks=0 and the other marks params apply.
+// ?markDemo boots with Explore's marks cut into the look and sets the demo's (markDemo.ts), without
+// the event index, so Explore's own event marks stay off; the panel gains a Marks folder, and
+// ?markVariant=0-3, ?marks=0 and the other marks params apply.
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, exploreRequested, memoryRequested } from '../../page/dataOrigin';
@@ -103,6 +104,8 @@ async function main(): Promise<void> {
   const response = await fetch(releaseUrl);
   if (!response.ok) throw new Error(`${releaseUrl}: HTTP ${response.status}`);
   const release = (await response.json()) as Release;
+  // The mark demo draws its marks alone: without the event index, Explore sets none beside them.
+  if (query.has('markDemo')) delete release.events;
 
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
