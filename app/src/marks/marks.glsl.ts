@@ -32,6 +32,17 @@ export const FLAG = { focal: 1, hover: 2, hollow: 4, soft: 8 } as const;
 export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
 
 /**
+ * Antialiasing, in device px across an edge: a hard one's and a soft one's (an inherited place or
+ * a date known to the year). Across a round edge, a disc's, its shadow's or a ring's, it is taken
+ * along the radius, so a tilted mark's edge is as sharp on screen as a facing one's.
+ */
+export const MARK_AA_PX = { hard: 0.75, soft: 2.5 } as const;
+/** The contact shadow's blur beyond its edge's antialiasing, in r. */
+export const SHADOW_BLUR = 0.12;
+/** The ember ring's half width in px when a pixel spans more than its own; a hover ring's, and its edge. */
+export const RING_PX = { ember: 0.9, hover: 1.3 } as const;
+
+/**
  * A glyph's field as the look reads it, in its half grid: within `box` of its center (the cell's
  * margin, less mips' reach), and out to `reach` beyond its edge, short of where its bytes run out
  * (GLYPH_SPREAD); every edge, outline, rim and cap a glyph draws ends within that reach.
@@ -162,7 +173,8 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     // Relief rises first, and the fill comes after; estimates are softer and half as deep.
     float rise = smoothstep(0.0, 0.5, alpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
     float fill = smoothstep(0.4, 1.0, alpha) * lookMarkStyle.z;
-    float aa = pxR * (soft ? 2.5 : 0.75);
+    float edgePx = soft ? ${float(MARK_AA_PX.soft)} : ${float(MARK_AA_PX.hard)};
+    float aa = pxR * edgePx;
     // A disc's bevel rounds a good share of it, so its slope turns through the lamp's reflection
     // and lights the lamp's side; a glyph's is a pixel or a tenth of r, within its strokes.
     float discBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
@@ -175,11 +187,15 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec4 f3 = lookMarkFamily[f + 3];
     vec4 f4 = lookMarkFamily[f + 4];
 
-    // The disc, if the family has one.
+    // The disc, if the family has one, antialiased along its radius: pxRad is a pixel's share of r
+    // that way.
     float rq = length(q);
+    vec2 nq = rq > 1e-5 ? q / rq : vec2(1.0, 0.0);
+    float pxRad = max(length(vec2(dot(nq, qx), dot(nq, qy))), 1e-4);
+    float aaRound = pxRad * edgePx;
     bool hasDisc = f0.w > 0.0;
     float dDisc = f0.w - rq;
-    vec2 nDisc = rq > 1e-5 ? -q / rq : vec2(0.0);
+    vec2 nDisc = rq > 1e-5 ? -nq : vec2(0.0);
 
     // The glyph's field, in r; near its edge, where the bevel slopes and the glyph has relief,
     // its gradient from two more taps a texel or a pixel away. Its outline, its rim and its
@@ -213,7 +229,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     }
 
     // Coverage, and the heights' slopes in the mark's frame.
-    float cDisc = hasDisc ? smoothstep(-aa, aa, dDisc) : 0.0;
+    float cDisc = hasDisc ? smoothstep(-aaRound, aaRound, dDisc) : 0.0;
     float cGlyph = smoothstep(-aaGlyph, aaGlyph, dGlyph);
     vec2 bDisc = hasDisc ? lookMarkBevel(dDisc, discBevel) : vec2(0.0);
     vec2 bGlyph = lookMarkBevel(dGlyph, bevel);
@@ -226,14 +242,18 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
       f4.z > 0.0 ? smoothstep(-aaGlyph, aaGlyph, dGlyph + rimWidth) * (1.0 - cGlyph) : 0.0;
     float cover = max(max(cDisc, cGlyph), rim);
     float capped = smoothstep(-2.0 * aaGlyph, 0.0, dGlyph + rimWidth);
-    if (hasDisc) capped = max(capped, smoothstep(-2.0 * aa, 0.0, dDisc));
+    if (hasDisc) capped = max(capped, smoothstep(-2.0 * aaRound, 0.0, dDisc));
     flatten = max(flatten, f3.z * cover * smoothstep(0.0, 0.5, alpha));
 
     // The contact shadow, away from the lamp, on the ground outside the mark.
     float shade = 0.0;
     if (f3.w > 0.0 && hasDisc) {
-      float dShadow = f0.w - length(q + t3.xy);
-      shade = smoothstep(-2.0 * aa - 0.12, 2.0 * aa + 0.12, dShadow) * (1.0 - cover);
+      vec2 fromShadow = q + t3.xy;
+      float rs = length(fromShadow);
+      vec2 ns = rs > 1e-5 ? fromShadow / rs : vec2(1.0, 0.0);
+      float pxShadow = max(length(vec2(dot(ns, qx), dot(ns, qy))), 1e-4);
+      float blur = 2.0 * edgePx * pxShadow + ${float(SHADOW_BLUR)};
+      shade = smoothstep(-blur, blur, f0.w - rs) * (1.0 - cover);
       shade *= smoothstep(0.0, 0.5, alpha);
     }
 
@@ -250,7 +270,8 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
 
     // A hovered parent's extent: a dashed ring engraved at t3.z.
     if (t3.z > 0.0) {
-      float extent = 1.0 - smoothstep(0.5 * pxR, 1.3 * pxR, abs(rq - t3.z));
+      float extent =
+        1.0 - smoothstep(0.5 * pxRad, ${float(RING_PX.hover)} * pxRad, abs(rq - t3.z));
       float around = atan(q.y, q.x) / 6.283185307179586;
       float dashes = max(12.0, floor(6.283185307179586 * t3.z / (10.0 * pxR)));
       extent *= step(0.45, fract(around * dashes));
@@ -272,8 +293,9 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
 
     // The focal mark alone: an ember ring that breathes, bright enough to bloom.
     if ((flags & ${FLAG.focal}) != 0) {
-      float ringW = max(${float(EMBER_RING.half)}, 0.9 * pxR);
-      float ring = 1.0 - smoothstep(ringW - pxR, ringW + pxR, abs(rq - ${float(EMBER_RING.radius)}));
+      float ringW = max(${float(EMBER_RING.half)}, ${float(RING_PX.ember)} * pxRad);
+      float ring =
+        1.0 - smoothstep(ringW - pxRad, ringW + pxRad, abs(rq - ${float(EMBER_RING.radius)}));
       o.marks.ember += lookMarkEmber.rgb * lookMarkEmber.w * lookMarkBreath * ring * alpha;
     }
     ground = o.albedo;

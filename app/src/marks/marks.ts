@@ -36,14 +36,19 @@ import {
   PACES,
   type MarkVariant,
   type Pace,
+  type Treatment,
 } from './families';
-import { GLYPH_CELL } from './glyphAtlas';
+import { GLYPH_CELL, type GlyphCell } from './glyphAtlas';
 import {
   EMBER_RING,
   FLAG,
+  GLYPH_FIELD,
+  MARK_AA_PX,
   MARK_ROW,
   MARK_TEXELS,
   MARKS_MAX,
+  RING_PX,
+  SHADOW_BLUR,
   SLOT_ROW,
   SLOTS_MAX,
   TABLE_ROWS,
@@ -117,8 +122,8 @@ export interface MarkUniforms {
   lookMarkEngrave: { value: Color };
 }
 
-/** A glyph's cell in the look's atlas: its top-left texel. */
-export type GlyphCells = ReadonlyMap<string, { x: number; y: number }>;
+/** The glyphs' cells in the look's atlas: each one's top-left texel and its glyph's extent. */
+export type GlyphCells = ReadonlyMap<string, GlyphCell>;
 
 /** A screen tile's side in CSS px, doubled on a screen with more tiles than the table holds. */
 const TILE_PX = 32;
@@ -132,8 +137,6 @@ const BREATH = { period: 3.2, depth: 0.2 } as const;
 const SHADOW_MAX = 0.6;
 /** A cast token's thickness, in r, for its contact shadow: its bevel's height shapes only light. */
 const TOKEN_THICKNESS = 0.45;
-/** Beyond the glyph's grid: room for a hollow outline and the edge's antialiasing, in r. */
-const BODY_REACH = 1.12;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
 const PICK_ALPHA_MIN = 0.25;
 
@@ -153,6 +156,37 @@ export function markPx(viewKm: number): number {
     return a.px + (b.px - a.px) * t;
   }
   return last.px;
+}
+
+/**
+ * How far from its anchor, in CSS px, the look draws a mark (marks.glsl.ts) whose r spans at most
+ * `pxPerR` CSS px on screen: its glyph out to its field's reach (`glyphExtent` is the glyph's, in
+ * half grids); its disc, contact shadow (`shadow` r from it), ember and hovered ring (`ringPx` px
+ * from it on screen), each with the antialiasing, blur or line the look gives it and the light's
+ * cap two edges beyond.
+ */
+export function markReachPx(
+  treatment: Treatment,
+  mark: Pick<MarkSpec, 'soft' | 'focal'>,
+  glyphExtent: number,
+  shadow: number,
+  ringPx: number,
+  pxPerR: number,
+): number {
+  const edge = mark.soft ? MARK_AA_PX.soft : MARK_AA_PX.hard;
+  const glyph = Math.min(glyphExtent + GLYPH_FIELD.reach, GLYPH_FIELD.box * Math.SQRT2);
+  let reach = glyph * treatment.glyph.scale * pxPerR;
+  const disc = treatment.disc?.radius ?? 0;
+  if (disc > 0) reach = Math.max(reach, disc * pxPerR + 2 * edge);
+  if (disc > 0 && treatment.shadow) {
+    reach = Math.max(reach, (shadow + disc + SHADOW_BLUR) * pxPerR + 2 * edge);
+  }
+  if (mark.focal) {
+    const outer = (EMBER_RING.radius + EMBER_RING.half) * pxPerR;
+    reach = Math.max(reach, outer + RING_PX.ember + 1);
+  }
+  if (ringPx > 0) reach = Math.max(reach, ringPx + RING_PX.hover);
+  return reach + 1;
 }
 
 const toCamera = new Vector3();
@@ -198,10 +232,9 @@ interface Candidate {
   entry: Entry;
   x: number;
   y: number;
-  /** Its radius and its reach, CSS px, and its reach in r. */
+  /** Its radius and its reach, CSS px, and its radius at sea level in globe radii. */
   rPx: number;
   reachPx: number;
-  reach: number;
   r: number;
   alpha: number;
   shadowX: number;
@@ -442,13 +475,14 @@ export class MarkLayer {
         }
       }
       const ring = spec.hover && spec.ringRad ? spec.ringRad / r : 0;
-      let reach = BODY_REACH + Math.hypot(shadowX, shadowY);
-      if (spec.focal) reach = Math.max(reach, EMBER_RING.radius + 2 * EMBER_RING.half + 0.1);
-      if (ring > 0) reach = Math.max(reach, ring + 0.2);
-      const reachPx = reach * rPx + 1;
+      // Off the view's axis a length on the globe looks longer than at the axis, by up to the
+      // square of its distance over its depth.
+      const pxPerR = rPx * (distance / clip.w) ** 2;
+      const shadow = Math.hypot(shadowX, shadowY);
+      const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ring * pxPerR, pxPerR);
       if (x + reachPx < 0 || x - reachPx > view.width) continue;
       if (y + reachPx < 0 || y - reachPx > view.height) continue;
-      candidates.push({ entry, x, y, rPx, reachPx, reach, r, alpha, shadowX, shadowY, ring });
+      candidates.push({ entry, x, y, rPx, reachPx, r, alpha, shadowX, shadowY, ring });
     }
     candidates.sort(byPriority);
     if (candidates.length > MARKS_MAX) candidates.length = MARKS_MAX;

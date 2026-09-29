@@ -1,7 +1,14 @@
 // The glyphs' distance fields: exact to the edge within half a pixel, and encoded so the atlas's
 // blank background reads as far outside.
 import { describe, expect, it } from 'vitest';
-import { encodeDistance, GLYPH_MARGIN, GLYPH_SPREAD, signedDistance } from './glyphAtlas';
+import {
+  encodeDistance,
+  extentOf,
+  GLYPH_CELL,
+  GLYPH_MARGIN,
+  GLYPH_SPREAD,
+  signedDistance,
+} from './glyphAtlas';
 import { GLYPH_UNITS } from './glyphs';
 import { GLYPH_FIELD } from './marks.glsl';
 
@@ -35,6 +42,16 @@ describe('signedDistance', () => {
 describe('encodeDistance', () => {
   it('holds the edge at 128 and the spread either side at the ends', () => {
     expect([0, GLYPH_SPREAD, -GLYPH_SPREAD, -1e9].map(encodeDistance)).toEqual([128, 255, 1, 0]);
+  });
+});
+
+describe('extentOf', () => {
+  it('reaches a grid-filling glyph’s corners, in half grids', () => {
+    const side = GLYPH_CELL * 4;
+    const [from, to] = [GLYPH_MARGIN * 4, (GLYPH_MARGIN + GLYPH_UNITS) * 4];
+    const inside = new Uint8Array(side * side);
+    for (let y = from; y < to; y++) inside.fill(1, y * side + from, y * side + to);
+    expect(extentOf(inside, side)).toBeCloseTo(Math.SQRT2, 2);
   });
 });
 
