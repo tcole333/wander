@@ -90,6 +90,9 @@ globe. The table gives each pace layer its channel and a first material to try.
 
 - **Polish belongs to land in use.** Climate keeps its hue and stops dulling the polish of cold land
   (`app/src/look/climateHook.ts`) once settled land arrives, so polish means one thing.
+- **Technology shows through what it changes:** railways and cables as connections, steam and oil
+  as resources coming into use, irrigation as settled land. A few spreads, such as printing, can be
+  drawn directly; pins at inventors' workshops would make a ladder of progress.
 - **The instrument** carries the slow global quantities in brass (principle 6).
 - **The room** can carry faster global quantities on paper: a framed print on the wall, barely lit
   by the lamp's spill, such as a chart of world output in the manner of William Playfair's line
@@ -158,6 +161,24 @@ history or not, so the pattern a visitor sees is real rather than chosen.
   culture. Its cause-and-effect statements are patchy and sometimes wrong, so they serve as hints
   for a writer and stay undrawn.
 
+## Sources
+
+Where each pace layer's data comes from, as far as it is chosen. The rest is chosen when its layer
+is built, under the same rules: an open license, places and dates, and data that reduces to small
+tables, lines and low-resolution fields (Budget). Routes, and the years a deposit was worked, have
+no single dataset, so they are curated with a source for each, as Magellan's route is.
+
+| Pace layer | What it shows | Sources |
+|---|---|---|
+| Nature | land, sea floor, coasts, rivers; the seas of their date; climate; biomes; where resources lie; hazard and disease belts; eruptions, earthquakes, epidemics | GEBCO and Natural Earth; ModE-RA from 1421; RESOLVE Ecoregions 2017; the USGS petroleum provinces and critical minerals; NOAA NCEI's significant eruptions and earthquakes |
+| Culture | place names of their date; faiths; foundings | Pleiades for the ancient world and Wikidata after; Wikidata's foundings, with the Religious Characteristics of States from 1900 |
+| Governance | borders, states, capitals, polity names; wars, battles, treaties, revolutions | Cliopatria or historical-basemaps, chosen on renders; the event index |
+| Infrastructure | settled land and farms; cities; roads, sea lanes, railways, canals, cables; mines and wells while worked; openings | HYDE; Reba, Reitsma and Seto's historical cities; Itiner-e's Roman roads; ships' logbooks (CLIWOC, ICOADS); Wikidata's openings |
+| Commerce | trade routes and what moves on them; production; booms, busts, rushes, embargoes | curated routes; the HGIS de las Indias silver registry; RICardo's trade flows, 1787-1938; oil by country from 1932 (Ross and Mahdavi) and giant fields' discoveries (Cust and others) |
+| Fashion and art | works, premieres, lives | Wikidata |
+| The instrument | atmospheric CO2, world population | ice cores and Mauna Loa (NOAA); Our World in Data's population series |
+| The room | world output | the Maddison Project |
+
 ## Budget
 
 New layers in time arrive as small tables, lines and low-resolution global fields, uploaded to the
@@ -165,6 +186,7 @@ GPU and released on the CPU, because CPU memory is at its line (`streaming.md` 6
 
 ## Later
 
+- **People moving**: migrations, free and forced, drawn with more care than any other layer.
 - **The news horizon**: news spreading from an event along the era's routes at the era's speed, with
   Meanwhile's entries beyond it drawn faintly, since Meanwhile shows a simultaneity no one at the
   time lived. It needs more design once the core layers exist.
