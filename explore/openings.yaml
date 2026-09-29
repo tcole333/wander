@@ -1,9 +1,11 @@
 # The events Explore opens on (docs/design/streaming.md 3.4): each an event of the index, with the
 # line its plate pins on landing, in the walk's voice, and the source that line rests on. `date`
-# gives the day a source dates the event to where the index holds only its month or year, or
-# another day, as an ISO day in the proleptic Gregorian calendar the index uses. A line never
-# names a day and month other than the event's date as its sources give it (Julian before
-# 15 October 1582). `uv run prebuild openings` checks the list against the event index and writes
+# gives the day a source dates the event to where the index holds only its month or year, or a
+# span of years, as an ISO day in the proleptic Gregorian calendar the index uses; it falls within
+# the index's span for the event, which its mark keeps (a date the index has wrong is curated in
+# pipeline/config/events-curated.yaml). Its place is always the index's. A line never names a day
+# and month other than the event's date as its sources give it (Julian before 15 October 1582).
+# `uv run prebuild openings` checks the list against the event index and writes
 # openings.lock.json beside it, which the app bundles and event-files forces into the overview.
 
 Q203729:
@@ -107,5 +109,4 @@ Q52418:
 
 Q212618:
   line: The strongest earthquake ever recorded strikes Chile, and its tsunami crosses the Pacific
-  date: "1960-05-22"
   source: {title: 1960 Valdivia earthquake (Wikipedia), url: "https://en.wikipedia.org/wiki/1960_Valdivia_earthquake"}
