@@ -18,6 +18,23 @@ describe('the free ruler', () => {
     expect(clock.state()).toEqual({ day: 0, spanDays: HISTORY.end - HISTORY.start + 1 });
   });
 
+  it('opens a given number of years wide, centered on the day and kept within history', () => {
+    const clock = new WorldClock();
+    const waterloo = dayFromIso('1815-06-18');
+    const explore = new ExploreTime(clock, HISTORY, waterloo, { openYears: 200 });
+    expect(clock.state()).toEqual({ day: waterloo, spanDays: 200 * 365.2425 });
+    expect((explore.span.start + explore.span.end) / 2).toBeCloseTo(waterloo, 6);
+
+    const late = dayFromIso('1990-01-01');
+    const clamped = new ExploreTime(clock, HISTORY, late, { openYears: 200 });
+    expect(clamped.span.end).toBe(HISTORY.end + 1);
+    expect(clamped.span.end - clamped.span.start).toBeCloseTo(200 * 365.2425, 6);
+    expect(clock.state().day).toBe(late);
+
+    new ExploreTime(clock, HISTORY, 0, { openYears: 1e9 });
+    expect(clock.state().spanDays).toBe(HISTORY.end - HISTORY.start + 1);
+  });
+
   it('zooms about the pointer date and publishes the same width as the view', () => {
     const { clock, explore } = setup();
     for (const share of [0.1, 0.5, 0.9]) {

@@ -2092,6 +2092,8 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `declutterPerCell` | 2 per 64 px cell | event declutter | eye |
 | `hysteresisScore` | 20 on the 0-1000 score scale | margin to displace an incumbent | eye |
 | `eventFade` | 300 ms | event fades | eye |
+| `nowShare` | 0.1 of the ruler's visible width, at least a day | the now window events, Meanwhile and focal drops read | eye |
+| `exploreOpenYears` | 200 years, centered on the opening event | the ruler's span as Explore opens | eye |
 | `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries (a sparse month's down to 500 km apart, reaching up to 90 days) | Meanwhile rule; in milestone 1 the `meanwhile` stage's constants | eye |
 | `placeLabelsMax` | 30 | place labels shown | eye |
 | `flightDuration` | `clamp(S/1.2, 1.6, 4.5)` s, ρ = 1.42 | flight length | eye |

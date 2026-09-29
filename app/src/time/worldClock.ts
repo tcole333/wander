@@ -1,10 +1,17 @@
 // Shared world time, in dates.ts's proleptic Gregorian day numbers. The active director or
 // exploration ruler writes it; readers need no story, DOM or frame loop.
+import { tunables } from '../config/tunables';
 
 export interface WorldTime {
   readonly day: number;
-  /** The width in days that counts as "now", centered on day; follows the ruler's zoom. */
+  /** The ruler's visible width in days, which its zoom sets. */
   readonly spanDays: number;
+}
+
+/** A stretch of days, first to last, fractional at its ends. */
+export interface DayWindow {
+  readonly start: number;
+  readonly end: number;
 }
 
 export class WorldClock {
@@ -41,6 +48,19 @@ function snapshot(day: number, spanDays: number): WorldTime {
     throw new RangeError('World time needs a finite day and a positive finite span');
   }
   return Object.freeze({ day, spanDays });
+}
+
+/**
+ * The days that count as now: `nowShare` of the ruler's visible width, at least a day, centered on
+ * the playhead. Events, Meanwhile and focal drops read it, since the ruler's anchored span keeps
+ * still through most of the playhead's moves.
+ */
+export function nowWindow(
+  { day, spanDays }: WorldTime,
+  share: number = tunables.nowShare,
+): DayWindow {
+  const half = Math.max(1, spanDays * share) / 2;
+  return { start: day - half, end: day + half };
 }
 
 /** One clock for the active world. A new clock can be injected into isolated walks and tests. */

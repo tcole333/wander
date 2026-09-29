@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { dayFromIso } from '../story/dates';
-import { WorldClock } from './worldClock';
+import { nowWindow, WorldClock } from './worldClock';
 
 describe('world time', () => {
   it('publishes the date and zoom atomically, retains snapshots, and unsubscribes', () => {
@@ -47,5 +47,18 @@ describe('world time', () => {
     expect(clock.state()).toBe(initial);
     expect(seen).not.toHaveBeenCalled();
     expect(() => new WorldClock(0, NaN)).toThrow(RangeError);
+  });
+});
+
+describe('the now window', () => {
+  it('is a tenth of the visible width, centered on the playhead', () => {
+    expect(nowWindow({ day: 1000, spanDays: 200 * 365.2425 }, 0.1)).toEqual({
+      start: 1000 - 10 * 365.2425,
+      end: 1000 + 10 * 365.2425,
+    });
+  });
+
+  it('keeps at least a day at the closest zoom', () => {
+    expect(nowWindow({ day: 5, spanDays: 4 }, 0.1)).toEqual({ start: 4.5, end: 5.5 });
   });
 });
