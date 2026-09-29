@@ -131,6 +131,8 @@ export const TICK_KINDS: TickKind[] = ['full', 'major', 'minor'];
 export interface Label {
   key: string;
   angle: number;
+  /** A coarse tick stays at its date even when its label moves aside. */
+  tickAngle?: number;
   row: number;
   text: string;
   cls: string;
@@ -286,7 +288,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
           'rc-year',
           yearWidth(year.year),
         );
-      } else if (inRule(year.start)) {
+      } else if (inRule(year.start) && year.start < span.end) {
         const a = angle(year.start);
         const half = (text.length * 6) / arc.r;
         const anchor = a - half < -arc.reach ? 'start' : a + half > arc.reach ? 'end' : 'middle';
@@ -301,23 +303,32 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
       }
     }
     if (step > 1) {
-      // Name the view's end years even when they fall between coarse marks. This keeps both
-      // ends of history legible on narrower desktops, where a 2000-year interval will not fit.
+      // Round calendar ticks take precedence. An unround edge is named only when no nearby
+      // tick already names that part of the view; the exclusive end never names a new year.
       for (const [day, anchor] of [
         [span.start, 'start'],
         [span.end, 'end'],
       ] as const) {
-        const text = yearText(civilFromDay(day).year);
+        const text = yearText(civilFromDay(anchor === 'end' ? Math.ceil(day) - 1 : day).year);
         if (scale.labels.some((label) => label.text === text)) continue;
-        scale.major += edges(angle(day), 7);
-        scale.labels.push({
+        const edge: Label = {
           key: `e${day}`,
           angle: angle(day),
           row: LOWER_ROW,
           text,
           cls: 'rc-year',
           anchor,
-        });
+        };
+        const [left, right] = yearLabelEdges(arc, edge);
+        if (
+          scale.labels.some((label) => {
+            const [a, b] = yearLabelEdges(arc, label);
+            return left < b + 4 && right + 4 > a;
+          })
+        )
+          continue;
+        scale.major += edges(angle(day), 7);
+        scale.labels.push(edge);
       }
       scale.labels = spaceYears(arc, scale.labels);
     }
@@ -325,21 +336,38 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
   return scale;
 }
 
-/** End labels turn inward; keep their full width clear of the neighboring centered labels. */
+/** Conservative text extents along the rule, including the face's letter spacing. */
+function yearLabelEdges(arc: Arc, label: Label): [number, number] {
+  const width = label.text.length * 12;
+  const left =
+    label.angle * arc.r - width * (label.anchor === 'start' ? 0 : label.anchor === 'end' ? 1 : 0.5);
+  return [left, left + width];
+}
+
+/** Nudge neighboring labels apart when an edge label turns inward; their ticks stay put. */
 function spaceYears(arc: Arc, labels: Label[]): Label[] {
-  const kept: Label[] = [];
-  const leftOf = (label: Label) =>
-    label.angle * arc.r -
-    label.text.length * 12 * (label.anchor === 'start' ? 0 : label.anchor === 'end' ? 1 : 0.5);
-  for (const label of labels.sort((a, b) => a.angle - b.angle)) {
-    const overlaps = () => {
-      const prior = kept.at(-1);
-      return prior !== undefined && leftOf(label) <= leftOf(prior) + prior.text.length * 12 + 4;
-    };
-    if (label.anchor === 'end') while (overlaps()) kept.pop();
-    if (!overlaps()) kept.push(label);
+  const positions = labels
+    .sort((a, b) => a.angle - b.angle)
+    .map((label) => {
+      const [left, right] = yearLabelEdges(arc, label);
+      return { label, left, width: right - left };
+    });
+  let edge = -arc.reach * arc.r;
+  for (const position of positions) {
+    position.left = Math.max(edge, position.left);
+    edge = position.left + position.width + 4;
   }
-  return kept;
+  edge = arc.reach * arc.r;
+  for (const position of [...positions].reverse()) {
+    position.left = Math.min(position.left, edge - position.width);
+    edge = position.left - 4;
+  }
+  return positions.map(({ label, left, width }) => ({
+    ...label,
+    tickAngle: label.angle,
+    anchor: 'middle',
+    angle: (left + width / 2) / arc.r,
+  }));
 }
 
 /** The story's whole years: from the first of the year its first date falls in, to the end of the last's. */
@@ -368,16 +396,6 @@ export function engraveTier(
   story: Span,
 ): { years: string; months: string; labels: Label[] } {
   const tier = { years: '', months: '', labels: [] as Label[] };
-  // Long histories use the same bounded calendar intervals as the band, in the tier's face.
-  const tierArc = { ...arc, reach: arc.reach * TIER_REACH };
-  if (yearStep(tierArc, story) > 1) {
-    const scale = engraveScale(tierArc, story, (day) => tierAngle(arc, story, day));
-    for (const label of scale.labels) {
-      tier.years += radial(arc, label.angle, TIER_RULE, TIER_RULE - 8);
-      tier.labels.push({ ...label, row: TIER_ROW, cls: 'rc-tier-year' });
-    }
-    return tier;
-  }
   for (const month of monthsIn(story)) {
     const a = tierAngle(arc, story, month.start);
     if (month.month === 1) tier.years += radial(arc, a, TIER_RULE, TIER_RULE - 8);
@@ -393,6 +411,18 @@ export function engraveTier(
       text: yearLabel(year.year),
       cls: 'rc-tier-year',
     });
+  }
+  return tier;
+}
+
+/** Exploration's overview uses bounded calendar intervals; story tiers always name every year. */
+export function engraveHistoryTier(arc: Arc, history: Span): ReturnType<typeof engraveTier> {
+  const tier = { years: '', months: '', labels: [] as Label[] };
+  const tierArc = { ...arc, reach: arc.reach * TIER_REACH };
+  const scale = engraveScale(tierArc, history, (day) => tierAngle(arc, history, day));
+  for (const label of scale.labels) {
+    tier.years += radial(arc, label.tickAngle ?? label.angle, TIER_RULE, TIER_RULE - 8);
+    tier.labels.push({ ...label, row: TIER_ROW, cls: 'rc-tier-year' });
   }
   return tier;
 }

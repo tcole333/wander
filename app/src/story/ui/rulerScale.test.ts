@@ -6,8 +6,8 @@ import { beatSpan, type Span } from './format';
 import {
   anchored,
   arcFor,
+  engraveHistoryTier,
   engraveScale,
-  engraveTier,
   engravedUnit,
   LOWER_ROW,
   storyYears,
@@ -94,7 +94,7 @@ describe('the crafted ruler', () => {
     const labels = engrave(HISTORY);
     expect(labels[0]?.text).toBe('10000 BCE');
     expect(labels.at(-1)?.text).toBe('2000 CE');
-    expect(engraveTier(arc, HISTORY).labels.length).toBeLessThan(20);
+    expect(engraveHistoryTier(arc, HISTORY).labels.length).toBeLessThan(20);
     for (const width of [1024, 1440, 1920]) {
       const sized = arcFor(width);
       const angle = (day: number) =>
@@ -105,13 +105,13 @@ describe('the crafted ruler', () => {
     }
     for (const edge of [HISTORY.start, HISTORY.end]) {
       const span = {
-        start: edge === HISTORY.start ? edge : edge - 4,
-        end: edge === HISTORY.start ? edge + 4 : edge,
+        start: edge === HISTORY.start ? edge : edge - 3,
+        end: edge === HISTORY.start ? edge + 4 : edge + 1,
       };
       const texts = engrave(span).map((label) => label.text);
       const civil = civilFromDay(edge);
       expect(texts).toContain(civil.year < 0 ? 'JANUARY 10000 BCE' : 'DECEMBER 2000');
-      expect(texts).toContain(civil.year < 0 ? '1' : '30');
+      expect(texts).toContain(civil.year < 0 ? '1' : '31');
     }
   });
 
