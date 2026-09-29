@@ -26,7 +26,8 @@ test('messages only enter a ready queue, and a reply becomes visible on drain', 
   const client = new EventClient(worker, releaseOf([pageOf([])]), 'https://example.invalid');
   const wake = vi.fn();
   client.onready = wake;
-  const generation = client.query(query);
+  client.query(query);
+  const generation = 1;
   client.drain(0);
   worker.reply({ type: 'result', generation, result, plan });
   expect(wake).toHaveBeenCalled();
@@ -35,37 +36,70 @@ test('messages only enter a ready queue, and a reply becomes visible on drain', 
   client.dispose();
 });
 
-test('queries coalesce at 30Hz, have at most one in flight, and stale generations are dropped', () => {
-  vi.useFakeTimers();
+test('older or duplicate replies cannot replace a delivered result or clear a newer query', () => {
   const worker = new FakeWorker();
   const client = new EventClient(worker, releaseOf([pageOf([])]), 'https://example.invalid');
-  try {
-    const first = client.query(query);
-    client.drain(0);
-    client.query({ ...query, t1: 20 });
-    client.drain(1);
-    const latest = client.query({ ...query, t1: 30 });
-    client.drain(100);
-    expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(1);
-    worker.reply({ type: 'result', generation: first, result, plan });
-    expect(client.drain(110)).toEqual([]);
-    expect(worker.sent.at(-1)).toMatchObject({
-      type: 'query',
-      generation: latest,
-      query: { t1: 30 },
-    });
-    worker.reply({ type: 'result', generation: latest, result, plan });
-    client.drain(111);
-    client.query(query);
-    client.drain(112);
-    expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(2);
-    client.drain(144);
-    expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(3);
-  } finally {
-    client.dispose();
-    vi.useRealTimers();
-  }
+  client.query(query);
+  client.drain(0);
+  worker.reply({ type: 'result', generation: 1, result, plan });
+  expect(client.drain(10)).toHaveLength(1);
+  client.query({ ...query, t1: 20 });
+  client.drain(40);
+  worker.reply({ type: 'result', generation: 1, result, plan });
+  client.query({ ...query, t1: 30 });
+  expect(client.drain(80)).toEqual([]);
+  expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(2);
+  worker.reply({ type: 'result', generation: 2, result, plan });
+  expect(client.drain(100)).toEqual([{ type: 'result', generation: 2, result, plan }]);
+  expect(worker.sent.at(-1)).toMatchObject({ type: 'query', generation: 3, query: { t1: 30 } });
+  client.dispose();
 });
+
+test.each([0, 98765.4321])(
+  'continuous 60 Hz queries deliver one-frame replies (offset %s)',
+  (offset) => {
+    vi.useFakeTimers();
+    const sent: Extract<EventRequest, { type: 'query' }>[] = [];
+    let pending: EventReply | undefined;
+    const worker: EventWorker = {
+      onmessage: null,
+      onerror: null,
+      terminate() {},
+      postMessage(message) {
+        if (message.type !== 'query') return;
+        expect(pending).toBeUndefined();
+        sent.push(message);
+        pending = {
+          type: 'result',
+          generation: message.generation,
+          result: { markers: [], labels: [], outlines: [], missingFocal: [] },
+          plan: { needs: [], resident: [], bytes: 0, complete: true },
+        };
+      },
+    };
+    const client = new EventClient(worker, releaseOf([pageOf([])]), 'https://example.invalid');
+    const delivered: number[] = [];
+    try {
+      for (let frame = 0; frame < 120; frame++) {
+        if (pending) {
+          worker.onmessage?.({ data: pending } as MessageEvent<EventReply>);
+          pending = undefined;
+        }
+        client.query({ t0: 0, t1: frame, tier: 'lite', view: viewOf() });
+        for (const reply of client.drain(offset + frame * (1000 / 60))) {
+          if (reply.type === 'result') delivered.push(reply.generation);
+        }
+      }
+      expect(delivered).toHaveLength(60);
+      expect(sent).toHaveLength(60);
+      expect(delivered).toEqual(Array.from({ length: 60 }, (_, i) => i + 1));
+      expect(sent.map((q) => q.query.t1)).toEqual(Array.from({ length: 60 }, (_, i) => i * 2));
+    } finally {
+      client.dispose();
+      vi.useRealTimers();
+    }
+  },
+);
 
 test('main thread fetches the overview first, transfers its buffer, then loads the rest', async () => {
   const worker = new FakeWorker();
