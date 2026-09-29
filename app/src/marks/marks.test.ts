@@ -66,18 +66,37 @@ describe('limbFade', () => {
 });
 
 describe('binDiscs', () => {
+  /** The tile holding CSS px (x, y) in `bins`. */
+  const tileAt = (bins: ReturnType<typeof binDiscs>, x: number, y: number) =>
+    Math.floor((y + bins.pad) / bins.tilePx) * bins.across +
+    Math.floor((x + bins.pad) / bins.tilePx);
+
   it('puts a disc in every tile it touches', () => {
     const bins = binDiscs([{ x: 64, y: 64, reachPx: 6 }], 128, 128, 8);
-    expect([bins.across, bins.down]).toEqual([4, 4]);
     const tiles = [...bins.counts.keys()].filter((t) => bins.counts[t] === 1);
-    expect(tiles).toEqual([5, 6, 9, 10]);
+    expect(tiles).toEqual([
+      tileAt(bins, 63, 63),
+      tileAt(bins, 64, 63),
+      tileAt(bins, 63, 64),
+      tileAt(bins, 64, 64),
+    ]);
+  });
+
+  it('bins a disc just past the viewport, where relief lifts a mark into view', () => {
+    const bins = binDiscs([{ x: 64, y: 128 + 40, reachPx: 6 }], 128, 128, 8);
+    expect(bins.binned[0]).toBe(1);
+    expect(bins.counts[tileAt(bins, 64, 168)]).toBe(1);
   });
 
   it('keeps the first discs a crowded tile can hold, in their order', () => {
     const discs = Array.from({ length: 10 }, (_, i) => ({ x: 10 + i, y: 10, reachPx: 2 }));
     const bins = binDiscs(discs, 64, 64, tunables.markTileCap);
-    expect(bins.counts[0]).toBe(tunables.markTileCap);
-    expect([...bins.slots.subarray(0, bins.counts[0])]).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    const tile = tileAt(bins, 10, 10);
+    expect(bins.counts[tile]).toBe(tunables.markTileCap);
+    const start = bins.starts[tile] ?? 0;
+    expect([...bins.slots.subarray(start, start + tunables.markTileCap)]).toEqual([
+      0, 1, 2, 3, 4, 5, 6, 7,
+    ]);
   });
 
   it('leaves out, whole, a disc that reaches into a full tile', () => {
@@ -85,7 +104,7 @@ describe('binDiscs', () => {
     const full = Array.from({ length: cap }, (_, i) => ({ x: 10 + i, y: 10, reachPx: 2 }));
     const bins = binDiscs([...full, { x: 32, y: 10, reachPx: 6 }], 128, 64, cap);
     expect(bins.binned[cap]).toBe(0);
-    expect(bins.counts[1]).toBe(0);
+    expect(bins.counts[tileAt(bins, 33, 10)]).toBe(0);
     expect([...bins.binned.subarray(0, cap)]).toEqual(Array.from({ length: cap }, () => 1));
   });
 });
