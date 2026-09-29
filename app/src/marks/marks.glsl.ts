@@ -22,6 +22,12 @@ export const SLOT_ROW = 4;
 export const MARK_ROW = 12;
 export const MARK_TEXELS = 3;
 export const TILES_MAX = SLOT_ROW * TABLE_WIDTH * 4;
+/**
+ * The tiles the grid runs past each edge of the viewport: a fragment drawn on relief seen tilted
+ * stands above its sea-level foot, which the look finds its tile from, so near the screen's edge
+ * the foot can lie beyond it.
+ */
+export const PAD_TILES = 3;
 export const SLOTS_MAX = (MARK_ROW - SLOT_ROW) * TABLE_WIDTH;
 export const MARKS_MAX = Math.floor(((TABLE_ROWS - MARK_ROW) * TABLE_WIDTH) / MARK_TEXELS);
 
@@ -54,6 +60,7 @@ const float = (value: number) => (Number.isInteger(value) ? `${value}.0` : Strin
 /** Declarations, before the look's LookSurface. */
 export const MARKS_DECLARATIONS = /* glsl */ `
 #define LOOK_MARK_TILE_CAP ${tunables.markTileCap}
+#define LOOK_MARK_PAD_TILES ${float(PAD_TILES)}
 #define LOOK_MARK_FAMILY_VEC4 ${FAMILY_VEC4S}
 #define LOOK_MARK_FAMILIES ${PACES.length}
 #define LOOK_MARK_ROUGH_MIN ${float(tunables.markRoughMin)}
@@ -70,7 +77,8 @@ uniform highp sampler2D lookMarkTable;
 // The globe frame to clip space for this draw, and to view space for normals.
 uniform mat4 lookMarkClip;
 uniform mat3 lookMarkView;
-// The viewport's width and height in CSS px, a tile's side in CSS px, and the tiles across.
+// The viewport's width and height in CSS px, a tile's side in CSS px, and the tiles across, the
+// grid running LOOK_MARK_PAD_TILES tiles past each edge.
 uniform vec4 lookMarkGrid;
 uniform vec4 lookMarkFamily[LOOK_MARK_FAMILIES * LOOK_MARK_FAMILY_VEC4];
 // A disc's bevel as a share of r, the relief's and the fill's strength, and the sub-threshold glow.
@@ -127,8 +135,12 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
   vec4 clip = lookMarkClip * vec4(g, 1.0);
   if (clip.w <= 0.0) return;
   vec2 px = (clip.xy / clip.w * vec2(0.5, -0.5) + 0.5) * lookMarkGrid.xy;
-  if (px.x < 0.0 || px.y < 0.0 || px.x >= lookMarkGrid.x || px.y >= lookMarkGrid.y) return;
-  ivec2 tile = ivec2(px / lookMarkGrid.z);
+  vec2 pad = vec2(LOOK_MARK_PAD_TILES * lookMarkGrid.z);
+  vec2 inGrid = px + pad;
+  if (any(lessThan(inGrid, vec2(0.0))) || any(greaterThanEqual(inGrid, lookMarkGrid.xy + 2.0 * pad))) {
+    return;
+  }
+  ivec2 tile = ivec2(inGrid / lookMarkGrid.z);
   int t = tile.y * int(lookMarkGrid.w) + tile.x;
   int range = int(lookMarkTexel(t >> 2)[t & 3]);
   int count = range & 15;

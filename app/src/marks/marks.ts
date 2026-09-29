@@ -47,6 +47,7 @@ import {
   MARK_ROW,
   MARK_TEXELS,
   MARKS_MAX,
+  PAD_TILES,
   RING_PX,
   SHADOW_BLUR,
   SLOT_ROW,
@@ -242,11 +243,31 @@ interface Candidate {
   ring: number;
 }
 
-/** The screen tiles and what each lists, as packed into the table. */
-export interface Binning {
+/** The screen's tiles: their side, the grid's reach past each edge of the viewport, both CSS px. */
+export interface MarkGrid {
   tilePx: number;
+  pad: number;
   across: number;
   down: number;
+}
+
+/** The tiles over a viewport `width` by `height` CSS px, as few as the table holds. */
+export function markGrid(width: number, height: number): MarkGrid {
+  let tilePx = TILE_PX;
+  const tiles = (side: number) =>
+    Math.ceil(width / side + 2 * PAD_TILES) * Math.ceil(height / side + 2 * PAD_TILES);
+  while (tiles(tilePx) > TILES_MAX) tilePx *= 2;
+  const pad = PAD_TILES * tilePx;
+  return {
+    tilePx,
+    pad,
+    across: Math.max(1, Math.ceil((width + 2 * pad) / tilePx)),
+    down: Math.max(1, Math.ceil((height + 2 * pad) / tilePx)),
+  };
+}
+
+/** The screen tiles and what each lists, as packed into the table. */
+export interface Binning extends MarkGrid {
   /** Per tile: its first slot and its count. */
   starts: Uint32Array;
   counts: Uint8Array;
@@ -258,9 +279,9 @@ export interface Binning {
 }
 
 /**
- * Bins discs (x, y, reach in CSS px, in priority order) into tiles of the viewport, at most `cap`
- * a tile: a disc goes into every tile it touches, or, if one of them is full, into none, so no
- * mark is drawn cut along a tile's edge.
+ * Bins discs (x, y, reach in CSS px, in priority order) into the tiles of the viewport and past its
+ * edges (markGrid), at most `cap` a tile: a disc goes into every tile it touches, or, if one of
+ * them is full, into none, so no mark is drawn cut along a tile's edge.
  */
 export function binDiscs(
   discs: readonly { x: number; y: number; reachPx: number }[],
@@ -268,25 +289,23 @@ export function binDiscs(
   height: number,
   cap: number,
 ): Binning {
-  let tilePx = TILE_PX;
-  while (Math.ceil(width / tilePx) * Math.ceil(height / tilePx) > TILES_MAX) tilePx *= 2;
-  const across = Math.max(1, Math.ceil(width / tilePx));
-  const down = Math.max(1, Math.ceil(height / tilePx));
+  const grid = markGrid(width, height);
+  const { tilePx, pad, across, down } = grid;
   const counts = new Uint8Array(across * down);
   const binned = new Uint8Array(discs.length);
   const pairs: number[] = [];
   const touched: number[] = [];
   discs.forEach(({ x, y, reachPx }, m) => {
     touched.length = 0;
-    const x0 = Math.max(0, Math.floor((x - reachPx) / tilePx));
-    const x1 = Math.min(across - 1, Math.floor((x + reachPx) / tilePx));
-    const y0 = Math.max(0, Math.floor((y - reachPx) / tilePx));
-    const y1 = Math.min(down - 1, Math.floor((y + reachPx) / tilePx));
+    const x0 = Math.max(0, Math.floor((x + pad - reachPx) / tilePx));
+    const x1 = Math.min(across - 1, Math.floor((x + pad + reachPx) / tilePx));
+    const y0 = Math.max(0, Math.floor((y + pad - reachPx) / tilePx));
+    const y1 = Math.min(down - 1, Math.floor((y + pad + reachPx) / tilePx));
     for (let ty = y0; ty <= y1; ty++) {
       for (let tx = x0; tx <= x1; tx++) {
         // The tile's point nearest the disc's center must lie within its reach.
-        const nx = Math.max(tx * tilePx, Math.min(x, (tx + 1) * tilePx));
-        const ny = Math.max(ty * tilePx, Math.min(y, (ty + 1) * tilePx));
+        const nx = Math.max(tx * tilePx - pad, Math.min(x, (tx + 1) * tilePx - pad));
+        const ny = Math.max(ty * tilePx - pad, Math.min(y, (ty + 1) * tilePx - pad));
         if ((nx - x) ** 2 + (ny - y) ** 2 > reachPx * reachPx) continue;
         touched.push(ty * across + tx);
       }
@@ -312,7 +331,7 @@ export function binDiscs(
     slots[(starts[t] ?? 0) + (filled[t] ?? 0)] = pairs[i + 1] ?? 0;
     filled[t] = (filled[t] ?? 0) + 1;
   }
-  return { tilePx, across, down, starts, counts, slots, used: sum, binned };
+  return { ...grid, starts, counts, slots, used: sum, binned };
 }
 
 /** The marks' table: its texels, the next draw's staged beside them, and its texture. */
@@ -440,6 +459,7 @@ export class MarkLayer {
     const px = markPx(viewKmOf(view)) * Math.max(0.1, Number(this.params.markSize));
     const relief = Math.max(0, Number(this.params.markRelief));
     const candidates: Candidate[] = [];
+    const grid = markGrid(view.width, view.height);
     const clip = new Vector4();
     const lamp = new Vector3();
     const north = new Vector3();
@@ -480,8 +500,8 @@ export class MarkLayer {
       const pxPerR = rPx * (distance / clip.w) ** 2;
       const shadow = Math.hypot(shadowX, shadowY);
       const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ring * pxPerR, pxPerR);
-      if (x + reachPx < 0 || x - reachPx > view.width) continue;
-      if (y + reachPx < 0 || y - reachPx > view.height) continue;
+      if (x + reachPx < -grid.pad || x - reachPx > view.width + grid.pad) continue;
+      if (y + reachPx < -grid.pad || y - reachPx > view.height + grid.pad) continue;
       candidates.push({ entry, x, y, rPx, reachPx, r, alpha, shadowX, shadowY, ring });
     }
     candidates.sort(byPriority);
