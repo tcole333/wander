@@ -63,6 +63,8 @@ def test_the_registry_pins_each_source_and_its_files():
             "PP1802_CritMin_FGDC_Metadata.xml",
             "PP1802_Global_CriticalMinerals_gdb.zip",
         ],
+        "antarctic-co2-composite-2015": ["antarctica2015co2composite-noaa.txt"],
+        "law-dome-co2-2019": ["law2018co2-noaa.txt", "law2018splines-noaa.txt"],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
