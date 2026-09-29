@@ -12,22 +12,15 @@
 // Which glyph and pace layer each class of event takes is eventSymbols.ts's, and the material
 // that sets each family apart is the look's.
 
-/** Stewart Brand's pace layers, slowest first. `fashion` is fashion and art. */
-export const PACE_LAYERS = [
-  'nature',
-  'culture',
-  'governance',
-  'infrastructure',
-  'commerce',
-  'fashion',
-] as const;
-export type Pace = (typeof PACE_LAYERS)[number];
+/** The pace layers whose events mark the globe (globe-language.md, Speeds and pace layers). */
+export type Pace = 'nature' | 'governance' | 'infrastructure';
+export const PACES: readonly Pace[] = ['nature', 'governance', 'infrastructure'];
 
-/** Glyphs by id: SVG path data on a 64-unit grid, y down and north up, filled nonzero. */
+/** Glyph names to SVG path data on a 64-unit grid, y down, nonzero fill. */
 export type GlyphSet = Readonly<Record<string, string>>;
 
-/** The glyph cell's width and height in path units. */
-export const GLYPH_GRID = 64;
+/** The grid a glyph is drawn on, in units. */
+export const GLYPH_UNITS = 64;
 
 type Point = readonly [number, number];
 
