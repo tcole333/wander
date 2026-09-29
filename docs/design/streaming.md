@@ -184,6 +184,16 @@ years (1 BC is year 0). The build computes day numbers with integer arithmetic, 
 which is exact for integers to 2^53. Shaders get float32 days relative to an effect or beat epoch,
 because float32 days since 0001 step by 1/16 day around 1815 [D].
 
+**Calendar:** stories write and show their dates in that calendar. Explore's ruler, plates and
+Meanwhile show the same day numbers as history writes them (`formatHistorical` in
+`app/src/story/dates.ts`, mirrored by `pipeline/src/prebuild/events.py`): in the Julian calendar
+before 15 October 1582 and the Gregorian from then on, with years before 1 CE in BCE, since sources
+date the events before the reform in the Julian. Wikidata's export converts a day to the Gregorian
+(Hastings, 14 October 1066, is exported as 20 October) but leaves a year or month as its source
+wrote it, so the events stage reads a year or month in the historical calendar: 1066 runs from
+7 January 1066 to 6 January 1067 (Gregorian), and a year- or month-dated event's date is its first
+day. Explore's history starts on 1 January 10,000 BCE in the Julian.
+
 **Border years:** historical-basemaps names BC years historically. The build converts `world_bcN` to
 astronomical year 1 − N (`world_bc1` → 0, `world_bc123000` → −122999), and `release.json` holds only
 astronomical years. A snapshot's date is 1 July of its year; the snapshot with the smallest
