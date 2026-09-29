@@ -84,18 +84,22 @@ export function startExplore({
   clock = worldClock,
   opening = WATERLOO,
 }: ExploreParts): Mode {
+  // The clock, flight and layer hold no listeners and stand nowhere on the page, so they come
+  // first, then the ruler, the one part holding listeners, and only then are the page, the view's
+  // control and the script hook touched: a dive that throws on the way leaves nothing behind,
+  // since the boot never gets a mode to end.
   const time = new ExploreTime(clock, HISTORY, opening.day, {
     openYears: tunables.exploreOpenYears,
   });
+  let flight =
+    arrive === 'fly'
+      ? new FreeFlight(control.current, worldViewOn(opening.at, control.maxKm))
+      : null;
   const layer = el('div', 'wu wu-explore wu-mode');
   const ruler = new CraftRuler(time);
   layer.append(ruler.element);
   root.append(layer);
 
-  let flight =
-    arrive === 'fly'
-      ? new FreeFlight(control.current, worldViewOn(opening.at, control.maxKm))
-      : null;
   const landings = new Set<() => void>();
   const land = () => {
     flight = null;
