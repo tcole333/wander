@@ -27,6 +27,9 @@ const FILES: Record<string, number> = {
   'img/cccc3333cccc3333-256.jpg': 40,
   'fx/1111222233334444.json': 80,
   'fx/5555666677778888.json': 90,
+  'ev/eeee1111/overview.wev': 70,
+  'ev/eeee1111/all.wev': 90,
+  'ev/olderver/all.wev': 200,
 };
 const MODERA = {
   ver: 'cccc3333',
@@ -76,6 +79,29 @@ function holding(held: Record<string, number>): Pick<R2Bucket, 'list'> {
 }
 
 describe('releaseSections', () => {
+  test('names the event files once and verifies their sizes without publishing the source TSV', () => {
+    const events = {
+      ver: 'eeee1111',
+      overview: 'ev/eeee1111/overview.wev',
+      rows: 10,
+      eraEdges: [],
+      files: ['overview', 'all'].map((name, i) => ({
+        key: `ev/eeee1111/${name}.wev`,
+        t0: 0,
+        t1: 10,
+        rows: 5,
+        bytes: i ? 90 : 70,
+        decoded: 500,
+        jsonBytes: 700,
+      })),
+    };
+    const section = releaseSections({ ...release(SEVEN), events }, root).find((s) =>
+      s.prefix.startsWith('ev/'),
+    );
+    expect(section?.objects.map((o) => o.key)).toEqual(events.files.map((f) => f.key));
+    events.files[0]!.bytes++;
+    expect(() => releaseSections({ ...release(SEVEN), events }, root)).toThrow(/70 B, not/);
+  });
   const route = {
     key: 'fx/1111222233334444.json',
     kind: 'route' as const,

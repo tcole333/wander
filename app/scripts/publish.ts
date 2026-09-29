@@ -19,6 +19,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type {
   BordersRelease,
+  EventsRelease,
   FxRelease,
   MediaRelease,
   ModeraRelease,
@@ -60,6 +61,7 @@ export function releaseSections(release: Release, root: string): Section[] {
   if (release.modera) sections.push(moderaSection(release.modera, root));
   if (release.borders) sections.push(...bordersSections(release.borders, root));
   if (release.fx) sections.push(fxSection(release.fx, root));
+  if (release.events) sections.push(eventsSection(release.events, root));
   sections.push(mediaSection(release.media, root));
   return sections;
 }
@@ -188,6 +190,21 @@ function fxSection(fx: FxRelease, root: string): Section {
   return {
     prefix: 'fx/',
     objects: [...objects.values()].sort((a, b) => a.key.localeCompare(b.key)),
+  };
+}
+
+function eventsSection(events: EventsRelease, root: string): Section {
+  return {
+    prefix: `ev/${events.ver}/`,
+    objects: events.files.map(({ key, bytes }) => {
+      const object = localObject(root, key);
+      if (object.size !== bytes) {
+        throw new PublishError(
+          `${object.path} holds ${object.size} B, not the record's ${bytes} B`,
+        );
+      }
+      return object;
+    }),
   };
 }
 

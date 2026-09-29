@@ -5,7 +5,28 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import bundled from '../src/generated/release.json';
+import type { EventsRelease } from '../src/data/release';
+import { readStageRecord } from '../src/test/fixture';
 import { localRelease, mediaRelease, surfaceRelease } from './release';
+
+test('the event-files record becomes the release events section, including sizes and era edges', () => {
+  const stages = mkdtempSync(join(tmpdir(), 'wander-events-release-'));
+  const events = readStageRecord<EventsRelease>('event-files');
+  try {
+    writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
+    writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
+    const before = localRelease(stages, 'https://data.example');
+    writeFileSync(join(stages, 'event-files.json'), JSON.stringify(events));
+    const release = localRelease(stages, 'https://data.example');
+    expect(release.events).toEqual(events);
+    expect(release.id).not.toBe(before.id);
+    expect(localRelease(stages, 'https://data.example').id).toBe(release.id);
+  } finally {
+    for (const name of ['coverage.json', 'surface.json', 'event-files.json']) {
+      rmSync(join(stages, name));
+    }
+  }
+});
 
 test('the release carries the fx record unchanged, and its bytes change the release id', () => {
   const stages = mkdtempSync(join(tmpdir(), 'wander-fx-release-'));
