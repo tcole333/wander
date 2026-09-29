@@ -73,12 +73,14 @@ export interface MarkSpec {
   score?: number;
 }
 
-/** A mark as place() last put it on screen, in CSS px. */
+/** A mark as place() last drew it: its place and radius on screen, in CSS px, and its fade. */
 export interface PlacedMark {
   id: string;
   x: number;
   y: number;
   rPx: number;
+  /** Its opacity, 0 to 1: its own, the mode's and the limb's. */
+  alpha: number;
 }
 
 /** The draw the marks are placed for, in the globe frame (radius 1). */
@@ -132,6 +134,8 @@ const SHADOW_MAX = 0.6;
 const TOKEN_THICKNESS = 0.45;
 /** Beyond the glyph's grid: room for a hollow outline and the edge's antialiasing, in r. */
 const BODY_REACH = 1.12;
+/** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
+const PICK_ALPHA_MIN = 0.25;
 
 /** A mark's diameter in CSS px for a view `viewKm` wide (tunables.markPx). */
 export function markPx(viewKm: number): number {
@@ -216,11 +220,14 @@ export interface Binning {
   /** Marks by slot, each tile's in priority order. */
   slots: Uint16Array;
   used: number;
+  /** Per disc, 1 if it went into the tiles it touches; 0 if one was full, and it is not drawn. */
+  binned: Uint8Array;
 }
 
 /**
  * Bins discs (x, y, reach in CSS px, in priority order) into tiles of the viewport, at most `cap`
- * a tile: a disc goes into every tile it touches that has room.
+ * a tile: a disc goes into every tile it touches, or, if one of them is full, into none, so no
+ * mark is drawn cut along a tile's edge.
  */
 export function binDiscs(
   discs: readonly { x: number; y: number; reachPx: number }[],
@@ -233,8 +240,11 @@ export function binDiscs(
   const across = Math.max(1, Math.ceil(width / tilePx));
   const down = Math.max(1, Math.ceil(height / tilePx));
   const counts = new Uint8Array(across * down);
+  const binned = new Uint8Array(discs.length);
   const pairs: number[] = [];
+  const touched: number[] = [];
   discs.forEach(({ x, y, reachPx }, m) => {
+    touched.length = 0;
     const x0 = Math.max(0, Math.floor((x - reachPx) / tilePx));
     const x1 = Math.min(across - 1, Math.floor((x + reachPx) / tilePx));
     const y0 = Math.max(0, Math.floor((y - reachPx) / tilePx));
@@ -245,12 +255,16 @@ export function binDiscs(
         const nx = Math.max(tx * tilePx, Math.min(x, (tx + 1) * tilePx));
         const ny = Math.max(ty * tilePx, Math.min(y, (ty + 1) * tilePx));
         if ((nx - x) ** 2 + (ny - y) ** 2 > reachPx * reachPx) continue;
-        const t = ty * across + tx;
-        if ((counts[t] ?? 0) >= cap || pairs.length / 2 >= SLOTS_MAX) continue;
-        counts[t] = (counts[t] ?? 0) + 1;
-        pairs.push(t, m);
+        touched.push(ty * across + tx);
       }
     }
+    if (touched.length === 0 || pairs.length / 2 + touched.length > SLOTS_MAX) return;
+    if (touched.some((t) => (counts[t] ?? 0) >= cap)) return;
+    for (const t of touched) {
+      counts[t] = (counts[t] ?? 0) + 1;
+      pairs.push(t, m);
+    }
+    binned[m] = 1;
   });
   const starts = new Uint32Array(across * down);
   let sum = 0;
@@ -265,7 +279,7 @@ export function binDiscs(
     slots[(starts[t] ?? 0) + (filled[t] ?? 0)] = pairs[i + 1] ?? 0;
     filled[t] = (filled[t] ?? 0) + 1;
   }
-  return { tilePx, across, down, starts, counts, slots, used: sum };
+  return { tilePx, across, down, starts, counts, slots, used: sum, binned };
 }
 
 /** The marks' table: its texels, the next draw's staged beside them, and its texture. */
@@ -480,7 +494,9 @@ export class MarkLayer {
       next[at + 9] = c.shadowY;
       next[at + 10] = c.ring;
       next[at + 11] = 0;
-      this.#placed.push({ id: spec.id, x: c.x, y: c.y, rPx: c.rPx, dir, r: c.r });
+      if (bins.binned[m] === 1) {
+        this.#placed.push({ id: spec.id, x: c.x, y: c.y, rPx: c.rPx, alpha: c.alpha, dir, r: c.r });
+      }
     });
     const extent = [ranges, slots, candidates.length * MARK_TEXELS * 4];
     const spans: [number, number][] = [
@@ -502,15 +518,15 @@ export class MarkLayer {
     this.uniforms.lookMarksOn.value = candidates.length > 0;
   }
 
-  /** The marks placed for the last draw, in priority order. */
+  /** The marks drawn for the last draw, in priority order: those a full tile left out are not. */
   placed(): readonly PlacedMark[] {
-    return this.#placed.map(({ id, x, y, rPx }) => ({ id, x, y, rPx }));
+    return this.#placed.map(({ id, x, y, rPx, alpha }) => ({ id, x, y, rPx, alpha }));
   }
 
   /**
-   * The mark under CSS px (x, y), or null: the nearest whose disc reaches the point. Over land the
-   * disc runs from the mark's sea-level place to where the terrain's ceiling there would lift it,
-   * since the mark is drawn on the relief somewhere between.
+   * The mark under CSS px (x, y), or null: the nearest drawn and not too faint whose disc reaches
+   * the point. Over land the disc runs from the mark's sea-level place to where the terrain's
+   * ceiling there would lift it, since the mark is drawn on the relief somewhere between.
    */
   hit(x: number, y: number): string | null {
     let best: string | null = null;
@@ -518,6 +534,7 @@ export class MarkLayer {
     const lifted = new Vector3();
     const clip = new Vector4();
     for (const mark of this.#placed) {
+      if (mark.alpha < PICK_ALPHA_MIN) continue;
       let [x1, y1] = [mark.x, mark.y];
       const field = this.#clearance;
       if (field && this.#view.kLand > 0) {
