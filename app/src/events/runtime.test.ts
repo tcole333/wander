@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import type { EventsRelease } from '../data/release';
 import { readFixtureFile, readStageRecord } from '../test/fixture';
-import { viewOf } from './testSupport';
+import { viewOf } from '../test/events';
 import { EventRuntime } from './runtime';
 
 const query = { t0: 1, t1: 10, tier: 'lite' as const, view: viewOf() };

@@ -13,7 +13,7 @@ import {
   type EventMark,
 } from './query';
 import { EventIndex } from './residency';
-import { indexOf, pageOf, viewOf } from './testSupport';
+import { indexOf, pageOf, viewOf } from '../test/events';
 import { extentPixels, project } from './view';
 
 const active = (marks: Fading<EventMark>[]) => marks.filter((m) => m.fade.to === 1);

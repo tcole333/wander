@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { EventIndex, INDEX_BYTES } from './residency';
-import { pageOf, releaseOf } from './testSupport';
+import { pageOf, releaseOf } from '../test/events';
 
 const MiB = 1024 ** 2;
 function paged() {
