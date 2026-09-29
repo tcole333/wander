@@ -148,11 +148,6 @@ export function dayFromHistorical(date: Civil): number {
 /** The calendar Explore reads: Julian before 15 October 1582, Gregorian from then on. */
 export const HISTORICAL: Calendar = { civil: historicalCivil, day: dayFromHistorical };
 
-/** Wikidata's precision (9 year, 10 month, 11 day and finer) as a date's precision here. */
-export function precisionFromWikidata(precision: number): Precision {
-  return precision >= 11 ? 'day' : precision === 10 ? 'month' : 'year';
-}
-
 const DASH = '–';
 
 /** A historical year, BCE before 1 CE: '1066', '44 BCE', or '14 CE' beside a BCE year. */
