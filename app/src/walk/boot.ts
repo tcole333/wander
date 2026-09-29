@@ -95,7 +95,8 @@ export interface BootOptions {
   /** The lobby's stories, in plaque order. Defaults to the direct story alone. */
   stories?: readonly StorySource[];
   /**
-   * Enables Explore: the lobby shows its plaque last, where the release has its events.
+   * Enables Explore: the lobby shows its plaque last, where the release has its events, and the
+   * look cuts event marks into the globe (look.marks).
    */
   explore?: boolean;
   /**
@@ -105,8 +106,6 @@ export interface BootOptions {
   lobby?: boolean;
   /** Where the view starts. */
   view?: ViewState;
-  /** Explore is enabled: the look cuts event marks into the globe (look.marks). */
-  explore?: boolean;
   /**
    * Called when the chosen story or Explore does not start from the lobby's plaque, after the boot
    * has resolved, so the page can bring its plate. Without it, the error goes on uncaught.
@@ -191,7 +190,6 @@ async function assemble(
     explore = false,
     lobby: inLobby = start === null,
     view = WORLD,
-    explore = false,
     tune = () => {},
     onFail = (error) => {
       throw error;
