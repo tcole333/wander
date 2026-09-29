@@ -40,6 +40,15 @@ const RANGES: Record<string, [number, number, number?]> = {
   debugView: [0, 4, 1],
   // The climate's palette: saturation in K.
   climateRangeK: [1, 10, 0.5],
+  // Marks (marks/marks.ts).
+  markVariant: [0, 3, 1],
+  markSize: [0.25, 3, 0.05],
+  markBevel: [0.05, 1, 0.01],
+  markRelief: [0, 3, 0.05],
+  markFill: [0, 1, 0.01],
+  markPolish: [0.25, 3, 0.05],
+  markGlow: [0, 0.4, 0.01],
+  markEmber: [0, 3, 0.05],
   // Streamer.
   refinePx: [0.3, 4, 0.01],
   maxLevel: [0, 7, 1],

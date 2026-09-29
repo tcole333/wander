@@ -15,6 +15,9 @@
 // knob for the way back; window.__worldTime serves scripts/exploreClockShots.ts. A story's page
 // shows Explore's plaque in its lobby only with ?explore, as the production page does. ?memory=1
 // installs window.__wanderMemory() (perf/memoryHook.ts), as on the production page.
+//
+// ?markDemo boots with Explore's marks cut into the look and sets the demo's (markDemo.ts); the
+// panel gains a Marks folder, and ?markVariant=0-3, ?marks=0 and the other marks params apply.
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, exploreRequested, memoryRequested } from '../../page/dataOrigin';
@@ -25,6 +28,7 @@ import type { LonLat } from '../../story/story';
 import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
 import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
+import { startMarkDemo } from './markDemo';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
@@ -105,7 +109,7 @@ async function main(): Promise<void> {
   const page = await bootWalk(document.body, release, {
     story: source ?? 'explore',
     stories,
-    explore: source === null || exploreRequested(location),
+    explore: source === null || exploreRequested(location) || query.has('markDemo'),
     lobby: false,
     view: PRESETS[preset],
     tune: (params) => applyQuery(params, query),
@@ -115,6 +119,10 @@ async function main(): Promise<void> {
     installMemoryHook(page);
   }
   const { museum, look, streamer, control, cameraParams } = page;
+  if (look.marks) {
+    applyQuery(look.marks.params, query);
+    if (query.has('markDemo')) startMarkDemo(look.marks, stories, museum, look.material, query);
+  }
   const go = (name: string, instant = false) => {
     const view = PRESETS[name];
     if (!view) return;
@@ -128,6 +136,7 @@ async function main(): Promise<void> {
         data,
         scene: withoutGimbal(museum.params),
         look: look.params,
+        ...(look.marks ? { marks: look.marks.params } : {}),
         streamer: streamer.params,
         camera: { ...cameraParams, view: page.stats().view },
       },
@@ -221,7 +230,7 @@ function describe(s: ProtoStats): string {
 
 interface UiParts {
   museum: { params: Params };
-  look: { params: Params };
+  look: { params: Params; marks: { params: Params } | null };
   streamer: { params: Params };
   cameraParams: Params;
   control: ViewControl;
@@ -267,6 +276,7 @@ function buildUi(parts: UiParts): void {
   };
   byZoom.get('reliefByZoom')?.onChange(lockRelief);
   lockRelief();
+  if (look.marks) addParams(gui.addFolder('Marks'), look.marks.params);
   addParams(gui.addFolder('Streamer').close(), streamer.params);
   // In a story the panel hides behind a gear, out of the walk's way.
   if (story) {
