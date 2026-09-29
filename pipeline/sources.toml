@@ -5,7 +5,8 @@
 # zip, and checks every sha256. Other stages check only byte sizes.
 #
 # This holds the surface core's inputs (issue #3), ModE-RA for the modera stage and the 1815 border
-# snapshot for the borders stage (issue #7); each later issue pins the inputs its stages read.
+# snapshot for the borders stage (issue #7); each later issue pins the inputs its stages read. The
+# open-world plan's sources are pinned ahead of the stages that read them.
 
 [gebco-2026]
 name = "GEBCO_2026 Grid, 15 arc-second global land and sea-floor elevation (ice surface), NetCDF"
@@ -136,6 +137,30 @@ path = "sources/historical-basemaps/world_1815.geojson"
 source_url = "https://raw.githubusercontent.com/aourednik/historical-basemaps/da7a4b735ecef70aebdc9c73e409d8a2500d50f3/geojson/world_1815.geojson"
 bytes = 2413409
 sha256 = "fb654f734583f550904cfa45f361e395c1a488c4960050da2632cb2ac7d1cd1e"
+
+# Cliopatria's polity shapes by year, the alternative to historical-basemaps for the borders through
+# time. The latest release is v0.2.0 (commit ad28a69, 2026-05-16); `main` has not moved since, and
+# the v0.2.0-duplicate tag re-released the same commit to re-trigger Zenodo. The GitHub releases
+# carry no assets and the Zenodo record (DOI 10.5281/zenodo.20274630) archives the whole repository
+# (297 MB), so the file is the repository's own `cliopatria.geojson.zip` at that commit; its git
+# blob sha (cefab0f4b622e2e7fb3daf68d4f461f83991204c) matches the download. The zip holds
+# `cliopatria_polities_only.geojson` (EPSG:4326, 166 MB unzipped) and a macOS `__MACOSX` stub. Its
+# 13,765 rows (13,380 POLITY, 385 RELATION) of 1,633 names run from 3400 BCE to 2024 CE, with the
+# columns Name, FromYear, ToYear, Area, Type, Wikipedia, Wikidata, SeshatID, Components, MemberOf.
+[cliopatria]
+name = "Cliopatria, worldwide polity shapes by year from 3400 BCE to 2024 CE (Seshat Global History Databank), polities-only GeoJSON"
+version = "v0.2.0"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Bennett et al. (2025), Cliopatria, Seshat Global History Databank, v0.2.0, DOI 10.5281/zenodo.20274630; publication DOI 10.1038/s41597-025-04516-9."
+landing_page = "https://github.com/Seshat-Global-History-Databank/cliopatria"
+retrieved = "2026-09-29"
+
+[[cliopatria.files]]
+path = "sources/cliopatria/cliopatria.geojson.zip"
+source_url = "https://raw.githubusercontent.com/Seshat-Global-History-Databank/cliopatria/ad28a691b7c07c1fca89d0e0636d324667d2a258/cliopatria.geojson.zip"
+bytes = 44231317
+sha256 = "d01ae3a20d358cc5d54f69d9d725d390767d9c8759ac89ad6f90c58d106f3370"
 
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
