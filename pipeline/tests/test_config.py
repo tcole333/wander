@@ -9,6 +9,7 @@ from prebuild.config import (
     load_contested_events,
     load_event_boosts,
     load_event_dates,
+    load_event_places,
     load_fixture,
     load_regions,
     load_water,
@@ -157,3 +158,35 @@ def test_malformed_curated_corrections_are_refused(tmp_path, text, complaint):
     path.write_text(text, encoding="utf-8")
     with pytest.raises(ConfigError, match=complaint):
         load_event_dates(path)
+
+
+def test_parent_places_keep_both_sourced_fallbacks(tmp_path):
+    path = write(
+        tmp_path, "places: [{qid: Q1, why: source, countryCentroid: [40, 30], at: [60, 20]}]"
+    )
+    assert load_event_places(path) == {"Q1": {"countryCentroid": (40, 30), "at": (60, 20)}}
+    assert load_event_places(write(tmp_path, "places: []")) == {}
+
+
+@pytest.mark.parametrize(
+    ("entry", "complaint"),
+    [
+        ("{qid: Q1, why: source, place: [0, 0]}", "unknown parent place field"),
+        ("{qid: Q0, why: source, at: [0, 0]}", "not a Wikidata item id"),
+        ("{qid: Q1, at: [0, 0]}", "why.*not a name"),
+        ("{qid: Q1, why: source}", "needs countryCentroid or at"),
+        ("{qid: Q1, why: source, at: [1]}", "needs longitude and latitude"),
+        ("{qid: Q1, why: source, at: point}", "not a list"),
+        ("{qid: Q1, why: source, at: [true, 0]}", "not a number"),
+        ("{qid: Q1, why: source, at: [181, 0]}", "outside Earth"),
+        ("{qid: Q1, why: source, countryCentroid: [0, -91]}", "outside Earth"),
+        ("{qid: Q1, why: source, at: [.nan, 0]}", "outside Earth"),
+        (
+            "{qid: Q1, why: source, at: [0, 0]}, {qid: Q1, why: source, at: [1, 1]}",
+            "places Q1 twice",
+        ),
+    ],
+)
+def test_malformed_parent_places_name_the_error(tmp_path, entry, complaint):
+    with pytest.raises(ConfigError, match=complaint):
+        load_event_places(write(tmp_path, f"places: [{entry}]"))

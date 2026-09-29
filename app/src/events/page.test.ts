@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { gunzipSync } from 'node:zlib';
 import type { EventsRelease } from '../data/release';
 import { readFixtureFile, readStageRecord } from '../test/fixture';
 import { decodePage, extentAt, findQid, labelAt, parsePage } from './page';
@@ -10,6 +11,37 @@ describe('.wev pages', () => {
     const pages = await Promise.all(
       release.files.map((f) => decodePage(readFixtureFile(f.key).buffer, f)),
     );
+    for (const [i, file] of release.files.entries()) {
+      const doc = JSON.parse(gunzipSync(readFixtureFile(file.key)).toString('utf8')) as Record<
+        string,
+        number[]
+      > & { label: string[]; ext: number[][] };
+      const page = pages[i]!;
+      const compare = (actual: ArrayBufferView, expected: number[], width: 1 | 2 | 4 | 8) => {
+        const bytes = Buffer.alloc(expected.length * width);
+        expected.forEach((value, at) => {
+          if (width === 8) bytes.writeDoubleLE(value, at * width);
+          else bytes.writeIntLE(value, at * width, width);
+        });
+        expect(Buffer.from(actual.buffer, actual.byteOffset, actual.byteLength)).toEqual(bytes);
+      };
+      for (const key of ['row', 'qid', 'lon', 'lat', 'parent'] as const)
+        compare(page[key], doc[key]!, 4);
+      for (const key of ['score', 'unc'] as const) compare(page[key], doc[key]!, 2);
+      for (const key of ['prec', 'cls', 'flags'] as const) compare(page[key], doc[key]!, 1);
+      for (const key of ['t0', 't1'] as const) compare(page[key], doc[key]!, 8);
+      compare(page.ext, doc.ext.flat(), 4);
+      const labels = doc.label.map((label) => Buffer.from(label, 'utf8'));
+      expect(Buffer.from(page.text)).toEqual(Buffer.concat(labels));
+      const offsets = [0];
+      for (const label of labels) offsets.push(offsets.at(-1)! + label.length);
+      compare(page.offsets, offsets, 4);
+      compare(
+        page.qidOrder,
+        doc.qid!.map((_, at) => at).sort((a, b) => doc.qid![a]! - doc.qid![b]!),
+        4,
+      );
+    }
     expect(pages.reduce((n, p) => n + p.rows, 0)).toBe(release.rows);
     expect(pages.reduce((n, p) => n + p.bytes, 0)).toBe(
       release.files.reduce((n, f) => n + f.decoded, 0),
