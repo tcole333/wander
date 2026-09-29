@@ -10,6 +10,8 @@
 //
 // ?story=tambora|magellan walks the story instead of the presets, as the boot plays it. The panel hides
 // behind a small gear at the top right. window.__walk serves scripts (scripts/walkShots.ts).
+// Without a story the crafted ruler drives world time from 10,000 BCE through 2000 CE;
+// window.__worldTime serves scripts/exploreClockShots.ts. The globe still follows only the view.
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS } from '../../page/dataOrigin';
@@ -21,6 +23,9 @@ import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
 import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
+import { ExploreTime } from '../../time/exploreTime';
+import { worldClock, type WorldTime } from '../../time/worldClock';
+import { CraftRuler } from '../../story/ui/rulerCraft';
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
 
@@ -67,6 +72,13 @@ declare global {
       view(view: ViewState, instant?: boolean): void;
       settings(): string;
       error?: string;
+    };
+    /** Free-globe clock and ruler viewport, for local checks. */
+    __worldTime?: {
+      state(): WorldTime;
+      span(): { start: number; end: number };
+      seek(day: number): void;
+      zoom(factor: number, share: number): void;
     };
     __walk?: {
       state(): Omit<WalkState, 'story'>;
@@ -128,6 +140,28 @@ async function main(): Promise<void> {
   if (source) {
     document.body.classList.add('story');
     document.getElementById('presets')?.remove();
+  } else {
+    const explore = new ExploreTime();
+    const ruler = new CraftRuler(explore);
+    const layer = document.createElement('div');
+    layer.className = 'wu wu-explore';
+    layer.append(ruler.element);
+    document.body.append(layer);
+    window.__worldTime = {
+      state: () => worldClock.state(),
+      span: () => explore.span,
+      seek: (day) => explore.seek(day),
+      zoom: (factor, share) => explore.zoom(factor, share),
+    };
+    addEventListener(
+      'pagehide',
+      (event) => {
+        if (event.persisted) return;
+        ruler.dispose();
+        layer.remove();
+      },
+      { once: true },
+    );
   }
   if (showUi) {
     buildUi({ museum, look, streamer, cameraParams, control, go, settings, story: page.story });
