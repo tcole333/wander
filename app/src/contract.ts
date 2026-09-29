@@ -15,6 +15,8 @@ import type {
 import type { Release, SurfaceRelease } from './data/release';
 import type { SurfaceLayer } from './data/surfaceLayer';
 import type { SurfacePools } from './gpu/surfaceUploads';
+import type { GlyphSet } from './marks/glyphs';
+import type { MarkLayer } from './marks/marks';
 import type { MemoryAccount } from './perf/memory';
 
 export type Params = Record<string, number | boolean | string>;
@@ -74,10 +76,17 @@ export interface SurfaceLook {
   update(elapsedS: number): void;
   /** Resolves once the look's ocean and sea names are lettered; it never rejects. */
   ready: Promise<void>;
+  /** The marks cut into the surface, where the look was made with glyphs; otherwise null. */
+  marks: MarkLayer | null;
   dispose(): void;
 }
 
-export type CreateSurfaceLook = (pools: SurfacePools, surface: SurfaceRelease) => SurfaceLook;
+export type CreateSurfaceLook = (
+  pools: SurfacePools,
+  surface: SurfaceRelease,
+  /** `marks`: the glyphs of the marks to cut into the surface, only where Explore is enabled. */
+  options?: { marks?: GlyphSet },
+) => SurfaceLook;
 
 /** The dark museum room, its lamps, the instrument and the post chain, ported from the spike. */
 export interface MuseumScene {

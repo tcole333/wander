@@ -2,7 +2,8 @@
 // is the merged surface vertex chunk and whose fragment stage computes the spike's baked look from
 // the surface pools, per fragment, with the ocean and sea names inlaid in its lacquer
 // (seaNames.ts). A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
-// own shadows.
+// own shadows. Given a glyph set, where Explore is enabled, the look also cuts marks into its
+// surface (marks/marks.ts, look.marks); without one, its program and atlas are the look's alone.
 // The faces the sea names are lettered in, declared wherever the look is made.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -14,9 +15,11 @@ import {
   PerspectiveCamera,
   Vector2,
   Vector3,
+  type Object3D,
 } from 'three';
 import { tunables } from '../config/tunables';
 import type { CreateSurfaceLook, Params } from '../contract';
+import { MarkLayer } from '../marks/marks';
 import {
   createSurfaceVertexUniforms,
   surfaceVertexChunk,
@@ -35,14 +38,7 @@ import {
   createClimateUniforms,
   registerClimate,
 } from './climateHook';
-import {
-  LOOK_FRAGMENT_COLOR,
-  LOOK_FRAGMENT_METALNESS,
-  LOOK_FRAGMENT_NORMAL,
-  LOOK_FRAGMENT_PARS,
-  LOOK_FRAGMENT_ROUGHNESS,
-  LOOK_FRAGMENT_SPECULAR,
-} from './lookFragment.glsl';
+import { lookFragment } from './lookFragment.glsl';
 import { LOOK_VERTEX_MAIN, LOOK_VERTEX_PARS } from './lookVertex.glsl';
 import {
   createRouteUniforms,
@@ -147,7 +143,10 @@ export function defaultLookParams(): Params {
 
 type Uniforms = Record<string, { value: unknown }>;
 
-export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
+/** The lamp's position when the scene has no spot light. */
+const LAMP_FALLBACK = new Vector3(-4.2, 5.2, 9.5);
+
+export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {}) => {
   const params = defaultLookParams();
   const chunk = surfaceVertexChunk({ segments: 32, debugChecks: false });
   const vertex = createSurfaceVertexUniforms(pools, surface, {
@@ -168,7 +167,9 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   const climate = createClimateUniforms();
   const borders = createBorderUniforms();
   const routes = createRouteUniforms();
-  const seaNames = new SeaNameLayer();
+  const seaNames = new SeaNameLayer(options.marks ?? null);
+  const marks = options.marks ? new MarkLayer(() => seaNames.glyphCells) : null;
+  const fragment = lookFragment({ marks: marks !== null });
   const uniforms: Uniforms = {
     ...vertex,
     ...look,
@@ -177,6 +178,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     ...borders,
     ...routes,
     ...seaNames.uniforms,
+    ...marks?.uniforms,
   };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
@@ -192,7 +194,11 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
   const toLocal = new Matrix4();
   const toClip = new Matrix4();
   const viewport = new Vector2();
-  material.onBeforeRender = (renderer, _scene, camera, _geometry, object) => {
+  // The marks also need the camera's axis, the frame's normals and the lamp in the globe frame.
+  const forward = new Vector3();
+  const lampLocal = new Vector3();
+  let lamp: Object3D | null | undefined;
+  material.onBeforeRender = (renderer, scene, camera, _geometry, object) => {
     toLocal.copy(object.matrixWorld).invert();
     camLocal.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(toLocal);
     if (!(camera instanceof PerspectiveCamera)) return;
@@ -204,6 +210,14 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       .multiply(object.matrixWorld);
     const view = { camera: camLocal, pxPerUnit, width: viewport.x, height: viewport.y, toClip };
     seaNames.place(view, Number(params.seaNames));
+    if (!marks) return;
+    camera.getWorldDirection(forward).transformDirection(toLocal);
+    lamp ??= scene.getObjectByProperty('isSpotLight', true) ?? null;
+    if (lamp) lamp.getWorldPosition(lampLocal);
+    else lampLocal.copy(LAMP_FALLBACK);
+    lampLocal.applyMatrix4(toLocal);
+    const kLand = params.flatRelief === true ? 0 : Number(params.kLand);
+    marks.place({ ...view, forward, toView: object.normalMatrix, lamp: lampLocal, kLand });
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -211,19 +225,16 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${LOOK_FRAGMENT_PARS}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${ROUTE_FRAGMENT_PARS}`,
+        `#include <common>\n${fragment.pars}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${ROUTE_FRAGMENT_PARS}`,
       ],
       [
         '#include <color_fragment>',
-        `${LOOK_FRAGMENT_COLOR}\n${CLIMATE_FRAGMENT_APPLY}\n${BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
+        `${fragment.color}\n${CLIMATE_FRAGMENT_APPLY}\n${BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
       ],
-      ['#include <roughnessmap_fragment>', LOOK_FRAGMENT_ROUGHNESS],
-      ['#include <metalnessmap_fragment>', LOOK_FRAGMENT_METALNESS],
-      ['#include <normal_fragment_maps>', LOOK_FRAGMENT_NORMAL],
-      [
-        '#include <lights_fragment_end>',
-        `#include <lights_fragment_end>\n${LOOK_FRAGMENT_SPECULAR}`,
-      ],
+      ['#include <roughnessmap_fragment>', fragment.roughness],
+      ['#include <metalnessmap_fragment>', fragment.metalness],
+      ['#include <normal_fragment_maps>', fragment.normal],
+      ['#include <lights_fragment_end>', `#include <lights_fragment_end>\n${fragment.specular}`],
     ]);
   };
 
@@ -260,8 +271,12 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
     material,
     depthMaterial,
     params,
-    update,
+    update(elapsedS) {
+      update();
+      marks?.update(elapsedS);
+    },
     ready: seaNames.ready,
+    marks,
     inspectMemory(account) {
       account.texture('borders.1815', borders.lookBorderField.value);
       account.texture('climate.uploadField', climate.lookClimateField.value);
@@ -270,6 +285,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       account.texture('routes.cells', routes.lookRouteCells.value);
       account.texture('routes.indices', routes.lookRouteIndices.value);
       account.texture('routes.state', routes.lookRouteState.value);
+      marks?.inspectMemory(account);
     },
     dispose() {
       material.dispose();
@@ -278,6 +294,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface) => {
       borders.lookBorderField.value.dispose();
       disposeRouteTextures(routes);
       seaNames.dispose();
+      marks?.dispose();
     },
   };
 };
