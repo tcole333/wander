@@ -4,6 +4,7 @@
 import { Matrix3, Matrix4, PerspectiveCamera, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { tunables } from '../config/tunables';
+import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
 import { binDiscs, limbFade, MarkLayer, markPx, type MarkSpec, type MarkView } from './marks';
@@ -138,6 +139,37 @@ describe('MarkLayer', () => {
     marks.strength = 0;
     marks.place(view);
     expect(marks.uniforms.lookMarksOn.value).toBe(false);
+  });
+
+  it('holds no memory once every source has cleared its marks', () => {
+    const marks = layer();
+    const totals = () => {
+      const account = new MemoryAccount();
+      marks.inspectMemory(account);
+      return account.owners['explore.marks'];
+    };
+    expect(totals()?.arrayBuffers).toBe(0);
+    marks.set('events', [mark('a', [20, 10])]);
+    marks.set('opening', [mark('b', [21, 10])]);
+    marks.place(view);
+    expect(totals()?.arrayBuffers).toBeGreaterThan(0);
+    marks.set('events', []);
+    expect(totals()?.arrayBuffers).toBeGreaterThan(0);
+    marks.set('opening', []);
+    expect(totals()).toEqual({ arrayBuffers: 0, audioSamples: 0, canvasPixels: 0, imagePixels: 0 });
+    expect(marks.uniforms.lookMarkTable.value.image.width).toBe(1);
+    expect(marks.uniforms.lookMarksOn.value).toBe(false);
+  });
+
+  it('draws again once marks are set again', () => {
+    const marks = layer();
+    marks.set('events', [mark('a', [20, 10])]);
+    marks.set('events', []);
+    marks.set('events', [mark('a', [20, 10])]);
+    marks.place(view);
+    expect(marks.placed().map(({ id }) => id)).toEqual(['a']);
+    expect(marks.uniforms.lookMarkTable.value.image.width).toBe(512);
+    expect(marks.uniforms.lookMarksOn.value).toBe(true);
   });
 
   it('waits for its glyphs to be lettered', () => {

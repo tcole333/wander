@@ -7,8 +7,9 @@
 // the marks for the view (tunables.markPx: one size at a given scale), fades them toward the limb,
 // and bins each mark's screen disc, widened by its contact shadow, its ember or its hovered ring,
 // into 32 CSS px tiles, at most tunables.markTileCap a tile, focal first, then hovered, then by
-// score. One RGBA32F table holds the tiles' ranges, their index lists and four texels a mark, and
-// is uploaded only when the view or a fade changed.
+// score. One RGBA32F table holds the tiles' ranges, one texel per tile listing (its mark's screen
+// disc and index) and three texels a mark; it is uploaded only when the view or a fade changed, and
+// exists only while some layer has marks set.
 import {
   Color,
   DataTexture,
@@ -267,6 +268,13 @@ export function binDiscs(
   return { tilePx, across, down, starts, counts, slots, used: sum };
 }
 
+/** The marks' table: its texels, the next draw's staged beside them, and its texture. */
+interface Table {
+  data: Float32Array;
+  next: Float32Array;
+  texture: DataTexture;
+}
+
 /** Focal first, then hovered, then by score; ties keep the order the layers gave. */
 function byPriority(a: Candidate, b: Candidate): number {
   const rank = (c: Candidate) => (c.entry.spec.focal ? 2 : 0) + (c.entry.spec.hover ? 1 : 0);
@@ -282,8 +290,10 @@ export class MarkLayer {
   readonly #cells: () => GlyphCells | null;
   readonly #sources = new Map<string, Entry[]>();
   #entries: Entry[] = [];
-  readonly #data: Float32Array;
-  readonly #next: Float32Array;
+  /** The table while any marks are set: its texels, and the next draw's staged beside them. */
+  #table: Table | null = null;
+  /** What the look reads while no marks are set. */
+  readonly #blank: DataTexture;
   #extent = [0, 0, 0];
   #placed: (PlacedMark & { dir: Vector3; r: number })[] = [];
   #clearance: ClearanceField | null = null;
@@ -293,15 +303,10 @@ export class MarkLayer {
   /** `cells` gives the glyphs' atlas cells once the look has lettered them. */
   constructor(cells: () => GlyphCells | null) {
     this.#cells = cells;
-    this.#data = new Float32Array(TABLE_WIDTH * TABLE_ROWS * 4);
-    this.#next = new Float32Array(this.#data.length);
-    const table = new DataTexture(this.#data, TABLE_WIDTH, TABLE_ROWS, RGBAFormat, FloatType);
-    table.minFilter = table.magFilter = NearestFilter;
-    table.generateMipmaps = false;
-    table.needsUpdate = true;
+    this.#blank = floatTexture(new Float32Array(4), 1, 1);
     this.uniforms = {
       lookMarksOn: { value: false },
-      lookMarkTable: { value: table },
+      lookMarkTable: { value: this.#blank },
       lookMarkClip: { value: new Matrix4() },
       lookMarkView: { value: new Matrix3() },
       lookMarkGrid: { value: new Vector4(1, 1, TILE_PX, 1) },
@@ -317,7 +322,10 @@ export class MarkLayer {
     this.update(0);
   }
 
-  /** Replaces the marks from `source`; an empty list removes them. */
+  /**
+   * Replaces the marks from `source`; an empty list removes them. The table exists only while some
+   * source has marks, so with none set the marks hold no memory.
+   */
   set(source: string, specs: readonly MarkSpec[]): void {
     if (specs.length === 0) this.#sources.delete(source);
     else {
@@ -330,6 +338,8 @@ export class MarkLayer {
       );
     }
     this.#entries = [...this.#sources.values()].flat();
+    if (this.#entries.length === 0) this.#release();
+    else this.#table ??= this.#allocate();
   }
 
   /** The terrain's ceiling, so a pick over land reaches the mark drawn on the relief. */
@@ -375,7 +385,8 @@ export class MarkLayer {
     this.#view.width = view.width;
     this.#view.height = view.height;
     this.#placed = [];
-    if (!on || this.#entries.length === 0) {
+    const table = this.#table;
+    if (!on || !table || this.#entries.length === 0) {
       this.uniforms.lookMarksOn.value = false;
       return;
     }
@@ -431,7 +442,7 @@ export class MarkLayer {
 
     // The table (marks.glsl.ts): each tile's first slot times 16 plus its count, four a texel;
     // each slot's mark's screen disc and index; three texels a mark.
-    const next = this.#next;
+    const next = table.next;
     const ranges = Math.ceil(bins.counts.length / 4) * 4;
     next.fill(0, 0, ranges);
     bins.counts.forEach((count, t) => (next[t] = (bins.starts[t] ?? 0) * 16 + count));
@@ -479,11 +490,11 @@ export class MarkLayer {
     ];
     const changed =
       extent.some((value, i) => value !== this.#extent[i]) ||
-      spans.some(([from, to]) => !same(this.#data, next, from, to));
+      spans.some(([from, to]) => !same(table.data, next, from, to));
     if (changed) {
-      for (const [from, to] of spans) this.#data.set(next.subarray(from, to), from);
+      for (const [from, to] of spans) table.data.set(next.subarray(from, to), from);
       this.#extent = extent;
-      this.uniforms.lookMarkTable.value.needsUpdate = true;
+      table.texture.needsUpdate = true;
     }
     this.uniforms.lookMarkClip.value.copy(view.toClip);
     this.uniforms.lookMarkView.value.copy(view.toView);
@@ -533,18 +544,47 @@ export class MarkLayer {
     return best;
   }
 
+  /** The table and its staging while marks are set; nothing, but the owner's row, otherwise. */
   inspectMemory(account: MemoryAccount): void {
-    account.texture('explore.marks', this.uniforms.lookMarkTable.value);
-    account.array('explore.marks', this.#next);
+    account.array('explore.marks', null);
+    if (!this.#table) return;
+    account.texture('explore.marks', this.#table.texture);
+    account.array('explore.marks', this.#table.next);
   }
 
   dispose(): void {
     this.#sources.clear();
     this.#entries = [];
+    this.#release();
+    this.#blank.dispose();
+  }
+
+  #allocate(): Table {
+    const data = new Float32Array(TABLE_WIDTH * TABLE_ROWS * 4);
+    const texture = floatTexture(data, TABLE_WIDTH, TABLE_ROWS);
+    this.#extent = [0, 0, 0];
+    this.uniforms.lookMarkTable.value = texture;
+    return { data, next: new Float32Array(data.length), texture };
+  }
+
+  /** Drops the table: the look reads the blank, and draws no marks, until marks are set again. */
+  #release(): void {
     this.#placed = [];
     this.uniforms.lookMarksOn.value = false;
-    this.uniforms.lookMarkTable.value.dispose();
+    if (!this.#table) return;
+    this.uniforms.lookMarkTable.value = this.#blank;
+    this.#table.texture.dispose();
+    this.#table = null;
   }
+}
+
+/** A float RGBA texture the look reads texel by texel. */
+function floatTexture(data: Float32Array, width: number, height: number): DataTexture {
+  const texture = new DataTexture(data, width, height, RGBAFormat, FloatType);
+  texture.minFilter = texture.magFilter = NearestFilter;
+  texture.generateMipmaps = false;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 /** The view's width in km where the camera's axis meets the globe (or under the camera). */
