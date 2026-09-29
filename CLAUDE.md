@@ -41,6 +41,8 @@ Paths in the docs are relative to the repo root, except the measurement citation
   both projects.
 - `stories/<story>/`: one folder per story: `story.md`, `meanwhile.yaml` (Meanwhile's written
   lines) and `story.lock.json`, plus its datasets and audio once a story has them.
+- `explore/`: the events Explore opens on, `openings.yaml` (each one's line and source) and its
+  `openings.lock.json`.
 - `build/`: generated output (git-ignored): the prebuild's roots, one per profile in the R2 key
   layout (`build/out/` for global, `build/region/`, `build/fixture/`), stage records in
   `build/stages/<profile>/` and caches in `build/cache/`; and lab reports in `build/lab/`.
@@ -101,9 +103,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
-  every stage in order except `wikidata`, `excerpts`, `media` and `meanwhile`; the fixture profile
-  also skips `fetch` and `borders` (its tests draw synthetic snapshots, since the GPL source is
-  never committed). It keeps `meanwhile` disabled so it cannot rewrite Tambora's lock.
+  every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
+  fixture profile also skips `fetch` and `borders` (its tests draw synthetic snapshots, since the
+  GPL source is never committed). It keeps `meanwhile` and `openings` disabled so it cannot
+  rewrite their locks.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
   2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile, and
   30 s for `borders`, the whole 1815 field).
@@ -121,6 +124,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   (`docs/design/streaming.md` 3.9). A beat's `meanwhile: {pin: [...], hide: [...]}` in `story.md`
   overrides the rule; the stage names any beat entry still lacking a written line, and stops when
   the table was built from another export or other event configs.
+- `uv run prebuild openings`, after `events`: checks `explore/openings.yaml` against
+  `ev/events.tsv.gz` and writes `explore/openings.lock.json` (commit it), whose events `event-files`
+  forces into the overview (`docs/design/streaming.md` 3.4). It stops on an opening the index
+  lacks, one part of another, one starting after 2000, a stale table, or a line naming a day its
+  date does not hold; `event-files` stops, naming it, until the lock matches the global table.
 - `npm run verify:bake -- [region|global]`: decodes every tile of `build/region/` (the default)
   or `build/out/`, reading `build/stages/<profile>/`, and checks its seams, headers, `bounds.bin`,
   availability and known places (`docs/design/streaming.md` 7.3). Local only, since building the
