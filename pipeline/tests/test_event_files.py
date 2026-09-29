@@ -10,6 +10,8 @@ from prebuild import event_files as wev
 from prebuild import events
 from prebuild.config import load_event_classes
 from prebuild.meanwhile import day_number
+from prebuild.openings import FOLDER, LOCK
+from prebuild.paths import REPO_ROOT
 from prebuild.profiles import Profile, make_context
 from prebuild.records import read_record
 
@@ -59,6 +61,8 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     assert overview["parent"][rows[18643473]] == overview["row"][rows[199955]]
     assert overview["parent"][rows[199955]] == overview["row"][rows[78994]]
     assert overview["score"][waterloo] == 550
+    lock = REPO_ROOT / FOLDER / LOCK
+    assert record["inputs"] == {"openings": hashlib.sha256(lock.read_bytes()).hexdigest()}
     assert len(record["files"]) == 1  # all rows fit in the overview; no empty all.wev
     assert overview["score"] == sorted(overview["score"], reverse=True)
     assert all(0 <= s <= 1000 for s in overview["score"])
@@ -184,6 +188,31 @@ def test_paging_overlaps_and_long_rows_without_overview_duplicates(
     assert docs["long.wev"]["qid"] == [3]
     assert set(docs) == {"overview.wev", "p18.wev", "p19.wev", "long.wev"}
     assert sum(d["qid"].count(1) for d in docs.values()) == 1
+
+
+def test_openings_join_the_overview_on_top_of_its_quota_and_leave_the_rest(tmp_path, monkeypatch):
+    rows = wev.prepare([event(1, year=1600), event(2, year=1700), event(3, year=1800)], [])
+    monkeypatch.setattr(
+        wev, "overview", lambda rows: [next(r for r in rows if r.event.qid == "Q1")]
+    )
+    opening = wev.forced(rows, ["Q3"], strict=True)
+    record = wev.build(rows, tmp_path, openings=opening, all_rows=0)
+    docs = {
+        f["key"].split("/")[-1]: json.loads(gzip.decompress((tmp_path / f["key"]).read_bytes()))
+        for f in record["files"]
+    }
+    assert sorted(docs["overview.wev"]["qid"]) == [1, 3]
+    assert [qid for name, d in docs.items() if name != "overview.wev" for qid in d["qid"]] == [2]
+
+
+def test_an_opening_the_index_lacks_fails_the_whole_index_and_the_fixture_leaves_it_out(capsys):
+    rows = wev.prepare([event(1), event(2)], [])
+    with pytest.raises(events.EventsError, match="the openings Q9 are not in the event index"):
+        wev.forced(rows, ["Q2", "Q9"], strict=True)
+    assert wev.forced(rows, ["Q2", "Q9"], strict=False) == {
+        next(r.row for r in rows if r.event.qid == "Q2")
+    }
+    assert "1 of 2 openings not in the index" in capsys.readouterr().out
 
 
 def test_no_country_or_override_is_used_when_children_place_a_parent(monkeypatch):
