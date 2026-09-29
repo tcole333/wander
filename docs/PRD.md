@@ -119,7 +119,7 @@ Beyond the stories, the globe itself changes as time passes, so a visitor explor
 still watches the ages go by and can notice why things happened where they did: where people lived,
 which resources were worked and where their goods went, how borders and names changed. Where people
 lived comes first, then resources through time. `docs/design/globe-language.md` sets how: the six
-pace layers, the channel and material each is shown in, and how detail reveals itself.
+pace layers, the channel each is shown in, and how detail reveals itself.
 
 ### Effects
 
@@ -160,8 +160,9 @@ graticule, and borders. The active event glows ember orange.
 
 The emotional reference is Joseph Wright of Derby's *A Philosopher Lecturing on the Orrery*
 (`docs/reference/a-philosopher-lecturing-on-the-orrery.jpg`): a hidden lamp lighting the faces
-around an orrery in the dark. Materials follow the pace of what they show: the slowest history is
-cast into the bronze and the fastest is paper beside it (`docs/design/globe-language.md`).
+around an orrery in the dark. Which materials the globe's marks use is decided on renders; the first
+idea to try is that material follows the pace of what it shows, the slowest history cast into the
+bronze and the fastest on paper beside it (`docs/design/globe-language.md`).
 
 Starting palette, carried over from the first prototype:
 
@@ -211,8 +212,9 @@ areas, climate data, and the thematic layers.
 - Every beat cites at least one source (title, author or publisher, link). Dates, numbers, and
   quotes come from a cited source. Illustrative visuals do not need sources.
 - Before a story ships, a separate fact-check pass verifies each claim against its cited source.
-- A claim that one thing caused another cites a source that makes that claim. The globe draws
-  documented movement, and interpretation stays in the text (`docs/design/globe-language.md`).
+- A claim that one thing caused another cites a source that makes that claim. Where the globe links
+  events it draws documented movement, and interpretation stays in the text
+  (`docs/design/globe-language.md`).
 - Stories stop where historians have some distance, so present-day disputes stay out of them.
 - Stories may be more liberal in sourcing than the future open-world mode, which leans on Wikidata.
 
