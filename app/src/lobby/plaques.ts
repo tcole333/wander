@@ -2,19 +2,30 @@
 // the top right, and at the left a column with a heading and the stories' plaques in dark cast
 // brass: an engraved medallion (Tambora's volcano, Magellan's ship), the title, the years
 // and the blurb, a Begin line at its foot, and an ember that wakes in its socket when the plaque
-// is hovered or focused. The plaque is a button, so Tab reaches it and Enter or Space chooses it. The column fades in as the
-// opening ends and slides away once the plaque is chosen.
+// is hovered or focused. Where Explore is enabled, its plaque stands last, an armillary sphere on
+// its medallion, with its title and years and no blurb. The plaque is a button, so Tab reaches it
+// and Enter or Space chooses it. The column fades in as the opening ends and slides away once the
+// plaque is chosen.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import './lobby.css';
+import { EXPLORE_TITLE, EXPLORE_YEARS } from '../explore/copy';
 import { creditsLink } from '../page/creditsPanel';
 import type { Story } from '../story/story';
 import { el, svg } from '../story/ui/dom';
 import { yearsLabel } from '../story/ui/format';
 import type { Choice } from '../walk/mode';
+
+/** What a plaque shows: its medallion's engraving, title, years and blurb. */
+interface PlaqueFace {
+  medal: string;
+  title: string;
+  years: string;
+  blurb?: string;
+}
 
 export class Plaques {
   /** The lobby's layer, over the canvas as the walk's UI is. */
@@ -23,18 +34,35 @@ export class Plaques {
   readonly #credits = creditsLink('lobby-credits');
   #chosen: HTMLButtonElement | undefined;
 
-  /** The plaques in story order; choosing one passes its choice to `onChoose`. */
-  constructor(stories: readonly Story[], onChoose: (choice: Choice) => void) {
+  /**
+   * The plaques in story order, and Explore's last if `explore`; choosing one passes it to
+   * `onChoose`.
+   */
+  constructor(stories: readonly Story[], onChoose: (choice: Choice) => void, explore = false) {
     this.#column.setAttribute('aria-label', 'Stories');
     const rule = el('div', 'lobby-rule');
     this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule);
-    for (const story of stories) {
-      const button = plaque(story, () => {
+    const add = (face: PlaqueFace, choice: Choice) => {
+      const button = plaque(face, () => {
         this.#chosen = button;
-        onChoose({ kind: 'story', story });
+        onChoose(choice);
       });
+      if (choice.kind === 'story') button.dataset.story = choice.story.id;
+      else button.dataset.choice = choice.kind;
       this.#chosen ??= button;
       this.#column.append(button);
+    };
+    for (const story of stories) {
+      const face = {
+        medal: story.id,
+        title: story.title,
+        years: yearsLabel(story.beats),
+        blurb: story.blurb,
+      };
+      add(face, { kind: 'story', story });
+    }
+    if (explore) {
+      add({ medal: 'explore', title: EXPLORE_TITLE, years: EXPLORE_YEARS }, { kind: 'explore' });
     }
     this.element.append(this.#column, this.#credits);
     this.element.inert = true;
@@ -69,33 +97,47 @@ export class Plaques {
   }
 }
 
-function plaque(story: Story, choose: () => void): HTMLButtonElement {
+function plaque(face: PlaqueFace, choose: () => void): HTMLButtonElement {
   const button = el('button', 'lobby-plaque wu-brass wu-lit');
   button.type = 'button';
-  button.dataset.story = story.id;
   button.addEventListener('click', choose);
   const words = el('span', 'lobby-words');
-  words.append(
-    el('span', 'lobby-title', story.title),
-    el('span', 'lobby-years', yearsLabel(story.beats)),
-    el('span', 'lobby-blurb', story.blurb),
-  );
+  words.append(el('span', 'lobby-title', face.title), el('span', 'lobby-years', face.years));
+  if (face.blurb !== undefined) words.append(el('span', 'lobby-blurb', face.blurb));
   const ember = el('span', 'lobby-ember');
   ember.setAttribute('aria-hidden', 'true');
   const begin = el('span', 'lobby-begin', 'Begin');
   const hand = el('span', 'lobby-begin-hand', '☞');
   hand.setAttribute('aria-hidden', 'true');
   begin.append(hand);
-  button.append(medallion(story.id), words, ember, begin);
+  button.append(medallion(face.medal), words, ember, begin);
   return button;
 }
 
 /**
- * The medallions share a bezel and dark face, each stroke cut in gilt above its shadow. Tambora's
- * crater glows with its ember; Magellan's carries a three-masted ship under sail above the waves.
+ * An armillary sphere: its meridian ring, the equator, a colure and the ecliptic tilted across
+ * them, the earth at the heart, and the axis standing on a foot.
  */
-function medallion(story: string): SVGSVGElement {
-  const id = `lobby-${story}`;
+const ARMILLARY = [
+  // The meridian ring, the equator and a colure.
+  'M16 27a14 14 0 1 0 28 0a14 14 0 1 0 -28 0',
+  'M16 27a14 3.6 0 1 0 28 0a14 3.6 0 1 0 -28 0',
+  'M30 13a4.4 14 0 1 0 0 28a4.4 14 0 1 0 0 -28',
+  // The ecliptic, tilted 23.4 degrees.
+  'M17.15 32.56A14 4.2 -23.4 1 0 42.85 21.44A14 4.2 -23.4 1 0 17.15 32.56',
+  // The earth at the heart.
+  'M27.4 27a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0',
+  // The axis's ends, the stem and the foot.
+  'M30 10V13M30 41V47.5M26 47.5H34L36.5 50.5H23.5Z',
+].join('');
+
+/**
+ * The medallions share a bezel and dark face, each stroke cut in gilt above its shadow. Tambora's
+ * crater glows with its ember; Magellan's carries a three-masted ship under sail above the waves;
+ * Explore's is an armillary sphere on its stand, the earth at its heart.
+ */
+function medallion(medal: string): SVGSVGElement {
+  const id = `lobby-${medal}`;
   const face = svg('svg', { viewBox: '0 0 60 60', class: 'lobby-medal', 'aria-hidden': 'true' });
   const defs = svg('defs');
   const rim = svg('linearGradient', { id: `${id}-rim`, x1: 0, y1: 0, x2: 1, y2: 1 });
@@ -142,7 +184,7 @@ function medallion(story: string): SVGSVGElement {
     // Fine seams and short waves under the keel.
     'M30 17V23M30 27V33M20 21V27M10 47Q15 45 20 47T30 47T40 47T50 47M18 51h6M30 51h7',
   ].join('');
-  const engraving = story === 'magellan' ? ship : volcano;
+  const engraving = medal === 'magellan' ? ship : medal === 'explore' ? ARMILLARY : volcano;
   const cut = svg('g', { 'clip-path': `url(#${id}-face)`, fill: 'none' });
   cut.append(
     svg('path', { d: engraving, class: 'lobby-medal-lip', transform: 'translate(0.5 0.7)' }),
@@ -155,7 +197,7 @@ function medallion(story: string): SVGSVGElement {
     svg('circle', { cx: 30, cy: 30, r: 24.2, fill: `url(#${id}-well)` }),
     cut,
   );
-  if (story === 'tambora') {
+  if (medal === 'tambora') {
     face.append(svg('ellipse', { cx: 30, cy: 27.2, rx: 2.6, ry: 1, class: 'lobby-medal-crater' }));
   }
   return face;
