@@ -8,7 +8,15 @@ import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
 import { MARK_ROW, SLOT_ROW, TABLE_WIDTH } from './marks.glsl';
-import { binDiscs, limbFade, MarkLayer, markPx, type MarkSpec, type MarkView } from './marks';
+import {
+  binDiscs,
+  limbFade,
+  MarkLayer,
+  markPx,
+  RING_MAX_RAD,
+  type MarkSpec,
+  type MarkView,
+} from './marks';
 
 /** A camera `altitude` globe radii straight above a place, a 30-degree view 1440x900 px. */
 function over([lon, lat]: LonLat, altitude: number): MarkView {
@@ -198,6 +206,31 @@ describe('MarkLayer', () => {
     const rPx = marks.placed()[0]?.rPx ?? 0;
     // Its ring at 1.35 r, half 0.07 r or 0.9 px wide, with a pixel's antialiasing.
     expect(reachPx).toBeGreaterThanOrEqual(1.35 * rPx + Math.max(0.07 * rPx, 0.9) + 1);
+  });
+
+  it('reaches, and looks as far as, a hovered parent’s wide ring', () => {
+    const marks = layer();
+    const world = over([20, 10], 2);
+    const ringRad = 0.5;
+    marks.set('events', [mark('war', [20, 10], { hover: true, hollow: true, ringRad })]);
+    marks.place(world);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const reachPx = data[SLOT_ROW * TABLE_WIDTH * 4 + 2] ?? 0;
+    const cosMin = data[MARK_ROW * TABLE_WIDTH * 4 + 11] ?? 1;
+    expect(cosMin).toBeLessThan(Math.cos(ringRad));
+    // A point on the ring, due north of the mark, 0.5 radians of arc away.
+    const north = dirOf([20, 10 + (ringRad * 180) / Math.PI]).applyMatrix4(world.toClip);
+    const [x, y] = [(north.x / 2 + 0.5) * 1440, (0.5 - north.y / 2) * 900];
+    expect(reachPx).toBeGreaterThan(Math.hypot(x - 720, y - 450));
+  });
+
+  it('draws a ring no wider than an eighth of the globe’s round', () => {
+    const marks = layer();
+    marks.set('events', [mark('empire', [20, 10], { hover: true, ringRad: 3 })]);
+    marks.place(over([20, 10], 2));
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    expect(data[MARK_ROW * TABLE_WIDTH * 4 + 11]).toBeGreaterThan(0);
+    expect(data[MARK_ROW * TABLE_WIDTH * 4 + 11]).toBeLessThan(Math.cos(RING_MAX_RAD));
   });
 
   it('holds no memory once every source has cleared its marks', () => {

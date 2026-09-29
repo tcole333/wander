@@ -73,7 +73,10 @@ export interface MarkSpec {
   hollow?: boolean;
   /** An inherited or derived place, or a date known only to the year: a softer edge, half relief. */
   soft?: boolean;
-  /** An expanded parent's extent, radians of arc: a dashed engraved ring while it is hovered. */
+  /**
+   * An expanded parent's extent, radians of arc: a dashed engraved ring while it is hovered. Rings
+   * wider than RING_MAX_RAD (about 5,000 km) are drawn at that.
+   */
   ringRad?: number;
   /** Orders marks in a crowded tile after focal and hovered ones: higher first. */
   score?: number;
@@ -138,6 +141,10 @@ const BREATH = { period: 3.2, depth: 0.2 } as const;
 const SHADOW_MAX = 0.6;
 /** A cast token's thickness, in r, for its contact shadow: its bevel's height shapes only light. */
 const TOKEN_THICKNESS = 0.45;
+/** The widest hovered ring drawn, radians of arc from its mark: an eighth of the globe's round. */
+export const RING_MAX_RAD = Math.PI / 4;
+/** How near its anchor, as a cosine, the look looks for a mark without a ring: about 26 degrees. */
+const MARK_COS_MIN = 0.9;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
 const PICK_ALPHA_MIN = 0.25;
 
@@ -241,6 +248,8 @@ interface Candidate {
   shadowX: number;
   shadowY: number;
   ring: number;
+  /** The least cosine from its anchor at which it still draws. */
+  cosMin: number;
 }
 
 /** The screen's tiles: their side, the grid's reach past each edge of the viewport, both CSS px. */
@@ -494,15 +503,20 @@ export class MarkLayer {
           shadowY = (n / flat) * length;
         }
       }
-      const ring = spec.hover && spec.ringRad ? spec.ringRad / r : 0;
+      // A hovered parent's ring: its arc's circle on the anchor's tangent plane, in r, and its
+      // reach on screen from the circle's points there.
+      const ringRad = spec.hover && spec.ringRad ? Math.min(spec.ringRad, RING_MAX_RAD) : 0;
+      const ring = Math.sin(ringRad) / r;
+      const ringPx = ringRad > 0 ? ringReachPx(entry, ringRad, x, y, view) : 0;
       // Off the view's axis a length on the globe looks longer than at the axis, by up to the
       // square of its distance over its depth.
       const pxPerR = rPx * (distance / clip.w) ** 2;
       const shadow = Math.hypot(shadowX, shadowY);
-      const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ring * pxPerR, pxPerR);
+      const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ringPx, pxPerR);
+      const cosMin = Math.min(MARK_COS_MIN, Math.cos(Math.min(1.1 * ringRad + 0.02, Math.PI / 2)));
       if (x + reachPx < -grid.pad || x - reachPx > view.width + grid.pad) continue;
       if (y + reachPx < -grid.pad || y - reachPx > view.height + grid.pad) continue;
-      candidates.push({ entry, x, y, rPx, reachPx, r, alpha, shadowX, shadowY, ring });
+      candidates.push({ entry, x, y, rPx, reachPx, r, alpha, shadowX, shadowY, ring, cosMin });
     }
     candidates.sort(byPriority);
     if (candidates.length > MARKS_MAX) candidates.length = MARKS_MAX;
@@ -533,8 +547,8 @@ export class MarkLayer {
         (spec.hover ? FLAG.hover : 0) |
         (spec.hollow ? FLAG.hollow : 0) |
         (spec.soft ? FLAG.soft : 0);
-      // Its anchor and r; its glyph's cell, family and flags and strength; its shadow's offset
-      // and its ring.
+      // Its anchor and r; its glyph's cell, family and flags and strength; its shadow's offset,
+      // its ring and the least cosine from its anchor it draws at.
       const at = markBase + m * MARK_TEXELS * 4;
       next[at] = dir.x;
       next[at + 1] = dir.y;
@@ -547,7 +561,7 @@ export class MarkLayer {
       next[at + 8] = c.shadowX;
       next[at + 9] = c.shadowY;
       next[at + 10] = c.ring;
-      next[at + 11] = 0;
+      next[at + 11] = c.cosMin;
       if (bins.binned[m] === 1) {
         this.#placed.push({ id: spec.id, x: c.x, y: c.y, rPx: c.rPx, alpha: c.alpha, dir, r: c.r });
       }
@@ -656,6 +670,29 @@ function floatTexture(data: Float32Array, width: number, height: number): DataTe
   texture.generateMipmaps = false;
   texture.needsUpdate = true;
   return texture;
+}
+
+/** How far on screen, CSS px, a ring `ringRad` of arc about a mark at (x, y) reaches from it. */
+function ringReachPx(entry: Entry, ringRad: number, x: number, y: number, view: MarkView): number {
+  const north = new Vector3().crossVectors(entry.dir, entry.east);
+  const point = new Vector3();
+  const clip = new Vector4();
+  let most = 0;
+  for (let k = 0; k < 24; k++) {
+    const bearing = (2 * Math.PI * k) / 24;
+    point
+      .copy(entry.dir)
+      .multiplyScalar(Math.cos(ringRad))
+      .addScaledVector(entry.east, Math.sin(ringRad) * Math.sin(bearing))
+      .addScaledVector(north, Math.sin(ringRad) * Math.cos(bearing));
+    clip.set(point.x, point.y, point.z, 1).applyMatrix4(view.toClip);
+    if (clip.w <= 0) continue;
+    const px = (clip.x / clip.w / 2 + 0.5) * view.width;
+    const py = (0.5 - clip.y / clip.w / 2) * view.height;
+    most = Math.max(most, Math.hypot(px - x, py - y));
+  }
+  // Between the points, the circle bows out past their chords by at most this much.
+  return most / Math.cos(Math.PI / 24);
 }
 
 /** The view's width in km where the camera's axis meets the globe (or under the camera). */
