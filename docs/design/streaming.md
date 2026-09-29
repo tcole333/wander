@@ -192,7 +192,11 @@ date the events before the reform in the Julian. Wikidata's export converts a da
 (Hastings, 14 October 1066, is exported as 20 October) but leaves a year or month as its source
 wrote it, so the events stage reads a year or month in the historical calendar: 1066 runs from
 7 January 1066 to 6 January 1067 (Gregorian), and a year- or month-dated event's date is its first
-day. Explore's history starts on 1 January 10,000 BCE in the Julian.
+day. The days in `events-curated.yaml` are written as history writes them too. A story's Meanwhile
+reads a year- or month-dated event by the year or month its source wrote, over the story's ISO days
+(701 BCE from -0700-01-01 to -0700-12-31), as the story prints it; milestone 2 reconciles the
+stories' calendar with the historical one. Explore's history starts on 1 January 10,000 BCE in the
+Julian.
 
 **Border years:** historical-basemaps names BC years historically. The build converts `world_bcN` to
 astronomical year 1 − N (`world_bc1` → 0, `world_bc123000` → −122999), and `release.json` holds only
