@@ -34,7 +34,7 @@ Paths in the docs are relative to the repo root, except the measurement citation
   `lobby/`, `view/`, `stream/`, `look/`, `scene/`, `story/`, the walk's material tokens in
   `story/ui/tokens.css`); `app/src/page/` holds the production page's room, failure plates, data
   override, Credits panel and credits styles; `app/src/prototype/` holds only the dev pages' shells
-  and harnesses.
+  and harnesses. The event worker and query modules live in `app/src/events/`.
 - `pipeline/`: the uv project for the Python prebuild (`uv run prebuild`, under Commands), which
   turns raw sources into web assets. Its config, queries and test excerpts live under it.
 - `shared/constants.json`: magics, sentinels, the layer order and the cube face table, read by
