@@ -3,6 +3,9 @@
 import { tunables, type Tier } from '../config/tunables';
 import type { EventsRelease } from '../data/release';
 import { fetchData } from '../data/surfaceLayer';
+// Bundled into the entry and started from a Blob URL, so a dive fetches nothing from Pages
+// (streaming.md 2). The dev server serves it as a module worker instead.
+import InlineEventWorker from './event.worker.ts?worker&inline';
 import type { EventQuery } from './query';
 import type { PagePlan } from './residency';
 import type { EventReply, EventRequest } from './runtime';
@@ -70,13 +73,9 @@ export class EventClient {
       this.#arrive({ type: 'error', message: event.message || 'event worker failed' });
     worker.postMessage({ type: 'init', release, tier }, []);
   }
+  /** Starts a worker of its own; dispose() ends it. Explore makes one per dive. */
   static create(release: EventsRelease, dataHost: string, tier: Tier = 'full'): EventClient {
-    return new EventClient(
-      new Worker(new URL('./event.worker.ts', import.meta.url), { type: 'module' }),
-      release,
-      dataHost,
-      { tier },
-    );
+    return new EventClient(new InlineEventWorker({ name: 'events' }), release, dataHost, { tier });
   }
   /** Coalesce to the newest desired view. A generation is assigned when drain() sends it. */
   query(query: EventQuery): void {
