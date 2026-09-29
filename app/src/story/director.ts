@@ -10,6 +10,8 @@ import type { Walk, WalkMode, WalkOptions, WalkState } from './contract';
 import { flightEase, flightPath, flightSeconds, MAX_LEAD, type FlightPath } from './flight';
 import type { LonLat, Story, StoryBeat } from './story';
 import { voyagePath } from './voyageFlight';
+import { worldClock } from '../time/worldClock';
+import { beatSpan } from './ui/format';
 
 /**
  * The readiness gate: how far into a flight it checks, and the longest it holds, in seconds. The
@@ -123,6 +125,13 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
   /** The mode a break-out left, which resume() restores. */
   let resumeMode: 'paused' | 'playing' = 'paused';
   let day = first.day;
+  const clock = options.clock ?? worldClock;
+  const widthOf = (i: number) => {
+    const span = beatSpan(beatAt(i));
+    return span.end - span.start;
+  };
+  let spanDays = widthOf(0);
+  let fromSpanDays = spanDays;
   /** Seconds since landing on the beat, and the day landed on, where a spread starts. */
   let dwelt = 0;
   let landedOn = first.day;
@@ -146,6 +155,11 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
 
   /** Tells the listeners when the beat, the mode or landing changes. */
   const changed = () => {
+    // The ruler eases its width logarithmically during a flight and uses the beat's width
+    // once landed or broken out. Its position on screen does not change the width of "now".
+    const t = state().flight ?? 1;
+    spanDays = fromSpanDays * (widthOf(beat) / fromSpanDays) ** ease(t);
+    clock.set(day, spanDays);
     const key = `${beat} ${mode} ${state().flight === null}`;
     if (key === notified) return;
     notified = key;
@@ -264,6 +278,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
     const wasOut = mode === 'breakout';
     if (wasOut) mode = resumeMode;
     if (wasOut || next !== beat) {
+      fromSpanDays = spanDays;
       const sharedRoute =
         !wasOut && Math.abs(next - beat) === 1
           ? beatAt(beat).effects.find(
@@ -299,6 +314,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
 
   if (options.arrive === 'fly') fly(beatView(first), 0);
   else control.go(beatView(first), true);
+  clock.set(day, spanDays);
 
   return {
     state,
@@ -326,6 +342,7 @@ export function createWalk(story: Story, control: ViewControl, options: WalkOpti
       if (mode !== 'breakout') breakOut();
       // Whole days, as the date plate reads them: an effect dated to a day is on from its start.
       day = Math.floor(target);
+      clock.set(day, spanDays);
     },
     flyTo(target: LonLat, viewKm: number) {
       enterBreakout();

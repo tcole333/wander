@@ -5,6 +5,7 @@ import type { Object3D, PerspectiveCamera } from 'three';
 import type { Params, SurfaceLook, ViewportCss } from '../contract';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
+import type { WorldClock } from '../time/worldClock';
 import type { RouteData } from '../data/route';
 import type { Precision } from './dates';
 import type { BordersSource } from './effects/borders';
@@ -51,6 +52,8 @@ export interface Walk {
 }
 
 export interface WalkOptions {
+  /** Shared world time; defaults to the active world's clock. */
+  clock?: WorldClock;
   /** Whether the tiles the current view needs have landed, for the flight's readiness hold. */
   ready: () => boolean;
   /** Already loaded route data, shared with the surface trace and ship; never starts a fetch. */
