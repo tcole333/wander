@@ -73,8 +73,14 @@ describe('the openings', () => {
       name: 'Battle of Waterloo',
       class: 'battle',
       day: dayFromIso('1815-06-18'),
+      precision: 'day',
       at: [4.41222, 50.67806],
     });
+  });
+
+  it('carry no Meanwhile date label, which would print Hastings as 20 October 1066', () => {
+    const hastings = openings.find((opening) => opening.qid === 'Q83224');
+    expect(hastings).not.toHaveProperty('dateLabel');
   });
 
   it('bundled, include Waterloo, each with a line, an https source and a class, up to 2000', () => {
