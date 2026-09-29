@@ -158,6 +158,11 @@ far beyond reality, especially when zoomed out. Aged-brass armillary rings, a yo
 gearwork, all lit by one warm museum lamp in a dark room. Engraved lines for coastlines, rivers,
 graticule, and borders. The active event glows ember orange.
 
+The emotional reference is Joseph Wright of Derby's *A Philosopher Lecturing on the Orrery*
+(`docs/reference/a-philosopher-lecturing-on-the-orrery.jpg`): a hidden lamp lighting the faces
+around an orrery in the dark. Materials follow the pace of what they show: the slowest history is
+cast into the bronze and the fastest is paper beside it (`docs/design/globe-language.md`).
+
 Starting palette, carried over from the first prototype:
 
 | Token | Value | Use |
