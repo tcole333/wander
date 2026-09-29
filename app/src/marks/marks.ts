@@ -603,9 +603,15 @@ export class MarkLayer {
     this.uniforms.lookMarksOn.value = candidates.length > 0;
   }
 
-  /** The marks drawn for the last draw, in priority order: those a full tile left out are not. */
+  /**
+   * The marks drawn in view for the last draw, in priority order: not those a full tile left out,
+   * nor those binned past the viewport's edges in case relief lifts them into it.
+   */
   placed(): readonly PlacedMark[] {
-    return this.#placed.map(({ id, x, y, rPx, alpha }) => ({ id, x, y, rPx, alpha }));
+    const { width, height } = this.#view;
+    return this.#placed
+      .filter(({ x, y, rPx }) => x + rPx > 0 && x - rPx < width && y + rPx > 0 && y - rPx < height)
+      .map(({ id, x, y, rPx, alpha }) => ({ id, x, y, rPx, alpha }));
   }
 
   /**

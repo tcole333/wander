@@ -326,6 +326,20 @@ describe('MarkLayer', () => {
     expect(marks.hit(720, 450)).not.toBe(last);
   });
 
+  it('lists only the marks in view, though it draws those just past its edges', () => {
+    const marks = layer();
+    // A place 20 to 60 px below the view's bottom edge.
+    const yOf = (lat: number) => (0.5 - dirOf([20, lat]).applyMatrix4(view.toClip).y / 2) * 900;
+    const lats = Array.from({ length: 40 }, (_, i) => 5 - i * 0.1);
+    const below = lats.find((lat) => yOf(lat) > 920 && yOf(lat) < 960) ?? 0;
+    marks.set('events', [mark('in', [20, 10]), mark('below', [20, below])]);
+    marks.place(view);
+    expect(marks.placed().map(({ id }) => id)).toEqual(['in']);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const slots = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => data[SLOT_ROW * TABLE_WIDTH * 4 + i * 4 + 3]);
+    expect(slots).toContain(1);
+  });
+
   it('picks no mark too faint to see', () => {
     const marks = layer();
     marks.set('events', [mark('faint', [20, 10], { opacity: 0.1 })]);
