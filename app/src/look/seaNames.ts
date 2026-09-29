@@ -239,6 +239,8 @@ export class SeaNameLayer {
     const stalled = new Promise<false>((done) => setTimeout(done, tunables.stallHeaders, false));
     const loaded = await Promise.race([faces.then(() => true).catch(() => false), stalled]);
     if (!loaded) console.warn('The sea names are lettered before their faces loaded.');
+    // The marks' glyphs first, a turn apart, before the names' canvas holds its pixels.
+    const glyphs = this.#glyphs ? await glyphShelf(this.#glyphs, ATLAS_WIDTH) : null;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('no 2D canvas');
@@ -307,7 +309,6 @@ export class SeaNameLayer {
     // Only the red channel is kept, as the R8 texture's own bytes, and the canvas's pixels go. The
     // marks' glyphs follow the names on shelves of their own.
     const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const glyphs = this.#glyphs ? glyphShelf(this.#glyphs, ATLAS_WIDTH) : null;
     const namesHeight = canvas.height;
     const height = namesHeight + (glyphs?.height ?? 0);
     const red = new Uint8Array(canvas.width * height);
