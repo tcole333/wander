@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from prebuild import events
 from prebuild import meanwhile as m
 from prebuild.profiles import Profile, make_context
 
@@ -206,6 +207,26 @@ def test_an_entry_gives_its_date_with_its_precision():
         "date": "1817-11-01",
         "precision": "month",
     }
+
+
+@pytest.mark.parametrize(
+    ("date", "precision", "first", "last"),
+    [
+        ((-700, 1, 1), events.YEAR, "-0700-01-01", "-0700-12-31"),  # 701 BCE
+        ((1521, 1, 1), events.MONTH, "1521-01-01", "1521-01-31"),  # in Magellan's lock
+    ],
+)
+def test_a_story_reads_a_year_or_month_as_its_source_wrote_it(date, precision, first, last):
+    t0, t1 = events.named_days(date, precision)  # as the events stage dates it
+    row = events.Event("Q1", "Siege", "", "battle", t0, precision, t0, t1, 0, 0, False, 1, 1, ())
+    (indexed,) = m.read_table(events.encode([row]).decode().splitlines())
+    story = m.as_story_reads(indexed)
+    assert (m.entry(story)["date"], story.dated) == (first, (m.iso_day(first), m.iso_day(last)))
+
+
+def test_a_story_reads_a_day_as_the_index_dates_it():
+    hastings = event("Q83224", 5.0, (0.49, 50.91), "1066-10-20")
+    assert m.as_story_reads(hastings) == hastings
 
 
 def test_a_written_date_and_place_stand_in_for_the_index_s():

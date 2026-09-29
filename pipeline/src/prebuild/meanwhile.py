@@ -32,6 +32,12 @@ still short of `COUNT` relaxes by `SPARSE_STEPS`: the spacing between its entrie
 Since no writer has read a month's picks, they are events with a written line, or with an English
 Wikipedia article and a place of their own (an inherited place is often a region's middle).
 
+A story writes its dates as ISO days, which the app prints as they stand (`formatDay`), so the
+stage reads an event dated to a year or month by the year or month its source wrote: 701 BCE
+counts from -0700-01-01 to -0700-12-31, and its entry is dated -0700-01-01. The index dates such
+an event by its first day in the historical calendar (Julian before 15 October 1582), which
+Explore reads; milestone 2 reconciles the stories' calendar with it (issue #79).
+
 An entry shows its written line where it has one, else its Wikidata label, and cites the line's
 source, else its Wikipedia article; each list is in date order. The lobby's glows are the
 `GLOW_COUNT` best-scored events of every era with a place of their own, each at least
@@ -160,7 +166,7 @@ def run(ctx: Context) -> None:
         )
     lines = read_lines(folder / "meanwhile.yaml")
     with gzip.open(table, "rt", encoding="utf-8") as stream:
-        index = [as_written(e, lines.get(e.qid)) for e in read_table(stream)]
+        index = [as_written(as_story_reads(e), lines.get(e.qid)) for e in read_table(stream)]
     contested = load_contested_events()
     by_beat = beat_lists(beats, index, written=set(lines), contested=contested)
     by_month = month_lists(beats, index, written=set(lines), contested=contested)
@@ -496,6 +502,15 @@ def written_date(text: str) -> tuple[int, int, int]:
         )
     day = iso_day(text)
     return day, day, events.DAY
+
+
+def as_story_reads(event: Event) -> Event:
+    """The event dated as a story reads it: a year or month from the first day its source wrote
+    it, as an ISO day. The index dates it by that day in the historical calendar instead
+    (`events.named_days`), 701 BCE by the Gregorian 24 December 702 BCE."""
+    if event.precision >= events.DAY:
+        return event
+    return replace(event, date=day_number(*events.historical(civil(event.date))))
 
 
 def as_written(event: Event, written: Mapping[str, Any] | None) -> Event:
