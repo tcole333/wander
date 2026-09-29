@@ -1,0 +1,111 @@
+# The events Explore opens on (docs/design/streaming.md 3.4): each an event of the index, with the
+# line its plate pins on landing, in the walk's voice, and the source that line rests on. `date`
+# gives the day a source dates the event to where the index holds only its month or year, or
+# another day, as an ISO day in the proleptic Gregorian calendar the index uses. A line never
+# names a day and month other than the event's date as its sources give it (Julian before
+# 15 October 1582). `uv run prebuild openings` checks the list against the event index and writes
+# openings.lock.json beside it, which the app bundles and event-files forces into the overview.
+
+Q203729:
+  line: At Kadesh, Ramesses II's Egyptians meet Muwatalli II's Hittites with thousands of chariots
+  source: {title: Battle of Kadesh (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Kadesh"}
+
+Q31900:
+  line: At Marathon, Athens and Plataea crush the Persian army sent to conquer Greece
+  source: {title: Battle of Marathon (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Marathon"}
+
+Q200056:
+  line: At Zama, Scipio defeats Hannibal, and Carthage surrenders, ending the Second Punic War
+  source: {title: Battle of Zama (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Zama"}
+
+Q1025466:
+  line: On the Ides of March, senators stab Julius Caesar to death at a meeting of the Senate
+  source: {title: Assassination of Julius Caesar (Wikipedia), url: "https://en.wikipedia.org/wiki/Assassination_of_Julius_Caesar"}
+
+Q2411998:
+  line: Vesuvius erupts, burying Pompeii and Herculaneum under ash and pyroclastic surges
+  source: {title: Eruption of Mount Vesuvius in 79 AD (Wikipedia), url: "https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD"}
+
+Q83224:
+  line: At Hastings, King Harold falls, and William of Normandy begins the conquest of England
+  source: {title: Battle of Hastings (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Hastings"}
+
+Q369560:
+  line: Hülegü's Mongols besiege and sack Baghdad, ending the 500-year-old Abbasid Caliphate
+  source: {title: Siege of Baghdad (1258) (Wikipedia), url: "https://en.wikipedia.org/wiki/Siege_of_Baghdad_(1258)"}
+
+Q160077:
+  line: Mehmed II besieges Constantinople, whose fall ends the Roman Empire after nearly 1,500 years
+  source: {title: Fall of Constantinople (Wikipedia), url: "https://en.wikipedia.org/wiki/Fall_of_Constantinople"}
+
+Q593267:
+  line: Cortés and his Tlaxcaltec allies besiege Tenochtitlan, the Mexica capital, until it falls
+  source: {title: Fall of Tenochtitlan (Wikipedia), url: "https://en.wikipedia.org/wiki/Fall_of_Tenochtitlan"}
+
+Q191293:
+  line: An earthquake shakes Shaanxi, collapsing the loess cave homes cut into its cliffs
+  source: {title: 1556 Shaanxi earthquake (Wikipedia), url: "https://en.wikipedia.org/wiki/1556_Shaanxi_earthquake"}
+
+Q234188:
+  line: At Sekigahara, Tokugawa Ieyasu defeats Ishida Mitsunari, and the Tokugawa age begins
+  source: {title: Battle of Sekigahara (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Sekigahara"}
+
+Q164679:
+  line: Fire breaks out in a Pudding Lane bakery and burns the City of London, Old St Paul's with it
+  source: {title: Great Fire of London (Wikipedia), url: "https://en.wikipedia.org/wiki/Great_Fire_of_London"}
+
+Q191055:
+  line: On All Saints' Day, an earthquake, a tsunami and fire destroy most of Lisbon
+  source: {title: 1755 Lisbon earthquake (Wikipedia), url: "https://en.wikipedia.org/wiki/1755_Lisbon_earthquake"}
+
+Q203233:
+  line: At Plassey, Robert Clive's East India Company army defeats the Nawab of Bengal
+  source: {title: Battle of Plassey (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Plassey"}
+
+Q127912:
+  line: In Philadelphia, the Second Continental Congress adopts the Declaration of Independence
+  source: {title: United States Declaration of Independence (Wikipedia), url: "https://en.wikipedia.org/wiki/United_States_Declaration_of_Independence"}
+
+Q505802:
+  line: Lewis and Clark's Corps of Discovery sets out up the Missouri, bound for the Pacific
+  source: {title: Lewis and Clark Expedition (Wikipedia), url: "https://en.wikipedia.org/wiki/Lewis_and_Clark_Expedition"}
+
+Q48314:
+  line: At Waterloo, Wellington and Blücher defeat Napoleon in his last battle
+  source: {title: Battle of Waterloo (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Waterloo"}
+
+Q1564366:
+  line: HMS Beagle reaches the Galápagos, where Darwin spends five weeks among giant tortoises
+  date: "1835-09-15"
+  source: {title: Historical significance (Galapagos Conservation Trust), url: "https://galapagosconservation.org.uk/about-galapagos/historical-significance/"}
+
+Q188371:
+  line: Blight rots Ireland's potatoes; a million die in the famine, and a million more emigrate
+  source: {title: Great Famine (Ireland) (Wikipedia), url: "https://en.wikipedia.org/wiki/Great_Famine_(Ireland)"}
+
+Q8094772:
+  line: Krakatoa's explosion is heard 4,800 km away, and its tsunamis sweep Java and Sumatra
+  date: "1883-08-27"
+  source: {title: 1883 eruption of Krakatoa (Wikipedia), url: "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"}
+
+Q302519:
+  line: At Adwa, Menelik II's army defeats Italy's invaders and secures Ethiopia's sovereignty
+  source: {title: Battle of Adwa (Wikipedia), url: "https://en.wikipedia.org/wiki/Battle_of_Adwa"}
+
+Q211386:
+  line: An earthquake on the San Andreas Fault shakes San Francisco, and fires burn for four days
+  source: {title: 1906 San Francisco earthquake (Wikipedia), url: "https://en.wikipedia.org/wiki/1906_San_Francisco_earthquake"}
+
+Q2577588:
+  line: On her maiden voyage, the Titanic sinks after striking an iceberg, and some 1,500 people die
+  date: "1912-04-15"
+  source: {title: Titanic (Wikipedia), url: "https://en.wikipedia.org/wiki/Titanic"}
+
+Q52418:
+  line: Japanese carrier planes strike the US fleet at Pearl Harbor, and America enters the war
+  source: {title: Attack on Pearl Harbor (Wikipedia), url: "https://en.wikipedia.org/wiki/Attack_on_Pearl_Harbor"}
+
+Q212618:
+  line: The strongest earthquake ever recorded strikes Chile, and its tsunami crosses the Pacific
+  date: "1960-05-22"
+  source: {title: 1960 Valdivia earthquake (Wikipedia), url: "https://en.wikipedia.org/wiki/1960_Valdivia_earthquake"}

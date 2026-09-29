@@ -16,6 +16,7 @@ from prebuild import (
     meanwhile,
     media,
     modera,
+    openings,
     surface,
     wikidata,
 )
@@ -35,6 +36,7 @@ STAGES: dict[str, Runner] = {
     "surface": surface.run,
     "borders": borders.run,
     "events": events.run,
+    "openings": openings.run,
     "event-files": event_files.run,
     "modera": modera.run,
     "fx": fx.run,
@@ -42,15 +44,16 @@ STAGES: dict[str, Runner] = {
     "meanwhile": meanwhile.run,
 }
 
-# A run with no stage named leaves these out: wikidata and excerpts rewrite committed files, and
-# media and meanwhile build the one story named with --story.
-NAMED_ONLY = frozenset({"wikidata", "excerpts", "media", "meanwhile"})
+# A run with no stage named leaves these out: wikidata, excerpts and openings rewrite committed
+# files, and media and meanwhile build the one story named with --story.
+NAMED_ONLY = frozenset({"wikidata", "excerpts", "openings", "media", "meanwhile"})
 # Each builds the story named with --story.
 STORY_STAGES = frozenset({"media", "meanwhile"})
 # The fixture reads only committed excerpts, so it never runs the stages that read raw data.
 # Borders tests draw synthetic snapshots (borders.py). Meanwhile also stays out until it has a
-# fixture story and lock of its own: a fixture build must never rewrite the Tambora lock.
-RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "borders", "meanwhile"})
+# fixture story and lock of its own: a fixture build must never rewrite the Tambora lock. Openings
+# stays out too: its lock is checked against the whole index, which the fixture holds a slice of.
+RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "borders", "meanwhile", "openings"})
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
@@ -76,6 +79,8 @@ def plan(
         if profile is Profile.FIXTURE and name in RAW_DATA_ONLY:
             if name == "meanwhile":
                 parser.error("meanwhile needs a fixture story and lock of its own")
+            if name == "openings":
+                parser.error("openings checks its list against the whole event index")
             parser.error(f"the fixture profile reads no raw data, so it does not run {name}")
     for name in STORY_STAGES & set(named):
         if args.story is None:
@@ -122,8 +127,8 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         description="Turn Wander's raw sources into web-ready assets (streaming.md 7.1).",
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
-            "wikidata, excerpts, media and meanwhile; the fixture profile also skips fetch "
-            "and borders."
+            "wikidata, excerpts, openings, media and meanwhile; the fixture profile also skips "
+            "fetch and borders."
         ),
     )
     parser.add_argument(

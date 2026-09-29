@@ -1,0 +1,405 @@
+{
+  "table": "df5913e7b6a3b966cba31308592f6e71dac05242039621b7f0e001de75b5d49d",
+  "openings": [
+    {
+      "qid": "Q203729",
+      "label": "Battle of Kadesh",
+      "date": "-1273-05-01",
+      "precision": "month",
+      "at": [
+        36.49803,
+        34.55549
+      ],
+      "line": "At Kadesh, Ramesses II's Egyptians meet Muwatalli II's Hittites with thousands of chariots",
+      "source": {
+        "title": "Battle of Kadesh (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Kadesh"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q31900",
+      "label": "Battle of Marathon",
+      "date": "-0489-08-07",
+      "precision": "day",
+      "at": [
+        23.97833,
+        38.11806
+      ],
+      "line": "At Marathon, Athens and Plataea crush the Persian army sent to conquer Greece",
+      "source": {
+        "title": "Battle of Marathon (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Marathon"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q200056",
+      "label": "Battle of Zama",
+      "date": "-0201-10-15",
+      "precision": "day",
+      "at": [
+        9.44917,
+        36.29889
+      ],
+      "line": "At Zama, Scipio defeats Hannibal, and Carthage surrenders, ending the Second Punic War",
+      "source": {
+        "title": "Battle of Zama (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Zama"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q1025466",
+      "label": "Assassination of Julius Caesar",
+      "date": "-0043-03-13",
+      "precision": "day",
+      "at": [
+        12.47695,
+        41.89528
+      ],
+      "line": "On the Ides of March, senators stab Julius Caesar to death at a meeting of the Senate",
+      "source": {
+        "title": "Assassination of Julius Caesar (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Assassination_of_Julius_Caesar"
+      },
+      "class": "assassination"
+    },
+    {
+      "qid": "Q2411998",
+      "label": "Eruption of Mount Vesuvius in 79",
+      "date": "0079-10-22",
+      "precision": "day",
+      "at": [
+        14.44278,
+        40.82139
+      ],
+      "line": "Vesuvius erupts, burying Pompeii and Herculaneum under ash and pyroclastic surges",
+      "source": {
+        "title": "Eruption of Mount Vesuvius in 79 AD (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD"
+      },
+      "class": "natural disaster"
+    },
+    {
+      "qid": "Q83224",
+      "label": "Battle of Hastings",
+      "date": "1066-10-20",
+      "precision": "day",
+      "at": [
+        0.4875,
+        50.91195
+      ],
+      "line": "At Hastings, King Harold falls, and William of Normandy begins the conquest of England",
+      "source": {
+        "title": "Battle of Hastings (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Hastings"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q369560",
+      "label": "Siege of Baghdad",
+      "date": "1258-02-05",
+      "precision": "day",
+      "at": [
+        44.335,
+        33.3475
+      ],
+      "line": "Hülegü's Mongols besiege and sack Baghdad, ending the 500-year-old Abbasid Caliphate",
+      "source": {
+        "title": "Siege of Baghdad (1258) (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Siege_of_Baghdad_(1258)"
+      },
+      "class": "massacre"
+    },
+    {
+      "qid": "Q160077",
+      "label": "Fall of Constantinople",
+      "date": "1453-04-15",
+      "precision": "day",
+      "at": [
+        28.935,
+        41.03
+      ],
+      "line": "Mehmed II besieges Constantinople, whose fall ends the Roman Empire after nearly 1,500 years",
+      "source": {
+        "title": "Fall of Constantinople (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Fall_of_Constantinople"
+      },
+      "class": "conquest"
+    },
+    {
+      "qid": "Q593267",
+      "label": "Fall of Tenochtitlan",
+      "date": "1521-05-20",
+      "precision": "day",
+      "at": [
+        -99.13139,
+        19.435
+      ],
+      "line": "Cortés and his Tlaxcaltec allies besiege Tenochtitlan, the Mexica capital, until it falls",
+      "source": {
+        "title": "Fall of Tenochtitlan (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Fall_of_Tenochtitlan"
+      },
+      "class": "siege"
+    },
+    {
+      "qid": "Q191293",
+      "label": "1556 Shaanxi earthquake",
+      "date": "1556-02-02",
+      "precision": "day",
+      "at": [
+        109.7,
+        34.5
+      ],
+      "line": "An earthquake shakes Shaanxi, collapsing the loess cave homes cut into its cliffs",
+      "source": {
+        "title": "1556 Shaanxi earthquake (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/1556_Shaanxi_earthquake"
+      },
+      "class": "natural disaster"
+    },
+    {
+      "qid": "Q234188",
+      "label": "Battle of Sekigahara",
+      "date": "1600-10-21",
+      "precision": "day",
+      "at": [
+        136.4616,
+        35.3705
+      ],
+      "line": "At Sekigahara, Tokugawa Ieyasu defeats Ishida Mitsunari, and the Tokugawa age begins",
+      "source": {
+        "title": "Battle of Sekigahara (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Sekigahara"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q164679",
+      "label": "Great Fire of London",
+      "date": "1666-09-02",
+      "precision": "day",
+      "at": [
+        -0.0921,
+        51.5157
+      ],
+      "line": "Fire breaks out in a Pudding Lane bakery and burns the City of London, Old St Paul's with it",
+      "source": {
+        "title": "Great Fire of London (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      },
+      "class": "conflagration"
+    },
+    {
+      "qid": "Q191055",
+      "label": "1755 Lisbon earthquake",
+      "date": "1755-11-01",
+      "precision": "day",
+      "at": [
+        -11.0,
+        36.0
+      ],
+      "line": "On All Saints' Day, an earthquake, a tsunami and fire destroy most of Lisbon",
+      "source": {
+        "title": "1755 Lisbon earthquake (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/1755_Lisbon_earthquake"
+      },
+      "class": "natural disaster"
+    },
+    {
+      "qid": "Q203233",
+      "label": "Battle of Plassey",
+      "date": "1757-06-23",
+      "precision": "day",
+      "at": [
+        88.25,
+        23.8
+      ],
+      "line": "At Plassey, Robert Clive's East India Company army defeats the Nawab of Bengal",
+      "source": {
+        "title": "Battle of Plassey (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Plassey"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q127912",
+      "label": "United States Declaration of Independence",
+      "date": "1776-07-04",
+      "precision": "day",
+      "at": [
+        -75.15,
+        39.9489
+      ],
+      "line": "In Philadelphia, the Second Continental Congress adopts the Declaration of Independence",
+      "source": {
+        "title": "United States Declaration of Independence (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/United_States_Declaration_of_Independence"
+      },
+      "class": "declaration of independence"
+    },
+    {
+      "qid": "Q505802",
+      "label": "Lewis and Clark Expedition",
+      "date": "1804-05-14",
+      "precision": "day",
+      "at": [
+        -90.10125,
+        38.80272
+      ],
+      "line": "Lewis and Clark's Corps of Discovery sets out up the Missouri, bound for the Pacific",
+      "source": {
+        "title": "Lewis and Clark Expedition (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Lewis_and_Clark_Expedition"
+      },
+      "class": "expedition"
+    },
+    {
+      "qid": "Q48314",
+      "label": "Battle of Waterloo",
+      "date": "1815-06-18",
+      "precision": "day",
+      "at": [
+        4.41222,
+        50.67806
+      ],
+      "line": "At Waterloo, Wellington and Blücher defeat Napoleon in his last battle",
+      "source": {
+        "title": "Battle of Waterloo (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Waterloo"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q1564366",
+      "label": "Second voyage of HMS Beagle",
+      "date": "1835-09-15",
+      "precision": "day",
+      "at": [
+        -91.02528,
+        -0.59278
+      ],
+      "line": "HMS Beagle reaches the Galápagos, where Darwin spends five weeks among giant tortoises",
+      "source": {
+        "title": "Historical significance (Galapagos Conservation Trust)",
+        "url": "https://galapagosconservation.org.uk/about-galapagos/historical-significance/"
+      },
+      "class": "expedition"
+    },
+    {
+      "qid": "Q188371",
+      "label": "Great Irish Famine",
+      "date": "1845-01-01",
+      "precision": "year",
+      "at": [
+        -7.921,
+        53.351
+      ],
+      "line": "Blight rots Ireland's potatoes; a million die in the famine, and a million more emigrate",
+      "source": {
+        "title": "Great Famine (Ireland) (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Great_Famine_(Ireland)"
+      },
+      "class": "famine"
+    },
+    {
+      "qid": "Q8094772",
+      "label": "1883 eruption of Krakatoa",
+      "date": "1883-08-27",
+      "precision": "day",
+      "at": [
+        105.423,
+        -6.102
+      ],
+      "line": "Krakatoa's explosion is heard 4,800 km away, and its tsunamis sweep Java and Sumatra",
+      "source": {
+        "title": "1883 eruption of Krakatoa (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+      },
+      "class": "natural disaster"
+    },
+    {
+      "qid": "Q302519",
+      "label": "Battle of Adwa",
+      "date": "1896-03-01",
+      "precision": "day",
+      "at": [
+        38.97333,
+        14.01889
+      ],
+      "line": "At Adwa, Menelik II's army defeats Italy's invaders and secures Ethiopia's sovereignty",
+      "source": {
+        "title": "Battle of Adwa (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Battle_of_Adwa"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q211386",
+      "label": "1906 San Francisco earthquake",
+      "date": "1906-04-18",
+      "precision": "day",
+      "at": [
+        -122.55,
+        37.75
+      ],
+      "line": "An earthquake on the San Andreas Fault shakes San Francisco, and fires burn for four days",
+      "source": {
+        "title": "1906 San Francisco earthquake (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/1906_San_Francisco_earthquake"
+      },
+      "class": "natural disaster"
+    },
+    {
+      "qid": "Q2577588",
+      "label": "Sinking of the RMS Titanic",
+      "date": "1912-04-15",
+      "precision": "day",
+      "at": [
+        -49.94583,
+        41.73195
+      ],
+      "line": "On her maiden voyage, the Titanic sinks after striking an iceberg, and some 1,500 people die",
+      "source": {
+        "title": "Titanic (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Titanic"
+      },
+      "class": "shipwreck"
+    },
+    {
+      "qid": "Q52418",
+      "label": "Attack on Pearl Harbor",
+      "date": "1941-12-07",
+      "precision": "day",
+      "at": [
+        -157.95,
+        21.365
+      ],
+      "line": "Japanese carrier planes strike the US fleet at Pearl Harbor, and America enters the war",
+      "source": {
+        "title": "Attack on Pearl Harbor (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Attack_on_Pearl_Harbor"
+      },
+      "class": "battle"
+    },
+    {
+      "qid": "Q212618",
+      "label": "1960 Valdivia earthquake",
+      "date": "1960-05-22",
+      "precision": "day",
+      "at": [
+        -73.407,
+        -38.143
+      ],
+      "line": "The strongest earthquake ever recorded strikes Chile, and its tsunami crosses the Pacific",
+      "source": {
+        "title": "1960 Valdivia earthquake (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/1960_Valdivia_earthquake"
+      },
+      "class": "natural disaster"
+    }
+  ]
+}
