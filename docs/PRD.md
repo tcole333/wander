@@ -285,10 +285,13 @@ ongoing work that starts in v1.
    milestone builds), synthesized sound, and deployment. The layers panel, polity names, Read more,
    the globe's events layer, and the time ruler's zoom out to centuries with its deep-time segment
    stay in v1 and move to later milestones, and the polish items to milestone 4.
-2. **Magellan.**
-3. **The Century of Oil, the Black Death, and the Gold Rush.**
-4. **Polish to the v1 bar,** including the article view, reduced motion, deep links, a way back to
-   the lobby, quality tiers, and the checks on lower-end machines and in Safari and Firefox.
+2. **Magellan.** Live since 28 September 2026.
+3. **The globe through time, and three more stories.** The six pace layers' marks, chosen on
+   renders; where people lived, with the time ruler's zoom out to centuries; and the stories: the
+   Century of Oil, with the petroleum provinces lit by each country's production, then the Black
+   Death and the Gold Rush.
+4. **Polish to the v1 bar,** including the article view, reduced motion, deep links, quality tiers,
+   and the checks on lower-end machines and in Safari and Firefox.
 5. **v1.1: open-world exploration.**
 
 ## Open questions
