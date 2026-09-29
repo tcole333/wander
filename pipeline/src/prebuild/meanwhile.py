@@ -104,6 +104,7 @@ class Event:
     inherited: bool
     score: float
     parents: tuple[str, ...]
+    cls: str = ""  # the class's name in event-classes.yaml
 
     @property
     def dated(self) -> tuple[int, int]:
@@ -528,7 +529,7 @@ def as_written(event: Event, written: Mapping[str, Any] | None) -> Event:
 
 
 def read_table(lines: Iterable[str]) -> list[Event]:
-    """The event index, in its score order."""
+    """The event index, in its score order, with each event's class."""
     rows = iter(lines)
     header = tuple(next(rows, "").rstrip("\n").split("\t"))
     if header != events.COLUMNS:
@@ -549,6 +550,7 @@ def read_table(lines: Iterable[str]) -> list[Event]:
                 inherited=row["inherited"] == "1",
                 score=float(row["score"]),
                 parents=tuple(row["parents"].split()),
+                cls=row["class"],
             )
         )
     return index
