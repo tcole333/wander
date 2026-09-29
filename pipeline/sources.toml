@@ -434,6 +434,41 @@ source_url = "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.txt"
 bytes = 3696
 sha256 = "3eea72f254116cd43275fa33b0ed201b14550e6ba21e4d6b4482c24a95f98ab7"
 
+# Our World in Data's long-run population by country and region, for the population ring (issue
+# #85). population.csv is the chart's full CSV (entity, code, year, population_historical): 58,824
+# rows of 269 entities, with World (OWID_WRL) every 1,000 years from 10000 BCE to year 0, every 100
+# years to 1700, every 10 years to 1800 and every year to 2023. 953903.metadata.json is the
+# indicator's full metadata from OWID's API: its method and each source's version, citation and
+# license. OWID joins HYDE 3.3 (2023) for 10000 BCE to 1799, Gapminder's Population v7 (2022) for
+# 1800 to 1949 and the UN's World Population Prospects 2024 from 1950, with Gapminder's Systema
+# Globalis for former countries; World is HYDE's before 1800, the sum of the countries to 1949 and
+# the UN's after. HYDE 3.3 is newer than the HYDE 3.2.1 pinned for settled land, so the ring and
+# the map can disagree before 1800. The chart page puts OWID's own work under CC BY 4.0 and leaves
+# the sources their own terms, which the metadata gives as CC BY 4.0 for HYDE and Gapminder and CC
+# BY 3.0 IGO for the UN's. The attribution is the full citation the metadata asks for. Both files
+# are generated per request but byte-identical until OWID updates the dataset (next, its metadata
+# says, on 2026-12-15); after that a download fails its sha256 and the pin is renewed.
+[owid-population]
+name = "Our World in Data, Population (HYDE, Gapminder, UN), long-run data from 10,000 BCE"
+version = "dataset demography/2024-07-15, indicator 953903 (population_historical) updated 2026-09-10"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "HYDE (2023); Gapminder (2022); UN WPP (2024) – with major processing by Our World in Data. “Population – HYDE, Gapminder, UN – Long-run data” [dataset]. PBL Netherlands Environmental Assessment Agency, “History Database of the Global Environment 3.3”; Gapminder, “Population v7”; United Nations, “World Population Prospects”; United Nations, “World Population Prospects – Interim Update”; Gapminder, “Systema Globalis” [original data]."
+landing_page = "https://ourworldindata.org/grapher/population"
+retrieved = "2026-09-29"
+
+[[owid-population.files]]
+path = "sources/owid-population/population.csv"
+source_url = "https://ourworldindata.org/grapher/population.csv?v=1&csvType=full&useColumnShortNames=true"
+bytes = 1594193
+sha256 = "31c97de9a52df0792e34c4bb5ee80bf266cfa12bc0587c829715e0829a97a536"
+
+[[owid-population.files]]
+path = "sources/owid-population/953903.metadata.json"
+source_url = "https://api.ourworldindata.org/v1/indicators/953903.metadata.json"
+bytes = 36727
+sha256 = "1bdb7d75acc983d436241c4e5b47c8fca5434f4df3f37b28f04e1d4364c17ec8"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.

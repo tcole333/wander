@@ -66,6 +66,7 @@ def test_the_registry_pins_each_source_and_its_files():
         "antarctic-co2-composite-2015": ["antarctica2015co2composite-noaa.txt"],
         "law-dome-co2-2019": ["law2018co2-noaa.txt", "law2018splines-noaa.txt"],
         "noaa-gml-mauna-loa-co2": ["co2_annmean_mlo.txt", "co2_mm_mlo.txt"],
+        "owid-population": ["953903.metadata.json", "population.csv"],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
