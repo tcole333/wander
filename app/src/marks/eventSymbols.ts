@@ -2,10 +2,11 @@
 // docs/design/globe-language.md, "Speeds and pace layers": an event belongs to the pace layer it
 // jolts). An event has one class, the heaviest it was exported under, and the overview .wev names
 // the classes its rows index (events/page.ts). Nature takes the disasters, epidemics and drought;
-// governance the wars, battles, sieges, treaties, uprisings, famines and atrocities, with one glyph
-// for every atrocity; infrastructure the shipwrecks, expeditions and conflagrations. A glyph
-// belongs to one family, so every class that shares a glyph shares its pace layer. A storm's glyph
-// turns with its hemisphere, so an event's glyph goes through glyphAt with its latitude.
+// governance the wars, battles, sieges, treaties, uprisings, famines, assassinations and
+// atrocities, with one glyph for every atrocity; infrastructure the shipwrecks, expeditions and
+// conflagrations. A glyph belongs to one family, so every class that shares a glyph shares its
+// pace layer. A storm's glyph turns with its hemisphere, so an event's glyph goes through glyphAt
+// with its latitude.
 import type { Pace } from './families';
 import type { GlyphId } from './symbols';
 
@@ -27,7 +28,7 @@ export const EVENT_CLASS_SYMBOLS = {
   treaty: { pace: 'governance', glyph: 'treaty' },
   'volcanic eruption': { pace: 'nature', glyph: 'eruption' },
   earthquake: { pace: 'nature', glyph: 'quake' },
-  assassination: { pace: 'governance', glyph: 'atrocity' },
+  assassination: { pace: 'governance', glyph: 'assassination' },
   coup: { pace: 'governance', glyph: 'uprising' },
   massacre: { pace: 'governance', glyph: 'atrocity' },
   battle: { pace: 'governance', glyph: 'battle' },
