@@ -348,6 +348,60 @@ source_url = "https://www.sciencebase.gov/catalog/file/get/594d3c8ee4b062508e39b
 bytes = 23435
 sha256 = "60cedfec2147f5e0787a5a1b475abb982fc94c0481d7e6a95b76b30952e39c01"
 
+# Bereiter et al.'s Antarctic ice-core CO2 composite of the last 800,000 years, for the
+# instrument's CO2 ring (issue #85) before Law Dome's record begins. The NOAA template file, a
+# `#` header and then tab-separated age_gas_calBP (years before 1950), co2_ppm and co2_1s_ppm:
+# 1,901 rows from -51 to 805,669 yr BP. The composite takes Law Dome to 2 kyr BP (Rubino et al.
+# 2013 to 1.8 kyr, which law-dome-co2-2019 revises), Dome C from 2 to 11 kyr BP (Monnin et al.
+# 2001, 2004) and WAIS, less 4 ppm, from 11 to 22 kyr BP; ages are on AICC2012 except for Law Dome,
+# WAIS and Siple Dome. antarctica2015co2composite.txt beside it on NCEI holds the same rows in the
+# archive's older format. The study's metadata (its JSON and ISO records, which the landing page
+# renders) states no license: its use constraint asks that the publication, the landing page, the
+# dataset and publication DOIs and the date accessed be cited.
+[antarctic-co2-composite-2015]
+name = "Antarctic ice cores revised 800,000-year CO2 composite (Bereiter et al. 2015), NOAA/WDS Paleoclimatology"
+version = "NOAA/WDS Paleo study 17975, template file last modified 2024-08-16"
+license = "No license stated (NOAA/WDS Paleoclimatology's use constraint: cite the publication, landing page, DOIs and date accessed)"
+license_url = "https://www.ncei.noaa.gov/pub/data/metadata/published/paleo/iso/xml/noaa-icecore-17975.xml"
+attribution = "Bereiter et al. (2015), Revision of the EPICA Dome C CO2 record from 800 to 600 kyr before present, Geophysical Research Letters 42:542-549, DOI 10.1002/2014GL061957; data: NOAA/WDS Paleoclimatology, Antarctic Ice Cores Revised 800KYr CO2 Data, DOI 10.25921/n8y4-bp27, https://www.ncei.noaa.gov/access/paleo-search/study/17975, accessed 2026-09-29."
+landing_page = "https://www.ncei.noaa.gov/access/paleo-search/study/17975"
+retrieved = "2026-09-29"
+
+[[antarctic-co2-composite-2015.files]]
+path = "sources/antarctic-co2-composite-2015/antarctica2015co2composite-noaa.txt"
+source_url = "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/antarctica2015co2composite-noaa.txt"
+bytes = 51875
+sha256 = "40c9c175ab754530be3ecc53d2ac833c1979804f8a1bcccae185af66679ac08f"
+
+# Rubino et al.'s revised Law Dome record of the last 2,000 years, for the CO2 ring from 154 CE
+# until Mauna Loa's record begins. law2018co2-noaa.txt holds the 321 ice-core and firn-air samples
+# (SampleID, age_ice, age_CO2 in years CE, CO2ppm, CO2err), 154 to 1996 CE; law2018splines-noaa.txt
+# the annual spline fits of each gas from 154 to 1996 CE (age_gas, then a spline and its growth
+# rate per gas, NA where a gas has no value), of which CO2spl is a 20-year spline. NCEI's study
+# metadata states no license, only its request to cite; the paper's data availability names the
+# CSIRO Data Access Portal's record (DOI 10.25919/5bfe29ff807fb), which describes the data as NCEI's
+# study does and which DataCite lists under CC BY 4.0, so the record is credited under CC BY 4.0.
+[law-dome-co2-2019]
+name = "Law Dome, Antarctica 2000-year ice-core CO2 record and spline fits (Rubino et al. 2019), NOAA/WDS Paleoclimatology"
+version = "NOAA/WDS Paleo study 25830, template files last modified 2024-08-18"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Rubino et al. (2019), Revised records of atmospheric trace gases CO2, CH4, N2O, and δ13C-CO2 over the last 2000 years from Law Dome, Antarctica, Earth System Science Data 11:473-492, DOI 10.5194/essd-11-473-2019; data DOIs 10.25921/dwg2-6m61 (NOAA/WDS Paleoclimatology) and 10.25919/5bfe29ff807fb (CSIRO)."
+landing_page = "https://www.ncei.noaa.gov/access/paleo-search/study/25830"
+retrieved = "2026-09-29"
+
+[[law-dome-co2-2019.files]]
+path = "sources/law-dome-co2-2019/law2018co2-noaa.txt"
+source_url = "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/law/law2018co2-noaa.txt"
+bytes = 17777
+sha256 = "c69deb93a84c3d8665a657dfdaeecfd98ab0537505a9ea3abf5cf6c24204ea3d"
+
+[[law-dome-co2-2019.files]]
+path = "sources/law-dome-co2-2019/law2018splines-noaa.txt"
+source_url = "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/law/law2018splines-noaa.txt"
+bytes = 113746
+sha256 = "2088e8835d711e127a68c702952f0f36104ab4923b3fd5c0fa096a39c7f7e7ae"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
