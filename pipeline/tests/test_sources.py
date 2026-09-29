@@ -48,6 +48,16 @@ def test_the_registry_pins_each_source_and_its_files():
             "modelskiModernV2.csv",
         ],
         "resolve-ecoregions-2017": ["Ecoregions2017.zip"],
+        "usgs-world-petroleum-provinces-2000": [
+            "WEP_PRVG.DBF",
+            "WEP_PRVG.SHP",
+            "WEP_PRVG.SHX",
+            "WEP_PRVG.prj",
+            "WEP_PRVG.sbn",
+            "WEP_PRVG.sbx",
+            "WEP_PRVG.xml",
+            "wep_prvg.jpg",
+        ],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
