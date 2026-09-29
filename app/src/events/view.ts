@@ -20,6 +20,42 @@ export interface ScreenPoint {
   visible: boolean;
 }
 
+/**
+ * The frame a view is read from: scene/frameContext.ts's FrameContext as the boot places it each
+ * frame, in the plain shapes of three's matrices and vectors, so the worker never loads three.
+ */
+export interface ViewFrame {
+  /** The camera, its projection carrying the lens's offset (camera.setViewOffset). */
+  cam: { projectionMatrix: { elements: ArrayLike<number> } } | null;
+  /** The globe frame as the camera sees it: view matrix times the globe's world matrix. */
+  toView: { elements: ArrayLike<number> };
+  /** The camera's position in the globe frame. */
+  camera: { x: number; y: number; z: number };
+  /** The viewport in CSS px. */
+  viewport: { width: number; height: number };
+}
+
+/**
+ * The event query's view of the frame just placed: the camera's projection, lens offset included,
+ * times the globe frame as the camera sees it, so the worker projects each event where the look
+ * draws it at sea level.
+ */
+export function eventViewOf(frame: ViewFrame): EventView {
+  if (!frame.cam) throw new Error('the frame has not been placed');
+  const p = frame.cam.projectionMatrix.elements;
+  const v = frame.toView.elements;
+  const matrix = new Array<number>(16);
+  // Column-major: the product's column c, row r.
+  for (let c = 0; c < 4; c++)
+    for (let r = 0; r < 4; r++) {
+      let sum = 0;
+      for (let k = 0; k < 4; k++) sum += p[k * 4 + r]! * v[c * 4 + k]!;
+      matrix[c * 4 + r] = sum;
+    }
+  const { x, y, z } = frame.camera;
+  return { matrix, camera: [x, y, z], width: frame.viewport.width, height: frame.viewport.height };
+}
+
 export function project(view: EventView, lon: number, lat: number): ScreenPoint | undefined {
   return projectSphere(view, lon, lat, true);
 }
