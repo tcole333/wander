@@ -41,14 +41,15 @@ export function fromLock(event: LockedEvent): MeanwhileEntry {
   return {
     label: event.line ?? event.label,
     day,
-    dateLabel: formatDay(day, precision(event.precision, event.label)),
+    dateLabel: formatDay(day, lockedPrecision(event)),
     at: lonLat(event.at, event.label),
     qid: event.qid,
     source: event.source,
   };
 }
 
-function precision(value: string, label: string): Precision {
+/** How finely a locked event's date is known, as dates.ts names it. */
+export function lockedPrecision({ precision: value, label }: LockedEvent): Precision {
   if (value === 'day' || value === 'month' || value === 'year') return value;
   throw new RangeError(`Meanwhile's '${label}' has no precision day, month or year: ${value}`);
 }

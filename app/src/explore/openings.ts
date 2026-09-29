@@ -10,8 +10,9 @@ import bundledLock from '../../../explore/openings.lock.json';
 import { tunables } from '../config/tunables';
 import { LOOPBACK } from '../page/dataOrigin';
 import type { MeanwhileEntry } from '../story/contract';
+import type { Precision } from '../story/dates';
 import type { LockedEvent } from '../story/lock';
-import { fromLock } from '../story/meanwhile';
+import { fromLock, lockedPrecision } from '../story/meanwhile';
 
 /** An opening as the lock gives it: an event of the index with its line, source and class. */
 export type LockedOpening = LockedEvent & { class: string };
@@ -23,11 +24,18 @@ export interface OpeningsLock {
   openings: LockedOpening[];
 }
 
-/** An event Explore opens on: its line as `label`, its day, place and source. */
-export interface Opening extends MeanwhileEntry {
+/**
+ * An event Explore opens on: its line as `label`, its day, place and source, as Meanwhile's
+ * entries give them, but without their `dateLabel`, which reads the day in the proleptic Gregorian
+ * calendar: an opening's plate prints its day at its precision in the calendar its sources use
+ * (Julian before 15 October 1582).
+ */
+export interface Opening extends Omit<MeanwhileEntry, 'dateLabel'> {
   qid: string;
   /** The event's name, as its plate prints it. */
   name: string;
+  /** How finely its date is known: 'day', 'month' or 'year'. */
+  precision: Precision;
   /** Its class in pipeline/config/event-classes.yaml, which gives its mark. */
   class: string;
 }
@@ -38,12 +46,19 @@ export const RECENT_KEY = 'wander.openings.recent';
 const QID = /^Q[1-9][0-9]*$/;
 
 export function openingsFromLock(lock: OpeningsLock): Opening[] {
-  return lock.openings.map((event) => ({
-    ...fromLock(event),
-    qid: event.qid,
-    name: event.label,
-    class: event.class,
-  }));
+  return lock.openings.map((event) => {
+    const { label, day, at, source } = fromLock(event);
+    return {
+      label,
+      day,
+      at,
+      source,
+      qid: event.qid,
+      name: event.label,
+      precision: lockedPrecision(event),
+      class: event.class,
+    };
+  });
 }
 
 /** The bundled openings. */
