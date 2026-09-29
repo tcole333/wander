@@ -314,8 +314,14 @@ def overview(rows: list[Row], count: int = OVERVIEW_ROWS) -> list[Row]:
     chosen: set[int] = set()
     for r in rows:
         region = next(
-            i for i, area in enumerate(regions) if area.covers(Point(r.event.lon, r.event.lat))
+            (i for i, area in enumerate(regions) if area.covers(Point(r.event.lon, r.event.lat))),
+            None,
         )
+        if region is None:
+            raise events.EventsError(
+                f"macro-regions.geojson leaves {r.event.qid} at "
+                f"({r.event.lon}, {r.event.lat}) outside every region"
+            )
         cell = r.era, region
         if cells[cell] < quota:
             chosen.add(r.row)

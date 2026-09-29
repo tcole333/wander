@@ -141,6 +141,16 @@ def test_quota_keeps_low_scored_cells_then_fills_by_score():
     assert picked == sorted(picked, key=lambda r: r.row)
 
 
+def test_a_gap_in_macro_regions_names_the_uncovered_event(tmp_path, monkeypatch):
+    doc = json.loads((wev.CONFIG_DIR / "macro-regions.geojson").read_text())
+    doc["features"] = [doc["features"][0]]  # North America leaves this European event uncovered.
+    (tmp_path / "macro-regions.geojson").write_text(json.dumps(doc))
+    rows = wev.prepare([event(1)], [])
+    monkeypatch.setattr(wev, "CONFIG_DIR", tmp_path)
+    with pytest.raises(events.EventsError, match=r"macro-regions.geojson.*Q1.*4.4.*50.7.*outside"):
+        wev.overview(rows)
+
+
 @pytest.mark.parametrize("threshold", [{"all_rows": 0}, {"all_bytes": 0}])
 def test_paging_overlaps_and_long_rows_without_overview_duplicates(
     tmp_path, monkeypatch, threshold
