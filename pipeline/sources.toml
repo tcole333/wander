@@ -197,6 +197,25 @@ source_url = "https://ndownloader.figshare.com/files/5407637"
 bytes = 15054
 sha256 = "927ee6a9122be6aded1a2f71ff5bb6f36312aae6a778574af47f4e8c65265726"
 
+# RESOLVE's 2017 terrestrial ecoregions and biomes: one shapefile, Ecoregions2017 (EPSG:4326, 847
+# polygons, 243 MB unzipped), with the license in each row's LICENSE field. Some source polygons
+# are invalid and need repair (buffer(0) or make_valid) before tiling. ecoregions.world links this
+# download and states the license.
+[resolve-ecoregions-2017]
+name = "RESOLVE Ecoregions 2017 (terrestrial ecoregions and biomes)"
+version = "2017"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Ecoregions2017 (c) RESOLVE; Dinerstein et al. (2017), DOI 10.1093/biosci/bix014."
+landing_page = "https://ecoregions.world/"
+retrieved = "2026-07-17"
+
+[[resolve-ecoregions-2017.files]]
+path = "sources/resolve-ecoregions-2017/Ecoregions2017.zip"
+source_url = "https://storage.googleapis.com/teow2016/Ecoregions2017.zip"
+bytes = 149248653
+sha256 = "be36d6209e443038d02e309f0447c6e7f2a62f5fe60c605ffe90d064952f2a60"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
