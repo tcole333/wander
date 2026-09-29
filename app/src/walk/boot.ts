@@ -54,6 +54,7 @@ import { CameraRig, maxViewKm, type Relief } from '../view/cameraRig';
 import { ViewControl } from '../view/viewControl';
 import { drawnView, reliefForWidth, type ViewState } from '../view/viewState';
 import type { Choice, Mode } from './mode';
+import { EXPLORE_TITLE, EXPLORE_YEARS } from '../explore/copy';
 import { startExplore } from '../explore/explore';
 
 /** The whole instrument: the widest view the zoom allows, where the view starts by default. */
@@ -224,12 +225,13 @@ async function assemble(
 
   // The lobby stands where there are stories to choose, or Explore.
   const hasLobby = sources.length > 0 || explore;
-  // Every story's faces load with the roots, and Explore's label faces with them where it is
-  // enabled: switching plaques never fetches another font.
+  // Every story's faces load with the roots, and where Explore is enabled, those its plaque's
+  // words reach and its label faces with them: switching plaques never fetches another font.
   const faces = hasLobby
     ? loadFaces(
         sources.map(({ story, meanwhile }) => JSON.stringify({ story, meanwhile })).join('') +
-          creditsPage,
+          creditsPage +
+          (explore ? EXPLORE_TITLE + EXPLORE_YEARS : ''),
         { labels: explore },
       )
     : null;
