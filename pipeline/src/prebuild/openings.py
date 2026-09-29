@@ -19,8 +19,8 @@ It stops on:
 - an index built from another export or other configs than the current ones (the events record's
   `inputs`);
 - a line naming a day and month other than the event's date as its sources give it: Julian before
-  15 October 1582, Gregorian from then on (`historical`), or naming a day where the date is only a
-  month or a year.
+  15 October 1582, Gregorian from then on (`events.historical`), or naming a day where the date is
+  only a month or a year.
 
 It writes no record: the lock is its record.
 """
@@ -42,27 +42,10 @@ FOLDER = "explore"
 LIST = "openings.yaml"
 LOCK = "openings.lock.json"
 LAST_YEAR = 2000  # the last year of Explore's ruler
-MONTHS = (
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-)
-_MONTH = "|".join(MONTHS)
+_MONTH = "|".join(events.MONTHS)
 # '18 June', '18th June', 'June 18' and 'June 18th', but not 'June 1815'.
 DAY_MONTH = re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)? ({_MONTH})\b")
 MONTH_DAY = re.compile(rf"\b({_MONTH}) (\d{{1,2}})(?:st|nd|rd|th)?\b")
-# The first day of the Gregorian calendar; the days before it are read in the Julian.
-GREGORIAN = meanwhile.day_number(1582, 10, 15)
-_JDN_OF_DAY_ZERO = 1721426  # the Julian day number of 0001-01-01, proleptic Gregorian
 
 
 class OpeningsError(ValueError):
@@ -135,7 +118,7 @@ def openings(
                 f"{event.qid} ({event.label}) is part of {', '.join(within)}: "
                 "an opening is never part of another"
             )
-        if meanwhile.civil(event.t0)[0] > LAST_YEAR:
+        if events.civil(event.t0)[0] > LAST_YEAR:
             raise OpeningsError(
                 f"{event.qid} ({event.label}) starts after {LAST_YEAR}, where the ruler ends"
             )
@@ -159,7 +142,7 @@ def check_written(event: meanwhile.Event, fields: Mapping[str, Any]) -> None:
         return
     first, last, _ = meanwhile.written_date(str(fields["date"]))
     if not event.t0 <= first <= last <= event.t1:
-        span = f"{events.iso(meanwhile.civil(event.t0))} to {events.iso(meanwhile.civil(event.t1))}"
+        span = f"{events.iso(events.civil(event.t0))} to {events.iso(events.civil(event.t1))}"
         raise OpeningsError(
             f"{event.qid} ({event.label}) is written as {fields['date']}, outside the index's "
             f"{span}, which its mark keeps: curate the date in events-curated.yaml or leave it out"
@@ -169,8 +152,8 @@ def check_written(event: meanwhile.Event, fields: Mapping[str, Any]) -> None:
 def check_line(event: meanwhile.Event, line: str) -> None:
     """Stops on a day and month in the line other than the event's date as its sources give it,
     or on any day where the date is only a month or a year."""
-    named = [(int(day), MONTHS.index(month) + 1) for day, month in DAY_MONTH.findall(line)]
-    named += [(int(day), MONTHS.index(month) + 1) for month, day in MONTH_DAY.findall(line)]
+    named = [(int(day), events.MONTHS.index(month) + 1) for day, month in DAY_MONTH.findall(line)]
+    named += [(int(day), events.MONTHS.index(month) + 1) for month, day in MONTH_DAY.findall(line)]
     if not named:
         return
     if event.precision < events.DAY:
@@ -178,22 +161,10 @@ def check_line(event: meanwhile.Event, line: str) -> None:
             f"{event.qid}'s line names a day, but its date is a "
             f"{meanwhile.precision_name(event.precision)}: give the day as its date"
         )
-    _, month, day = historical(event.date)
+    _, month, day = events.historical(events.civil(event.date))
     for named_day, named_month in named:
         if (named_day, named_month) != (day, month):
             raise OpeningsError(
-                f"{event.qid}'s line names {named_day} {MONTHS[named_month - 1]}, "
-                f"but its date is {day} {MONTHS[month - 1]}"
+                f"{event.qid}'s line names {named_day} {events.MONTHS[named_month - 1]}, "
+                f"but its date is {day} {events.MONTHS[month - 1]}"
             )
-
-
-def historical(number: int) -> events.Day:
-    """A day number as its sources date it: in the Julian calendar before 15 October 1582, in the
-    Gregorian from then on, astronomical years (1 BC is 0)."""
-    if number >= GREGORIAN:
-        return meanwhile.civil(number)
-    c = number + _JDN_OF_DAY_ZERO + 32082
-    d = (4 * c + 3) // 1461
-    e = c - 1461 * d // 4
-    m = (5 * e + 2) // 153
-    return d - 4800 + m // 10, m + 3 - 12 * (m // 10), e - (153 * m + 2) // 5 + 1

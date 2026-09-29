@@ -148,22 +148,6 @@ def test_a_line_naming_a_day_where_the_date_is_a_month_is_refused_until_the_list
     assert (locked["date"], locked["precision"]) == ("1912-04-15", "day")
 
 
-@pytest.mark.parametrize(
-    ("gregorian", "julian"),
-    [
-        ((1582, 10, 15), (1582, 10, 15)),
-        ((1582, 10, 14), (1582, 10, 4)),
-        ((1066, 10, 20), (1066, 10, 14)),
-        ((-43, 3, 13), (-43, 3, 15)),
-        ((1556, 2, 2), (1556, 1, 23)),
-        ((1, 1, 1), (1, 1, 3)),
-        ((1815, 6, 18), (1815, 6, 18)),
-    ],
-)
-def test_the_sources_calendar_is_julian_before_15_october_1582(gregorian, julian):
-    assert o.historical(meanwhile.day_number(*gregorian)) == julian
-
-
 def test_an_event_index_built_from_other_configs_is_refused(tmp_path):
     ctx = make_context(Profile.GLOBAL, 1, tmp_path)
     (ctx.out / "ev").mkdir(parents=True)
@@ -238,5 +222,5 @@ def test_the_committed_lock_holds_the_committed_dates():
     expected = {}
     for qid, date in dated.items():
         first, _, precision = meanwhile.written_date(date)
-        expected[qid] = (events.iso(meanwhile.civil(first)), meanwhile.precision_name(precision))
+        expected[qid] = (events.iso(events.civil(first)), meanwhile.precision_name(precision))
     assert {qid: locked[qid] for qid in dated} == expected
