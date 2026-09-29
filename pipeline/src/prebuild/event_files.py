@@ -65,10 +65,12 @@ class Row:
 
 
 def era_edges() -> list[int]:
+    """The day numbers of the finite era edges, each its year's 1 January in the historical
+    calendar, where the events stage starts an event dated to that year."""
     years = yaml.safe_load((CONFIG_DIR / "era-bins.yaml").read_text())["edges"]
     if len(years) != 25 or years != sorted(set(years)):
         raise events.EventsError("era-bins.yaml needs 25 increasing edges")
-    return [day_number(int(year), 1, 1) for year in years[1:-1]]
+    return [day_number(*events.from_historical((int(year), 1, 1))) for year in years[1:-1]]
 
 
 def read_table(path: Path) -> list[events.Event]:

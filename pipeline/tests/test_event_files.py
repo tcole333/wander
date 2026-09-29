@@ -1,3 +1,4 @@
+import bisect
 import gzip
 import hashlib
 import json
@@ -100,6 +101,14 @@ def test_unlocated_ancestors_take_children_across_the_dateline_and_cycles_end():
             seen.add(r.row)
             r = rows[r.parent]
     assert wev.extent([(179, 20), (-179, 22)]) == (17900000, 2000000, 18100000, 2200000)
+
+
+@pytest.mark.parametrize("year", [-5000, -500, 0, 1000, 1600])
+def test_an_event_dated_to_an_era_s_first_year_falls_in_that_era(year):
+    edges = wev.era_edges()
+    first, _ = events.named_days((year, 1, 1), events.YEAR)
+    midsummer = bisect.bisect_right(edges, day_number(year, 7, 1))
+    assert bisect.bisect_right(edges, day_number(*first)) == midsummer
 
 
 def test_percentiles_are_per_era_and_ties_share_a_score():
