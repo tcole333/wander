@@ -19,27 +19,8 @@ async function phase(page: Page, name: string): Promise<void> {
   await expect(page.locator('body')).toHaveAttribute('data-lobby', name);
 }
 
-/** Opens the lobby: the room gives way, and a key runs the rest of the opening. */
-async function openLobby(page: Page, query: string): Promise<void> {
-  await page.goto(`${PREVIEW_URL}/?data=${DATA_URL.fixture}${query}`);
-  await expect(page.locator('#room')).toBeHidden();
-  await page.keyboard.press('Shift');
-  await phase(page, 'idle');
-}
-
-test('shows no Explore plaque without the flag', async ({ page }) => {
-  test.setTimeout(240_000);
-  // The plaques are mounted, out of reach, from the room's opening.
-  await page.goto(`${PREVIEW_URL}/?data=${DATA_URL.fixture}`);
-  await expect(page.locator('#room')).toBeHidden();
-  await expect(page.locator('.lobby-plaque[data-story]')).toHaveCount(2);
-  await expect(page.locator('.lobby-plaque[data-choice="explore"]')).toHaveCount(0);
-});
-
-test('dives into Explore, scrubs the clock and returns, by WANDER and by Escape', async ({
-  page,
-}) => {
-  test.setTimeout(600_000);
+/** Collects the page's errors and its requests to Wikimedia, which each test expects none of. */
+function watch(page: Page): { errors: string[]; wikimedia: string[] } {
   const errors: string[] = [];
   const wikimedia: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -51,6 +32,35 @@ test('dives into Explore, scrubs the clock and returns, by WANDER and by Escape'
       wikimedia.push(request.url());
     }
   });
+  return { errors, wikimedia };
+}
+
+/** Opens the lobby: the room gives way, and a key runs the rest of the opening. */
+async function openLobby(page: Page, query: string): Promise<void> {
+  await page.goto(`${PREVIEW_URL}/?data=${DATA_URL.fixture}${query}`);
+  await expect(page.locator('#room')).toBeHidden();
+  await page.keyboard.press('Shift');
+  await phase(page, 'idle');
+}
+
+test('shows no Explore plaque without the flag', async ({ page }) => {
+  test.setTimeout(240_000);
+  const { errors, wikimedia } = watch(page);
+  await markOpening(page);
+  await openLobby(page, '');
+  await expect(page.locator('.lobby-plaque[data-story]')).toHaveCount(2);
+  await expect(page.locator('.lobby-plaque[data-choice="explore"]')).toHaveCount(0);
+
+  expect(await fetchedSinceOpening(page, PREVIEW_URL)).toEqual([]);
+  expect(wikimedia).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('dives into Explore, scrubs the clock and returns, by WANDER and by Escape', async ({
+  page,
+}) => {
+  test.setTimeout(600_000);
+  const { errors, wikimedia } = watch(page);
   await markOpening(page);
   await openLobby(page, '&explore&opening=Q48314');
 
