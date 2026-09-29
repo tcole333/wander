@@ -1,5 +1,6 @@
-import { expect, test, vi } from 'vitest';
-import { EventClient, type EventWorker } from './client';
+import { describe, expect, test, vi } from 'vitest';
+import { DESCRIPTION_ROWS, EventClient, type EventWorker } from './client';
+import type { EventDescription } from './describe';
 import { type EventReply, type EventRequest } from './runtime';
 import { pageOf, releaseOf, viewOf } from '../test/events';
 
@@ -157,4 +158,92 @@ test('fetch and worker errors surface through drain; disposal drops late arrival
   client.dispose();
   expect(worker.onmessage).toBeNull();
   expect(client.drain(10)).toEqual([]);
+});
+
+const host = 'https://example.invalid';
+const sentOf = <T extends EventRequest['type']>(worker: FakeWorker, type: T) =>
+  worker.sent.filter((m): m is Extract<EventRequest, { type: T }> => m.type === type);
+const described = (row: number): EventDescription => ({
+  row,
+  qid: row + 1,
+  label: `Event ${row}`,
+  t0: 1,
+  t1: 1,
+  prec: 11,
+});
+
+describe('descriptions', () => {
+  test('are asked in one batch, one request at a time, then answered from the cache', () => {
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    const wake = vi.fn();
+    client.onready = wake;
+    expect(client.description(5)).toBeUndefined();
+    expect(client.description(6)).toBeUndefined();
+    expect(client.description(5)).toBeUndefined();
+    expect(wake).toHaveBeenCalledTimes(2);
+    client.drain(0);
+    expect(client.description(7)).toBeUndefined();
+    client.drain(10);
+    expect(sentOf(worker, 'describe')).toEqual([{ type: 'describe', rows: [5, 6] }]);
+    const reply: EventReply = { type: 'described', events: [described(5)], missing: [6] };
+    worker.reply(reply);
+    expect(client.drain(20)).toEqual([reply]);
+    expect(sentOf(worker, 'describe').at(-1)).toEqual({ type: 'describe', rows: [7] });
+    expect(client.description(5)).toEqual(described(5));
+    client.dispose();
+  });
+
+  test('a row no resident page holds is asked again only after a page loads', () => {
+    const worker = new FakeWorker();
+    const release = releaseOf([pageOf([])]);
+    const client = new EventClient(worker, release, host);
+    client.description(6);
+    client.drain(0);
+    worker.reply({ type: 'described', events: [], missing: [6] });
+    client.drain(10);
+    client.description(6);
+    client.drain(20);
+    expect(sentOf(worker, 'describe')).toHaveLength(1);
+    worker.reply({ type: 'state', loaded: release.overview, classes: [], plan });
+    client.drain(30);
+    client.description(6);
+    client.drain(40);
+    expect(sentOf(worker, 'describe')).toEqual([
+      { type: 'describe', rows: [6] },
+      { type: 'describe', rows: [6] },
+    ]);
+    client.dispose();
+  });
+
+  test(`the cache keeps the ${DESCRIPTION_ROWS} most recently used rows`, () => {
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    const rows = Array.from({ length: DESCRIPTION_ROWS }, (_, row) => row);
+    worker.reply({ type: 'described', events: rows.map(described), missing: [] });
+    client.drain(0);
+    expect(client.description(0)).toEqual(described(0));
+    worker.reply({ type: 'described', events: [described(DESCRIPTION_ROWS)], missing: [] });
+    client.drain(10);
+    expect(client.description(0)).toEqual(described(0));
+    expect(client.description(DESCRIPTION_ROWS)).toEqual(described(DESCRIPTION_ROWS));
+    expect(client.description(1)).toBeUndefined();
+    client.dispose();
+    expect(client.description(0)).toBeUndefined();
+  });
+});
+
+test('a failed description frees its slot and leaves the worker running', () => {
+  const worker = new FakeWorker();
+  const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+  client.description(5);
+  client.drain(0);
+  const failure: EventReply = { type: 'error', message: 'bad', request: 'describe' };
+  worker.reply(failure);
+  expect(client.drain(10)).toEqual([failure]);
+  expect(worker.terminate).not.toHaveBeenCalled();
+  client.description(5);
+  client.drain(20);
+  expect(sentOf(worker, 'describe')).toHaveLength(2);
+  client.dispose();
 });
