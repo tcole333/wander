@@ -114,6 +114,69 @@ def test_of_several_dates_the_most_precise_wins_then_the_earliest():
     assert events.iso(kept["Q2"].day) == "-0480-08-11"
 
 
+# Proleptic Gregorian days, as the export holds them, and the dates history writes for them, as
+# app/src/story/dates.test.ts has them.
+HISTORICAL_DATES = [
+    ((1066, 10, 20), (1066, 10, 14)),  # Hastings
+    ((-43, 3, 13), (-43, 3, 15)),  # Caesar's death
+    ((-30, 8, 31), (-30, 9, 2)),  # Actium
+    ((1571, 10, 17), (1571, 10, 7)),  # Lepanto
+    ((1500, 3, 10), (1500, 2, 29)),  # a Julian leap day
+    ((0, 12, 30), (1, 1, 1)),
+    ((1, 1, 1), (1, 1, 3)),
+    ((-9999, 1, 1), (-9999, 3, 19)),
+    ((1582, 10, 14), (1582, 10, 4)),  # the last Julian day
+    ((1582, 10, 15), (1582, 10, 15)),  # the first Gregorian day
+    ((1815, 6, 18), (1815, 6, 18)),  # Waterloo
+    ((2000, 12, 31), (2000, 12, 31)),
+]
+
+
+@pytest.mark.parametrize(("day", "written"), HISTORICAL_DATES)
+def test_history_writes_the_days_before_the_reform_in_the_julian_calendar(day, written):
+    assert events.historical(day) == written
+    assert events.from_historical(written) == day
+
+
+def test_the_day_numbers_count_from_1_january_1_ce_in_both_calendars():
+    assert events.day_number(1, 1, 1) == events.julian_day_number(1, 1, 3) == 0
+    assert events.day_number(1066, 10, 20) == events.julian_day_number(1066, 10, 14)
+    for number in range(-800_000, 800_000, 997):
+        assert events.day_number(*events.civil(number)) == number
+        assert events.julian_day_number(*events.julian_civil(number)) == number
+
+
+def test_hastings_and_caesar_s_death_read_as_history_dates_them():
+    assert events.format_historical((1066, 10, 20)) == "14 October 1066"
+    assert events.format_historical((-43, 3, 13)) == "15 March 44 BCE"
+    assert events.format_historical((-43, 3, 13), events.MONTH) == "March 44 BCE"
+    assert events.format_historical(events.from_historical((-700, 1, 1)), events.YEAR) == "701 BCE"
+
+
+def test_the_calendar_switches_from_4_to_15_october_1582():
+    assert events.format_historical((1582, 10, 14)) == "4 October 1582"
+    assert events.format_historical((1582, 10, 15)) == "15 October 1582"
+    for day in (5, 10, 14):
+        with pytest.raises(ValueError, match="gap"):
+            events.from_historical((1582, 10, day))
+
+
+@pytest.mark.parametrize(
+    ("date", "precision", "first", "last"),
+    [
+        ((1066, 1, 1), events.YEAR, (1066, 1, 7), (1067, 1, 6)),
+        ((-700, 1, 1), events.YEAR, (-701, 12, 24), (-700, 12, 24)),  # a Julian leap year
+        ((1500, 2, 1), events.MONTH, (1500, 2, 10), (1500, 3, 10)),  # 29 days
+        ((1582, 10, 1), events.MONTH, (1582, 10, 11), (1582, 10, 31)),
+        ((1582, 1, 1), events.YEAR, (1582, 1, 11), (1582, 12, 31)),
+        ((1815, 1, 1), events.YEAR, (1815, 1, 1), (1815, 12, 31)),
+        ((1066, 10, 14), events.DAY, (1066, 10, 20), (1066, 10, 20)),
+    ],
+)
+def test_a_year_or_month_names_its_days_in_the_historical_calendar(date, precision, first, last):
+    assert events.named_days(date, precision) == (first, last)
+
+
 def test_events_without_a_label_a_place_a_year_or_an_edition_are_dropped():
     kept = indexed(
         row("Q1", "P585", "1815-06-18T00:00:00Z", 11, label=""),
