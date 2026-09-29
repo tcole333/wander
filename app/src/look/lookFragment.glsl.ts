@@ -2,11 +2,47 @@
 // albedo, roughness, metalness and stylized relief it baked per texel, computed here from the
 // surface pools. The relief is evaluated at the fragment and four taps around it, and its
 // gradient perturbs the normal, as the spike's normal map did.
+//
+// Where Explore is enabled, the look also cuts the marks into its surface (marks/marks.glsl.ts);
+// elsewhere its program is exactly the look's alone.
 import { glslFaceTable, SURFACE_LEVELS } from '../globe/surfaceVertex.glsl';
+import {
+  MARKS_APPLY,
+  MARKS_DECLARATIONS,
+  MARKS_DERIVATIVES,
+  MARKS_FUNCTIONS,
+  MARKS_LIGHT,
+  MARKS_PERTURB,
+} from '../marks/marks.glsl';
 import { SEA_NAMES_MAX } from './seaNames';
 
-/** Global declarations and functions, after three's `#include <common>` in the fragment. */
-export const LOOK_FRAGMENT_PARS = /* glsl */ `
+/** The look's fragment chunks, each replacing or following one of three's includes. */
+export interface LookFragment {
+  /** Global declarations and functions, after three's `#include <common>`. */
+  pars: string;
+  /** Replaces `#include <color_fragment>`: the look, computed once. */
+  color: string;
+  roughness: string;
+  metalness: string;
+  /** Replaces `#include <normal_fragment_maps>`, after `normal` is set. */
+  normal: string;
+  /** After `#include <lights_fragment_end>`. */
+  specular: string;
+}
+
+/** The look's chunks, with the marks cut in when `marks`. */
+export function lookFragment({ marks }: { marks: boolean }): LookFragment {
+  return {
+    pars: lookFragmentPars(marks),
+    color: LOOK_FRAGMENT_COLOR,
+    roughness: LOOK_FRAGMENT_ROUGHNESS,
+    metalness: LOOK_FRAGMENT_METALNESS,
+    normal: LOOK_FRAGMENT_NORMAL,
+    specular: marks ? `${LOOK_FRAGMENT_SPECULAR}${MARKS_LIGHT}\n` : LOOK_FRAGMENT_SPECULAR,
+  };
+}
+
+const lookFragmentPars = (marks: boolean) => /* glsl */ `
 uniform highp sampler2DArray wanderHeight;
 uniform highp sampler2DArray wanderShore;
 uniform float wanderQLand[${SURFACE_LEVELS}];
@@ -386,7 +422,7 @@ float lookReliefAt(LookFields f, LookFootprint fp) {
   return mix(atSea, onLand, land);
 }
 
-struct LookSurface {
+${marks ? MARKS_DECLARATIONS : ''}struct LookSurface {
   vec3 albedo;
   float roughness;
   float metalness;
@@ -398,9 +434,9 @@ struct LookSurface {
   // 1 on land and lakes, 0 at sea: the ground inside the drawn coast.
   float ground;
   // The sea names' ink, 0 to 1.
-  float names;
+  float names;${marks ? '\n  // The marks cut into it (marks.glsl.ts).\n  LookMarks marks;' : ''}
 };
-
+${marks ? MARKS_FUNCTIONS : ''}
 LookSurface lookSurface() {
   LookSurface o;
   LookFootprint fp;
@@ -498,7 +534,7 @@ LookSurface lookSurface() {
   vec3 seaColor = mix(lookShallow, lookDeep, sqrt(min(1.0, depth / 6000.0)));
   seaColor = mix(seaColor, lookShelf, shelf * 0.22) * mottleScale;
   vec3 gratDir = lookSeaLevelDir();
-  float gratDegPx = max(degrees(max(length(dFdx(gratDir)), length(dFdy(gratDir)))), 1e-7);
+  float gratDegPx = max(degrees(max(length(dFdx(gratDir)), length(dFdy(gratDir)))), 1e-7);${marks ? MARKS_DERIVATIVES : ''}
   vec2 seaLonLat = lookLonLat(gratDir);
   float grat = lookGraticule * lookGraticuleAt(seaLonLat, gratDegPx);
   float names = lookSeaNamesAt(gratDir, seaLonLat);
@@ -520,7 +556,7 @@ LookSurface lookSurface() {
   o.names = names * (1.0 - land);
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
   o.roughness = clamp(mix(seaRough, landRough, land), 0.05, 1.0);
-  o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);
+  o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);${marks ? MARKS_APPLY : ''}
 
   if (lookDebug == 1) {
     // Height: the fragment's in gray, red where it and the vertex's differ by more than 100 m.
@@ -547,7 +583,7 @@ vec3 lookPerturb(vec3 n, LookSurface s) {
   float det = dot(vLookTs, c1);
   if (abs(det) < 1e-12) return n;
   vec3 grad = (s.dh.x * c1 + s.dh.y * c2) / det;
-  vec3 g = grad * (0.9 * lookNormalStrength * s.zoom * 0.017453292519943295);
+  vec3 g = grad * (0.9 * lookNormalStrength * s.zoom * 0.017453292519943295);${marks ? MARKS_PERTURB : ''}
   float m = length(g) / lookMaxSlope;
   vec3 p = normalize(n - g / sqrt(1.0 + m * m));
   // Steeply tilted, relief can turn the normal from the camera, which three lights black: keep it
@@ -559,16 +595,16 @@ vec3 lookPerturb(vec3 n, LookSurface s) {
 `;
 
 /** Replaces three's `#include <color_fragment>`: the look, computed once. */
-export const LOOK_FRAGMENT_COLOR = /* glsl */ `
+const LOOK_FRAGMENT_COLOR = /* glsl */ `
   LookSurface lookS = lookSurface();
   diffuseColor.rgb = lookS.albedo;
 `;
 
-export const LOOK_FRAGMENT_ROUGHNESS = /* glsl */ `
+const LOOK_FRAGMENT_ROUGHNESS = /* glsl */ `
   float roughnessFactor = lookS.roughness;
 `;
 
-export const LOOK_FRAGMENT_METALNESS = /* glsl */ `
+const LOOK_FRAGMENT_METALNESS = /* glsl */ `
   float metalnessFactor = lookS.metalness;
 `;
 
@@ -578,7 +614,7 @@ export const LOOK_FRAGMENT_METALNESS = /* glsl */ `
  * the world view keeps the spike's. The sea names' brass keeps more of it than the lacquer, not all:
  * they stay a recessed inlay, never brighter than the lit land.
  */
-export const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
+const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
   float lookSeaLit = max(lookS.land, lookS.names * 0.4);
   float lookSeaSpec = mix(mix(0.3, 1.0, smoothstep(0.45, 1.0, lookS.zoom)), 1.0, lookSeaLit);
   reflectedLight.directSpecular *= lookSeaSpec;
@@ -586,7 +622,7 @@ export const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
 `;
 
 /** Replaces three's `#include <normal_fragment_maps>`, after `normal` is set. */
-export const LOOK_FRAGMENT_NORMAL = /* glsl */ `
+const LOOK_FRAGMENT_NORMAL = /* glsl */ `
   normal = lookPerturb(normal, lookS);
   if (lookDebug == 3) diffuseColor.rgb = normal * 0.5 + 0.5;
 `;

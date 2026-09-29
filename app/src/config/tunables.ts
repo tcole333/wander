@@ -44,6 +44,19 @@ export const tunables = {
   nowShare: 0.1,
   // Years the ruler shows as Explore opens, centered on the opening event.
   exploreOpenYears: 200,
+  // A mark's diameter in CSS px by the view's width in km, log-interpolated between the rows and
+  // held beyond them: one size at a given scale (globe-language.md, principle 7).
+  markPx: [
+    { km: 300, px: 20 },
+    { km: 3000, px: 16 },
+    { km: 12_000, px: 12 },
+  ],
+  // Marks the look inlays in one 32 CSS px screen tile: focal first, then hovered, then by score.
+  markTileCap: 8,
+  // A mark's roughness floor, and the cap on the luminance the lamp gives it: no mark but the
+  // focal one reaches the bloom's threshold (1.05).
+  markRoughMin: 0.35,
+  markSpecMax: 0.9,
   meanwhileCount: 3,
   meanwhileMinKm: 2000,
   placeLabelsMax: 30,

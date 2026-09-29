@@ -18,6 +18,9 @@ import {
 } from 'three';
 import { tunables } from '../config/tunables';
 import { releaseDataAfterUpload } from '../gpu/uploadOnce';
+import { glyphShelf } from '../marks/glyphAtlas';
+import type { GlyphSet } from '../marks/glyphs';
+import type { GlyphCells } from '../marks/marks';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
 import list from './seaNames.json';
@@ -148,22 +151,28 @@ const FONTS = {
 } as const;
 
 /** A name lettered into the atlas: its box, texels. */
-interface Lettered {
+export interface Lettered {
   x: number;
   y: number;
   w: number;
   h: number;
 }
 
-/** The Labels layer: the names, their atlas and the uniforms the look's shader reads. */
+/**
+ * The Labels layer: the names, their atlas and the uniforms the look's shader reads. Given the
+ * marks' glyphs, the atlas also holds their distance fields, on shelves below the names.
+ */
 export class SeaNameLayer {
   readonly uniforms: SeaNameUniforms;
   /** Resolves once the atlas is lettered, or has failed to be (the names then never show). */
   readonly ready: Promise<void>;
   readonly #placed: PlacedName[];
+  readonly #glyphs: GlyphSet | null;
   #boxes: Lettered[] | null = null;
+  #cells: GlyphCells | null = null;
 
-  constructor() {
+  constructor(glyphs: GlyphSet | null = null) {
+    this.#glyphs = glyphs;
     const vectors = () => Array.from({ length: SEA_NAMES_MAX }, () => new Vector4());
     const frames = Array.from({ length: SEA_NAMES_MAX }, () => new Vector3());
     const blank = new DataTexture(new Uint8Array(1), 1, 1, RedFormat);
@@ -200,6 +209,16 @@ export class SeaNameLayer {
       lookSeaBox.value[i]?.set(box.x + box.w / 2, box.y + box.h / 2, box.w / 2, box.h / 2);
     });
     this.uniforms.lookSeaCount.value = picked.length;
+  }
+
+  /** The marks' glyph cells in the atlas, once it is lettered; null without glyphs. */
+  get glyphCells(): GlyphCells | null {
+    return this.#cells;
+  }
+
+  /** Each name's box in the atlas, texels, once it is lettered. */
+  get boxes(): readonly Readonly<Lettered>[] | null {
+    return this.#boxes;
   }
 
   dispose(): void {
@@ -285,13 +304,21 @@ export class SeaNameLayer {
       });
     });
 
-    // Only the red channel is kept, as the R8 texture's own bytes, and the canvas's pixels go.
+    // Only the red channel is kept, as the R8 texture's own bytes, and the canvas's pixels go. The
+    // marks' glyphs follow the names on shelves of their own.
     const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const red = new Uint8Array(canvas.width * canvas.height);
-    for (let i = 0; i < red.length; i++) red[i] = data[i * 4] ?? 0;
-    const atlas = releaseDataAfterUpload(
-      new DataTexture(red, canvas.width, canvas.height, RedFormat),
-    );
+    const glyphs = this.#glyphs ? glyphShelf(this.#glyphs, ATLAS_WIDTH) : null;
+    const namesHeight = canvas.height;
+    const height = namesHeight + (glyphs?.height ?? 0);
+    const red = new Uint8Array(canvas.width * height);
+    for (let i = 0; i < canvas.width * namesHeight; i++) red[i] = data[i * 4] ?? 0;
+    if (glyphs) {
+      red.set(glyphs.data, ATLAS_WIDTH * namesHeight);
+      const cells = new Map<string, { x: number; y: number }>();
+      for (const [name, { x, y }] of glyphs.cells) cells.set(name, { x, y: y + namesHeight });
+      this.#cells = cells;
+    }
+    const atlas = releaseDataAfterUpload(new DataTexture(red, canvas.width, height, RedFormat));
     canvas.width = 0;
     atlas.generateMipmaps = true;
     atlas.minFilter = LinearMipmapLinearFilter;
