@@ -17,6 +17,7 @@ export interface TestEvent {
   parent?: number;
   label?: string;
   ext?: number[];
+  flags?: number;
 }
 export function pageOf(events: TestEvent[]): EventPage {
   const rows = [...events].sort((a, b) => a.row - b.row);
@@ -34,7 +35,7 @@ export function pageOf(events: TestEvent[]): EventPage {
     parent: rows.map((r) => r.parent ?? -1),
     prec: rows.map(() => 11),
     cls: rows.map(() => 0),
-    flags: rows.map(() => 0),
+    flags: rows.map((r) => r.flags ?? 0),
     unc: rows.map(() => 0),
     label: rows.map((r) => r.label ?? `Event ${r.row}`),
     ext: rows.filter((r) => r.ext).map((r) => [r.row, ...r.ext!.map((x) => Math.round(x * 1e5))]),

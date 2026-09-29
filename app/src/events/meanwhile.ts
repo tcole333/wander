@@ -34,6 +34,12 @@ export interface MeanwhileEvent extends EventDescription {
  * streaming.md 3.9): a decade's war does not stand for a month of it.
  */
 const SHORTEST_DAYS = 92;
+/**
+ * The .wev flags (3.4) of a place not the event's own: bit0 inherited from its location, bit1
+ * derived from its children or a country. Either is often a region's middle, a poor place to fly
+ * to, and the meanwhile stage picks neither for an unread list (3.9).
+ */
+const BORROWED_PLACE = 1 | 2;
 /** globe/viewCamera.ts's radius; the worker imports no three.js. */
 const EARTH_KM = 6371.0088;
 const DEG = Math.PI / 180;
@@ -80,9 +86,10 @@ function ancestors(index: EventIndex, { page, i }: Ref): number[] {
 /**
  * The `count` best-scored events in the now window that the globe does not draw, by the meanwhile
  * stage's rules (streaming.md 3.9) where they fit a live view: off the screen (past the limb or the
- * viewport's edges), at least meanwhileMinKm from the view's center and from each other, spanning
- * no longer than the window or SHORTEST_DAYS, never a focal event's part-of kin, and never a
- * parent with its child. In score order; fewer when fewer qualify among the resident pages.
+ * viewport's edges), with a place of their own, at least meanwhileMinKm from the view's center and
+ * from each other, spanning no longer than the window or SHORTEST_DAYS, never a focal event's
+ * part-of kin, and never a parent with its child. In score order; fewer when fewer qualify among
+ * the resident pages.
  */
 export function meanwhileEvents(index: EventIndex, query: MeanwhileQuery): MeanwhileEvent[] {
   validate(query);
@@ -108,7 +115,7 @@ export function meanwhileEvents(index: EventIndex, query: MeanwhileQuery): Meanw
     const t0 = page.t0[i]!,
       t1 = page.t1[i]!;
     if (t0 > query.t1 || t1 < query.t0 || t1 - t0 + 1 > longest) return;
-    if (exclude.has(page.qid[i]!)) return;
+    if (exclude.has(page.qid[i]!) || page.flags[i]! & BORROWED_PLACE) return;
     const lon = page.lon[i]! / 1e5,
       lat = page.lat[i]! / 1e5;
     if (project(query.view, lon, lat)?.visible) return;

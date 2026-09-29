@@ -129,6 +129,18 @@ test('neither a focal event nor its part-of kin is picked, though its siblings m
   expect(rows({ count: 6, focalQids: [100] }, index)).toEqual([4]);
 });
 
+test('an inherited or derived place is no place to fly to', () => {
+  const index = indexOf([
+    pageOf([
+      { row: 0, lon: 30, flags: 1 },
+      { row: 1, lon: 60, flags: 2 },
+      { row: 2, lon: -60, flags: 4 | 8 | 16 },
+      { row: 3, lon: -90 },
+    ]),
+  ]);
+  expect(rows({}, index)).toEqual([2, 3]);
+});
+
 test('entries describe themselves: label, parent, dates and place', () => {
   const index = indexOf([
     pageOf([
@@ -166,14 +178,16 @@ test('no count asks for nothing, and a malformed question throws', () => {
   expect(() => meanwhileEvents(spread(), flat)).toThrow('invalid event view');
 });
 
-test('the fixture at Waterloo finds short events of June 1815, far from Belgium', async () => {
+test('the fixture at Waterloo finds events of 1815 with places of their own, far from Belgium', async () => {
   const release = readStageRecord<EventsRelease>('event-files');
   const index = new EventIndex(release);
   index.plan();
   for (const f of release.files)
     index.add(f.key, await decodePage(readFixtureFile(f.key).buffer, f));
+  // A ten-year ruler's now window. The fixture holds 1815-1817 around Europe, and what June 1815
+  // alone holds 2,000 km from Belgium has only inherited places.
   const day = dayFromIso('1815-06-18');
-  const window = (365.2425 * 0.1) / 2;
+  const window = (3652.425 * 0.1) / 2;
   const query: MeanwhileQuery = {
     t0: day - window,
     t1: day + window,
@@ -184,12 +198,12 @@ test('the fixture at Waterloo finds short events of June 1815, far from Belgium'
     focalQids: [48314],
   };
   const picks = meanwhileEvents(index, query);
-  // The fixture holds 1815-1817 around Europe: two such events of June 1815 lie 2,000 km away.
   expect(picks.length).toBeGreaterThan(0);
   expect(picks.length).toBeLessThanOrEqual(tunables.meanwhileCount);
   for (const [n, pick] of picks.entries()) {
     expect(pick.t0 <= query.t1 && pick.t1 >= query.t0).toBe(true);
-    expect(pick.t1 - pick.t0 + 1).toBeLessThanOrEqual(92);
+    expect(pick.t1 - pick.t0).toBeLessThanOrEqual(2 * window);
+    expect(pick.flags & 3).toBe(0);
     expect(km(pick.at, query.center)).toBeGreaterThanOrEqual(tunables.meanwhileMinKm);
     for (const other of picks.slice(0, n))
       expect(km(pick.at, other.at)).toBeGreaterThanOrEqual(tunables.meanwhileMinKm);
