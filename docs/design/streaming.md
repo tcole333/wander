@@ -1382,8 +1382,9 @@ rendered item. `EventView` and `EventClient` TSDoc specify the matrix, CSS pixel
     Windows], so there one material compiles per frame.
 - **Fragment samplers:** the surface program reads 12 of the 16 guaranteed: the height and shore
   pools, the sea-name atlas, the climate and border fields, four route textures, the environment,
-  three's DFG table and the lamp's shadow. Where Explore is enabled its marks add their table, 13
-  (`e2e/marks.spec.ts` counts them). Adding one needs a check against that limit.
+  three's DFG table and the lamp's shadow. Where Explore is enabled its marks read their table, and
+  the routes' cells head their index table rather than take a texture of their own, so the program
+  still reads 12 (`e2e/marks.spec.ts` counts them). Adding one needs a check against that limit.
 - **Marks:** Explore's marks are part of the surface program (section 2, Event marks), so they add
   no program to compile; `lookMarksOn` false skips them, and where Explore is not enabled the
   program and the sea-name atlas are exactly the look's alone.
