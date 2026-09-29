@@ -132,6 +132,12 @@ def prepare(table: list[events.Event], statements: list[events.Statement]) -> li
         e.qid: e for e in events.index(statements, classes, boosts, dates, keep_unlocated=True)
     }
     accepted = {e.qid: e for e in table}
+    # A sourced fallback can also admit an exported parent whose children have no usable
+    # locations. Otherwise such a parent would never be reached from the located TSV rows.
+    exported_parents = {p for e in exported.values() for p in e.parents}
+    for qid in places.keys() & exported_parents:
+        if qid in exported and qid not in accepted:
+            accepted[qid] = exported[qid]
     # Only add exported ancestors of accepted events. A locationless, unrelated event is not a mark.
     pending = list(accepted)
     while pending:

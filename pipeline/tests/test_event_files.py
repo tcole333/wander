@@ -160,3 +160,20 @@ def test_no_country_or_override_is_used_when_children_place_a_parent(monkeypatch
     rows = wev.prepare([event(1, parent=("Q10",))], [statement])
     parent = next(r for r in rows if r.event.qid == "Q10")
     assert (parent.event.lon, parent.event.lat) == pytest.approx((4.4, 50.7))
+
+
+@pytest.mark.parametrize(
+    ("places", "expected"),
+    [({"countryCentroid": (40, 30), "at": (60, 20)}, (40, 30)), ({"at": (60, 20)}, (60, 20))],
+)
+def test_a_parent_without_located_children_uses_country_then_override(
+    monkeypatch, places, expected
+):
+    monkeypatch.setattr(wev, "load_event_places", lambda: {"Q10": places})
+    parent = events.Statement(
+        "Q198", "Q10", "Parent", "Parent", "P585", (1815, 1, 1), 9, None, None, 10, ()
+    )
+    child = replace(parent, qid="Q20", parents=("Q10",))
+    [row] = wev.prepare([], [parent, child])
+    assert (row.event.lon, row.event.lat) == expected
+    assert row.flags & 2 and row.flags & 16
