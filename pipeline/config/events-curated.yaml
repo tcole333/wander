@@ -4,6 +4,10 @@
 # day a better source dates an event to where Wikidata's date is wrong: {qid, date, why}, the date
 # a quoted ISO day. `contested` names the events whose date the sources dispute, which Meanwhile,
 # printing one date for each, leaves out: {qid, why}.
+# `places` supplies unlocated parents with a sourced P17 `countryCentroid: [lon, lat]` or a
+# last-resort `at: [lon, lat]`, each with qid and why. Children take precedence over both. The
+# current export does not carry P17, so no country position is guessed from the event's label.
+places: []
 boosts:
   - qid: Q48314
     boost: 1.5

@@ -206,6 +206,7 @@ def test_the_stages_that_have_landed_are_registered_in_order():
         "surface",
         "borders",
         "events",
+        "event-files",
         "modera",
         "fx",
         "media",

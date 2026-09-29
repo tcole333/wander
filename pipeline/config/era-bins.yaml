@@ -1,0 +1,2 @@
+# Astronomical years. Bins are half-open; the last includes all later dates.
+edges: [-.inf, -100000, -40000, -10000, -5000, -3000, -2000, -1000, -500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600, 1700, 1800, 1850, 1900, 1950, 2000, .inf]
