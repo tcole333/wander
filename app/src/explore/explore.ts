@@ -9,7 +9,6 @@ import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
 import { tunables } from '../config/tunables';
-import { dayFromIso } from '../story/dates';
 import type { LonLat } from '../story/story';
 import { el } from '../story/ui/dom';
 import type { Span } from '../story/ui/format';
@@ -20,22 +19,17 @@ import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Mode } from '../walk/mode';
+import { openings, type Opening } from './openings';
 
-/** Where Explore opens: an event, its day and its place. */
-export interface Opening {
-  qid: string;
-  label: string;
-  day: number;
-  at: LonLat;
+/**
+ * The opening until Explore picks among its openings: Waterloo, which the fixture holds, as the
+ * bundled lock gives it. A lock without it fails the dive, not the page.
+ */
+export function waterloo(): Opening {
+  const found = openings.find((opening) => opening.qid === 'Q48314');
+  if (!found) throw new Error('the openings lock lacks Waterloo (Q48314)');
+  return found;
 }
-
-/** The opening until Explore picks among its openings: Waterloo, which the fixture holds. */
-export const WATERLOO: Opening = {
-  qid: 'Q48314',
-  label: 'Battle of Waterloo',
-  day: dayFromIso('1815-06-18'),
-  at: [4.41222, 50.67806],
-};
 
 /** The dive's view keeps the event's latitude within this, degrees, so no pole faces the lamp. */
 const WORLD_LAT = 35;
@@ -62,7 +56,8 @@ export interface ExploreParts {
   /** Flown to from the lobby's view, or started where the view already stands (the dev page). */
   arrive: 'jump' | 'fly';
   clock?: WorldClock;
-  opening?: Opening;
+  /** The day the free clock opens on and the place the dive flies to. */
+  opening?: Pick<Opening, 'day' | 'at'>;
 }
 
 /** The world view over `at`, its latitude kept within WORLD_LAT. */
@@ -82,7 +77,7 @@ export function startExplore({
   sound,
   arrive,
   clock = worldClock,
-  opening = WATERLOO,
+  opening = waterloo(),
 }: ExploreParts): Mode {
   // The clock, flight and layer hold no listeners and stand nowhere on the page, so they come
   // first, then the ruler, the one part holding listeners, and only then are the page, the view's
