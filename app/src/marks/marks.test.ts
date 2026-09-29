@@ -78,6 +78,15 @@ describe('binDiscs', () => {
     expect(bins.counts[0]).toBe(tunables.markTileCap);
     expect([...bins.slots.subarray(0, bins.counts[0])]).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
   });
+
+  it('leaves out, whole, a disc that reaches into a full tile', () => {
+    const cap = tunables.markTileCap;
+    const full = Array.from({ length: cap }, (_, i) => ({ x: 10 + i, y: 10, reachPx: 2 }));
+    const bins = binDiscs([...full, { x: 32, y: 10, reachPx: 6 }], 128, 64, cap);
+    expect(bins.binned[cap]).toBe(0);
+    expect(bins.counts[1]).toBe(0);
+    expect([...bins.binned.subarray(0, cap)]).toEqual(Array.from({ length: cap }, () => 1));
+  });
 });
 
 describe('MarkLayer', () => {
@@ -177,6 +186,27 @@ describe('MarkLayer', () => {
     marks.set('events', [mark('a', [20, 10])]);
     marks.place(view);
     expect(marks.placed()).toEqual([]);
+  });
+
+  it('neither draws nor picks a mark its full tiles leave out', () => {
+    const marks = layer();
+    const crowd = Array.from({ length: tunables.markTileCap + 1 }, (_, i) =>
+      mark(`m${i}`, [20 + i * 0.002, 10], { score: -i }),
+    );
+    marks.set('events', crowd);
+    marks.place(view);
+    const last = `m${tunables.markTileCap}`;
+    expect(marks.placed()).toHaveLength(tunables.markTileCap);
+    expect(marks.placed().map(({ id }) => id)).not.toContain(last);
+    expect(marks.hit(720, 450)).not.toBe(last);
+  });
+
+  it('picks no mark too faint to see', () => {
+    const marks = layer();
+    marks.set('events', [mark('faint', [20, 10], { opacity: 0.1 })]);
+    marks.place(view);
+    expect(marks.placed()[0]?.alpha).toBeCloseTo(0.1, 6);
+    expect(marks.hit(720, 450)).toBeNull();
   });
 
   it('picks the mark under the pointer', () => {
