@@ -649,7 +649,8 @@ export class CraftRuler {
     this.#laidOut = true;
     const arc = this.#arc;
     const span = this.#span;
-    this.#unit = engravedUnit(arc, span);
+    const unit = engravedUnit(arc, span);
+    this.#unit = unit === 'day' || unit === 'month' ? unit : 'year';
     const scale = engraveScale(arc, span, (day) => this.#angle(day));
     for (const kind of TICK_KINDS) {
       for (const path of this.#ticks.get(kind) ?? []) path.setAttribute('d', scale[kind]);
@@ -727,6 +728,7 @@ export class CraftRuler {
         cut = { element, label, half: 0, shown: NaN };
       }
       // The upper row's labels are placed with the plaque (#clearPlate).
+      cut.element.setAttribute('text-anchor', label.anchor ?? 'middle');
       if (label.from === undefined) {
         cut.element.setAttribute('transform', labelTransform(this.#arc, label.angle, label.row));
       } else {
@@ -1019,7 +1021,7 @@ function bodySvg(arc: Arc, years: Span): string {
   const tierYears = tier.labels
     .map((label) => {
       const spot = labelTransform(arc, label.angle, label.row);
-      return `<text class="${label.cls}" text-anchor="middle" transform="${spot}">${label.text}</text>`;
+      return `<text class="${label.cls}" text-anchor="${label.anchor ?? 'middle'}" transform="${spot}">${label.text}</text>`;
     })
     .join('');
   return `${sharedDefs()}

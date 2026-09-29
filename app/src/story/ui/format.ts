@@ -67,8 +67,49 @@ function wholeMonths(start: number, end: number): boolean {
 }
 
 export interface Span {
-  start: number;
-  end: number;
+  readonly start: number;
+  readonly end: number;
+}
+
+/** Calendar years for the ruler: astronomical zero is 1 BCE, never a displayed year zero. */
+export function calendarYearLabel(year: number, commonEra = false): string {
+  return year <= 0 ? `${1 - year} BCE` : `${year}${commonEra ? ' CE' : ''}`;
+}
+
+export interface YearMark extends Span {
+  year: number;
+}
+
+/**
+ * Calendar intervals touching the view, jumping straight to its first interval. Coarse marks
+ * align with historical multiples (1000 BCE is astronomical -999), with 1 CE at the era seam.
+ */
+export function yearsIn(span: Span, step = 1): YearMark[] {
+  if (!Number.isInteger(step) || step < 1)
+    throw new RangeError('Year step must be a positive integer');
+  const years: YearMark[] = [];
+  const first = civilFromDay(span.start).year;
+  let year =
+    step === 1
+      ? first
+      : first <= 0
+        ? 1 - Math.ceil((1 - first) / step) * step
+        : Math.max(1, Math.floor(first / step) * step);
+  let start = dayFromCivil({ year, month: 1, day: 1 });
+  while (start <= span.end) {
+    const next =
+      step === 1
+        ? year + 1
+        : year <= 0
+          ? Math.min(1, year + step)
+          : year === 1
+            ? step
+            : year + step;
+    const end = dayFromCivil({ year: next, month: 1, day: 1 });
+    years.push({ year, start, end });
+    [year, start] = [next, end];
+  }
+  return years;
 }
 
 /** The least span of the ruler, days: an eruption's days stay days wide. */
@@ -104,18 +145,24 @@ export interface MonthMark {
   month: number;
   /** The month's first day, which may lie before the span. */
   start: number;
-  /** The next month's first day. */
+  /** The next interval's first day. */
   end: number;
 }
 
-/** Every month the span touches, in order. */
-export function monthsIn(span: Span): MonthMark[] {
+/** Every `step` months the view touches, aligned to January, without walking from an epoch. */
+export function monthsIn(span: Span, step = 1): MonthMark[] {
+  if (!Number.isInteger(step) || step < 1)
+    throw new RangeError('Month step must be a positive integer');
   const months: MonthMark[] = [];
-  let { year, month } = civilFromDay(span.start);
+  const first = civilFromDay(span.start);
+  let index = Math.floor((first.year * 12 + first.month - 1) / step) * step;
+  let year = Math.floor(index / 12);
+  let month = index - year * 12 + 1;
   let start = dayFromCivil({ year, month, day: 1 });
   while (start < span.end) {
-    const nextYear = month === 12 ? year + 1 : year;
-    const nextMonth = month === 12 ? 1 : month + 1;
+    index += step;
+    const nextYear = Math.floor(index / 12);
+    const nextMonth = index - nextYear * 12 + 1;
     const end = dayFromCivil({ year: nextYear, month: nextMonth, day: 1 });
     months.push({ year, month, start, end });
     [year, month, start] = [nextYear, nextMonth, end];

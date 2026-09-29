@@ -1,0 +1,112 @@
+// The free ruler's viewport and gestures. The globe need not know about time yet.
+import { dayFromCivil } from '../story/dates';
+import type { Span } from '../story/ui/format';
+import { anchored } from '../story/ui/rulerScale';
+import { worldClock, type WorldClock } from './worldClock';
+
+/** Inclusive day limits: all of 10,000 BCE through the last day of 2000 CE. */
+export const HISTORY: Span = Object.freeze({
+  start: dayFromCivil({ year: -9999, month: 1, day: 1 }),
+  end: dayFromCivil({ year: 2000, month: 12, day: 31 }),
+});
+export const MIN_EXPLORE_DAYS = 4;
+
+export class ExploreTime {
+  readonly clock: WorldClock;
+  readonly bounds: Span;
+  #span: Span;
+  readonly #viewportListeners = new Set<() => void>();
+
+  constructor(clock = worldClock, bounds = HISTORY, day = 0) {
+    if (
+      !Number.isFinite(bounds.start) ||
+      !Number.isFinite(bounds.end) ||
+      bounds.end <= bounds.start
+    ) {
+      throw new RangeError('Exploration needs a finite, increasing span');
+    }
+    this.clock = clock;
+    this.bounds = Object.freeze({ ...bounds });
+    this.#span = this.bounds;
+    this.#publish(day);
+  }
+
+  get span(): Span {
+    return this.#span;
+  }
+
+  /** The date, zoom or viewport moved. A recenter can move the view without changing the clock. */
+  subscribe(listener: () => void): () => void {
+    this.#viewportListeners.add(listener);
+    const stopClock = this.clock.subscribe(listener);
+    return () => {
+      stopClock();
+      this.#viewportListeners.delete(listener);
+    };
+  }
+
+  /** Whole-day scrubbing; the view follows the playhead until a history limit stops it. */
+  scrub(day: number): void {
+    if (!Number.isFinite(day)) return;
+    day = clamp(Math.floor(day), this.bounds.start, this.bounds.end);
+    this.#span = this.#keep(anchored(this.#span, day, 0.1));
+    this.#publish(day);
+  }
+
+  /** The overview tier jumps through history, preserving the current zoom. */
+  seek(day: number): void {
+    if (!Number.isFinite(day)) return;
+    day = clamp(Math.floor(day), this.bounds.start, this.bounds.end);
+    const width = this.#span.end - this.#span.start;
+    this.#span = this.#keep({ start: day - width / 2, end: day + width / 2 });
+    this.#publish(day);
+  }
+
+  /**
+   * Zoom about the date under the pointer (share 0..1), except where a history limit stops the
+   * view. Keep the selected day if visible; otherwise select the nearest whole day in view.
+   */
+  zoom(factor: number, share: number): void {
+    if (!Number.isFinite(factor) || factor <= 0 || !Number.isFinite(share)) return;
+    share = clamp(share, 0, 1);
+    const full = this.bounds.end - this.bounds.start;
+    const old = this.#span.end - this.#span.start;
+    const width = clamp(old * factor, Math.min(MIN_EXPLORE_DAYS, full), full);
+    const pivot = this.#span.start + share * old;
+    const start = pivot - share * width;
+    this.#span = this.#keep({ start, end: start + width });
+    const day = clamp(
+      this.clock.state().day,
+      Math.ceil(this.#span.start),
+      Math.floor(this.#span.end),
+    );
+    this.#publish(day);
+  }
+
+  #keep(span: Span): Span {
+    const width = span.end - span.start;
+    const start = clamp(span.start, this.bounds.start, this.bounds.end - width);
+    return Object.freeze({ start, end: start + width });
+  }
+
+  #publish(day: number): void {
+    const before = this.clock.state();
+    this.clock.set(
+      clamp(Math.floor(day), this.bounds.start, this.bounds.end),
+      this.#span.end - this.#span.start,
+    );
+    if (this.clock.state() === before) {
+      for (const listener of this.#viewportListeners) listener();
+    }
+  }
+}
+
+/** WheelEvent pixel, line and page deltas in one restrained exponential zoom. */
+export function wheelZoom(delta: number, mode: number, pagePx: number): number {
+  const pixels = delta * (mode === 1 ? 16 : mode === 2 ? pagePx : 1);
+  return Math.exp(clamp(pixels, -600, 600) * 0.002);
+}
+
+function clamp(value: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, value));
+}

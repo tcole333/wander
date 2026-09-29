@@ -1,18 +1,21 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { dayFromIso } from '../dates';
+import { civilFromDay, dayFromCivil, dayFromIso } from '../dates';
 import { parseStory } from '../story';
 import { beatSpan, type Span } from './format';
 import {
   anchored,
   arcFor,
   engraveScale,
+  engraveTier,
+  engravedUnit,
   LOWER_ROW,
   storyYears,
   TIER_REACH,
   tierAngle,
   type Label,
 } from './rulerScale';
+import { HISTORY } from '../../time/exploreTime';
 
 const story = parseStory(
   readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
@@ -56,6 +59,100 @@ const SPANS = [
 ];
 
 describe('the crafted ruler', () => {
+  const broadSpans = [
+    { unit: 'millennium', span: HISTORY },
+    { unit: 'century', span: { start: dayFromIso('-0999-01-01'), end: dayFromIso('0600-01-01') } },
+    { unit: 'decade', span: { start: dayFromIso('-0099-01-01'), end: dayFromIso('0040-01-01') } },
+    { unit: 'year', span: { start: dayFromIso('-0009-01-01'), end: dayFromIso('0003-01-01') } },
+    { unit: 'month', span: { start: dayFromIso('0000-07-01'), end: dayFromIso('0001-07-01') } },
+    { unit: 'day', span: { start: dayFromIso('0000-12-28'), end: dayFromIso('0001-01-04') } },
+  ];
+
+  it.each(broadSpans)('engraves $unit ticks and labels across BCE and CE', ({ unit, span }) => {
+    expect(engravedUnit(arc, span)).toBe(unit);
+    const labels = engrave(span);
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.some((label) => label.text.includes('BCE'))).toBe(true);
+    expect(labels.some((label) => label.text.includes('CE') && !label.text.includes('BCE'))).toBe(
+      true,
+    );
+    for (const label of labels) {
+      expect(label.text).not.toMatch(/\d\.\d|^0(?: BCE| CE)?$/);
+      expect(label.angle).toBeGreaterThanOrEqual(-arc.reach);
+      expect(label.angle).toBeLessThanOrEqual(arc.reach);
+    }
+    const angle = (day: number) =>
+      ((2 * (day - span.start)) / (span.end - span.start) - 1) * arc.reach;
+    const scale = engraveScale(arc, span, angle);
+    expect(scale.full + scale.major + scale.minor).not.toBe('');
+    // Calendar marks are bounded by the visible resolution, including the full 12,000 years.
+    expect((scale.full + scale.major + scale.minor).split('M').length).toBeLessThan(500);
+    expect(labels.length).toBeLessThan(100);
+  });
+
+  it('labels both full-history ends and keeps the overview bounded too', () => {
+    const labels = engrave(HISTORY);
+    expect(labels[0]?.text).toBe('10000 BCE');
+    expect(labels.at(-1)?.text).toBe('2000 CE');
+    expect(engraveTier(arc, HISTORY).labels.length).toBeLessThan(20);
+    for (const width of [1024, 1440, 1920]) {
+      const sized = arcFor(width);
+      const angle = (day: number) =>
+        ((2 * (day - HISTORY.start)) / (HISTORY.end - HISTORY.start) - 1) * sized.reach;
+      const labels = engraveScale(sized, HISTORY, angle).labels;
+      expect(labels[0]?.text).toBe('10000 BCE');
+      expect(labels.at(-1)?.text).toBe('2000 CE');
+    }
+    for (const edge of [HISTORY.start, HISTORY.end]) {
+      const span = {
+        start: edge === HISTORY.start ? edge : edge - 4,
+        end: edge === HISTORY.start ? edge + 4 : edge,
+      };
+      const texts = engrave(span).map((label) => label.text);
+      const civil = civilFromDay(edge);
+      expect(texts).toContain(civil.year < 0 ? 'JANUARY 10000 BCE' : 'DECEMBER 2000');
+      expect(texts).toContain(civil.year < 0 ? '1' : '30');
+    }
+  });
+
+  it('keeps BCE and CE labels apart at intermediate zooms and desktop widths', () => {
+    for (const width of [1024, 1440, 1920]) {
+      const sized = arcFor(width);
+      for (const years of [12, 25, 60, 120, 250, 600, 1200, 2500, 6000, 12000]) {
+        const span = {
+          start: dayFromIso('-9999-01-01'),
+          end: dayFromIso('-9999-01-01') + years * 365.2425,
+        };
+        const angle = (day: number) =>
+          ((2 * (day - span.start)) / (span.end - span.start) - 1) * sized.reach;
+        const labels = engraveScale(sized, span, angle).labels.filter(
+          (label) => label.row === LOWER_ROW,
+        );
+        let right = -Infinity;
+        for (const label of labels) {
+          const size = length(label);
+          const center = label.angle * sized.r;
+          const left =
+            center - (label.anchor === 'start' ? 0 : label.anchor === 'end' ? size : size / 2);
+          expect(left, `${width}px, ${years} years, ${label.text}`).toBeGreaterThan(right);
+          right = left + size;
+        }
+      }
+    }
+  });
+
+  it('shows adjacent calendar years 1 BCE and 1 CE and the leap day of astronomical zero', () => {
+    const span = { start: dayFromIso('0000-01-01'), end: dayFromIso('0002-01-01') };
+    expect(engrave(span).map((label) => label.text)).toEqual(
+      expect.arrayContaining(['1 BCE', '1 CE']),
+    );
+    const leap = { start: dayFromIso('0000-02-27'), end: dayFromIso('0000-03-03') };
+    expect(engrave(leap).map((label) => label.text)).toContain('29');
+    expect(
+      dayFromCivil({ year: 1, month: 1, day: 1 }) - dayFromCivil({ year: 0, month: 1, day: 1 }),
+    ).toBe(366);
+  });
+
   it('engraves every span in calendar words and numbers, never decimals', () => {
     const calendar = /^(\d{1,2}|[A-Z]{3}|[A-Z]+ \d{4}|\d{4})$/;
     for (const span of SPANS) {
