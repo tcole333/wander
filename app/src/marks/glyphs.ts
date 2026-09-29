@@ -2,8 +2,9 @@
 // nonzero rule (a subpath wound the other way cuts a hole). The look letters them once, as signed
 // distance fields on a shelf of its sea-name atlas (glyphAtlas.ts), and every mark names one.
 //
-// Until the symbol family arrives (marks/symbols.ts), the set is four test glyphs, drawn only by
-// the dev page's ?markDemo: a twin peak, crossed blades, an anchor and a compass star.
+// The look letters four test glyphs, drawn only by the dev page's ?markDemo: a twin peak, crossed
+// blades, an anchor and a compass star, until the event marks take the symbol family's
+// EVENT_GLYPHS (symbols.ts).
 
 /** Glyph names to SVG path data on a 64-unit grid, y down, nonzero fill. */
 export type GlyphSet = Readonly<Record<string, string>>;
