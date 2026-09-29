@@ -1191,8 +1191,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
     The ambient events merge both locks' glows (3.9), alternating their ranked picks, keeping
     each at least 450 km from those already taken and stopping at 120 across the whole lobby:
     small pinpricks of lit brass with a slow, shallow breath, additive and unlit, in three's built-in
-    points material, compiled in the precompile. They stay faint and apart, since ember orange
-    belongs to the chosen story. There is no hover queue yet; the dive's readiness gate covers
+    points material, compiled in the precompile. They stay faint and apart, so the chosen story's
+    ember stands out. There is no hover queue yet; the dive's readiness gate covers
     beat 1. The walk's knurled brass sound knob stands at the top right beside Credits. It and M
     show and change the same remembered mute before any audio context exists; neither unlocks
     sound in the lobby. One mark and one knob stay mounted for the whole visit (`story/ui/chrome.ts`).
