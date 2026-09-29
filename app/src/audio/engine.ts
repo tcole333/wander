@@ -10,7 +10,10 @@ import { noiseSamples, primeAtLeast, toBuffer, type NoiseColor, type Sources } f
 
 interface CachedNoise {
   buffer: AudioBuffer;
-  /** Unscoped callers (the existing cues and mechanism) keep their approved noise cached. */
+  /**
+   * Unscoped callers (the existing cues and mechanism) keep their approved noise cached until the
+   * lobby releases it (releaseNoise).
+   */
   retained: boolean;
   owners: Set<Sources>;
 }
@@ -163,6 +166,18 @@ export class SoundEngine {
       });
     }
     return entry.buffer;
+  }
+
+  /**
+   * Forgets the cached noise, as the lobby does once a return lands: noise no sound owns leaves
+   * the cache now, and noise a bed still owns leaves once its sources end. A source playing a
+   * buffer keeps it until it ends, and the next request makes that noise afresh.
+   */
+  releaseNoise(): void {
+    for (const [key, entry] of this.#noise) {
+      entry.retained = false;
+      if (entry.owners.size === 0) this.#noise.delete(key);
+    }
   }
 
   #glideMaster(): void {

@@ -40,4 +40,26 @@ describe('bed noise ownership', () => {
     expect(bytes()).toBe(ui.length * 4);
     expect(engine.noise('white', 1)).toBe(ui);
   });
+
+  it('forgets kept noise on release, and a playing bed’s once its sources end', () => {
+    const clock = audioClock();
+    const engine = new SoundEngine(clock.ctx);
+    const account = () => {
+      const memory = new MemoryAccount();
+      engine.inspectMemory(memory);
+      return memory;
+    };
+    const bed = new Sources();
+    const ui = engine.noise('white', 1);
+    const shared = engine.noise('pink', 1, bed);
+    expect(engine.noise('pink', 1)).toBe(shared);
+    loop(engine, shared, 0, bed);
+    engine.releaseNoise();
+    expect(account().report().totals.audioSamples).toBe(shared.length * 4);
+    bed.stop(1);
+    clock.advance(1);
+    expect(account().report().totals.audioSamples).toBe(0);
+    expect(account().details.audio).toMatchObject({ cachedNoiseBuffers: 0 });
+    expect(engine.noise('white', 1)).not.toBe(ui);
+  });
 });
