@@ -45,7 +45,7 @@ describe('event symbols', () => {
     expect(eventSymbols(['battle', 'sporting season', 'famine'])).toEqual([
       { pace: 'governance', glyph: 'battle' },
       undefined,
-      { pace: 'nature', glyph: 'famine' },
+      { pace: 'governance', glyph: 'famine' },
     ]);
     expect(eventSymbol('toString')).toBeUndefined();
   });
