@@ -5,14 +5,8 @@
 // Wikimedia, and once the room opens nothing more is fetched from the app's own host.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import { dayFromIso } from '../src/story/dates';
+import { fetchedSinceOpening, markOpening } from './opening';
 import { DATA_URL, PREVIEW_URL } from './servers';
-
-declare global {
-  interface Window {
-    /** When #room took is-open, on the page's clock. */
-    roomOpenedAt?: number;
-  }
-}
 
 const TIMEOUT = 90_000;
 const expect = playwrightExpect.configure({ timeout: TIMEOUT });
@@ -31,34 +25,6 @@ async function openLobby(page: Page, query: string): Promise<void> {
   await expect(page.locator('#room')).toBeHidden();
   await page.keyboard.press('Shift');
   await phase(page, 'idle');
-}
-
-/**
- * Marks the moment the room opens on the page's own clock, and keeps every resource entry from
- * then on.
- */
-async function markOpening(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    performance.setResourceTimingBufferSize(100_000);
-    const watch = new MutationObserver(() => {
-      if (!document.getElementById('room')?.classList.contains('is-open')) return;
-      window.roomOpenedAt = performance.now();
-      watch.disconnect();
-    });
-    watch.observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
-  });
-}
-
-/** What the page has fetched from `origin` since the room opened. */
-function fetchedSinceOpening(page: Page, origin: string): Promise<string[]> {
-  return page.evaluate((from) => {
-    const opened = window.roomOpenedAt;
-    if (opened === undefined) throw new Error('the room never opened');
-    return performance
-      .getEntriesByType('resource')
-      .filter((entry) => entry.startTime >= opened && new URL(entry.name).origin === from)
-      .map((entry) => entry.name);
-  }, origin);
 }
 
 test('shows no Explore plaque without the flag', async ({ page }) => {
