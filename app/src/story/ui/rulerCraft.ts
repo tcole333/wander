@@ -829,10 +829,12 @@ export class CraftRuler {
     const [s0, s1] = [tierAngle(arc, years, span.start), tierAngle(arc, years, span.end)];
     const least = 2 / arc.r;
     const [w0, w1] = [Math.min(s0, (s0 + s1) / 2 - least), Math.max(s1, (s0 + s1) / 2 + least)];
-    this.#window.setAttribute('d', sector(arc, w0, w1, TIER_RULE - 8, TIER_RULE + 2.5));
-    const [x0, y0] = at(arc, w0, TIER_RULE - 9);
-    const [x1, y1] = at(arc, w1, TIER_RULE - 9);
-    const rim = along(arc, w0, w1, TIER_RULE + 2.5).slice(1);
+    // Exploration has no beat studs on the rail: put its window above the rule, off the years.
+    const [inner, outer, foot] = this.#explore ? [4, 14, 3] : [-8, 2.5, -9];
+    this.#window.setAttribute('d', sector(arc, w0, w1, TIER_RULE + inner, TIER_RULE + outer));
+    const [x0, y0] = at(arc, w0, TIER_RULE + foot);
+    const [x1, y1] = at(arc, w1, TIER_RULE + foot);
+    const rim = along(arc, w0, w1, TIER_RULE + outer).slice(1);
     for (const path of this.#bracket) {
       path.setAttribute('d', `M${f(x0)} ${f(y0)}L${rim}L${f(x1)} ${f(y1)}`);
     }
