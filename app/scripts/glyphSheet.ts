@@ -1,6 +1,7 @@
 // The event marks' specimen sheet: every glyph of src/marks/symbols.ts by pace layer, at the
-// marks' sizes on the globe (12, 16 and 20 px) on bronze and on the lacquer of the sea, and at
-// 128 px on its 64-unit grid, with the classes of pipeline/config/event-classes.yaml that take it.
+// marks' sizes on the globe (12, 16 and 20 px) and at 7 px, the glyph a 12 px mark's seal holds,
+// on bronze and on the lacquer of the sea, and at 128 px on its 64-unit grid, with the classes of
+// pipeline/config/event-classes.yaml that take it.
 // Writes the SVG, then a PNG of it through headless Chromium, and prints each glyph's ink. From app/:
 //   node scripts/glyphSheet.ts --out ../build/explore/glyphs.svg [--png <path>] [--scale 1]
 // --png defaults to the SVG's path with .png; --scale is the PNG's device pixel ratio (1 shows the
@@ -25,7 +26,8 @@ if (!(scale >= 1 && scale <= 4)) throw new Error('--scale takes a device pixel r
 const out = resolve(values.out);
 const png = resolve(values.png ?? out.replace(/\.svg$/, '.png'));
 
-const SIZES = [12, 16, 20] as const;
+/** The marks' sizes on the globe, after the glyph a 12 px mark's seal holds (about 0.6 of it). */
+const SIZES = [7, 12, 16, 20] as const;
 const BIG = 128;
 const PAD = 32;
 const CARD = { width: 392, height: 184, gap: 16 };
@@ -120,7 +122,7 @@ const body: string[] = [
   text(
     PAD,
     y + 46,
-    'One family per pace layer, drawn on a 64-unit grid. Small sizes: 12, 16 and 20 px, on bronze and on the sea.',
+    'One family per pace layer, drawn on a 64-unit grid. Marks are 12, 16 and 20 px across; a 12 px seal holds its glyph at 7 px.',
     13,
     FAINT,
   ),
