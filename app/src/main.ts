@@ -4,18 +4,20 @@
 // opening starts, and crossfades into it, its mark gliding onto the lobby's. Data that does not
 // arrive brings a plate with a Reload control; a browser that cannot draw the globe (no WebGL 2
 // context, a shader that does not link) brings both stories' titles and blurbs instead, never a
-// reload loop. A failure after choosing shows that story's card. A lost context reloads once; a
-// second loss within a few minutes brings the card (page/contextLoss.ts).
+// reload loop. A failure after choosing shows that story's card, or Explore's. A lost context
+// reloads once; a second loss within a few minutes brings the card (page/contextLoss.ts).
 //
 // On a page served from this machine, ?data=<origin>|fixture|region|global reads a local data
-// server's release instead (page/dataOrigin.ts), for the smoke test and local checks.
+// server's release instead (page/dataOrigin.ts), for the smoke test and local checks, and ?explore
+// enables Explore before it goes live (page/features.ts).
 import './page/room.css';
 import { DataError, fetchData } from './data/surfaceLayer';
 import type { Release } from './data/release';
 import bundled from './generated/release.json';
 import { afterContextLoss } from './page/contextLoss';
-import { dataOverride, memoryRequested } from './page/dataOrigin';
-import { dataPlate, lobbyPlate, Room, storyPlate, type Unable } from './page/room';
+import { dataOverride, exploreRequested, memoryRequested } from './page/dataOrigin';
+import { EXPLORE_LIVE } from './page/features';
+import { dataPlate, explorePlate, lobbyPlate, Room, storyPlate, type Unable } from './page/room';
 import { stories } from './story/catalog';
 import { bootWalk, DrawError } from './walk/boot';
 import type { Choice } from './walk/mode';
@@ -28,10 +30,12 @@ async function main(): Promise<void> {
   const card = (why: Unable) =>
     chosen?.kind === 'story'
       ? storyPlate(chosen.story, why)
-      : lobbyPlate(
-          stories.map(({ story }) => story),
-          why,
-        );
+      : chosen?.kind === 'explore'
+        ? explorePlate(why)
+        : lobbyPlate(
+            stories.map(({ story }) => story),
+            why,
+          );
   const failurePlate = (error: unknown) =>
     error instanceof DataError
       ? dataPlate()
@@ -61,11 +65,12 @@ async function main(): Promise<void> {
     const release = await readRelease();
     const walk = await bootWalk(document.body, release, {
       stories,
+      explore: EXPLORE_LIVE || exploreRequested(location),
       lobby: true,
       onStory: (choice) => {
         chosen = choice;
       },
-      // The story that does not start from its plaque brings the card, as a boot that stops does.
+      // A choice that does not start from its plaque brings its card, as a boot that stops does.
       onFail: (error, choice) => {
         console.error(error);
         chosen = choice;

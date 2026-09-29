@@ -24,7 +24,7 @@ import type { ViewState } from '../../view/viewState';
 import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 import { ExploreTime } from '../../time/exploreTime';
-import { worldClock, type WorldTime } from '../../time/worldClock';
+import { worldClock } from '../../time/worldClock';
 import { CraftRuler } from '../../story/ui/rulerCraft';
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
@@ -72,13 +72,6 @@ declare global {
       view(view: ViewState, instant?: boolean): void;
       settings(): string;
       error?: string;
-    };
-    /** Free-globe clock and ruler viewport, for local checks. */
-    __worldTime?: {
-      state(): WorldTime;
-      span(): { start: number; end: number };
-      seek(day: number): void;
-      zoom(factor: number, share: number): void;
     };
     __walk?: {
       state(): Omit<WalkState, 'story'>;
