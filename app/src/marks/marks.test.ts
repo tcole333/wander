@@ -7,6 +7,7 @@ import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
+import { MARK_ROW, SLOT_ROW, TABLE_WIDTH } from './marks.glsl';
 import { binDiscs, limbFade, MarkLayer, markPx, type MarkSpec, type MarkView } from './marks';
 
 /** A camera `altitude` globe radii straight above a place, a 30-degree view 1440x900 px. */
@@ -29,7 +30,7 @@ function over([lon, lat]: LonLat, altitude: number): MarkView {
   };
 }
 
-const cells = new Map([['test-star', { x: 0, y: 1638 }]]);
+const cells = new Map([['test-star', { x: 0, y: 1638, extent: 0.95 }]]);
 const mark = (id: string, at: LonLat, extra: Partial<MarkSpec> = {}): MarkSpec => ({
   id,
   at,
@@ -148,6 +149,36 @@ describe('MarkLayer', () => {
     marks.strength = 0;
     marks.place(view);
     expect(marks.uniforms.lookMarksOn.value).toBe(false);
+  });
+
+  it('reaches past a soft token’s blurred contact shadow at world view', () => {
+    const marks = layer();
+    const world = over([20, 10], 2);
+    // The lamp low in the east, so the token's shadow runs long to the west.
+    const east = dirOf([110, 10]).multiplyScalar(10);
+    marks.set('events', [mark('a', [20, 10], { soft: true })]);
+    marks.place({ ...world, lamp: east });
+    const [placed] = marks.placed();
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const reachPx = data[SLOT_ROW * TABLE_WIDTH * 4 + 2] ?? 0;
+    const at = MARK_ROW * TABLE_WIDTH * 4;
+    const shadow = Math.hypot(data[at + 8] ?? 0, data[at + 9] ?? 0);
+    expect(shadow).toBeGreaterThan(0.3);
+    // The look blurs the shadow's edge over 2 × 2.5 px and 0.12 r beyond the disc's radius, 1 r.
+    const rPx = placed?.rPx ?? 0;
+    expect(rPx).toBeCloseTo(6, 0);
+    expect(reachPx).toBeGreaterThanOrEqual((shadow + 1 + 0.12) * rPx + 2 * 2.5);
+  });
+
+  it('reaches past the focal ember’s ring', () => {
+    const marks = layer();
+    marks.set('events', [mark('a', [20, 10], { focal: true })]);
+    marks.place(over([20, 10], 2));
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const reachPx = data[SLOT_ROW * TABLE_WIDTH * 4 + 2] ?? 0;
+    const rPx = marks.placed()[0]?.rPx ?? 0;
+    // Its ring at 1.35 r, half 0.07 r or 0.9 px wide, with a pixel's antialiasing.
+    expect(reachPx).toBeGreaterThanOrEqual(1.35 * rPx + Math.max(0.07 * rPx, 0.9) + 1);
   });
 
   it('holds no memory once every source has cleared its marks', () => {

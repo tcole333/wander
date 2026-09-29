@@ -18,13 +18,21 @@ export const GLYPH_SPREAD = 16;
 const SUPERSAMPLE = 4;
 const INF = 1e20;
 
-/** Glyph cells on shelves `width` texels wide: R8 bytes, row 0 first, and each cell's corner. */
+/** A glyph's cell: its top-left texel, and how far the glyph reaches from its center. */
+export interface GlyphCell {
+  x: number;
+  y: number;
+  /** The farthest the glyph's shape reaches from the grid's center, in half grids (1 at an edge). */
+  extent: number;
+}
+
+/** Glyph cells on shelves `width` texels wide: R8 bytes, row 0 first, and each glyph's cell. */
 export interface GlyphShelf {
   width: number;
   height: number;
   data: Uint8Array;
-  /** Each glyph's cell: its top-left texel within the shelf. */
-  cells: Map<string, { x: number; y: number }>;
+  /** Each glyph's cell within the shelf. */
+  cells: Map<string, GlyphCell>;
 }
 
 /** Rasterizes every glyph in `set` and lays their fields out on shelves `width` texels wide. */
@@ -34,7 +42,7 @@ export function glyphShelf(set: GlyphSet, width: number): GlyphShelf {
   const rows = Math.ceil(names.length / perRow);
   const height = rows * GLYPH_CELL;
   const data = new Uint8Array(width * height);
-  const cells = new Map<string, { x: number; y: number }>();
+  const cells = new Map<string, GlyphCell>();
   if (names.length === 0) return { width, height, data, cells };
 
   const side = GLYPH_CELL * SUPERSAMPLE;
@@ -58,12 +66,25 @@ export function glyphShelf(set: GlyphSet, width: number): GlyphShelf {
       const x = (n % perRow) * GLYPH_CELL;
       const y = Math.floor(n / perRow) * GLYPH_CELL;
       writeCell(field, side, data, width, x, y);
-      cells.set(name, { x, y });
+      cells.set(name, { x, y, extent: extentOf(inside, side) });
     });
   } finally {
     canvas.width = canvas.height = 0;
   }
   return { width, height, data, cells };
+}
+
+/** How far the inside pixels of a square fill reach from its center, in the glyph's half grids. */
+export function extentOf(inside: Uint8Array, side: number): number {
+  const center = side / 2;
+  let most = 0;
+  for (let j = 0; j < side; j++) {
+    for (let i = 0; i < side; i++) {
+      if (inside[j * side + i] !== 1) continue;
+      most = Math.max(most, Math.hypot(i + 0.5 - center, j + 0.5 - center) + Math.SQRT1_2);
+    }
+  }
+  return most / ((side / GLYPH_CELL) * (GLYPH_UNITS / 2));
 }
 
 /** Averages a supersampled field (in fine pixels) into one cell of bytes at (x, y). */

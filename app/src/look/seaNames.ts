@@ -18,7 +18,7 @@ import {
 } from 'three';
 import { tunables } from '../config/tunables';
 import { releaseDataAfterUpload } from '../gpu/uploadOnce';
-import { glyphShelf } from '../marks/glyphAtlas';
+import { glyphShelf, type GlyphCell } from '../marks/glyphAtlas';
 import type { GlyphSet } from '../marks/glyphs';
 import type { GlyphCells } from '../marks/marks';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
@@ -314,8 +314,9 @@ export class SeaNameLayer {
     for (let i = 0; i < canvas.width * namesHeight; i++) red[i] = data[i * 4] ?? 0;
     if (glyphs) {
       red.set(glyphs.data, ATLAS_WIDTH * namesHeight);
-      const cells = new Map<string, { x: number; y: number }>();
-      for (const [name, { x, y }] of glyphs.cells) cells.set(name, { x, y: y + namesHeight });
+      const cells = new Map<string, GlyphCell>();
+      for (const [name, cell] of glyphs.cells)
+        cells.set(name, { ...cell, y: cell.y + namesHeight });
       this.#cells = cells;
     }
     const atlas = releaseDataAfterUpload(new DataTexture(red, canvas.width, height, RedFormat));
