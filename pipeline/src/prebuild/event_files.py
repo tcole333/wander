@@ -428,6 +428,27 @@ def build(
     }
 
 
+def openings_lock(ctx: Context) -> Path:
+    """The committed lock of Explore's openings (the openings stage's)."""
+    return ctx.repo / OPENINGS_FOLDER / OPENINGS_LOCK
+
+
+def opening_qids(ctx: Context) -> list[str]:
+    """The qids of Explore's openings, from a lock checked against this profile's event index.
+    The fixture's index is a slice of the whole one the lock was checked against, so its table is
+    never the lock's."""
+    path = openings_lock(ctx)
+    if not path.exists():
+        raise events.EventsError(f"{path} is missing: run `uv run prebuild openings`")
+    lock = json.loads(path.read_text(encoding="utf-8"))
+    if ctx.profile is not Profile.FIXTURE and lock["table"] != sha256_file(ctx.out / events.KEY):
+        raise events.EventsError(
+            f"{OPENINGS_FOLDER}/{OPENINGS_LOCK} was checked against another event index: "
+            f"run `uv run prebuild --profile {ctx.profile} openings`"
+        )
+    return [opening["qid"] for opening in lock["openings"]]
+
+
 def run(ctx: Context) -> None:
     record = read_record(ctx, events.STAGE)
     source = events.export_source(load_sources())
@@ -435,28 +456,18 @@ def run(ctx: Context) -> None:
         raise events.EventsError(
             f"events table is stale: run `uv run prebuild --profile {ctx.profile} events`"
         )
+    qids = opening_qids(ctx)
     path = (
         excerpts_dir(ctx.repo) / "events" / events.TABLE
         if ctx.profile is Profile.FIXTURE
         else verified_path(ctx, source.id, events.TABLE)
     )
-    lock_path = ctx.repo / OPENINGS_FOLDER / OPENINGS_LOCK
-    if not lock_path.exists():
-        raise events.EventsError(f"{lock_path} is missing: run `uv run prebuild openings`")
-    lock = json.loads(lock_path.read_text(encoding="utf-8"))
-    strict = ctx.profile is not Profile.FIXTURE
-    table = ctx.out / events.KEY
-    if strict and lock["table"] != sha256_file(table):
-        raise events.EventsError(
-            f"{OPENINGS_FOLDER}/{OPENINGS_LOCK} was checked against another event index: "
-            f"run `uv run prebuild --profile {ctx.profile} openings`"
-        )
     with gzip.open(path, "rt", encoding="utf-8") as stream:
         statements = events.read_export(stream)
-    rows = prepare(read_table(table), statements)
-    qids = [opening["qid"] for opening in lock["openings"]]
+    rows = prepare(read_table(ctx.out / events.KEY), statements)
+    strict = ctx.profile is not Profile.FIXTURE
     result = build(rows, ctx.out, openings=forced(rows, qids, strict=strict))
-    result["inputs"] = {"openings": sha256_file(lock_path)}
+    result["inputs"] = {"openings": sha256_file(openings_lock(ctx))}
     write_record(ctx, STAGE, result)
     print(
         f"event-files: {len(rows)} rows, {sum(f['bytes'] for f in result['files'])} B stored, "
