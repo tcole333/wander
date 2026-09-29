@@ -472,9 +472,10 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   (~21 rows each), filled by score, and leftovers by score. If the corpus is at most 100K rows and
   16 MiB decoded, the rest goes into `all.wev`. Otherwise it is split into `p00..p23` by era bin: a row
   goes into every bin it overlaps, except rows spanning more than 3 bins, which go into `long.wev`.
-  The overview is at most 4,096 rows; rest files exclude its rows, and empty non-overview files
-  are omitted so small fixtures need no empty fetch. The 100K row limit decides paging, never
-  truncation. Overlapping pages retain the same global row ids for deduplication.
+  The overview is at most 4,096 rows plus Explore's openings (below); rest files exclude its
+  rows, and empty non-overview files are omitted so small fixtures need no empty fetch. The 100K
+  row limit decides paging, never truncation. Overlapping pages retain the same global row ids for
+  deduplication.
 - **Overview regions:** eight rectangles cover the whole sphere, including oceans: North and
   South America, Europe, Africa, North Asia, South Asia, East/Southeast Asia and Oceania. These
   are sampling cells, so simple complete coverage matters more than political borders; their
@@ -482,6 +483,26 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   a gap fails the build with the event and coordinate. The chosen date determines the era and
   the placed point the region. Each of the 24 × 8 cells gets up to 21 rows by score, then unused
   capacity fills by global score, so a dense recent European era cannot take the whole overview.
+- **Openings:** the events Explore opens on are listed in the repo-root `explore/openings.yaml`,
+  outside `stories/`, where tests expect a `story.md` in every folder: about two dozen of the
+  best-known events up to 2000 across pace layers, continents and eras, each with its qid, a
+  present-tense line in the walk's voice and the source it rests on (title and https URL), in the
+  form of a story's `meanwhile.yaml`, with an optional `date` (ISO day or month, proleptic
+  Gregorian as the index's) where a source dates the event more finely than the index. `uv run
+  prebuild openings`, named-only, reads the list with Meanwhile's readers and writes the committed
+  `explore/openings.lock.json`, `{table, openings: [{qid, label, date, precision, at, line,
+  source: {title, url}, class}]}`, `table` being the sha256 of the `events.tsv.gz` it checked. It
+  stops on a qid the index lacks, an opening part of another (P361 through the index's parents,
+  since two of one family open on one view), a start after 2000, an index built from another export
+  or other configs, or a line naming a day and month other than the event's date as its sources
+  give it (Julian before 15 October 1582) or a day where the date is a month or year. `event-files`
+  forces every opening into `overview.wev` on top of its quota, so the first view never waits on a
+  rest file: an opening the index lacks fails the global and region builds and is left out of the
+  fixture's slice with a logged count, and a lock checked against another table fails them, naming
+  the stage. Its record's `inputs` hold the lock's sha256, and `explore` joins the fixture stamp's
+  paths. The app bundles the lock (`app/src/explore/openings.ts`) and picks one opening per dive,
+  never one of the visitor's last `openingsRecent`, kept in `localStorage`; `?opening=Q…` pins one
+  on loopback. Until the overview decodes, or if it fails, the lock draws the opening's mark.
 - **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
   1700, 1800, 1850, 1900, 1950, 2000, +∞, each finite edge its year's 1 January in the historical
@@ -1508,16 +1529,17 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 
 `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]` runs the named stages, or,
 when none is named, every prebuild stage from `fetch` to `minerals` in the order below except
-`wikidata`, `excerpts`, `media` and `meanwhile`, which run only when named: `wikidata` and
-`excerpts` because they rewrite committed files, and `media` and `meanwhile` because each builds
-one story, named with `--story <id>`. A bare run builds the global profile (owner decision 17).
-Each profile has its own output root: `build/out/` for global, `build/region/` for the
+`wikidata`, `excerpts`, `openings`, `media` and `meanwhile`, which run only when named: `wikidata`,
+`excerpts` and `openings` because they rewrite committed files, and `media` and `meanwhile` because
+each builds one story, named with `--story <id>`. A bare run builds the global profile (owner
+decision 17). Each profile has its own output root: `build/out/` for global, `build/region/` for the
 milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the same
-`--profile` (4.3). The fixture profile skips `fetch`, `wikidata` and `excerpts`, so it needs no
-raw data, and `borders`, whose tests use synthetic snapshots. It runs `events` and `modera` on
-committed excerpts (7.3). `meanwhile` stays disabled until a fixture story has its own lock, so
-the fixture cannot rewrite Tambora's global-build lock. `--jobs` defaults to min(8, CPUs), with
-spawn-context worker processes. `media` also takes `--offline`.
+`--profile` (4.3). The fixture profile skips `fetch`, `wikidata` and `excerpts`, so it needs no raw
+data, and `borders`, whose tests use synthetic snapshots. It runs `events` and `modera` on committed
+excerpts (7.3). `meanwhile` stays disabled until a fixture story has its own lock, so the fixture
+cannot rewrite Tambora's global-build lock, and `openings` never runs there, since it checks its
+list against the whole index. `--jobs` defaults to min(8, CPUs), with spawn-context worker
+processes. `media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
@@ -1530,7 +1552,8 @@ spawn-context worker processes. `media` also takes `--offline`.
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | range names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
-| `event-files` | that table and its pinned local export + the event, era and region configs → versioned overview and all-events `.wev`, or era pages above the thresholds, with percentile scores and display parents (3.4); runs for the fixture too | about 1 s for 30,070 rows [M] | local |
+| `openings` | `explore/openings.yaml` + `ev/events.tsv.gz` in the profile's output root → the committed `explore/openings.lock.json` (3.4); it stops, naming `events`, when the events record's `inputs` differ from the current export and configs | under 1 s [M] | local |
+| `event-files` | that table and its pinned local export + the event, era and region configs + `explore/openings.lock.json`, whose openings join the overview → versioned overview and all-events `.wev`, or era pages above the thresholds, with percentile scores and display parents (3.4); runs for the fixture too | about 1 s for 30,070 rows [M] | local |
 | `modera` | the ensemble mean and spread NetCDFs (520 MB each, `temp2` float32 7,056×96×192), read with netCDF4 a year at a time → 1,176 year files + `annual.bin` (3.5); reports the largest step per variable | 48 s [M] | local |
 | `fx`, `minerals` | story GeoJSON, USGS points | seconds | local |
 | `media --story <id>` | Commons originals by title, the revision with the pinned sha1 (cached in `build/cache/commons/`), crop, JPEG 1024w and 256w at quality 85, never wider than the crop (AVIF waits until JPEG's weight shows a need); later, mono AAC with loop points and focal resolution against the current events build → `img/` and `aud/` in the profile's output root + the committed lock (3.9). An image's `<sha16>` is the first 16 hex characters of `lines_sha` over its files' sha256, keyed `1024.jpg` and `256.jpg`, so a key names its bytes; a key already written is kept only when its bytes match. `--offline` reads the committed test image and its metadata in `pipeline/tests/data/media/` instead. | 7 s for Tambora's 8 images, downloading their 76 MB of originals; 2.5 s once cached [M] | local |
@@ -1566,10 +1589,10 @@ spawn-context worker processes. `media` also takes `--offline`.
 
 Every stage writes its profile's output root in the exact R2 key layout, plus a record at
 `build/stages/<profile>/<stage>.json`, outside the tree `publish-data` uploads, so records never
-become R2 keys. `fetch`, `wikidata`, `excerpts`, `media` and `meanwhile` write no record:
-`wikidata` pins its export in `sources.toml`, `meanwhile` writes its lists into the lock, and
-`media` lists what it wrote in the committed lock (3.9), which `npm run stories` reads, and the
-release's `media` section lists every key the locks name (3.8).
+become R2 keys. `fetch`, `wikidata`, `excerpts`, `openings`, `media` and `meanwhile` write no
+record: `wikidata` pins its export in `sources.toml`, `openings` and `meanwhile` write their
+locks, and `media` lists what it wrote in the committed lock (3.9), which `npm run stories` reads,
+and the release's `media` section lists every key the locks name (3.8).
 
 | Stage | Record |
 |---|---|
@@ -1579,7 +1602,7 @@ release's `media` section lists every key the locks name (3.8).
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
-| event-files | `{ver, overview, rows, eraEdges, files[{key, t0, t1, rows, bytes, decoded, jsonBytes, bin?}]}`: copied as the optional release `events` section (3.8); counts unique rows, lists the overview and nonempty rest files, and supplies exact byte sizes and bin edges for the worker's admission and inflation limits |
+| event-files | `{ver, overview, rows, eraEdges, files[{key, t0, t1, rows, bytes, decoded, jsonBytes, bin?}], inputs: {openings}}`: copied as the optional release `events` section (3.8); counts unique rows, lists the overview and nonempty rest files, and supplies exact byte sizes and bin edges for the worker's admission and inflation limits; `inputs.openings` is the sha256 of the openings lock the overview holds |
 | modera | `{ver, years[first, last], lat[96], lon0, dlon, bytes{mean: {year}, spread: {year}, annual}}`: 3.8's `modera` section as is, the latitudes north first to 6 decimals |
 | fx | `{name: {key, kind, epochDay, bbox, w, h, bytes}}` |
 | minerals | `{key}` |
