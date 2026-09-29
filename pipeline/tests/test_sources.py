@@ -58,6 +58,10 @@ def test_the_registry_pins_each_source_and_its_files():
             "WEP_PRVG.xml",
             "wep_prvg.jpg",
         ],
+        "usgs-critical-minerals-2017": [
+            "PP1802_CritMin_FGDC_Metadata.xml",
+            "PP1802_Global_CriticalMinerals_gdb.zip",
+        ],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
