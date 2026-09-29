@@ -1,13 +1,16 @@
 // The free ruler's viewport and gestures. The globe need not know about time yet.
-import { dayFromCivil } from '../story/dates';
+import { dayFromHistorical } from '../story/dates';
 import type { Span } from '../story/ui/format';
 import { anchored } from '../story/ui/rulerScale';
 import { worldClock, type WorldClock } from './worldClock';
 
-/** Inclusive day limits: all of 10,000 BCE through the last day of 2000 CE. */
+/**
+ * Inclusive day limits: all of 10,000 BCE through the last day of 2000 CE, in the historical
+ * calendar the ruler engraves (1 January 10,000 BCE in the Julian).
+ */
 export const HISTORY: Span = Object.freeze({
-  start: dayFromCivil({ year: -9999, month: 1, day: 1 }),
-  end: dayFromCivil({ year: 2000, month: 12, day: 31 }),
+  start: dayFromHistorical({ year: -9999, month: 1, day: 1 }),
+  end: dayFromHistorical({ year: 2000, month: 12, day: 31 }),
 });
 export const MIN_EXPLORE_DAYS = 4;
 /** Mean Gregorian days in a year. */

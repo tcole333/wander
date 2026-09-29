@@ -1,7 +1,17 @@
 // The crafted time ruler's geometry and scale (rulerCraft.ts draws them): the band's circle, the
 // radial rows its parts sit on, the span's calendar engraved in two rows, and the whole story in
 // whole years on the base plate beneath. Pure, so it can be tested without a page.
-import { civilFromDay, dayFromCivil, monthName, yearLabel } from '../dates';
+// A story's ruler engraves the proleptic Gregorian calendar its dates are written in; Explore's
+// engraves the historical one (dates.ts), Julian before 15 October 1582.
+import {
+  civilFromDay,
+  dayFromCivil,
+  GREGORIAN,
+  HISTORICAL,
+  monthName,
+  yearLabel,
+  type Calendar,
+} from '../dates';
 import type { StoryBeat } from '../story';
 import { calendarYearLabel, monthAbbrev, monthsIn, yearsIn, type Span } from './format';
 
@@ -150,19 +160,19 @@ export interface Scale extends Record<TickKind, string> {
  */
 export type RulerUnit = 'day' | 'month' | 'year' | 'decade' | 'century' | 'millennium';
 
-export function engravedUnit(arc: Arc, span: Span): RulerUnit {
+export function engravedUnit(arc: Arc, span: Span, calendar: Calendar = GREGORIAN): RulerUnit {
   const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
   if (pxPerDay >= DAY_TICK_PX) return 'day';
   if (pxPerDay * 28 * 3 >= MONTH_LABEL_PX) return 'month';
-  const step = yearStep(arc, span);
+  const step = yearStep(arc, span, calendar);
   return step >= 1000 ? 'millennium' : step >= 100 ? 'century' : step >= 10 ? 'decade' : 'year';
 }
 
 /** A 1/2/5 calendar interval large enough for its year labels at the view's actual width. */
-function yearStep(arc: Arc, span: Span): number {
+function yearStep(arc: Arc, span: Span, calendar: Calendar): number {
   const era = span.start < 0 && span.end >= 0;
   const chars = Math.max(
-    ...[span.start, span.end].map((day) => calendarYearLabel(civilFromDay(day).year, era).length),
+    ...[span.start, span.end].map((day) => calendarYearLabel(calendar.civil(day).year, era).length),
   );
   const needed =
     (((span.end - span.start) / 365.2425) * Math.max(60, chars * 12 + 12)) /
@@ -173,12 +183,18 @@ function yearStep(arc: Arc, span: Span): number {
 
 /**
  * Days and months retain the walk's two rows. Years and coarser spans use whole calendar
- * years, stepping by 1/2/5 multiples of years, decades, centuries or millennia as needed.
+ * years, stepping by 1/2/5 multiples of years, decades, centuries or millennia as needed. Days,
+ * months and years are `calendar`'s: in the historical one, 4 October 1582 is followed by the 15th.
  */
-export function engraveScale(arc: Arc, span: Span, angle: (day: number) => number): Scale {
+export function engraveScale(
+  arc: Arc,
+  span: Span,
+  angle: (day: number) => number,
+  calendar: Calendar = GREGORIAN,
+): Scale {
   const scale: Scale = { full: '', major: '', minor: '', labels: [] };
   const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
-  const unit = engravedUnit(arc, span);
+  const unit = engravedUnit(arc, span, calendar);
   const yearText = (year: number) => calendarYearLabel(year, span.start < 0 && span.end >= 0);
   const yearWidth = (year: number) =>
     year <= 0 || (span.start < 0 && span.end >= 0)
@@ -207,7 +223,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
 
   // Months are visited only when their ticks have room. At millennia this never enumerates
   // the intervening years or months: yearStep jumps directly between the marks to engrave.
-  const months = pxPerDay * 28 >= 4 ? monthsIn(span) : [];
+  const months = pxPerDay * 28 >= 4 ? monthsIn(span, 1, calendar) : [];
   for (const month of months) {
     if (!inRule(month.start)) continue;
     if (month.month === 1) scale.full += radial(arc, angle(month.start), -BAND + 1, BAND - 1);
@@ -218,7 +234,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
     const step =
       pxPerDay >= DAY_LABEL_PX ? 1 : (DAY_STEPS.find((s) => s * pxPerDay >= DAY_STEP_PX) ?? 30);
     for (let day = Math.ceil(span.start); day < span.end; day += 1) {
-      const date = civilFromDay(day).day;
+      const date = calendar.civil(day).day;
       const numbered =
         step === 1 || (date === 1 && step >= 5) || (date % step === 0 && date <= 30 - step / 2);
       if (date !== 1) scale.minor += edges(angle(day), numbered && step > 1 ? 6 : 4);
@@ -259,7 +275,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
       const least = Math.min(MONTH_LABEL_PX, 28);
       name(`m${month.start}`, month.start, month.end, LOWER_ROW, text, 'rc-month', least);
     }
-    for (const year of yearsIn(span)) {
+    for (const year of yearsIn(span, 1, calendar)) {
       const text = yearText(year.year);
       name(
         `Y${year.start}`,
@@ -272,8 +288,8 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
       );
     }
   } else {
-    const step = yearStep(arc, span);
-    for (const year of yearsIn(span, step)) {
+    const step = yearStep(arc, span, calendar);
+    for (const year of yearsIn(span, step, calendar)) {
       const text = yearText(year.year);
       if (inRule(year.start) && months.length === 0) {
         scale.full += radial(arc, angle(year.start), -BAND + 1, BAND - 1);
@@ -309,7 +325,7 @@ export function engraveScale(arc: Arc, span: Span, angle: (day: number) => numbe
         [span.start, 'start'],
         [span.end, 'end'],
       ] as const) {
-        const text = yearText(civilFromDay(anchor === 'end' ? Math.ceil(day) - 1 : day).year);
+        const text = yearText(calendar.civil(anchor === 'end' ? Math.ceil(day) - 1 : day).year);
         if (scale.labels.some((label) => label.text === text)) continue;
         const edge: Label = {
           key: `e${day}`,
@@ -415,11 +431,14 @@ export function engraveTier(
   return tier;
 }
 
-/** Exploration's overview uses bounded calendar intervals; story tiers always name every year. */
+/**
+ * Exploration's overview uses bounded intervals of the historical calendar; story tiers always
+ * name every year.
+ */
 export function engraveHistoryTier(arc: Arc, history: Span): ReturnType<typeof engraveTier> {
   const tier = { years: '', months: '', labels: [] as Label[] };
   const tierArc = { ...arc, reach: arc.reach * TIER_REACH };
-  const scale = engraveScale(tierArc, history, (day) => tierAngle(arc, history, day));
+  const scale = engraveScale(tierArc, history, (day) => tierAngle(arc, history, day), HISTORICAL);
   for (const label of scale.labels) {
     tier.years += radial(arc, label.tickAngle ?? label.angle, TIER_RULE, TIER_RULE - 8);
     tier.labels.push({ ...label, row: TIER_ROW, cls: 'rc-tier-year' });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { civilFromDay, dayFromIso } from '../story/dates';
+import { dayFromIso, historicalCivil } from '../story/dates';
 import { WorldClock } from './worldClock';
 import { ExploreTime, HISTORY, MIN_EXPLORE_DAYS, wheelZoom } from './exploreTime';
 
@@ -12,8 +12,8 @@ function setup() {
 describe('the free ruler', () => {
   it('opens at 1 CE with all of 10,000 BCE through 2000 CE in view', () => {
     const { clock, explore } = setup();
-    expect(civilFromDay(HISTORY.start)).toEqual({ year: -9999, month: 1, day: 1 });
-    expect(civilFromDay(HISTORY.end)).toEqual({ year: 2000, month: 12, day: 31 });
+    expect(historicalCivil(HISTORY.start)).toEqual({ year: -9999, month: 1, day: 1 });
+    expect(historicalCivil(HISTORY.end)).toEqual({ year: 2000, month: 12, day: 31 });
     expect(explore.span).toEqual({ start: HISTORY.start, end: HISTORY.end + 1 });
     expect(clock.state()).toEqual({ day: 0, spanDays: HISTORY.end - HISTORY.start + 1 });
   });

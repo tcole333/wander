@@ -1,6 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { civilFromDay, dayFromCivil, dayFromIso } from '../dates';
+import {
+  civilFromDay,
+  dayFromCivil,
+  dayFromHistorical,
+  dayFromIso,
+  GREGORIAN,
+  HISTORICAL,
+  historicalCivil,
+  type Calendar,
+} from '../dates';
 import { parseStory } from '../story';
 import { beatSpan, type Span } from './format';
 import {
@@ -22,10 +31,15 @@ const story = parseStory(
 );
 const arc = arcFor(1440);
 
-function engrave(span: Span): Label[] {
+function engrave(span: Span, calendar?: Calendar): Label[] {
   const angle = (day: number) =>
     ((2 * (day - span.start)) / (span.end - span.start) - 1) * arc.reach;
-  return engraveScale(arc, span, angle).labels;
+  return engraveScale(arc, span, angle, calendar).labels;
+}
+
+/** The day number of a date history writes as this ISO day, in the Julian before the reform. */
+function historical(iso: string): number {
+  return dayFromHistorical(civilFromDay(dayFromIso(iso)));
 }
 
 /** A span of `days` from 1 March 1815. */
@@ -68,9 +82,13 @@ describe('the crafted ruler', () => {
     { unit: 'day', span: { start: dayFromIso('0000-12-28'), end: dayFromIso('0001-01-04') } },
   ];
 
-  it.each(broadSpans)('engraves $unit ticks and labels across BCE and CE', ({ unit, span }) => {
-    expect(engravedUnit(arc, span)).toBe(unit);
-    const labels = engrave(span);
+  it.each(
+    [GREGORIAN, HISTORICAL].flatMap((calendar) =>
+      broadSpans.map((spans) => ({ ...spans, calendar })),
+    ),
+  )('engraves $unit ticks and labels across BCE and CE', ({ unit, span, calendar }) => {
+    expect(engravedUnit(arc, span, calendar)).toBe(unit);
+    const labels = engrave(span, calendar);
     expect(labels.length).toBeGreaterThan(0);
     expect(labels.some((label) => label.text.includes('BCE'))).toBe(true);
     expect(labels.some((label) => label.text.includes('CE') && !label.text.includes('BCE'))).toBe(
@@ -83,7 +101,7 @@ describe('the crafted ruler', () => {
     }
     const angle = (day: number) =>
       ((2 * (day - span.start)) / (span.end - span.start) - 1) * arc.reach;
-    const scale = engraveScale(arc, span, angle);
+    const scale = engraveScale(arc, span, angle, calendar);
     expect(scale.full + scale.major + scale.minor).not.toBe('');
     // Calendar marks are bounded by the visible resolution, including the full 12,000 years.
     expect((scale.full + scale.major + scale.minor).split('M').length).toBeLessThan(500);
@@ -91,7 +109,7 @@ describe('the crafted ruler', () => {
   });
 
   it('labels both full-history ends and keeps the overview bounded too', () => {
-    const labels = engrave(HISTORY);
+    const labels = engrave(HISTORY, HISTORICAL);
     expect(labels[0]?.text).toBe('10000 BCE');
     expect(labels.at(-1)?.text).toBe('2000 CE');
     expect(engraveHistoryTier(arc, HISTORY).labels.length).toBeLessThan(20);
@@ -99,7 +117,7 @@ describe('the crafted ruler', () => {
       const sized = arcFor(width);
       const angle = (day: number) =>
         ((2 * (day - HISTORY.start)) / (HISTORY.end - HISTORY.start) - 1) * sized.reach;
-      const labels = engraveScale(sized, HISTORY, angle).labels;
+      const labels = engraveScale(sized, HISTORY, angle, HISTORICAL).labels;
       expect(labels[0]?.text).toBe('10000 BCE');
       expect(labels.at(-1)?.text).toBe('2000 CE');
     }
@@ -108,8 +126,8 @@ describe('the crafted ruler', () => {
         start: edge === HISTORY.start ? edge : edge - 3,
         end: edge === HISTORY.start ? edge + 4 : edge + 1,
       };
-      const texts = engrave(span).map((label) => label.text);
-      const civil = civilFromDay(edge);
+      const texts = engrave(span, HISTORICAL).map((label) => label.text);
+      const civil = historicalCivil(edge);
       expect(texts).toContain(civil.year < 0 ? 'JANUARY 10000 BCE' : 'DECEMBER 2000');
       expect(texts).toContain(civil.year < 0 ? '1' : '31');
     }
@@ -212,5 +230,73 @@ describe('the crafted ruler', () => {
     expect(years).toEqual({ start: dayFromIso('1815-01-01'), end: dayFromIso('1818-01-01') });
     expect(tierAngle(arc, years, years.start)).toBeCloseTo(-arc.reach * TIER_REACH);
     expect(tierAngle(arc, years, years.end)).toBeCloseTo(arc.reach * TIER_REACH);
+  });
+});
+
+describe('the calendars the ruler engraves', () => {
+  /** The labels in the lower and upper rows, each with the day at its angle. */
+  function rows(span: Span, calendar?: Calendar) {
+    const labels = engrave(span, calendar);
+    const dayAt = (label: Label) =>
+      span.start + ((label.angle / arc.reach + 1) / 2) * (span.end - span.start);
+    return {
+      lower: labels.filter((label) => label.row === LOWER_ROW),
+      upper: labels.filter((label) => label.row !== LOWER_ROW).map((label) => label.text),
+      dayAt,
+    };
+  }
+
+  it('engraves Explore’s October 1066 as history dates it: Hastings on the 14th', () => {
+    const hastings = dayFromIso('1066-10-20');
+    const span = { start: hastings - 6, end: hastings + 6 };
+    const { lower, upper, dayAt } = rows(span, HISTORICAL);
+    expect(upper).toEqual(['OCTOBER 1066']);
+    const fourteenth = lower.find((label) => label.text === '14')!;
+    expect(Math.floor(dayAt(fourteenth))).toBe(hastings);
+    expect(lower.map((label) => label.text)).toEqual(
+      Array.from({ length: 12 }, (_, i) => String(8 + i)),
+    );
+  });
+
+  it('names 15 March 44 BCE on Explore’s ruler', () => {
+    const ides = dayFromIso('-0043-03-13');
+    const { lower, upper, dayAt } = rows({ start: ides - 5, end: ides + 5 }, HISTORICAL);
+    expect(upper).toEqual(['MARCH 44 BCE']);
+    expect(Math.floor(dayAt(lower.find((label) => label.text === '15')!))).toBe(ides);
+  });
+
+  it('steps from 4 to 15 October 1582, a month of 21 days', () => {
+    const first = historical('1582-10-01');
+    const { lower, upper } = rows({ start: first, end: first + 8 }, HISTORICAL);
+    expect(lower.map((label) => label.text)).toEqual(['1', '2', '3', '4', '15', '16', '17', '18']);
+    expect(upper).toEqual(['OCTOBER 1582']);
+    const october = rows({ start: first - 20, end: first + 41 }, HISTORICAL);
+    expect(october.upper).toEqual(['SEPTEMBER 1582', 'OCTOBER 1582', 'NOVEMBER 1582']);
+    const november = dayFromIso('1582-11-01');
+    const lengths = october.lower.filter((label) => label.text === '1').map(october.dayAt);
+    expect(lengths.map(Math.floor)).toEqual([first, november]);
+  });
+
+  it('begins Explore’s years on the historical 1 January', () => {
+    const span = { start: historical('1060-01-01'), end: historical('1072-01-01') };
+    const labels = engrave(span, HISTORICAL).filter((label) => label.row === LOWER_ROW);
+    const angle = (day: number) =>
+      ((2 * (day - span.start)) / (span.end - span.start) - 1) * arc.reach;
+    const year1066 = labels.find((label) => label.text === '1066')!;
+    const [a0, a1] = [angle(historical('1066-01-01')), angle(historical('1067-01-01'))];
+    expect(year1066.angle).toBeCloseTo((a0 + a1) / 2);
+  });
+
+  it('keeps the walks’ proleptic Gregorian dates: Mactan on 27 April 1521', () => {
+    const mactan = dayFromIso('1521-04-27');
+    const span = { start: mactan - 6, end: mactan + 6 };
+    const walk = rows(span);
+    expect(walk.upper).toEqual(['APRIL 1521', 'MAY 1521']);
+    expect(Math.floor(walk.dayAt(walk.lower.find((label) => label.text === '27')!))).toBe(mactan);
+    expect(engrave(span, GREGORIAN)).toEqual(engrave(span));
+    const explore = rows(span, HISTORICAL);
+    expect(Math.floor(explore.dayAt(explore.lower.find((label) => label.text === '17')!))).toBe(
+      mactan,
+    );
   });
 });
