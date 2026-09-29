@@ -305,6 +305,21 @@ export class EventClient {
     if (wake < Infinity) this.#timer = setTimeout(() => this.onready?.(), wake);
     return replies;
   }
+  /**
+   * Nothing is on its way: no query waits to be sent or answered, no reply waits for drain(), and
+   * no page the plan needs is loading or waiting to load, but those that failed. A script's
+   * renders wait for it.
+   */
+  idle(): boolean {
+    return (
+      !this.#disposed &&
+      !this.#dirty &&
+      this.#inFlight === undefined &&
+      this.#loading === undefined &&
+      this.#ready.length === 0 &&
+      !this.#plan?.needs.some((key) => !this.#failed.has(key))
+    );
+  }
   retry(): void {
     this.#failed.clear();
     this.onready?.();

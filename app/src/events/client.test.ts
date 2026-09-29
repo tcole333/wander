@@ -142,6 +142,45 @@ test('main thread fetches the overview first, transfers its buffer, then loads t
   }
 });
 
+test('is idle only once its query is answered and no page is on its way', async () => {
+  vi.useFakeTimers();
+  const worker = new FakeWorker();
+  const release = releaseOf([pageOf([{ row: 0 }])]);
+  let arrive: (buf: ArrayBuffer) => void = () => {};
+  const client = new EventClient(worker, release, 'https://example.invalid', {
+    fetchBytes: () => new Promise<ArrayBuffer>((done) => (arrive = done)),
+  });
+  try {
+    client.query(query);
+    expect(client.idle()).toBe(false);
+    client.drain(0);
+    expect(client.idle()).toBe(false);
+    const needs = { ...plan, complete: false, needs: [release.overview] };
+    worker.reply({ type: 'result', generation: 1, result, plan: needs });
+    // Answered, but the reply waits for drain(), which then starts loading the overview.
+    expect(client.idle()).toBe(false);
+    client.drain(100);
+    expect(client.idle()).toBe(false);
+    arrive(new ArrayBuffer(4));
+    await Promise.resolve();
+    client.drain(200);
+    expect(client.idle()).toBe(false);
+    const loaded = { ...plan, resident: [release.overview] };
+    worker.reply({ type: 'state', loaded: release.overview, classes: ['battle'], plan: loaded });
+    // The page asks the query again.
+    client.drain(300);
+    expect(client.idle()).toBe(false);
+    worker.reply({ type: 'result', generation: 2, result, plan: loaded });
+    client.drain(400);
+    expect(client.idle()).toBe(true);
+    client.dispose();
+    expect(client.idle()).toBe(false);
+  } finally {
+    client.dispose();
+    vi.useRealTimers();
+  }
+});
+
 test('fetch and worker errors surface through drain; disposal drops late arrivals', async () => {
   const worker = new FakeWorker();
   const release = releaseOf([pageOf([{ row: 0 }])]);
