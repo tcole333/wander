@@ -1,4 +1,5 @@
 import gzip
+import hashlib
 import json
 from dataclasses import replace
 
@@ -35,6 +36,10 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
         make_context(Profile.FIXTURE, 1), out=tmp_path / "out", stages_dir=tmp_path / "stages"
     )
     events.run(ctx)
+    # The runtime's percentile boosts must not change the legacy table's scores or bytes.
+    assert hashlib.sha256((ctx.out / events.KEY).read_bytes()).hexdigest() == (
+        "a6e7c6293eda786b2d67863f84cea26f61bb2137e276ad9c5a0761be68da4f54"
+    )
     wev.run(ctx)
     record = read_record(ctx, wev.STAGE)
     docs = {
@@ -50,6 +55,7 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     assert overview["lon"][waterloo] == 441222
     assert overview["flags"][waterloo] & 16
     assert overview["parent"][waterloo] == overview["row"][rows[18643473]]
+    assert overview["score"][waterloo] == 550
     assert overview["score"] == sorted(overview["score"], reverse=True)
     assert all(0 <= s <= 1000 for s in overview["score"])
     assert any(e[0] == overview["row"][rows[18643473]] for e in overview["ext"])
@@ -106,6 +112,13 @@ def test_percentiles_are_per_era_and_ties_share_a_score():
     scores = {r.event.qid: r.score for r in rows}
     assert scores["Q1"] == scores["Q3"] == scores["Q4"] == 550
     assert scores["Q2"] == 183
+
+
+def test_boosts_add_percentile_points_before_weighting_and_cap_at_one(monkeypatch):
+    monkeypatch.setattr(wev, "load_event_boosts", lambda: {"Q1": 0.1, "Q2": 0.9})
+    rows = wev.prepare([event(1, editions=1), event(2, editions=2)], [])
+    scores = {r.event.qid: r.score for r in rows}
+    assert scores == {"Q1": 330, "Q2": 550}
 
 
 def test_display_parent_prefers_the_nearest_containing_span():
