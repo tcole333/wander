@@ -1,0 +1,126 @@
+import { expect, test, vi } from 'vitest';
+import { EventClient, type EventWorker } from './client';
+import { type EventReply, type EventRequest } from './runtime';
+import { pageOf, releaseOf, viewOf } from './testSupport';
+
+class FakeWorker implements EventWorker {
+  onmessage: EventWorker['onmessage'] = null;
+  onerror: EventWorker['onerror'] = null;
+  sent: EventRequest[] = [];
+  transfers: Transferable[][] = [];
+  terminate = vi.fn();
+  postMessage(message: EventRequest, transfer: Transferable[]) {
+    this.sent.push(message);
+    this.transfers.push(transfer);
+  }
+  reply(reply: EventReply) {
+    this.onmessage?.({ data: reply } as MessageEvent<EventReply>);
+  }
+}
+const query = { t0: 1, t1: 10, tier: 'lite' as const, view: viewOf() };
+const result = { markers: [], labels: [], outlines: [], missingFocal: [] };
+const plan = { needs: [], resident: [], bytes: 0, complete: true };
+
+test('messages only enter a ready queue, and a reply becomes visible on drain', () => {
+  const worker = new FakeWorker();
+  const client = new EventClient(worker, releaseOf([pageOf([])]), 'https://example.invalid');
+  const wake = vi.fn();
+  client.onready = wake;
+  const generation = client.query(query);
+  client.drain(0);
+  worker.reply({ type: 'result', generation, result, plan });
+  expect(wake).toHaveBeenCalled();
+  expect(client.drain(10)).toEqual([{ type: 'result', generation, result, plan }]);
+  expect(client.drain(20)).toEqual([]);
+  client.dispose();
+});
+
+test('queries coalesce at 30Hz, have at most one in flight, and stale generations are dropped', () => {
+  vi.useFakeTimers();
+  const worker = new FakeWorker();
+  const client = new EventClient(worker, releaseOf([pageOf([])]), 'https://example.invalid');
+  try {
+    const first = client.query(query);
+    client.drain(0);
+    client.query({ ...query, t1: 20 });
+    client.drain(1);
+    const latest = client.query({ ...query, t1: 30 });
+    client.drain(100);
+    expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(1);
+    worker.reply({ type: 'result', generation: first, result, plan });
+    expect(client.drain(110)).toEqual([]);
+    expect(worker.sent.at(-1)).toMatchObject({
+      type: 'query',
+      generation: latest,
+      query: { t1: 30 },
+    });
+    worker.reply({ type: 'result', generation: latest, result, plan });
+    client.drain(111);
+    client.query(query);
+    client.drain(112);
+    expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(2);
+    client.drain(144);
+    expect(worker.sent.filter((r) => r.type === 'query')).toHaveLength(3);
+  } finally {
+    client.dispose();
+    vi.useRealTimers();
+  }
+});
+
+test('main thread fetches the overview first, transfers its buffer, then loads the rest', async () => {
+  const worker = new FakeWorker();
+  const release = releaseOf([pageOf([{ row: 0 }]), pageOf([{ row: 1 }])]);
+  const fetched: string[] = [];
+  const bytes = new ArrayBuffer(10);
+  const client = new EventClient(worker, release, 'https://example.invalid', {
+    fetchBytes: (url) => {
+      fetched.push(url);
+      return Promise.resolve(bytes);
+    },
+  });
+  try {
+    worker.reply({
+      type: 'state',
+      plan: { ...plan, complete: false, needs: release.files.map((f) => f.key) },
+      classes: [],
+    });
+    client.drain(0);
+    await Promise.resolve();
+    expect(fetched).toEqual([`https://example.invalid/${release.overview}`]);
+    expect(worker.sent.filter((m) => m.type === 'load')).toEqual([]);
+    client.drain(1);
+    expect(worker.sent.at(-1)).toEqual({ type: 'load', key: release.overview, buf: bytes });
+    expect(worker.transfers.at(-1)).toEqual([bytes]);
+    worker.reply({
+      type: 'state',
+      loaded: release.overview,
+      classes: ['battle'],
+      plan: { ...plan, needs: [release.files[1]!.key], resident: [release.overview] },
+    });
+    client.drain(2);
+    await Promise.resolve();
+    expect(fetched).toHaveLength(2);
+  } finally {
+    client.dispose();
+  }
+});
+
+test('fetch and worker errors surface through drain; disposal drops late arrivals', async () => {
+  const worker = new FakeWorker();
+  const release = releaseOf([pageOf([{ row: 0 }])]);
+  const client = new EventClient(worker, release, 'https://example.invalid', {
+    fetchBytes: () => Promise.reject(new Error('offline')),
+  });
+  worker.reply({ type: 'state', plan: { ...plan, needs: [release.overview] }, classes: [] });
+  client.drain(0);
+  await Promise.resolve();
+  expect(client.drain(1)).toEqual([
+    { type: 'error', key: release.overview, message: 'Error: offline' },
+  ]);
+  worker.onerror?.({ message: 'worker stopped' } as ErrorEvent);
+  expect(client.drain(2)).toEqual([{ type: 'error', message: 'worker stopped' }]);
+  expect(worker.terminate).toHaveBeenCalled();
+  client.dispose();
+  expect(worker.onmessage).toBeNull();
+  expect(client.drain(10)).toEqual([]);
+});
