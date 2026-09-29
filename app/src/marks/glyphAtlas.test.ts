@@ -30,7 +30,7 @@ describe('signedDistance', () => {
         worst = Math.max(worst, Math.abs((field[y * size + x] ?? 0) - exact));
       }
     }
-    expect(worst).toBeLessThan(0.75);
+    expect(worst).toBeLessThan(0.5);
   });
 
   it('puts every pixel far outside when there is no glyph', () => {

@@ -2,7 +2,8 @@
 // mark placed in view changes its pixels and none past the limb changes any; the atlas letters its
 // sea names as it does without the glyph shelf; the look's program stays within the samplers every
 // WebGL 2 fragment stage has; and under the lamp's own reflection, in every variant, no mark but
-// the focal one reaches the bloom's threshold, which the focal one's ember passes.
+// the focal one reaches the bloom's threshold, which the focal one's ember passes. The sea names'
+// boxes are checked here rather than in Vitest, whose Node environment has no canvas to letter in.
 import { expect, test } from '@playwright/test';
 import type { MarksProbe } from './marksProbe';
 import { DATA_URL, DEV_URL } from './servers';
