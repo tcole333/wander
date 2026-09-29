@@ -40,6 +40,21 @@ describe('the detail budget', () => {
       expect(Math.max(...cells.values())).toBeLessThanOrEqual(2);
     },
   );
+  test('labels share two slots per cell, including a split parent context', () => {
+    const engine = new EventQueryEngine(
+      indexOf([
+        pageOf([
+          { row: 0, ext: [-20, -5, 20, 5] },
+          { row: 1, parent: 0 },
+          { row: 2, parent: 0 },
+        ]),
+      ]),
+    );
+    const result = engine.query(base, 0);
+    expect(active(result.markers).map((m) => m.row)).toEqual([1, 2]);
+    expect(active(result.labels).map((m) => m.row)).toEqual([0, 1]);
+    expect(result.labels[0]?.context).toBe(true);
+  });
   test('inclusive spans, horizon, viewport and focal exemption are independent', () => {
     const engine = new EventQueryEngine(
       indexOf([
@@ -121,6 +136,29 @@ test('an absent parent never suppresses a resident child; overlapping pages yiel
   expect(engine.query(base, 0).markers.map((m) => m.row)).toEqual([1]);
 });
 
+test('three nesting levels reveal each generation and retain every expanded ancestor', () => {
+  const engine = new EventQueryEngine(
+    indexOf([
+      pageOf([
+        { row: 0, qid: 78994, label: 'Napoleonic Wars', ext: [-20, -10, 20, 10] },
+        { row: 1, qid: 199955, label: 'Hundred Days', parent: 0, ext: [-5, -2, 5, 2] },
+        { row: 2, qid: 18643473, label: 'Waterloo campaign', parent: 1, ext: [-1, -0.5, 1, 0.5] },
+        { row: 3, qid: 48314, label: 'Battle of Waterloo', parent: 2 },
+      ]),
+    ]),
+  );
+  for (const [step, span] of [8, 2, 0.5, 0.1, 0.5, 2.2, 9].entries()) {
+    const level = step <= 3 ? step : 6 - step;
+    const result = engine.query({ ...base, view: viewOf(span) }, step * 400);
+    expect(active(result.markers).map((m) => m.row)).toEqual([level]);
+    expect(
+      active(result.outlines)
+        .map((m) => m.row)
+        .sort(),
+    ).toEqual(Array.from({ length: level }, (_, i) => i));
+  }
+});
+
 test('a collapsed parent beyond the horizon never hides its visible child at the limb', () => {
   const engine = new EventQueryEngine(
     indexOf([
@@ -180,11 +218,16 @@ test('the real fixture can be queried at Waterloo with both budgets, without a w
   const day = dayFromIso('1815-06-18');
   for (const tier of ['lite', 'full'] as const) {
     const result = engine.query(
-      { t0: day, t1: day, tier, view: viewOf(0.02, 4.41222, 50.67806), focalQids: [48314] },
+      { t0: day, t1: day, tier, view: viewOf(0.02, 4.41222, 50.67806) },
       0,
     );
-    expect(result.markers.some((m) => m.qid === 48314 && m.focal)).toBe(true);
+    expect(result.markers.some((m) => m.qid === 48314 && !m.focal)).toBe(true);
     expect(result.labels.some((m) => m.text === 'Battle of Waterloo')).toBe(true);
-    expect(result.markers.length).toBeLessThanOrEqual(tier === 'lite' ? 81 : 141);
+    expect(
+      active(result.outlines)
+        .map((m) => m.qid)
+        .sort(),
+    ).toEqual([78994, 199955, 18643473].sort());
+    expect(result.markers.length).toBeLessThanOrEqual(tier === 'lite' ? 80 : 140);
   }
 });

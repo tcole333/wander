@@ -55,6 +55,8 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     assert overview["lon"][waterloo] == 441222
     assert overview["flags"][waterloo] & 16
     assert overview["parent"][waterloo] == overview["row"][rows[18643473]]
+    assert overview["parent"][rows[18643473]] == overview["row"][rows[199955]]
+    assert overview["parent"][rows[199955]] == overview["row"][rows[78994]]
     assert overview["score"][waterloo] == 550
     assert len(record["files"]) == 1  # all rows fit in the overview; no empty all.wev
     assert overview["score"] == sorted(overview["score"], reverse=True)
