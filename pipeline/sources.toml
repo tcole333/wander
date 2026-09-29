@@ -197,6 +197,47 @@ source_url = "https://ndownloader.figshare.com/files/5407637"
 bytes = 15054
 sha256 = "927ee6a9122be6aded1a2f71ff5bb6f36312aae6a778574af47f4e8c65265726"
 
+# HYDE 3.2.1's population and land use through time, for the where-people-lived layer (issue #76):
+# 5-arcminute ESRI ASCII grids (4320 x 2160, NODATA -9999) at 75 steps, every 1000 years from
+# 10000BC to 1000BC, 0AD, every 100 years to 1700AD, every 10 years to 2000AD and every year to
+# 2017AD (the record's coverage says 2015). HYDE 3.5 sits on Utrecht's Yoda portal behind a bot
+# challenge, so this is the DANS record, doi:10.17026/DANS-25G-GEZ3. Its version 2.0 (2025-06-02)
+# repacks version 1.0's loose files into three zips; this pins the baseline zip, whose .asc
+# entries have version 1.0's sizes, and the release readme. DANS holds only the baseline scenario:
+# the lower and upper estimates the readme lists are in neither version. The layer reads
+# baseline/asc/<yr>_pop/popc_<yr>.asc and urbc_<yr>.asc (inhabitants per cell; the readme calls
+# the urban grids urb_<yr>) and baseline/asc/<yr>_lu/cropland<yr>.asc and grazing<yr>.asc (km2 per
+# cell), where grazing is pasture plus converted and natural rangeland. The zip is Zip64 with
+# Deflate64 (method 9) members, which Python's zipfile cannot inflate, so it pins no `unzipped`
+# members; the stage that reads it extracts the grids itself. Its Zip64 end locator records 0
+# disks rather than 1, so macOS /usr/bin/unzip (Info-ZIP 6.0, built with Deflate64) and bsdtar
+# cannot find its central directory. /usr/bin/unzip extracts the grids at their listed sizes from
+# a copy whose locator says 1 disk (the 4 bytes at offset 5,339,653,948; an APFS clone, `cp -c`,
+# makes that copy without duplicating the zip). Each source_url is a Dataverse access endpoint
+# that answers 303 with an hour-long signed objectstore URL, which fetch follows. The record's
+# metadata says CC0-1.0, but the readme says CC BY 3.0 applies to all HYDE data, so HYDE is
+# credited under CC BY 3.0.
+[hyde-3-2]
+name = "HYDE 3.2.1, gridded population and land use from 10000 BC to AD 2017, baseline scenario"
+version = "3.2.1, DANS record version 2.0"
+license = "CC-BY-3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+attribution = "Klein Goldewijk, Beusen, Doelman and Stehfest (2017), Anthropogenic land use estimates for the Holocene – HYDE 3.2, Earth System Science Data 9:927-953, DOI 10.5194/essd-9-927-2017; data DOI 10.17026/DANS-25G-GEZ3."
+landing_page = "https://doi.org/10.17026/DANS-25G-GEZ3"
+retrieved = "2026-09-29"
+
+[[hyde-3-2.files]]
+path = "sources/hyde-3-2/HYDE3_2_1-baseline.zip"
+source_url = "https://archaeology.datastations.nl/api/access/datafile/5490328"
+bytes = 5339653974
+sha256 = "5a847086cb199c75b739a7b099a8c48840e52fe5a4937882bd8fb26f86288714"
+
+[[hyde-3-2.files]]
+path = "sources/hyde-3-2/readme_release_HYDE3.2.1.txt"
+source_url = "https://archaeology.datastations.nl/api/access/datafile/5396388"
+bytes = 8826
+sha256 = "6513bb386e29c76096a4db6102e121832cf76fe3b2f36425dff333c11a4c514d"
+
 # RESOLVE's 2017 terrestrial ecoregions and biomes: one shapefile, Ecoregions2017 (EPSG:4326, 847
 # polygons, 243 MB unzipped), with the license in each row's LICENSE field. Some source polygons
 # are invalid and need repair (buffer(0) or make_valid) before tiling. ecoregions.world links this

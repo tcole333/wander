@@ -47,6 +47,7 @@ def test_the_registry_pins_each_source_and_its_files():
             "modelskiAncientV2.csv",
             "modelskiModernV2.csv",
         ],
+        "hyde-3-2": ["HYDE3_2_1-baseline.zip", "readme_release_HYDE3.2.1.txt"],
         "resolve-ecoregions-2017": ["Ecoregions2017.zip"],
         "usgs-world-petroleum-provinces-2000": [
             "WEP_PRVG.DBF",
