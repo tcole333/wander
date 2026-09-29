@@ -4,9 +4,9 @@
 import type { Object3D, PerspectiveCamera } from 'three';
 import type { MuseumScene } from '../contract';
 import type { Walk } from '../story/contract';
-import { flightEase, flightPath, flightSeconds, type FlightPath } from '../story/flight';
 import type { LonLat, Story } from '../story/story';
 import type { WalkChrome } from '../story/ui/chrome';
+import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
 import { wrap180 } from '../view/viewState';
 import { Glows } from './glows';
@@ -71,7 +71,7 @@ export function createLobby(parts: LobbyParts): Lobby {
   let arriving = 0;
   let rulerFrames = 0;
   let stopDive: (() => void) | null = null;
-  let flight: { path: FlightPath; seconds: number; elapsed: number } | null = null;
+  let flight: FreeFlight | null = null;
 
   const glows = new Glows(parts.places);
   museum.globeMount.add(glows.points);
@@ -166,11 +166,10 @@ export function createLobby(parts: LobbyParts): Lobby {
     control.enabled = false;
     control.stop();
     parts.leave();
-    const path = flightPath(control.current, {
+    flight = new FreeFlight(control.current, {
       ...home,
       viewKm: Math.min(home.viewKm, control.maxKm),
     });
-    flight = { path, seconds: flightSeconds(path.length), elapsed: 0 };
   };
   addEventListener(
     'keydown',
@@ -225,9 +224,8 @@ export function createLobby(parts: LobbyParts): Lobby {
           if (performance.now() - lastInput >= TURN_IDLE_S * 1000) turn = 1;
         }
       } else if (phase === 'returning' && flight) {
-        flight.elapsed = Math.min(flight.seconds, flight.elapsed + dtS);
-        control.go(flight.path.at(flightEase(flight.elapsed / flight.seconds)), true);
-        if (flight.elapsed >= flight.seconds) {
+        control.go(flight.step(dtS), true);
+        if (flight.done) {
           flight = null;
           parts.finish();
           clearTransition();
