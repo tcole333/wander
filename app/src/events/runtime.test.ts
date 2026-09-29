@@ -68,6 +68,7 @@ test('the handler describes rows and answers Meanwhile, naming what it cannot fi
     view: viewOf(0.47, 4.41222, 50.67806),
     count: 3,
     exclude: [],
+    focalQids: [],
   });
   expect(meanwhile).toMatchObject({ type: 'meanwhile', generation: 3 });
   if (meanwhile.type === 'meanwhile') expect(meanwhile.events).toHaveLength(3);
@@ -88,6 +89,7 @@ test('a failed Meanwhile or description names its request and leaves the worker 
     view: viewOf(),
     count: 3,
     exclude: [],
+    focalQids: [],
   });
   expect(bad).toMatchObject({ type: 'error', request: 'meanwhile', generation: 9 });
   expect(await runtime.handle({ type: 'query', generation: 10, query, now: 0 })).toMatchObject({
