@@ -258,6 +258,25 @@ describe('Meanwhile', () => {
     client.dispose();
   });
 
+  test('its exclusions compare as a set, whatever their order and repeats', () => {
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    client.meanwhile({ ...standing, exclude: [4, 3, 2, 1] });
+    client.drain(0);
+    client.drain(tunables.meanwhileRest);
+    worker.reply({ type: 'meanwhile', generation: 1, events: [] });
+    client.meanwhile({ ...standing, exclude: [1, 2, 3, 4, 4] });
+    client.drain(300);
+    client.drain(300 + tunables.meanwhileRest);
+    expect(sentOf(worker, 'meanwhile')).toHaveLength(1);
+    expect(sentOf(worker, 'meanwhile')[0]).toMatchObject({ exclude: [1, 2, 3, 4] });
+    client.meanwhile({ ...standing, exclude: [1, 2, 3, 3] });
+    client.drain(600);
+    client.drain(600 + tunables.meanwhileRest);
+    expect(sentOf(worker, 'meanwhile').at(-1)).toMatchObject({ generation: 2, exclude: [1, 2, 3] });
+    client.dispose();
+  });
+
   test('its picks describe themselves without another request', () => {
     const worker = new FakeWorker();
     const client = new EventClient(worker, releaseOf([pageOf([])]), host);
