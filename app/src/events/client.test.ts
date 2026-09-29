@@ -170,6 +170,7 @@ const standing: MeanwhileQuery = {
   view: viewOf(0.47, 4.4, 50.7),
   count: 3,
   exclude: [48314, 855429],
+  focalQids: [48314],
 };
 const sentOf = <T extends EventRequest['type']>(worker: FakeWorker, type: T) =>
   worker.sent.filter((m): m is Extract<EventRequest, { type: T }> => m.type === type);
@@ -258,7 +259,7 @@ describe('Meanwhile', () => {
     client.dispose();
   });
 
-  test('its exclusions compare as a set, whatever their order and repeats', () => {
+  test('its Q number lists compare as sets, whatever their order and repeats', () => {
     const worker = new FakeWorker();
     const client = new EventClient(worker, releaseOf([pageOf([])]), host);
     client.meanwhile({ ...standing, exclude: [4, 3, 2, 1] });
@@ -274,6 +275,20 @@ describe('Meanwhile', () => {
     client.drain(600);
     client.drain(600 + tunables.meanwhileRest);
     expect(sentOf(worker, 'meanwhile').at(-1)).toMatchObject({ generation: 2, exclude: [1, 2, 3] });
+    client.meanwhile({ ...standing, exclude: [1, 2, 3], focalQids: [48314, 48314] });
+    client.drain(900);
+    client.drain(900 + tunables.meanwhileRest);
+    expect(sentOf(worker, 'meanwhile')).toHaveLength(2);
+    client.meanwhile({ ...standing, exclude: [1, 2, 3], focalQids: [48314, 78994] });
+    client.drain(1200);
+    client.drain(1200 + tunables.meanwhileRest);
+    expect(sentOf(worker, 'meanwhile')).toHaveLength(2);
+    worker.reply({ type: 'meanwhile', generation: 2, events: [] });
+    client.drain(1500);
+    expect(sentOf(worker, 'meanwhile').at(-1)).toMatchObject({
+      generation: 3,
+      focalQids: [48314, 78994],
+    });
     client.dispose();
   });
 

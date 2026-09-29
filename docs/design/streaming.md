@@ -1030,17 +1030,19 @@ only a failed start or a worker error ends the worker.
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,
-  exclude})` each frame with the now window, the view's center, the query's `EventView`,
-  `meanwhileCount` and the Q numbers the globe draws; the client sends a question once it has
-  stood unchanged for `meanwhileRest`, so the clock and view are at rest, in a slot and generation
-  of its own beside the query's, and asks again after a page loads. The worker walks the resident
-  rows in score order and returns the first `count` that overlap the window and span no longer
-  than it or 92 days (3.9's rule: a decade's war does not stand for a month of it), that the globe
-  does not draw, that the screen does not show (past the limb or the viewport's edges, by the
-  query's own projection), that lie at least `meanwhileMinKm` from the view's center and from each
-  other, and never a parent with its child. Each pick carries its description and place, and the
-  client keeps the description. At world view the screen shows the near side of the globe, so
-  Meanwhile names what happens on the far side.
+  exclude, focalQids})` each frame with the now window, the view's center, the query's
+  `EventView`, `meanwhileCount`, the Q numbers the globe draws and those of its focal and pinned
+  events; the client sends a question once it has stood unchanged for `meanwhileRest`, so the
+  clock and view are at rest, in a slot and generation of its own beside the query's, and asks
+  again after a page loads. The worker walks the resident rows in score order and returns the
+  first `count` that overlap the window and span no longer than it or 92 days (3.9's rule: a
+  decade's war does not stand for a month of it), that the globe does not draw, that the screen
+  does not show (past the limb or the viewport's edges, by the query's own projection), that lie
+  at least `meanwhileMinKm` from the view's center and from each other, never a focal or pinned
+  event's part-of kin (its ancestors and descendants, as 3.9 keeps a beat's focal event's), and
+  never a parent with its child. Each pick carries its description and place, and the client keeps
+  the description. At world view the screen shows the near side of the globe, so Meanwhile names
+  what happens on the far side.
 
 ### 5.4 Uploads per frame
 

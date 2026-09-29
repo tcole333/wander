@@ -25,6 +25,7 @@ const base: MeanwhileQuery = {
   view: viewOf(0.2),
   count: 3,
   exclude: [],
+  focalQids: [],
 };
 const rows = (query: Partial<MeanwhileQuery>, index = spread()) =>
   meanwhileEvents(index, { ...base, ...query }).map((e) => e.row);
@@ -110,6 +111,24 @@ test('a parent never stands with its child, whichever scores higher', () => {
   expect(rows({}, battleFirst)).toEqual([0, 2]);
 });
 
+test('neither a focal event nor its part-of kin is picked, though its siblings may be', () => {
+  // A war (0) with a campaign (1) holding two battles (2, 3), and another war (4).
+  const index = indexOf([
+    pageOf([
+      { row: 0, qid: 100, lon: 30 },
+      { row: 1, qid: 101, lon: 60, parent: 0 },
+      { row: 2, qid: 102, lon: 90, lat: 30, parent: 1 },
+      { row: 3, qid: 103, lon: -60, parent: 1 },
+      { row: 4, qid: 104, lon: -120 },
+      { row: 5, qid: 105, lon: 150, parent: 0 },
+    ]),
+  ]);
+  expect(rows({ count: 6 }, index)).toEqual([0, 4]);
+  expect(rows({ count: 6, focalQids: [102] }, index)).toEqual([3, 4, 5]);
+  expect(rows({ count: 6, focalQids: [101] }, index)).toEqual([4, 5]);
+  expect(rows({ count: 6, focalQids: [100] }, index)).toEqual([4]);
+});
+
 test('entries describe themselves: label, parent, dates and place', () => {
   const index = indexOf([
     pageOf([
@@ -140,6 +159,7 @@ test('no count asks for nothing, and a malformed question throws', () => {
     { center: [Number.NaN, 0] as [number, number] },
     { count: 1.5 },
     { exclude: [0.5] },
+    { focalQids: [Number.NaN] },
   ])
     expect(() => meanwhileEvents(spread(), { ...base, ...bad })).toThrow('invalid meanwhile');
   const flat = { ...base, view: { ...base.view, width: 0 } };
@@ -161,6 +181,7 @@ test('the fixture at Waterloo finds short events of June 1815, far from Belgium'
     view: viewOf(3000 / 6371, 4.41222, 50.67806),
     count: tunables.meanwhileCount,
     exclude: [48314],
+    focalQids: [48314],
   };
   const picks = meanwhileEvents(index, query);
   // The fixture holds 1815-1817 around Europe: two such events of June 1815 lie 2,000 km away.

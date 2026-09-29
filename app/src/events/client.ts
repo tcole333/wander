@@ -26,29 +26,30 @@ export interface EventWorker {
 type Arrival = EventReply | { type: 'fetched'; key: string; buf: ArrayBuffer };
 type FetchBytes = (url: string, stillWanted: () => boolean) => Promise<ArrayBuffer>;
 
+const sameList = (a: readonly number[], b: readonly number[]) =>
+  a.length === b.length && a.every((v, i) => v === b[i]);
 const sameView = (a: EventView, b: EventView) =>
   a.width === b.width &&
   a.height === b.height &&
-  a.camera.every((v, i) => v === b.camera[i]) &&
-  a.matrix.every((v, i) => v === b.matrix[i]);
+  sameList(a.camera, b.camera) &&
+  sameList(a.matrix, b.matrix);
 
 /** Q numbers ascending and without repeats, so two sets compare element by element. */
 const qidSet = (qids: readonly number[]) => [...new Set(qids)].sort((a, b) => a - b);
 
-/** Two Meanwhile questions, their `exclude` lists made by qidSet, ask the same thing. */
+/** Two Meanwhile questions, their Q number lists made by qidSet, ask the same thing. */
 function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolean {
-  if (
-    !b ||
-    a.t0 !== b.t0 ||
-    a.t1 !== b.t1 ||
-    a.center[0] !== b.center[0] ||
-    a.center[1] !== b.center[1] ||
-    !sameView(a.view, b.view) ||
-    a.count !== b.count ||
-    a.exclude.length !== b.exclude.length
-  )
-    return false;
-  return a.exclude.every((qid, i) => qid === b.exclude[i]);
+  return (
+    !!b &&
+    a.t0 === b.t0 &&
+    a.t1 === b.t1 &&
+    a.center[0] === b.center[0] &&
+    a.center[1] === b.center[1] &&
+    a.count === b.count &&
+    sameView(a.view, b.view) &&
+    sameList(a.exclude, b.exclude) &&
+    sameList(a.focalQids, b.focalQids)
+  );
 }
 
 /**
@@ -139,11 +140,15 @@ export class EventClient {
    * Stand a Meanwhile question, as often as every frame. drain() sends it once the same question
    * has stood for meanwhileRest (the clock and view at rest), one in flight at a time; a page
    * loading afterwards asks it again. Replies older than the last delivered are dropped.
-   * `exclude` is a set: its order and repeats do not change the question.
+   * `exclude` and `focalQids` are sets: their order and repeats do not change the question.
    */
   meanwhile(query: MeanwhileQuery): void {
     if (this.#disposed) return;
-    const asked = { ...query, exclude: qidSet(query.exclude) };
+    const asked = {
+      ...query,
+      exclude: qidSet(query.exclude),
+      focalQids: qidSet(query.focalQids),
+    };
     if (this.#meanwhile && sameMeanwhile(asked, this.#meanwhile.query)) return;
     const { view } = query;
     this.#meanwhile = {

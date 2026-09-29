@@ -97,6 +97,7 @@ for (const tier of ['lite', 'full'] as const) {
         view: camera,
         count: tunables.meanwhileCount,
         exclude: markers.map((m) => m.qid),
+        focalQids: [],
       });
       const beforeDescribe = performance.now();
       for (const label of labels) describe(index, label.row);

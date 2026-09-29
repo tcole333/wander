@@ -18,6 +18,8 @@ export interface MeanwhileQuery {
   count: number;
   /** Q numbers the globe already draws (its marks, focal and pinned events), never picked. */
   exclude: number[];
+  /** The focal and pinned events' Q numbers: neither they nor their part-of kin are picked. */
+  focalQids: number[];
 }
 export interface MeanwhileEvent extends EventDescription {
   /** [lon, lat] in degrees, where the entry flies to. */
@@ -53,7 +55,8 @@ function validate(q: MeanwhileQuery): void {
     Math.abs(q.center[1]) > 90 ||
     !Number.isInteger(q.count) ||
     q.count < 0 ||
-    !q.exclude.every(Number.isInteger)
+    !q.exclude.every(Number.isInteger) ||
+    !q.focalQids.every(Number.isInteger)
   )
     throw new Error('invalid meanwhile query');
   validateView(q.view);
@@ -75,10 +78,11 @@ function ancestors(index: EventIndex, { page, i }: Ref): number[] {
 }
 
 /**
- * The `count` best-scored events in the now window that the globe does not draw: off the screen
- * (past the limb or the viewport's edges), at least meanwhileMinKm from the view's center and from
- * each other, spanning no longer than the window or SHORTEST_DAYS, and never a parent with its
- * child. In score order; fewer when fewer qualify among the resident pages.
+ * The `count` best-scored events in the now window that the globe does not draw, by the meanwhile
+ * stage's rules (streaming.md 3.9) where they fit a live view: off the screen (past the limb or the
+ * viewport's edges), at least meanwhileMinKm from the view's center and from each other, spanning
+ * no longer than the window or SHORTEST_DAYS, never a focal event's part-of kin, and never a
+ * parent with its child. In score order; fewer when fewer qualify among the resident pages.
  */
 export function meanwhileEvents(index: EventIndex, query: MeanwhileQuery): MeanwhileEvent[] {
   validate(query);
@@ -87,6 +91,16 @@ export function meanwhileEvents(index: EventIndex, query: MeanwhileQuery): Meanw
   const longest = Math.max(query.t1 - query.t0 + 1, SHORTEST_DAYS);
   const center = dirOf(...query.center);
   const apart = cosArc(tunables.meanwhileMinKm);
+  // A focal event's kin: the event, its ancestors (focalAndAbove) and every row below it.
+  const focalRows = new Set<number>();
+  const focalAndAbove = new Set<number>();
+  for (const qid of query.focalQids) {
+    const ref = index.qid(qid);
+    if (!ref) continue;
+    focalRows.add(ref.page.row[ref.i]!);
+    focalAndAbove.add(ref.page.row[ref.i]!);
+    for (const row of ancestors(index, ref)) focalAndAbove.add(row);
+  }
   const chosen: { ref: Ref; dir: Dir }[] = [];
   const chosenRows = new Set<number>();
   const chosenAncestors = new Set<number>();
@@ -103,6 +117,7 @@ export function meanwhileEvents(index: EventIndex, query: MeanwhileQuery): Meanw
     const ref = { page, i };
     const row = page.row[i]!;
     const lineage = ancestors(index, ref);
+    if (focalAndAbove.has(row) || lineage.some((r) => focalRows.has(r))) return;
     if (chosenAncestors.has(row) || lineage.some((r) => chosenRows.has(r))) return;
     chosen.push({ ref, dir });
     chosenRows.add(row);
