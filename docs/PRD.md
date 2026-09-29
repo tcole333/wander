@@ -189,8 +189,11 @@ Each story exercises something the others don't, so together they prove the engi
    record through the "year without a summer." Built first, as the end-to-end slice.
 2. **Magellan-Elcano circumnavigation, 1519-1522.** An animated route across open ocean and
    sea-floor relief.
-3. **The Century of Oil, 1933-1974.** Iran, Mexico's 1938 expropriation, and the 1973 embargo, on
-   the petroleum provinces layer. Merges the first prototype's three petroleum stories.
+3. **The Century of Oil, 1928-1974.** Who controls the oil, from the companies dividing the old
+   Ottoman lands along the Red Line in 1928 to the producers setting the price themselves in 1973:
+   Mexico's 1938 expropriation, oil as a cause of war in 1941, Iran's nationalization and the 1953
+   coup, Suez, and OPEC's founding. The petroleum provinces light with each country's production.
+   Draws on the first prototype's three petroleum stories.
 4. **The Black Death, 1346-1353.** An area spreading over time along trade routes, with ecoregions
    as backdrop.
 5. **The California Gold Rush, 1848-1855.** Migration routes and the minerals layer.
