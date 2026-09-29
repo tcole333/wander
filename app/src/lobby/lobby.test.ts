@@ -6,6 +6,7 @@ import { stories, storyNamed } from '../story/catalog';
 import type { Story } from '../story/story';
 import type { WalkChrome } from '../story/ui/chrome';
 import { ViewControl } from '../view/viewControl';
+import type { Choice, Mode } from '../walk/mode';
 import { createLobby } from './lobby';
 
 // The real director, camera control, flights and lobby clock, with only the DOM and GPU replaced.
@@ -23,9 +24,10 @@ const drawn = vi.hoisted(() => ({
 vi.mock('./plaques', () => ({
   Plaques: class {
     element = {};
-    constructor(stories: readonly Story[], choose: (story: Story) => void) {
+    constructor(stories: readonly Story[], choose: (choice: Choice) => void) {
       drawn.ids = stories.map((story) => story.id);
-      drawn.choose = (id = 'tambora') => choose(stories.find((story) => story.id === id)!);
+      drawn.choose = (id = 'tambora') =>
+        choose({ kind: 'story', story: stories.find((story) => story.id === id)! });
       drawn.plaques++;
     }
     reach = () => 386;
@@ -54,6 +56,24 @@ vi.mock('./glows', async () => {
 const story = storyNamed('tambora')!.story;
 const DT = 1 / 60;
 
+/** The story mode as the boot makes it, less its effects, UI and sound. */
+function storyMode(walk: DirectedWalk): Mode {
+  return {
+    landed: (cb) =>
+      walk.subscribe((state) => {
+        if (state.flight === null) cb();
+      }),
+    lensShift: () => 0,
+    beforeCamera: (nowMs, dtS) => walk.update(nowMs, dtS),
+    afterPlace() {},
+    ui() {},
+    audio: () => null,
+    leave: () => walk.breakOut(),
+    end: () => walk.dispose(),
+    inspectMemory() {},
+  };
+}
+
 function setup(initial: 'lobby' | 'story' = 'lobby') {
   Object.assign(drawn, { plaques: 0, glows: 0, shown: false, disposed: 0, glow: 0 });
   let now = 0;
@@ -72,13 +92,17 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
   const control = new ViewControl({ lon: 75, lat: 15, viewKm: 30000, tilt: 0, heading: 0 });
   control.maxKm = 30000;
   let walk: DirectedWalk | null = null;
-  const begin = (chosen: Story) => {
-    walk = createWalk(chosen, control, { arrive: 'fly', ready: () => true });
-    return walk;
+  let mode: Mode | null = null;
+  const begin = (choice: Choice, arrive: 'fly' | 'jump' = 'fly'): Mode => {
+    if (choice.kind !== 'story') throw new Error(`No ${choice.kind} here`);
+    walk = createWalk(choice.story, control, { arrive, ready: () => true });
+    mode = storyMode(walk);
+    return mode;
   };
-  const leave = vi.fn(() => walk?.breakOut());
+  const leave = vi.fn(() => mode?.leave());
   const finish = vi.fn(() => {
-    walk?.dispose();
+    mode?.end();
+    mode = null;
     walk = null;
   });
   const chrome = { lobby: vi.fn(), show: vi.fn(), focus: vi.fn(), mark: {} };
@@ -90,19 +114,19 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
     control,
     chrome: chrome as unknown as WalkChrome,
     initial,
-    enter: begin,
+    enter: (choice) => begin(choice),
     leave,
     finish,
     fail: (error) => {
       throw error;
     },
   });
-  if (initial === 'story') walk = createWalk(story, control, { ready: () => true });
+  if (initial === 'story') begin({ kind: 'story', story }, 'jump');
   const camera = new PerspectiveCamera();
   const tick = () => {
     now += DT * 1000;
     lobby.update(DT, camera);
-    if (!lobby.returning) walk?.update(now, DT);
+    if (!lobby.returning) mode?.beforeCamera(now, DT);
     control.step(now, DT);
   };
   const until = (ready: () => boolean) => {

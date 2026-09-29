@@ -288,50 +288,50 @@
   color: var(--brass-hi);
 }
 
-/* The walk's UI arriving from the lobby: the ruler waits below the page and rises during the
-   dive, and the card and Meanwhile come in at the landing. Only the
-   walk's layer: the Credits panel's sheet is a .wu-card too. */
+/* A mode's UI arriving from the lobby, a story's or Explore's (.wu-mode): the ruler waits below
+   the page and rises during the dive, and the card and Meanwhile come in at the landing. Only the
+   mode's layer: the Credits panel's sheet is a .wu-card too. */
 
-.lobby-dive .wu-story .rc {
+.lobby-dive .wu-mode .rc {
   transition: translate 1.6s cubic-bezier(0.22, 0.8, 0.3, 1) 0.35s;
 }
 
-.lobby-ruler-down .wu-story .rc {
+.lobby-ruler-down .wu-mode .rc {
   translate: 0 105%;
   transition: none;
 }
 
-.lobby-dive .wu-story > .wu-card,
-.lobby-dive .wu-story > .wu-meanwhile {
+.lobby-dive .wu-mode > .wu-card,
+.lobby-dive .wu-mode > .wu-meanwhile {
   transition:
     opacity 0.7s ease,
     translate 0.7s ease,
     visibility 0s;
 }
 
-.lobby-veiled .wu-story > .wu-card,
-.lobby-veiled .wu-story > .wu-meanwhile {
+.lobby-veiled .wu-mode > .wu-card,
+.lobby-veiled .wu-mode > .wu-meanwhile {
   opacity: 0;
   visibility: hidden;
   transition: none;
 }
 
-.lobby-veiled .wu-story > .wu-card {
+.lobby-veiled .wu-mode > .wu-card {
   translate: -18px 0;
 }
 
-.lobby-veiled .wu-story > .wu-meanwhile {
+.lobby-veiled .wu-mode > .wu-meanwhile {
   translate: 18px 0;
 }
 
 /* The way back mirrors the dive: the card and Meanwhile withdraw first, the ruler lowers during
    the flight, and the retained plaques and Credits come back at the landing. The mark and knob
    have their own persistent layer (chrome.ts). */
-.lobby-return .wu-story > .wu-card,
-.lobby-return .wu-story > .wu-meanwhile,
-.lobby-return .wu-story > .wu-resume,
-.lobby-return .wu-story > .wu-legend,
-.lobby-return .wu-story > .wu-borders {
+.lobby-return .wu-mode > .wu-card,
+.lobby-return .wu-mode > .wu-meanwhile,
+.lobby-return .wu-mode > .wu-resume,
+.lobby-return .wu-mode > .wu-legend,
+.lobby-return .wu-mode > .wu-borders {
   opacity: 0;
   visibility: hidden;
   transition:
@@ -340,15 +340,15 @@
     visibility 0s 0.7s;
 }
 
-.lobby-return .wu-story > .wu-card {
+.lobby-return .wu-mode > .wu-card {
   translate: -18px 0;
 }
 
-.lobby-return .wu-story > .wu-meanwhile {
+.lobby-return .wu-mode > .wu-meanwhile {
   translate: 18px 0;
 }
 
-.lobby-return .wu-story .rc {
+.lobby-return .wu-mode .rc {
   translate: 0 105%;
   transition: translate 1.6s cubic-bezier(0.5, 0, 0.75, 0) 0.35s;
 }

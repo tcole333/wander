@@ -17,17 +17,17 @@ import { afterContextLoss } from './page/contextLoss';
 import { dataOverride, memoryRequested } from './page/dataOrigin';
 import { dataPlate, lobbyPlate, Room, storyPlate, type Unable } from './page/room';
 import { stories } from './story/catalog';
-import type { Story } from './story/story';
 import { bootWalk, DrawError } from './walk/boot';
+import type { Choice } from './walk/mode';
 
 async function main(): Promise<void> {
   const roomElement = document.getElementById('room');
   if (!roomElement) throw new Error('index.html has no #room');
   const room = new Room(roomElement);
-  let chosen: Story | null = null;
+  let chosen: Choice | null = null;
   const card = (why: Unable) =>
-    chosen
-      ? storyPlate(chosen, why)
+    chosen?.kind === 'story'
+      ? storyPlate(chosen.story, why)
       : lobbyPlate(
           stories.map(({ story }) => story),
           why,
@@ -62,13 +62,13 @@ async function main(): Promise<void> {
     const walk = await bootWalk(document.body, release, {
       stories,
       lobby: true,
-      onStory: (story) => {
-        chosen = story;
+      onStory: (choice) => {
+        chosen = choice;
       },
       // The story that does not start from its plaque brings the card, as a boot that stops does.
-      onFail: (error, story) => {
+      onFail: (error, choice) => {
         console.error(error);
-        chosen = story;
+        chosen = choice;
         dispose();
         room.fail(failurePlate(error));
       },

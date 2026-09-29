@@ -7,7 +7,8 @@
 // follows the walk from the visitor's first gesture (audio/walkAudio.ts). It starts paused on the
 // first beat; Left and Right step beats, Space plays or pauses, WANDER and Escape return to the
 // lobby, and M mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing
-// the story's plaque starts the walk and flies into its first beat.
+// the story's plaque starts the walk and flies into its first beat. The story is the page's one
+// active mode (walk/mode.ts), which the frame loop calls at fixed points.
 //
 // The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
 // precompile; in the lobby the opening starts on it. The climate's years load the first time the
@@ -37,8 +38,9 @@ import { lobbyPlaces } from '../lobby/places';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { summarizeFrames } from '../perf/frameStats';
 import type { MemoryAccount } from '../perf/memory';
+import { FrameContext } from '../scene/frameContext';
 import { createMuseumScene } from '../scene/museumScene';
-import type { Meanwhile, Walk, WalkEffects, WalkUi } from '../story/contract';
+import type { Meanwhile, WalkEffects, WalkUi } from '../story/contract';
 import { bindWalkKeys, createWalk, type DirectedWalk } from '../story/director';
 import { createWalkEffects } from '../story/effects/walkEffects';
 import type { LonLat, Story } from '../story/story';
@@ -50,6 +52,7 @@ import { faceOf, faceSt, lonLatToDir, tileOf } from '../surface/cube';
 import { CameraRig, maxViewKm, type Relief } from '../view/cameraRig';
 import { ViewControl } from '../view/viewControl';
 import { drawnView, reliefForWidth, type ViewState } from '../view/viewState';
+import type { Choice, Mode } from './mode';
 
 /** The whole instrument: the widest view the zoom allows, where the view starts by default. */
 export const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 };
@@ -94,9 +97,9 @@ export interface BootOptions {
    * Called when the story does not start from the lobby's plaque, after the boot has resolved, so
    * the page can bring its plate. Without it, the error goes on uncaught.
    */
-  onFail?: (error: unknown, story: Story) => void;
+  onFail?: (error: unknown, choice: Choice) => void;
   /** The chosen story, including during its dive; null once the lobby has returned. */
-  onStory?: (story: Story | null) => void;
+  onStory?: (choice: Choice | null) => void;
   /**
    * Called with each part's params (the look's, the scene's, the streamer's, the camera's, and a
    * story's effects') before anything reads them: the dev shell's query overrides.
@@ -169,9 +172,9 @@ async function assemble(
   host: HTMLElement,
   release: Release,
   {
-    story: source = null,
-    stories: sources = source ? [source] : [],
-    lobby: inLobby = source === null,
+    story: start = null,
+    stories: sources = start ? [start] : [],
+    lobby: inLobby = start === null,
     view = WORLD,
     tune = () => {},
     onFail = (error) => {
@@ -208,8 +211,10 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
+  // The lobby stands where there are stories to choose.
+  const hasLobby = sources.length > 0;
   // Every story's faces load with the roots: switching plaques never fetches another font.
-  const faces = sources.length
+  const faces = hasLobby
     ? loadFaces(
         sources.map(({ story, meanwhile }) => JSON.stringify({ story, meanwhile })).join('') +
           creditsPage,
@@ -246,7 +251,7 @@ async function assemble(
     // Device pixels per CSS pixel, the display's up to 2, as the spike drew. From 1.5 the scene
     // drops MSAA, so a Retina display holds 60 fps on the M5 at 2. A story draws at most 1.5:
     // at 2 the plume's overlapping puffs and the flights miss frames on a Retina display.
-    pixelRatio: Math.min(devicePixelRatio, sources.length ? 1.5 : 2),
+    pixelRatio: Math.min(devicePixelRatio, hasLobby ? 1.5 : 2),
   };
   for (const params of [look.params, museum.params, streamer.params, cameraParams]) tune(params);
 
@@ -266,12 +271,12 @@ async function assemble(
   let idleFrames = 0;
   const ready = () => idleFrames >= IDLE_FRAMES && performance.now() - idleSince >= IDLE_MS;
 
+  // The active mode, and a story's parts while it is one. A single slot: retaining one mode per
+  // dive would keep all its UI and images.
+  let mode: Mode | null = null;
   let story: StoryParts | null = null;
-  // A single cleanup slot: retaining one closure per dive would keep all its UI and images.
-  let endStory: (() => void) | null = null;
-  let leaveStory = () => {};
-  made.push(() => endStory?.());
-  const sound = sources.length ? createWalkAudio() : null;
+  const globeFrame = new FrameContext();
+  const sound = hasLobby ? createWalkAudio() : null;
   if (sound) made.push(() => sound.dispose());
   const chrome = sound ? new WalkChrome(host, sound, () => lobby?.back()) : null;
   if (chrome) made.push(() => chrome.dispose());
@@ -288,7 +293,7 @@ async function assemble(
   let shift = 0;
   let drawnShift = NaN;
   const measureLens = () => {
-    cardShift = story ? LENS_SHIFT * story.ui.cardReach() : 0;
+    cardShift = mode?.lensShift() ?? 0;
   };
   const cardReachChanged = () => {
     measureLens();
@@ -310,48 +315,43 @@ async function assemble(
       return [source.story.id, { source, effects }] as const;
     }),
   );
-  // The effects are compiled once and reused. A separate fade leaves the tuned params intact
-  // and starts from zero on every dive, including one after a return in mid-flight.
-  let effectsStrength = 0;
-  const begin = (chosen: Story, arrive: 'jump' | 'fly'): Walk => {
-    onStory(chosen);
-    const entry = prepared.get(chosen.id);
-    if (!entry || !sound) throw new Error(`the page has no story '${chosen.id}' to begin`);
-    const { source, effects } = entry;
-    const [parts, end, leave] = startStory(
-      source,
-      effects,
+  made.push(() => mode?.end());
+  const idle = () => {
+    const s = streamer.stats();
+    return s.inFlight + s.decoding + s.uploading === 0;
+  };
+  const begin = (choice: Choice, arrive: 'jump' | 'fly'): Mode => {
+    onStory(choice);
+    if (!sound) throw new Error('the page has no lobby to begin from');
+    if (choice.kind !== 'story') throw new Error(`the page cannot begin '${choice.kind}'`);
+    const entry = prepared.get(choice.story.id);
+    if (!entry) throw new Error(`the page has no story '${choice.story.id}' to begin`);
+    const started = startStory(
+      entry.source,
+      entry.effects,
       release,
       control,
       host,
       sound,
       arrive,
-      () => {
-        const s = streamer.stats();
-        return s.inFlight + s.decoding + s.uploading === 0;
-      },
+      idle,
       cardReachChanged,
     );
-    endStory = end;
-    leaveStory = leave;
-    story = parts;
+    mode = started.mode;
+    story = started.parts;
     sound.start(arrive === 'fly');
     measureLens();
-    effectsStrength = arrive === 'fly' ? 0 : 1;
-    return parts.walk;
+    return started.mode;
   };
-  const finishStory = () => {
-    endStory?.();
-    endStory = null;
-    leaveStory = () => {};
-    story?.effects.hide();
+  const finish = () => {
+    mode?.end();
+    mode = null;
     story = null;
-    effectsStrength = 0;
     onStory(null);
     measureLens();
   };
   const lobby =
-    sources.length && chrome
+    hasLobby && chrome
       ? createLobby({
           host,
           stories: sources.map(({ story }) => story),
@@ -360,9 +360,9 @@ async function assemble(
           control,
           chrome,
           initial: inLobby ? 'lobby' : 'story',
-          enter: (chosen) => begin(chosen, 'fly'),
-          leave: () => leaveStory(),
-          finish: finishStory,
+          enter: (choice) => begin(choice, 'fly'),
+          leave: () => mode?.leave(),
+          finish,
           fail: onFail,
         })
       : null;
@@ -386,7 +386,7 @@ async function assemble(
     // precompile drew every program once, and three checks each link at its first use.
     if (unlinked > 0) throw new DrawError(`${unlinked} shaders did not link`);
   }
-  if (!inLobby && source) begin(source.story, 'jump');
+  if (!inLobby && start) begin({ kind: 'story', story: start.story }, 'jump');
   let effectsLoading = false;
   await faces;
 
@@ -425,13 +425,7 @@ async function assemble(
     }
     lobby?.update(dt, camera);
     for (const { effects } of prepared.values()) effects.background();
-    if (story) {
-      effectsStrength = Math.max(
-        0,
-        Math.min(1, effectsStrength + (lobby?.returning ? -dt : dt) / GLOW_FADE_S),
-      );
-      if (!lobby?.returning) story.walk.update(now, dt);
-    }
+    mode?.beforeCamera(now, dt);
     control.step(now, dt);
     frameLens(dt);
     const current = control.current;
@@ -455,29 +449,18 @@ async function assemble(
     rig.place(camera, drawn, surfaceRelief, museum.globeMount, Number(museum.params.hideAltitude));
     const viewport = { width: innerWidth, height: innerHeight };
     streamer.update(camera, viewport, museum.globeMount);
-    // The story's effects set the look's layers and ash, so they run before the look's update.
-    story?.effects.update(
-      story.walk.state(),
-      camera,
-      museum.globeMount,
-      viewport,
-      now / 1000,
-      effectsStrength,
-    );
+    // A story's effects set the look's layers and ash, so the mode runs before the look's update.
+    if (mode) {
+      globeFrame.place(camera, museum.globeMount, viewport);
+      mode.afterPlace(globeFrame, now);
+    }
     look.update(now / 1000);
     museum.render(camera);
-    if (story) {
-      const state = story.walk.state();
-      story.ui.update(state, drawn, story.effects.climate(), story.effects.borders());
-    }
+    mode?.ui(drawn, now);
     chrome?.update();
-    sound?.update(
-      lobby?.returning ? null : (story?.walk.state() ?? null),
-      story?.ui.rulerUnit() ?? 'day',
-      drawn,
-      dt,
-      lobby?.returning,
-    );
+    const heard = mode?.audio() ?? null;
+    const walked = heard && 'state' in heard ? heard : null;
+    sound?.update(walked?.state ?? null, walked?.unit ?? 'day', drawn, dt, lobby?.returning);
 
     const s = streamer.stats();
     // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.
@@ -522,6 +505,7 @@ async function assemble(
       look.inspectMemory?.(account);
       for (const { effects } of prepared.values()) effects.inspectMemory?.(account);
       sound?.inspectMemory?.(account);
+      mode?.inspectMemory(account);
       // Count specialized owners first, then the remaining instrument and lobby resources.
       account.geometry('surface.gridAndInstances', streamer.geometry);
       for (const { effects } of prepared.values()) account.object('effects', effects.group);
@@ -557,11 +541,12 @@ function createRenderer(): WebGLRenderer {
 }
 
 /**
- * The story mode's parts: the director, arriving on the first beat by `arrive`, with input on the
- * globe breaking out and the arrow keys stepping beats instead of panning; the story's `effects`,
- * shown from now on; the card, ruler, Meanwhile and climate legend over them in `root`, the
- * card's images from `dataHost`. Sound, the mark and knob belong to the page. Returning stops the
- * director and keys first, then disposes the UI and director once they have left the screen.
+ * The story mode and its parts: the director, arriving on the first beat by `arrive`, with input
+ * on the globe breaking out and the arrow keys stepping beats instead of panning; the story's
+ * `effects`, shown from now on and fading in over the dive; the card, ruler, Meanwhile and climate
+ * legend over them in `root`, the card's images from `dataHost`. Sound, the mark and knob belong
+ * to the page. Leaving stops the director and keys first and fades the effects out; ending
+ * disposes the UI and director once they have left the screen and hides the effects.
  */
 function startStory(
   { story, meanwhile }: StorySource,
@@ -573,7 +558,7 @@ function startStory(
   arrive: 'jump' | 'fly',
   ready: () => boolean,
   reachChanged: () => void,
-): [StoryParts, () => void, () => void] {
+): { mode: Mode; parts: StoryParts } {
   const walk = createWalk(story, control, { ready, arrive, route: (name) => effects.route(name) });
   let ui: WalkUi;
   try {
@@ -586,18 +571,43 @@ function startStory(
   control.onInput = () => walk.breakOut();
   const unbindKeys = bindWalkKeys(walk);
   effects.group.visible = true;
-  const end = () => {
-    unbindKeys();
-    ui.dispose();
-    walk.dispose();
+  // The effects are compiled once and reused. A separate fade leaves the tuned params intact
+  // and starts from zero on every dive, including one after a return in mid-flight.
+  let strength = arrive === 'fly' ? 0 : 1;
+  let left = false;
+  const mode: Mode = {
+    landed: (cb) =>
+      walk.subscribe((state) => {
+        if (state.flight === null) cb();
+      }),
+    lensShift: () => LENS_SHIFT * ui.cardReach(),
+    beforeCamera(nowMs, dtS) {
+      strength = Math.max(0, Math.min(1, strength + (left ? -dtS : dtS) / GLOW_FADE_S));
+      if (!left) walk.update(nowMs, dtS);
+    },
+    afterPlace(frame, nowMs) {
+      effects.update(walk.state(), frame, nowMs / 1000, strength);
+    },
+    ui(drawn) {
+      ui.update(walk.state(), drawn, effects.climate(), effects.borders());
+    },
+    audio: () => (left ? null : { state: walk.state(), unit: ui.rulerUnit() }),
+    leave() {
+      left = true;
+      unbindKeys();
+      walk.breakOut();
+      ui.leave();
+      sound.leave();
+    },
+    end() {
+      unbindKeys();
+      ui.dispose();
+      walk.dispose();
+      effects.hide();
+    },
+    inspectMemory() {},
   };
-  const leave = () => {
-    unbindKeys();
-    walk.breakOut();
-    ui.leave();
-    sound.leave();
-  };
-  return [{ walk, effects, ui, sound }, end, leave];
+  return { mode, parts: { walk, effects, ui, sound } };
 }
 
 /**
