@@ -10,13 +10,7 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from '@playwright/test';
 import { EVENT_CLASS_SYMBOLS } from '../src/marks/eventSymbols.ts';
-import {
-  EVENT_GLYPHS,
-  GLYPH_GRID,
-  PACE_LAYERS,
-  type GlyphId,
-  type Pace,
-} from '../src/marks/symbols.ts';
+import { EVENT_GLYPHS, GLYPH_UNITS, PACES, type GlyphId, type Pace } from '../src/marks/symbols.ts';
 
 const { values } = parseArgs({
   options: {
@@ -57,7 +51,7 @@ function escape(text: string): string {
 
 /** A glyph `size` px wide with its top left at (x, y). */
 function glyph(id: GlyphId, x: number, y: number, size: number, fill: string): string {
-  return `<path d="${EVENT_GLYPHS[id]}" fill="${fill}" transform="translate(${x} ${y}) scale(${size / GLYPH_GRID})"/>`;
+  return `<path d="${EVENT_GLYPHS[id]}" fill="${fill}" transform="translate(${x} ${y}) scale(${size / GLYPH_UNITS})"/>`;
 }
 
 function text(x: number, y: number, body: string, size: number, fill: string, extra = ''): string {
@@ -78,7 +72,7 @@ function lines(words: string[], width: number): string[] {
 
 /** One glyph's card: 128 px on its grid, its name and classes, and the globe's sizes. */
 function card(id: GlyphId, x: number, y: number): string {
-  const unit = BIG / GLYPH_GRID;
+  const unit = BIG / GLYPH_UNITS;
   const box = BIG + 16;
   const parts = [
     `<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="6" fill="#1d1812" stroke="#3a2f22"/>`,
@@ -121,7 +115,7 @@ const body: string[] = [
   ),
 ];
 y += 72;
-for (const pace of PACE_LAYERS) {
+for (const pace of PACES) {
   const members = ids.filter((id) => family.get(id) === pace);
   if (!members.length) continue;
   body.push(text(PAD, y + 16, pace.toUpperCase(), 14, TEXT, 'letter-spacing="3"'));
@@ -191,7 +185,7 @@ try {
         }),
       );
     },
-    { paths: EVENT_GLYPHS, grid: GLYPH_GRID },
+    { paths: EVENT_GLYPHS, grid: GLYPH_UNITS },
   );
   for (const [id, share] of Object.entries(ink)) {
     const pace = family.get(id as GlyphId) ?? 'no class';

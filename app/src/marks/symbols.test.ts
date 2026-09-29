@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EVENT_GLYPHS, GLYPH_GRID } from './symbols';
+import { EVENT_GLYPHS, GLYPH_UNITS } from './symbols';
 
 const MARGIN = 4;
 
@@ -44,7 +44,7 @@ describe('glyphs', () => {
       const all = subpaths.flatMap((s) => [...s.x, ...s.y]);
       expect(all.every(Number.isFinite)).toBe(true);
       expect(Math.min(...all)).toBeGreaterThanOrEqual(MARGIN);
-      expect(Math.max(...all)).toBeLessThanOrEqual(GLYPH_GRID - MARGIN);
+      expect(Math.max(...all)).toBeLessThanOrEqual(GLYPH_UNITS - MARGIN);
     },
   );
 });

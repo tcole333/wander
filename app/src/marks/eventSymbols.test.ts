@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { EVENT_CLASS_SYMBOLS, eventSymbol, eventSymbols } from './eventSymbols';
-import { EVENT_GLYPHS, PACE_LAYERS, type GlyphId, type Pace } from './symbols';
+import { EVENT_GLYPHS, PACES, type GlyphId, type Pace } from './symbols';
 
 const config = parse(
   readFileSync(new URL('../../../pipeline/config/event-classes.yaml', import.meta.url), 'utf8'),
@@ -13,7 +13,7 @@ describe('event symbols', () => {
   it('give every class in event-classes.yaml a pace layer and a glyph', () => {
     const missing = classNames.filter((name) => {
       const symbol = eventSymbol(name);
-      return !symbol || !PACE_LAYERS.includes(symbol.pace) || !(symbol.glyph in EVENT_GLYPHS);
+      return !symbol || !PACES.includes(symbol.pace) || !(symbol.glyph in EVENT_GLYPHS);
     });
     expect(missing).toEqual([]);
   });
