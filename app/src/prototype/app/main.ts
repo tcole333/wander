@@ -10,11 +10,14 @@
 //
 // ?story=tambora|magellan walks the story instead of the presets, as the boot plays it. The panel hides
 // behind a small gear at the top right. window.__walk serves scripts (scripts/walkShots.ts).
-// Without a story the crafted ruler drives world time from 10,000 BCE through 2000 CE;
-// window.__worldTime serves scripts/exploreClockShots.ts. The globe still follows only the view.
+// Without a story the page starts in Explore (explore/explore.ts) where the view stands, its
+// crafted ruler driving world time from 10,000 BCE through 2000 CE, with the lobby, mark and sound
+// knob for the way back; window.__worldTime serves scripts/exploreClockShots.ts. A story's page
+// shows Explore's plaque in its lobby only with ?explore, as the production page does. ?memory=1
+// installs window.__wanderMemory() (perf/memoryHook.ts), as on the production page.
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
-import { DATA_SERVERS } from '../../page/dataOrigin';
+import { DATA_SERVERS, exploreRequested, memoryRequested } from '../../page/dataOrigin';
 import type { WalkState } from '../../story/contract';
 import type { DirectedWalk, FlightRecord } from '../../story/director';
 import { stories, storyNamed } from '../../story/catalog';
@@ -23,9 +26,6 @@ import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
 import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
-import { ExploreTime } from '../../time/exploreTime';
-import { worldClock } from '../../time/worldClock';
-import { CraftRuler } from '../../story/ui/rulerCraft';
 
 const TAMBORA = { lon: 118.0, lat: -8.25, heading: 0 };
 
@@ -103,12 +103,17 @@ async function main(): Promise<void> {
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
   const page = await bootWalk(document.body, release, {
-    story: source,
-    stories: source ? stories : [],
+    story: source ?? 'explore',
+    stories,
+    explore: source === null || exploreRequested(location),
     lobby: false,
     view: PRESETS[preset],
     tune: (params) => applyQuery(params, query),
   });
+  if (memoryRequested(location)) {
+    const { installMemoryHook } = await import('../../perf/memoryHook');
+    installMemoryHook(page);
+  }
   const { museum, look, streamer, control, cameraParams } = page;
   const go = (name: string, instant = false) => {
     const view = PRESETS[name];
@@ -133,28 +138,6 @@ async function main(): Promise<void> {
   if (source) {
     document.body.classList.add('story');
     document.getElementById('presets')?.remove();
-  } else {
-    const explore = new ExploreTime();
-    const ruler = new CraftRuler(explore);
-    const layer = document.createElement('div');
-    layer.className = 'wu wu-explore';
-    layer.append(ruler.element);
-    document.body.append(layer);
-    window.__worldTime = {
-      state: () => worldClock.state(),
-      span: () => explore.span,
-      seek: (day) => explore.seek(day),
-      zoom: (factor, share) => explore.zoom(factor, share),
-    };
-    addEventListener(
-      'pagehide',
-      (event) => {
-        if (event.persisted) return;
-        ruler.dispose();
-        layer.remove();
-      },
-      { once: true },
-    );
   }
   if (showUi) {
     buildUi({ museum, look, streamer, cameraParams, control, go, settings, story: page.story });
