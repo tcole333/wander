@@ -121,6 +121,12 @@ try {
     },
   );
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // Explore opens on an event; these checks start from all of history, at 1 CE.
+  await page.evaluate(() => {
+    const world = (window as unknown as ClockPage).__worldTime;
+    world.zoom(1e12, 0.5);
+    world.seek(0);
+  });
   const initial = await clock();
   assert.equal(initial.day, 0);
   await capture('00-history');
