@@ -177,6 +177,29 @@ def test_a_year_or_month_names_its_days_in_the_historical_calendar(date, precisi
     assert events.named_days(date, precision) == (first, last)
 
 
+def test_a_year_or_month_before_the_reform_spans_it_as_its_sources_write_it():
+    kept = indexed(
+        row("Q1", "P585", "1066-01-01T00:00:00Z", 9),
+        row("Q2", "P585", "1520-12-01T00:00:00Z", 10),
+        row("Q3", "P585", "-0700-01-01T00:00:00Z", 9),
+        row("Q4", "P585", "1066-10-20T00:00:00Z", 11),
+        row("Q5", "P580", "1337-05-24T00:00:00Z", 11),
+        row("Q5", "P582", "1453-01-01T00:00:00Z", 9),
+    )
+    assert (kept["Q1"].day, kept["Q1"].t0, kept["Q1"].t1) == (
+        (1066, 1, 7),
+        (1066, 1, 7),
+        (1067, 1, 6),
+    )
+    assert (kept["Q2"].day, kept["Q2"].t1) == ((1520, 12, 11), (1521, 1, 10))
+    assert events.format_historical(kept["Q3"].day, kept["Q3"].precision) == "701 BCE"
+    assert events.format_historical(kept["Q3"].t1, kept["Q3"].precision) == "701 BCE"
+    # A day is exported in the Gregorian calendar already, and stays as it is.
+    assert (kept["Q4"].day, kept["Q4"].t0, kept["Q4"].t1) == ((1066, 10, 20),) * 3
+    assert (kept["Q5"].t0, kept["Q5"].t1) == ((1337, 5, 24), (1454, 1, 9))
+    assert events.iso(kept["Q2"].day) == "1520-12-11"
+
+
 def test_events_without_a_label_a_place_a_year_or_an_edition_are_dropped():
     kept = indexed(
         row("Q1", "P585", "1815-06-18T00:00:00Z", 11, label=""),

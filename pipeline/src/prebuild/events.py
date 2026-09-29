@@ -11,7 +11,8 @@ Wikipedia edition. Per event it takes:
 - the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`);
 - the date: its point in time (P585), else its start (P580), else its end (P582); among several of
   one property, the most precise, then the earliest; or the day `dates` in
-  `pipeline/config/events-curated.yaml` gives it, where a better source dates it otherwise;
+  `pipeline/config/events-curated.yaml` gives it, where a better source dates it otherwise. A date
+  of year or month precision stands for the first day it names (`named_days`);
 - the span `t0`-`t1` it covers: from the earliest of its date and start times to the latest of its
   date and end times, each widened to its precision (a year runs 1 January to 31 December), so a
   war with a point in time still spans its years; a curated day leaves out the statement it
@@ -29,9 +30,12 @@ proleptic Gregorian calendar with astronomical years (1 BC is 0000), as `app/src
 reads them, with Wikidata's precision: 9 year, 10 month, 11 day.
 
 Calendar: Wikidata's export gives a day in the proleptic Gregorian calendar, converting a date its
-source wrote in the Julian (Hastings, 14 October 1066, is exported as 20 October). The calendar
+source wrote in the Julian (Hastings, 14 October 1066, is exported as 20 October), but a year or a
+month as its source wrote it, unconverted. Sources write the dates before 15 October 1582 in the
+Julian calendar, so the stage reads a year or month in that historical calendar: 1066 runs from
+1 January 1066 (Julian), which is 7 January (Gregorian), to 31 December (Julian). The calendar
 here mirrors dates.ts's: `historical` and `format_historical` give a day as history writes it,
-Julian before 15 October 1582, as Explore shows it.
+Julian before the reform, as Explore shows it.
 
 The table stays build-only for Meanwhile and lobby picks. The separate event-files stage reads it
 and the pinned export to publish the runtime `.wev` files, with percentile scores and display
@@ -288,7 +292,7 @@ def index(
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
         curated = _day(f"{dates[qid]}T") if dates and qid in dates else None
-        day, precision = (curated, DAY) if curated else (dated.day, dated.precision)
+        day, precision = (curated, DAY) if curated else (_first_day(dated), dated.precision)
         # A curated day corrects the statement Wikidata dates the event by, in its span as well.
         corrected = (dated.prop, dated.day, dated.precision) if curated else None
         spanning = [s for s in group if (s.prop, s.day, s.precision) != corrected]
@@ -367,17 +371,11 @@ def iso(day: Day) -> str:
 
 
 def _first_day(s: Statement) -> Day:
-    year, month, _ = s.day
-    if s.precision == YEAR:
-        return year, 1, 1
-    return (year, month, 1) if s.precision == MONTH else s.day
+    return named_days(s.day, s.precision)[0] if s.precision < DAY else s.day
 
 
 def _last_day(s: Statement) -> Day:
-    year, month, _ = s.day
-    if s.precision == YEAR:
-        return year, 12, 31
-    return (year, month, month_days(year, month)) if s.precision == MONTH else s.day
+    return named_days(s.day, s.precision)[1] if s.precision < DAY else s.day
 
 
 def month_days(year: int, month: int) -> int:
