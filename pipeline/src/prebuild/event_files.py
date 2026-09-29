@@ -1,6 +1,8 @@
 """Runtime event files (streaming.md 3.4). No network: the cleaned table supplies the rows;
 its pinned local export supplies alternate places/dates and otherwise discarded parent records.
 Neither the TSV nor the story locks are rewritten. The worker's exact array bytes set paging.
+Explore's openings (`explore/openings.lock.json`, the openings stage's) join the overview on top
+of its quota, so the first view never waits on a rest file; the record's `inputs` hash the lock.
 """
 
 import bisect
@@ -9,6 +11,7 @@ import gzip
 import json
 import math
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -23,8 +26,10 @@ from prebuild.config import (
     load_event_dates,
     load_event_places,
 )
-from prebuild.hashing import ver8
+from prebuild.hashing import sha256_file, ver8
 from prebuild.meanwhile import apart_km, civil, day_number, iso_day
+from prebuild.openings import FOLDER as OPENINGS_FOLDER
+from prebuild.openings import LOCK as OPENINGS_LOCK
 from prebuild.paths import excerpts_dir
 from prebuild.profiles import Context, Profile
 from prebuild.records import read_record, write_record
@@ -335,13 +340,35 @@ def overview(rows: list[Row], count: int = OVERVIEW_ROWS) -> list[Row]:
     return [r for r in rows if r.row in chosen]
 
 
+def forced(rows: list[Row], qids: list[str], *, strict: bool) -> set[int]:
+    """The rows of the openings, which join the overview on top of its quota. An opening absent
+    from the rows fails a build of the whole index (`strict`); the fixture's slice of the index
+    leaves it out and says how many it left."""
+    by_qid = {r.event.qid: r.row for r in rows}
+    absent = [qid for qid in qids if qid not in by_qid]
+    if absent and strict:
+        raise events.EventsError(
+            f"the openings {', '.join(absent)} are not in the event index: "
+            "run `uv run prebuild openings`"
+        )
+    if absent:
+        print(f"event-files: {len(absent)} of {len(qids)} openings not in the index, left out")
+    return {by_qid[qid] for qid in qids if qid in by_qid}
+
+
 def build(
-    rows: list[Row], out: Path, *, all_rows: int = ALL_ROWS, all_bytes: int = ALL_BYTES
+    rows: list[Row],
+    out: Path,
+    *,
+    openings: Iterable[int] = (),
+    all_rows: int = ALL_ROWS,
+    all_bytes: int = ALL_BYTES,
 ) -> dict:
-    """Write immutable .wev keys under out. Threshold arguments let small tests exercise pages."""
+    """Write immutable .wev keys under out, the `openings` rows in the overview whatever its
+    quota. Threshold arguments let small tests exercise pages."""
     edges = era_edges()
-    first = overview(rows)
-    chosen = {r.row for r in first}
+    chosen = {r.row for r in overview(rows)} | set(openings)
+    first = [r for r in rows if r.row in chosen]
     rest = [r for r in rows if r.row not in chosen]
     full = document(rows)
     pages = {"overview": first}
@@ -413,10 +440,23 @@ def run(ctx: Context) -> None:
         if ctx.profile is Profile.FIXTURE
         else verified_path(ctx, source.id, events.TABLE)
     )
+    lock_path = ctx.repo / OPENINGS_FOLDER / OPENINGS_LOCK
+    if not lock_path.exists():
+        raise events.EventsError(f"{lock_path} is missing: run `uv run prebuild openings`")
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    strict = ctx.profile is not Profile.FIXTURE
+    table = ctx.out / events.KEY
+    if strict and lock["table"] != sha256_file(table):
+        raise events.EventsError(
+            f"{OPENINGS_FOLDER}/{OPENINGS_LOCK} was checked against another event index: "
+            f"run `uv run prebuild --profile {ctx.profile} openings`"
+        )
     with gzip.open(path, "rt", encoding="utf-8") as stream:
         statements = events.read_export(stream)
-    rows = prepare(read_table(ctx.out / events.KEY), statements)
-    result = build(rows, ctx.out)
+    rows = prepare(read_table(table), statements)
+    qids = [opening["qid"] for opening in lock["openings"]]
+    result = build(rows, ctx.out, openings=forced(rows, qids, strict=strict))
+    result["inputs"] = {"openings": sha256_file(lock_path)}
     write_record(ctx, STAGE, result)
     print(
         f"event-files: {len(rows)} rows, {sum(f['bytes'] for f in result['files'])} B stored, "
