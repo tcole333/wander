@@ -192,8 +192,9 @@ Each story exercises something the others don't, so together they prove the engi
 3. **The Century of Oil, 1928-1974.** Who controls the oil, from the companies dividing the old
    Ottoman lands along the Red Line in 1928 to the producers setting the price themselves in 1973:
    Mexico's 1938 expropriation, oil as a cause of war in 1941, Iran's nationalization and the 1953
-   coup, Suez, and OPEC's founding. The petroleum provinces light with each country's production.
-   Draws on the first prototype's three petroleum stories.
+   coup, and the 1973 embargo, with steps between such as Suez and OPEC's founding. The petroleum
+   provinces light with each country's production. Draws on the first prototype's three petroleum
+   stories.
 4. **The Black Death, 1346-1353.** An area spreading over time along trade routes, with ecoregions
    as backdrop.
 5. **The California Gold Rush, 1848-1855.** Migration routes and the minerals layer.
@@ -210,8 +211,8 @@ areas, climate data, and the thematic layers.
 - Every beat cites at least one source (title, author or publisher, link). Dates, numbers, and
   quotes come from a cited source. Illustrative visuals do not need sources.
 - Before a story ships, a separate fact-check pass verifies each claim against its cited source.
-- A claim that one thing caused another cites a source that makes that claim. The globe draws what
-  physically moved, and interpretation stays in the text (`docs/design/globe-language.md`).
+- A claim that one thing caused another cites a source that makes that claim. The globe draws
+  documented movement, and interpretation stays in the text (`docs/design/globe-language.md`).
 - Stories stop where historians have some distance, so present-day disputes stay out of them.
 - Stories may be more liberal in sourcing than the future open-world mode, which leans on Wikidata.
 
