@@ -12,6 +12,7 @@ import type { MeanwhileQuery } from './meanwhile';
 import type { EventQuery } from './query';
 import type { PagePlan } from './residency';
 import type { EventReply, EventRequest } from './runtime';
+import type { EventView } from './view';
 
 /** Descriptions kept on the main thread, least recently used out first, until dispose(). */
 export const DESCRIPTION_ROWS = 256;
@@ -25,6 +26,12 @@ export interface EventWorker {
 type Arrival = EventReply | { type: 'fetched'; key: string; buf: ArrayBuffer };
 type FetchBytes = (url: string, stillWanted: () => boolean) => Promise<ArrayBuffer>;
 
+const sameView = (a: EventView, b: EventView) =>
+  a.width === b.width &&
+  a.height === b.height &&
+  a.camera.every((v, i) => v === b.camera[i]) &&
+  a.matrix.every((v, i) => v === b.matrix[i]);
+
 /** Two Meanwhile questions ask the same thing; `exclude` compares as a set. */
 function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolean {
   if (
@@ -33,7 +40,7 @@ function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolea
     a.t1 !== b.t1 ||
     a.center[0] !== b.center[0] ||
     a.center[1] !== b.center[1] ||
-    a.viewKm !== b.viewKm ||
+    !sameView(a.view, b.view) ||
     a.count !== b.count ||
     a.exclude.length !== b.exclude.length
   )
@@ -130,8 +137,14 @@ export class EventClient {
    */
   meanwhile(query: MeanwhileQuery): void {
     if (this.#disposed || (this.#meanwhile && sameMeanwhile(query, this.#meanwhile.query))) return;
+    const { view } = query;
     this.#meanwhile = {
-      query: { ...query, center: [...query.center], exclude: [...query.exclude] },
+      query: {
+        ...query,
+        center: [...query.center],
+        view: { ...view, matrix: [...view.matrix], camera: [...view.camera] },
+        exclude: [...query.exclude],
+      },
     };
     this.onready?.();
   }

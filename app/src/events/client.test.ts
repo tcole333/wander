@@ -167,7 +167,7 @@ const standing: MeanwhileQuery = {
   t0: 100,
   t1: 136,
   center: [4.4, 50.7],
-  viewKm: 3000,
+  view: viewOf(0.47, 4.4, 50.7),
   count: 3,
   exclude: [48314, 855429],
 };
@@ -215,6 +215,27 @@ describe('Meanwhile', () => {
       client.dispose();
       vi.useRealTimers();
     }
+  });
+
+  test('a camera that moves about the same center asks a new question', () => {
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    client.meanwhile(standing);
+    client.drain(0);
+    client.drain(tunables.meanwhileRest);
+    worker.reply({ type: 'meanwhile', generation: 1, events: [] });
+    client.drain(300);
+    const view = viewOf(0.47, 4.4, 50.7);
+    client.meanwhile({ ...standing, view });
+    client.drain(400);
+    client.drain(400 + tunables.meanwhileRest);
+    expect(sentOf(worker, 'meanwhile')).toHaveLength(1);
+    view.matrix[0]! *= 1.01;
+    client.meanwhile({ ...standing, view });
+    client.drain(700);
+    client.drain(700 + tunables.meanwhileRest);
+    expect(sentOf(worker, 'meanwhile')).toHaveLength(2);
+    client.dispose();
   });
 
   test('an unchanged question waits for a page to load before it is asked again', () => {
