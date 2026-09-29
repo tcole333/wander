@@ -13,7 +13,7 @@ import { GLYPH_UNITS } from './glyphs';
 
 /**
  * The table's width and height in texels, and its rows: the tiles' ranges, four a texel (the
- * first slot times 16 plus the count); the slots, one a texel (a mark's screen disc and index,
+ * first slot times TILE_COUNT_MAX + 1 plus the count); the slots, one a texel (a mark's screen disc and index,
  * so a fragment outside it stops after one fetch); then three texels a mark.
  */
 export const TABLE_WIDTH = 512;
@@ -30,6 +30,8 @@ export const TILES_MAX = SLOT_ROW * TABLE_WIDTH * 4;
 export const PAD_TILES = 3;
 export const SLOTS_MAX = (MARK_ROW - SLOT_ROW) * TABLE_WIDTH;
 export const MARKS_MAX = Math.floor(((TABLE_ROWS - MARK_ROW) * TABLE_WIDTH) / MARK_TEXELS);
+/** The most marks a tile's range can count: tunables.markTileCap stays within it. */
+export const TILE_COUNT_MAX = 15;
 
 /** Flags a mark's texel carries. */
 export const FLAG = { focal: 1, hover: 2, hollow: 4, soft: 8 } as const;
@@ -143,9 +145,9 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
   ivec2 tile = ivec2(inGrid / lookMarkGrid.z);
   int t = tile.y * int(lookMarkGrid.w) + tile.x;
   int range = int(lookMarkTexel(t >> 2)[t & 3]);
-  int count = range & 15;
+  int count = range & ${TILE_COUNT_MAX};
   if (count == 0) return;
-  int start = ${SLOT_ROW * 512} + (range >> 4);
+  int start = ${SLOT_ROW * 512} + range / ${TILE_COUNT_MAX + 1};
   vec2 atlas = vec2(textureSize(lookSeaAtlas, 0));
   vec3 ground = o.albedo;
   float groundRough = o.roughness;
