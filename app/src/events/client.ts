@@ -1,14 +1,19 @@
-// Main-thread fetch and frame-loop boundary. One transferred page and query are in flight at
-// once. onmessage only queues replies; drain() performs state changes on the caller's frame.
+// Main-thread fetch and frame-loop boundary. One transferred page and one query are in flight at
+// once; a description request has a slot of its own. onmessage only queues replies; drain()
+// performs state changes on the caller's frame.
 import { tunables, type Tier } from '../config/tunables';
 import type { EventsRelease } from '../data/release';
 import { fetchData } from '../data/surfaceLayer';
+import type { EventDescription } from './describe';
 // Bundled into the entry and started from a Blob URL, so a dive fetches nothing from Pages
 // (streaming.md 2). The dev server serves it as a module worker instead.
 import InlineEventWorker from './event.worker.ts?worker&inline';
 import type { EventQuery } from './query';
 import type { PagePlan } from './residency';
 import type { EventReply, EventRequest } from './runtime';
+
+/** Descriptions kept on the main thread, least recently used out first, until dispose(). */
+export const DESCRIPTION_ROWS = 256;
 
 export interface EventWorker {
   postMessage(message: EventRequest, transfer: Transferable[]): void;
@@ -33,8 +38,11 @@ type FetchBytes = (url: string, stillWanted: () => boolean) => Promise<ArrayBuff
  * Result replies contain markers, labels, parent outlines and missingFocal Q numbers. Draw
  * anchors only when anchorVisible; clip outline geometry independently. Interpolate each item's
  * fade with fadeOpacity(fade, rAFTime) between replies, and stop drawing completed exits. State
- * replies expose classes and page readiness/array bytes; errors name the failed file. retry()
- * admits failed files again. dispose() terminates the worker and discards late arrivals.
+ * replies expose classes and page readiness/array bytes; errors name the failed file or request.
+ * retry() admits failed files again. dispose() terminates the worker and discards late arrivals.
+ *
+ * description(row) answers from a cache of DESCRIPTION_ROWS rows, or asks the worker on the next
+ * drain(), whose 'described' reply says the answer has arrived.
  */
 export class EventClient {
   readonly #worker: EventWorker;
@@ -55,6 +63,12 @@ export class EventClient {
   #disposed = false;
   #fatal = false;
   #timer: ReturnType<typeof setTimeout> | undefined;
+  /** Insertion order is recency: the first key is the least recently used. */
+  #descriptions = new Map<number, EventDescription>();
+  #describeWanted = new Set<number>();
+  #describing = new Set<number>();
+  /** Rows no resident page held when asked; asked again once another page loads. */
+  #undescribed = new Set<number>();
   /** Wakes the frame loop. Replies and fetched bytes stay queued until drain(). */
   onready: (() => void) | null = null;
 
@@ -83,6 +97,24 @@ export class EventClient {
     this.#dirty = true;
     this.onready?.();
   }
+  /** The row's label, parent label and dates when cached; otherwise the next drain() asks. */
+  description(row: number): EventDescription | undefined {
+    const cached = this.#descriptions.get(row);
+    if (cached) {
+      this.#remember(cached);
+      return cached;
+    }
+    if (
+      !this.#disposed &&
+      !this.#describeWanted.has(row) &&
+      !this.#describing.has(row) &&
+      !this.#undescribed.has(row)
+    ) {
+      this.#describeWanted.add(row);
+      this.onready?.();
+    }
+    return undefined;
+  }
   /** Call from rAF with performance.now(). State replies expose readiness, classes and array bytes. */
   drain(now: number): EventReply[] {
     if (this.#disposed) return [];
@@ -102,11 +134,21 @@ export class EventClient {
         if (reply.key) {
           this.#failed.add(reply.key);
           this.#loading = undefined;
-        } else if (reply.generation === undefined) {
+        } else if (reply.request === 'query') {
+          if (reply.generation === this.#inFlight) this.#inFlight = undefined;
+        } else if (reply.request === 'describe') {
+          this.#describing.clear();
+        } else {
           this.#fatal = true;
           this.#worker.terminate();
         }
-        if (reply.generation === this.#inFlight) this.#inFlight = undefined;
+        replies.push(reply);
+        continue;
+      }
+      if (reply.type === 'described') {
+        this.#describing.clear();
+        for (const event of reply.events) this.#remember(event);
+        for (const row of reply.missing) this.#undescribed.add(row);
         replies.push(reply);
         continue;
       }
@@ -116,6 +158,7 @@ export class EventClient {
         if (reply.loaded) {
           this.#loading = undefined;
           this.#dirty = !!this.#latest;
+          this.#undescribed.clear();
         }
         replies.push(reply);
       } else {
@@ -158,6 +201,13 @@ export class EventClient {
         );
       }
     }
+    // Every row asked for since the last request, in one message.
+    if (this.#describeWanted.size > 0 && this.#describing.size === 0) {
+      const rows = [...this.#describeWanted];
+      this.#describeWanted.clear();
+      for (const row of rows) this.#describing.add(row);
+      this.#worker.postMessage({ type: 'describe', rows }, []);
+    }
     if (this.#dirty && this.#inFlight === undefined) {
       this.#timer = setTimeout(
         () => this.onready?.(),
@@ -179,7 +229,18 @@ export class EventClient {
     this.#ready = [];
     this.#latest = undefined;
     this.#plan = undefined;
+    this.#descriptions.clear();
+    this.#describeWanted.clear();
+    this.#describing.clear();
+    this.#undescribed.clear();
     this.onready = null;
+  }
+  #remember(event: EventDescription): void {
+    this.#descriptions.delete(event.row);
+    this.#descriptions.set(event.row, event);
+    this.#undescribed.delete(event.row);
+    if (this.#descriptions.size > DESCRIPTION_ROWS)
+      this.#descriptions.delete(this.#descriptions.keys().next().value!);
   }
   #arrive(reply: Arrival): void {
     if (this.#disposed) return;

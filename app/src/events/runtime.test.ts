@@ -47,3 +47,27 @@ test('a query can use current residency while another page awaits inflation', as
   expect(early).toMatchObject({ type: 'result', plan: { complete: false } });
   expect(await loading).toMatchObject({ type: 'state', plan: { complete: true } });
 });
+
+test('the handler describes rows, naming those it cannot find', async () => {
+  const release = readStageRecord<EventsRelease>('event-files');
+  const runtime = new EventRuntime();
+  await runtime.handle({ type: 'init', release, tier: 'full' });
+  for (const f of release.files)
+    await runtime.handle({ type: 'load', key: f.key, buf: readFixtureFile(f.key).buffer });
+  const described = await runtime.handle({ type: 'describe', rows: [0, 2 ** 31 - 1] });
+  expect(described).toMatchObject({ type: 'described', missing: [2 ** 31 - 1] });
+  if (described.type === 'described')
+    expect(described.events).toEqual([expect.objectContaining({ row: 0, qid: 78994 })]);
+});
+
+test('a failed description names its request and leaves the worker running', async () => {
+  const runtime = new EventRuntime();
+  const early = await runtime.handle({ type: 'describe', rows: [1] });
+  expect(early).toMatchObject({ type: 'error', request: 'describe' });
+  const release = readStageRecord<EventsRelease>('event-files');
+  await runtime.handle({ type: 'init', release, tier: 'lite' });
+  expect(await runtime.handle({ type: 'query', generation: 10, query, now: 0 })).toMatchObject({
+    type: 'result',
+    generation: 10,
+  });
+});
