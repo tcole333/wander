@@ -49,11 +49,14 @@ export function openingsFromLock(lock: OpeningsLock): Opening[] {
 /** The bundled openings. */
 export const openings: readonly Opening[] = openingsFromLock(bundledLock);
 
-/** The opening a page on this machine pins with ?opening=Q…, or null; public URLs never do. */
+/**
+ * The opening a page on this machine pins with ?opening=Q…, as given, or null without one; public
+ * URLs never pin one. A value the list lacks, well-formed or not, reaches `pickOpening`, which
+ * throws on it.
+ */
 export function openingRequested(page: { hostname: string; search: string }): string | null {
   if (!LOOPBACK.has(page.hostname)) return null;
-  const asked = new URLSearchParams(page.search).get('opening');
-  return asked !== null && QID.test(asked) ? asked : null;
+  return new URLSearchParams(page.search).get('opening')?.trim() ?? null;
 }
 
 export interface PickOptions {
