@@ -47,6 +47,7 @@ def test_the_registry_pins_each_source_and_its_files():
             "modelskiAncientV2.csv",
             "modelskiModernV2.csv",
         ],
+        "resolve-ecoregions-2017": ["Ecoregions2017.zip"],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
