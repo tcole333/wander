@@ -42,6 +42,11 @@ def test_the_registry_pins_each_source_and_its_files():
         ],
         "historical-basemaps": ["world_1815.geojson"],
         "cliopatria": ["cliopatria.geojson.zip"],
+        "reba-historical-urban-population": [
+            "chandlerV2.csv",
+            "modelskiAncientV2.csv",
+            "modelskiModernV2.csv",
+        ],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 

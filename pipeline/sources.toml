@@ -162,6 +162,41 @@ source_url = "https://raw.githubusercontent.com/Seshat-Global-History-Databank/c
 bytes = 44231317
 sha256 = "d01ae3a20d358cc5d54f69d9d725d390767d9c8759ac89ad6f90c58d106f3370"
 
+# Chandler's Four Thousand Years of Urban Growth (1987) and Modelski's World Cities: -3000 to 2000
+# (2003), digitized and geolocated: city populations by year, each city with a Certainty rating of
+# 1 to 3. One figshare article holds each CSV: 2059494 (Chandler, 1,597 rows, 2250 BC to AD 1975),
+# 2059497 (Modelski ancient, 154 rows, 3700 BC to AD 1000) and 2059500 (Modelski modern, 293 rows,
+# AD 2000). Each article still lists its original v1 file beside the V2 file pinned here, which
+# removes stray spaces after city names and fixes a spelling or a country name. The files are
+# Windows-1252 with CRLF line endings, one column per dated year (BC_2250 ... AD_1975). The paper's
+# R script that combines the three is figshare 2059491, not pinned.
+[reba-historical-urban-population]
+name = "Reba, Reitsma and Seto's historical urban population, 3700 BC to AD 2000 (Chandler and Modelski, geolocated)"
+version = "figshare 2059494 v3, 2059497 v2 and 2059500 v3, the V2 CSV of each"
+license = "CC-BY-4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Reba, Reitsma and Seto (2016), Spatializing 6,000 years of global urbanization from 3700 BC to AD 2000, Scientific Data 3:160034, DOI 10.1038/sdata.2016.34; data DOIs 10.6084/m9.figshare.2059494, 10.6084/m9.figshare.2059497 and 10.6084/m9.figshare.2059500; from Chandler (1987) and Modelski (2003)."
+landing_page = "https://doi.org/10.1038/sdata.2016.34"
+retrieved = "2026-09-29"
+
+[[reba-historical-urban-population.files]]
+path = "sources/reba-historical-urban-population/chandlerV2.csv"
+source_url = "https://ndownloader.figshare.com/files/5407640"
+bytes = 1416656
+sha256 = "5b8df64e46988b216988eef18b46ebc2cba57ecc1adc8a5c2e1e6d5b78068031"
+
+[[reba-historical-urban-population.files]]
+path = "sources/reba-historical-urban-population/modelskiAncientV2.csv"
+source_url = "https://ndownloader.figshare.com/files/5356132"
+bytes = 16764
+sha256 = "71beafaacbdeb8d8fc156951521e9a14e20d6704b0d77be5528511c52fad3e1d"
+
+[[reba-historical-urban-population.files]]
+path = "sources/reba-historical-urban-population/modelskiModernV2.csv"
+source_url = "https://ndownloader.figshare.com/files/5407637"
+bytes = 15054
+sha256 = "927ee6a9122be6aded1a2f71ff5bb6f36312aae6a778574af47f4e8c65265726"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
