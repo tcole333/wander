@@ -1,7 +1,7 @@
 // The lobby's opening, turn, dive and return (streaming.md 5.7). The plaques, glows, mark and
-// knob stay mounted for the whole visit. A fresh mode (walk/mode.ts), a story's director, starts
-// each dive; the return uses the same flight path and easing as the walk, then releases that mode
-// and its UI at the landing.
+// knob stay mounted for the whole visit. A fresh mode (walk/mode.ts) starts each dive, a story's
+// director or Explore; the return uses the same flight path and easing as the walk, then releases
+// that mode and its UI at the landing.
 import type { Object3D, PerspectiveCamera } from 'three';
 import type { MuseumScene } from '../contract';
 import type { LonLat, Story } from '../story/story';
@@ -30,8 +30,12 @@ export interface LobbyParts {
   museum: MuseumScene;
   control: ViewControl;
   chrome: WalkChrome;
-  /** The dev shell starts on a beat; it still has a lobby to return to. */
-  initial?: 'lobby' | 'story';
+  /** Whether Explore's plaque stands after the stories'. */
+  explore?: boolean;
+  /**
+   * The dev shell starts on a beat or in Explore; it still has a lobby to return to.
+   */
+  initial?: 'lobby' | 'story' | 'explore';
   /** Starts a fresh mode inside the press that chose its plaque. */
   enter: (choice: Choice) => Mode;
   /** Stops the mode's clock and inputs and fades its sound to the room. */
@@ -57,7 +61,7 @@ export interface Lobby {
 
 export function createLobby(parts: LobbyParts): Lobby {
   const { host, museum, control, chrome } = parts;
-  const startsGone = parts.initial === 'story';
+  const startsGone = parts.initial === 'story' || parts.initial === 'explore';
   const rest = { ...control.goal, viewKm: control.maxKm };
   let home = { ...rest };
   let phase: LobbyPhase = startsGone ? 'gone' : 'waiting';
@@ -76,7 +80,7 @@ export function createLobby(parts: LobbyParts): Lobby {
 
   const glows = new Glows(parts.places);
   museum.globeMount.add(glows.points);
-  const plaques = new Plaques(parts.stories, (choice) => choose(choice));
+  const plaques = new Plaques(parts.stories, (choice) => choose(choice), parts.explore);
   host.append(plaques.element);
   let reach = plaques.reach();
   chrome.lobby(!startsGone);

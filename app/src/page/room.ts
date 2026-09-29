@@ -2,8 +2,9 @@
 // lamp's pool. It is the page's poster until the walk's first live frame, which it crossfades
 // into, its mark gliding onto the page's own as it goes, and the ground a failure plate stands on: cast brass with a Reload control when the data
 // does not arrive, and the story's own vellum card, its title and blurb, when this browser cannot
-// draw the globe, its GPU keeps dropping it, or the boot stops on anything else. The card offers a
-// Reload unless the browser cannot draw.
+// draw the globe, its GPU keeps dropping it, or the boot stops on anything else; Explore's card
+// carries its plaque's heading. The card offers a Reload unless the browser cannot draw.
+import { EXPLORE_TITLE, EXPLORE_YEARS } from '../explore/copy';
 import type { Story } from '../story/story';
 import { button, el } from '../story/ui/dom';
 import { yearsLabel } from '../story/ui/format';
@@ -108,15 +109,35 @@ export function lobbyPlate(stories: readonly Story[], why: Unable): HTMLElement 
   return storiesPlate(stories, why);
 }
 
+/** Explore chosen: its plaque's heading, and why the globe is not drawn. */
+export function explorePlate(why: Unable): HTMLElement {
+  return cardPlate([{ years: EXPLORE_YEARS, title: EXPLORE_TITLE }], why);
+}
+
 function storiesPlate(stories: readonly Story[], why: Unable): HTMLElement {
+  return cardPlate(
+    stories.map((story) => ({
+      years: yearsLabel(story.beats),
+      title: story.title,
+      blurb: story.blurb,
+    })),
+    why,
+  );
+}
+
+function cardPlate(
+  heads: readonly { years: string; title: string; blurb?: string }[],
+  why: Unable,
+): HTMLElement {
   const plate = el('article', 'plate plate-card wu-card wu-lit');
   plate.setAttribute('role', 'alert');
   const sheet = el('div', 'wu-sheet');
-  for (const story of stories) {
+  for (const { years, title, blurb } of heads) {
     const head = el('header', 'wu-card-head');
-    head.append(el('div', 'wu-date', yearsLabel(story.beats)), el('h1', 'wu-title', story.title));
+    head.append(el('div', 'wu-date', years), el('h1', 'wu-title', title));
     head.append(el('div', 'wu-rule'));
-    sheet.append(head, el('p', 'plate-blurb', story.blurb));
+    sheet.append(head);
+    if (blurb !== undefined) sheet.append(el('p', 'plate-blurb', blurb));
   }
   const foot = el('footer', 'plate-foot');
   foot.append(el('p', 'plate-note', NOTES[why]));
