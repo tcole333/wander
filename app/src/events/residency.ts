@@ -135,8 +135,11 @@ export class EventIndex {
     }
   }
 
-  /** Merge score-ordered pages; no per-row objects or corpus-sized scratch Set while scanning. */
-  forEach(visit: (page: EventPage, i: number) => void): void {
+  /**
+   * Merge score-ordered pages; no per-row objects or corpus-sized scratch Set while scanning.
+   * A visit that returns true stops the walk, as in Array.prototype.some.
+   */
+  forEach(visit: (page: EventPage, i: number) => boolean | void): void {
     const pages = [...this.pages.values()];
     const cursors = new Uint32Array(pages.length);
     let previous = -1;
@@ -153,7 +156,7 @@ export class EventIndex {
       if (best < 0) return;
       const i = cursors[best]!;
       cursors[best] = i + 1;
-      if (row !== previous) visit(pages[best]!, i);
+      if (row !== previous && visit(pages[best]!, i) === true) return;
       previous = row;
     }
   }
