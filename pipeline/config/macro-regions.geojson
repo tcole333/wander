@@ -1,0 +1,13 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","properties":{"name":"North America"},"geometry":{"type":"Polygon","coordinates":[[[-180,15],[-30,15],[-30,90],[-180,90],[-180,15]]]}},
+    {"type":"Feature","properties":{"name":"South America"},"geometry":{"type":"Polygon","coordinates":[[[-180,-90],[-30,-90],[-30,15],[-180,15],[-180,-90]]]}},
+    {"type":"Feature","properties":{"name":"Europe"},"geometry":{"type":"Polygon","coordinates":[[[-30,35],[60,35],[60,90],[-30,90],[-30,35]]]}},
+    {"type":"Feature","properties":{"name":"Africa"},"geometry":{"type":"Polygon","coordinates":[[[-30,-90],[60,-90],[60,35],[-30,35],[-30,-90]]]}},
+    {"type":"Feature","properties":{"name":"North Asia"},"geometry":{"type":"Polygon","coordinates":[[[60,35],[180,35],[180,90],[60,90],[60,35]]]}},
+    {"type":"Feature","properties":{"name":"South Asia"},"geometry":{"type":"Polygon","coordinates":[[[60,-10],[100,-10],[100,35],[60,35],[60,-10]]]}},
+    {"type":"Feature","properties":{"name":"East and Southeast Asia"},"geometry":{"type":"Polygon","coordinates":[[[100,-10],[180,-10],[180,35],[100,35],[100,-10]]]}},
+    {"type":"Feature","properties":{"name":"Oceania"},"geometry":{"type":"Polygon","coordinates":[[[60,-90],[180,-90],[180,-10],[60,-10],[60,-90]]]}}
+  ]
+}

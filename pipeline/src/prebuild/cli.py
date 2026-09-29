@@ -8,6 +8,7 @@ from pathlib import Path
 from prebuild import (
     borders,
     coverage,
+    event_files,
     events,
     excerpts,
     fetch,
@@ -34,6 +35,7 @@ STAGES: dict[str, Runner] = {
     "surface": surface.run,
     "borders": borders.run,
     "events": events.run,
+    "event-files": event_files.run,
     "modera": modera.run,
     "fx": fx.run,
     "media": media.run,

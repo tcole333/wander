@@ -16,7 +16,7 @@ from prebuild.paths import config_dir
 CONFIG_DIR = config_dir()
 EVENT_CLASSES = CONFIG_DIR / "event-classes.yaml"
 EVENT_CURATED = CONFIG_DIR / "events-curated.yaml"
-CURATED_KEYS = frozenset({"boosts", "dates", "contested"})
+CURATED_KEYS = frozenset({"boosts", "dates", "contested", "places"})
 ISO_DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 SCALERANKS = range(13)  # NE river scalerank runs 0-12
 _QID = re.compile(r"Q[1-9][0-9]*")
@@ -210,6 +210,34 @@ def load_contested_events(path: Path = EVENT_CURATED) -> frozenset[str]:
         _text(fields["why"], f"contested {qid} why")
         contested.add(qid)
     return frozenset(contested)
+
+
+def load_event_places(path: Path = EVENT_CURATED) -> dict[str, dict[str, tuple[float, float]]]:
+    """Unlocated parents: a sourced P17 centroid, then a last-resort override (`at`)."""
+    places = {}
+    for row in _curated(path, "places"):
+        fields = _mapping(row, f"{path.name} place")
+        if set(fields) - {"qid", "why", "countryCentroid", "at"}:
+            raise ConfigError(f"{path.name}: unknown parent place field")
+        qid = _qid(fields.get("qid"), "parent place")
+        _text(fields.get("why"), f"place {qid} why")
+        if qid in places:
+            raise ConfigError(f"{path.name} places {qid} twice")
+        positions = {}
+        for key in ("countryCentroid", "at"):
+            if key not in fields:
+                continue
+            point = _list(fields[key], f"place {qid} {key}")
+            if len(point) != 2:
+                raise ConfigError(f"place {qid} {key} needs longitude and latitude")
+            lon, lat = (_number(x, f"place {qid}") for x in point)
+            if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+                raise ConfigError(f"place {qid} is outside Earth")
+            positions[key] = (lon, lat)
+        if not positions:
+            raise ConfigError(f"place {qid} needs countryCentroid or at")
+        places[qid] = positions
+    return places
 
 
 def _curated(path: Path, key: str) -> list[Any]:

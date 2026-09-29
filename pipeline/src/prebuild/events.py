@@ -22,7 +22,8 @@ Wikipedia edition. Per event it takes:
 - its part-of parents (P361) as Wikidata gives them, whether or not they are in the index.
 
 The table is UTF-8 TSV with a header line, gzip level 9 with mtime 0, in score order, then by qid;
-the first `MAX_ROWS` events are kept. Columns: qid, label, enwiki, class, date, precision, t0, t1,
+all accepted events are kept (event-files pages larger corpora). Columns: qid, label, enwiki,
+class, date, precision, t0, t1,
 lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in
 astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
 precision: 9 year, 10 month, 11 day. Milestone 1 publishes none of it: the `.wev` files (3.4) come
@@ -57,7 +58,6 @@ from prebuild.wikidata import META, SOURCE_PREFIX, TABLE
 
 STAGE = "events"
 KEY = "ev/events.tsv.gz"
-MAX_ROWS = 100_000  # streaming.md 3.4's bound for one events file
 YEAR, MONTH, DAY = 9, 10, 11  # Wikidata's precisions
 DATE_ORDER = ("P585", "P580", "P582")  # point in time, start time, end time
 COLUMNS = (
@@ -238,8 +238,10 @@ def index(
     classes: Sequence[EventClass],
     boosts: Mapping[str, float],
     dates: Mapping[str, str] | None = None,
+    *,
+    keep_unlocated: bool = False,
 ) -> list[Event]:
-    """The cleaned, scored events, in score order, then by qid, at most `MAX_ROWS`. A curated
+    """The cleaned, scored events, in score order, then by qid. A curated
     date (`dates`, an ISO day by qid) stands in for Wikidata's, in the span as well as the date."""
     by_qid = {c.qid: c for c in classes}
     grouped: dict[str, list[Statement]] = {}
@@ -253,8 +255,11 @@ def index(
         coord = next((s.coord for s in group if s.coord), None)
         place = next((s.place for s in group if s.place), None)
         lon_lat = coord or place
-        if not label or not editions or lon_lat is None:
+        if not label or not editions or (lon_lat is None and not keep_unlocated):
             continue
+        # The event-files stage places exported parents from their children. The legacy table
+        # and Meanwhile still require a source location; NaNs never reach that table.
+        lon_lat = lon_lat or (math.nan, math.nan)
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
         curated = _day(f"{dates[qid]}T") if dates and qid in dates else None
@@ -283,7 +288,7 @@ def index(
             )
         )
     events.sort(key=lambda e: (-e.score, _number(e.qid)))
-    return events[:MAX_ROWS]
+    return events
 
 
 def encode(events: Iterable[Event]) -> bytes:
