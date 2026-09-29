@@ -18,13 +18,16 @@ export interface TestEvent {
   label?: string;
   ext?: number[];
   flags?: number;
+  /** Its class's index in the page's classes. */
+  cls?: number;
+  prec?: number;
 }
-export function pageOf(events: TestEvent[]): EventPage {
+export function pageOf(events: TestEvent[], classes: string[] = ['battle']): EventPage {
   const rows = [...events].sort((a, b) => a.row - b.row);
   return parsePage({
     v: 1,
     rows: rows.length,
-    classes: ['battle'],
+    classes,
     row: rows.map((r) => r.row),
     qid: rows.map((r) => r.qid ?? r.row + 1),
     lon: rows.map((r) => Math.round((r.lon ?? 0) * 1e5)),
@@ -33,8 +36,8 @@ export function pageOf(events: TestEvent[]): EventPage {
     t1: rows.map((r) => r.t1 ?? 10),
     score: rows.map((r) => r.score ?? 1000 - r.row),
     parent: rows.map((r) => r.parent ?? -1),
-    prec: rows.map(() => 11),
-    cls: rows.map(() => 0),
+    prec: rows.map((r) => r.prec ?? 11),
+    cls: rows.map((r) => r.cls ?? 0),
     flags: rows.map((r) => r.flags ?? 0),
     unc: rows.map(() => 0),
     label: rows.map((r) => r.label ?? `Event ${r.row}`),
