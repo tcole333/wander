@@ -48,6 +48,7 @@ import {
   BASE,
   deg,
   engravedUnit,
+  engraveHistoryTier,
   engraveScale,
   engraveTier,
   f,
@@ -203,7 +204,7 @@ export class CraftRuler {
     this.#walk = source instanceof ExploreTime ? null : source;
     this.#story = story ?? null;
     const beats = story?.beats ?? [];
-    this.#years = this.#explore?.bounds ?? storyYears(beats);
+    this.#years = this.#explore?.extent ?? storyYears(beats);
     const first = beats[this.#walk?.state().beat ?? 0] ?? beats[0];
     this.#span = this.#to = this.#explore?.span ?? (first ? beatSpan(first) : { start: 0, end: 1 });
     this.#from = { span: this.#span, share: 0.5 };
@@ -366,16 +367,16 @@ export class CraftRuler {
       this.#plate.tabIndex = 0;
       this.#plate.setAttribute('role', 'slider');
       this.#plate.setAttribute('aria-label', 'World date');
-      this.#plate.setAttribute('aria-valuemin', String(this.#years.start));
-      this.#plate.setAttribute('aria-valuemax', String(this.#years.end));
+      this.#plate.setAttribute('aria-valuemin', String(this.#explore.bounds.start));
+      this.#plate.setAttribute('aria-valuemax', String(this.#explore.bounds.end));
       this.#plate.addEventListener('keydown', (event) => {
         const explore = this.#explore!;
         const day = explore.clock.state().day;
         const step = Math.max(1, Math.round((this.#span.end - this.#span.start) / 100));
         if (event.key === 'ArrowLeft') explore.scrub(day - step);
         else if (event.key === 'ArrowRight') explore.scrub(day + step);
-        else if (event.key === 'Home') explore.seek(this.#years.start);
-        else if (event.key === 'End') explore.seek(this.#years.end);
+        else if (event.key === 'Home') explore.seek(explore.bounds.start);
+        else if (event.key === 'End') explore.seek(explore.bounds.end);
         else return;
         event.preventDefault();
         event.stopPropagation();
@@ -630,7 +631,7 @@ export class CraftRuler {
   #dayOnTier(angle: number): number {
     const { start, end } = this.#years;
     const t = Math.min(1, Math.max(0, (angle / (this.#arc.reach * TIER_REACH) + 1) / 2));
-    return Math.min(end - (this.#explore ? 0 : 1), start + t * (end - start));
+    return Math.min(end - 1, start + t * (end - start));
   }
 
   #angleAt(clientX: number, clientY: number): number {
@@ -706,7 +707,7 @@ export class CraftRuler {
       layer.setAttribute('height', String(HEIGHT));
       layer.setAttribute('viewBox', `0 0 ${width} ${HEIGHT}`);
     }
-    this.#body.innerHTML = bodySvg(arc, this.#years);
+    this.#body.innerHTML = bodySvg(arc, this.#years, this.#explore !== null);
     this.#finish.innerHTML = finishSvg(arc);
     this.#hit.setAttribute(
       'd',
@@ -1112,7 +1113,7 @@ ${brassFilter('rc-lit-plate', { bevel: 2, relief: 3, texture: '0.01 0.6', amount
  * under them, with the engraving that never changes: the band's border rules, the rail's beaded
  * edges, and the story tier's years in gilt.
  */
-function bodySvg(arc: Arc, years: Span): string {
+function bodySvg(arc: Arc, years: Span, exploring: boolean): string {
   const [a0, a1] = [-arc.end, arc.end];
   const knobY = HEIGHT - KNOB_FOOT;
   const sockets = [KNOB_SIDE, arc.width - KNOB_SIDE]
@@ -1122,7 +1123,7 @@ function bodySvg(arc: Arc, years: Span): string {
     .map((dr) => along(arc, -arc.reach - 0.008, arc.reach + 0.008, dr))
     .join('');
   const beads = along(arc, a0, a1, RAIL_TOP - 3.5);
-  const tier = engraveTier(arc, years);
+  const tier = exploring ? engraveHistoryTier(arc, years) : engraveTier(arc, years);
   const tierReach = arc.reach * TIER_REACH;
   const tierRule = along(arc, -tierReach, tierReach, TIER_RULE);
   const tierYears = tier.labels

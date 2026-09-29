@@ -14,8 +14,8 @@ describe('the free ruler', () => {
     const { clock, explore } = setup();
     expect(civilFromDay(HISTORY.start)).toEqual({ year: -9999, month: 1, day: 1 });
     expect(civilFromDay(HISTORY.end)).toEqual({ year: 2000, month: 12, day: 31 });
-    expect(explore.span).toEqual(HISTORY);
-    expect(clock.state()).toEqual({ day: 0, spanDays: HISTORY.end - HISTORY.start });
+    expect(explore.span).toEqual({ start: HISTORY.start, end: HISTORY.end + 1 });
+    expect(clock.state()).toEqual({ day: 0, spanDays: HISTORY.end - HISTORY.start + 1 });
   });
 
   it('zooms about the pointer date and publishes the same width as the view', () => {
@@ -28,17 +28,17 @@ describe('the free ruler', () => {
       expect(after.start + share * (after.end - after.start)).toBeCloseTo(pivot, 8);
       expect(clock.state().spanDays).toBeCloseTo(after.end - after.start, 8);
       expect(clock.state().day).toBeGreaterThanOrEqual(after.start);
-      expect(clock.state().day).toBeLessThanOrEqual(after.end);
+      expect(clock.state().day).toBeLessThan(after.end);
     }
   });
 
   it('keeps a visible date on zoom, otherwise brings it to the nearest whole day in view', () => {
     const { clock, explore } = setup();
-    const share = (0 - HISTORY.start) / (HISTORY.end - HISTORY.start);
+    const share = (0 - explore.span.start) / (explore.span.end - explore.span.start);
     explore.zoom(0.5, share);
     expect(clock.state().day).toBe(0);
     explore.zoom(0.1, 0.1);
-    expect(clock.state().day).toBe(Math.floor(explore.span.end));
+    expect(clock.state().day).toBe(Math.ceil(explore.span.end) - 1);
   });
 
   it.each([HISTORY.start, HISTORY.end])(
@@ -52,13 +52,13 @@ describe('the free ruler', () => {
         explore.zoom(0.5, earlier ? 0 : 1);
         expect(clock.state().day).toBe(end);
         expect(explore.span.start).toBeGreaterThanOrEqual(HISTORY.start);
-        expect(explore.span.end).toBeLessThanOrEqual(HISTORY.end);
+        expect(explore.span.end).toBeLessThanOrEqual(HISTORY.end + 1);
       }
       expect(clock.state().spanDays).toBe(MIN_EXPLORE_DAYS);
       explore.seek(earlier ? HISTORY.end : HISTORY.start);
       expect(clock.state().day).toBe(earlier ? HISTORY.end : HISTORY.start);
       explore.zoom(1e12, 0.5);
-      expect(explore.span).toEqual(HISTORY);
+      expect(explore.span).toEqual(explore.extent);
     },
   );
 

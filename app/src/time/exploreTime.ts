@@ -14,6 +14,8 @@ export const MIN_EXPLORE_DAYS = 4;
 export class ExploreTime {
   readonly clock: WorldClock;
   readonly bounds: Span;
+  /** Half-open drawing extent: the last selectable day owns a full cell too. */
+  readonly extent: Span;
   #span: Span;
   readonly #viewportListeners = new Set<() => void>();
 
@@ -27,7 +29,8 @@ export class ExploreTime {
     }
     this.clock = clock;
     this.bounds = Object.freeze({ ...bounds });
-    this.#span = this.bounds;
+    this.extent = Object.freeze({ start: bounds.start, end: bounds.end + 1 });
+    this.#span = this.extent;
     this.#publish(day);
   }
 
@@ -69,7 +72,7 @@ export class ExploreTime {
   zoom(factor: number, share: number): void {
     if (!Number.isFinite(factor) || factor <= 0 || !Number.isFinite(share)) return;
     share = clamp(share, 0, 1);
-    const full = this.bounds.end - this.bounds.start;
+    const full = this.extent.end - this.extent.start;
     const old = this.#span.end - this.#span.start;
     const width = clamp(old * factor, Math.min(MIN_EXPLORE_DAYS, full), full);
     const pivot = this.#span.start + share * old;
@@ -78,14 +81,14 @@ export class ExploreTime {
     const day = clamp(
       this.clock.state().day,
       Math.ceil(this.#span.start),
-      Math.floor(this.#span.end),
+      Math.ceil(this.#span.end) - 1,
     );
     this.#publish(day);
   }
 
   #keep(span: Span): Span {
     const width = span.end - span.start;
-    const start = clamp(span.start, this.bounds.start, this.bounds.end - width);
+    const start = clamp(span.start, this.extent.start, this.extent.end - width);
     return Object.freeze({ start, end: start + width });
   }
 
