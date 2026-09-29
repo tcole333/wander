@@ -56,6 +56,7 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     assert overview["flags"][waterloo] & 16
     assert overview["parent"][waterloo] == overview["row"][rows[18643473]]
     assert overview["score"][waterloo] == 550
+    assert len(record["files"]) == 1  # all rows fit in the overview; no empty all.wev
     assert overview["score"] == sorted(overview["score"], reverse=True)
     assert all(0 <= s <= 1000 for s in overview["score"])
     assert any(e[0] == overview["row"][rows[18643473]] for e in overview["ext"])
@@ -160,6 +161,7 @@ def test_paging_overlaps_and_long_rows_without_overview_duplicates(
     assert docs["overview.wev"]["t0"][0] < -(2**31)
     assert docs["p18.wev"]["qid"] == docs["p19.wev"]["qid"] == [2]
     assert docs["long.wev"]["qid"] == [3]
+    assert set(docs) == {"overview.wev", "p18.wev", "p19.wev", "long.wev"}
     assert sum(d["qid"].count(1) for d in docs.values()) == 1
 
 

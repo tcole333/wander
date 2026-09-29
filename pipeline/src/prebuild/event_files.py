@@ -354,6 +354,8 @@ def build(
                     pages[f"p{i:02}"].append(r)
     stored, records = {}, []
     for name, page in pages.items():
+        if not page and name != "overview":
+            continue
         doc = document(page, [c.name for c in load_event_classes()] if name == "overview" else None)
         payload = json.dumps(
             doc, ensure_ascii=False, separators=(",", ":"), allow_nan=False
