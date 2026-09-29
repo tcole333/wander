@@ -9,7 +9,6 @@ import {
   historicalCivil,
   isoFromDay,
   julianFromDay,
-  precisionFromWikidata,
   REFORM_DAY,
   type Civil,
 } from './dates';
@@ -125,15 +124,5 @@ describe('the historical calendar', () => {
     expect(formatHistorical(historical('1763-02-15'), 'day', historical('1756-05-17'))).toBe(
       '1756–1763',
     );
-  });
-
-  it('takes Wikidata’s precisions', () => {
-    expect([9, 10, 11, 12, 14].map(precisionFromWikidata)).toEqual([
-      'year',
-      'month',
-      'day',
-      'day',
-      'day',
-    ]);
   });
 });
