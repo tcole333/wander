@@ -144,10 +144,24 @@ describe('?opening=', () => {
     expect(openingRequested({ hostname: '127.0.0.1', search: '?explore&opening=Q48314' })).toBe(
       'Q48314',
     );
-    expect(openingRequested({ hostname: 'localhost', search: '?opening=waterloo' })).toBeNull();
     expect(openingRequested({ hostname: 'localhost', search: '?explore' })).toBeNull();
     expect(
       openingRequested({ hostname: 'wander.traviscole.xyz', search: '?opening=Q48314' }),
     ).toBeNull();
+  });
+
+  it('passes a malformed pin on as given, so the pick throws on it', () => {
+    for (const typed of ['waterloo', 'q48314', 'Q048314', '']) {
+      const pinned = openingRequested({ hostname: 'localhost', search: `?opening=${typed}` });
+      expect(() => pickOpening(openings, { pinned, storage: memoryStorage })).toThrow(
+        `no opening '${typed}'`,
+      );
+    }
+  });
+
+  it('reads a pin without the spaces around it', () => {
+    expect(openingRequested({ hostname: 'localhost', search: '?opening=%20Q48314%20' })).toBe(
+      'Q48314',
+    );
   });
 });
