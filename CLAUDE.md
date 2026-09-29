@@ -4,6 +4,8 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 
 - `docs/PRD.md`: what we're building and why
 - `docs/design/streaming.md`: how assets are built, stored, delivered, and streamed
+- `docs/design/globe-language.md`: what the globe shows through time and how: pace layers, their
+  channels and materials, and the principles every visible layer, mark and story follows
 - `docs/reference/`: the visual target and the three.js prototype that proved the look
 
 ## Status
