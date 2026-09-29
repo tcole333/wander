@@ -1,14 +1,15 @@
 // The lobby's opening, turn, dive and return (streaming.md 5.7). The plaques, glows, mark and
-// knob stay mounted for the whole visit. A fresh director starts each dive; the return uses the
-// same flight path and easing as the walk, then releases that director and its UI at the landing.
+// knob stay mounted for the whole visit. A fresh mode (walk/mode.ts), a story's director, starts
+// each dive; the return uses the same flight path and easing as the walk, then releases that mode
+// and its UI at the landing.
 import type { Object3D, PerspectiveCamera } from 'three';
 import type { MuseumScene } from '../contract';
-import type { Walk } from '../story/contract';
 import type { LonLat, Story } from '../story/story';
 import type { WalkChrome } from '../story/ui/chrome';
 import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
 import { wrap180 } from '../view/viewState';
+import type { Choice, Mode } from '../walk/mode';
 import { Glows } from './glows';
 import { OPENING_S, openingPose, SKIP_S, TURN_DEG_S } from './opening';
 import { Plaques } from './plaques';
@@ -31,13 +32,13 @@ export interface LobbyParts {
   chrome: WalkChrome;
   /** The dev shell starts on a beat; it still has a lobby to return to. */
   initial?: 'lobby' | 'story';
-  /** Starts a fresh walk inside the press that chose its plaque. */
-  enter: (story: Story) => Walk;
-  /** Stops the story clock and inputs and fades its sound to the room. */
+  /** Starts a fresh mode inside the press that chose its plaque. */
+  enter: (choice: Choice) => Mode;
+  /** Stops the mode's clock and inputs and fades its sound to the room. */
   leave: () => void;
-  /** Releases the departing walk and restores the lobby's layers. */
+  /** Releases the departing mode and restores the lobby's layers. */
   finish: () => void;
-  fail: (error: unknown, story: Story) => void;
+  fail: (error: unknown, choice: Choice) => void;
 }
 
 export interface Lobby {
@@ -49,24 +50,24 @@ export interface Lobby {
   /** WANDER and Escape return even from a break-out or an unfinished dive. */
   back(): void;
   update(dtS: number, camera: PerspectiveCamera): void;
-  /** The plaques' lens shift; null while the story has the view. */
+  /** The plaques' lens shift; null while the mode has the view. */
   lensShift(): number | null;
   dispose(): void;
 }
 
 export function createLobby(parts: LobbyParts): Lobby {
   const { host, museum, control, chrome } = parts;
-  const startsOnBeat = parts.initial === 'story';
+  const startsGone = parts.initial === 'story';
   const rest = { ...control.goal, viewKm: control.maxKm };
   let home = { ...rest };
-  let phase: LobbyPhase = startsOnBeat ? 'gone' : 'waiting';
-  let progress = startsOnBeat ? 1 : 0;
+  let phase: LobbyPhase = startsGone ? 'gone' : 'waiting';
+  let progress = startsGone ? 1 : 0;
   let rate = 1 / OPENING_S;
   let lastInput = -Infinity;
   let turn = 0;
   let glow = 0;
   let elapsed = 0;
-  let shown = startsOnBeat;
+  let shown = startsGone;
   let firstFrame = true;
   let arriving = 0;
   let rulerFrames = 0;
@@ -75,17 +76,17 @@ export function createLobby(parts: LobbyParts): Lobby {
 
   const glows = new Glows(parts.places);
   museum.globeMount.add(glows.points);
-  const plaques = new Plaques(parts.stories, (story) => choose(story));
+  const plaques = new Plaques(parts.stories, (choice) => choose(choice));
   host.append(plaques.element);
   let reach = plaques.reach();
-  chrome.lobby(!startsOnBeat);
-  if (startsOnBeat) {
+  chrome.lobby(!startsGone);
+  if (startsGone) {
     plaques.leave();
   }
 
   let open = () => {};
   const opened = new Promise<void>((resolve) => (open = resolve));
-  if (startsOnBeat) open();
+  if (startsGone) open();
 
   const become = (next: LobbyPhase) => {
     phase = next;
@@ -114,7 +115,7 @@ export function createLobby(parts: LobbyParts): Lobby {
     museum.params.outerSwing = at.outer;
     return at;
   };
-  if (!startsOnBeat) control.go({ ...rest, lon: wrap180(rest.lon + pose().spin) }, true);
+  if (!startsGone) control.go({ ...rest, lon: wrap180(rest.lon + pose().spin) }, true);
 
   const clearTransition = () => {
     stopDive?.();
@@ -124,7 +125,7 @@ export function createLobby(parts: LobbyParts): Lobby {
     host.classList.remove('lobby-dive', 'lobby-veiled', 'lobby-ruler-down', 'lobby-return');
   };
 
-  const choose = (story: Story) => {
+  const choose = (choice: Choice) => {
     if (phase !== 'opening' && phase !== 'idle') return;
     home = { ...control.current };
     skip();
@@ -135,18 +136,17 @@ export function createLobby(parts: LobbyParts): Lobby {
     chrome.focus();
     plaques.leave();
     host.classList.add('lobby-dive', 'lobby-veiled', 'lobby-ruler-down');
-    let walk: Walk;
+    let mode: Mode;
     try {
-      walk = parts.enter(story);
+      mode = parts.enter(choice);
     } catch (error) {
-      parts.fail(error, story);
+      parts.fail(error, choice);
       return;
     }
     // Mount below the page for a frame before the ruler rises. No queued frame or timeout can
     // change a later trip's classes if the visitor returns before this dive has landed.
     rulerFrames = 2;
-    stopDive = walk.subscribe((state) => {
-      if (state.flight !== null) return;
+    stopDive = mode.landed(() => {
       stopDive?.();
       stopDive = null;
       become('gone');
@@ -196,7 +196,7 @@ export function createLobby(parts: LobbyParts): Lobby {
     update(dtS, camera) {
       if (firstFrame) {
         firstFrame = false;
-        if (startsOnBeat) chrome.show();
+        if (startsGone) chrome.show();
       }
       elapsed += dtS;
       if (rulerFrames > 0 && --rulerFrames === 0) host.classList.remove('lobby-ruler-down');

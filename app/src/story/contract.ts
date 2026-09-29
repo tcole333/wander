@@ -1,8 +1,9 @@
 // The Tambora walk's modules (issue #4, checkpoint 2): the director, the story UI and the story
 // effects are built separately and joined by the walk's boot (walk/boot.ts). Story time is a day
 // number (dates.ts); the story itself comes from stories/tambora/story.md (story.ts).
-import type { Object3D, PerspectiveCamera } from 'three';
-import type { Params, SurfaceLook, ViewportCss } from '../contract';
+import type { Object3D } from 'three';
+import type { Params, SurfaceLook } from '../contract';
+import type { FrameContext } from '../scene/frameContext';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { WorldClock } from '../time/worldClock';
@@ -175,9 +176,8 @@ export interface WalkEffects {
   params: Params;
   update(
     state: WalkState,
-    camera: PerspectiveCamera,
-    globe: Object3D,
-    viewport: ViewportCss,
+    /** This frame's camera, lamp and globe frame, placed by the boot. */
+    frame: FrameContext,
     elapsedS: number,
     /** The lobby's dive/return fade, without changing the effect's tuned strength. */
     strength?: number,

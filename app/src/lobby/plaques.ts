@@ -14,6 +14,7 @@ import { creditsLink } from '../page/creditsPanel';
 import type { Story } from '../story/story';
 import { el, svg } from '../story/ui/dom';
 import { yearsLabel } from '../story/ui/format';
+import type { Choice } from '../walk/mode';
 
 export class Plaques {
   /** The lobby's layer, over the canvas as the walk's UI is. */
@@ -22,15 +23,15 @@ export class Plaques {
   readonly #credits = creditsLink('lobby-credits');
   #chosen: HTMLButtonElement | undefined;
 
-  /** The plaques in story order; choosing one passes its story to `onChoose`. */
-  constructor(stories: readonly Story[], onChoose: (story: Story) => void) {
+  /** The plaques in story order; choosing one passes its choice to `onChoose`. */
+  constructor(stories: readonly Story[], onChoose: (choice: Choice) => void) {
     this.#column.setAttribute('aria-label', 'Stories');
     const rule = el('div', 'lobby-rule');
     this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule);
     for (const story of stories) {
       const button = plaque(story, () => {
         this.#chosen = button;
-        onChoose(story);
+        onChoose({ kind: 'story', story });
       });
       this.#chosen ??= button;
       this.#column.append(button);

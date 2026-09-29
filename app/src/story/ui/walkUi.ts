@@ -26,7 +26,7 @@ export const createWalkUi: CreateWalkUi = (
   dataHost,
   reachChanged,
 ): WalkUi => {
-  const layer = el('div', 'wu wu-story');
+  const layer = el('div', 'wu wu-story wu-mode');
   const card = new BeatCard(dataHost, reachChanged);
   const ruler = new CraftRuler(walk, walk.state().story);
   const panel = new MeanwhilePanel(walk, meanwhile);

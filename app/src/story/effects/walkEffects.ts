@@ -9,20 +9,12 @@
 // the illustrative veil gives way to it. Every mesh is made up front, the story's pulses too, so
 // their shaders compile before the walk starts (walk/boot.ts). `group` hangs from the museum's
 // globeMount (the globe frame, radius 1).
-import {
-  Group,
-  MathUtils,
-  Matrix4,
-  Vector3,
-  type Object3D,
-  type PerspectiveCamera,
-  type SpotLight,
-} from 'three';
+import { Group, Vector3 } from 'three';
 import { ashUniformsOf } from '../../look/ashHook';
 import { borderUniformsOf } from '../../look/bordersHook';
 import { climateUniformsOf } from '../../look/climateHook';
 import { routeUniformsOf } from '../../look/routeHook';
-import type { Params, ViewportCss } from '../../contract';
+import type { Params } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
 import { dayFromIso } from '../dates';
 import type { LonLat, Story, StoryBeat } from '../story';
@@ -40,8 +32,6 @@ import { Veil } from './veil';
 /** The illustrative ashfall's extent: west, east, south, north (story: 105-125E, 12-2S). */
 const ASH_BOX: [number, number, number, number] = [105, 125, -12, -2];
 const ASH_ANCHOR = dayFromIso('1815-04-10');
-/** Where the museum's key lamp stands, if the scene has no spot light to ask. */
-const LAMP_FALLBACK = new Vector3(-4.2, 5.2, 9.5);
 
 /** The beat's layers the look can switch, and the look param each one sets. */
 const LAYERS: [layer: string, param: string, off: number | boolean][] = [
@@ -127,11 +117,7 @@ export const createWalkEffects: CreateWalkEffects = (
   for (const pulse of allPulses) group.add(pulse.mesh);
   let shown = -1;
   let pulses: PulseDisc[] = [];
-  let lamp: SpotLight | null | undefined;
 
-  const camera = new Vector3();
-  const lampLocal = new Vector3();
-  const toView = new Matrix4();
   const place = new Vector3();
 
   const show = (beat: StoryBeat) => {
@@ -148,14 +134,7 @@ export const createWalkEffects: CreateWalkEffects = (
     group,
     params,
 
-    update(
-      state: WalkState,
-      cam: PerspectiveCamera,
-      globe: Object3D,
-      viewport: ViewportCss,
-      t,
-      fade = 1,
-    ) {
+    update(state: WalkState, frame, t, fade = 1) {
       const beat = state.story.beats[state.beat];
       if (!beat) return;
       if (state.beat !== shown) {
@@ -169,16 +148,8 @@ export const createWalkEffects: CreateWalkEffects = (
       lastS = t;
 
       // The camera and the lamp in the globe frame, and the globe frame as the camera sees it.
-      globe.updateWorldMatrix(true, false);
-      globe.worldToLocal(cam.getWorldPosition(camera));
-      if (lamp === undefined) lamp = findSpotLight(globe);
-      const lampWorld = lamp ? lamp.getWorldPosition(new Vector3()) : LAMP_FALLBACK.clone();
-      lampLocal.copy(globe.worldToLocal(lampWorld)).normalize();
-      toView.multiplyMatrices(cam.matrixWorldInverse, globe.matrixWorld);
-      const tanHalf = Math.tan(MathUtils.degToRad(cam.fov) / 2);
-      /** Globe units per CSS pixel, and the view's width in km, at a globe-frame point. */
-      const pxWorld = (p: Vector3) => (2 * camera.distanceTo(p) * tanHalf) / viewport.height;
-      const viewKmAt = (p: Vector3) => pxWorld(p) * viewport.width * EARTH_KM;
+      const { cam, globe, viewport, camera, lampLocal, toView, tanHalf } = frame;
+      if (!cam || !globe) return;
 
       // Ember.
       const where = emberPlace(story, beat);
@@ -188,7 +159,7 @@ export const createWalkEffects: CreateWalkEffects = (
         const toCamera = camera.distanceTo(place);
         const facing = (camera.dot(place) / place.length() - place.length()) / toCamera;
         const heat = emberHeat(erupting, day) * strength('ember');
-        ember.update(place, heat, pxWorld(place), facing, t);
+        ember.update(place, heat, frame.pxWorld(place), facing, t);
       } else {
         ember.update(place, 0, 1, 0, t);
       }
@@ -200,7 +171,7 @@ export const createWalkEffects: CreateWalkEffects = (
           state: plumeState(plume.effect, day),
           heat: emberHeat(plume.effect, day),
           kLand,
-          viewKm: viewKmAt(place),
+          viewKm: frame.viewKmAt(place),
           camera,
           lamp: lampLocal,
           toView,
@@ -212,7 +183,13 @@ export const createWalkEffects: CreateWalkEffects = (
       // Pulses.
       for (const pulse of pulses) {
         dirOf(pulse.effect.at, place);
-        pulse.update(pulseState(pulse.effect, day), kLand, viewKmAt(place), strength('pulses'), t);
+        pulse.update(
+          pulseState(pulse.effect, day),
+          kLand,
+          frame.viewKmAt(place),
+          strength('pulses'),
+          t,
+        );
       }
 
       // Ash, through the look.
@@ -310,9 +287,3 @@ export const createWalkEffects: CreateWalkEffects = (
     },
   };
 };
-
-function findSpotLight(from: Object3D): SpotLight | null {
-  let root = from;
-  while (root.parent) root = root.parent;
-  return (root.getObjectByProperty('isSpotLight', true) as SpotLight | undefined) ?? null;
-}
