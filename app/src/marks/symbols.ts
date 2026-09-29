@@ -477,7 +477,37 @@ const famine = [
   ]),
 ].join('');
 
-/** A memorial stone: an assassination, a massacre, a genocide or a pogrom. */
+/** A dagger striking down: an assassination. */
+const assassination = (() => {
+  // Drawn point north across the cell's centre, then turned to strike down to the left, so its
+  // one slanting blade parts from a battle's two crossed ones.
+  const blade: Point[] = [
+    [32, 4],
+    [38, 15],
+    [39, 36],
+    [25, 36],
+    [26, 15],
+  ];
+  const guard: Point[] = [
+    [18, 35.5],
+    [46, 35.5],
+    [46, 43.5],
+    [18, 43.5],
+  ];
+  const grip: Point[] = [
+    [28, 43],
+    [36, 43],
+    [36, 51],
+    [28, 51],
+  ];
+  const [pommel] = rotate([[32, 55]], 225);
+  return [blade, guard, grip]
+    .map((part) => polygon(rotate(part, 225)))
+    .concat(circle(pommel!, 5))
+    .join('');
+})();
+
+/** A memorial stone: a massacre, a genocide or a pogrom. */
 const atrocity = polygon([
   ...arc([32, 24], 13, 180, 360),
   [45, 49],
@@ -560,6 +590,7 @@ export const EVENT_GLYPHS = {
   treaty,
   uprising,
   famine,
+  assassination,
   atrocity,
   wreck,
   expedition,
