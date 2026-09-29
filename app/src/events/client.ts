@@ -32,7 +32,10 @@ const sameView = (a: EventView, b: EventView) =>
   a.camera.every((v, i) => v === b.camera[i]) &&
   a.matrix.every((v, i) => v === b.matrix[i]);
 
-/** Two Meanwhile questions ask the same thing; `exclude` compares as a set. */
+/** Q numbers ascending and without repeats, so two sets compare element by element. */
+const qidSet = (qids: readonly number[]) => [...new Set(qids)].sort((a, b) => a - b);
+
+/** Two Meanwhile questions, their `exclude` lists made by qidSet, ask the same thing. */
 function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolean {
   if (
     !b ||
@@ -45,8 +48,7 @@ function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolea
     a.exclude.length !== b.exclude.length
   )
     return false;
-  const excluded = new Set(b.exclude);
-  return a.exclude.every((qid) => excluded.has(qid));
+  return a.exclude.every((qid, i) => qid === b.exclude[i]);
 }
 
 /**
@@ -137,16 +139,18 @@ export class EventClient {
    * Stand a Meanwhile question, as often as every frame. drain() sends it once the same question
    * has stood for meanwhileRest (the clock and view at rest), one in flight at a time; a page
    * loading afterwards asks it again. Replies older than the last delivered are dropped.
+   * `exclude` is a set: its order and repeats do not change the question.
    */
   meanwhile(query: MeanwhileQuery): void {
-    if (this.#disposed || (this.#meanwhile && sameMeanwhile(query, this.#meanwhile.query))) return;
+    if (this.#disposed) return;
+    const asked = { ...query, exclude: qidSet(query.exclude) };
+    if (this.#meanwhile && sameMeanwhile(asked, this.#meanwhile.query)) return;
     const { view } = query;
     this.#meanwhile = {
       query: {
-        ...query,
+        ...asked,
         center: [...query.center],
         view: { ...view, matrix: [...view.matrix], camera: [...view.camera] },
-        exclude: [...query.exclude],
       },
     };
     this.onready?.();
