@@ -78,6 +78,16 @@ class EventClass:
     weight: float
 
 
+@dataclass(frozen=True)
+class CuratedDays:
+    """The days a better source gives an event (events-curated.yaml), ISO days as history writes
+    them, Julian before 15 October 1582: the day it dates the event to, the day the event ends, or
+    both."""
+
+    date: str | None = None
+    end: str | None = None
+
+
 def load_fixture(path: Path = CONFIG_DIR / "fixture.yaml") -> FixtureConfig:
     doc = _mapping(_load(path), path.name, {"excerpts", "groups"})
     excerpts = {
@@ -193,18 +203,25 @@ def load_event_boosts(path: Path = EVENT_CURATED, *, legacy: bool = False) -> di
     return boosts
 
 
-def load_event_dates(path: Path = EVENT_CURATED) -> dict[str, str]:
-    """Curated dates by event qid (events-curated.yaml): the ISO day a better source gives."""
-    dates: dict[str, str] = {}
+def load_event_dates(path: Path = EVENT_CURATED) -> dict[str, CuratedDays]:
+    """Curated days by event qid (events-curated.yaml): the date, the end or both a better source
+    gives."""
+    dates: dict[str, CuratedDays] = {}
     for row in _curated(path, "dates"):
-        fields = _mapping(row, f"{path.name} date", {"qid", "date", "why"})
+        fields = _mapping(row, f"{path.name} date")
+        days = fields.keys() & {"date", "end"}
+        if fields.keys() - {"qid", "date", "end", "why"} or not {"qid", "why"} <= fields.keys():
+            raise ConfigError(f"{path.name} date needs qid, why and a date, an end or both")
         qid = _qid(fields["qid"], f"{path.name} date")
         _text(fields["why"], f"date {qid} why")
-        if not isinstance(fields["date"], str) or not ISO_DAY.fullmatch(fields["date"]):
-            raise ConfigError(f"{path.name}: {qid}'s date is a quoted ISO day, 'YYYY-MM-DD'")
+        if not days:
+            raise ConfigError(f"{path.name}: {qid} needs a date, an end or both")
+        for key in days:
+            if not isinstance(fields[key], str) or not ISO_DAY.fullmatch(fields[key]):
+                raise ConfigError(f"{path.name}: {qid}'s {key} is a quoted ISO day, 'YYYY-MM-DD'")
         if qid in dates:
             raise ConfigError(f"{path.name} dates {qid} twice")
-        dates[qid] = fields["date"]
+        dates[qid] = CuratedDays(fields.get("date"), fields.get("end"))
     return dates
 
 
