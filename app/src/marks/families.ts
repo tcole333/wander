@@ -73,8 +73,11 @@ const worn = (color: string, fill = 1) => ({ color, roughness: 0.35, metalness: 
 
 /** A cast token standing on the relief, which it hides, casting a contact shadow. */
 const token = { flatten: 0.9, shadow: true, rim: 0 };
-/** Cut or laid into the bronze: the relief carries on under it. */
-const cut = { flatten: 0, shadow: false, rim: 0 };
+/**
+ * Cut or laid into the bronze: the relief carries on round it, smoothed under the glyph so the
+ * glyph's own edges catch the lamp, even at world view.
+ */
+const cut = { flatten: 0.6, shadow: false, rim: 0 };
 /** A flush inlay, polished smooth. */
 const inlay = { flatten: 0.85, shadow: false, rim: 0 };
 /** Champlevé: enamel in cells cut into the bronze, with walls of polished metal round them. */
@@ -91,7 +94,7 @@ export const FAMILIES: Record<Pace, Family> = {
     backend: 'inlay',
     variants: [
       { disc: disc(1, 0.13, '#76552a', 0.5), glyph: glyph(0.6, 0.04, worn('#ecd08c')), ...token },
-      { disc: null, glyph: glyph(0.96, 0.05, worn('#d0a860', 0.55)), ...cut },
+      { disc: null, glyph: glyph(0.96, 0.1, worn('#e2bc72', 0.8)), ...cut },
       {
         disc: disc(1, 0.015, '#43604e', 0.65, 0.3),
         glyph: glyph(0.66, 0, worn('#e8c880')),
@@ -104,7 +107,7 @@ export const FAMILIES: Record<Pace, Family> = {
     backend: 'inlay',
     variants: [
       { disc: disc(1, 0.12, '#5a4029', 0.5, 0.85), glyph: glyph(0.6, -0.07, NIELLO), ...token },
-      { disc: null, glyph: glyph(0.96, -0.03, NIELLO), ...cut },
+      { disc: null, glyph: glyph(0.96, -0.07, NIELLO), ...cut },
       { disc: disc(1, 0.015, '#a06a36', 0.35), glyph: glyph(0.66, -0.02, NIELLO), ...inlay },
       enamel('#6a2620'),
     ],
@@ -118,10 +121,9 @@ export const FAMILIES: Record<Pace, Family> = {
         ...token,
       },
       {
-        disc: { ...GILT, radius: 0.9, height: 0.04 },
+        disc: { ...GILT, radius: 0.9, height: 0.07 },
         glyph: glyph(0.6, -0.04, worn('#7a5a24', 0.85)),
         ...cut,
-        flatten: 0.6,
       },
       {
         disc: { ...GILT, radius: 1, height: 0.015, color: '#e6c062' },
