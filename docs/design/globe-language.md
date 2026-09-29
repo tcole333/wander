@@ -43,8 +43,8 @@ premiere to fashion and art.
    story wants drama. Order and direction stay true: what is bigger stays bigger, what rose still
    rises, what came first still comes first. The convention either shows, as an engraved scale
    does, or is disclosed, as the Credits disclose each illustrative reconstruction. Words stay
-   exact and sourced. Estimates look like estimates: softer engraving where data is estimated,
-   crisp where it is measured.
+   exact and sourced. Estimates look like estimates: drawn softer where data is estimated, crisper
+   where it is measured.
 2. **Possibilism.** The land offers and people choose. Nature always shows where a resource lies;
    the ground is polished only while people work it, and its goods are drawn moving only while they
    move. The timing comes from people, their technology and wants, so the globe never suggests that
@@ -52,8 +52,8 @@ premiere to fashion and art.
 3. **Eras by region.** A region's age is the sum of its pace layers, so places live in different
    eras on the same date (Ernst Bloch's simultaneity of the non-simultaneous): trains run in
    Andalusia while caravans still cross Morocco. No single age is painted over the world.
-4. **One channel per pace layer.** Each pace layer and its events keep their own channel and
-   material (below), so six kinds of history share the globe without competing. Bertin's visual
+4. **One channel per pace layer.** Each pace layer and its events keep their own visual channel
+   (below), so six kinds of history share the globe without competing. Bertin's visual
    variables divide the channels, and each difference stays the smallest that still reads (Tufte's
    smallest effective difference).
 5. **Reveal by scale and attention.** Complexity is always there and shows at its scale, moving from
@@ -73,12 +73,13 @@ premiere to fashion and art.
 
 ## Channels and materials
 
-The slower a pace layer, the deeper in the object it lives: nature is the casting itself, and the
-fastest things are paper beside the globe. Everything on the globe is made of the globe (engraved,
-inlaid, patinated or cast) and lit by its one lamp, and the ember is the only light it gives off.
-The assignment below is the first one, to be judged on renders.
+Marks on the globe belong to the same crafted object and the same lamp, never pasted over it, and
+the active event stays the focal point. Which materials and effects achieve that is for renders to
+decide. The first idea to try is that material follows pace: the slower a pace layer, the deeper in
+the object it lives, from nature as the casting itself to the fastest things on paper beside the
+globe. The table gives each pace layer its channel and a first material to try.
 
-| Pace layer | Pace | What it shows | Its events | Channel and material |
+| Pace layer | Pace | What it shows | Its events | Channel and first material |
 |---|---|---|---|---|
 | Nature | millennia | relief, seas, rivers, climate, biomes, where resources lie, disease and hazard belts | eruptions, earthquakes, floods, cold years, epidemics | the casting itself: the bronze's shape, grain and patina, with climate as its verdigris and copper wash |
 | Culture | centuries | faiths, languages, the names people give places | new faiths and scripts, schisms, foundings | cut deep and filled: faith pictograms incised and filled with black niello, and place names engraved as they were at that date |
@@ -118,14 +119,14 @@ names.
   mosque-cathedral or Seville's minaret bell tower, can take a combined mark.
 - Every faith people held has a mark, folk and indigenous traditions without buildings included, so
   no belief reads as absence. The marks are respectful, generic symbols.
-- Each place is engraved under the name it had at that date: Qurtuba, Tenochtitlan, Edo.
+- Each place bears the name it had at that date: Qurtuba, Tenochtitlan, Edo.
 - Country-level estimates of faiths begin around 1900 (the Religious Characteristics of States
   dataset, for example); earlier marks come from historical atlases and sources and are drawn
   softer where estimated.
 
 ## Where people lived
 
-The first new layer in time: settled land as polish and cities as small cast seals, from population
+The first new layer in time: settled land as polish and cities as small seals, from population
 estimates such as HYDE's (Klein Goldewijk and others), which run from 10,000 BCE to the present. It
 comes first because it balances the event index. The index knows what was written down, while
 population estimates cover everyone, so inhabited land never reads as empty (Michel-Rolph
@@ -143,10 +144,12 @@ history or not, so the pattern a visitor sees is real rather than chosen.
 
 ## Links between events
 
-- **Draw what moved, write what it meant.** A line or glow on the globe is a claim that cannot say
-  historians disagree, so the globe draws physical, documented movement (tankers, pipelines,
-  armies, people, a sulfate veil) and leaves interpretation to the text, hedged in the story's
-  voice where historians split. A camera flight between beats also claims a connection.
+- **Draw what moved, write what it meant.** A line drawn between places is a claim that cannot say
+  historians disagree, so where the globe links events it draws physical, documented movement
+  (tankers, pipelines, armies, people, a sulfate veil) and leaves interpretation to the text,
+  hedged in the story's voice where historians split. A camera flight between beats also claims a
+  connection. Illustrative effects, such as Tambora's plume, are another matter: they dramatize and
+  are credited as such (principle 1).
 - **A causal claim cites a source that makes it**, beyond sources for the two events it joins, and
   the fact-check pass checks each one.
 - **The event index widens pace layer by pace layer.** Today it holds mostly governance's and
@@ -163,7 +166,7 @@ GPU and released on the CPU, because CPU memory is at its line (`streaming.md` 6
 ## Later
 
 - **The news horizon**: news spreading from an event along the era's routes at the era's speed, with
-  Meanwhile's entries beyond it engraved faintly, since Meanwhile shows a simultaneity no one at the
+  Meanwhile's entries beyond it drawn faintly, since Meanwhile shows a simultaneity no one at the
   time lived. It needs more design once the core layers exist.
 - **An explorer's commonplace book** that keeps the connections a visitor has found, like the ship's
   log in *Outer Wilds*, waits for a way to keep a visitor's progress.
