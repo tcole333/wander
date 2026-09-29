@@ -61,6 +61,8 @@ export const tunables = {
   meanwhileMinKm: 2000,
   // How long Explore's clock and view stand still before Meanwhile asks the event worker again.
   meanwhileRest: 250,
+  // Explore never opens on any of the visitor's last this many openings.
+  openingsRecent: 5,
   placeLabelsMax: 30,
   // clamp(S / speed, min, max), with S the van Wijk-Nuij path length and rho its curvature.
   flightDuration: { speed: 1.2, min: 1600, max: 4500, rho: 1.42 },

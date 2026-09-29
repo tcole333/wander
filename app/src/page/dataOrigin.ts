@@ -12,7 +12,7 @@ export const DATA_SERVERS: Readonly<Record<string, string>> = {
 };
 
 /** The hostnames a page on this machine is served from. */
-const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
+export const LOOPBACK: ReadonlySet<string> = new Set(['127.0.0.1', 'localhost', '[::1]']);
 
 /** The memory account is opt-in even on loopback; public URLs can never switch it on. */
 export function memoryRequested(page: { hostname: string; search: string }): boolean {

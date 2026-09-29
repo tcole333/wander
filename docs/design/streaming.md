@@ -2152,6 +2152,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `markRoughMin`, `markSpecMax` | 0.35, 0.9 | a mark's roughness floor; the cap on its lit luminance, under the bloom's 1.05 | eye |
 | `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries (a sparse month's down to 500 km apart, reaching up to 90 days) | Meanwhile rule: the `meanwhile` stage's constants, and Explore's worker query (5.3) | eye |
 | `meanwhileRest` | 250 ms | clock and view at rest before Explore's Meanwhile asks the event worker | eye |
+| `openingsRecent` | 5 | the visitor's last openings Explore does not open on again | eye |
 | `placeLabelsMax` | 30 | place labels shown | eye |
 | `flightDuration` | `clamp(S/1.2, 1.6, 4.5)` s, ρ = 1.42 | flight length | eye |
 | `voyageDistanceWeight` | 0.9 distance, 0.1 days | a voyage's progress through sailing and stays | eye |

@@ -35,7 +35,8 @@ export function glowsFromLock(lock: StoryLock): LonLat[] {
   return (lock.glows ?? []).map((glow) => lonLat(glow.at, glow.label));
 }
 
-function fromLock(event: LockedEvent): MeanwhileEntry {
+/** A locked event as Meanwhile's panel lists it; Explore's openings read theirs the same way. */
+export function fromLock(event: LockedEvent): MeanwhileEntry {
   const day = dayFromIso(event.date);
   return {
     label: event.line ?? event.label,
