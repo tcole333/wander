@@ -1,6 +1,8 @@
 import { Group, PerspectiveCamera } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { WalkAudio } from '../audio/walkAudio';
 import type { MuseumScene } from '../contract';
+import { startExplore, WATERLOO } from '../explore/explore';
 import { createWalk, type DirectedWalk } from '../story/director';
 import { stories, storyNamed } from '../story/catalog';
 import type { Story } from '../story/story';
@@ -9,12 +11,14 @@ import { ViewControl } from '../view/viewControl';
 import type { Choice, Mode } from '../walk/mode';
 import { createLobby } from './lobby';
 
-// The real director, camera control, flights and lobby clock, with only the DOM and GPU replaced.
+// The real director, Explore, camera control, flights and lobby clock, with only the DOM and GPU
+// replaced.
 const drawn = vi.hoisted(() => ({
   choose: (id = 'tambora'): void => {
     throw new Error(`No plaque for ${id}`);
   },
   ids: [] as string[],
+  explore: false,
   plaques: 0,
   glows: 0,
   shown: false,
@@ -24,10 +28,15 @@ const drawn = vi.hoisted(() => ({
 vi.mock('./plaques', () => ({
   Plaques: class {
     element = {};
-    constructor(stories: readonly Story[], choose: (choice: Choice) => void) {
+    constructor(stories: readonly Story[], choose: (choice: Choice) => void, explore = false) {
       drawn.ids = stories.map((story) => story.id);
+      drawn.explore = explore;
       drawn.choose = (id = 'tambora') =>
-        choose({ kind: 'story', story: stories.find((story) => story.id === id)! });
+        choose(
+          id === 'explore'
+            ? { kind: 'explore' }
+            : { kind: 'story', story: stories.find((story) => story.id === id)! },
+        );
       drawn.plaques++;
     }
     reach = () => 386;
@@ -53,6 +62,16 @@ vi.mock('./glows', async () => {
   };
 });
 
+vi.mock('../story/ui/rulerCraft', () => ({
+  CraftRuler: class {
+    element = {};
+    dispose() {}
+  },
+}));
+vi.mock('../story/ui/dom', () => ({
+  el: () => ({ append() {}, remove() {}, inert: false }),
+}));
+
 const story = storyNamed('tambora')!.story;
 const DT = 1 / 60;
 
@@ -74,12 +93,13 @@ function storyMode(walk: DirectedWalk): Mode {
   };
 }
 
-function setup(initial: 'lobby' | 'story' = 'lobby') {
+function setup(initial: 'lobby' | 'story' | 'explore' = 'lobby') {
   Object.assign(drawn, { plaques: 0, glows: 0, shown: false, disposed: 0, glow: 0 });
   let now = 0;
   vi.spyOn(performance, 'now').mockImplementation(() => now);
   const events = new EventTarget();
   vi.stubGlobal('addEventListener', events.addEventListener.bind(events));
+  vi.stubGlobal('window', {});
   const classes = new Set<string>();
   const host = {
     dataset: {} as Record<string, string>,
@@ -93,8 +113,13 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
   control.maxKm = 30000;
   let walk: DirectedWalk | null = null;
   let mode: Mode | null = null;
+  const sound = { leave: vi.fn() } as unknown as WalkAudio;
   const begin = (choice: Choice, arrive: 'fly' | 'jump' = 'fly'): Mode => {
-    if (choice.kind !== 'story') throw new Error(`No ${choice.kind} here`);
+    if (choice.kind === 'explore') {
+      walk = null;
+      mode = startExplore({ root: host as unknown as HTMLElement, control, sound, arrive });
+      return mode;
+    }
     walk = createWalk(choice.story, control, { arrive, ready: () => true });
     mode = storyMode(walk);
     return mode;
@@ -113,6 +138,7 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
     museum: { params: {}, globeMount: new Group() } as unknown as MuseumScene,
     control,
     chrome: chrome as unknown as WalkChrome,
+    explore: true,
     initial,
     enter: (choice) => begin(choice),
     leave,
@@ -122,6 +148,7 @@ function setup(initial: 'lobby' | 'story' = 'lobby') {
     },
   });
   if (initial === 'story') begin({ kind: 'story', story }, 'jump');
+  if (initial === 'explore') begin({ kind: 'explore' }, 'jump');
   const camera = new PerspectiveCamera();
   const tick = () => {
     now += DT * 1000;
@@ -263,5 +290,41 @@ describe('the lobby round trip', () => {
     s.walk().breakOut();
     expect(s.host.dataset.lobby).toBeUndefined();
     expect(s.classes.size).toBe(0);
+  });
+
+  it('shows Explore’s plaque, dives onto the opening and returns to the same home', () => {
+    const s = setup();
+    s.until(() => s.host.dataset.lobby === 'idle');
+    expect(drawn.explore).toBe(true);
+    for (let trip = 0; trip < 3; trip++) {
+      const home = { ...s.control.current };
+      drawn.choose('explore');
+      expect(s.host.dataset.lobby).toBe('diving');
+      expect(s.control.arrowKeys).toBe(true);
+      s.until(() => s.host.dataset.lobby === 'gone');
+      expect(s.control.current.lon).toBeCloseTo(WATERLOO.at[0], 6);
+      expect(window.__worldTime?.state().day).toBe(WATERLOO.day);
+      s.key();
+      expect(s.host.dataset.lobby).toBe('returning');
+      s.until(() => s.host.dataset.lobby === 'idle');
+      expect(s.control.current).toEqual(home);
+      expect(s.classes.size).toBe(0);
+      expect(window.__worldTime).toBeUndefined();
+    }
+    expect(s.leave).toHaveBeenCalledTimes(3);
+    expect(s.finish).toHaveBeenCalledTimes(3);
+    s.lobby.dispose();
+  });
+
+  it('gives the dev page’s Explore a lobby to return to', () => {
+    const s = setup('explore');
+    expect(s.host.dataset.lobby).toBe('gone');
+    s.tick();
+    expect(window.__worldTime).toBeDefined();
+    s.lobby.back();
+    s.until(() => s.host.dataset.lobby === 'idle');
+    expect(s.control.current.viewKm).toBe(30000);
+    expect(window.__worldTime).toBeUndefined();
+    s.lobby.dispose();
   });
 });

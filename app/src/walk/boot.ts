@@ -7,7 +7,8 @@
 // follows the walk from the visitor's first gesture (audio/walkAudio.ts). It starts paused on the
 // first beat; Left and Right step beats, Space plays or pauses, WANDER and Escape return to the
 // lobby, and M mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing
-// the story's plaque starts the walk and flies into its first beat. The story is the page's one
+// the story's plaque starts the walk and flies into its first beat. Where Explore is enabled, its
+// plaque dives into free time instead (explore/explore.ts). A story or Explore is the page's one
 // active mode (walk/mode.ts), which the frame loop calls at fixed points.
 //
 // The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
@@ -53,6 +54,7 @@ import { CameraRig, maxViewKm, type Relief } from '../view/cameraRig';
 import { ViewControl } from '../view/viewControl';
 import { drawnView, reliefForWidth, type ViewState } from '../view/viewState';
 import type { Choice, Mode } from './mode';
+import { startExplore } from '../explore/explore';
 
 /** The whole instrument: the widest view the zoom allows, where the view starts by default. */
 export const WORLD: ViewState = { lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 };
@@ -83,22 +85,30 @@ export interface StorySource {
 }
 
 export interface BootOptions {
-  /** The story to start on directly; without one, starts in the lobby if stories are supplied. */
-  story?: StorySource | null;
+  /**
+   * The story, or Explore, to start on directly; without one, starts in the lobby if stories are
+   * supplied or Explore is enabled.
+   */
+  story?: StorySource | 'explore' | null;
   /** The lobby's stories, in plaque order. Defaults to the direct story alone. */
   stories?: readonly StorySource[];
   /**
-   * Starts in the lobby, where choosing a plaque starts its story. Needs at least one story.
+   * Enables Explore: the lobby shows its plaque last, where the release has its events.
+   */
+  explore?: boolean;
+  /**
+   * Starts in the lobby, where choosing a plaque starts its story. Needs at least one story, or
+   * Explore.
    */
   lobby?: boolean;
   /** Where the view starts. */
   view?: ViewState;
   /**
-   * Called when the story does not start from the lobby's plaque, after the boot has resolved, so
-   * the page can bring its plate. Without it, the error goes on uncaught.
+   * Called when the chosen story or Explore does not start from the lobby's plaque, after the boot
+   * has resolved, so the page can bring its plate. Without it, the error goes on uncaught.
    */
   onFail?: (error: unknown, choice: Choice) => void;
-  /** The chosen story, including during its dive; null once the lobby has returned. */
+  /** The chosen story or Explore, including during its dive; null once the lobby has returned. */
   onStory?: (choice: Choice | null) => void;
   /**
    * Called with each part's params (the look's, the scene's, the streamer's, the camera's, and a
@@ -173,7 +183,8 @@ async function assemble(
   release: Release,
   {
     story: start = null,
-    stories: sources = start ? [start] : [],
+    stories: sources = start && start !== 'explore' ? [start] : [],
+    explore = false,
     lobby: inLobby = start === null,
     view = WORLD,
     tune = () => {},
@@ -211,13 +222,15 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
-  // The lobby stands where there are stories to choose.
-  const hasLobby = sources.length > 0;
-  // Every story's faces load with the roots: switching plaques never fetches another font.
+  // The lobby stands where there are stories to choose, or Explore.
+  const hasLobby = sources.length > 0 || explore;
+  // Every story's faces load with the roots, and Explore's label faces with them where it is
+  // enabled: switching plaques never fetches another font.
   const faces = hasLobby
     ? loadFaces(
         sources.map(({ story, meanwhile }) => JSON.stringify({ story, meanwhile })).join('') +
           creditsPage,
+        { labels: explore },
       )
     : null;
   const streamer = await createSurfaceStreamer(renderer, release);
@@ -285,10 +298,10 @@ async function assemble(
   // the shifted projection. In the lobby, the story plaques: by half their reach, which centers
   // the instrument in the room beside them. In a story, the card: by LENS_SHIFT of its reach, so
   // each beat's place lands right of it and what lies around it clears both the card and
-  // Meanwhile. The lens eases from one to the other during the dive. A folded card reaches
-  // nothing, so folding it eases the lens back to the center; the card has the lens measured
-  // again as it folds or unfolds, as a resize does, and where reduced motion is asked for, the
-  // globe takes its new place at once.
+  // Meanwhile. Explore stands nothing there. The lens eases from one to the other during the dive.
+  // A folded card reaches nothing, so folding it eases the lens back to the center; the card has
+  // the lens measured again as it folds or unfolds, as a resize does, and where reduced motion is
+  // asked for, the globe takes its new place at once.
   let cardShift = 0;
   let shift = 0;
   let drawnShift = NaN;
@@ -323,25 +336,32 @@ async function assemble(
   const begin = (choice: Choice, arrive: 'jump' | 'fly'): Mode => {
     onStory(choice);
     if (!sound) throw new Error('the page has no lobby to begin from');
-    if (choice.kind !== 'story') throw new Error(`the page cannot begin '${choice.kind}'`);
-    const entry = prepared.get(choice.story.id);
-    if (!entry) throw new Error(`the page has no story '${choice.story.id}' to begin`);
-    const started = startStory(
-      entry.source,
-      entry.effects,
-      release,
-      control,
-      host,
-      sound,
-      arrive,
-      idle,
-      cardReachChanged,
-    );
-    mode = started.mode;
-    story = started.parts;
+    let next: Mode;
+    if (choice.kind === 'explore') {
+      if (!explore) throw new Error('the page has no Explore to begin');
+      next = startExplore({ root: host, control, sound, arrive });
+      story = null;
+    } else {
+      const entry = prepared.get(choice.story.id);
+      if (!entry) throw new Error(`the page has no story '${choice.story.id}' to begin`);
+      const started = startStory(
+        entry.source,
+        entry.effects,
+        release,
+        control,
+        host,
+        sound,
+        arrive,
+        idle,
+        cardReachChanged,
+      );
+      next = started.mode;
+      story = started.parts;
+    }
+    mode = next;
     sound.start(arrive === 'fly');
     measureLens();
-    return started.mode;
+    return next;
   };
   const finish = () => {
     mode?.end();
@@ -359,7 +379,9 @@ async function assemble(
           museum,
           control,
           chrome,
-          initial: inLobby ? 'lobby' : 'story',
+          // The plaque needs the event index, which the release names once event-files has run.
+          explore: explore && release.events !== undefined,
+          initial: inLobby ? 'lobby' : start === 'explore' ? 'explore' : 'story',
           enter: (choice) => begin(choice, 'fly'),
           leave: () => mode?.leave(),
           finish,
@@ -370,7 +392,7 @@ async function assemble(
   // The sea names are lettered before the first frame, in faces loaded now, so none pops in.
   await look.ready;
   for (const { effects } of prepared.values()) effects.group.visible = false;
-  if (prepared.size) {
+  if (prepared.size || lobby) {
     // Compile with one story's lights present, as the walk draws them. Compiling every story
     // together would warm a different light count and leave the first dive to compile again.
     for (const { effects } of prepared.values()) {
@@ -383,10 +405,16 @@ async function assemble(
       );
       effects.hide();
     }
+    if (!prepared.size && lobby) await precompile(renderer, museum, camera, [lobby.glows]);
     // precompile drew every program once, and three checks each link at its first use.
     if (unlinked > 0) throw new DrawError(`${unlinked} shaders did not link`);
   }
-  if (!inLobby && start) begin({ kind: 'story', story: start.story }, 'jump');
+  if (!inLobby && start) {
+    begin(
+      start === 'explore' ? { kind: 'explore' } : { kind: 'story', story: start.story },
+      'jump',
+    );
+  }
   let effectsLoading = false;
   await faces;
 
