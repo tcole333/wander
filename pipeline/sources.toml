@@ -475,7 +475,7 @@ sha256 = "1bdb7d75acc983d436241c4e5b47c8fca5434f4df3f37b28f04e1d4364c17ec8"
 # thousands), both wide by country, Full data (the same, long: countrycode, country, region, year,
 # gdppc, pop), Regional data (the regions' and World's GDP per capita and population) and Maddison
 # original sources (Maddison's own 2010 list). World's aggregates start in 1820 (1820, 1850, 1870,
-# 1900, then every 10 or 20 years to 2010 and every year to 2022); before 1820 no year has both
+# 1900, then every 10 or 20 years to 2010, then every year from 2015 to 2022); before 1820 no year has both
 # GDP per capita and population for more than 17 countries (12 in year 1, 6 in 1000, 17 in 1700),
 # so the release holds no world output before 1820. Its citation policy: all original
 # papers must be cited when the data are shown in any graphical form, or when a subset of fewer
