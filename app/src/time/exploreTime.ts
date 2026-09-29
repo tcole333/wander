@@ -10,6 +10,16 @@ export const HISTORY: Span = Object.freeze({
   end: dayFromCivil({ year: 2000, month: 12, day: 31 }),
 });
 export const MIN_EXPLORE_DAYS = 4;
+/** Mean Gregorian days in a year. */
+const YEAR_DAYS = 365.2425;
+
+export interface ExploreTimeOptions {
+  /**
+   * How many years the ruler first shows, centered on the opening day and kept within the bounds;
+   * all of them when absent.
+   */
+  openYears?: number;
+}
 
 export class ExploreTime {
   readonly clock: WorldClock;
@@ -19,7 +29,12 @@ export class ExploreTime {
   #span: Span;
   readonly #viewportListeners = new Set<() => void>();
 
-  constructor(clock = worldClock, bounds = HISTORY, day = 0) {
+  constructor(
+    clock = worldClock,
+    bounds = HISTORY,
+    day = 0,
+    { openYears }: ExploreTimeOptions = {},
+  ) {
     if (
       !Number.isFinite(bounds.start) ||
       !Number.isFinite(bounds.end) ||
@@ -31,6 +46,11 @@ export class ExploreTime {
     this.bounds = Object.freeze({ ...bounds });
     this.extent = Object.freeze({ start: bounds.start, end: bounds.end + 1 });
     this.#span = this.extent;
+    if (openYears !== undefined && Number.isFinite(openYears) && Number.isFinite(day)) {
+      const full = this.extent.end - this.extent.start;
+      const width = clamp(openYears * YEAR_DAYS, Math.min(MIN_EXPLORE_DAYS, full), full);
+      this.#span = this.#keep({ start: day - width / 2, end: day + width / 2 });
+    }
     this.#publish(day);
   }
 

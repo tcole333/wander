@@ -40,6 +40,10 @@ export const tunables = {
   // Score margin, on the 0-1000 event score scale, a newcomer needs to displace an incumbent.
   hysteresisScore: 20,
   eventFade: 300,
+  // The share of the ruler's visible width that counts as now, centered on the playhead.
+  nowShare: 0.1,
+  // Years the ruler shows as Explore opens, centered on the opening event.
+  exploreOpenYears: 200,
   meanwhileCount: 3,
   meanwhileMinKm: 2000,
   placeLabelsMax: 30,
