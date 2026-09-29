@@ -372,6 +372,8 @@ export class MarkLayer {
   #extent = [0, 0, 0];
   #placed: (PlacedMark & { dir: Vector3; r: number })[] = [];
   #clearance: ClearanceField | null = null;
+  /** The unknown glyphs and paces already reported: each is logged once, and its marks not drawn. */
+  readonly #reported = new Set<string>();
   #variant = -1;
   readonly #view = { toClip: new Matrix4(), kLand: 0, width: 1, height: 1 };
 
@@ -408,7 +410,9 @@ export class MarkLayer {
         source,
         specs.map((spec) => {
           const { east } = tangents(spec.at);
-          return { spec, dir: dirOf(spec.at), east, family: PACES.indexOf(spec.pace) };
+          const family = PACES.indexOf(spec.pace);
+          if (family < 0) this.#report('pace', spec.pace);
+          return { spec, dir: dirOf(spec.at), east, family };
         }),
       );
     }
@@ -475,6 +479,7 @@ export class MarkLayer {
     for (const entry of this.#entries) {
       const { spec, dir } = entry;
       const cell = cells.get(spec.glyph);
+      if (!cell) this.#report('glyph', spec.glyph);
       if (!cell || entry.family < 0) continue;
       const limb = limbFade(dir, view.camera);
       const alpha = Math.min(1, Math.max(0, spec.opacity)) * this.strength * limb;
@@ -642,6 +647,13 @@ export class MarkLayer {
     this.#entries = [];
     this.#release();
     this.#blank.dispose();
+  }
+
+  #report(what: 'glyph' | 'pace', name: string): void {
+    const key = `${what} ${name}`;
+    if (this.#reported.has(key)) return;
+    this.#reported.add(key);
+    console.warn(`Marks with the ${what} '${name}' are not drawn: the look has no such ${what}.`);
   }
 
   #allocate(): Table {

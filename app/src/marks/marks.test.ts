@@ -2,7 +2,7 @@
 // it, binned into screen tiles focal first, packed into the table only when something changed, and
 // picked where they are drawn.
 import { Matrix3, Matrix4, PerspectiveCamera, Vector3 } from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
@@ -262,6 +262,24 @@ describe('MarkLayer', () => {
     expect(marks.placed().map(({ id }) => id)).toEqual(['a']);
     expect(marks.uniforms.lookMarkTable.value.image.width).toBe(512);
     expect(marks.uniforms.lookMarksOn.value).toBe(true);
+  });
+
+  it('logs a glyph or pace it does not know once, and draws none of its marks', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const marks = layer();
+    marks.set('events', [
+      mark('a', [20, 10], { glyph: 'no-such-glyph' }),
+      mark('b', [21, 10], { glyph: 'no-such-glyph' }),
+      mark('c', [22, 10], { pace: 'weather' as MarkSpec['pace'] }),
+    ]);
+    marks.place(view);
+    marks.place(view);
+    expect(marks.placed()).toEqual([]);
+    expect(warn.mock.calls.map(([message]) => String(message))).toEqual([
+      expect.stringContaining("pace 'weather'"),
+      expect.stringContaining("glyph 'no-such-glyph'"),
+    ]);
+    warn.mockRestore();
   });
 
   it('waits for its glyphs to be lettered', () => {
