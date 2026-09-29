@@ -1,8 +1,9 @@
 // Explore from the production build's lobby (dist/ under vite preview, on the fixture's data server
 // through ?data=). Without ?explore the lobby shows the stories' plaques alone; with it, Explore's
-// plaque stands last, dives into free time over its opening, where the ruler scrubs the world
-// clock, and WANDER or Escape returns to the lobby. Nothing logs an error, no request goes to
-// Wikimedia, and once the room opens nothing more is fetched from the app's own host.
+// plaque stands last, dives into free time over its opening, where the now window's events mark
+// the globe and the ruler scrubs the world clock, and WANDER or Escape returns to the lobby.
+// Nothing logs an error, no request goes to Wikimedia, and once the room opens nothing more is
+// fetched from the app's own host.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import { dayFromIso } from '../src/story/dates';
 import { fetchedSinceOpening, markOpening } from './opening';
@@ -77,6 +78,10 @@ test('dives into Explore, scrubs the clock and returns, by WANDER and by Escape'
   await phase(page, 'gone');
   await expect(page.locator('.wu-explore .rc')).toBeVisible();
   await expect(clock).toHaveAttribute('aria-valuenow', String(WATERLOO));
+  // The now window's events mark the globe, Waterloo's among them.
+  await expect
+    .poll(async () => Number(await page.locator('.wu-explore').getAttribute('data-explore-marks')))
+    .toBeGreaterThan(0);
 
   // The ruler's date plaque scrubs the world clock from the keyboard.
   await clock.focus();
