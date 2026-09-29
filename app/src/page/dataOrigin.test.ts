@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dataOverride, memoryRequested } from './dataOrigin';
+import { dataOverride, exploreRequested, memoryRequested } from './dataOrigin';
 
 describe('memoryRequested', () => {
   it('requires an explicit opt-in on an exact loopback hostname', () => {
@@ -12,6 +12,20 @@ describe('memoryRequested', () => {
     for (const hostname of ['wander.traviscole.xyz', 'localhost.example.com', '192.168.1.1']) {
       expect(memoryRequested({ hostname, search: '?memory=1' })).toBe(false);
     }
+  });
+});
+
+describe('exploreRequested', () => {
+  it('enables Explore only where a page on this machine asks for it', () => {
+    for (const hostname of ['localhost', '127.0.0.1', '[::1]']) {
+      for (const search of ['?explore', '?data=fixture&explore', '?explore=1&opening=Q48314']) {
+        expect(exploreRequested({ hostname, search })).toBe(true);
+      }
+      for (const search of ['', '?data=fixture', '?explore=0', '?explorer']) {
+        expect(exploreRequested({ hostname, search })).toBe(false);
+      }
+    }
+    expect(exploreRequested({ hostname: 'wander.traviscole.xyz', search: '?explore' })).toBe(false);
   });
 });
 
