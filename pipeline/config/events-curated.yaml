@@ -32,6 +32,13 @@ dates:
       The Battle of El Roble, on the Itata, is fought on 17 October 1813, as its article and the
       Academia de Historia Militar de Chile ('Combate de El Roble') give it; Wikidata's 1815 is
       two years late.
+  - qid: Q160077
+    end: "1453-05-29"
+    why: >-
+      Constantinople falls on 29 May 1453, ending the siege begun on 6 April, as Steven Runciman's
+      The Fall of Constantinople 1453 (Cambridge, 1965) and its article date them in the Julian
+      calendar. Wikidata converts the start to the Gregorian 15 April but exports the end
+      unconverted, as a Gregorian 29 May, which is 20 May in the Julian.
 contested:
   - qid: Q12241904
     why: >-
