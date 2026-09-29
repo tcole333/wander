@@ -39,7 +39,7 @@ def test_the_lock_gives_each_opening_as_meanwhile_does_with_its_class_in_date_or
     index = [
         event("Q48314", "1815-06-18", parents=("Q18643473",), label="Battle of Waterloo"),
         event("Q18643473", "1815-06-15", until="1815-07-08", cls="military campaign"),
-        event("Q8094772", "1883-01-01", precision=9, cls="natural disaster"),
+        event("Q8094772", "1883-01-01", until="1883-12-31", precision=9, cls="natural disaster"),
     ]
     lines = {
         "Q8094772": written("Krakatoa explodes", date="1883-08-27"),
@@ -85,6 +85,25 @@ def test_an_opening_whose_parent_is_no_opening_is_taken():
         event("Q18643473", "1815-06-15", until="1815-07-08"),
     ]
     assert [e["qid"] for e in o.openings(index, {"Q48314": written()})] == ["Q48314"]
+
+
+def test_a_written_date_within_the_index_span_centres_the_opening():
+    beagle = event("Q1564366", "1831-12-27", until="1836-10-02", cls="expedition")
+    [locked] = o.openings([beagle], {"Q1564366": written(date="1835-09-15")})
+    assert (locked["date"], locked["precision"]) == ("1835-09-15", "day")
+
+
+@pytest.mark.parametrize("date", ["1960-05-22", "1960-05"])
+def test_a_written_date_outside_the_index_span_is_refused(date):
+    valdivia = event("Q212618", "1960-05-21", cls="natural disaster")
+    with pytest.raises(o.OpeningsError, match="outside the index's 1960-05-21 to 1960-05-21"):
+        o.openings([valdivia], {"Q212618": written(date=date)})
+
+
+def test_a_written_place_is_refused():
+    lisbon = event("Q191055", "1755-11-01", cls="natural disaster")
+    with pytest.raises(o.OpeningsError, match="its mark keeps the index's place"):
+        o.openings([lisbon], {"Q191055": written(at=[-9.14, 38.71])})
 
 
 def test_an_opening_that_starts_after_2000_is_refused():
@@ -209,3 +228,15 @@ def test_the_committed_lock_holds_the_committed_list():
         assert (locked[qid]["line"], locked[qid]["source"]) == (entry["line"], entry["source"])
         assert locked[qid]["source"]["url"].startswith("https://")
     assert "Q48314" in locked
+
+
+def test_the_committed_lock_holds_the_committed_dates():
+    written_list = o.read_list(REPO_ROOT / o.FOLDER / o.LIST)
+    lock = json.loads((REPO_ROOT / o.FOLDER / o.LOCK).read_text(encoding="utf-8"))
+    locked = {e["qid"]: (e["date"], e["precision"]) for e in lock["openings"]}
+    dated = {qid: str(entry["date"]) for qid, entry in written_list.items() if "date" in entry}
+    expected = {}
+    for qid, date in dated.items():
+        first, _, precision = meanwhile.written_date(date)
+        expected[qid] = (events.iso(meanwhile.civil(first)), meanwhile.precision_name(precision))
+    assert {qid: locked[qid] for qid in dated} == expected

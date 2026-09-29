@@ -7,9 +7,12 @@ the `event-files` stage forces into the overview.
 `uv run prebuild openings` writes `{table, openings}`: the sha256 of the index it checked, and
 each opening as Meanwhile's entries give an event (`meanwhile.entry`), with its line, its source
 and its class, in date order. A written `date` (an ISO day or month, proleptic Gregorian as the
-index's) and `at` ([lon, lat]) stand in for the index's, as in Meanwhile. It stops on:
+index's) stands in for the index's, as in Meanwhile, where it falls within the index's span for
+the event, which its mark in the overview keeps. Its place is always the index's, as its mark's is.
+It stops on:
 
 - an opening the index lacks;
+- a written `date` outside the index's span for the event, or any written `at`;
 - an opening part of another (P361, as far as the index knows its parents), since two openings of
   one family open on one view;
 - an opening that starts after `LAST_YEAR`, where Explore's ruler ends;
@@ -119,6 +122,8 @@ def openings(
     missing = [qid for qid in written if qid not in by_qid]
     if missing:
         raise OpeningsError(f"{', '.join(missing)} not in the event index")
+    for qid, fields in written.items():
+        check_written(by_qid[qid], fields)
     chosen = [meanwhile.as_written(by_qid[qid], written[qid]) for qid in written]
     ancestors = meanwhile.lineage(index)
     for event in chosen:
@@ -139,6 +144,26 @@ def openings(
         {**meanwhile.entry(e, written[e.qid]), "class": e.cls}
         for e in sorted(chosen, key=lambda e: (e.date, e.qid))
     ]
+
+
+def check_written(event: meanwhile.Event, fields: Mapping[str, Any]) -> None:
+    """Stops on a written date outside the index's span for the event, or on a written place:
+    the overview's mark keeps the index's dates and place, and the lock draws the same mark until
+    the overview decodes."""
+    if "at" in fields:
+        raise OpeningsError(
+            f"{event.qid} ({event.label}) is written with an `at`, but its mark keeps the "
+            "index's place: leave it out"
+        )
+    if "date" not in fields:
+        return
+    first, last, _ = meanwhile.written_date(str(fields["date"]))
+    if not event.t0 <= first <= last <= event.t1:
+        span = f"{events.iso(meanwhile.civil(event.t0))} to {events.iso(meanwhile.civil(event.t1))}"
+        raise OpeningsError(
+            f"{event.qid} ({event.label}) is written as {fields['date']}, outside the index's "
+            f"{span}, which its mark keeps: curate the date in events-curated.yaml or leave it out"
+        )
 
 
 def check_line(event: meanwhile.Event, line: str) -> None:
