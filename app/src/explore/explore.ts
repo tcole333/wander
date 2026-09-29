@@ -2,13 +2,19 @@
 // dive opens the free clock on an event, the ruler showing exploreOpenYears around its day, and
 // flies to the world view over its place while the ruler rises; from there the visitor turns the
 // globe and scrubs through all of history. The arrow keys keep panning the view, as in the lobby.
-// Leaving stops input on the ruler and fades the sound to the room; ending releases the clock and
-// ruler, so the world clock has one owner at a time. window.__worldTime serves scripts while
-// Explore runs.
+// Where the release has its event index and the look cuts marks, the events of the now window
+// mark the globe (exploreEvents.ts), the opening focal among them; the layer's data-explore-marks
+// counts those drawn in view. Leaving stops input on the ruler, stops asking for events, eases
+// their marks out and fades the sound to the room; ending releases the clock, ruler and event
+// worker and takes the marks off, so the world clock has one owner at a time.
+// window.__worldTime and window.__exploreEvents serve scripts while Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
 import { tunables } from '../config/tunables';
+import type { EventsRelease } from '../data/release';
+import { EventClient } from '../events/client';
+import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
 import type { LonLat } from '../story/story';
 import { el } from '../story/ui/dom';
 import type { Span } from '../story/ui/format';
@@ -19,6 +25,7 @@ import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Mode } from '../walk/mode';
+import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { openings, type Opening } from './openings';
 
 /**
@@ -42,10 +49,33 @@ export interface WorldTimeHook {
   zoom(factor: number, share: number): void;
 }
 
+/** Explore's event marks, for scripts. */
+export interface ExploreEventsHook {
+  /** Makes the event with this Q number (`Q…`) focal, or none. */
+  focus(qid: string | null): void;
+  /** The focal event's Q number, or null once it has dropped. */
+  focal(): string | null;
+  /** The marks as last set. */
+  marks(): MarkSpec[];
+  /** The marks the look drew in view in the last draw. */
+  placed(): PlacedMark[];
+  /** Nothing is on its way from the event worker and no mark is fading. */
+  settled(): boolean;
+}
+
 declare global {
   interface Window {
     __worldTime?: WorldTimeHook;
+    __exploreEvents?: ExploreEventsHook;
   }
+}
+
+/** The event index and the look's marks, which Explore's events need. */
+export interface EventsSource {
+  release: EventsRelease;
+  /** The release's data host, which the index's files come from. */
+  dataHost: string;
+  marks: MarkLayer;
 }
 
 export interface ExploreParts {
@@ -56,8 +86,10 @@ export interface ExploreParts {
   /** Flown to from the lobby's view, or started where the view already stands (the dev page). */
   arrive: 'jump' | 'fly';
   clock?: WorldClock;
-  /** The day the free clock opens on and the place the dive flies to. */
-  opening?: Pick<Opening, 'day' | 'at'>;
+  /** The event the free clock opens on, the place the dive flies to and the focal event. */
+  opening?: Pick<Opening, 'qid' | 'day' | 'at' | 'precision' | 'class'>;
+  /** Where to find the events, or null for a globe without them. */
+  events?: EventsSource | null;
 }
 
 /** The world view over `at`, its latitude kept within WORLD_LAT. */
@@ -78,11 +110,13 @@ export function startExplore({
   arrive,
   clock = worldClock,
   opening = waterloo(),
+  events: source = null,
 }: ExploreParts): Mode {
   // The clock, flight and layer hold no listeners and stand nowhere on the page, so they come
-  // first, then the ruler, the one part holding listeners, and only then are the page, the view's
-  // control and the script hook touched: a dive that throws on the way leaves nothing behind,
-  // since the boot never gets a mode to end.
+  // first, then the ruler, the one part holding listeners, and the event worker, and only then
+  // are the page, the view's control, the marks and the script hooks touched: a dive that throws
+  // on the way leaves nothing behind, since the boot never gets a mode to end.
+  const focal = focalOf(opening);
   const time = new ExploreTime(clock, HISTORY, opening.day, {
     openYears: tunables.exploreOpenYears,
   });
@@ -92,8 +126,18 @@ export function startExplore({
       : null;
   const layer = el('div', 'wu wu-explore wu-mode');
   const ruler = new CraftRuler(time);
+  let client: EventClient | null;
+  try {
+    client = source ? EventClient.create(source.release, source.dataHost) : null;
+  } catch (error) {
+    ruler.dispose();
+    throw error;
+  }
+  const events =
+    source && client ? new ExploreEvents({ client, marks: source.marks, focal, arrive }) : null;
   layer.append(ruler.element);
   root.append(layer);
+  let counted = -1;
 
   const landings = new Set<() => void>();
   const land = () => {
@@ -113,6 +157,21 @@ export function startExplore({
     zoom: (factor, share) => time.zoom(factor, share),
   };
   window.__worldTime = hook;
+  const eventsHook: ExploreEventsHook | null = events && {
+    focus(qid) {
+      const number = qid === null ? null : qidNumber(qid);
+      if (Number.isNaN(number)) throw new RangeError(`no Q number '${qid}'`);
+      events.focus(number === null ? null : { qid: number });
+    },
+    focal: () => {
+      const qid = events.focal?.qid;
+      return qid === undefined ? null : markIdOf(qid);
+    },
+    marks: () => events.marks(),
+    placed: () => events.placed(),
+    settled: () => events.settled(),
+  };
+  if (eventsHook) window.__exploreEvents = eventsHook;
 
   return {
     landed(cb) {
@@ -125,22 +184,35 @@ export function startExplore({
       control.go(flight.step(dtS), true);
       if (flight.done) land();
     },
-    afterPlace() {},
-    ui() {},
+    afterPlace(frame, nowMs) {
+      events?.update(frame, clock.state(), nowMs);
+    },
+    ui() {
+      if (!events) return;
+      const count = events.placed().length;
+      if (count === counted) return;
+      counted = count;
+      layer.dataset.exploreMarks = String(count);
+    },
     audio: () => null,
     leave() {
       flight = null;
       landings.clear();
       layer.inert = true;
+      events?.leave();
       sound.leave();
     },
     end() {
       flight = null;
       landings.clear();
+      events?.dispose();
       ruler.dispose();
       layer.remove();
       if (window.__worldTime === hook) delete window.__worldTime;
+      if (eventsHook && window.__exploreEvents === eventsHook) delete window.__exploreEvents;
     },
-    inspectMemory() {},
+    inspectMemory(account) {
+      events?.inspectMemory(account);
+    },
   };
 }

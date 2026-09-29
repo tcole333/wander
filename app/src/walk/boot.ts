@@ -8,8 +8,9 @@
 // first beat; Left and Right step beats, Space plays or pauses, WANDER and Escape return to the
 // lobby, and M mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing
 // the story's plaque starts the walk and flies into its first beat. Where Explore is enabled, its
-// plaque dives into free time instead (explore/explore.ts). A story or Explore is the page's one
-// active mode (walk/mode.ts), which the frame loop calls at fixed points.
+// plaque dives into free time instead (explore/explore.ts), whose events the look cuts into the
+// globe as marks. A story or Explore is the page's one active mode (walk/mode.ts), which the frame
+// loop calls at fixed points.
 //
 // The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
 // precompile; in the lobby the opening starts on it. The climate's years load the first time the
@@ -350,7 +351,17 @@ async function assemble(
     let next: Mode;
     if (choice.kind === 'explore') {
       if (!explore) throw new Error('the page has no Explore to begin');
-      next = startExplore({ root: host, control, sound, arrive });
+      next = startExplore({
+        root: host,
+        control,
+        sound,
+        arrive,
+        // The events mark the globe where the release has their index and the look cuts marks.
+        events:
+          release.events && look.marks
+            ? { release: release.events, dataHost: release.dataHost, marks: look.marks }
+            : null,
+      });
       story = null;
     } else {
       const entry = prepared.get(choice.story.id);
