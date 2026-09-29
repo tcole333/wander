@@ -1,7 +1,8 @@
 // A glyph set turned into signed distance fields, one cell per glyph on shelves as wide as the
 // look's sea-name atlas, which the look appends below the names (seaNames.ts): the marks need no
 // sampler of their own. Each glyph is filled at SUPERSAMPLE times its cell on a 2D canvas, its
-// exact distance transform taken there and averaged down, and the canvas released.
+// exact distance transform taken there and averaged down, and the canvas released. A glyph takes
+// several ms, so the page gets a turn between glyphs.
 //
 // A cell is GLYPH_CELL texels square: the 64-unit grid at one texel a unit, and GLYPH_MARGIN
 // texels around it where the field carries on, for a contact shadow, a hollow outline and mips
@@ -36,7 +37,7 @@ export interface GlyphShelf {
 }
 
 /** Rasterizes every glyph in `set` and lays their fields out on shelves `width` texels wide. */
-export function glyphShelf(set: GlyphSet, width: number): GlyphShelf {
+export async function glyphShelf(set: GlyphSet, width: number): Promise<GlyphShelf> {
   const names = Object.keys(set);
   const perRow = Math.max(1, Math.floor(width / GLYPH_CELL));
   const rows = Math.ceil(names.length / perRow);
@@ -51,7 +52,8 @@ export function glyphShelf(set: GlyphSet, width: number): GlyphShelf {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('no 2D canvas');
   try {
-    names.forEach((name, n) => {
+    for (const [n, name] of names.entries()) {
+      if (n > 0) await yieldToPage();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, side, side);
@@ -67,11 +69,17 @@ export function glyphShelf(set: GlyphSet, width: number): GlyphShelf {
       const y = Math.floor(n / perRow) * GLYPH_CELL;
       writeCell(field, side, data, width, x, y);
       cells.set(name, { x, y, extent: extentOf(inside, side) });
-    });
+    }
   } finally {
     canvas.width = canvas.height = 0;
   }
   return { width, height, data, cells };
+}
+
+/** Lets the page draw and answer input before the next glyph. */
+function yieldToPage(): Promise<void> {
+  const { scheduler } = globalThis as { scheduler?: { yield?: () => Promise<void> } };
+  return scheduler?.yield ? scheduler.yield() : new Promise((done) => setTimeout(done, 0));
 }
 
 /** How far the inside pixels of a square fill reach from its center, in the glyph's half grids. */
