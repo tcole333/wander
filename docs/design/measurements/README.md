@@ -23,6 +23,11 @@ of the mirror's seam proof.
 milestone-1 events table built from the Wikidata export of 2026-09-28, its rows, stored and decoded
 bytes, and the time Node 22 on the M5 takes to inflate and parse it into typed columns.
 
+`e5/results/runtime-2026-09-29.json` records the 30,070-row runtime index, including recovered
+ancestors: stored gzip, inflated JSON and resident-array bytes, overview decode time, and moving
+queries at both tiers. `app/scripts/benchmarkEvents.ts` writes the machine and method with the
+measurements; these Node timings on the M5 exclude worker messaging and rendering.
+
 `e4/` holds E4 (streaming.md 8.2): `e4.py` uploaded and warmed 200 objects under `_e4/` on
 2026-09-25, as `state.json` records, and reads one cohort of 50 at each checkpoint from this Mac.
 `results/warm.json` is the warm, `results/24h.json` and `results/72h.json` the checkpoints, and
