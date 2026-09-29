@@ -1,7 +1,8 @@
 // The pace layer and glyph each class of the event index takes (pipeline/config/event-classes.yaml;
 // docs/design/globe-language.md, "Speeds and pace layers": an event belongs to the pace layer it
-// jolts). An event has one class, the heaviest it was exported under, and the overview .wev names
-// the classes its rows index (events/page.ts). Nature takes the disasters, epidemics and drought;
+// jolts). An event's mark draws its most specific class, the one of those it was exported under
+// that the export gives the fewest events (the events stage's `display`, which the .wev rows
+// index in the overview's class list, events/page.ts), whatever class weighs its score. Nature takes the disasters, epidemics and drought;
 // governance the wars, battles, sieges, treaties, uprisings, famines, assassinations and
 // atrocities, with one glyph for every atrocity; infrastructure the shipwrecks, expeditions and
 // conflagrations. A glyph belongs to one family, so every class that shares a glyph shares its

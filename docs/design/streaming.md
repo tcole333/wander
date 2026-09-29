@@ -451,7 +451,7 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   "qid":   [...],   // Wikidata Q-number as an integer
   "lon":   [...], "lat": [...],               // degrees × 1e5, integers
   "t0":    [...], "t1":  [...],               // day numbers (3.0); [t0, t1] covers the date's precision
-  "prec":  [...], "cls": [...], "score": [...],   // Wikidata precision 0-14; class index; score 0-1000
+  "prec":  [...], "cls": [...], "score": [...],   // Wikidata precision 0-14; display class index; score 0-1000
   "flags": [...],   // bit0 location inherited (P276/P131), bit1 derived parent position,
                     // bit2 multi-location, bit3 date conflict resolved by rule, bit4 curated
   "unc":   [...],   // location uncertainty radius in km (0 = point)
@@ -494,7 +494,7 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   draws the same mark until the overview decodes. `uv run prebuild openings`, named-only, reads the
   list with Meanwhile's readers and writes the committed `explore/openings.lock.json`, `{table,
   openings: [{qid, label, date, precision, at, line, source: {title, url}, class}]}`, `table`
-  being the sha256 of the `events.tsv.gz` it checked. It stops on a qid the index lacks, a written
+  being the sha256 of the `events.tsv.gz` it checked and `class` the display class its mark draws. It stops on a qid the index lacks, a written
   date outside the index's span or any written `at`, an opening part of another (P361 through the
   index's parents, since two of one family open on one view), a start after 2000, an index built
   from another export or other configs, or a line naming a day and month other than the event's
@@ -533,8 +533,14 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
 - **Events table:** the `events` stage writes the cleaned, scored table `ev/events.tsv.gz` (7.1),
   one row per event, which Meanwhile and the lobby's glows draw from. It keeps statements dated to
   the year or finer, and events with an English label, a place other than 0°, 0° (their own, else
-  their location's, flagged) and a Wikipedia edition. An event takes its heaviest class; its date
-  is its point in time, else its start, else its end, the most precise and then the earliest, or
+  their location's, flagged) and a Wikipedia edition. An event takes its heaviest class, which
+  weighs its score, and is displayed as its most specific: of the classes it was exported under,
+  the one the export gives the fewest events, since the export takes each class with its
+  subclasses and a subclass never holds more events than its class (ties go to the heavier, then
+  the first listed). So the 1815 eruption of Tambora, exported as a volcanic eruption and a natural
+  disaster, is scored as the heavier natural disaster and its mark draws an eruption; a slice of
+  the export, the fixture's, counts its own events. Its date is its point in time, else its
+  start, else its end, the most precise and then the earliest, or
   the day `events-curated.yaml` gives where a better source shows Wikidata's wrong; and its span
   `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and ends,
   widened to their precision, so a war dated at its armistice still spans its years, leaving out
@@ -543,13 +549,14 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   is `log2(1 + editions)` times the class weight plus curated `legacyBoost`, unscaled. Parents stay
   as Wikidata gives them. The table is TSV with a
   header line, in score order, keeping every accepted row, with the columns qid, label, enwiki,
-  class, date, precision, t0, t1, lon, lat, inherited, editions, score and parents; dates are ISO days in
+  class, display, date, precision, t0, t1, lon, lat, inherited, editions, score and parents; dates are ISO days in
   astronomical years, as `dates.ts` reads them. The table remains build-only.
 - **Separate runtime stage:** `event-files` follows `events` and verifies the table's export and
   config inputs before reading it and that same pinned local export. The export supplies parents
   and alternate claims that the table omits. Keeping runtime scoring and hierarchy here preserves
-  Meanwhile's table scores and lets paging grow independently. The stage now builds `.wev`;
-  details files remain future work.
+  Meanwhile's table scores and lets paging grow independently. A row's score is weighed by its
+  heaviest class and its `cls` is its display class, the one its mark draws. The stage now builds
+  `.wev`; details files remain future work.
 - **Cleaning (build):**
   - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
     go to `details/<n>.json` (built in v1, loaded once exploration shows an event's details).

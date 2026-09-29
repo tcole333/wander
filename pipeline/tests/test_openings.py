@@ -13,7 +13,9 @@ from prebuild.profiles import Profile, make_context
 SOURCE = {"title": "Battle of Waterloo (Wikipedia)", "url": "https://example.org/waterloo"}
 
 
-def event(qid, date, *, until=None, precision=11, parents=(), cls="battle", label=None):
+def event(
+    qid, date, *, until=None, precision=11, parents=(), cls="battle", display=None, label=None
+):
     day = meanwhile.iso_day(date)
     return meanwhile.Event(
         qid=qid,
@@ -28,6 +30,7 @@ def event(qid, date, *, until=None, precision=11, parents=(), cls="battle", labe
         score=1.0,
         parents=parents,
         cls=cls,
+        display=display or cls,
     )
 
 
@@ -35,11 +38,19 @@ def written(line="A line", **fields):
     return {"line": line, "source": SOURCE, **fields}
 
 
-def test_the_lock_gives_each_opening_as_meanwhile_does_with_its_class_in_date_order():
+def test_the_lock_gives_each_opening_as_meanwhile_does_with_the_class_its_mark_draws():
+    krakatoa = event(
+        "Q8094772",
+        "1883-01-01",
+        until="1883-12-31",
+        precision=9,
+        cls="natural disaster",
+        display="volcanic eruption",
+    )
     index = [
         event("Q48314", "1815-06-18", parents=("Q18643473",), label="Battle of Waterloo"),
         event("Q18643473", "1815-06-15", until="1815-07-08", cls="military campaign"),
-        event("Q8094772", "1883-01-01", until="1883-12-31", precision=9, cls="natural disaster"),
+        krakatoa,
     ]
     lines = {
         "Q8094772": written("Krakatoa explodes", date="1883-08-27"),
@@ -60,7 +71,7 @@ def test_the_lock_gives_each_opening_as_meanwhile_does_with_its_class_in_date_or
     assert {k: locked[1][k] for k in ("date", "precision", "class")} == {
         "date": "1883-08-27",
         "precision": "day",
-        "class": "natural disaster",
+        "class": "volcanic eruption",
     }
 
 
@@ -166,6 +177,7 @@ def test_the_stage_writes_the_lock_with_the_sha256_of_the_index_it_checked(tmp_p
         "label": "Battle of Waterloo",
         "enwiki": "Battle of Waterloo",
         "class": "battle",
+        "display": "battle",
         "date": "1815-06-18",
         "precision": "11",
         "t0": "1815-06-18",

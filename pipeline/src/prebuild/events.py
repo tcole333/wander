@@ -8,7 +8,14 @@ Each row of the export is one dated statement of an event, exported under one cl
 them by event and drops the events with no English label, no coordinates (or 0°, 0°), or no
 Wikipedia edition. Per event it takes:
 
-- the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`);
+- the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`),
+  which weighs its score;
+- the class it is displayed as, whose glyph its mark draws: the most specific of those it was
+  exported under, the one the export gives the fewest events. The export takes each class with its
+  subclasses, so a subclass never holds more events than its class: the 1815 eruption of Tambora,
+  exported as a volcanic eruption and a natural disaster, is scored as the heavier natural
+  disaster and displayed as a volcanic eruption. Where the export cannot tell two classes apart by
+  their counts, it is displayed as the heavier, then the one event-classes.yaml lists first;
 - the date: its point in time (P585), else its start (P580), else its end (P582); among several of
   one property, the most precise, then the earliest; or the `date` in `dates` in
   `pipeline/config/events-curated.yaml`, where a better source dates it otherwise. A date of year
@@ -25,8 +32,8 @@ Wikipedia edition. Per event it takes:
 
 The table is UTF-8 TSV with a header line, gzip level 9 with mtime 0, in score order, then by qid;
 all accepted events are kept (event-files pages larger corpora). Columns: qid, label, enwiki,
-class, date, precision, t0, t1,
-lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in the
+class, display, date, precision, t0, t1, lon, lat, inherited, editions, score, parents
+(space-separated qids). Dates are ISO days in the
 proleptic Gregorian calendar with astronomical years (1 BC is 0000), as `app/src/story/dates.ts`
 reads them, with Wikidata's precision: 9 year, 10 month, 11 day.
 
@@ -52,6 +59,7 @@ import math
 import os
 import re
 import time
+from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
@@ -96,6 +104,7 @@ COLUMNS = (
     "label",
     "enwiki",
     "class",
+    "display",
     "date",
     "precision",
     "t0",
@@ -146,7 +155,8 @@ class Event:
     qid: str
     label: str
     enwiki: str
-    cls: str  # the class's name
+    cls: str  # the name of its heaviest class, which weighs its score
+    display: str  # the name of its most specific class, which its mark draws
     day: Day
     precision: int
     t0: Day
@@ -278,10 +288,13 @@ def index(
     stands in for Wikidata's, in the span as well as the date, and a curated end for its end
     times."""
     by_qid = {c.qid: c for c in classes}
+    listed = {c.qid: i for i, c in enumerate(classes)}
     grouped: dict[str, list[Statement]] = {}
     for s in statements:
         if s.precision >= YEAR and s.cls in by_qid:
             grouped.setdefault(s.qid, []).append(s)
+    # The events the export gives each class, which the most specific class has fewest of.
+    held = Counter(cls for group in grouped.values() for cls in {s.cls for s in group})
     events = []
     for qid, group in grouped.items():
         label = next((s.label for s in group if s.label), "")
@@ -295,6 +308,7 @@ def index(
         # and Meanwhile still require a source location; NaNs never reach that table.
         lon_lat = lon_lat or (math.nan, math.nan)
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
+        display = min({s.cls for s in group}, key=lambda c: (held[c], -by_qid[c].weight, listed[c]))
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
         curation = dates.get(qid, CuratedDays()) if dates else CuratedDays()
         curated = _historical_day(curation.date) if curation.date else None
@@ -316,6 +330,7 @@ def index(
                 label=label,
                 enwiki=next((s.enwiki for s in group if s.enwiki), ""),
                 cls=cls.name,
+                display=by_qid[display].name,
                 day=day,
                 precision=precision,
                 t0=min([day, *(_first_day(s) for s in starts)]),
@@ -341,6 +356,7 @@ def encode(events: Iterable[Event]) -> bytes:
             _clean(e.label),
             _clean(e.enwiki),
             e.cls,
+            e.display,
             iso(e.day),
             str(e.precision),
             iso(e.t0),
