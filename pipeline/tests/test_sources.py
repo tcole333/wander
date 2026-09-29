@@ -17,7 +17,7 @@ HEX64 = re.compile(r"[0-9a-f]{64}")
 SHA = "0" * 64
 
 
-def test_the_registry_pins_the_inputs_of_the_landed_stages():
+def test_the_registry_pins_each_source_and_its_files():
     pinned = {
         source_id: sorted(PurePosixPath(p.path).name for p in source.pinned())
         for source_id, source in load_sources().items()
@@ -41,6 +41,7 @@ def test_the_registry_pins_the_inputs_of_the_landed_stages():
             "ModE-readme.txt",
         ],
         "historical-basemaps": ["world_1815.geojson"],
+        "cliopatria": ["cliopatria.geojson.zip"],
         "wikidata-events-20260928": ["events.tsv.gz", "export.json"],
     }
 
