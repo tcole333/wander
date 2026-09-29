@@ -6,6 +6,7 @@
 // unit to a ninth of a pixel:
 // - every stroke and gap a glyph needs to be read is at least 6 units wide; finer details, such
 //   as a charter's lines or the points of the sun's rays, may fade at the smallest sizes;
+// - the glyphs of one family part by their silhouettes, since inner detail fades first;
 // - each glyph keeps 4 units clear of the cell's edge and sits in about the cell's inscribed
 //   circle, so a family's seal or boss holds it with its rim to spare;
 // - paths are filled with the nonzero rule, canvas's and SVG's default: solids wind clockwise on
@@ -316,21 +317,40 @@ const slide = [
 /** A flame with its hot heart. */
 const fire = [polygon(flame(32, 60, 34, 54, 5)), polygon(flame(33, 55, 12, 22, 2), true)].join('');
 
-/** The sun: a disc and eight rays. */
+/** The sun over parched and cracking ground: drought and heat. */
 const heat = [
-  circle(C, 11),
+  circle([32, 24], 8),
   ...Array.from({ length: 8 }, (_, i) =>
     polygon(
       rotate(
         [
-          [28, 16],
-          [36, 16],
-          [32, 5],
+          [28.5, 11],
+          [35.5, 11],
+          [32, 4],
         ],
         i * 45,
+        [32, 24],
       ),
     ),
   ),
+  polygon([
+    [6, 50],
+    [21, 50],
+    [18, 58],
+    [6, 58],
+  ]),
+  polygon([
+    [28, 50],
+    [37, 50],
+    [40, 58],
+    [25, 58],
+  ]),
+  polygon([
+    [44, 50],
+    [58, 50],
+    [58, 58],
+    [47, 58],
+  ]),
 ].join('');
 
 /** A snowflake: six arms, each with a pair of branches. */
@@ -340,16 +360,15 @@ const cold = Array.from({ length: 6 }, (_, i) =>
     .join(''),
 ).join('');
 
-/** A microbe: a round body with its spots and seven knobbed spines. */
+/** A germ: a round body with its spots and eight short knobs. */
 const plague = [
-  circle(C, 16),
-  circle([27, 28], 3.5, true),
-  circle([37, 31], 3, true),
-  circle([30, 38], 3, true),
-  ...Array.from({ length: 7 }, (_, i) => {
-    const a = (i * 360) / 7 - 90;
-    const at = (r: number): Point => [C[0] + r * Math.cos(a * DEG), C[1] + r * Math.sin(a * DEG)];
-    return polygon(stroke([at(14), at(22)], 6)) + circle(at(22.5), 5);
+  circle(C, 19),
+  circle([25.5, 27], 4.5, true),
+  circle([39.5, 30], 3.5, true),
+  circle([31, 40], 3.5, true),
+  ...Array.from({ length: 8 }, (_, i) => {
+    const a = (i * 45 - 90) * DEG;
+    return circle([C[0] + 22 * Math.cos(a), C[1] + 22 * Math.sin(a)], 4);
   }),
 ].join('');
 
