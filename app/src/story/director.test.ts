@@ -10,6 +10,8 @@ import { beatView, createWalk, readingSeconds } from './director';
 import { flightEase } from './flight';
 import { voyagePath } from './voyageFlight';
 import { parseStory } from './story';
+import { WorldClock } from '../time/worldClock';
+import { beatSpan, mixSpans } from './ui/format';
 
 const story = parseStory(
   readFileSync(new URL('../../../stories/tambora/story.md', import.meta.url), 'utf8'),
@@ -40,6 +42,37 @@ function setup(ready = () => true, chosen = story, route?: WalkOptions['route'])
 }
 
 describe('the walk', () => {
+  it('drives shared world time through flights, retargets, scrubs and resume', () => {
+    const clock = new WorldClock();
+    const control = new ViewControl(beatView(beat(0)));
+    const walk = createWalk(story, control, { ready: () => true, clock });
+    const width = (i: number) => beatSpan(beat(i)).end - beatSpan(beat(i)).start;
+    expect(clock.state()).toEqual({ day: walk.state().day, spanDays: width(0) });
+    walk.goTo(3);
+    walk.update(0, 0.5);
+    const progress = walk.state().flight!;
+    const expected = mixSpans(
+      beatSpan(beat(0)),
+      beatSpan(beat(3)),
+      0.5,
+      walk.state().day,
+      progress * progress * (3 - 2 * progress),
+    );
+    expect(clock.state().day).toBe(walk.state().day);
+    expect(clock.state().spanDays).toBeCloseTo(expected.end - expected.start);
+    const before = clock.state();
+    walk.goTo(5);
+    expect(clock.state()).toEqual(before);
+    walk.update(0, 0.25);
+    expect(clock.state().day).toBe(walk.state().day);
+    walk.scrub(beat(2).day + 0.75);
+    expect(clock.state()).toEqual({ day: beat(2).day, spanDays: width(5) });
+    walk.resume();
+    for (let i = 0; i < 1200 && walk.state().flight !== null; i += 1) walk.update(0, DT);
+    expect(clock.state()).toEqual({ day: walk.state().day, spanDays: width(5) });
+    walk.dispose();
+  });
+
   it('starts on its first beat, paused, with the camera there', () => {
     const { control, walk } = setup();
     expect(walk.state()).toMatchObject({ beat: 0, mode: 'paused', flight: null });
