@@ -480,7 +480,9 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   capacity fills by global score, so a dense recent European era cannot take the whole overview.
 - **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
-  1700, 1800, 1850, 1900, 1950, 2000, +∞); `pipeline/config/macro-regions.geojson` (8 macro-regions);
+  1700, 1800, 1850, 1900, 1950, 2000, +∞, each finite edge its year's 1 January in the historical
+  calendar, where an event dated to that year starts); `pipeline/config/macro-regions.geojson`
+  (8 macro-regions);
   `pipeline/config/event-classes.yaml` (the class allowlist and weights, which keep out sporting
   seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, the
   days a better source dates an event to where Wikidata's date is wrong, and the events whose date
