@@ -2,11 +2,12 @@
 // layer, after Otto and Marie Neurath and Gerd Arntz. Each glyph is a solid silhouette with no
 // outline, drawn as SVG path data on a 64-unit grid, y down and north up, which the marks' glyph
 // atlas turns into a distance field and scripts/glyphSheet.ts prints. The drawing rules keep them
-// legible at 12 px, where a unit is about a fifth of a pixel:
+// legible on the globe's smallest marks, 12 px across, whose seals hold the glyph at about 7 px, a
+// unit to a ninth of a pixel:
 // - every stroke and gap a glyph needs to be read is at least 6 units wide; finer details, such
 //   as a charter's lines or the points of the sun's rays, may fade at the smallest sizes;
-// - each glyph keeps 4 units clear of the cell's edge, for the distance field's spread, and sits
-//   in about the cell's inscribed circle, so a family's seal or boss can hold it;
+// - each glyph keeps 4 units clear of the cell's edge and sits in about the cell's inscribed
+//   circle, so a family's seal or boss holds it with its rim to spare;
 // - paths are filled with the nonzero rule, canvas's and SVG's default: solids wind clockwise on
 //   screen and may overlap, and each hole winds against the one solid it is cut from.
 // Which glyph and pace layer each class of event takes is eventSymbols.ts's, and the material
@@ -235,7 +236,7 @@ function star(points: number, tips: readonly number[], inner: number): Point[] {
 
 // Nature: the ground, the weather and the body, drawn from what the eye sees of them.
 
-/** A thunderbolt: nature's sudden force, for the index's disasters of no narrower class. */
+/** A thunderbolt: nature's sudden force, the sign of a natural disaster. */
 const disaster = polygon([
   [33, 4],
   [48, 4],
