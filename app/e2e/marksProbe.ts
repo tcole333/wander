@@ -25,7 +25,15 @@ export interface MarksProbe {
   seaNames: { boxesSame: boolean; namesSame: boolean; shelfRows: number };
   covered: { id: string; change: number }[];
   pastLimb: { placed: number; change: number };
-  light: { variant: string; pose: string; ground: number; marks: number; focal: number }[];
+  light: {
+    variant: string;
+    pose: string;
+    /** The cluster's marks placed in view, beside the focal one. */
+    cluster: number;
+    ground: number;
+    marks: number;
+    focal: number;
+  }[];
 }
 
 declare global {
@@ -136,8 +144,25 @@ async function probe(dataHost: string): Promise<MarksProbe> {
   };
   const pastLimb = { placed: marks.placed().length, change: change(off, on, whole) };
 
-  // Light: a cluster at the lamp's reflection, and the focal mark beside it, at world view and
-  // 3,000 km over the reflection.
+  // Light: a cluster at the lamp's reflection, and the focal mark beside it, at world view; and
+  // 3,000 km over the reflection, where the globe turns under the lamp as the view does, so the
+  // reflection itself lies past the view's edge and the cluster goes as near it as the view holds.
+  const inView = (dir: Vector3) => {
+    const p = globe.localToWorld(dir.clone()).project(camera);
+    return Math.abs(p.x) < 0.8 && Math.abs(p.y) < 0.7 && p.z < 1;
+  };
+  /** The place in view nearest `target` on the arc to it from `from`, which is in view. */
+  const nearestInView = (from: Vector3, target: Vector3) => {
+    const at = (t: number) => from.clone().lerp(target, t).normalize();
+    let [lo, hi] = [0, 1];
+    if (inView(at(1))) return at(1);
+    for (let i = 0; i < 24; i++) {
+      const mid = (lo + hi) / 2;
+      if (inView(at(mid))) lo = mid;
+      else hi = mid;
+    }
+    return at(lo);
+  };
   const light: MarksProbe['light'] = [];
   for (const pose of ['world', '3000km'] as const) {
     if (pose === '3000km') {
@@ -145,7 +170,7 @@ async function probe(dataHost: string): Promise<MarksProbe> {
       page.control.go({ lon, lat, viewKm: 3000, tilt: 0, heading: 0 }, true);
       await settle();
     }
-    const hot = lonLatOf(reflection(eye(), lamp()));
+    const hot = lonLatOf(nearestInView(eye().normalize(), reflection(eye(), lamp())));
     const step = pose === 'world' ? 3 : 0.4;
     const cluster: MarkSpec[] = [];
     for (let j = -1; j <= 1; j++) {
@@ -180,6 +205,7 @@ async function probe(dataHost: string): Promise<MarksProbe> {
       light.push({
         variant: name,
         pose,
+        cluster: marks.placed().filter(({ id }) => id !== 'focal').length,
         ground,
         marks: brightest((id) => id !== 'focal'),
         focal: brightest((id) => id === 'focal'),

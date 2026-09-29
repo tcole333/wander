@@ -64,7 +64,9 @@ test('adds one sampler to the look, within those WebGL 2 guarantees', () => {
 
 test('keeps every mark but the focal one under the bloom, at the lamp’s reflection', () => {
   expect(report.light).toHaveLength(8);
-  for (const { variant, pose, marks, focal } of report.light) {
+  for (const { variant, pose, cluster, ground, marks, focal } of report.light) {
+    expect(cluster, `${variant}'s cluster in view at ${pose}`).toBeGreaterThan(0);
+    expect(ground, `the ground under ${variant}'s cluster at ${pose}`).toBeGreaterThan(0);
     expect(marks, `${variant} at ${pose}`).toBeLessThan(BLOOM_THRESHOLD);
     expect(focal, `${variant}'s ember at ${pose}`).toBeGreaterThan(BLOOM_THRESHOLD);
   }
