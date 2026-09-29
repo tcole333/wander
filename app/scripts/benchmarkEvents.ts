@@ -47,15 +47,8 @@ for (const file of release.files) {
   });
 }
 
-const FOV_DEG = 40;
-const ASPECT = 1440 / 900;
-/** The width across the viewport at the view center, km, for a camera `distance` radii out. */
-function viewKm(distance: number): number {
-  const halfWidth = Math.atan(Math.tan((FOV_DEG * Math.PI) / 360) * ASPECT);
-  return 2 * (distance - 1) * Math.tan(halfWidth) * 6371.0088;
-}
 function view(lon: number, lat: number, distance: number): EventView {
-  const camera = new PerspectiveCamera(FOV_DEG, ASPECT, 0.001, 20);
+  const camera = new PerspectiveCamera(40, 1440 / 900, 0.001, 20);
   camera.position.fromArray(toThree(lonLatToDir(lon, lat))).multiplyScalar(distance);
   camera.lookAt(0, 0, 0);
   camera.updateMatrixWorld();
@@ -89,7 +82,8 @@ for (const tier of ['lite', 'full'] as const) {
       meanwhileCount = 0;
     for (let i = 0; i < 350; i++) {
       const centerLon = lon + Math.sin(i / 20) * 10;
-      const query = { t0, t1, tier, view: view(centerLon, lat, distance) };
+      const camera = view(centerLon, lat, distance);
+      const query = { t0, t1, tier, view: camera };
       const before = performance.now();
       const result = engine.query(query, (i * 1000) / 30);
       const elapsed = performance.now() - before;
@@ -100,7 +94,7 @@ for (const tier of ['lite', 'full'] as const) {
         t0: middle - half,
         t1: middle + half,
         center: [centerLon, lat],
-        viewKm: viewKm(distance),
+        view: camera,
         count: tunables.meanwhileCount,
         exclude: markers.map((m) => m.qid),
       });
@@ -162,7 +156,7 @@ console.log(
         queryTiming:
           'EventQueryEngine.query only; excludes fetch, messaging, camera construction and rendering',
         meanwhileTiming:
-          'meanwhileEvents after each query: the middle tenth of the window, the view center, the view width for the camera distance, and the active markers excluded',
+          "meanwhileEvents after each query: the middle tenth of the window, the query's view and its center, and the active markers excluded",
         describeTiming: 'describe for every active label of each query (the plates at most)',
         decodeTiming:
           'decodePage: gzip inflation, JSON parsing, validation and typed-array packing',

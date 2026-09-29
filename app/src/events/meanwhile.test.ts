@@ -3,7 +3,7 @@ import { tunables } from '../config/tunables';
 import type { EventsRelease } from '../data/release';
 import { dayFromIso } from '../story/dates';
 import { readFixtureFile, readStageRecord } from '../test/fixture';
-import { indexOf, pageOf } from '../test/events';
+import { indexOf, pageOf, viewOf } from '../test/events';
 import { decodePage } from './page';
 import { meanwhileEvents, type MeanwhileQuery } from './meanwhile';
 import { EventIndex } from './residency';
@@ -16,8 +16,16 @@ function km([lon1, lat1]: [number, number], [lon2, lat2]: [number, number]): num
     Math.cos(lat1 * DEG) * Math.cos(lat2 * DEG) * Math.cos((lon2 - lon1) * DEG);
   return Math.acos(Math.min(1, Math.max(-1, cos))) * EARTH_KM;
 }
-// Rows are in score order. At the equator 30° of longitude is 3,336 km.
-const base: MeanwhileQuery = { t0: 1, t1: 10, center: [0, 0], viewKm: 3000, count: 3, exclude: [] };
+// Rows are in score order. At the equator 30° of longitude is 3,336 km. viewOf(span) looks
+// straight down on the unit globe, `span` radii across a 1440x900 viewport: 0.2 shows ±6°.
+const base: MeanwhileQuery = {
+  t0: 1,
+  t1: 10,
+  center: [0, 0],
+  view: viewOf(0.2),
+  count: 3,
+  exclude: [],
+};
 const rows = (query: Partial<MeanwhileQuery>, index = spread()) =>
   meanwhileEvents(index, { ...base, ...query }).map((e) => e.row);
 function spread() {
@@ -38,8 +46,33 @@ test('picks the best-scored events in the now window, away from the view and eac
   expect(rows({})).toEqual([1, 4, 5]);
 });
 
-test('the view keeps out what lies within half its width of its center', () => {
-  expect(rows({ viewKm: 8000 })).toEqual([4, 5, 6]);
+test('what the screen shows stays out, however far from the center', () => {
+  // 1.2 radii across shows 37° of longitude either side of the center and 22° of latitude.
+  expect(rows({ view: viewOf(1.2) })).toEqual([4, 5, 6]);
+});
+
+test("what lies past the viewport's edges or the limb is elsewhere, however near", () => {
+  const index = indexOf([
+    pageOf([
+      { row: 0, lon: 25, lat: 0 },
+      { row: 1, lon: 0, lat: 25 },
+      { row: 2, lon: 100, lat: 0 },
+    ]),
+  ]);
+  expect(rows({ view: viewOf(1.2) }, index)).toEqual([1, 2]);
+});
+
+test('at world view, Meanwhile names what happens on the far side of the globe', () => {
+  const index = indexOf([
+    pageOf([
+      { row: 0, lon: 60, lat: 0 },
+      { row: 1, lon: -80, lat: 30 },
+      { row: 2, lon: 180, lat: 0 },
+      { row: 3, lon: -120, lat: 10 },
+      { row: 4, lon: 110, lat: -40 },
+    ]),
+  ]);
+  expect(rows({ view: viewOf(2.2) }, index)).toEqual([2, 3, 4]);
 });
 
 test('an excluded event, drawn on the globe, leaves room for the next', () => {
@@ -103,13 +136,14 @@ test('no count asks for nothing, and a malformed question throws', () => {
   expect(rows({ count: 0 })).toEqual([]);
   for (const bad of [
     { t0: 10, t1: 1 },
-    { viewKm: 0 },
     { center: [0, 91] as [number, number] },
     { center: [Number.NaN, 0] as [number, number] },
     { count: 1.5 },
     { exclude: [0.5] },
   ])
     expect(() => meanwhileEvents(spread(), { ...base, ...bad })).toThrow('invalid meanwhile');
+  const flat = { ...base, view: { ...base.view, width: 0 } };
+  expect(() => meanwhileEvents(spread(), flat)).toThrow('invalid event view');
 });
 
 test('the fixture at Waterloo finds short events of June 1815, far from Belgium', async () => {
@@ -124,7 +158,7 @@ test('the fixture at Waterloo finds short events of June 1815, far from Belgium'
     t0: day - window,
     t1: day + window,
     center: [4.41222, 50.67806],
-    viewKm: 3000,
+    view: viewOf(3000 / 6371, 4.41222, 50.67806),
     count: tunables.meanwhileCount,
     exclude: [48314],
   };

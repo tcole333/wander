@@ -65,7 +65,7 @@ test('the handler describes rows and answers Meanwhile, naming what it cannot fi
     t0: dayFromIso('1815-01-01'),
     t1: dayFromIso('1815-12-31'),
     center: [4.41222, 50.67806],
-    viewKm: 3000,
+    view: viewOf(0.47, 4.41222, 50.67806),
     count: 3,
     exclude: [],
   });
@@ -85,7 +85,7 @@ test('a failed Meanwhile or description names its request and leaves the worker 
     t0: 2,
     t1: 1,
     center: [0, 0],
-    viewKm: 3000,
+    view: viewOf(),
     count: 3,
     exclude: [],
   });
