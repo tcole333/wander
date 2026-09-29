@@ -144,6 +144,8 @@ const SHADOW_MAX = 0.6;
 const TOKEN_THICKNESS = 0.45;
 /** The widest hovered ring drawn, radians of arc from its mark: an eighth of the globe's round. */
 export const RING_MAX_RAD = Math.PI / 4;
+/** The least facing a mark is drawn at: the limb fade leaves nothing below it. */
+const FACING_MIN = 0.05;
 /** How near its anchor, as a cosine, the look looks for a mark without a ring: about 26 degrees. */
 const MARK_COS_MIN = 0.9;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
@@ -169,10 +171,10 @@ export function markPx(viewKm: number): number {
 
 /**
  * How far from its anchor, in CSS px, the look draws a mark (marks.glsl.ts) whose r spans at most
- * `pxPerR` CSS px on screen: its glyph out to its field's reach (`glyphExtent` is the glyph's, in
- * half grids); its disc, contact shadow (`shadow` r from it), ember and hovered ring (`ringPx` px
- * from it on screen), each with the antialiasing, blur or line the look gives it and the light's
- * cap two edges beyond.
+ * `pxPerR` CSS px on screen and a pixel at most `pxR` of r: its glyph out to its field's reach
+ * (`glyphExtent` is the glyph's, in half grids); its disc, contact shadow (`shadow` r from it),
+ * ember and hovered ring (`ringPx` px from it on screen), each with the antialiasing, blur or line
+ * the look gives it and the light's cap two edges beyond.
  */
 export function markReachPx(
   treatment: Treatment,
@@ -181,6 +183,7 @@ export function markReachPx(
   shadow: number,
   ringPx: number,
   pxPerR: number,
+  pxR: number,
 ): number {
   const edge = mark.soft ? MARK_AA_PX.soft : MARK_AA_PX.hard;
   const glyph = Math.min(glyphExtent + GLYPH_FIELD.reach, GLYPH_FIELD.box * Math.SQRT2);
@@ -191,21 +194,25 @@ export function markReachPx(
     reach = Math.max(reach, (shadow + disc + SHADOW_BLUR) * pxPerR + 2 * edge);
   }
   if (mark.focal) {
-    const outer = (EMBER_RING.radius + EMBER_RING.half) * pxPerR;
-    reach = Math.max(reach, outer + RING_PX.ember + 1);
+    const half = Math.max(EMBER_RING.half, RING_PX.ember * pxR);
+    reach = Math.max(reach, (EMBER_RING.radius + half + pxR) * pxPerR);
   }
-  if (ringPx > 0) reach = Math.max(reach, ringPx + RING_PX.hover);
+  if (ringPx > 0) reach = Math.max(reach, ringPx + RING_PX.hover * pxR * pxPerR);
   return reach + 1;
 }
 
 const toCamera = new Vector3();
 
-/** How far a mark at `dir` faces the camera at `camera`: its limb fade (as the sea names'). */
-export function limbFade(dir: Vector3, camera: Vector3): number {
+/** The cosine between the globe's normal at `dir` and the way to the camera at `camera`. */
+function facingOf(dir: Vector3, camera: Vector3): number {
   toCamera.copy(camera).sub(dir);
   const length = toCamera.length();
-  if (length === 0) return 0;
-  return smoothstep(0.05, 0.35, dir.dot(toCamera) / length);
+  return length === 0 ? 0 : dir.dot(toCamera) / length;
+}
+
+/** How far a mark at `dir` faces the camera at `camera`: its limb fade (as the sea names'). */
+export function limbFade(dir: Vector3, camera: Vector3): number {
+  return smoothstep(0.05, 0.35, facingOf(dir, camera));
 }
 
 /** The dev panel's params (the Marks folder), and the query's (?markVariant=2, ?marks=0). */
@@ -483,6 +490,7 @@ export class MarkLayer {
       if (!cell) this.#report('glyph', spec.glyph);
       if (!cell || entry.family < 0) continue;
       const limb = limbFade(dir, view.camera);
+      const facing = facingOf(dir, view.camera);
       const alpha = Math.min(1, Math.max(0, spec.opacity)) * this.strength * limb;
       if (alpha < 1 / 255) continue;
       clip.set(dir.x, dir.y, dir.z, 1).applyMatrix4(view.toClip);
@@ -518,7 +526,9 @@ export class MarkLayer {
       // square of its distance over its depth.
       const pxPerR = rPx * (distance / clip.w) ** 2;
       const shadow = Math.hypot(shadowX, shadowY);
-      const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ringPx, pxPerR);
+      // A pixel spans the most of r across the tilt, by the facing's inverse (a CSS px, at worst).
+      const pxR = 1 / (rPx * Math.max(facing, FACING_MIN));
+      const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ringPx, pxPerR, pxR);
       const cosMin = Math.min(MARK_COS_MIN, Math.cos(Math.min(1.1 * ringRad + 0.02, Math.PI / 2)));
       if (x + reachPx < -grid.pad || x - reachPx > view.width + grid.pad) continue;
       if (y + reachPx < -grid.pad || y - reachPx > view.height + grid.pad) continue;

@@ -41,13 +41,16 @@ export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
 
 /**
  * Antialiasing, in device px across an edge: a hard one's and a soft one's (an inherited place or
- * a date known to the year). Across a round edge, a disc's, its shadow's or a ring's, it is taken
- * along the radius, so a tilted mark's edge is as sharp on screen as a facing one's.
+ * a date known to the year). Across a disc's edge or its shadow's it is taken along the radius, so
+ * a tilted mark's edge is as sharp on screen as a facing one's.
  */
 export const MARK_AA_PX = { hard: 0.75, soft: 2.5 } as const;
 /** The contact shadow's blur beyond its edge's antialiasing, in r. */
 export const SHADOW_BLUR = 0.12;
-/** The ember ring's half width in px when a pixel spans more than its own; a hover ring's, and its edge. */
+/**
+ * The rings' widths in the most of r a pixel spans (which a tilt widens): the ember's half width
+ * when wider than its own, and a hovered ring's outer edge.
+ */
 export const RING_PX = { ember: 0.9, hover: 1.3 } as const;
 
 /**
@@ -287,7 +290,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     // anchor makes, seen straight down on the anchor's tangent plane.
     if (t3.z > 0.0) {
       float extent =
-        1.0 - smoothstep(0.5 * pxRad, ${float(RING_PX.hover)} * pxRad, abs(rq - t3.z));
+        1.0 - smoothstep(0.5 * pxR, ${float(RING_PX.hover)} * pxR, abs(rq - t3.z));
       float around = atan(q.y, q.x) / 6.283185307179586;
       float dashes = max(12.0, floor(6.283185307179586 * t3.z / (10.0 * pxR)));
       extent *= step(0.45, fract(around * dashes));
@@ -309,9 +312,9 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
 
     // The focal mark alone: an ember ring that breathes, bright enough to bloom.
     if ((flags & ${FLAG.focal}) != 0) {
-      float ringW = max(${float(EMBER_RING.half)}, ${float(RING_PX.ember)} * pxRad);
+      float ringW = max(${float(EMBER_RING.half)}, ${float(RING_PX.ember)} * pxR);
       float ring =
-        1.0 - smoothstep(ringW - pxRad, ringW + pxRad, abs(rq - ${float(EMBER_RING.radius)}));
+        1.0 - smoothstep(ringW - pxR, ringW + pxR, abs(rq - ${float(EMBER_RING.radius)}));
       o.marks.ember += lookMarkEmber.rgb * lookMarkEmber.w * lookMarkBreath * ring * alpha;
     }
     ground = o.albedo;
