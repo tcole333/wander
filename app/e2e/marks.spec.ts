@@ -1,7 +1,7 @@
 // Explore's marks as the look draws them (e2e/marks.html, marksProbe.ts), on the fixture: each
 // mark placed in view changes its pixels and none past the limb changes any; the atlas letters its
-// sea names as it does without the glyph shelf; the look's program stays within the samplers every
-// WebGL 2 fragment stage has; and under the lamp's own reflection, in every variant, no mark but
+// sea names as it does without the glyph shelf; the look's program reads no more samplers than it
+// does without marks; and under the lamp's own reflection, in every variant, no mark but
 // the focal one reaches the bloom's threshold, which the focal one's ember passes. The sea names'
 // boxes are checked here rather than in Vitest, whose Node environment has no canvas to letter in.
 import { expect, test } from '@playwright/test';
@@ -14,11 +14,12 @@ const RENDERER: Record<string, RegExp> = {
 };
 const BLOOM_THRESHOLD = 1.05;
 /**
- * The look's fragment samplers with marks: the 12 it reads without them under three 0.186 (the
- * surface pools, the sea-name atlas, climate, borders, four for routes, the environment, three's
- * DFG table and the lamp's shadow) and the marks' table, of the 16 WebGL 2 guarantees.
+ * The look's fragment samplers with marks, as many as without them under three 0.186: the surface
+ * pools, the sea-name atlas, climate, borders, three for routes (their cells heading the index
+ * table), the marks' table, the environment, three's DFG table and the lamp's shadow, of the 16
+ * WebGL 2 guarantees.
  */
-const SAMPLERS_MAX = 13;
+const SAMPLERS_MAX = 12;
 
 let report: MarksProbe;
 const problems: string[] = [];
@@ -57,7 +58,7 @@ test('letters the sea names as the atlas without marks does, the glyphs on a she
   expect(report.seaNames).toEqual({ boxesSame: true, namesSame: true, shelfRows: 96 });
 });
 
-test('adds one sampler to the look, within those WebGL 2 guarantees', () => {
+test('reads the marks’ table within the samplers the look reads without marks', () => {
   expect(report.samplers.names).toContain('lookMarkTable');
   expect(report.samplers.count).toBeLessThanOrEqual(SAMPLERS_MAX);
 });
