@@ -168,6 +168,15 @@ export function engravedUnit(arc: Arc, span: Span, calendar: Calendar = GREGORIA
   return step >= 1000 ? 'millennium' : step >= 100 ? 'century' : step >= 10 ? 'decade' : 'year';
 }
 
+/**
+ * The years between the years the band labels: one where it engraves days or months, which name
+ * every year they reach, else the step of its year labels.
+ */
+export function labelledYearStep(arc: Arc, span: Span, calendar: Calendar = GREGORIAN): number {
+  const unit = engravedUnit(arc, span, calendar);
+  return unit === 'day' || unit === 'month' ? 1 : yearStep(arc, span, calendar);
+}
+
 /** A 1/2/5 calendar interval large enough for its year labels at the view's actual width. */
 function yearStep(arc: Arc, span: Span, calendar: Calendar): number {
   const era = span.start < 0 && span.end >= 0;
