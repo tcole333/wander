@@ -561,6 +561,7 @@ export class CraftRuler {
     this.#plate.style.transform = `translate(${f(px)}px, ${f(py)}px) rotate(${f(deg(plateAngle), 2)}deg)`;
     setShade(this.#plate, shadeAt(px, py - PLATE_H / 2));
     this.#clearPlate(plateAngle);
+    if (this.#explore) this.#clearExploreLabels();
 
     const text = formatDay(dayNumber, precision);
     if (text === this.#plateText) return;
@@ -609,6 +610,28 @@ export class CraftRuler {
       if (shown !== null) {
         cut.element.setAttribute('transform', labelTransform(this.#arc, shown, label.row));
       }
+    }
+  }
+
+  /** Free dates can meet any tick: keep both rows clear of the plaque, its tail and the needle. */
+  #clearExploreLabels(): void {
+    const obstacles = [
+      this.#plate.querySelector('.rc-plate-body')!,
+      this.#playhead.firstElementChild!,
+    ].map((element) => element.getBoundingClientRect());
+    for (const { element, label, shown } of this.#cuts.values()) {
+      const rect = element.getBoundingClientRect();
+      const covered =
+        (label.from !== undefined && shown === null) ||
+        obstacles.some(
+          (obstacle) =>
+            rect.left < obstacle.right + 3 &&
+            rect.right + 3 > obstacle.left &&
+            rect.top < obstacle.bottom + 3 &&
+            rect.bottom + 3 > obstacle.top,
+        );
+      // Recompute even for a hidden label: moving the date away must reveal it again.
+      element.classList.toggle('is-covered', covered);
     }
   }
 

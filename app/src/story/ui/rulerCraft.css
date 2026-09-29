@@ -85,6 +85,11 @@
   opacity: 0;
 }
 
+/* Scrubbing can put the free playhead on any label; clear it before the jewel arrives. */
+.rc-explore .rc-labels text.is-covered {
+  transition: none;
+}
+
 .rc-tick {
   fill: none;
   stroke-width: 0.9;
