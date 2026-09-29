@@ -24,12 +24,19 @@ Wikipedia edition. Per event it takes:
 The table is UTF-8 TSV with a header line, gzip level 9 with mtime 0, in score order, then by qid;
 all accepted events are kept (event-files pages larger corpora). Columns: qid, label, enwiki,
 class, date, precision, t0, t1,
-lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in
-astronomical years (1 BC is 0000), as `app/src/story/dates.ts` reads them, with Wikidata's
-precision: 9 year, 10 month, 11 day. The table stays build-only for Meanwhile and lobby picks.
-The separate event-files stage reads it and the pinned export to publish the runtime `.wev`
-files, with percentile scores and display parents (3.4). The fixture reads a committed slice of
-the export, retaining all statements of events dated in 1815-1817 and their exported ancestors.
+lon, lat, inherited, editions, score, parents (space-separated qids). Dates are ISO days in the
+proleptic Gregorian calendar with astronomical years (1 BC is 0000), as `app/src/story/dates.ts`
+reads them, with Wikidata's precision: 9 year, 10 month, 11 day.
+
+Calendar: Wikidata's export gives a day in the proleptic Gregorian calendar, converting a date its
+source wrote in the Julian (Hastings, 14 October 1066, is exported as 20 October). The calendar
+here mirrors dates.ts's: `historical` and `format_historical` give a day as history writes it,
+Julian before 15 October 1582, as Explore shows it.
+
+The table stays build-only for Meanwhile and lobby picks. The separate event-files stage reads it
+and the pinned export to publish the runtime `.wev` files, with percentile scores and display
+parents (3.4). The fixture reads a committed slice of the export, retaining all statements of
+events dated in 1815-1817 and their exported ancestors.
 """
 
 import gzip
@@ -60,6 +67,21 @@ from prebuild.wikidata import META, SOURCE_PREFIX, TABLE
 STAGE = "events"
 KEY = "ev/events.tsv.gz"
 YEAR, MONTH, DAY = 9, 10, 11  # Wikidata's precisions
+REFORM = (1582, 10, 15)  # the first Gregorian day; the Julian 4 October 1582 is the day before
+MONTHS = (
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+)
 DATE_ORDER = ("P585", "P580", "P582")  # point in time, start time, end time
 COLUMNS = (
     "qid",
@@ -363,6 +385,97 @@ def month_days(year: int, month: int) -> int:
     if month == 2:
         return 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
     return 30 if month in (4, 6, 9, 11) else 31
+
+
+# The calendar, as app/src/story/dates.ts has it: day numbers count the days since 0001-01-01 in
+# the proleptic Gregorian calendar, astronomical years, by integer arithmetic; history writes the
+# days before 15 October 1582 in the Julian calendar.
+
+_EPOCH = 306  # days from 0000-03-01 to 0001-01-01 (Gregorian)
+_JULIAN_EPOCH = 308  # days from 0000-03-01 to 0001-01-03 (Julian), which is 0001-01-01 Gregorian
+
+
+def day_number(year: int, month: int, day: int) -> int:
+    """The day number of a proleptic Gregorian date."""
+    y = year - 1 if month <= 2 else year
+    era = y // 400
+    yoe = y - era * 400
+    doy = (153 * ((month + 9) % 12) + 2) // 5 + day - 1
+    return era * 146097 + yoe * 365 + yoe // 4 - yoe // 100 + doy - _EPOCH
+
+
+def civil(number: int) -> Day:
+    """The proleptic Gregorian date of a day number."""
+    z = number + _EPOCH
+    era = z // 146097
+    doe = z - era * 146097
+    yoe = (doe - doe // 1460 + doe // 36524 - doe // 146096) // 365
+    doy = doe - (365 * yoe + yoe // 4 - yoe // 100)
+    mp = (5 * doy + 2) // 153
+    day = doy - (153 * mp + 2) // 5 + 1
+    month = mp + 3 if mp < 10 else mp - 9
+    return yoe + era * 400 + (1 if month <= 2 else 0), month, day
+
+
+def julian_day_number(year: int, month: int, day: int) -> int:
+    """The day number of a proleptic Julian date."""
+    y = year - 1 if month <= 2 else year
+    era = y // 4
+    doy = (153 * ((month + 9) % 12) + 2) // 5 + day - 1
+    return era * 1461 + (y - era * 4) * 365 + doy - _JULIAN_EPOCH
+
+
+def julian_civil(number: int) -> Day:
+    """The proleptic Julian date of a day number."""
+    z = number + _JULIAN_EPOCH
+    era = z // 1461
+    doe = z - era * 1461
+    yoe = (doe - doe // 1460) // 365
+    doy = doe - 365 * yoe
+    mp = (5 * doy + 2) // 153
+    day = doy - (153 * mp + 2) // 5 + 1
+    month = mp + 3 if mp < 10 else mp - 9
+    return yoe + era * 4 + (1 if month <= 2 else 0), month, day
+
+
+def historical(day: Day) -> Day:
+    """A proleptic Gregorian date as history writes it: Julian before 15 October 1582."""
+    return julian_civil(day_number(*day)) if day < REFORM else day
+
+
+def from_historical(date: Day) -> Day:
+    """The proleptic Gregorian date of a historical one. 5-14 October 1582 never were."""
+    if date >= REFORM:
+        return date
+    if date > (1582, 10, 4):
+        raise ValueError(f"{iso(date)} fell in the calendar reform's gap")
+    return civil(julian_day_number(*date))
+
+
+def named_days(date: Day, precision: int) -> tuple[Day, Day]:
+    """The first and last proleptic Gregorian days a historical date names at its precision: a
+    year from its 1 January to its 31 December, a month from its first day to its last, each in
+    the Julian calendar before the reform, as its sources write them."""
+    year, month, _ = date
+    if precision >= DAY:
+        first = from_historical(date)
+        return first, first
+    if precision <= YEAR:
+        first, following = (year, 1, 1), (year + 1, 1, 1)
+    else:
+        first, following = (year, month, 1), (year + month // 12, month % 12 + 1, 1)
+    return from_historical(first), civil(day_number(*from_historical(following)) - 1)
+
+
+def format_historical(day: Day, precision: int = DAY) -> str:
+    """A proleptic Gregorian date as history writes it, at Wikidata's precision: '14 October
+    1066', 'March 44 BCE', '701 BCE', as dates.ts's formatHistorical."""
+    year, month, date = historical(day)
+    named = str(year) if year > 0 else f"{1 - year} BCE"
+    if precision <= YEAR:
+        return named
+    named = f"{MONTHS[month - 1]} {named}"
+    return named if precision == MONTH else f"{date} {named}"
 
 
 def _day(text: str) -> Day | None:

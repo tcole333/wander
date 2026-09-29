@@ -57,6 +57,7 @@ import yaml
 
 from prebuild import events
 from prebuild.config import load_contested_events
+from prebuild.events import civil, day_number
 from prebuild.media import BEAT_BLOCK, read_lock, write_lock
 from prebuild.profiles import Context
 from prebuild.records import read_record
@@ -582,29 +583,7 @@ def precision_name(precision: int) -> str:
     return "month" if precision == events.MONTH else "day"
 
 
-# Day numbers: days since 0001-01-01, proleptic Gregorian, astronomical years (as dates.ts)
-
-_EPOCH = 306  # days from 0000-03-01 to 0001-01-01
-
-
-def day_number(year: int, month: int, day: int) -> int:
-    y = year - 1 if month <= 2 else year
-    era = y // 400
-    yoe = y - era * 400
-    doy = (153 * ((month + 9) % 12) + 2) // 5 + day - 1
-    return era * 146097 + yoe * 365 + yoe // 4 - yoe // 100 + doy - _EPOCH
-
-
-def civil(number: int) -> events.Day:
-    z = number + _EPOCH
-    era = z // 146097
-    doe = z - era * 146097
-    yoe = (doe - doe // 1460 + doe // 36524 - doe // 146096) // 365
-    doy = doe - (365 * yoe + yoe // 4 - yoe // 100)
-    mp = (5 * doy + 2) // 153
-    day = doy - (153 * mp + 2) // 5 + 1
-    month = mp + 3 if mp < 10 else mp - 9
-    return yoe + era * 400 + (1 if month <= 2 else 0), month, day
+# Day numbers: days since 0001-01-01, proleptic Gregorian, astronomical years (events.day_number)
 
 
 def iso_day(text: str) -> int:
