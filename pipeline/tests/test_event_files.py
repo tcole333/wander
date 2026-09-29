@@ -215,6 +215,42 @@ def test_an_opening_the_index_lacks_fails_the_whole_index_and_the_fixture_leaves
     assert "1 of 2 openings not in the index" in capsys.readouterr().out
 
 
+TABLE = gzip.compress(b"qid\n", mtime=0)
+
+
+def with_lock(ctx, table: str):
+    """ctx, with an event index and an openings lock of Waterloo checked against a table whose
+    sha256 is `table`."""
+    (ctx.out / "ev").mkdir(parents=True, exist_ok=True)
+    (ctx.out / events.KEY).write_bytes(TABLE)
+    (ctx.repo / FOLDER).mkdir(exist_ok=True)
+    lock = {"table": table, "openings": [{"qid": "Q48314"}]}
+    (ctx.repo / FOLDER / LOCK).write_text(json.dumps(lock), encoding="utf-8")
+    return ctx
+
+
+def test_the_overview_waits_on_an_openings_lock(tmp_path):
+    with pytest.raises(events.EventsError, match="missing: run `uv run prebuild openings`"):
+        wev.opening_qids(make_context(Profile.FIXTURE, 1, tmp_path))
+
+
+def test_a_lock_checked_against_another_index_fails_a_build_of_the_whole_index(tmp_path):
+    ctx = with_lock(make_context(Profile.GLOBAL, 1, tmp_path), "0" * 64)
+    with pytest.raises(events.EventsError, match="`uv run prebuild --profile global openings`"):
+        wev.opening_qids(ctx)
+
+
+def test_a_lock_checked_against_this_index_gives_its_openings(tmp_path):
+    table = hashlib.sha256(TABLE).hexdigest()
+    ctx = with_lock(make_context(Profile.GLOBAL, 1, tmp_path), table)
+    assert wev.opening_qids(ctx) == ["Q48314"]
+
+
+def test_the_fixture_takes_the_lock_of_the_whole_index_it_holds_a_slice_of(tmp_path):
+    ctx = with_lock(make_context(Profile.FIXTURE, 1, tmp_path), "0" * 64)
+    assert wev.opening_qids(ctx) == ["Q48314"]
+
+
 def test_no_country_or_override_is_used_when_children_place_a_parent(monkeypatch):
     monkeypatch.setattr(
         wev, "load_event_places", lambda: {"Q10": {"countryCentroid": (40, 30), "at": (60, 20)}}
