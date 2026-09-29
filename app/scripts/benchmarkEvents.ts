@@ -2,18 +2,22 @@
 // ./node_modules/.bin/rolldown scripts/benchmarkEvents.ts --platform node --format esm \
 //   --tsconfig tsconfig.app.json --file ../build/benchmark-events.mjs
 // node ../build/benchmark-events.mjs ../build/out ../build/stages/global/event-files.json
-// Measures decoded array bytes and queries only, excluding worker messaging and rendering.
+// Measures decoded array bytes and the worker's queries (the detail budget, Meanwhile and
+// descriptions) only, excluding worker messaging and rendering.
 import { readFileSync } from 'node:fs';
 import { arch, cpus, platform, release as osRelease } from 'node:os';
 import { resolve } from 'node:path';
 import { Matrix4, PerspectiveCamera } from 'three';
 import type { EventsRelease } from '../src/data/release';
 import { decodePage } from '../src/events/page';
+import { describe } from '../src/events/describe';
+import { meanwhileEvents } from '../src/events/meanwhile';
 import { EventQueryEngine } from '../src/events/query';
 import { EventIndex } from '../src/events/residency';
 import type { EventView } from '../src/events/view';
 import { dayFromIso } from '../src/story/dates';
 import { lonLatToDir, toThree } from '../src/surface/cube';
+import { tunables } from '../src/config/tunables';
 
 const [rootArg, recordArg] = process.argv.slice(2);
 if (!rootArg || !recordArg) throw new Error('pass output root and event-files.json');
@@ -43,8 +47,15 @@ for (const file of release.files) {
   });
 }
 
+const FOV_DEG = 40;
+const ASPECT = 1440 / 900;
+/** The width across the viewport at the view center, km, for a camera `distance` radii out. */
+function viewKm(distance: number): number {
+  const halfWidth = Math.atan(Math.tan((FOV_DEG * Math.PI) / 360) * ASPECT);
+  return 2 * (distance - 1) * Math.tan(halfWidth) * 6371.0088;
+}
 function view(lon: number, lat: number, distance: number): EventView {
-  const camera = new PerspectiveCamera(40, 1440 / 900, 0.001, 20);
+  const camera = new PerspectiveCamera(FOV_DEG, ASPECT, 0.001, 20);
   camera.position.fromArray(toThree(lonLatToDir(lon, lat))).multiplyScalar(distance);
   camera.lookAt(0, 0, 0);
   camera.updateMatrixWorld();
@@ -68,27 +79,65 @@ for (const tier of ['lite', 'full'] as const) {
     const t0 = dayFromIso(start),
       t1 = dayFromIso(end);
     const times: number[] = [];
+    // Meanwhile asks for the now window, a tenth of the ruler's span about its middle.
+    const middle = (t0 + t1) / 2,
+      half = ((t1 - t0) * 0.1) / 2;
+    const meanwhileTimes: number[] = [];
+    const describeTimes: number[] = [];
     let markerCount = 0,
-      labelCount = 0;
+      labelCount = 0,
+      meanwhileCount = 0;
     for (let i = 0; i < 350; i++) {
-      const query = { t0, t1, tier, view: view(lon + Math.sin(i / 20) * 10, lat, distance) };
+      const centerLon = lon + Math.sin(i / 20) * 10;
+      const query = { t0, t1, tier, view: view(centerLon, lat, distance) };
       const before = performance.now();
       const result = engine.query(query, (i * 1000) / 30);
       const elapsed = performance.now() - before;
-      if (i >= 50) times.push(elapsed);
-      markerCount = result.markers.filter((m) => m.fade.to === 1).length;
-      labelCount = result.labels.filter((m) => m.fade.to === 1).length;
+      const markers = result.markers.filter((m) => m.fade.to === 1);
+      const labels = result.labels.filter((m) => m.fade.to === 1);
+      const beforeMeanwhile = performance.now();
+      const picks = meanwhileEvents(index, {
+        t0: middle - half,
+        t1: middle + half,
+        center: [centerLon, lat],
+        viewKm: viewKm(distance),
+        count: tunables.meanwhileCount,
+        exclude: markers.map((m) => m.qid),
+      });
+      const beforeDescribe = performance.now();
+      for (const label of labels) describe(index, label.row);
+      const afterDescribe = performance.now();
+      if (i >= 50) {
+        times.push(elapsed);
+        meanwhileTimes.push(beforeDescribe - beforeMeanwhile);
+        describeTimes.push(afterDescribe - beforeDescribe);
+      }
+      markerCount = markers.length;
+      labelCount = labels.length;
+      meanwhileCount = picks.length;
     }
-    times.sort((a, b) => a - b);
+    const at = (sorted: number[], q: number) => sorted[Math.floor(sorted.length * q)];
+    for (const list of [times, meanwhileTimes, describeTimes]) list.sort((a, b) => a - b);
     runs.push({
       name,
       tier,
       queries: times.length,
-      p50Ms: times[Math.floor(times.length * 0.5)],
-      p95Ms: times[Math.floor(times.length * 0.95)],
+      p50Ms: at(times, 0.5),
+      p95Ms: at(times, 0.95),
       maxMs: times.at(-1),
       markerCount,
       labelCount,
+      meanwhile: {
+        p50Ms: at(meanwhileTimes, 0.5),
+        p95Ms: at(meanwhileTimes, 0.95),
+        maxMs: meanwhileTimes.at(-1),
+        picks: meanwhileCount,
+      },
+      describeLabels: {
+        p50Ms: at(describeTimes, 0.5),
+        p95Ms: at(describeTimes, 0.95),
+        maxMs: describeTimes.at(-1),
+      },
     });
   }
 }
@@ -112,6 +161,9 @@ console.log(
         camera: '40-degree perspective; longitude offset sin(query / 20) * 10 degrees',
         queryTiming:
           'EventQueryEngine.query only; excludes fetch, messaging, camera construction and rendering',
+        meanwhileTiming:
+          'meanwhileEvents after each query: the middle tenth of the window, the view center, the view width for the camera distance, and the active markers excluded',
+        describeTiming: 'describe for every active label of each query (the plates at most)',
         decodeTiming:
           'decodePage: gzip inflation, JSON parsing, validation and typed-array packing',
         bytes:
