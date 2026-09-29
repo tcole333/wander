@@ -1,6 +1,6 @@
 // Main-thread fetch and frame-loop boundary. One transferred page and one query are in flight at
-// once; a description request has a slot of its own. onmessage only queues replies; drain()
-// performs state changes on the caller's frame.
+// once; a Meanwhile query and a description request each have a slot of their own. onmessage only
+// queues replies; drain() performs state changes on the caller's frame.
 import { tunables, type Tier } from '../config/tunables';
 import type { EventsRelease } from '../data/release';
 import { fetchData } from '../data/surfaceLayer';
@@ -8,6 +8,7 @@ import type { EventDescription } from './describe';
 // Bundled into the entry and started from a Blob URL, so a dive fetches nothing from Pages
 // (streaming.md 2). The dev server serves it as a module worker instead.
 import InlineEventWorker from './event.worker.ts?worker&inline';
+import type { MeanwhileQuery } from './meanwhile';
 import type { EventQuery } from './query';
 import type { PagePlan } from './residency';
 import type { EventReply, EventRequest } from './runtime';
@@ -23,6 +24,23 @@ export interface EventWorker {
 }
 type Arrival = EventReply | { type: 'fetched'; key: string; buf: ArrayBuffer };
 type FetchBytes = (url: string, stillWanted: () => boolean) => Promise<ArrayBuffer>;
+
+/** Two Meanwhile questions ask the same thing; `exclude` compares as a set. */
+function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolean {
+  if (
+    !b ||
+    a.t0 !== b.t0 ||
+    a.t1 !== b.t1 ||
+    a.center[0] !== b.center[0] ||
+    a.center[1] !== b.center[1] ||
+    a.viewKm !== b.viewKm ||
+    a.count !== b.count ||
+    a.exclude.length !== b.exclude.length
+  )
+    return false;
+  const excluded = new Set(b.exclude);
+  return a.exclude.every((qid) => excluded.has(qid));
+}
 
 /**
  * Owns the event worker and fetches its pages through the main-thread data fetcher.
@@ -41,8 +59,10 @@ type FetchBytes = (url: string, stillWanted: () => boolean) => Promise<ArrayBuff
  * replies expose classes and page readiness/array bytes; errors name the failed file or request.
  * retry() admits failed files again. dispose() terminates the worker and discards late arrivals.
  *
- * description(row) answers from a cache of DESCRIPTION_ROWS rows, or asks the worker on the next
- * drain(), whose 'described' reply says the answer has arrived.
+ * meanwhile() stands Meanwhile's question for the now window, sent once it has stood unchanged
+ * for meanwhileRest; 'meanwhile' replies carry the picks. description(row) answers from a cache
+ * of DESCRIPTION_ROWS rows, or asks the worker on the next drain(), whose 'described' reply says
+ * the answer has arrived.
  */
 export class EventClient {
   readonly #worker: EventWorker;
@@ -63,6 +83,12 @@ export class EventClient {
   #disposed = false;
   #fatal = false;
   #timer: ReturnType<typeof setTimeout> | undefined;
+  /** The standing Meanwhile question, and the drain time it was first seen. */
+  #meanwhile: { query: MeanwhileQuery; since?: number } | undefined;
+  #meanwhileSent: MeanwhileQuery | undefined;
+  #meanwhileGeneration = 0;
+  #meanwhileDelivered = 0;
+  #meanwhileInFlight: number | undefined;
   /** Insertion order is recency: the first key is the least recently used. */
   #descriptions = new Map<number, EventDescription>();
   #describeWanted = new Set<number>();
@@ -95,6 +121,18 @@ export class EventClient {
   query(query: EventQuery): void {
     this.#latest = query;
     this.#dirty = true;
+    this.onready?.();
+  }
+  /**
+   * Stand a Meanwhile question, as often as every frame. drain() sends it once the same question
+   * has stood for meanwhileRest (the clock and view at rest), one in flight at a time; a page
+   * loading afterwards asks it again. Replies older than the last delivered are dropped.
+   */
+  meanwhile(query: MeanwhileQuery): void {
+    if (this.#disposed || (this.#meanwhile && sameMeanwhile(query, this.#meanwhile.query))) return;
+    this.#meanwhile = {
+      query: { ...query, center: [...query.center], exclude: [...query.exclude] },
+    };
     this.onready?.();
   }
   /** The row's label, parent label and dates when cached; otherwise the next drain() asks. */
@@ -136,6 +174,8 @@ export class EventClient {
           this.#loading = undefined;
         } else if (reply.request === 'query') {
           if (reply.generation === this.#inFlight) this.#inFlight = undefined;
+        } else if (reply.request === 'meanwhile') {
+          if (reply.generation === this.#meanwhileInFlight) this.#meanwhileInFlight = undefined;
         } else if (reply.request === 'describe') {
           this.#describing.clear();
         } else {
@@ -152,12 +192,21 @@ export class EventClient {
         replies.push(reply);
         continue;
       }
+      if (reply.type === 'meanwhile') {
+        if (reply.generation === this.#meanwhileInFlight) this.#meanwhileInFlight = undefined;
+        if (reply.generation <= this.#meanwhileDelivered) continue;
+        this.#meanwhileDelivered = reply.generation;
+        for (const event of reply.events) this.#remember(event);
+        replies.push(reply);
+        continue;
+      }
       if (reply.type === 'result' && reply.generation <= this.#lastDelivered) continue;
       this.#plan = reply.plan;
       if (reply.type === 'state') {
         if (reply.loaded) {
           this.#loading = undefined;
           this.#dirty = !!this.#latest;
+          this.#meanwhileSent = undefined;
           this.#undescribed.clear();
         }
         replies.push(reply);
@@ -208,12 +257,24 @@ export class EventClient {
       for (const row of rows) this.#describing.add(row);
       this.#worker.postMessage({ type: 'describe', rows }, []);
     }
-    if (this.#dirty && this.#inFlight === undefined) {
-      this.#timer = setTimeout(
-        () => this.onready?.(),
-        Math.max(0, interval - (now - this.#lastSent)),
-      );
+    let wake = Infinity;
+    const standing = this.#meanwhile;
+    if (standing && !sameMeanwhile(standing.query, this.#meanwhileSent)) {
+      standing.since ??= now;
+      const rest = standing.since + tunables.meanwhileRest - now;
+      if (rest > 0) wake = rest;
+      else if (this.#meanwhileInFlight === undefined) {
+        this.#meanwhileInFlight = ++this.#meanwhileGeneration;
+        this.#meanwhileSent = standing.query;
+        this.#worker.postMessage(
+          { type: 'meanwhile', generation: this.#meanwhileInFlight, ...standing.query },
+          [],
+        );
+      }
     }
+    if (this.#dirty && this.#inFlight === undefined)
+      wake = Math.min(wake, Math.max(0, interval - (now - this.#lastSent)));
+    if (wake < Infinity) this.#timer = setTimeout(() => this.onready?.(), wake);
     return replies;
   }
   retry(): void {
@@ -229,6 +290,8 @@ export class EventClient {
     this.#ready = [];
     this.#latest = undefined;
     this.#plan = undefined;
+    this.#meanwhile = undefined;
+    this.#meanwhileSent = undefined;
     this.#descriptions.clear();
     this.#describeWanted.clear();
     this.#describing.clear();
