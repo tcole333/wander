@@ -6,7 +6,13 @@ import type { WalkAudio } from '../audio/walkAudio';
 import { startExplore, WATERLOO, worldViewOn } from './explore';
 
 // The real clock, flight and view control, with the ruler and its layer standing in for the DOM.
-const drawn = vi.hoisted(() => ({ rulers: 0, disposed: 0, layers: [] as FakeLayer[] }));
+const drawn = vi.hoisted(() => ({
+  rulers: 0,
+  disposed: 0,
+  layers: [] as FakeLayer[],
+  /** The part that throws as it is built, if any. */
+  broken: null as 'ruler' | 'flight' | null,
+}));
 interface FakeLayer {
   className: string;
   children: unknown[];
@@ -19,6 +25,7 @@ vi.mock('../story/ui/rulerCraft', () => ({
   CraftRuler: class {
     element = { ruler: true };
     constructor() {
+      if (drawn.broken === 'ruler') throw new Error('the ruler cannot be drawn');
       drawn.rulers++;
     }
     dispose() {
@@ -26,6 +33,17 @@ vi.mock('../story/ui/rulerCraft', () => ({
     }
   },
 }));
+vi.mock('../view/freeFlight', async (importOriginal) => {
+  const { FreeFlight } = await importOriginal<typeof import('../view/freeFlight')>();
+  return {
+    FreeFlight: class extends FreeFlight {
+      constructor(...path: ConstructorParameters<typeof FreeFlight>) {
+        if (drawn.broken === 'flight') throw new Error('the flight cannot be planned');
+        super(...path);
+      }
+    },
+  };
+});
 vi.mock('../story/ui/dom', () => ({
   el: (_tag: string, className = '') => {
     const layer: FakeLayer = {
@@ -49,7 +67,7 @@ const DT = 1 / 60;
 const WORLD_KM = 30000;
 
 function setup(arrive: 'fly' | 'jump' = 'fly') {
-  Object.assign(drawn, { rulers: 0, disposed: 0, layers: [] });
+  Object.assign(drawn, { rulers: 0, disposed: 0, layers: [], broken: null });
   const clock = new WorldClock();
   const control = new ViewControl({ lon: 75, lat: 15, viewKm: WORLD_KM, tilt: 0, heading: 0 });
   control.maxKm = WORLD_KM;
@@ -140,6 +158,26 @@ describe('Explore', () => {
     expect(drawn.layers[0]!.removed).toBe(true);
     expect(window.__worldTime).toBeUndefined();
   });
+
+  it.each(['ruler', 'flight'] as const)(
+    'leaves the page, the view control and the script hook alone when the %s fails',
+    (part) => {
+      Object.assign(drawn, { rulers: 0, disposed: 0, layers: [], broken: part });
+      const control = new ViewControl({ lon: 75, lat: 15, viewKm: WORLD_KM, tilt: 0, heading: 0 });
+      control.maxKm = WORLD_KM;
+      control.arrowKeys = false;
+      const onInput = control.onInput;
+      const append = vi.fn();
+      const root = { append } as unknown as HTMLElement;
+      const sound = { leave: vi.fn() } as unknown as WalkAudio;
+      expect(() => startExplore({ root, control, sound, arrive: 'fly' })).toThrow(part);
+      expect(append).not.toHaveBeenCalled();
+      expect(drawn.rulers - drawn.disposed).toBe(0);
+      expect(control.arrowKeys).toBe(false);
+      expect(control.onInput).toBe(onInput);
+      expect(window.__worldTime).toBeUndefined();
+    },
+  );
 
   it('holds the dive view within 35 degrees of the equator', () => {
     expect(worldViewOn([10, -60], 1)).toMatchObject({ lon: 10, lat: -35 });
