@@ -69,7 +69,8 @@ function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolea
  * meanwhile() stands Meanwhile's question for the now window, sent once it has stood unchanged
  * for meanwhileRest; 'meanwhile' replies carry the picks. description(row) answers from a cache
  * of DESCRIPTION_ROWS rows, or asks the worker on the next drain(), whose 'described' reply says
- * the answer has arrived.
+ * the answer has arrived. A partial description, made before the row's parent was resident, is
+ * asked again once a page loads and answers until the new one arrives.
  */
 export class EventClient {
   readonly #worker: EventWorker;
@@ -102,6 +103,8 @@ export class EventClient {
   #describing = new Set<number>();
   /** Rows no resident page held when asked; asked again once another page loads. */
   #undescribed = new Set<number>();
+  /** Cached rows described before their parent was resident; asked again once a page loads. */
+  #partial = new Set<number>();
   /** Wakes the frame loop. Replies and fetched bytes stay queued until drain(). */
   onready: (() => void) | null = null;
 
@@ -221,6 +224,9 @@ export class EventClient {
           this.#dirty = !!this.#latest;
           this.#meanwhileSent = undefined;
           this.#undescribed.clear();
+          // The cached answer stands until the new one arrives, so a plate does not blink.
+          for (const row of this.#partial)
+            if (!this.#describing.has(row)) this.#describeWanted.add(row);
         }
         replies.push(reply);
       } else {
@@ -309,14 +315,20 @@ export class EventClient {
     this.#describeWanted.clear();
     this.#describing.clear();
     this.#undescribed.clear();
+    this.#partial.clear();
     this.onready = null;
   }
   #remember(event: EventDescription): void {
     this.#descriptions.delete(event.row);
     this.#descriptions.set(event.row, event);
     this.#undescribed.delete(event.row);
-    if (this.#descriptions.size > DESCRIPTION_ROWS)
-      this.#descriptions.delete(this.#descriptions.keys().next().value!);
+    if (event.partial) this.#partial.add(event.row);
+    else this.#partial.delete(event.row);
+    if (this.#descriptions.size > DESCRIPTION_ROWS) {
+      const oldest = this.#descriptions.keys().next().value!;
+      this.#descriptions.delete(oldest);
+      this.#partial.delete(oldest);
+    }
   }
   #arrive(reply: Arrival): void {
     if (this.#disposed) return;

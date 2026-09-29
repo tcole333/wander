@@ -24,11 +24,13 @@ test('a row gives its label, its parent label and its dates', () => {
     prec: 11,
   });
   expect(describe(index, 0)).not.toHaveProperty('parent');
+  expect(describe(index, 0)).not.toHaveProperty('partial');
 });
 
-test('a parent no resident page holds leaves the child without one; an absent row is undefined', () => {
+test('a parent no resident page holds leaves the child partial; an absent row is undefined', () => {
   const index = indexOf([pageOf([{ row: 5, parent: 2 }])]);
   expect(describe(index, 5)).not.toHaveProperty('parent');
+  expect(describe(index, 5)).toHaveProperty('partial', true);
   expect(describe(index, 2)).toBeUndefined();
 });
 

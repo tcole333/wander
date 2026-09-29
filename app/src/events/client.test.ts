@@ -318,6 +318,32 @@ describe('descriptions', () => {
     client.dispose();
   });
 
+  test('a row described before its parent was resident is asked again once a page loads', () => {
+    const worker = new FakeWorker();
+    const release = releaseOf([pageOf([]), pageOf([])]);
+    const client = new EventClient(worker, release, host);
+    const partial: EventDescription = { ...described(5), partial: true };
+    const whole: EventDescription = { ...described(5), parent: 'Event 2' };
+    client.description(5);
+    client.drain(0);
+    worker.reply({ type: 'described', events: [partial], missing: [] });
+    client.drain(10);
+    worker.reply({ type: 'state', loaded: release.overview, classes: [], plan });
+    client.drain(20);
+    expect(sentOf(worker, 'describe')).toEqual([
+      { type: 'describe', rows: [5] },
+      { type: 'describe', rows: [5] },
+    ]);
+    expect(client.description(5)).toEqual(partial);
+    worker.reply({ type: 'described', events: [whole], missing: [] });
+    client.drain(30);
+    expect(client.description(5)).toEqual(whole);
+    worker.reply({ type: 'state', loaded: release.files[1]!.key, classes: [], plan });
+    client.drain(40);
+    expect(sentOf(worker, 'describe')).toHaveLength(2);
+    client.dispose();
+  });
+
   test(`the cache keeps the ${DESCRIPTION_ROWS} most recently used rows`, () => {
     const worker = new FakeWorker();
     const client = new EventClient(worker, releaseOf([pageOf([])]), host);
