@@ -374,22 +374,7 @@ const plague = [
   }),
 ].join('');
 
-/** An empty bowl, seen from a little above. */
-const famine = [
-  polygon([
-    ...ellipse([32, 29], 26, 9, 180, 360),
-    ...ellipse([32, 29], 26, 24, 0, 180).slice(1, -1),
-  ]),
-  polygon(ellipse([32, 28.5], 19.5, 4.5, 0, 360, 32), true),
-  polygon([
-    [23, 50],
-    [41, 50],
-    [44, 57],
-    [20, 57],
-  ]),
-].join('');
-
-// Governance: arms, walls and documents, the heraldry of states.
+// Governance: arms, walls and documents, the heraldry of states, and a famine's empty bowl.
 
 /** Crossed swords, the maps' old sign for a battle. */
 const battle = sword(-43) + sword(43);
@@ -477,6 +462,21 @@ const uprising = [
   ]),
 ].join('');
 
+/** An empty bowl, seen from a little above. */
+const famine = [
+  polygon([
+    ...ellipse([32, 29], 26, 9, 180, 360),
+    ...ellipse([32, 29], 26, 24, 0, 180).slice(1, -1),
+  ]),
+  polygon(ellipse([32, 28.5], 19.5, 4.5, 0, 360, 32), true),
+  polygon([
+    [23, 50],
+    [41, 50],
+    [44, 57],
+    [20, 57],
+  ]),
+].join('');
+
 /** A memorial stone: an assassination, a massacre, a genocide or a pogrom. */
 const atrocity = polygon([
   ...arc([32, 24], 13, 180, 360),
@@ -554,12 +554,12 @@ export const EVENT_GLYPHS = {
   heat,
   cold,
   plague,
-  famine,
   war,
   battle,
   siege,
   treaty,
   uprising,
+  famine,
   atrocity,
   wreck,
   expedition,
