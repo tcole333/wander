@@ -13,6 +13,8 @@ import {
   platePrecision,
   spreadPips,
   yearsLabel,
+  calendarYearLabel,
+  yearsIn,
 } from './format';
 
 const story = parseStory(
@@ -20,6 +22,44 @@ const story = parseStory(
 );
 
 describe('the walk UI', () => {
+  it('names historical years without a year zero and jumps to coarse calendar marks', () => {
+    expect([-9999, -99, -9, 0, 1, 2000].map((year) => calendarYearLabel(year, true))).toEqual([
+      '10000 BCE',
+      '100 BCE',
+      '10 BCE',
+      '1 BCE',
+      '1 CE',
+      '2000 CE',
+    ]);
+    const span = { start: dayFromIso('-9999-01-01'), end: dayFromIso('2000-12-31') };
+    const marks = yearsIn(span, 1000);
+    expect(marks.map((mark) => calendarYearLabel(mark.year, true))).toEqual([
+      '10000 BCE',
+      '9000 BCE',
+      '8000 BCE',
+      '7000 BCE',
+      '6000 BCE',
+      '5000 BCE',
+      '4000 BCE',
+      '3000 BCE',
+      '2000 BCE',
+      '1000 BCE',
+      '1 CE',
+      '1000 CE',
+      '2000 CE',
+    ]);
+    expect(marks[0]?.start).toBe(span.start);
+    const crossing = monthsIn(
+      { start: dayFromIso('0000-10-15'), end: dayFromIso('0001-04-01') },
+      3,
+    );
+    expect(crossing.map(({ year, month }) => [year, month])).toEqual([
+      [0, 10],
+      [1, 1],
+    ]);
+    expect(crossing[0]?.end).toBe(0);
+  });
+
   it('dates each Tambora beat, with short windows spelled out', () => {
     expect(story.beats.map(dateLine)).toEqual([
       'April 1815',

@@ -42,7 +42,7 @@ describe('world time', () => {
       [0, -1],
       [0, Infinity],
     ]) {
-      expect(() => clock.set(day!, width!)).toThrow(RangeError);
+      expect(() => clock.set(day!, width)).toThrow(RangeError);
     }
     expect(clock.state()).toBe(initial);
     expect(seen).not.toHaveBeenCalled();
