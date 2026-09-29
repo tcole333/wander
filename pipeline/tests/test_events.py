@@ -7,7 +7,7 @@ from dataclasses import replace
 import pytest
 
 from prebuild import events
-from prebuild.config import load_event_classes
+from prebuild.config import CuratedDays, load_event_classes
 from prebuild.excerpts import select_events
 from prebuild.hashing import sha256_file
 from prebuild.paths import excerpts_dir
@@ -85,7 +85,9 @@ def test_a_curated_date_stands_in_for_wikidata_s_and_the_span_widens_to_hold_it(
             row("Q3656338", "P582", "1818-09-09T00:00:00Z", 11, cls=WAR),
         ]
     )
-    [nejd] = events.index(statements, load_event_classes(), {}, {"Q3656338": "1816-09-30"})
+    [nejd] = events.index(
+        statements, load_event_classes(), {}, {"Q3656338": CuratedDays("1816-09-30")}
+    )
     assert (nejd.day, nejd.precision) == ((1816, 9, 30), 11)
     assert (nejd.t0, nejd.t1) == ((1816, 9, 30), (1818, 9, 9))
 
@@ -98,8 +100,33 @@ def test_a_curated_date_leaves_the_date_it_corrects_out_of_the_span():
             row("Q4870957", "P585", "1815-10-17T00:00:00Z", 11, cls=WAR),
         ]
     )
-    [roble] = events.index(statements, load_event_classes(), {}, {"Q4870957": "1813-10-17"})
+    [roble] = events.index(
+        statements, load_event_classes(), {}, {"Q4870957": CuratedDays("1813-10-17")}
+    )
     assert (roble.day, roble.t0, roble.t1) == ((1813, 10, 17), (1813, 10, 17), (1813, 10, 17))
+
+
+def test_a_curated_day_before_the_reform_is_read_in_the_julian_calendar():
+    statements = events.read_export([HEADER, row("Q1", "P585", "1453-06-01T00:00:00Z", 11)])
+    [fall] = events.index(statements, load_event_classes(), {}, {"Q1": CuratedDays("1453-05-29")})
+    assert (fall.day, events.format_historical(fall.day)) == ((1453, 6, 7), "29 May 1453")
+
+
+def test_a_curated_end_stands_in_for_wikidata_s_end_times():
+    statements = events.read_export(
+        [
+            HEADER,
+            row("Q160077", "P580", "1453-04-15T00:00:00Z", 11),
+            row("Q160077", "P582", "1453-05-29T00:00:00Z", 11),  # unconverted
+            row("Q160077", "P582", "1453-05-20T00:00:00Z", 11),
+        ]
+    )
+    curated = {"Q160077": CuratedDays(end="1453-05-29")}
+    [fall] = events.index(statements, load_event_classes(), {}, curated)
+    assert (events.format_historical(fall.t0), events.format_historical(fall.t1)) == (
+        "6 April 1453",
+        "29 May 1453",
+    )
 
 
 def test_of_several_dates_the_most_precise_wins_then_the_earliest():

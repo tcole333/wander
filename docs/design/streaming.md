@@ -485,8 +485,9 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   (8 macro-regions);
   `pipeline/config/event-classes.yaml` (the class allowlist and weights, which keep out sporting
   seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, the
-  days a better source dates an event to where Wikidata's date is wrong, and the events whose date
-  the sources dispute, and sourced placement fallbacks for unlocated parents, each with its reason);
+  days a better source dates an event to or ends it on where Wikidata's are wrong, and the events
+  whose date the sources dispute, and sourced placement fallbacks for unlocated parents, each with
+  its reason);
   `pipeline/queries/events.rq`, the one query, run once per class.
 - **Export:** `uv run prebuild wikidata` runs `events.rq` for each class against QLever's public
   Wikidata endpoint, one request at a time with a pause between them, and writes the rows as gzip
@@ -506,9 +507,10 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   the day `events-curated.yaml` gives where a better source shows Wikidata's wrong; and its span
   `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and ends,
   widened to their precision, so a war dated at its armistice still spans its years, leaving out
-  the statement a curated day corrects. In milestone 1 the span only keeps a long event out of a
-  short window's Meanwhile (3.9). Its score is `log2(1 + editions)` times the class weight plus
-  curated `legacyBoost`, unscaled. Parents stay as Wikidata gives them. The table is TSV with a
+  the statement a curated day corrects, and ends on a curated end where one is given. In
+  milestone 1 the span only keeps a long event out of a short window's Meanwhile (3.9). Its score
+  is `log2(1 + editions)` times the class weight plus curated `legacyBoost`, unscaled. Parents stay
+  as Wikidata gives them. The table is TSV with a
   header line, in score order, keeping every accepted row, with the columns qid, label, enwiki,
   class, date, precision, t0, t1, lon, lat, inherited, editions, score and parents; dates are ISO days in
   astronomical years, as `dates.ts` reads them. The table remains build-only.

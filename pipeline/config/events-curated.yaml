@@ -1,9 +1,10 @@
 # Hand-made corrections to the event index (streaming.md 3.4), each with its reason (`why`).
 # `boosts` adds percentile points before class weighting in .wev, capped at 1: {qid, boost, why}.
 # Optional `legacyBoost` preserves the TSV's log2(1 + editions) x weight score. `dates` gives the
-# day a better source dates an event to where Wikidata's date is wrong: {qid, date, why}, the date
-# a quoted ISO day. `contested` names the events whose date the sources dispute, which Meanwhile,
-# printing one date for each, leaves out: {qid, why}.
+# days a better source dates an event to where Wikidata's are wrong: {qid, date?, end?, why}, the
+# day it dates the event to, the day the event ends, or both, each a quoted ISO day as history
+# writes it, in the Julian calendar before 15 October 1582. `contested` names the events whose
+# date the sources dispute, which Meanwhile, printing one date for each, leaves out: {qid, why}.
 # `places` supplies unlocated parents with a sourced P17 `countryCentroid: [lon, lat]` or a
 # last-resort `at: [lon, lat]`, each with qid and why. Children take precedence over both. The
 # current export does not carry P17, so no country position is guessed from the event's label.

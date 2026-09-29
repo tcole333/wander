@@ -10,13 +10,14 @@ Wikipedia edition. Per event it takes:
 
 - the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`);
 - the date: its point in time (P585), else its start (P580), else its end (P582); among several of
-  one property, the most precise, then the earliest; or the day `dates` in
-  `pipeline/config/events-curated.yaml` gives it, where a better source dates it otherwise. A date
-  of year or month precision stands for the first day it names (`named_days`);
+  one property, the most precise, then the earliest; or the `date` in `dates` in
+  `pipeline/config/events-curated.yaml`, where a better source dates it otherwise. A date of year
+  or month precision stands for the first day it names (`named_days`);
 - the span `t0`-`t1` it covers: from the earliest of its date and start times to the latest of its
   date and end times, each widened to its precision (a year runs 1 January to 31 December), so a
-  war with a point in time still spans its years; a curated day leaves out the statement it
-  corrects, so a one-day battle Wikidata dates two years late spans its one day;
+  war with a point in time still spans its years; a curated date leaves out the statement it
+  corrects, so a one-day battle Wikidata dates two years late spans its one day, and a curated
+  `end` stands in for its end times (P582);
 - the place: its own coordinates, else those of its location (`inherited` 1);
 - the score: log2(1 + Wikipedia editions) times the class's weight, plus any legacyBoost in
   `pipeline/config/events-curated.yaml`;
@@ -35,7 +36,9 @@ month as its source wrote it, unconverted. Sources write the dates before 15 Oct
 Julian calendar, so the stage reads a year or month in that historical calendar: 1066 runs from
 1 January 1066 (Julian), which is 7 January (Gregorian), to 31 December (Julian). The calendar
 here mirrors dates.ts's: `historical` and `format_historical` give a day as history writes it,
-Julian before the reform, as Explore shows it.
+Julian before the reform, as Explore shows it. A curated day is written as history writes it
+too, so the stage reads one before the reform in the Julian: the Fall of Constantinople's end,
+29 May 1453, is the Gregorian 7 June.
 
 The table stays build-only for Meanwhile and lobby picks. The separate event-files stage reads it
 and the pinned export to publish the runtime `.wev` files, with percentile scores and display
@@ -55,6 +58,7 @@ from dataclasses import dataclass
 from prebuild.config import (
     EVENT_CLASSES,
     EVENT_CURATED,
+    CuratedDays,
     EventClass,
     load_event_boosts,
     load_event_classes,
@@ -266,12 +270,13 @@ def index(
     statements: Iterable[Statement],
     classes: Sequence[EventClass],
     boosts: Mapping[str, float],
-    dates: Mapping[str, str] | None = None,
+    dates: Mapping[str, CuratedDays] | None = None,
     *,
     keep_unlocated: bool = False,
 ) -> list[Event]:
-    """The cleaned, scored events, in score order, then by qid. A curated
-    date (`dates`, an ISO day by qid) stands in for Wikidata's, in the span as well as the date."""
+    """The cleaned, scored events, in score order, then by qid. A curated date (`dates`, by qid)
+    stands in for Wikidata's, in the span as well as the date, and a curated end for its end
+    times."""
     by_qid = {c.qid: c for c in classes}
     grouped: dict[str, list[Statement]] = {}
     for s in statements:
@@ -291,11 +296,18 @@ def index(
         lon_lat = lon_lat or (math.nan, math.nan)
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
-        curated = _day(f"{dates[qid]}T") if dates and qid in dates else None
+        curation = dates.get(qid, CuratedDays()) if dates else CuratedDays()
+        curated = _historical_day(curation.date) if curation.date else None
+        end = _historical_day(curation.end) if curation.end else None
         day, precision = (curated, DAY) if curated else (_first_day(dated), dated.precision)
-        # A curated day corrects the statement Wikidata dates the event by, in its span as well.
+        # A curated day corrects the statement Wikidata dates the event by, in its span as well,
+        # and a curated end every end time.
         corrected = (dated.prop, dated.day, dated.precision) if curated else None
-        spanning = [s for s in group if (s.prop, s.day, s.precision) != corrected]
+        spanning = [
+            s
+            for s in group
+            if (s.prop, s.day, s.precision) != corrected and not (end and s.prop == "P582")
+        ]
         starts = [s for s in spanning if s is dated or s.prop == "P580"]
         ends = [s for s in spanning if s is dated or s.prop == "P582"]
         events.append(
@@ -307,7 +319,7 @@ def index(
                 day=day,
                 precision=precision,
                 t0=min([day, *(_first_day(s) for s in starts)]),
-                t1=max([day, *(_last_day(s) for s in ends)]),
+                t1=max([day, *([end] if end else []), *(_last_day(s) for s in ends)]),
                 lon=lon_lat[0],
                 lat=lon_lat[1],
                 inherited=coord is None,
@@ -474,6 +486,14 @@ def format_historical(day: Day, precision: int = DAY) -> str:
         return named
     named = f"{MONTHS[month - 1]} {named}"
     return named if precision == MONTH else f"{date} {named}"
+
+
+def _historical_day(text: str) -> Day:
+    """The proleptic Gregorian day of a curated ISO day, written as history writes it."""
+    day = _day(f"{text}T")
+    if day is None:
+        raise EventsError(f"{text!r} is not an ISO day")
+    return from_historical(day)
 
 
 def _day(text: str) -> Day | None:
