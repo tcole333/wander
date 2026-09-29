@@ -279,6 +279,34 @@ source_url = "https://www.sciencebase.gov/catalog/file/get/60ad2fd7d34e4043c850e
 bytes = 22757
 sha256 = "d5dc8aa15e5f6767750bc234466ca3bf80731d382dd2b6e19bba69ea54c109fa"
 
+# USGS's selected mines, deposits and districts of 22 critical minerals as of 2017 (Professional
+# Paper 1802): an Esri file geodatabase in a zip, read with GDAL or pyogrio's OpenFileGDB driver.
+# Its layers are PP1802_CritMin_pts (2,121 points) and PP1802_CritMin_polys (4 multipolygons), both
+# EPSG:4326, with DEPOSIT_NAME, CRITICAL_MINERAL, DEPOSIT_TYPE, LATITUDE, LONGITUDE, LOCATION and
+# LOC_DETAIL. The metadata says the data show the general global distribution and are not suitable
+# for spatial analysis except at regional scales. ScienceBase lists another MD5 for the metadata XML
+# than the file it serves has; the sha256 below is of the served file.
+[usgs-critical-minerals-2017]
+name = "USGS Global Distribution of Selected Mines, Deposits, and Districts of Critical Minerals (PP1802, 2017)"
+version = "2017, USGS data release published 2017-12-19"
+license = "Public domain (US government work)"
+license_url = "https://www.usa.gov/publicdomain/label/1.0/"
+attribution = "U.S. Geological Survey, Global Distribution of Selected Mines, Deposits, and Districts of Critical Minerals (2017), DOI 10.5066/F7GH9GQR."
+landing_page = "https://www.sciencebase.gov/catalog/item/594d3c8ee4b062508e39b332"
+retrieved = "2026-07-17"
+
+[[usgs-critical-minerals-2017.files]]
+path = "sources/usgs-critical-minerals-2017/PP1802_Global_CriticalMinerals_gdb.zip"
+source_url = "https://www.sciencebase.gov/catalog/file/get/594d3c8ee4b062508e39b332?f=__disk__06%2Fed%2F4d%2F06ed4d6cda5626aaed1d2a846588dac72a3e5534"
+bytes = 6503799
+sha256 = "5eb3155e7724e1740af0194a71fd6b49f7c9ed5ca1c9e3636e4224012f8e162e"
+
+[[usgs-critical-minerals-2017.files]]
+path = "sources/usgs-critical-minerals-2017/PP1802_CritMin_FGDC_Metadata.xml"
+source_url = "https://www.sciencebase.gov/catalog/file/get/594d3c8ee4b062508e39b332?f=__disk__cb%2F90%2F8c%2Fcb908c057f01f8413bc38a9a883ef6838c8b4070"
+bytes = 23435
+sha256 = "60cedfec2147f5e0787a5a1b475abb982fc94c0481d7e6a95b76b30952e39c01"
+
 # Wikidata's events of the classes in pipeline/config/event-classes.yaml, as QLever's
 # endpoint gave them (streaming.md 3.4). `uv run prebuild wikidata` wrote this entry;
 # delete it by hand before the next export.
