@@ -11,7 +11,9 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from '@playwright/test';
 import { EVENT_CLASS_SYMBOLS, SOUTHERN_GLYPHS } from '../src/marks/eventSymbols.ts';
-import { EVENT_GLYPHS, GLYPH_UNITS, PACES, type GlyphId, type Pace } from '../src/marks/symbols.ts';
+import { PACES, type Pace } from '../src/marks/families.ts';
+import { GLYPH_UNITS } from '../src/marks/glyphs.ts';
+import { EVENT_GLYPHS, type GlyphId } from '../src/marks/symbols.ts';
 
 const { values } = parseArgs({
   options: {

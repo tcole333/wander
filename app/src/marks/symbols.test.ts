@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { EVENT_GLYPHS, GLYPH_UNITS } from './symbols';
+import { GLYPH_UNITS } from './glyphs';
+import { EVENT_GLYPHS } from './symbols';
 
 const MARGIN = 4;
 

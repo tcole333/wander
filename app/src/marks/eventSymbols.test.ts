@@ -8,7 +8,8 @@ import {
   eventSymbols,
   glyphAt,
 } from './eventSymbols';
-import { EVENT_GLYPHS, PACES, type GlyphId, type Pace } from './symbols';
+import { PACES, type Pace } from './families';
+import { EVENT_GLYPHS, type GlyphId } from './symbols';
 
 const config = parse(
   readFileSync(new URL('../../../pipeline/config/event-classes.yaml', import.meta.url), 'utf8'),
