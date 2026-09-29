@@ -8,7 +8,8 @@
 // --demo: the dev page's ?markDemo (the lobby's glows as marks in the four test glyphs), every
 // mark variant at world view, 3,000 km over Europe, 3,000 km over the demo's specimen tray in the
 // Sahara and 300 km tilted over the Alps, each with one focal mark; a contact sheet per variant and one of all variants side by side, beside E1b's cast
-// token (--e1b, by default docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png); and
+// token (--e1b, by default docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png, which
+// must exist: no sheet goes without it); and
 // the GPU time of 140, 256 and 512 marks at world view over the marks turned off, in explore.json
 // with any console errors. The time is the scene drawn into a target of the canvas's size, 400
 // samples of three draws each with the marks on and as many off, in turn (markDemo.ts, gpuAB):
@@ -84,6 +85,9 @@ if (!['localhost', '127.0.0.1', '[::1]'].includes(origin.hostname)) {
 const dataOrigin = new URL(values.data);
 if (!['localhost', '127.0.0.1', '[::1]'].includes(dataOrigin.hostname)) {
   throw new Error('--data must be a local data server');
+}
+if (!existsSync(values.e1b)) {
+  throw new Error(`no E1b render at ${values.e1b}: every sheet sets it beside the marks (--e1b)`);
 }
 const timeout = Number(values.timeout) * 1000;
 const out = resolve(values.out);
@@ -240,14 +244,12 @@ async function sheets(browser: Browser, shots: Shot[]): Promise<void> {
     deviceScaleFactor: 1,
   });
   const png = (path: string) => `data:image/png;base64,${readFileSync(path).toString('base64')}`;
-  const e1b = existsSync(values.e1b) ? png(values.e1b) : null;
+  const e1b = png(values.e1b);
   const zoom = (src: string, x: number, y: number, w: number, h: number, k = 2) =>
     `<div class="crop" style="width:${w * k}px;height:${h * k}px">
       <img src="${src}" style="transform:scale(${k}) translate(${-x}px,${-y}px)"></div>`;
-  const e1bCell = e1b
-    ? `<figure>${zoom(e1b, E1B_CROP.x, E1B_CROP.y, E1B_CROP.w, E1B_CROP.h)}
-      <figcaption>E1b cast token, 2×</figcaption></figure>`
-    : '';
+  const e1bCell = `<figure>${zoom(e1b, E1B_CROP.x, E1B_CROP.y, E1B_CROP.w, E1B_CROP.h)}
+      <figcaption>E1b cast token, 2×</figcaption></figure>`;
   /** A crop `w` x `h` about a point, kept on screen and off the ruler, at `k` times. */
   const crop = (shot: Shot, at: { x: number; y: number }, w: number, h: number, k = 2) => {
     const x = Math.max(0, Math.min(1440 - w, at.x - w / 2));
