@@ -1037,12 +1037,14 @@ only a failed start or a worker error ends the worker.
   again after a page loads. The worker walks the resident rows in score order and returns the
   first `count` that overlap the window and span no longer than it or 92 days (3.9's rule: a
   decade's war does not stand for a month of it), that the globe does not draw, that the screen
-  does not show (past the limb or the viewport's edges, by the query's own projection), that lie
-  at least `meanwhileMinKm` from the view's center and from each other, never a focal or pinned
-  event's part-of kin (its ancestors and descendants, as 3.9 keeps a beat's focal event's), and
-  never a parent with its child. Each pick carries its description and place, and the client keeps
-  the description. At world view the screen shows the near side of the globe, so Meanwhile names
-  what happens on the far side.
+  does not show (past the limb or the viewport's edges, by the query's own projection), that have
+  a place of their own (neither inherited nor derived, flags bit0 and bit1 in 3.4: 3.9's rule for
+  a list no writer reads, since a borrowed place is often a region's middle and Meanwhile flies
+  there), that lie at least `meanwhileMinKm` from the view's center and from each other, never a
+  focal or pinned event's part-of kin (its ancestors and descendants, as 3.9 keeps a beat's focal
+  event's), and never a parent with its child. Each pick carries its description and place, and
+  the client keeps the description. At world view the screen shows the near side of the globe, so
+  Meanwhile names what happens on the far side.
 
 ### 5.4 Uploads per frame
 
