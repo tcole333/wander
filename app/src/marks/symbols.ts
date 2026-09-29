@@ -496,15 +496,16 @@ const wreck = (() => {
     [50, 49],
     [14, 49],
   ];
+  // Sails 6 units clear of each other and of the hull, so the ship stays three shapes at 12 px.
   const mainsail: Point[] = [
     [35, 4],
-    [35, 32],
-    [57, 32],
+    [35, 29],
+    [57, 29],
   ];
   const foresail: Point[] = [
-    [31, 9],
-    [31, 32],
-    [12, 32],
+    [29, 9],
+    [29, 29],
+    [12, 29],
   ];
   const tilt = (points: Point[]) => above(rotate(points, -22, [32, 42]), 46);
   return [hull, mainsail, foresail]
@@ -516,10 +517,10 @@ const wreck = (() => {
 /** A compass rose. */
 const expedition = polygon(star(8, [28, 16], 9));
 
-/** A house burning, its roof gone to flame. */
+/** A house burning, its roof gone to flame: a window, and its door at the right. */
 const conflagration = [
   polygon([
-    [28, 58],
+    [34, 58],
     [16, 58],
     [16, 42],
     [11, 41],
@@ -531,28 +532,11 @@ const conflagration = [
     ...bezier([45, 15], [52, 22], [56, 33], [53, 41]).slice(1),
     [48, 42],
     [48, 58],
-    [36, 58],
-    [36, 48],
-    [28, 48],
+    [42, 58],
+    [42, 48],
+    [34, 48],
   ]),
-  polygon(
-    [
-      [20, 45],
-      [26, 45],
-      [26, 51],
-      [20, 51],
-    ],
-    true,
-  ),
-  polygon(
-    [
-      [38, 45],
-      [44, 45],
-      [44, 51],
-      [38, 51],
-    ],
-    true,
-  ),
+  rect(22, 45, 28, 51, true),
 ].join('');
 
 /** Every glyph, nature's first, then governance's and infrastructure's. */
