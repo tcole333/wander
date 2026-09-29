@@ -45,7 +45,7 @@ import {
   disposeRouteTextures,
   registerRoutes,
   ROUTE_FRAGMENT_APPLY,
-  ROUTE_FRAGMENT_PARS,
+  routeFragmentPars,
 } from './routeHook';
 import { SeaNameLayer } from './seaNames';
 
@@ -166,10 +166,12 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
   const ash = createAshUniforms();
   const climate = createClimateUniforms();
   const borders = createBorderUniforms();
-  const routes = createRouteUniforms();
   const seaNames = new SeaNameLayer(options.marks ?? null);
   const marks = options.marks ? new MarkLayer(() => seaNames.glyphCells) : null;
   const fragment = lookFragment({ marks: marks !== null });
+  // With the marks' table, the routes' cells head their index table, so the look reads as many
+  // samplers as it does without marks.
+  const routes = createRouteUniforms({ cellsInIndices: marks !== null });
   const uniforms: Uniforms = {
     ...vertex,
     ...look,
@@ -225,7 +227,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${fragment.pars}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${ROUTE_FRAGMENT_PARS}`,
+        `#include <common>\n${fragment.pars}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
       ],
       [
         '#include <color_fragment>',
@@ -282,7 +284,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
       account.texture('climate.uploadField', climate.lookClimateField.value);
       account.texture('labels.seaAtlas', seaNames.uniforms.lookSeaAtlas.value);
       account.texture('routes.segments', routes.lookRouteSegments.value);
-      account.texture('routes.cells', routes.lookRouteCells.value);
+      if (routes.lookRouteCells) account.texture('routes.cells', routes.lookRouteCells.value);
       account.texture('routes.indices', routes.lookRouteIndices.value);
       account.texture('routes.state', routes.lookRouteState.value);
       marks?.inspectMemory(account);
