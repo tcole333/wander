@@ -16,6 +16,23 @@ export interface EventWorker {
 type Arrival = EventReply | { type: 'fetched'; key: string; buf: ArrayBuffer };
 type FetchBytes = (url: string, stillWanted: () => boolean) => Promise<ArrayBuffer>;
 
+/**
+ * Owns the event worker and fetches its pages through the main-thread data fetcher.
+ * Queue the latest camera/ruler state with query(), then call drain(rAFTime) in the frame loop.
+ * onready wakes that loop; replies become visible only through drain(). Results carry increasing
+ * sent-query generations, so continuous scrubbing still receives the latest completed work.
+ *
+ * Query t0/t1 are inclusive, possibly fractional, proleptic Gregorian day numbers since
+ * 0001-01-01, with astronomical years (1 BCE is year 0), as in story/dates.ts. The clock chooses
+ * the visitor's range; the index retains all its dates. Tier is 'lite' or 'full'; focalQids are
+ * numeric Wikidata Q numbers. EventView defines the camera and CSS-pixel coordinate conventions.
+ *
+ * Result replies contain markers, labels, parent outlines and missingFocal Q numbers. Draw
+ * anchors only when anchorVisible; clip outline geometry independently. Interpolate each item's
+ * fade with fadeOpacity(fade, rAFTime) between replies, and stop drawing completed exits. State
+ * replies expose classes and page readiness/array bytes; errors name the failed file. retry()
+ * admits failed files again. dispose() terminates the worker and discards late arrivals.
+ */
 export class EventClient {
   readonly #worker: EventWorker;
   readonly #release: EventsRelease;
@@ -23,11 +40,13 @@ export class EventClient {
   readonly #fetch: FetchBytes;
   #ready: Arrival[] = [];
   #plan: PagePlan | undefined;
-  #latest: { query: EventQuery; generation: number } | undefined;
+  #latest: EventQuery | undefined;
   #generation = 0;
+  #lastDelivered = 0;
   #dirty = false;
   #inFlight: number | undefined;
   #lastSent = -Infinity;
+  #lastDrain: number | undefined;
   #loading: string | undefined;
   #failed = new Set<string>();
   #disposed = false;
@@ -59,12 +78,11 @@ export class EventClient {
       { tier },
     );
   }
-  /** Queue the newest desired view; match its generation against result replies. */
-  query(query: EventQuery): number {
-    this.#latest = { query, generation: ++this.#generation };
+  /** Coalesce to the newest desired view. A generation is assigned when drain() sends it. */
+  query(query: EventQuery): void {
+    this.#latest = query;
     this.#dirty = true;
     this.onready?.();
-    return this.#generation;
   }
   /** Call from rAF with performance.now(). State replies expose readiness, classes and array bytes. */
   drain(now: number): EventReply[] {
@@ -89,10 +107,11 @@ export class EventClient {
           this.#fatal = true;
           this.#worker.terminate();
         }
-        if (reply.generation !== undefined) this.#inFlight = undefined;
+        if (reply.generation === this.#inFlight) this.#inFlight = undefined;
         replies.push(reply);
         continue;
       }
+      if (reply.type === 'result' && reply.generation <= this.#lastDelivered) continue;
       this.#plan = reply.plan;
       if (reply.type === 'state') {
         if (reply.loaded) {
@@ -101,22 +120,29 @@ export class EventClient {
         }
         replies.push(reply);
       } else {
-        this.#inFlight = undefined;
-        if (reply.generation === this.#generation) replies.push(reply);
+        if (reply.generation === this.#inFlight) this.#inFlight = undefined;
+        this.#lastDelivered = reply.generation;
+        replies.push(reply);
       }
     }
     if (this.#fatal) return replies;
     const interval = 1000 / tunables.eventQueryHz;
+    // Round dispatch to the nearest frame instead of slipping a frame on rAF's fractional ms.
+    const slack = Math.min(interval, Math.max(0, now - (this.#lastDrain ?? now))) / 2;
+    this.#lastDrain = now;
     if (
       this.#dirty &&
       this.#latest &&
       this.#inFlight === undefined &&
-      now - this.#lastSent >= interval
+      now - this.#lastSent >= interval - slack
     ) {
-      this.#inFlight = this.#latest.generation;
+      this.#inFlight = ++this.#generation;
       this.#lastSent = now;
       this.#dirty = false;
-      this.#worker.postMessage({ type: 'query', ...this.#latest, now }, []);
+      this.#worker.postMessage(
+        { type: 'query', query: this.#latest, generation: this.#inFlight, now },
+        [],
+      );
     }
     // Wait for the overview decode before the rest; wait for an outstanding query's new page plan.
     if (!this.#loading && this.#plan && this.#inFlight === undefined) {
