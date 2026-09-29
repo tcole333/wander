@@ -31,6 +31,13 @@ export const FLAG = { focal: 1, hover: 2, hollow: 4, soft: 8 } as const;
 /** The focal mark's ember ring, in r: its radius and half its width. */
 export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
 
+/**
+ * A glyph's field as the look reads it, in its half grid: within `box` of its center (the cell's
+ * margin, less mips' reach), and out to `reach` beyond its edge, short of where its bytes run out
+ * (GLYPH_SPREAD); every edge, outline, rim and cap a glyph draws ends within that reach.
+ */
+export const GLYPH_FIELD = { reach: 0.45, box: 1.45 } as const;
+
 const float = (value: number) => (Number.isInteger(value) ? `${value}.0` : String(value));
 
 /** Declarations, before the look's LookSurface. */
@@ -44,6 +51,8 @@ export const MARKS_DECLARATIONS = /* glsl */ `
 // 127 steps, over the texels in half the grid.
 #define LOOK_MARK_BYTE_TO_GLYPH ${float(GLYPH_SPREAD / 127 / (GLYPH_UNITS / 2))}
 #define LOOK_MARK_HALF_GRID ${float(GLYPH_UNITS / 2)}
+#define LOOK_MARK_GLYPH_REACH ${float(GLYPH_FIELD.reach)}
+#define LOOK_MARK_GLYPH_BOX ${float(GLYPH_FIELD.box)}
 
 uniform bool lookMarksOn;
 uniform highp sampler2D lookMarkTable;
@@ -173,18 +182,23 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec2 nDisc = rq > 1e-5 ? -q / rq : vec2(0.0);
 
     // The glyph's field, in r; near its edge, where the bevel slopes and the glyph has relief,
-    // its gradient from two more taps a texel or a pixel away.
+    // its gradient from two more taps a texel or a pixel away. Its outline, its rim and its
+    // antialiasing, the cap's twice over, all end within the field's reach beyond its edge, so
+    // nothing is drawn where the field has run out or the cell's box would cut it square.
     float scale = f1.w;
+    float fieldReach = LOOK_MARK_GLYPH_REACH * scale;
+    float line = min(max(0.08, 1.1 * pxR), 0.35 * fieldReach);
+    float rimWidth = f4.z > 0.0 ? min(max(f4.z, 1.2 * pxR), 0.35 * fieldReach) : 0.0;
+    float aaGlyph = min(aa, 0.5 * (fieldReach - rimWidth - (hollow ? line : 0.0)));
     vec2 gq = q / scale;
     float dGlyph = -1.0;
     vec2 nGlyph = vec2(0.0);
-    float line = max(0.08, 1.1 * pxR);
-    if (max(abs(gq.x), abs(gq.y)) < 1.45) {
+    if (max(abs(gq.x), abs(gq.y)) < LOOK_MARK_GLYPH_BOX) {
       vec2 gx2 = vec2(qx.x, -qx.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
       vec2 gy2 = vec2(qy.x, -qy.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
       float s0 = lookMarkGlyph(t2.xy, gq, atlas, gx2, gy2);
-      dGlyph = s0 * LOOK_MARK_BYTE_TO_GLYPH * scale;
-      if (f2.y != 0.0 && abs(dGlyph) < bevel + aa + (hollow ? line : 0.0)) {
+      dGlyph = s0 > -126.0 ? s0 * LOOK_MARK_BYTE_TO_GLYPH * scale : -1.0;
+      if (f2.y != 0.0 && abs(dGlyph) < bevel + aaGlyph + (hollow ? line : 0.0)) {
         float step = max(pxR / scale, 1.5 / LOOK_MARK_HALF_GRID);
         float su = lookMarkGlyph(t2.xy, gq + vec2(step, 0.0), atlas, gx2, gy2);
         float sv = lookMarkGlyph(t2.xy, gq + vec2(0.0, step), atlas, gx2, gy2);
@@ -200,17 +214,19 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
 
     // Coverage, and the heights' slopes in the mark's frame.
     float cDisc = hasDisc ? smoothstep(-aa, aa, dDisc) : 0.0;
-    float cGlyph = smoothstep(-aa, aa, dGlyph);
+    float cGlyph = smoothstep(-aaGlyph, aaGlyph, dGlyph);
     vec2 bDisc = hasDisc ? lookMarkBevel(dDisc, discBevel) : vec2(0.0);
     vec2 bGlyph = lookMarkBevel(dGlyph, bevel);
     vec2 slope = f2.x * bDisc.y * nDisc + f2.y * bGlyph.y * nGlyph;
     o.marks.grad += (slope.x * east + slope.y * north) * rise;
 
-    // Coverage of the whole mark, with champlevé's metal walls round the glyph.
-    float rimWidth = f4.z > 0.0 ? max(f4.z, 1.2 * pxR) : 0.0;
-    float rim = f4.z > 0.0 ? smoothstep(-aa, aa, dGlyph + rimWidth) * (1.0 - cGlyph) : 0.0;
+    // Coverage of the whole mark, with champlevé's metal walls round the glyph; and the light's
+    // cap, over its shapes out to two edges' antialiasing, where a bevel can still face the lamp.
+    float rim =
+      f4.z > 0.0 ? smoothstep(-aaGlyph, aaGlyph, dGlyph + rimWidth) * (1.0 - cGlyph) : 0.0;
     float cover = max(max(cDisc, cGlyph), rim);
-    float shape = max(hasDisc ? dDisc : -1.0, dGlyph + rimWidth);
+    float capped = smoothstep(-2.0 * aaGlyph, 0.0, dGlyph + rimWidth);
+    if (hasDisc) capped = max(capped, smoothstep(-2.0 * aa, 0.0, dDisc));
     flatten = max(flatten, f3.z * cover * smoothstep(0.0, 0.5, alpha));
 
     // The contact shadow, away from the lamp, on the ground outside the mark.
@@ -249,7 +265,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     o.roughness = mix(o.roughness, rough, a);
     o.metalness = mix(o.metalness, metal, fill);
     o.marks.cover = max(o.marks.cover, cover * max(fill, rise));
-    o.marks.cap = max(o.marks.cap, smoothstep(-2.0 * aa, 0.0, shape) * max(fill, rise));
+    o.marks.cap = max(o.marks.cap, capped * max(fill, rise));
     // A glow under the bloom's threshold, of the glyph's own color.
     float lum = max(dot(f1.rgb, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
     o.marks.glow += f1.rgb / lum * min(lookMarkStyle.w, 0.4) * cGlyph * alpha;
