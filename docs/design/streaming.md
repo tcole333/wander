@@ -1023,7 +1023,10 @@ only a failed start or a worker error ends the worker.
   its `t0`, `t1` and `prec`. Rows asked for between frames go in one message, one message in
   flight. The main thread keeps the last 256 rows answered, least recently used out first, until
   `end()`, so a plate hovered again needs no round trip. A row no resident page holds comes back
-  missing and is asked again only after another page loads.
+  missing and is asked again only after another page loads. A row whose parent no resident page
+  holds comes back partial, without the parent's label, and is asked again after the next page
+  loads (the overview's children whose parents only `all.wev` holds); its cached answer stands
+  until the new one arrives, so a plate does not blink.
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,

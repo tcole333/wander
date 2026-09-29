@@ -11,6 +11,8 @@ export interface EventDescription {
   label: string;
   /** The display parent's label, when that parent is resident. */
   parent?: string;
+  /** The row has a display parent that no resident page held: a later page may name it. */
+  partial?: true;
   /** Inclusive day numbers covering the date's precision, as on the marks (3.4). */
   t0: number;
   t1: number;
@@ -32,6 +34,7 @@ export function describeRef(index: EventIndex, { page: p, i }: Ref): EventDescri
     qid: p.qid[i]!,
     label: labelAt(p, i),
     ...(parent ? { parent: labelAt(parent.page, parent.i) } : {}),
+    ...(parentRow !== -1 && !parent ? { partial: true as const } : {}),
     t0: p.t0[i]!,
     t1: p.t1[i]!,
     prec: p.prec[i]!,
