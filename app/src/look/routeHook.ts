@@ -2,6 +2,10 @@
 // index limits each fragment to nearby segments; it stores references, not a rasterized line,
 // so the cut stays crisp at island zoom. Static geometry uploads once; only the tiny time/opacity
 // table changes each frame. No segment count cap drops parts of a route.
+//
+// Where Explore is enabled, the look's marks add a table of their own (marks/marks.ts), so there
+// the cells head the index table instead of taking a texture, and the look reads no more samplers
+// than it does without them (docs/design/streaming.md 5.8, Fragment samplers).
 import {
   Color,
   DataTexture,
@@ -29,7 +33,11 @@ const DEG = Math.PI / 180;
 export interface RouteUniforms {
   lookRouteCount: { value: number };
   lookRouteSegments: { value: DataTexture };
-  lookRouteCells: { value: DataTexture };
+  /**
+   * Each cell's first reference and count. Absent where the cells head the index table instead,
+   * two texels a cell, their references counted from the table's start.
+   */
+  lookRouteCells?: { value: DataTexture };
   lookRouteIndices: { value: DataTexture };
   /** Two RGBA texels per route: head index/fraction/window/alpha, then fleet xyz/day offset. */
   lookRouteState: { value: DataTexture };
@@ -58,12 +66,14 @@ function table(values: number[], channels: number, format: PixelFormat): DataTex
   return texture(data, TABLE_WIDTH, height, format);
 }
 
-export function createRouteUniforms(): RouteUniforms {
-  const blank = () => texture(new Float32Array(4), 1, 1, RGBAFormat);
+const blank = () => texture(new Float32Array(4), 1, 1, RGBAFormat);
+
+/** The routes' uniforms; with `cellsInIndices`, the cells head the index table (routeFragmentPars). */
+export function createRouteUniforms({ cellsInIndices = false } = {}): RouteUniforms {
   return {
     lookRouteCount: { value: 0 },
     lookRouteSegments: { value: blank() },
-    lookRouteCells: { value: blank() },
+    ...(cellsInIndices ? {} : { lookRouteCells: { value: blank() } }),
     lookRouteIndices: { value: blank() },
     lookRouteState: { value: blank() },
     lookRouteBrass: { value: new Color('#c09652') },
@@ -102,11 +112,10 @@ export function setRouteData(u: RouteUniforms, routes: RouteData[]): void {
   disposeRouteTextures(u);
   u.lookRouteCount.value = 0;
   if (routes.length === 0) {
-    const empty = createRouteUniforms();
-    u.lookRouteSegments.value = empty.lookRouteSegments.value;
-    u.lookRouteCells.value = empty.lookRouteCells.value;
-    u.lookRouteIndices.value = empty.lookRouteIndices.value;
-    u.lookRouteState.value = empty.lookRouteState.value;
+    u.lookRouteSegments.value = blank();
+    if (u.lookRouteCells) u.lookRouteCells.value = blank();
+    u.lookRouteIndices.value = blank();
+    u.lookRouteState.value = blank();
     return;
   }
   const segments: number[] = [];
@@ -144,8 +153,19 @@ export function setRouteData(u: RouteUniforms, routes: RouteData[]): void {
     indices.push(...cell);
   }
   u.lookRouteSegments.value = table(segments, 4, RGBAFormat);
-  u.lookRouteCells.value = texture(new Float32Array(offsets), ROUTE_COLUMNS, ROUTE_ROWS, RGFormat);
-  u.lookRouteIndices.value = table(indices, 1, RedFormat);
+  if (u.lookRouteCells) {
+    u.lookRouteCells.value = texture(
+      new Float32Array(offsets),
+      ROUTE_COLUMNS,
+      ROUTE_ROWS,
+      RGFormat,
+    );
+    u.lookRouteIndices.value = table(indices, 1, RedFormat);
+  } else {
+    const head = offsets.length;
+    const headed = offsets.map((value, i) => (i % 2 === 0 ? value + head : value));
+    u.lookRouteIndices.value = table([...headed, ...indices], 1, RedFormat);
+  }
   u.lookRouteState.value = texture(
     new Float32Array(routes.length * 8),
     2,
@@ -156,7 +176,7 @@ export function setRouteData(u: RouteUniforms, routes: RouteData[]): void {
 
 export function disposeRouteTextures(u: RouteUniforms): void {
   u.lookRouteSegments.value.dispose();
-  u.lookRouteCells.value.dispose();
+  u.lookRouteCells?.value.dispose();
   u.lookRouteIndices.value.dispose();
   u.lookRouteState.value.dispose();
 }
@@ -169,10 +189,24 @@ export function routeUniformsOf(material: Material): RouteUniforms | undefined {
   return registry.get(material);
 }
 
-export const ROUTE_FRAGMENT_PARS = /* glsl */ `
+/** Where the cells head the index table: an entry of it. */
+const ROUTE_INDEX = /* glsl */ `
+float routeIndex(int i) {
+  return texelFetch(lookRouteIndices, ivec2(i % ${TABLE_WIDTH}, i / ${TABLE_WIDTH}), 0).r;
+}
+`;
+
+/** Where the cells head the index table: the cell's first reference and count. */
+const ROUTE_CELL_FROM_INDICES = /* glsl */ `int head = 2 * (cell.y * ${ROUTE_COLUMNS} + cell.x);
+  ivec2 list = ivec2(routeIndex(head), routeIndex(head + 1));`;
+
+/**
+ * The routes' declarations and functions; with `cellsInIndices`, the cells are read from the head
+ * of the index table (setRouteData), and the look declares no cell table.
+ */
+export const routeFragmentPars = (cellsInIndices: boolean) => /* glsl */ `
 uniform int lookRouteCount;
-uniform highp sampler2D lookRouteSegments;
-uniform highp sampler2D lookRouteCells;
+uniform highp sampler2D lookRouteSegments;${cellsInIndices ? '' : '\nuniform highp sampler2D lookRouteCells;'}
 uniform highp sampler2D lookRouteIndices;
 uniform highp sampler2D lookRouteState;
 uniform vec3 lookRouteBrass;
@@ -182,7 +216,7 @@ uniform float lookRoutePixelRatio;
 vec4 routeSegment(int index) {
   return texelFetch(lookRouteSegments, ivec2(index % ${TABLE_WIDTH}, index / ${TABLE_WIDTH}), 0);
 }
-
+${cellsInIndices ? ROUTE_INDEX : ''}
 // Returns only the glow; the brass and its polish belong to the lit surface.
 vec3 lookRoutes(inout LookSurface s) {
   if (lookRouteCount == 0 || lookDebug != 0) return vec3(0.0);
@@ -193,7 +227,7 @@ vec3 lookRoutes(inout LookSurface s) {
   ivec2 cell = ivec2(floor((ll + vec2(180.0, 90.0)) / ${CELL_DEG.toFixed(1)}));
   cell.x = (cell.x + ${ROUTE_COLUMNS}) % ${ROUTE_COLUMNS};
   cell.y = clamp(cell.y, 0, ${ROUTE_ROWS - 1});
-  ivec2 list = ivec2(texelFetch(lookRouteCells, cell, 0).rg);
+  ${cellsInIndices ? ROUTE_CELL_FROM_INDICES : 'ivec2 list = ivec2(texelFetch(lookRouteCells, cell, 0).rg);'}
   float ink = 0.0;
   float hot = 0.0;
   for (int j = 0; j < list.y; j++) {

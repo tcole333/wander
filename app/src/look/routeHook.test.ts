@@ -7,16 +7,21 @@ import {
   createRouteUniforms,
   disposeRouteTextures,
   ROUTE_COLUMNS,
+  ROUTE_ROWS,
   setRouteData,
 } from './routeHook';
 
+const magellan = () => {
+  const fx = readStageRecord<FxRelease>('fx');
+  return parseRoute(readFixtureFile(fx['magellan/route']!.key).buffer);
+};
+
 describe('the analytic route inlay index', () => {
   it('finds every built arc through either side of the dateline and at cell edges', () => {
-    const fx = readStageRecord<FxRelease>('fx');
-    const route = parseRoute(readFixtureFile(fx['magellan/route']!.key).buffer);
+    const route = magellan();
     const u = createRouteUniforms();
     setRouteData(u, [route]);
-    const cells = u.lookRouteCells.value.image.data as Float32Array;
+    const cells = u.lookRouteCells?.value.image.data as Float32Array;
     const indices = u.lookRouteIndices.value.image.data as Float32Array;
     const segments = u.lookRouteSegments.value.image.data as Float32Array;
     let row = 0;
@@ -46,5 +51,29 @@ describe('the analytic route inlay index', () => {
       row += 1;
     }
     disposeRouteTextures(u);
+  });
+
+  it('lists the same segments in every cell with the cells at the head of the index table', () => {
+    const route = magellan();
+    const apart = createRouteUniforms();
+    const headed = createRouteUniforms({ cellsInIndices: true });
+    setRouteData(apart, [route]);
+    setRouteData(headed, [route]);
+    expect(headed.lookRouteCells).toBeUndefined();
+    const cells = apart.lookRouteCells?.value.image.data as Float32Array;
+    const indices = apart.lookRouteIndices.value.image.data as Float32Array;
+    const table = headed.lookRouteIndices.value.image.data as Float32Array;
+    const list = (from: Float32Array, offset: number, count: number) =>
+      Array.from(from.slice(offset, offset + count));
+    let listed = 0;
+    for (let cell = 0; cell < ROUTE_COLUMNS * ROUTE_ROWS; cell++) {
+      const [offset, count] = [cells[cell * 2]!, cells[cell * 2 + 1]!];
+      const [start, headedCount] = [table[cell * 2]!, table[cell * 2 + 1]!];
+      expect(list(table, start, headedCount), `cell ${cell}`).toEqual(list(indices, offset, count));
+      listed += count;
+    }
+    expect(listed).toBeGreaterThan(0);
+    disposeRouteTextures(apart);
+    disposeRouteTextures(headed);
   });
 });
