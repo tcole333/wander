@@ -1,7 +1,10 @@
 // Test-only builders, imported only by the event tests.
+import { OrthographicCamera, Matrix4 } from 'three';
 import type { EventsRelease } from '../data/release';
+import { lonLatToDir, toThree } from '../surface/cube';
 import { parsePage, type EventPage } from './page';
 import { EventIndex } from './residency';
+import type { EventView } from './view';
 
 export interface TestEvent {
   row: number;
@@ -59,4 +62,13 @@ export function indexOf(pages: EventPage[]): EventIndex {
   index.plan();
   pages.forEach((p, i) => index.add(index.release.files[i]!.key, p));
   return index;
+}
+export function viewOf(span = 2.2, lon = 0, lat = 0, width = 1440, height = 900): EventView {
+  const halfY = (span * height) / width / 2;
+  const camera = new OrthographicCamera(-span / 2, span / 2, halfY, -halfY, 0.01, 30);
+  camera.position.fromArray(toThree(lonLatToDir(lon, lat))).multiplyScalar(10);
+  camera.lookAt(0, 0, 0);
+  camera.updateMatrixWorld(true);
+  const matrix = new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  return { matrix: matrix.toArray(), camera: camera.position.toArray(), width, height };
 }
