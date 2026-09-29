@@ -113,6 +113,14 @@ Several layers are present-day data (coastlines, rivers and lakes, ecoregions, p
 mountain ranges, critical-mineral deposits). The Credits panel lists each source and its date once;
 the rest of the interface stays free of caveats.
 
+### The globe through time
+
+Beyond the stories, the globe itself changes as time passes, so a visitor exploring without a story
+still watches the ages go by and can notice why things happened where they did: where people lived,
+which resources were worked and where their goods went, how borders and names changed. Where people
+lived comes first, then resources through time. `docs/design/globe-language.md` sets how: the six
+pace layers, the channel and material each is shown in, and how detail reveals itself.
+
 ### Effects
 
 Stories use effects to show what happened: an eruption plume, a spreading epidemic, a fleet's
