@@ -17,6 +17,9 @@
   --ivory: #e8dcc5;
   --display: 'Libre Baskerville', Baskerville, Georgia, serif;
   --reading: 'Source Serif 4', Georgia, serif;
+  /* Explore's labels (fonts.ts): Latin and Latin Extended only, so a letter outside them draws in
+     the system serif rather than fetching a subset mid-visit. No italic: the family has none. */
+  --label: 'Wander Label', serif;
 
   /* The key lamp's color (0xffd6a8), and the shadows a panel casts away from it. */
   --lamp: 255 214 168;
