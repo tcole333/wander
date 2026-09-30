@@ -685,28 +685,24 @@ climate wash and before the ash:
   none and skips the other three taps. Most of the land takes the one tap, which halves a step's
   cost at rest close in, and a quad that draws keeps all its fragments, so the dots' derivatives
   hold.
-- **Outer line:** milestone 1's dotted groove of constant on-screen width and pitch, a dot of about
-  2 px every 5 px, 2 px wide, darkening the metal by 0.75 and leaving it a touch rougher. The dots
-  tell frontiers from the solid river lines, as engraved maps of the period do; a solid groove read
-  as one more river at the beats' distances.
+- **Outer line:** at 6,000 km across and closer, milestone 1's dotted groove of constant on-screen
+  width and pitch, a dot of about 2 px every 5 px, 2 px wide, darkening the metal by 0.75 and
+  leaving it a touch rougher. The dots tell frontiers from the solid river lines, as engraved maps
+  of the period do; a solid groove read as one more river at the beats' distances.
 - **Inner line:** 0.55 darkening, 2 px dots every 4 px, 1.5 px wide, fading in as the view narrows
   from 6,000 to 2,500 km across (`borderInnerKm`): fainter and finer than the outer line, the
   empire far and its members near (owner decisions 34 and 36).
 - **Soft edge:** where R's nearest border has stateless land on one side, two thirds of the
   darkening, feathered from 0.25 to 2.5 px from the line's middle, as task 0 rendered it (owner
   decisions 35 and 36).
-- **Weight far out:** at world view and 17,500 km across the outer line is hard to see under
-  Explore's lighting, so the look holds heavier weights for the owner to choose among on renders
-  (`BORDER_WEIGHTS` in `look/bordersHook.ts`, the dev page's `?borderWeight=`,
-  `scripts/bordersWeights.ts`): `wide`, a 3 px groove darkening 0.9 with dots of 3.5 px in 5, its
-  soft edges widening and darkening with it; `solid`, the hard lines between states unbroken, 2.5 px
-  and 0.9, soft edges as today's; and `eased`, a weight that grows with the view's width, its dots
-  closing up, through about 3 px and 0.88 at 17,500 km to 3.5 px, 0.95 and dots of 4.5 px in 5 at
-  world view. `wide` and `solid` reach their look at 10,000 km. Every weight draws today's line at
-  6,000 km across and closer, easing on a log scale of the view's width, and a line wider than 2 px
-  narrows toward 2 px as a pixel spans more texels, to 3 px at 3 texels and 2 px at 4, where the
-  field's reach could no longer hold it, so it fades as today's does. Today's stays the default
-  until the owner picks; the chosen weight's cost is measured then.
+- **Weight far out** (owner decision 40): at 6,000 km across and closer the outer line is the one
+  above; wider, it eases on a log scale of the view's width (`borderWeightKm`) to a 3.5 px groove
+  darkening 0.95, its dots closing up to 4.5 px in 5, at 32,000 km and at world view, through about
+  3 px and 0.88 at 17,500 km, since under Explore's lighting the near line is hard to see that far
+  out. Its soft edges take on its width, darkening and dots as it grows (`OUTER_NEAR` and
+  `OUTER_FAR` in `look/bordersHook.ts`). A line wider than 2 px narrows toward 2 px as a pixel spans
+  more texels, to 3 px at 3 texels and 2 px at 4, where the field's reach could no longer hold it,
+  so it fades as the near line does.
 - **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
   where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
   reach of 8 texels no longer spans the line.
@@ -2775,6 +2771,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `borderScrubFade` | 120 ms | border previews dissolving into each other while the clock moves | eye |
 | `borderCloseKm` | 400 to 220 km across | borders fading out as the view closes in | owner decision 36 |
 | `borderInnerKm` | 6,000 to 2,500 km across | the inner border line fading in as the view narrows | owner decision 36 |
+| `borderWeightKm` | 6,000 to 32,000 km across | the outer border line easing from its near weight to its world-view weight (3.3) | owner decision 40 |
 | `minorKm2`, `pocketKm2` | 50,000 km², 100,000 km² | build rules in `pipeline/config/borders/rules.yaml` (3.3): a piece of an outer unit under `minorKm2` draws its borders with other outer units as inner lines; a hole between states that touches a lake goes to its neighbours under `pocketKm2`, while a hole inside one state is its land whatever its size | owner decisions 36 and 38 |
 | `sliverKm`, `leftoverKm2` | 14 km, 100 km² | build rules in `rules.yaml` (3.3): stateless land narrower than 2·`sliverKm` goes to its neighbours, and land within `sliverKm` of a lake and of another polity is emptied for the fill; a composite's own land is drawn from `leftoverKm2` | eye, on the still renders |
 | `reviewKm2`, `duplicateShare` | 2,000 km², 0.5 | build rules in `rules.yaml` (3.3): two polities overlapping past `reviewKm2` go to the review queue, and past `duplicateShare` of the larger need an `overlap` correction | the history pass |
@@ -3006,3 +3003,10 @@ the look renders baked from Cliopatria:
     state stays stateless only through a cited correction.
 39. **No year plate in Explore:** Explore's borders draw with no plate naming their year; the ruler
     and the Credits carry the dates. The story walks keep theirs.
+
+Decided on the renders of the outer line's weights far out (issue #80), 2026-09-30:
+
+40. **The outer line far out:** the eased weight. At 6,000 km across and closer the outer line
+    stays as decision 36 left it; wider, it grows with the view's width all the way out, to a
+    3.5 px groove darkening 0.95 with dots of 4.5 px in 5 at world view, its soft edges taking on
+    its weight.
