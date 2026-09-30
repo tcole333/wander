@@ -20,13 +20,14 @@
 //
 // --events: Explore's own events on the dev page, in each variant of --variants in turn (the
 // owner's default, 0, first): three openings at world view, each focal in its twenty years; Europe
-// in 1805-1815 from the world view down to 3,000 km, the Napoleonic Wars giving way to their
-// wars and battles as the view closes; Lepanto in 1571 at 800 km; and the Julian Alps in 1917 at
-// 180 km, tilted, close enough that the Battles of the Isonzo span more than parentSplitPx and
-// give way to their battles. A contact sheet per variant, one of the European sequence, one of all
-// variants side by side, and a video of the ruler scrubbing from 3000 BCE to 2000 at world view
-// with a sheet of its frames (--no-video skips it); explore.json lists every render's marks with
-// their events' names, and any console errors.
+// in 1805-1815 from the world view down to 3,000 km, the Napoleonic Wars giving way to their wars
+// and battles as the view closes; Lepanto in 1571 at 800 km; the Julian Alps in 1917 at 180 km,
+// tilted, close enough that the Battles of the Isonzo span more than parentSplitPx and give way to
+// their battles; and history's end, 31 December 2000, the ruler 400 years wide, where nothing after
+// 2000 is marked. A contact sheet per variant, one of the European sequence, one of all variants
+// side by side, and a video of the ruler scrubbing from 3000 BCE to 2000 at world view with a sheet
+// of its frames (--no-video skips it); explore.json lists every render's marks with their events'
+// names, and any console errors.
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -151,6 +152,14 @@ const EVENT_SCENES: EventScene[] = [
     date: { year: 1917, month: 10, day: 24 },
     years: 20,
     focal: 'Q242644',
+  },
+  {
+    name: 'end-2000-world',
+    caption: 'History’s end, 31 December 2000, the ruler 400 years wide, at world view',
+    view: { lon: 30, lat: 30, ...WORLD_VIEW },
+    date: { year: 2000, month: 12, day: 31 },
+    years: 400,
+    focal: null,
   },
 ];
 
