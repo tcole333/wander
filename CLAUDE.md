@@ -140,8 +140,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
   fixture profile also skips `fetch`. It keeps `meanwhile` and `openings` disabled so it cannot
   rewrite their locks. `uv run prebuild borders` bakes the border steps from Cliopatria, one
-  for each of 524 change years, 520 once those equal to the step before are dropped (about 45
-  minutes with 6 workers when every step's key changes; a rerun bakes only the steps whose inputs
+  for each of 528 change years, 523 once those equal to the step before are dropped (about 45
+  minutes with 6 workers, or 41 with 8, when every step's key changes; a rerun bakes only the steps whose inputs
   changed, taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the
   fixture bakes its two steps and no 1815 field, whose GPL source is never committed.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
