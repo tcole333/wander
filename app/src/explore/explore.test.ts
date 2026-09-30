@@ -461,7 +461,25 @@ describe('Explore', () => {
       expect(landed).toHaveBeenCalledTimes(1);
     });
 
-    it('gives up a flight to a Meanwhile entry the visitor takes the view from', () => {
+    it('lands the dive with its opening pinned, and a Meanwhile flight with its entry', () => {
+      const { events } = source();
+      const { mode, tick } = setup('fly', events);
+      const landed = vi.fn();
+      mode.landed(landed);
+      for (let i = 0; i < 600 && !landed.mock.calls.length; i++) tick();
+      expect(drawn.labels!.landed).toEqual([WATERLOO]);
+      const ligny = { qid: 207318, at: [4.62, 50.52], t0: 662715, t1: 662716 } as MeanwhileEvent;
+      drawn.meanwhile!.choose(ligny);
+      tick();
+      // Nothing is pinned while the flight is on its way.
+      expect(drawn.labels!.pinned).toEqual([]);
+      for (let i = 0; i < 600 && drawn.labels!.pinned.length === 0; i++) tick();
+      expect(drawn.labels!.pinned).toEqual([{ qid: 207318, span: { t0: 662715, t1: 662716 } }]);
+      for (let i = 0; i < 60; i++) tick();
+      expect(drawn.labels!.pinned).toHaveLength(1);
+    });
+
+    it('gives up a flight to a Meanwhile entry the visitor takes the view from, pinning nothing', () => {
       const { events } = source();
       const { control, mode, tick } = setup('jump', events);
       drawn.meanwhile!.choose({ qid: 1, at: [100, 10], t0: 0, t1: 0 } as MeanwhileEvent);
@@ -471,6 +489,8 @@ describe('Explore', () => {
       tick();
       expect(control.current).toEqual(view);
       expect(mode.audio()).toMatchObject({ flying: false });
+      for (let i = 0; i < 600; i++) tick();
+      expect(drawn.labels!.pinned).toEqual([]);
     });
 
     it('fails the dive, leaving nothing behind, when the event worker cannot start', () => {
