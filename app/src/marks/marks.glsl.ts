@@ -58,7 +58,13 @@ export const SHADOW_BLUR = 0.12;
  * The rings' widths in the most of r a pixel spans (which a tilt widens): the ember's half width
  * when wider than its own, and a hovered ring's outer edge.
  */
-export const RING_PX = { ember: 0.9, hover: 1.3 } as const;
+export const RING_PX = { ember: 0.9, hover: 2 } as const;
+/**
+ * A hovered parent's ring, engraved: the half width of its inlay in the same pixels, the walls
+ * sloping down into it out to RING_PX.hover, and the walls' slope (rise over run), which takes the
+ * lamp on the side that faces it.
+ */
+export const RING_ENGRAVE = { ink: 0.9, wall: 1.2 } as const;
 
 /**
  * A glyph's field as the look reads it, in its half grid: within `box` of its center (the cell's
@@ -101,7 +107,8 @@ uniform vec4 lookMarkEmber;
 uniform float lookMarkBreath;
 // How polished the marks are: their roughness is divided by it, down to LOOK_MARK_ROUGH_MIN.
 uniform float lookMarkPolish;
-// The engraved line of a hovered parent's extent: its color.
+// The engraved line of a hovered parent's extent: its niello over land (over the sea it is the
+// graticule's brass, lookInlay).
 uniform vec3 lookMarkEngrave;
 
 struct LookMarks {
@@ -262,6 +269,26 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
       dGlyph = line - abs(dGlyph);
     }
 
+    // A hovered parent's extent: a dashed line engraved at t3.z, the circle its arc from the
+    // anchor makes, seen straight down on the anchor's tangent plane. Its inlay is full weight
+    // however faint the glyph, as the lamp and the limb allow: over the sea the graticule's brass,
+    // over land niello, cut between walls that slope down into it and take the lamp as the relief
+    // does, lit on the side that faces it.
+    float ring = 0.0;
+    vec2 ringSlope = vec2(0.0);
+    if (t3.z > 0.0) {
+      float fromRing = rq - t3.z;
+      float across = abs(fromRing) / pxR;
+      float around = atan(q.y, q.x) / 6.283185307179586;
+      float dashes = max(12.0, floor(6.283185307179586 * t3.z / (10.0 * pxR)));
+      float weight = smoothstep(0.0, 0.5, alpha) * step(0.45, fract(around * dashes));
+      float ink = ${float(RING_ENGRAVE.ink)};
+      float edge = ${float(RING_PX.hover)};
+      ring = (1.0 - smoothstep(ink - 0.5, ink + 0.5, across)) * weight;
+      float wall = smoothstep(ink - 0.5, ink, across) * (1.0 - smoothstep(edge - 0.5, edge, across));
+      ringSlope = sign(fromRing) * nq * ${float(RING_ENGRAVE.wall)} * wall * weight;
+    }
+
     // Coverage, and the heights' slopes in the mark's frame.
     float cDisc = hasDisc ? smoothstep(-aaRound, aaRound, dDisc) : 0.0;
     float cGlyph = smoothstep(-aaGlyph, aaGlyph, dGlyph);
@@ -269,6 +296,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec2 bGlyph = lookMarkBevel(dGlyph, bevel);
     vec2 slope = f2.x * bDisc.y * nDisc + f2.y * bGlyph.y * nGlyph;
     o.marks.grad += (slope.x * east + slope.y * north) * rise;
+    o.marks.grad += (ringSlope.x * east + ringSlope.y * north) * lookMarkStyle.y;
 
     // Coverage of the whole mark, with champlevé's metal walls round the glyph; and the light's
     // cap, over its shapes out to two edges' antialiasing, where a bevel can still face the lamp.
@@ -302,26 +330,16 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     rough = mix(rough, f2.w, cGlyph);
     metal = mix(metal, f3.y, cGlyph);
 
-    // A hovered parent's extent: a dashed ring engraved at t3.z, the circle its arc from the
-    // anchor makes, seen straight down on the anchor's tangent plane.
-    if (t3.z > 0.0) {
-      float extent =
-        1.0 - smoothstep(0.5 * pxR, ${float(RING_PX.hover)} * pxR, abs(rq - t3.z));
-      float around = atan(q.y, q.x) / 6.283185307179586;
-      float dashes = max(12.0, floor(6.283185307179586 * t3.z / (10.0 * pxR)));
-      extent *= step(0.45, fract(around * dashes));
-      color = mix(color, lookMarkEngrave, extent * 0.8);
-      rough = mix(rough, 0.8, extent);
-      cover = max(cover, extent);
-    }
-
     float a = cover * fill;
     o.albedo = mix(o.albedo, color, fill) * (1.0 - 0.75 * shade);
     rough = max(rough / lookMarkPolish, LOOK_MARK_ROUGH_MIN);
     o.roughness = mix(o.roughness, rough, a);
     o.metalness = mix(o.metalness, metal, fill);
-    o.marks.cover = max(o.marks.cover, cover * max(fill, rise));
-    o.marks.cap = max(o.marks.cap, capped * max(fill, rise));
+    o.albedo = mix(o.albedo, mix(lookInlay, lookMarkEngrave, o.land), ring);
+    o.roughness = mix(o.roughness, mix(0.45, 0.8, o.land), ring);
+    o.metalness = mix(o.metalness, mix(0.93, 0.3, o.land), ring);
+    o.marks.cover = max(o.marks.cover, max(cover * max(fill, rise), ring));
+    o.marks.cap = max(o.marks.cap, max(capped * max(fill, rise), ring));
     // A glow under the bloom's threshold, of the glyph's own color.
     float lum = max(dot(f1.rgb, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
     o.marks.glow += f1.rgb / lum * min(lookMarkStyle.w, 0.4) * cGlyph * alpha;
