@@ -373,6 +373,39 @@
   pointer-events: auto;
 }
 
+/* Windows shorter than the column at its full height draw it closer: the heading nearer the
+   mark, and less brass around each plaque's lettering, which keeps its size. */
+@media (max-height: 899px) {
+  .lobby-column {
+    --top: 128px;
+  }
+
+  .lobby-rule {
+    margin-top: 10px;
+  }
+
+  .lobby-shelf {
+    padding-top: 12px;
+  }
+
+  .lobby-plaque {
+    padding-block: 13px 14px;
+  }
+
+  .lobby-plaque + .lobby-plaque {
+    margin-top: 10px;
+  }
+
+  .lobby-blurb {
+    margin-top: 8px;
+    line-height: 1.42;
+  }
+
+  .lobby-begin {
+    margin-top: 6px;
+  }
+}
+
 .lobby-credits {
   --delay: 0.3s;
 
