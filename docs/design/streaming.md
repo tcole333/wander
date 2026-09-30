@@ -487,25 +487,25 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   outside `stories/`, where tests expect a `story.md` in every folder: about two dozen of the
   best-known events up to 2000 across pace layers, continents and eras, each with its qid, a
   present-tense line in the walk's voice and the source it rests on (title and https URL), in the
-  form of a story's `meanwhile.yaml`, with an optional `date` (ISO day or month, proleptic
-  Gregorian as the index's) where a source dates the event more finely than the index, within the
-  index's span for it. The place is always the index's, and a date the index has wrong is curated
-  in `events-curated.yaml`: the overview's mark keeps the index's dates and place, and the lock
-  draws the same mark until the overview decodes. `uv run prebuild openings`, named-only, reads the
-  list with Meanwhile's readers and writes the committed `explore/openings.lock.json`, `{table,
-  openings: [{qid, label, date, precision, at, line, source: {title, url}, class}]}`, `table`
-  being the sha256 of the `events.tsv.gz` it checked and `class` the display class its mark draws. It stops on a qid the index lacks, a written
-  date outside the index's span or any written `at`, an opening part of another (P361 through the
-  index's parents, since two of one family open on one view), a start after 2000, an index built
-  from another export or other configs, or a line naming a day and month other than the event's
-  date as its sources give it (Julian before 15 October 1582) or a day where the date is a month or
-  year. `event-files` forces every opening into `overview.wev` on top of its quota, so the first
-  view never waits on a rest file: an opening the index lacks fails the global and region builds
-  and is left out of the fixture's slice with a logged count, and a lock checked against another
-  table fails them, naming the stage. Its record's `inputs` hold the lock's sha256, and the release
-  (`publish-data`, the data server) stops, naming `event-files`, until they match the committed
-  lock; `explore` joins the fixture stamp's paths. So after a change to `events.tsv.gz`, run
-  `openings`, then `event-files`, and commit the lock. The app bundles the lock
+  form of a story's `meanwhile.yaml`, with an optional `date` (ISO day or month, proleptic Gregorian
+  as the index's) where a source dates the event more finely than the index, within the index's span
+  for it. The place is always the index's, and a date or place the index has wrong is curated in
+  `events-curated.yaml`: the overview's mark keeps the index's dates and place, and the lock draws
+  the same mark until the overview decodes. `uv run prebuild openings`, named-only, reads the list
+  with Meanwhile's readers and writes the committed `explore/openings.lock.json`, `{table, openings:
+  [{qid, label, date, precision, at, line, source: {title, url}, class}]}`, `table` being the sha256
+  of the `events.tsv.gz` it checked and `class` the display class its mark draws. It stops on a qid
+  the index lacks, a written date outside the index's span or any written `at`, an opening part of
+  another (P361 through the index's parents, since two of one family open on one view), a start
+  after 2000, an index built from another export or other configs, or a line naming a day and month
+  other than the event's date as its sources give it (Julian before 15 October 1582) or a day where
+  the date is a month or year. `event-files` forces every opening into `overview.wev` on top of its
+  quota, so the first view never waits on a rest file: an opening the index lacks fails the global
+  and region builds and is left out of the fixture's slice with a logged count, and a lock checked
+  against another table fails them, naming the stage. Its record's `inputs` hold the lock's sha256,
+  and the release (`publish-data`, the data server) stops, naming `event-files`, until they match
+  the committed lock; `explore` joins the fixture stamp's paths. So after a change to
+  `events.tsv.gz`, run `openings`, then `event-files`, and commit the lock. The app bundles the lock
   (`app/src/explore/openings.ts`) and picks one opening per dive, never one of the visitor's last
   `openingsRecent`, kept in `localStorage`; `?opening=Q…` pins one on loopback, and a pin the list
   lacks throws. Until the overview decodes, or if it fails, the lock draws the opening's mark.
@@ -516,9 +516,9 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   (8 macro-regions);
   `pipeline/config/event-classes.yaml` (the class allowlist and weights, which keep out sporting
   seasons and similar noise); `pipeline/config/events-curated.yaml` (hand-set score boosts, the
-  days a better source dates an event to or ends it on where Wikidata's are wrong, and the events
-  whose date the sources dispute, and sourced placement fallbacks for unlocated parents, each with
-  its reason);
+  days a better source dates an event to or ends it on where Wikidata's are wrong, the events
+  whose date the sources dispute, the places a better source puts an event, and sourced placement
+  fallbacks for unlocated parents, each with its reason);
   `pipeline/queries/events.rq`, the one query, run once per class.
 - **Export:** `uv run prebuild wikidata` runs `events.rq` for each class against QLever's public
   Wikidata endpoint, one request at a time with a pause between them, and writes the rows as gzip
@@ -561,13 +561,16 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   - **Dates** are normalized to proleptic Gregorian. The original string, calendar and alternate claims
     go to `details/<n>.json` (built in v1, loaded once exploration shows an event's details).
   - **Places:** direct coordinates first, then inherited ones (flagged), to prefer the event's
-    own evidence. Unlocated parents take a spherical centroid of located children, walking
-    through unlocated descendants; this respects the dateline. Antipodal children use the first
-    point in longitude/latitude order for a deterministic fallback. Next is a sourced P17
-    `countryCentroid`, then a last-resort `at`, under curated `places`, each with qid and why.
-    The pinned export carries no P17, so these are supplied explicitly rather than guessed from
-    a label; the list is currently empty. Such a fallback can also admit an exported parent
-    whose children are unlocated. Still-unplaceable parents are omitted and leave children eligible.
+    own evidence, unless a curated `place` under `places` in `events-curated.yaml`, with qid, why
+    and source, puts the event where a better source does: the events stage takes it for the
+    table, so Meanwhile, the glows and the `.wev` agree, and the row is flagged curated. Unlocated
+    parents take a spherical centroid of located children, walking through unlocated
+    descendants; this respects the dateline. Antipodal children use the first point in
+    longitude/latitude order for a deterministic fallback. Next is a sourced P17
+    `countryCentroid`, then a last-resort `at`, under curated `places`, each with qid and why. The
+    pinned export carries no P17, so these are supplied explicitly rather than guessed from a
+    label; none is listed yet. Such a fallback can also admit an exported parent whose children
+    are unlocated. Still-unplaceable parents are omitted and leave children eligible.
   - **Hierarchy:** choose one accepted P361 parent: prefer containment of the child's whole span,
     then the shortest span, then higher score and numeric qid. This selects the nearest useful
     historical context. Assign in qid order and reject cycle-closing edges so source cycles

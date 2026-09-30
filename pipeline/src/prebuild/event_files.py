@@ -23,6 +23,7 @@ from shapely.geometry import Point, shape
 from prebuild import events
 from prebuild.config import (
     CONFIG_DIR,
+    curated_places,
     load_event_boosts,
     load_event_classes,
     load_event_dates,
@@ -138,8 +139,10 @@ def extent(points: list[events.LonLat]) -> tuple[int, int, int, int]:
 def prepare(table: list[events.Event], statements: list[events.Statement]) -> list[Row]:
     classes = load_event_classes()
     boosts, dates, places = load_event_boosts(), load_event_dates(), load_event_places()
+    moved = curated_places(places)
     exported = {
-        e.qid: e for e in events.index(statements, classes, boosts, dates, keep_unlocated=True)
+        e.qid: e
+        for e in events.index(statements, classes, boosts, dates, keep_unlocated=True, places=moved)
     }
     accepted = {e.qid: e for e in table}
     # A sourced fallback can also admit an exported parent whose children have no usable
@@ -216,7 +219,11 @@ def prepare(table: list[events.Event], statements: list[events.Statement]) -> li
         e = r.event
         group = source[e.qid]
         direct = {s.coord for s in group if s.coord}
-        points = direct or {s.place for s in group if s.place} or {(e.lon, e.lat)}
+        points = (
+            {(e.lon, e.lat)}
+            if e.qid in moved
+            else direct or {s.place for s in group if s.place} or {(e.lon, e.lat)}
+        )
         points_by_qid[e.qid] = sorted(points)
         conflict = any(
             len({(s.day, s.precision) for s in group if s.prop == prop}) > 1

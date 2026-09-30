@@ -273,6 +273,17 @@ def test_no_country_or_override_is_used_when_children_place_a_parent(monkeypatch
     assert (parent.event.lon, parent.event.lat) == pytest.approx((4.4, 50.7))
 
 
+def test_a_curated_place_stands_for_every_point_of_a_located_event(monkeypatch):
+    monkeypatch.setattr(wev, "load_event_places", lambda: {"Q1": {"place": (-9.14, 38.71)}})
+    statement = events.Statement(
+        "Q7944", "Q1", "Quake", "Quake", "P585", (1755, 11, 1), 11, (-11, 36), None, 10, ()
+    )
+    [row] = wev.prepare([event(1, at=(-9.14, 38.71))], [statement])
+    assert (row.event.lon, row.event.lat) == (-9.14, 38.71)
+    assert row.flags == 16  # curated, its own, one place
+    assert row.ext is None
+
+
 @pytest.mark.parametrize(
     ("places", "expected"),
     [({"countryCentroid": (40, 30), "at": (60, 20)}, (40, 30)), ({"at": (60, 20)}, (60, 20))],
