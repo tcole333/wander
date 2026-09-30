@@ -2,7 +2,13 @@
 import { dayFromHistorical } from '../story/dates';
 import type { Span } from '../story/ui/format';
 import { anchored } from '../story/ui/rulerScale';
-import { worldClock, type WorldClock } from './worldClock';
+import {
+  nowWindow,
+  worldClock,
+  type DayWindow,
+  type WorldClock,
+  type WorldTime,
+} from './worldClock';
 
 /**
  * Inclusive day limits: all of 10,000 BCE through the last day of 2000 CE, in the historical
@@ -13,6 +19,24 @@ export const HISTORY: Span = Object.freeze({
   end: dayFromHistorical({ year: 2000, month: 12, day: 31 }),
 });
 export const MIN_EXPLORE_DAYS = 4;
+
+/**
+ * `window` with each end kept within `history`. Near either end of history the ruler's width
+ * reaches days Explore does not hold, so whatever asks for events by date asks within it: nothing
+ * after 2000 or before 10,000 BCE is marked, kept focal or picked for Meanwhile.
+ */
+export function withinHistory(window: DayWindow, history: Span = HISTORY): DayWindow {
+  return {
+    start: clamp(window.start, history.start, history.end),
+    end: clamp(window.end, history.start, history.end),
+  };
+}
+
+/** Explore's now window: the clock's (worldClock.ts, nowWindow), within history. */
+export function exploreWindow(time: WorldTime): DayWindow {
+  return withinHistory(nowWindow(time));
+}
+
 /** Mean Gregorian days in a year. */
 const YEAR_DAYS = 365.2425;
 

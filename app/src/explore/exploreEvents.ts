@@ -1,18 +1,18 @@
 // Explore's events on the globe (spec sections 2 and 9, task 7): each frame the event worker is
-// asked, through the event client, for the events in the now window (time/worldClock.ts,
-// nowWindow) that the view shows, and what it answers becomes marks the look cuts into its bronze
-// (marks/marks.ts). An event's class gives its pace layer and glyph (marks/eventSymbols.ts), so
-// its mark takes that family's material. Each mark fades in and out as the worker's fades say,
-// interpolated every frame between replies. A war whose extent grows past the split on screen gives
-// way to its battles and stays as a hollow glyph, its extent a ring once hovered, its solid mark
-// and its hollow one crossfading as marks of their own; a hollow glyph gives way to a mark already
-// standing on its spot, so parents sharing a borrowed place do not pile into one blot. An event
-// whose place is inherited or derived, or whose date is known only to its year, draws softer and
-// half as deep (globe-language.md, principle 1). The focal event, the opening at first, keeps its
-// ember until the now window leaves its dates, when it becomes one mark among the others; until
-// the index holds it, or once the worker has failed, the openings lock draws it. A failed worker
-// logs once and its marks go. Leaving eases every mark out with the lobby's glows; disposing ends
-// the worker and takes the marks off the globe.
+// asked, through the event client, for the events in the now window, kept within history
+// (time/exploreTime.ts, exploreWindow), that the view shows, and what it answers becomes marks the
+// look cuts into its bronze (marks/marks.ts). An event's class gives its pace layer and glyph
+// (marks/eventSymbols.ts), so its mark takes that family's material. Each mark fades in and out as
+// the worker's fades say, interpolated every frame between replies. A war whose extent grows past
+// the split on screen gives way to its battles and stays as a hollow glyph, its extent a ring once
+// hovered, its solid mark and its hollow one crossfading as marks of their own; a hollow glyph
+// gives way to a mark already standing on its spot, so parents sharing a borrowed place do not pile
+// into one blot. An event whose place is inherited or derived, or whose date is known only to its
+// year, draws softer and half as deep (globe-language.md, principle 1). The focal event, the
+// opening at first, keeps its ember until the now window leaves its dates, when it becomes one mark
+// among the others; until the index holds it, or once the worker has failed, the openings lock
+// draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
+// lobby's glows; disposing ends the worker and takes the marks off the globe.
 import { tunables, type Tier } from '../config/tunables';
 import type { EventClient } from '../events/client';
 import { fadeOpacity, type EventMark, type EventResult, type Fading } from '../events/query';
@@ -24,7 +24,8 @@ import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
 import type { MemoryAccount } from '../perf/memory';
 import { dayFromHistorical, historicalCivil, type Precision } from '../story/dates';
 import type { LonLat } from '../story/story';
-import { nowWindow, type DayWindow, type WorldTime } from '../time/worldClock';
+import { exploreWindow } from '../time/exploreTime';
+import type { DayWindow, WorldTime } from '../time/worldClock';
 
 /** What Explore's events need of the event client. */
 export type EventSource = Pick<EventClient, 'query' | 'drain' | 'idle' | 'dispose'>;
@@ -229,7 +230,7 @@ export class ExploreEvents {
     );
     this.#marks.strength = this.#strength;
 
-    const window = nowWindow(time);
+    const window = exploreWindow(time);
     const focal = this.#focal;
     if (focal?.span && !inWindow(focal.span, window)) {
       this.#focal = null;
