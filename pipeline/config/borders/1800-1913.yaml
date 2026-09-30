@@ -177,10 +177,11 @@ corrections:
       polity: Kingdom of Tambora
       of: British Colonial Empire
     why: &sumbawa-members >-
-      The Sumbawan states, bound by contract to the Dutch, were under the British with the rest of
-      the Dutch posts in 1815-1816: Bima had a Resident, and Raffles's government sent Lieutenant
-      Owen Phillips to inspect the eruption's damage and help the islanders. The rulers renewed
-      their contracts with the Dutch governor at Makassar in 1817.
+      The Sumbawan states were bound to the Dutch by contract, and are drawn with the rest of the
+      Indies, British from 1812 to 1816. In 1815 Bima had a Resident, and Raffles's government sent
+      Lieutenant Owen Phillips to inspect the eruption's damage and help the islanders. The
+      contracts were extended in 1817, when the governor at Makassar excused the rulers of Bima,
+      Dompu and Sanggar from coming there for it.
     source: &dejongboers
       title: "Mount Tambora in 1815: A Volcanic Eruption in Indonesia and its Aftermath (Bernice de Jong Boers)"
       publisher: Indonesia 60 (1995), Cornell University Southeast Asia Program
@@ -620,8 +621,9 @@ corrections:
       polity: First Hellenic Republic
       to: Kingdom of Greece
     why: >-
-      The Treaty of Constantinople (1832) made Greece a monarchy, and King Otto arrived in 1833; the
-      Second Hellenic Republic followed in 1924.
+      Greece agreed to become a kingdom at the London Conference of 1832, the state the Treaty of
+      Constantinople (1832) established, and King Otto arrived at Nafplion in 1833; the Second
+      Hellenic Republic was proclaimed in 1924.
     source:
       title: Kingdom of Greece
       publisher: Wikipedia
