@@ -2332,8 +2332,12 @@ and the release's `media` section lists every key the locks name (3.8).
     - no border, R or G, runs within one texel of a lake's shore on land for more than 50 km (its
       run's bounding diagonal), where the lake reaches at least a texel from its shore within
       three texels: a lake narrower than about two texels holds any border that follows it within
-      a texel of both shores, as the St Lawrence does the US-Canada line. A ring planted along
-      every lake shore of one face of a real step is found;
+      a texel of both shores, as the St Lawrence does the US-Canada line. A run the check names is
+      excused, with why, only while each plane's own run there stays within the line, and one the
+      bake no longer has fails: Lake Sevan's north shore in 1734, where Cliopatria's Georgia-Ottoman
+      line, an inner one, and the Ottoman-Afsharid outer line meet at the lake from either side,
+      each running under 45 km beside it, though their texels joined span 53 km. A ring planted
+      along every lake shore of one face of a real step is found;
     - each preview agrees in sign with its field on land 2 to 7 field texels from an R border and
       at least half a preview texel from one, where the field keeps one sign across the preview
       texel (a sign jump between two borders in it is no disagreement), in at least 99% of such
