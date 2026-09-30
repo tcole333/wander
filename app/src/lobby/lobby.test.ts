@@ -2,7 +2,8 @@ import { Group, PerspectiveCamera } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WalkAudio } from '../audio/walkAudio';
 import type { MuseumScene } from '../contract';
-import { startExplore, waterloo } from '../explore/explore';
+import { startExplore } from '../explore/explore';
+import { openings } from '../explore/openings';
 import { createWalk, type DirectedWalk } from '../story/director';
 import { stories, storyNamed } from '../story/catalog';
 import type { Story } from '../story/story';
@@ -74,6 +75,7 @@ vi.mock('../story/ui/dom', () => ({
 
 const story = storyNamed('tambora')!.story;
 const DT = 1 / 60;
+const WATERLOO = openings.find((opening) => opening.qid === 'Q48314')!;
 
 /** The story mode as the boot makes it, less its effects, UI and sound. */
 function storyMode(walk: DirectedWalk): Mode {
@@ -117,7 +119,13 @@ function setup(initial: 'lobby' | 'story' | 'explore' = 'lobby') {
   const begin = (choice: Choice, arrive: 'fly' | 'jump' = 'fly'): Mode => {
     if (choice.kind === 'explore') {
       walk = null;
-      mode = startExplore({ root: host as unknown as HTMLElement, control, sound, arrive });
+      mode = startExplore({
+        root: host as unknown as HTMLElement,
+        control,
+        sound,
+        arrive,
+        opening: WATERLOO,
+      });
       return mode;
     }
     walk = createWalk(choice.story, control, { arrive, ready: () => true });
@@ -302,8 +310,8 @@ describe('the lobby round trip', () => {
       expect(s.host.dataset.lobby).toBe('diving');
       expect(s.control.arrowKeys).toBe(true);
       s.until(() => s.host.dataset.lobby === 'gone');
-      expect(s.control.current.lon).toBeCloseTo(waterloo().at[0], 6);
-      expect(window.__worldTime?.state().day).toBe(waterloo().day);
+      expect(s.control.current.lon).toBeCloseTo(WATERLOO.at[0], 6);
+      expect(window.__worldTime?.state().day).toBe(WATERLOO.day);
       s.key();
       expect(s.host.dataset.lobby).toBe('returning');
       s.until(() => s.host.dataset.lobby === 'idle');

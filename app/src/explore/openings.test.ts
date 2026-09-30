@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { tunables } from '../config/tunables';
 import { dayFromIso } from '../story/dates';
 import {
+  openingForDive,
   openingRequested,
   openings,
   openingsFromLock,
@@ -146,6 +147,17 @@ describe('the pick', () => {
 });
 
 describe('?opening=', () => {
+  it('opens a dive on the pinned opening on this machine, and on any other elsewhere', () => {
+    vi.stubGlobal('localStorage', memoryStorage());
+    const pinned = { hostname: '127.0.0.1', search: '?opening=Q83224' };
+    expect(openingForDive(pinned).name).toBe('Battle of Hastings');
+    const elsewhere = { hostname: 'wander.traviscole.xyz', search: '?opening=Q83224' };
+    const picks = Array.from({ length: tunables.openingsRecent }, () => openingForDive(elsewhere));
+    // Hastings was seen last, so none of the next few opens on it.
+    expect(picks.map((opening) => opening.qid)).not.toContain('Q83224');
+    vi.unstubAllGlobals();
+  });
+
   it('pins an opening on a page served from this machine only', () => {
     expect(
       openingRequested({ hostname: '127.0.0.1', search: '?data=fixture&opening=Q48314' }),
