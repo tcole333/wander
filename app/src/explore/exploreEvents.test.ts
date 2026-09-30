@@ -28,8 +28,15 @@ import {
 
 const WIDTH = 1440;
 const HEIGHT = 900;
-const CLASSES = ['battle', 'war', 'volcanic eruption', 'shipwreck', 'unheard of'];
-const [BATTLE, WAR, ERUPTION, WRECK, UNKNOWN] = [0, 1, 2, 3, 4];
+const CLASSES = [
+  'battle',
+  'war',
+  'volcanic eruption',
+  'shipwreck',
+  'unheard of',
+  'tropical cyclone',
+];
+const [BATTLE, WAR, ERUPTION, WRECK, UNKNOWN, STORM] = [0, 1, 2, 3, 4, 5];
 
 /** The worker, run in place: each drain answers the query asked since the last one. */
 class InPlaceWorker implements EventSource {
@@ -157,6 +164,23 @@ describe("Explore's events", () => {
     expect(marks.sets).toBe(sets);
     expect(events.settled()).toBe(true);
     expect(events.placed().map((p) => p.id)).toEqual(['Q10', 'Q11', 'Q12']);
+  });
+
+  it('mirrors a storm’s glyph south of the equator, and no other mark', () => {
+    const { worker, marks } = setup([
+      { row: 0, qid: 20, lon: 10, lat: 20, t0: 1000, t1: 1000, cls: STORM },
+      { row: 1, qid: 21, lon: 10, lat: -20, t0: 1000, t1: 1000, cls: STORM },
+      { row: 2, qid: 22, lon: 20, lat: -20, t0: 1000, t1: 1000, cls: BATTLE },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks, arrive: 'jump' });
+    const frame = frameOver(10, 0, 9);
+    events.update(frame, at(1000), 0);
+    events.update(frame, at(1000), tunables.eventFade * 2);
+    expect(marks.specs.map(({ id, glyph, mirror }) => ({ id, glyph, mirror }))).toEqual([
+      { id: 'Q20', glyph: 'cyclone', mirror: false },
+      { id: 'Q21', glyph: 'cyclone', mirror: true },
+      { id: 'Q22', glyph: 'battle', mirror: false },
+    ]);
   });
 
   it('asks for the now window, a tenth of the ruler, over the view the frame draws', () => {
