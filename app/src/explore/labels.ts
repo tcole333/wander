@@ -138,7 +138,12 @@ class Plate {
     const parts: HTMLElement[] = [];
     if (text.line) parts.push(el('p', 'xl-line', text.line));
     parts.push(el('p', 'xl-name', text.name), el('p', 'xl-date', text.date));
-    if (text.parent) parts.push(el('p', 'xl-parent', `${PART_OF} ${text.parent}`));
+    if (text.parent) {
+      // A caption over the parent's name, which the index labels without an article.
+      const parent = el('p', 'xl-parent');
+      parent.append(el('span', 'xl-part-of', PART_OF), el('span', 'xl-parent-name', text.parent));
+      parts.push(parent);
+    }
     if (text.source) {
       const link = el('a', 'xl-source', text.source.title);
       link.href = text.source.url;

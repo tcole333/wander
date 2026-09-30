@@ -165,7 +165,9 @@ describe('Explore’s labels', () => {
     labels.update(tunables.hoverQueue);
     const plate = plate$(root, false);
     expect(shown(plate)).toBe(true);
-    expect(plate.textContent).toBe('Battle of Waterloo18 June 1815Part of Hundred Days');
+    expect(plate.textContent).toBe('Battle of Waterloo18 June 1815Part ofHundred Days');
+    expect(byClass(plate, 'xl-part-of').textContent).toBe('Part of');
+    expect(byClass(plate, 'xl-parent-name').textContent).toBe('Hundred Days');
     expect(events.hovered).toBe('Q48314');
     // It stands right of the mark, clear of it.
     expect(plate.getAttribute('data-side')).toBe('right');

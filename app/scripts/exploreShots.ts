@@ -917,7 +917,9 @@ async function labelsShown(page: Page): Promise<Omit<LabelShot, 'name' | 'captio
       return {
         pinned: plate.classList.contains('is-pinned'),
         side: plate.getAttribute('data-side'),
-        text: [...plate.children].map((line) => line.textContent).join(' | '),
+        text: [...plate.children]
+          .map((line) => (line as HTMLElement).innerText.replace(/\s*\n\s*/g, ' / '))
+          .join(' | '),
         box: [box.left, box.top, box.width, box.height].map(Math.round),
       };
     }),

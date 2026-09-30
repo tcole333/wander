@@ -86,7 +86,7 @@ export function pinnedText(text: PlateText, qid: number, opening?: Opening): Pin
 /** The plate's words as one line, for the live region and the listbox. */
 export function spoken(text: PlateText & { line?: string }): string {
   const parts = [text.name, text.date];
-  if (text.parent) parts.push(`${PART_OF} ${text.parent}`);
+  if (text.parent) parts.push(`${PART_OF}: ${text.parent}`);
   if (text.line) parts.push(text.line);
   return parts.join(', ');
 }
