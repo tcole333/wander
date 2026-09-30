@@ -22,6 +22,10 @@ jobs:
         working-directory: pipeline
     steps:
       - uses: actions/checkout@v7
+      # Runner speed varies about 2x between runs, so every job logs the CPU it drew.
+      - name: Log the runner's CPU
+        run: |
+          echo "$(nproc) CPUs, $(lscpu | sed -n 's/^Model name: *//p')"
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.12.0"
@@ -43,6 +47,9 @@ jobs:
       dist-sha256: ${{ steps.dist.outputs.sha256 }}
     steps:
       - uses: actions/checkout@v7
+      - name: Log the runner's CPU
+        run: |
+          echo "$(nproc) CPUs, $(lscpu | sed -n 's/^Model name: *//p')"
       - uses: actions/setup-node@v7
         with:
           node-version-file: app/.nvmrc
@@ -99,6 +106,9 @@ jobs:
       rest: ${{ steps.dist.outputs.rest }}
     steps:
       - uses: actions/checkout@v7
+      - name: Log the runner's CPU
+        run: |
+          echo "$(nproc) CPUs, $(lscpu | sed -n 's/^Model name: *//p')"
       - uses: actions/setup-node@v7
         with:
           node-version-file: app/.nvmrc
@@ -147,6 +157,9 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v7
+      - name: Log the runner's CPU
+        run: |
+          echo "$(nproc) CPUs, $(lscpu | sed -n 's/^Model name: *//p')"
       - uses: actions/setup-node@v7
         with:
           node-version-file: app/.nvmrc
@@ -170,6 +183,9 @@ jobs:
           TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: test -n "$TOKEN" || { echo "The CLOUDFLARE_API_TOKEN repository secret is not set."; exit 1; }
       - uses: actions/checkout@v7
+      - name: Log the runner's CPU
+        run: |
+          echo "$(nproc) CPUs, $(lscpu | sed -n 's/^Model name: *//p')"
       - uses: actions/download-artifact@v8
         with:
           name: app-dist
