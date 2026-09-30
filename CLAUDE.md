@@ -200,6 +200,9 @@ works without the raw-data folder.
 - Codex agents take tasks here through `AGENTS.md`: Claude writes each brief, prepares the
   worktree, runs the browser and GPU checks Codex's sandbox cannot, and reviews the branch before
   its pull request.
+- `scripts/worktree.sh add <path> <branch> [<start>]` makes a worktree ready to test in: npm ci,
+  uv sync, links to the main checkout's global bake and the fixture (from the store when it holds
+  those inputs). `scripts/worktree.sh remove <path>` deletes the links before removing it.
 - Small commits in conventional-commit form (`feat(app): ...`, `fix(pipeline): ...`).
 - Every test passes before a push. CI runs on every pull request.
 - Check visual work in a real browser with a real GPU. Headless Chromium on this Mac can use the
