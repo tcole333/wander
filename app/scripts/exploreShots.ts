@@ -953,8 +953,9 @@ async function openLobby(context: BrowserContext, qid: string): Promise<Page> {
 }
 
 /**
- * Waits on the production page, which has no readiness hook, for the event worker and the marks'
- * fades to rest and for the data host to have sent nothing new for a second and a half.
+ * Waits on the production page, which has no readiness hook, for the event worker (Meanwhile's
+ * answer included) and the marks' fades to rest and for the data host to have sent nothing new
+ * for a second and a half.
  */
 async function settleLive(page: Page): Promise<void> {
   await frames(page, 3);

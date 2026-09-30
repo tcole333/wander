@@ -318,9 +318,10 @@ export class EventClient {
     return replies;
   }
   /**
-   * Nothing is on its way: no query waits to be sent or answered, no reply waits for drain(), and
-   * no page the plan needs is loading or waiting to load, but those that failed. A script's
-   * renders wait for it.
+   * Nothing is on its way: no query waits to be sent or answered, no reply waits for drain(), no
+   * page the plan needs is loading or waiting to load, but those that failed, and Meanwhile's
+   * standing question, if any, has been asked and answered. A script's renders, and its reading
+   * of Meanwhile's list, wait for it.
    */
   idle(): boolean {
     return (
@@ -329,7 +330,9 @@ export class EventClient {
       this.#inFlight === undefined &&
       this.#loading === undefined &&
       this.#ready.length === 0 &&
-      !this.#plan?.needs.some((key) => !this.#failed.has(key))
+      !this.#plan?.needs.some((key) => !this.#failed.has(key)) &&
+      this.#meanwhileInFlight === undefined &&
+      (!this.#meanwhile || sameMeanwhile(this.#meanwhile.query, this.#meanwhileSent))
     );
   }
   retry(): void {

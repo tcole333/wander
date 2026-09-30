@@ -348,7 +348,10 @@ export class ExploreEvents {
     return this.#specs;
   }
 
-  /** Nothing is on its way from the worker, or it has failed, and no mark is fading. */
+  /**
+   * Nothing is on its way from the worker, Meanwhile's answer included, or it has failed, and no
+   * mark is fading.
+   */
   settled(): boolean {
     return (this.#dead || this.#client.idle()) && !this.#fading && !this.#changed;
   }
