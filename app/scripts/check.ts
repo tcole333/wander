@@ -1,25 +1,28 @@
 // npm run check [-- --base <rev>]: the inner loop, scoped to what this branch changes since it
 // left origin/main (or since <rev>), untracked files included. Prettier and ESLint (both cached)
 // on the changed app files, the incremental typecheck, Vitest on the tests the change affects
-// (vite.config.ts's forceRerunTriggers widen that to the whole suite for the inputs tests read
-// from disk), ruff on the changed Python files and pytest, in one process, on the tests of the
-// changed pipeline modules. A stale fixture is restored from the store, or built, first. It can
-// miss a type-aware lint finding in an unchanged file and a test input that is neither imported
-// nor a trigger, so npm run gate, the full suites, stays the check before a push.
+// (the whole suite when it touches Vitest's config or an input tests read from disk,
+// scripts/diskInputs.ts), ruff on the changed Python files and pytest, in one process, on the
+// tests of the changed pipeline modules. A stale fixture is restored from the store, or built,
+// first. It can miss a type-aware lint finding in an unchanged file and a test input that is
+// neither imported nor listed, so npm run gate, the full suites, stays the check before a push.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { configDefaults } from 'vitest/config';
 import { treeSha } from '../src/test/stamp.ts';
 import { changedSince, git, inert, mergeBase, REPO, under } from './changes.ts';
+import { DISK_INPUTS } from './diskInputs.ts';
 
 export interface CheckPlan {
   /** Changed app files, relative to app/, for Prettier; the scripts among them for ESLint. */
   prettier: string[];
   eslint: string[];
   typecheck: boolean;
-  vitest: boolean;
+  /** All of Vitest, the tests that import what changed, or none. */
+  vitest: 'all' | 'changed' | false;
   /** Changed Python files, relative to pipeline/, for ruff. */
   ruff: string[];
   /** Test files, relative to pipeline/, for pytest; 'all' for the whole suite. */
@@ -36,6 +39,11 @@ const PYTEST_WIDE = new Set([
   'shared/constants.json',
 ]);
 const PYTEST_WIDE_FOLDERS = ['pipeline/config/', 'pipeline/tests/data/', 'stories/', 'explore/'];
+// Files outside the pipeline that one pytest file reads, and that file.
+const PYTEST_READS = new Map([['docs/design/streaming.md', 'tests/test_constants.py']]);
+// Changes that call for all of Vitest, matched against repo-relative paths: Vitest's own triggers
+// (package.json, its config) and the inputs tests read from disk.
+const WHOLE_VITEST = [...configDefaults.forceRerunTriggers, ...DISK_INPUTS];
 
 /** The checks for `changed` (repo-relative paths); `exists` says which still exist. */
 export function planChecks(
@@ -49,14 +57,17 @@ export function planChecks(
     const own = `pipeline/tests/test_${module}.py`;
     if (module && exists(own)) tests.add(own.slice(9));
     if (/^pipeline\/tests\/test_\w+\.py$/.test(path) && exists(path)) tests.add(path.slice(9));
-    if (path === 'docs/design/streaming.md') tests.add('tests/test_constants.py');
+    const reader = PYTEST_READS.get(path);
+    if (reader) tests.add(reader);
   }
   const wide = changed.some((p) => PYTEST_WIDE.has(p) || under(p, PYTEST_WIDE_FOLDERS));
+  const whole = changed.some((p) => WHOLE_VITEST.some((glob) => posix.matchesGlob(p, glob)));
+  const some = changed.some((p) => !inert(p) && !/^pipeline\/tests\/[^/]+\.py$/.test(p));
   return {
     prettier: app,
     eslint: app.filter((p) => /\.(ts|js|mjs)$/.test(p)),
     typecheck: changed.some((p) => under(p, ['app/', 'shared/'])),
-    vitest: changed.some((p) => !inert(p) && !/^pipeline\/tests\/[^/]+\.py$/.test(p)),
+    vitest: whole ? 'all' : some ? 'changed' : false,
     ruff: changed
       .filter((p) => p.startsWith('pipeline/') && p.endsWith('.py') && exists(p))
       .map((p) => p.slice(9)),
@@ -93,7 +104,8 @@ function main(): number {
   }
   if (plan.typecheck) steps.push(['typecheck', app, ['npx', 'tsc', '-b']]);
   if (plan.vitest && !fixtureFresh()) steps.push(['fixture', app, ['npm', 'run', 'fixture']]);
-  if (plan.vitest) {
+  if (plan.vitest === 'all') steps.push(['vitest', app, ['npm', 'test']]);
+  if (plan.vitest === 'changed') {
     steps.push(['vitest', app, ['npm', 'test', '--', '--changed', base, '--passWithNoTests']]);
   }
   if (plan.ruff.length) {

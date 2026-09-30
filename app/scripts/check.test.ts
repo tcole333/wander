@@ -28,7 +28,7 @@ describe('npm run check', () => {
       prettier: ['src/globe/cube.ts'],
       eslint: ['src/globe/cube.ts'],
       typecheck: true,
-      vitest: true,
+      vitest: 'changed',
     });
   });
 
@@ -37,13 +37,17 @@ describe('npm run check', () => {
   });
 
   test('leaves a deleted file to the checks that import it', () => {
-    expect(plan('app/src/globe/gone.ts')).toEqual({ ...NONE, typecheck: true, vitest: true });
+    expect(plan('app/src/globe/gone.ts')).toEqual({
+      ...NONE,
+      typecheck: true,
+      vitest: 'changed',
+    });
   });
 
-  test('runs a pipeline module’s own tests in one process, and Vitest over the fixture', () => {
+  test('runs a pipeline module’s own tests in one process, and all of Vitest over the fixture', () => {
     expect(plan('pipeline/src/prebuild/surface.py')).toEqual({
       ...NONE,
-      vitest: true,
+      vitest: 'all',
       ruff: ['src/prebuild/surface.py'],
       pytest: ['tests/test_surface.py'],
     });
@@ -74,13 +78,20 @@ describe('npm run check', () => {
     'stories/tambora/story.md',
     'explore/openings.lock.json',
   ])('runs all of pytest and Vitest for %s, which tests read from disk', (path) => {
-    expect(plan(path)).toMatchObject({ pytest: 'all', vitest: true });
+    expect(plan(path)).toMatchObject({ pytest: 'all', vitest: 'all' });
   });
+
+  test.each(['app/package.json', 'app/vite.config.ts', 'app/credits.html'])(
+    'runs all of Vitest for %s, which no test imports',
+    (path) => {
+      expect(plan(path).vitest).toBe('all');
+    },
+  );
 
   test('runs the design doc’s readers and nothing for other docs', () => {
     expect(plan('docs/design/streaming.md')).toEqual({
       ...NONE,
-      vitest: true,
+      vitest: 'all',
       pytest: ['tests/test_constants.py'],
     });
     expect(plan('docs/PRD.md', 'CLAUDE.md', 'LICENSE')).toEqual(NONE);
