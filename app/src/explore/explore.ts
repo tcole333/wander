@@ -6,8 +6,9 @@
 // cuts marks, the events of the now window mark the globe (exploreEvents.ts), the opening focal
 // among them; the layer's data-explore-marks counts the events marked in view. The dive lands with
 // the opening's plate pinned, its written line on it; from then a mark pointed at brings its
-// plate, a click pins it, and the keyboard reaches the marks through one listbox (labels.ts). The
-// globe shows the climate at the clock's date wherever ModE-RA has it and the ruler is close
+// plate, a click pins it, and the keyboard reaches the marks through one listbox (labels.ts).
+// Meanwhile names what happens then elsewhere, as the event worker picks it (exploreMeanwhile.ts);
+// choosing an entry flies there, 1,500 km wide, and pins it on landing. The globe shows the climate at the clock's date wherever ModE-RA has it and the ruler is close
 // enough (exploreClimate.ts). Its sound (audio/clockScore.ts) hears the clock's day, what the ruler
 // engraves around it, and whether a free flight has the camera. Leaving stops input on the ruler,
 // stops asking for events, eases their marks and the climate out and fades the sound to the room;
@@ -23,12 +24,14 @@ import { tunables } from '../config/tunables';
 import type { SurfaceLook } from '../contract';
 import type { EventsRelease } from '../data/release';
 import { EventClient } from '../events/client';
+import type { MeanwhileEvent } from '../events/meanwhile';
 import type { EventMark } from '../events/query';
 import { GLOW_FADE_S } from '../lobby/lobby';
 import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
 import type { LonLat } from '../story/story';
 import { el } from '../story/ui/dom';
 import type { Span } from '../story/ui/format';
+import { ARRIVE_KM } from '../story/ui/meanwhile';
 import { CraftRuler } from '../story/ui/rulerCraft';
 import { ExploreTime, HISTORY } from '../time/exploreTime';
 import { worldClock, type WorldClock, type WorldTime } from '../time/worldClock';
@@ -39,6 +42,7 @@ import type { Mode } from '../walk/mode';
 import { ExploreClimate } from './exploreClimate';
 import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { ExploreLabels } from './labels';
+import { ExploreMeanwhile } from './exploreMeanwhile';
 import { openingForDive, openings, type Opening } from './openings';
 
 /** The dive's view keeps the event's latitude within this, degrees, so no pole faces the lamp. */
@@ -167,16 +171,22 @@ export function startExplore({
   }
   const events =
     source && client ? new ExploreEvents({ client, marks: source.marks, focal, arrive }) : null;
+  const meanwhile = events ? new ExploreMeanwhile(events, (event) => flyTo(event)) : null;
   const labels =
     events && canvas
       ? new ExploreLabels({
           events,
           canvas,
           openings,
-          panels: () => [ruler.element, ...(climate ? [climate.legend] : [])],
+          panels: () => [
+            ruler.element,
+            ...(meanwhile ? [meanwhile.element] : []),
+            ...(climate ? [climate.legend] : []),
+          ],
         })
       : null;
   layer.append(ruler.element);
+  if (meanwhile) layer.append(meanwhile.element);
   if (labels) layer.prepend(labels.element);
   root.append(layer);
   let counted = -1;
@@ -186,17 +196,39 @@ export function startExplore({
   let frameS = 0;
 
   const landings = new Set<() => void>();
+  // Started where the view stands (the dev page), Explore has landed already.
+  let dived = flight === null;
+  /** What a Meanwhile flight's landing does: pins its entry. */
+  let arriving: (() => void) | null = null;
+  /** The flight has landed: the dive, its opening pinned, or a flight to a Meanwhile entry. */
   const land = () => {
     flight = null;
+    const arrived = arriving;
+    arriving = null;
+    if (dived) {
+      arrived?.();
+      return;
+    }
+    dived = true;
     labels?.land(opening);
     for (const landed of [...landings]) landed();
   };
-  // Started where the view stands (the dev page), Explore has landed already.
-  if (!flight) labels?.land(null);
+  /** Flies to a Meanwhile entry's event, 1,500 km wide, pinning it on landing. */
+  const flyTo = (event: MeanwhileEvent) => {
+    if (left || !dived) return;
+    const [lon, lat] = event.at;
+    const { tilt, heading } = control.current;
+    flight = new FreeFlight(control.current, { lon, lat, viewKm: ARRIVE_KM, tilt, heading });
+    arriving = () => labels?.pinEvent(event.qid, { t0: event.t0, t1: event.t1 });
+  };
+  if (dived) labels?.land(null);
   control.arrowKeys = true;
-  // Input during the dive takes the view from the flight, and the dive counts as landed.
+  // Input during the dive takes the view from the flight, and the dive counts as landed; input
+  // during a flight to a Meanwhile entry takes the view, and nothing is pinned.
   control.onInput = () => {
-    if (flight) land();
+    if (!flight) return;
+    if (dived) [flight, arriving] = [null, null];
+    else land();
   };
 
   const hook: WorldTimeHook = {
@@ -245,10 +277,13 @@ export function startExplore({
     afterPlace(frame, nowMs) {
       climate?.update(frameS, fade);
       events?.update(frame, clock.state(), nowMs);
+      if (dived && !left)
+        meanwhile?.ask(frame, clock.state(), [control.current.lon, control.current.lat]);
     },
-    ui(_drawn, nowMs) {
+    ui(drawn, nowMs) {
       climate?.ui();
       labels?.update(nowMs);
+      meanwhile?.update(drawn, clock.state());
       if (!events) return;
       const count = events.markedInView();
       if (count === counted) return;
@@ -265,6 +300,7 @@ export function startExplore({
     leave() {
       left = true;
       flight = null;
+      arriving = null;
       landings.clear();
       layer.inert = true;
       labels?.leave();
@@ -273,6 +309,7 @@ export function startExplore({
     },
     end() {
       flight = null;
+      arriving = null;
       landings.clear();
       labels?.dispose();
       events?.dispose();
