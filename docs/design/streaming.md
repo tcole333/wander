@@ -635,7 +635,8 @@ climate wash and before the ash:
   from 6,000 to 2,500 km across (`borderInnerKm`): fainter and finer than the outer line, the
   empire far and its members near (owner decisions 34 and 36).
 - **Soft edge:** where R's nearest border has stateless land on one side, two thirds of the
-  darkening, feathered from 1 to 2.5 px (owner decision 35).
+  darkening, feathered from 0.25 to 2.5 px from the line's middle, as task 0 rendered it (owner
+  decisions 35 and 36).
 - **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
   where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
   reach of 8 texels no longer spans the line.
@@ -663,11 +664,11 @@ cells, 32 previews, 256 KiB an upload. The array takes the border field's sample
   fades borders out until it slows. Before 3400 BCE nothing draws. Rocking back and forth across
   one boundary swaps the slots without refetching; a third slot (+12 MiB) comes only if the rocking
   test lags.
-- **Fetches:** only a beat that lists borders, Explore with borders on, and the lobby's preload of
-  the walk's first border step fetch borders; the lobby's own clock fetches none. `fetchData` takes
-  an `AbortSignal`, with no request classes (owner decision 30). A step is fetched once the clock has
-  rested in it for `borderRest`, or as a beat's readiness item (5.7), and a new target more than a
-  step away aborts it. A step loads into a slot no source draws, an empty one first; on lite, whose
+- **Fetches:** only a beat that lists borders and Explore with borders on fetch borders, and, once
+  Tambora moves onto the steps, the lobby's preload of the walk's first border step; the lobby's own
+  clock fetches none. `fetchData` takes an `AbortSignal`, with no request classes (owner decision
+  30). A step is fetched once the clock has rested in it for `borderRest`, and, with Tambora's move,
+  also as a beat's readiness item (5.7); a new target more than a step away aborts it. A step loads into a slot no source draws, an empty one first; on lite, whose
   one slot draws, the preview (or, in a walk, nothing) stands in until it frees. On the full tier,
   once a step draws, the next step in the scrub direction fills the free slot, but never in place
   of the step across the boundary just crossed, which rocking needs. Explore fetches all 33 chunks
