@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { ATLAS_WIDTH } from '../look/seaNames';
+import { GLYPH_CELL } from './glyphAtlas';
 import { GLYPH_UNITS, glyphReach } from './glyphs';
 import { EVENT_GLYPHS } from './symbols';
 
@@ -48,6 +50,14 @@ describe('glyphs', () => {
       expect(Math.max(...all)).toBeLessThanOrEqual(GLYPH_UNITS - MARGIN);
     },
   );
+
+  it('fit one row of the look’s glyph shelf', () => {
+    // A second row would add 192 KiB of atlas, 256 KiB with its mips, for its first glyph: a
+    // glyph that needs it is a decision of its own.
+    expect(Object.keys(EVENT_GLYPHS).length).toBeLessThanOrEqual(
+      Math.floor(ATLAS_WIDTH / GLYPH_CELL),
+    );
+  });
 });
 
 describe('glyphReach', () => {

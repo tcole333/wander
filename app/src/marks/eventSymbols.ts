@@ -9,7 +9,7 @@
 // famines, assassinations and atrocities, with one glyph for every atrocity; infrastructure the
 // shipwrecks, expeditions and conflagrations. A glyph belongs to one family, so every class that
 // shares a glyph shares its pace layer. A storm's glyph turns with its hemisphere, so an event's
-// glyph goes through glyphAt with its latitude.
+// mark asks mirroredAt with its latitude whether to draw its glyph mirrored.
 import type { Pace } from './families';
 import type { GlyphId } from './symbols';
 
@@ -74,14 +74,10 @@ export function eventSymbols(classes: readonly string[]): (EventSymbol | undefin
   return classes.map(eventSymbol);
 }
 
-/** The glyphs that turn with the hemisphere, and the form each takes south of the equator. */
-export const SOUTHERN_GLYPHS = {
-  cyclone: 'cycloneSouth',
-} as const satisfies Partial<Record<GlyphId, GlyphId>>;
+/** The glyphs whose marks turn with the hemisphere: mirrored east to west south of the equator. */
+export const SOUTHERN_MIRRORED: readonly GlyphId[] = ['cyclone'];
 
-/** The glyph drawn for an event at latitude `lat`: storms south of the equator turn the other way. */
-export function glyphAt(glyph: GlyphId, lat: number): GlyphId {
-  return lat < 0 && Object.hasOwn(SOUTHERN_GLYPHS, glyph)
-    ? SOUTHERN_GLYPHS[glyph as keyof typeof SOUTHERN_GLYPHS]
-    : glyph;
+/** Whether an event's glyph at latitude `lat` is drawn mirrored: storms south of the equator. */
+export function mirroredAt(glyph: GlyphId, lat: number): boolean {
+  return lat < 0 && SOUTHERN_MIRRORED.includes(glyph);
 }

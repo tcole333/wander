@@ -41,6 +41,7 @@ import {
 import { GLYPH_CELL, type GlyphCell } from './glyphAtlas';
 import {
   EMBER_RING,
+  FAMILY_STEP,
   FLAG,
   GLYPH_FIELD,
   MARK_AA_PX,
@@ -74,6 +75,8 @@ export interface MarkSpec {
   hollow?: boolean;
   /** An inherited or derived place, or a date known only to the year: a softer edge, half relief. */
   soft?: boolean;
+  /** Its glyph drawn mirrored east to west: a storm's south of the equator (eventSymbols.ts). */
+  mirror?: boolean;
   /**
    * An expanded parent's extent, radians of arc: a dashed engraved ring while it is hovered. Rings
    * wider than RING_MAX_RAD (about 5,000 km) are drawn at that.
@@ -574,7 +577,8 @@ export class MarkLayer {
         (spec.focal ? FLAG.focal : 0) |
         (spec.hover ? FLAG.hover : 0) |
         (spec.hollow ? FLAG.hollow : 0) |
-        (spec.soft ? FLAG.soft : 0);
+        (spec.soft ? FLAG.soft : 0) |
+        (spec.mirror ? FLAG.mirror : 0);
       // Its anchor and r; its glyph's cell, family and flags and strength; its shadow's offset,
       // its ring and the least cosine from its anchor it draws at.
       const at = markBase + m * MARK_TEXELS * 4;
@@ -584,7 +588,7 @@ export class MarkLayer {
       next[at + 3] = c.r;
       next[at + 4] = (cell?.x ?? 0) + GLYPH_CELL / 2;
       next[at + 5] = (cell?.y ?? 0) + GLYPH_CELL / 2;
-      next[at + 6] = family * 16 + flags;
+      next[at + 6] = family * FAMILY_STEP + flags;
       next[at + 7] = c.alpha;
       next[at + 8] = c.shadowX;
       next[at + 9] = c.shadowY;

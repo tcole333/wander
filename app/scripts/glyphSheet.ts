@@ -1,7 +1,8 @@
 // The event marks' specimen sheet: every glyph of src/marks/symbols.ts by pace layer, at the
 // marks' sizes on the globe (12, 16 and 20 px) and at the size the smallest mark's cast token
 // holds it (variant 0, the marks' default), on bronze and on the lacquer of the sea, and at 128 px
-// on its 64-unit grid, with the classes of pipeline/config/event-classes.yaml that take it; then
+// on its 64-unit grid, with the classes of pipeline/config/event-classes.yaml that take it, the
+// circle its family's token holds it within and, for a storm, its mirrored southern form; then
 // every glyph on its family's cast token at the marks' sizes, drawn flat.
 // Writes the SVG, then a PNG of it through headless Chromium, and prints each glyph's ink. From app/:
 //   node scripts/glyphSheet.ts --out ../build/explore/glyphs.svg [--png <path>] [--scale 1]
@@ -11,9 +12,9 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from '@playwright/test';
-import { EVENT_CLASS_SYMBOLS, SOUTHERN_GLYPHS } from '../src/marks/eventSymbols.ts';
+import { EVENT_CLASS_SYMBOLS, SOUTHERN_MIRRORED } from '../src/marks/eventSymbols.ts';
 import { tunables } from '../src/config/tunables.ts';
-import { FAMILIES, PACES, type Pace } from '../src/marks/families.ts';
+import { FAMILIES, PACES, TOKEN_INK, type Pace } from '../src/marks/families.ts';
 import { GLYPH_UNITS } from '../src/marks/glyphs.ts';
 import { EVENT_GLYPHS, type GlyphId } from '../src/marks/symbols.ts';
 
@@ -35,6 +36,11 @@ const MARK_SIZES = tunables.markPx.map((row) => row.px).sort((a, b) => a - b);
 const SMALLEST = MARK_SIZES[0]!;
 /** The width a family's cast token holds its glyph at on the smallest mark. */
 const tokenGlyph = (pace: Pace) => FAMILIES[pace].variants[0].glyph.scale * SMALLEST;
+/** How far from its center, in units, a family's cast token holds its glyphs (TOKEN_INK). */
+const tokenReach = (pace: Pace) => {
+  const { disc, glyph } = FAMILIES[pace].variants[0];
+  return (TOKEN_INK * (disc?.radius ?? 0) * (GLYPH_UNITS / 2)) / glyph.scale;
+};
 const BIG = 128;
 const PAD = 32;
 const CARD = { width: 392, height: 184, gap: 16 };
@@ -52,9 +58,8 @@ for (const [name, { pace, glyph }] of Object.entries(EVENT_CLASS_SYMBOLS)) {
   classes.set(glyph, [...(classes.get(glyph) ?? []), name]);
   family.set(glyph, pace);
 }
-for (const [north, south] of Object.entries(SOUTHERN_GLYPHS) as [GlyphId, GlyphId][]) {
-  classes.set(south, [...(classes.get(north) ?? []), 'south of the equator']);
-  family.set(south, family.get(north)!);
+for (const id of SOUTHERN_MIRRORED) {
+  classes.set(id, [...(classes.get(id) ?? []), 'mirrored south of the equator']);
 }
 const ids = Object.keys(EVENT_GLYPHS) as GlyphId[];
 
@@ -68,9 +73,17 @@ function escape(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/** A glyph `size` px wide with its top left at (x, y). */
-function glyph(id: GlyphId, x: number, y: number, size: number, fill: string): string {
-  return `<path d="${EVENT_GLYPHS[id]}" fill="${fill}" transform="translate(${x} ${y}) scale(${size / GLYPH_UNITS})"/>`;
+/** A glyph `size` px wide with its top left at (x, y), mirrored east to west if asked. */
+function glyph(
+  id: GlyphId,
+  x: number,
+  y: number,
+  size: number,
+  fill: string,
+  mirror = false,
+): string {
+  const k = size / GLYPH_UNITS;
+  return `<path d="${EVENT_GLYPHS[id]}" fill="${fill}" transform="translate(${mirror ? x + size : x} ${y}) scale(${mirror ? -k : k} ${k})"/>`;
 }
 
 function text(x: number, y: number, body: string, size: number, fill: string, extra = ''): string {
@@ -93,13 +106,17 @@ function lines(words: string[], width: number): string[] {
 function card(id: GlyphId, x: number, y: number): string {
   const unit = BIG / GLYPH_UNITS;
   const box = BIG + 16;
+  const pace = family.get(id);
   const parts = [
     `<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="6" fill="#1d1812" stroke="#3a2f22"/>`,
     `<rect x="${x + 12}" y="${y + 20}" width="${box}" height="${box}" rx="4" fill="url(#bronze)"/>`,
-    // The drawing rules: the 4-unit margin and the circle a seal holds.
+    // The drawing rules: the 4-unit margin, and the circle its family's token holds it within.
     `<g fill="none" stroke="${INK}" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="3 3">`,
     `<rect x="${x + 20 + 4 * unit}" y="${y + 28 + 4 * unit}" width="${56 * unit}" height="${56 * unit}"/>`,
-    `<circle cx="${x + 20 + 32 * unit}" cy="${y + 28 + 32 * unit}" r="${28 * unit}"/></g>`,
+    pace
+      ? `<circle cx="${x + 20 + 32 * unit}" cy="${y + 28 + 32 * unit}" r="${tokenReach(pace) * unit}"/>`
+      : '',
+    '</g>',
     glyph(id, x + 20, y + 28, BIG, INK),
     text(
       x + 172,
@@ -118,10 +135,16 @@ function card(id: GlyphId, x: number, y: number): string {
     parts.push(
       `<rect x="${x + 168}" y="${top}" width="${CARD.width - 180}" height="36" rx="3" fill="${ground}"/>`,
     );
+    // A storm's row ends on its southern form, mirrored, at the largest mark size.
+    const southern = SOUTHERN_MIRRORED.includes(id);
     let left = x + 184;
     for (const size of sizes(id)) {
       parts.push(glyph(id, left, top + Math.round((36 - size) / 2), size, fill));
-      left += size + 40;
+      left += size + (southern ? 28 : 40);
+    }
+    if (southern) {
+      const size = MARK_SIZES.at(-1)!;
+      parts.push(glyph(id, left, top + Math.round((36 - size) / 2), size, fill, true));
     }
   };
   row(y + 104, 'url(#bronze)', INK);
@@ -135,7 +158,7 @@ const body: string[] = [
   text(
     PAD,
     y + 46,
-    `One family per pace layer, drawn on a 64-unit grid. Marks are ${MARK_SIZES.join(', ')} px across; a ${SMALLEST} px cast token holds its glyph at ${PACES.map((pace) => tokenGlyph(pace).toFixed(1)).join(', ')} px (${PACES.join(', ')}).`,
+    `One family per pace layer, drawn on a 64-unit grid. Marks are ${MARK_SIZES.join(', ')} px across, and ${tunables.markMinDevicePx} device px at least; a ${SMALLEST} px cast token holds its glyph at ${PACES.map((pace) => tokenGlyph(pace).toFixed(1)).join(', ')} px (${PACES.join(', ')}).`,
     13,
     FAINT,
   ),
@@ -161,21 +184,27 @@ for (const [ground, fill] of [
   ['#0f1512', BRASS],
 ] as const) {
   for (const [row, size] of ['token', ...MARK_SIZES].entries()) {
-    const at = (id: GlyphId) => (row === 0 ? tokenGlyph(family.get(id)!) : Number(size));
+    // On the token row, a glyph no class takes yet has no token: its place stays empty.
+    const at = (id: GlyphId) => {
+      const pace = family.get(id);
+      return row > 0 ? Number(size) : pace ? tokenGlyph(pace) : 0;
+    };
     const step = Math.max(...ids.map(at)) + 14;
     const tallest = Math.max(...ids.map(at));
     body.push(
       `<rect x="${PAD}" y="${y}" width="${ids.length * step + 60}" height="${tallest + 16}" rx="3" fill="${ground}"/>`,
       text(PAD + 8, y + tallest / 2 + 12, `${size}`, 11, fill),
-      ...ids.map((id, i) =>
-        glyph(
-          id,
-          PAD + 52 + i * step + (tallest - at(id)) / 2,
-          y + 8 + (tallest - at(id)) / 2,
-          at(id),
-          fill,
+      ...ids
+        .filter((id) => at(id) > 0)
+        .map((id) =>
+          glyph(
+            id,
+            PAD + 52 + ids.indexOf(id) * step + (tallest - at(id)) / 2,
+            y + 8 + (tallest - at(id)) / 2,
+            at(id),
+            fill,
+          ),
         ),
-      ),
     );
     y += tallest + 16 + 8;
   }

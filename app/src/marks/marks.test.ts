@@ -8,7 +8,15 @@ import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
 import { FAMILIES, FAMILY_VEC4S } from './families';
-import { MARK_ROW, SLOT_ROW, SLOTS_MAX, TABLE_WIDTH, TILE_COUNT_MAX } from './marks.glsl';
+import {
+  FAMILY_STEP,
+  FLAG,
+  MARK_ROW,
+  SLOT_ROW,
+  SLOTS_MAX,
+  TABLE_WIDTH,
+  TILE_COUNT_MAX,
+} from './marks.glsl';
 import {
   binDiscs,
   limbFade,
@@ -156,6 +164,14 @@ describe('MarkLayer', () => {
     expect(marks.params.markVariant).toBe(0);
     expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S + 1]?.w).toBe(token.glyph.scale);
     expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S]?.w).toBe(token.disc?.radius);
+  });
+
+  it('packs a mirrored glyph’s flag below its family', () => {
+    const marks = layer();
+    marks.set('events', [mark('storm', [20, 10], { pace: 'governance', mirror: true })]);
+    marks.place(view);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    expect(data[MARK_ROW * TABLE_WIDTH * 4 + 6]).toBe(FAMILY_STEP + FLAG.mirror);
   });
 
   it('places nothing on the far side of the globe', () => {
