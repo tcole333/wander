@@ -453,6 +453,36 @@ describe('Explore’s labels', () => {
     expect(plate$(root, false).getAttribute('data-side')).not.toBe('right');
   });
 
+  it('keep their options while only their marks move, ordering them anew as the list takes focus', () => {
+    const moving = SHOWN.map((on) => ({ ...on }));
+    const { labels, list, key } = setup(moving);
+    labels.land(null);
+    labels.update(0);
+    const before = [...list.children];
+    const names = () =>
+      (list.children as FakeElement[]).map((option) => option.textContent.split(',')[0]);
+    expect(names()).toEqual([
+      'Battle of Ligny',
+      'Year Without a Summer',
+      'Battle of Waterloo',
+      'Congress of Vienna',
+    ]);
+    // The globe turns and Ligny passes Vienna: the same elements stand, in the same order.
+    moving[1]!.x = 1000;
+    labels.update(16);
+    expect(list.children.every((option, i) => option === before[i])).toBe(true);
+    // Focused, the listbox orders them as their marks stand now.
+    list.dispatchEvent(new Event('focus'));
+    expect(names()).toEqual([
+      'Year Without a Summer',
+      'Battle of Waterloo',
+      'Congress of Vienna',
+      'Battle of Ligny',
+    ]);
+    key(list, 'End');
+    expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q207318');
+  });
+
   it('stop picking once Explore leaves, the plates going', () => {
     const { events, labels, root, click, pointer } = setup();
     labels.land(null);
