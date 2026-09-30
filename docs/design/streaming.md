@@ -4,8 +4,9 @@ Merged design, 2026-09-24, revised after a fact-check, a PRD-conformance audit a
 review. It is written for whoever builds milestone 1 and what follows. It works under the owner's
 decisions: every layer independently toggleable; an all-eras event index built for explore in v1;
 desktop only; audio in v1; a museum-exhibit stance with exaggerated relief; beat stories with
-break-out; framed image cards; borders from the nearest historical-basemaps snapshot with its year
-shown; TypeScript, Vite and plain three.js with a DOM UI (owner decision 20); a Python (uv) offline
+break-out; framed image cards; borders from Cliopatria at every change year, empires far and their
+members near (owner decisions 33-37); TypeScript, Vite and plain three.js with a DOM UI (owner
+decision 20); a Python (uv) offline
 prebuild; Pages at `wander.traviscole.xyz` and R2 at `wander-data.traviscole.xyz`; a public GitHub
 repo with Actions CI.
 
@@ -2387,8 +2388,10 @@ Decided 2026-09-24 (starting values, tunable). The rest of the doc cites these b
 4. **Bathymetry source:** GEBCO contours at Natural Earth's depth intervals; the legend credits both.
 5. **"Normal broadband":** 25 Mbps / 50 ms with a cold cache for the 3 s bar; beats still land within
    the hold at 5 Mbps.
-6. **Border license:** derived border tiles are published as GPL-3.0 with the license, source commit
-   and build script linked.
+6. **Border license:** milestone 1's 1815 field, derived from historical-basemaps, is published as
+   GPL-3.0 with the license, source commit and build script linked. The borders through time come
+   from Cliopatria under CC BY 4.0 instead (decision 33), and Tambora's move onto them retires this
+   one.
 7. **Tambora beat list:** start from the 8 drafted beats in
    `docs/design/measurements/work/story-first/beats.py` (issue #10).
 8. **Target hardware:** the development MacBook Pro for now (hardware note in 8.2).
@@ -2486,3 +2489,29 @@ Decided after milestone 1 (issues #55 and #57), 2026-09-28:
 32. **The walk's audio stays as it is:** its cached noise (about 25 MiB) keeps the sound the owner
     approved, and the CPU line, which the walk now meets on some walks and misses by a few MiB on
     others (8.2), is revisited with the lower-end machines.
+
+Decided for borders through time (issue #80), 2026-09-29, on the comparison renders and then on
+the look renders baked from Cliopatria:
+
+33. **Borders from Cliopatria:** Cliopatria's polities (CC BY 4.0: 3400 BCE to 2024, valid years for
+    every polity, Wikidata ids) draw the borders through time, rather than historical-basemaps. It
+    was closer in most checks at 1000, 1500, 1800 and 1914 (Belgrade still Hungarian in 1500, Goa
+    under Bijapur, the Marathas and the Qing in 1800; Finland, the Caucasus, Trieste and Bessarabia
+    in 1914) and leaves land blank where no state existed, while historical-basemaps filled up to
+    41% of land with schematic zones and drew post-1918 borders in 1914. The costs taken on: cited
+    corrections per era, pockets given to their neighbours so no border rings a lake, and
+    Cliopatria's coarser outlines (a point every 24 km on median) in close views.
+34. **Empires far, members near:** at world scale an empire's outer border draws; closing in brings
+    its member states' borders forward, fainter. Dependent states sit inside their paramount's
+    outer border with their own inner line, by treaty only: protectorates, princely states and
+    subsidiary allies, each cited and dated. Tribute relations stay out.
+35. **No borders where no state existed:** that land stays unbordered, where people lived keeping
+    it from reading empty, and a state's edge against it draws softer.
+36. **The border look:** fields of 1024 texels a side; states under 50,000 km²,
+    measured per piece, draw the inner line; the inner line at 0.55 darkening, 2 px dots every 4 px,
+    1.5 px wide, fading in as the view narrows from 6,000 to 2,500 km across; the soft edge at two
+    thirds of the darkening, feathered; the close fade kept at 400 to 220 km; and a lake-touching
+    hole filled only under the 100,000 km² pocket cap.
+37. **Sumbawa in 1815:** Sanggar, Tambora, Pekat, Dompu and western Sumbawa's sultanate, which
+    Cliopatria lacks, join Bima as Dutch members under decision 34, cited to Hägerdal's *Held's
+    History of Sumbawa* (2017), so the peninsula the story names is not drawn stateless.
