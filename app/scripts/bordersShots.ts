@@ -1,8 +1,9 @@
 // Still renders of the borders through time (#80) on this Mac's GPU: Chromium on Metal at
-// 1440x900, the dev page in Explore with ?stepBorders, which draws the border step the world clock
-// stands in from its slot (prototype/app/main.ts). For each view it jumps the camera there (tilt 0,
-// heading 0), shoots it without borders, then seeks the clock to 1 July of each year, waits until
-// that year's step draws at full strength and the streamer has been idle for a second, and shoots.
+// 1440x900, the dev page in Explore, whose borders follow the world clock
+// (explore/exploreBorders.ts). For each view it jumps the camera there (tilt 0, heading 0), shoots
+// it without borders, then seeks the clock to 1 July of each year, waits until that year's step
+// draws from its slot at full strength, its preview gone, and the streamer has been idle for a
+// second, and shoots.
 // Then it lays the renders out in contact sheets: each set at half size, a row per year, and their
 // centres at full size. Plain Node, run from app/ with the Vite dev server and a global data server
 // up:
@@ -299,7 +300,7 @@ async function render(browser: Browser): Promise<void> {
     if (m.type() === 'error' || m.type() === 'warning') problems.push(`${m.type()}: ${m.text()}`);
   });
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
-  const query = new URLSearchParams({ data: values.data, ui: '0', stepBorders: '1' });
+  const query = new URLSearchParams({ data: values.data, ui: '0' });
   await page.goto(`${values.url}/prototype.html?${query}`);
   await page.waitForFunction(
     () => {
@@ -342,7 +343,9 @@ async function render(browser: Browser): Promise<void> {
           const w = window as unknown as ShotWindow;
           const shown = w.__borders!.shown();
           const borders =
-            drawn === null ? shown === null : shown?.year === drawn && shown.strength > 0.999;
+            drawn === null
+              ? shown === null
+              : shown?.year === drawn && !shown.preview && shown.strength > 0.999;
           return borders && w.__proto!.ready();
         },
         stepYear,
