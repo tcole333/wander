@@ -232,7 +232,7 @@ export function defaultMarkParams(): Params {
   return {
     // Off skips the look's marks entirely: the GPU time's baseline.
     marks: true,
-    // The owner's choice on R1's renders (29 September): 0, the cast token (families.ts).
+    // 0, the cast token (families.ts).
     markVariant: 0,
     // The mark's size over tunables.markPx and markMinDevicePx.
     markSize: 1,

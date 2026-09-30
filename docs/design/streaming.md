@@ -1471,12 +1471,11 @@ only a failed start or a worker error ends the worker.
     [M `e1/results/browser-features-firefox.json`: Firefox 156; the pre-launch rerun checks
     Windows], so there one material compiles per frame.
 - **Fragment samplers:** the surface program may read 13 of the 16 guaranteed with Explore's
-  marks, the count the owner accepted (29 September). It reads 12: the height and shore pools, the
-  sea-name atlas, the climate and border fields, four route textures, the environment, three's DFG
-  table and the lamp's shadow. Where Explore is enabled its marks read their table, and the routes'
-  cells head their index table rather than take a texture of their own, so the program still reads
-  12, as a render on Metal counted them (29 September) and `e2e/marks.spec.ts` holds them. Adding
-  one needs a check against those counts.
+  marks, keeping three spare. It reads 12: the height and shore pools, the sea-name atlas, the
+  climate and border fields, four route textures, the environment, three's DFG table and the
+  lamp's shadow. Where Explore is enabled its marks read their table, and the routes' cells head
+  their index table rather than take a texture of their own, so the program still reads 12
+  (`e2e/marks.spec.ts` holds them). Adding one needs a check against those counts.
 - **Marks:** Explore's marks are part of the surface program (section 2, Event marks), so they add
   no program to compile; `lookMarksOn` false skips them, and where Explore is not enabled the
   program and the sea-name atlas are exactly the look's alone.
