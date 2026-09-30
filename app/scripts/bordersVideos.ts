@@ -20,7 +20,9 @@
 // last rest has settled.
 // - gpu: the GPU time a scene draw adds with the borders at rest and mid-dissolve, two slots and
 //   two previews, over the borders off (prototype/app/bordersTiming.ts), at world view and at
-//   4,000 and 2,500 km over Europe, and the border array's size on the GPU.
+//   4,000 and 2,500 km over Europe; how many of 400 frames there come more than 20 ms after the
+//   last, a step at rest and the borders off in turn, twice each; and the border array's size on
+//   the GPU.
 // - walk: the Tambora walk on the dev page, drawing border steps (?explore) and milestone 1's 1815
 //   field (without), sampling borders.* every 50 ms from the first beat through the sixth, the
 //   most while a border beat's step loads, each account's total once the sixth has settled, and
@@ -339,7 +341,7 @@ async function video(browser: Browser, plan: VideoPlan): Promise<void> {
     log.drawn.filter(test).length / log.drawn.length;
   report[plan.name] = {
     title: plan.title,
-    video: mp4,
+    video: `${plan.name}.mp4`,
     screencastFrames: shots.length,
     seconds: frames.at(-1)!.t / 1000,
     frames: log.drawn.length,
@@ -386,7 +388,16 @@ async function gpu(browser: Browser): Promise<void> {
     const passes = await page.evaluate(() =>
       (window as unknown as PageWindow).__bordersTiming!.gpu(300),
     );
-    times[name] = { addedMs: added(passes), passes };
+    // The frames presented, a step at rest and the borders off in turn, twice each.
+    const frames: Record<string, number[]> = { on: [], off: [] };
+    for (const on of [true, false, true, false]) {
+      await page.evaluate((o) => (window as unknown as PageWindow).__borders!.show(o), on);
+      await page.waitForTimeout(1000);
+      frames[on ? 'on' : 'off']!.push(await missed(page, 400));
+    }
+    await page.evaluate(() => (window as unknown as PageWindow).__borders!.show(true));
+    await settle(page, day);
+    times[name] = { addedMs: added(passes), passes, framesOver20MsOf400: frames };
     console.log('gpu', name, JSON.stringify(times[name]));
   }
   const array = await page.evaluate(() =>
@@ -394,6 +405,29 @@ async function gpu(browser: Browser): Promise<void> {
   );
   report.gpu = { array: { ...array, MiB: array.bytes / MiB }, times };
   await page.close();
+}
+
+/** How many of the next `count` frames the page presents more than 20 ms after the last. */
+function missed(page: Page, count: number): Promise<number> {
+  return page.evaluate(
+    (n) =>
+      new Promise<number>((done) => {
+        let last = 0;
+        let seen = 0;
+        let late = 0;
+        const frame = (now: number) => {
+          if (last) {
+            seen += 1;
+            if (now - last > 20) late += 1;
+          }
+          last = now;
+          if (seen < n) requestAnimationFrame(frame);
+          else done(late);
+        };
+        requestAnimationFrame(frame);
+      }),
+    count,
+  );
 }
 
 /** The Tambora walk from its first beat through its sixth, sampling borders.* every 50 ms. */
