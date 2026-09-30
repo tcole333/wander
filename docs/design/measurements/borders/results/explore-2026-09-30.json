@@ -1,0 +1,262 @@
+{
+  "when": "2026-09-30T09:41:05.019Z",
+  "release": "aced6bbcc90f2ec0",
+  "data": "global data server (build/out)",
+  "steps": 521,
+  "world": {
+    "title": "3400 BCE to 2000 at world view",
+    "video": "world.mp4",
+    "screencastFrames": 4715,
+    "seconds": 77.5,
+    "frames": 4651,
+    "frameMs": {
+      "p50": 16.69999999999709,
+      "p95": 16.79999999998836,
+      "max": 16.80000000000291
+    },
+    "drawn": {
+      "slot": 0.13244463556224467,
+      "preview": 0.8675553644377553,
+      "none": 0,
+      "years": 521
+    },
+    "longTasks": [],
+    "bordersCpuMiB": {
+      "most": 3.233234405517578,
+      "settled": 1.8069562911987305
+    }
+  },
+  "europe": {
+    "title": "1900 to 1950 over Europe, 4,000 km across",
+    "video": "europe.mp4",
+    "screencastFrames": 1074,
+    "seconds": 19.7,
+    "frames": 1022,
+    "frameMs": {
+      "p50": 16.700000000000728,
+      "p95": 33.39999999999782,
+      "max": 33.5
+    },
+    "drawn": {
+      "slot": 0.5587084148727984,
+      "preview": 0.44129158512720157,
+      "none": 0,
+      "years": 37
+    },
+    "longTasks": [],
+    "bordersCpuMiB": {
+      "most": 3.1882190704345703,
+      "settled": 1.8069562911987305
+    }
+  },
+  "gpu": {
+    "array": {
+      "bytes": 29360128,
+      "layers": 14,
+      "holds": "full",
+      "MiB": 28
+    },
+    "times": {
+      "world": {
+        "addedMs": {
+          "rest": 0.195,
+          "slots": 0.352,
+          "previews": 0.304
+        },
+        "passes": {
+          "off": {
+            "p05": 3.874,
+            "p50": 6.837875,
+            "samples": 300
+          },
+          "rest": {
+            "p05": 4.0691250000000005,
+            "p50": 7.612638666666666,
+            "samples": 300
+          },
+          "slots": {
+            "p05": 4.226499666666666,
+            "p50": 7.794958333333334,
+            "samples": 300
+          },
+          "previews": {
+            "p05": 4.178222,
+            "p50": 7.926375,
+            "samples": 300
+          }
+        },
+        "framesOver20MsOf400": {
+          "on": [
+            0,
+            0
+          ],
+          "off": [
+            0,
+            0
+          ]
+        }
+      },
+      "europe-4000": {
+        "addedMs": {
+          "rest": 0.377,
+          "slots": 0.948,
+          "previews": 1.413
+        },
+        "passes": {
+          "off": {
+            "p05": 16.260708,
+            "p50": 29.507625,
+            "samples": 300
+          },
+          "rest": {
+            "p05": 16.637708,
+            "p50": 28.72149966666667,
+            "samples": 300
+          },
+          "slots": {
+            "p05": 17.208458,
+            "p50": 29.658958333333334,
+            "samples": 300
+          },
+          "previews": {
+            "p05": 17.67405533333333,
+            "p50": 30.608611,
+            "samples": 300
+          }
+        },
+        "framesOver20MsOf400": {
+          "on": [
+            37,
+            43
+          ],
+          "off": [
+            25,
+            26
+          ]
+        }
+      },
+      "europe-2500": {
+        "addedMs": {
+          "rest": 0.277,
+          "slots": 0.454,
+          "previews": 0.981
+        },
+        "passes": {
+          "off": {
+            "p05": 10.991722000000001,
+            "p50": 19.688791666666667,
+            "samples": 300
+          },
+          "rest": {
+            "p05": 11.268625,
+            "p50": 22.97158333333333,
+            "samples": 300
+          },
+          "slots": {
+            "p05": 11.445375,
+            "p50": 23.616457999999998,
+            "samples": 300
+          },
+          "previews": {
+            "p05": 11.972458333333334,
+            "p50": 20.883458,
+            "samples": 300
+          }
+        },
+        "framesOver20MsOf400": {
+          "on": [
+            0,
+            0
+          ],
+          "off": [
+            0,
+            0
+          ]
+        }
+      }
+    }
+  },
+  "walk": {
+    "steps": {
+      "bordersMostMiB": 1.3857545852661133,
+      "firstBeatSettled": {
+        "bordersMiB": 0,
+        "totalMiB": 2.924562454223633
+      },
+      "sixthBeatSettled": {
+        "bordersMiB": 0,
+        "totalMiB": 2.892641067504883
+      },
+      "sixthBeatGpu": {
+        "addedMs": {
+          "rest": 0.267,
+          "slots": 0.477,
+          "previews": 0.581
+        },
+        "passes": {
+          "off": {
+            "p05": 12.834916333333332,
+            "p50": 22.931833,
+            "samples": 300
+          },
+          "rest": {
+            "p05": 13.102083333333333,
+            "p50": 28.867,
+            "samples": 300
+          },
+          "slots": {
+            "p05": 13.311694333333334,
+            "p50": 29.041777666666665,
+            "samples": 300
+          },
+          "previews": {
+            "p05": 13.415971999999998,
+            "p50": 23.506069333333333,
+            "samples": 300
+          }
+        }
+      },
+      "array": {
+        "bytes": 29360128,
+        "layers": 14,
+        "holds": "full",
+        "MiB": 28
+      }
+    },
+    "field1815": {
+      "bordersMostMiB": 24.000015258789062,
+      "firstBeatSettled": {
+        "bordersMiB": 0,
+        "totalMiB": 2.924806594848633
+      },
+      "sixthBeatSettled": {
+        "bordersMiB": 0,
+        "totalMiB": 2.892885208129883
+      },
+      "sixthBeatGpu": {
+        "addedMs": {
+          "rest": 0.247
+        },
+        "passes": {
+          "off": {
+            "p05": 11.779583,
+            "p50": 12.868958,
+            "samples": 300
+          },
+          "rest": {
+            "p05": 12.026583333333333,
+            "p50": 19.296249666666665,
+            "samples": 300
+          }
+        }
+      },
+      "array": {
+        "bytes": 25165824,
+        "layers": 6,
+        "holds": "1815",
+        "MiB": 24
+      }
+    }
+  },
+  "problems": []
+}

@@ -28,6 +28,15 @@ ancestors: stored gzip, inflated JSON and resident-array bytes, overview decode 
 queries at both tiers. `app/scripts/benchmarkEvents.ts` writes the machine and method with the
 measurements; these Node timings on the M5 exclude worker messaging and rendering.
 
+`borders/results/explore-2026-09-30.json` records the border steps in Explore (streaming.md 3.3),
+measured by `app/scripts/bordersVideos.ts` on the M5 at 1440x900 in Chromium on Metal, on the global
+bake of 30 September: its two scrub videos' frames, long tasks, the steps drawn and `borders.*` CPU
+bytes; the GPU time a scene draw adds with a step at rest and mid-dissolve, at world view and at
+4,000 and 2,500 km over Europe, and the frames that came late there with the borders on and off;
+and the Tambora walk on the steps and on the 1815 field, its `borders.*` bytes while loading and
+settled and the GPU time its borders add at the sixth beat. GPU times are the fastest twentieth of
+300 samples, where other work sharing the GPU has added least.
+
 `e4/` holds E4 (streaming.md 8.2): `e4.py` uploaded and warmed 200 objects under `_e4/` on
 2026-09-25, as `state.json` records, and reads one cohort of 50 at each checkpoint from this Mac.
 `results/warm.json` is the warm, `results/24h.json` and `results/72h.json` the checkpoints, and
