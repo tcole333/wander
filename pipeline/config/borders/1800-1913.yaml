@@ -288,18 +288,6 @@ corrections:
       title: Hyderabad State
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Hyderabad_State
-  - years: [1804, 1857]
-    member:
-      polity: Mughal Empire
-      of: British Empire
-    why: >-
-      On 14 September 1803 British troops entered Delhi and took Shah Alam II under their
-      protection; he and his successors ruled only Delhi as the Company's pensioners until the
-      revolt of 1857.
-    source:
-      title: Shah Alam II
-      publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Shah_Alam_II
   - years: [1858, 1858]
     give:
       polity: Mughal Empire
