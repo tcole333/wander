@@ -3,9 +3,9 @@
 // brings a vellum plate beside it with the event's name and date, and for a child the event it is
 // part of (plateText.ts); a hollow parent also draws its extent's ring. A click (a press that moves
 // under CLICK_PX) pins the event's plate, with its source, and makes the event focal, its ember
-// the one that blooms; a click on bare metal, Escape, or the now window leaving the event unpins
-// it, and Escape, with nothing pinned, is the lobby's again. The dive lands with its opening
-// pinned, its written line on its plate.
+// the one that blooms; a click on bare metal, Escape while the pinned plate stands in view, or the
+// now window leaving the event unpins it, and Escape with no pinned plate in view is the lobby's
+// again. The dive lands with its opening pinned, its written line on its plate.
 //
 // The keyboard reaches the same marks, once the dive has landed, through one tab stop: a listbox,
 // hidden from sight, whose options are the worker's labels for the events marked in view. Its
@@ -369,12 +369,15 @@ export class ExploreLabels {
     addEventListener('pointerup', release, { signal });
     addEventListener('pointercancel', release, { signal });
     addEventListener('blur', release, { signal });
-    // Before the lobby's own, on the window: a pin takes the first Escape.
+    // Before the lobby's own, on the window: a pinned plate in view takes the first Escape. One
+    // panned out of view, or not yet described, leaves it to the lobby, so Escape never seems to
+    // do nothing.
     document.addEventListener(
       'keydown',
       (event) => {
         if (event.key !== 'Escape' || event.defaultPrevented || event.repeat) return;
-        if (event.metaKey || event.ctrlKey || event.altKey || this.#pinned === null) return;
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (this.#pinned === null || !this.#pinPlate.shown) return;
         this.unpin();
         event.preventDefault();
       },

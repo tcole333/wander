@@ -277,6 +277,21 @@ describe('Explore’s labels', () => {
     expect(again.defaultPrevented).toBe(false);
   });
 
+  it('leave Escape to the lobby while no pinned plate stands in view', () => {
+    const inView = SHOWN.map((on) => ({ ...on }));
+    const { labels, root, click } = setup(inView);
+    labels.land(null);
+    click(640, 380);
+    labels.update(0);
+    // Ligny panned out of view: its plate goes, and Escape is the lobby's.
+    inView.splice(1, 1);
+    labels.update(16);
+    expect([labels.pinned, shown(plate$(root, true))]).toEqual([207318, false]);
+    const escape = Object.assign(new Event('keydown', { cancelable: true }), { key: 'Escape' });
+    document.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
+  });
+
   it('unpin once the event is no longer focal, as when the now window leaves it', () => {
     const { events, labels, root, click } = setup();
     labels.land(null);

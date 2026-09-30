@@ -1137,8 +1137,9 @@ only a failed start or a worker error ends the worker.
   draws it somewhere between. A click (a press moving less than 4 px) pins the plate, adds its
   source and makes the event focal: the English Wikipedia article through Wikidata's
   `Special:GoToLinkedPage`, as the index holds no title, or for an opening its written line and
-  the source that line rests on. A click on bare metal, Escape, or the now window leaving the event
-  unpins it, and Escape with nothing pinned returns to the lobby. One listbox, hidden from sight,
+  the source that line rests on. A click on bare metal, Escape while the pinned plate stands in
+  view, or the now window leaving the event unpins it, and Escape with no pinned plate in view (none
+  pinned, or its mark panned away) returns to the lobby. One listbox, hidden from sight,
   holds the worker's labels for the events marked in view behind one tab stop, reached once the
   dive has landed: its active option shows its plate as a hover does, or rings the pinned plate
   when it is the pinned event's, and while it has the focus a small tag at the top of the view
