@@ -117,7 +117,8 @@ function frameOver(lon: number, lat: number, altitude: number): FrameContext {
 
 const at = (day: number, spanDays = 200): WorldTime => ({ day, spanDays });
 const WORLD = frameOver(10, 45, 9);
-const byId = (specs: MarkSpec[], qid: number) => specs.find((s) => s.id === markIdOf(qid));
+const byId = (specs: MarkSpec[], qid: number, hollow = false) =>
+  specs.find((s) => s.id === markIdOf(qid, hollow));
 
 function setup(
   events: TestEvent[],
@@ -304,12 +305,35 @@ describe("Explore's events", () => {
     expect(settle(frameOver(10, 45, 1), 5000)).toEqual([
       { id: 'Q101', hollow: false, soft: false },
       { id: 'Q102', hollow: false, soft: false },
-      { id: 'Q100', hollow: true, soft: true },
+      { id: 'Q100/outline', hollow: true, soft: true },
     ]);
-    expect(byId(marks.specs, 100)!.ringRad).toBeCloseTo(
+    expect(byId(marks.specs, 100, true)!.ringRad).toBeCloseTo(
       ringRadOf({ at: [10, 45], extent: [0, 38, 22, 52] })!,
       9,
     );
+  });
+
+  it('crossfades a splitting war’s solid mark and its hollow one as two marks of one event', () => {
+    const { worker, marks } = setup([
+      { row: 0, qid: 100, lon: 10, lat: 45, t0: 900, t1: 1100, cls: WAR, ext: [0, 38, 22, 52] },
+      { row: 1, qid: 101, lon: 4, lat: 50, t0: 990, t1: 990, parent: 0, cls: BATTLE },
+      { row: 2, qid: 102, lon: 16, lat: 48, t0: 1005, t1: 1005, parent: 0, cls: BATTLE },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, at(1000), 0);
+    events.update(WORLD, at(1000), tunables.eventFade * 2);
+    const close = frameOver(10, 45, 1);
+    events.update(close, at(1000), 1000);
+    events.update(close, at(1000), 1000 + tunables.eventFade / 2);
+    const ids = marks.specs.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(byId(marks.specs, 100)).toMatchObject({ hollow: false, opacity: 0.5 });
+    expect(byId(marks.specs, 100, true)).toMatchObject({ hollow: true, opacity: 0.5 });
+    // Each mark tells its own record, and the war counts once.
+    expect(events.event(markIdOf(100))?.context).toBe(false);
+    expect(events.event(markIdOf(100, true))?.context).toBe(true);
+    expect(events.placed()).toHaveLength(4);
+    expect(events.markedInView()).toBe(3);
   });
 
   it('logs a class without a mark once and draws the rest', () => {

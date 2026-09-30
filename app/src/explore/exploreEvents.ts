@@ -4,11 +4,12 @@
 // (marks/marks.ts). An event's class gives its pace layer and glyph (marks/eventSymbols.ts), so
 // its mark takes that family's material. Each mark fades in and out as the worker's fades say,
 // interpolated every frame between replies. A war whose extent grows past the split on screen gives
-// way to its battles and stays as a hollow glyph, its extent a ring once hovered; an event whose
-// place is inherited or derived, or whose date is known only to its year, draws softer and half as
-// deep (globe-language.md, principle 1). The focal event, the opening at first, keeps its ember
-// until the now window leaves its dates, when it becomes one mark among the others; until the
-// index holds it, the openings lock draws it. Leaving eases every mark out with the lobby's glows;
+// way to its battles and stays as a hollow glyph, its extent a ring once hovered, its solid mark
+// and its hollow one crossfading as marks of their own; an event whose place is inherited or
+// derived, or whose date is known only to its year, draws softer and half as deep
+// (globe-language.md, principle 1). The focal event, the opening at first, keeps its ember until
+// the now window leaves its dates, when it becomes one mark among the others; until the index
+// holds it, the openings lock draws it. Leaving eases every mark out with the lobby's glows;
 // disposing ends the worker and takes the marks off the globe.
 import type { Tier } from '../config/tunables';
 import type { EventClient } from '../events/client';
@@ -66,9 +67,20 @@ const YEAR_PRECISION = 9;
 const STEP_MAX_S = 0.1;
 const DEG = Math.PI / 180;
 
-/** A mark's id: its event's Q number, the same whether the index or the lock draws it. */
-export function markIdOf(qid: number): string {
-  return `Q${qid}`;
+/** What a hollow parent's mark id adds to its event's, so its solid mark can crossfade with it. */
+const HOLLOW_ID = '/outline';
+
+/**
+ * A mark's id: its event's Q number, the same whether the index or the lock draws it, and a
+ * suffix for a hollow parent's.
+ */
+export function markIdOf(qid: number, hollow = false): string {
+  return `Q${qid}${hollow ? HOLLOW_ID : ''}`;
+}
+
+/** The Q number of the event a mark stands for, or NaN. */
+export function markQid(id: string): number {
+  return qidNumber(id.endsWith(HOLLOW_ID) ? id.slice(0, -HOLLOW_ID.length) : id);
 }
 
 /** The Q number in `Q…`, or NaN. */
@@ -243,6 +255,11 @@ export class ExploreEvents {
     return this.#marks.placed().filter((mark) => this.#shown.has(mark.id));
   }
 
+  /** The events marked in view in the last draw, each once, though a crossfade draws it twice. */
+  markedInView(): number {
+    return new Set(this.placed().map((mark) => markQid(mark.id))).size;
+  }
+
   /** The event a mark stands for, or null for one the lock draws; undefined for no mark set. */
   event(id: string): EventMark | null | undefined {
     return this.#shown.get(id);
@@ -325,7 +342,7 @@ export class ExploreEvents {
         this.#report(`class ${mark.cls}`, `no mark for the class '${name ?? mark.cls}'`);
         return;
       }
-      const id = markIdOf(mark.qid);
+      const id = markIdOf(mark.qid, hollow);
       specs.push({
         id,
         at: mark.at,
