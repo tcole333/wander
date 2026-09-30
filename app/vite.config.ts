@@ -12,9 +12,10 @@ export default defineConfig({
   },
   // shared/ sits outside app/, so the dev server must be allowed to read the repo root.
   server: { fs: { allow: [repoRoot] } },
-  // The pool smoke test's page (e2e/gpu-pool.html) imports three on the dev server. Bundling it
-  // at startup keeps a cold server from re-optimizing and reloading that page mid-test.
-  optimizeDeps: { include: ['three'] },
+  // The dev server scans every page it serves, the app's, the dev pages and the test pages
+  // (e2e/*.html), and bundles what they import at startup: a cold server that met a new import
+  // mid-test would re-optimize and reload that page, and every CI e2e shard starts a cold one.
+  optimizeDeps: { entries: ['*.html', 'e2e/*.html'] },
   build: {
     // The app ships as one entry bundle with no lazy chunks (streaming design, section 2), so
     // Vite's code-splitting hint does not apply; section 6 budgets the entry at 500 KB compressed.
