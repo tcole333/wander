@@ -39,3 +39,16 @@ corrections:
       title: Sasanian Yemen
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Sasanian_Yemen
+  - years: [750, 1401]
+    pocket:
+      at: [54.02, 45.27]
+      stateless: false
+    why: >-
+      The Dead Kultuk, a shallow bay at the Caspian's northeast corner that dries to a salt flat as
+      the sea falls, is land in Natural Earth and sea in Cliopatria's shapes, so no state's row
+      reaches it and it would stand stateless inside the state holding its shores, ringed by a
+      border. It goes to the polities around it in the years they enclose it.
+    source:
+      title: Dead Kultuk
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dead_Kultuk

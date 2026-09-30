@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1914 to 2000 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-29
+modified: 2026-09-30
 corrections:
   - years: [1917, 1917]
     give:
@@ -29,6 +29,19 @@ corrections:
       title: Emirate of Bukhara
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  - years: [1917, 2000]
+    pocket:
+      at: [54.02, 45.27]
+      stateless: false
+    why: >-
+      The Dead Kultuk, a shallow bay at the Caspian's northeast corner that dries to a salt flat as
+      the sea falls, is land in Natural Earth and sea in Cliopatria's shapes, so no state's row
+      reaches it and it would stand stateless inside the state holding its shores, ringed by a
+      border. It goes to the polities around it in the years they enclose it.
+    source:
+      title: Dead Kultuk
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dead_Kultuk
   - years: [1918, 1918]
     overlap:
       polities: [Kingdom of Denmark, Kingdom of Iceland]
