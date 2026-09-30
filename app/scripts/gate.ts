@@ -6,9 +6,10 @@
 // - app/, stories/, explore/, shared/, pipeline/tests/data/media/ (which the specs read), or a
 //   path no rule names: the fixture, npm run lint, the typecheck, all of Vitest and
 //   npm run e2e:gpu; with --swiftshader, npm run e2e as well
-// - pipeline/, shared/, stories/, explore/: ruff and all of pytest, with the fixture and Vitest,
-//   which checks the fixture; e2e too, unless the fixture came out the same as the base's, file
-//   for file and in the release the data server derives from it
+// - pipeline/, shared/, stories/, explore/, app/scripts/slot.sh (which pytest runs beside the
+//   prebuild's slots): ruff and all of pytest, with the fixture and Vitest, which checks the
+//   fixture; e2e too, unless the fixture came out the same as the base's, file for file and in
+//   the release the data server derives from it
 // - docs/design/streaming.md, which Vitest and pytest read: the fixture, Vitest and pytest
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -30,7 +31,7 @@ export interface GatePlan {
 }
 
 const APP_INPUTS = ['app/', 'stories/', 'explore/', 'shared/', 'pipeline/tests/data/media/'];
-const PIPELINE_INPUTS = ['pipeline/', 'shared/', 'stories/', 'explore/'];
+const PIPELINE_INPUTS = ['pipeline/', 'shared/', 'stories/', 'explore/', 'app/scripts/slot.sh'];
 const DESIGN_DOC = 'docs/design/streaming.md';
 
 /** The steps `changed` (repo-relative paths) calls for, in the order the gate runs them. */

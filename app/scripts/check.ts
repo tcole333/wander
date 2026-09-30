@@ -40,7 +40,10 @@ const PYTEST_WIDE = new Set([
 ]);
 const PYTEST_WIDE_FOLDERS = ['pipeline/config/', 'pipeline/tests/data/', 'stories/', 'explore/'];
 // Files outside the pipeline that one pytest file reads, and that file.
-const PYTEST_READS = new Map([['docs/design/streaming.md', 'tests/test_constants.py']]);
+const PYTEST_READS = new Map([
+  ['docs/design/streaming.md', 'tests/test_constants.py'],
+  ['app/scripts/slot.sh', 'tests/test_slots.py'],
+]);
 // Changes that call for all of Vitest, matched against repo-relative paths: Vitest's own triggers
 // (package.json, its config) and the inputs tests read from disk.
 const WHOLE_VITEST = [...configDefaults.forceRerunTriggers, ...DISK_INPUTS];
