@@ -119,5 +119,10 @@ describe('Explore’s Meanwhile', () => {
     meanwhile.update(VIEW, { day: LIGNY, spanDays: 20 });
     rows(element)[0]!.dispatchEvent(new CustomEvent('click', { detail: 0 }));
     expect(chosen).toEqual([ligny]);
+    // A later answer naming the same event leaves its row, which still flies there.
+    events.meanwhile = [{ ...ligny }];
+    meanwhile.update(VIEW, { day: LIGNY, spanDays: 20 });
+    rows(element)[0]!.dispatchEvent(new CustomEvent('click', { detail: 0 }));
+    expect(chosen).toEqual([ligny, ligny]);
   });
 });

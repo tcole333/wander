@@ -40,18 +40,19 @@ export function entryOf(event: MeanwhileEvent): MeanwhileEntry {
 export class ExploreMeanwhile {
   readonly #events: MeanwhileEvents;
   readonly #list: MeanwhileList;
-  /** The answer last taken, and the events it lists by their entries. */
+  /** The answer last taken, and its events with their entries, by Q number (`Q…`). */
   #answer: readonly MeanwhileEvent[] | null = null;
-  #listed = new Map<MeanwhileEntry, MeanwhileEvent>();
+  #listed = new Map<string, { entry: MeanwhileEntry; event: MeanwhileEvent }>();
   /** The Q numbers shown, to tell when they change. */
   #shown: string | null = null;
 
   /** `choose` flies to the event chosen. */
   constructor(events: MeanwhileEvents, choose: (event: MeanwhileEvent) => void) {
     this.#events = events;
+    // By Q number: an answer naming the same events leaves their rows as they stand.
     this.#list = new MeanwhileList((entry) => {
-      const event = this.#listed.get(entry);
-      if (event) choose(event);
+      const listed = entry.qid === undefined ? undefined : this.#listed.get(entry.qid);
+      if (listed) choose(listed.event);
     });
     this.#list.element.hidden = true;
   }
@@ -80,14 +81,16 @@ export class ExploreMeanwhile {
     const answer = this.#events.meanwhile;
     if (answer !== this.#answer) {
       this.#answer = answer;
-      this.#listed = new Map((answer ?? []).map((event) => [entryOf(event), event]));
+      this.#listed = new Map(
+        (answer ?? []).map((event) => [`Q${event.qid}`, { entry: entryOf(event), event }]),
+      );
     }
     const window = nowWindow(time);
-    const now = [...this.#listed].filter(([, event]) => inWindow(event, window));
-    const shown = now.map(([, event]) => event.qid).join(' ');
+    const now = [...this.#listed.values()].filter(({ event }) => inWindow(event, window));
+    const shown = now.map(({ event }) => event.qid).join(' ');
     if (shown !== this.#shown) {
       this.#shown = shown;
-      this.#list.show(now.map(([entry]) => entry));
+      this.#list.show(now.map(({ entry }) => entry));
     }
     this.#list.update(view);
   }
