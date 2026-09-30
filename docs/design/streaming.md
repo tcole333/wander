@@ -541,9 +541,10 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   disaster and its mark draws an eruption, since the export gives every volcanic eruption as a
   natural disaster. Wikidata does not nest every class within the one it belongs to, so
   `event-classes.yaml` declares those `within` it, and each event counts under that class too, as
-  though the export had: the 353 events exported as both a battle and a siege draw the siege, and
-  the 22 exported as both a tropical cyclone and a natural disaster draw the cyclone, rather than
-  the broader class's glyph. Classes that only share events are not nested, however rare either
+  though the export had: the index's 353 events scored as battles that were also exported as
+  sieges draw the siege, and its 22 natural disasters also exported as tropical cyclones draw the
+  cyclone, rather than the broader class's glyph. Classes that only share events are not nested,
+  however rare either
   is: a riot that is also a massacre keeps the massacre's glyph and pace layer, and a battle that
   is also a shipwreck the battle's. Among classes the export cannot tell apart, or nested within the
   heaviest but not in one another, the heavier shows, then the first listed; a slice of the
