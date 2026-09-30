@@ -250,7 +250,9 @@ async function assemble(
   );
   made.push(() => look.dispose());
   // Where Explore is enabled the look holds the border steps, which follow the world clock.
-  const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER);
+  const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER, () =>
+    String(look.params.borderWeight),
+  );
   if (borders) made.push(() => borders.dispose());
   const clearance = new ClearanceField(layer);
   const rig = new CameraRig(clearance);

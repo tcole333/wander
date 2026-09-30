@@ -24,6 +24,7 @@ import type { BorderStepsRelease, Release } from '../data/release';
 import { fetchData, MissingError } from '../data/surfaceLayer';
 import type { UploadJob } from '../gpu/uploadQueue';
 import {
+  outerWeight,
   sourceVector,
   stepUniformsOf,
   type BorderSource,
@@ -52,6 +53,8 @@ export interface ClockBordersOptions {
   clock?: WorldClock;
   load?: (url: string, signal: AbortSignal) => Promise<ArrayBuffer>;
   now?: () => number;
+  /** The outer line's weight far out (BORDER_WEIGHTS), read each frame: today's unless given. */
+  weight?: () => string;
 }
 
 /** What the active mode asks of the borders this frame. */
@@ -117,6 +120,7 @@ export class ClockBorders {
   readonly #clock: WorldClock;
   readonly #load: (url: string, signal: AbortSignal) => Promise<ArrayBuffer>;
   readonly #now: () => number;
+  readonly #weight: () => string;
   readonly #slots: Slot[];
   readonly #cells: Cell[];
   #chunks: (ArrayBuffer | null)[] = [];
@@ -153,6 +157,7 @@ export class ClockBorders {
     this.#clock = options.clock ?? worldClock;
     this.#load = options.load ?? ((url, signal) => fetchData(url, () => true, signal));
     this.#now = options.now ?? (() => performance.now());
+    this.#weight = options.weight ?? (() => 'today');
     this.#slots = Array.from({ length: options.gpu.slots }, () => ({
       step: null,
       ready: false,
@@ -567,6 +572,7 @@ export class ClockBorders {
     this.#strength = drawing ? strength * fades.close : 0;
     uniforms.lookBorderStrength.value = this.#strength;
     uniforms.lookBorderInner.value = fades.inner;
+    outerWeight(this.#weight(), viewKm, uniforms.lookBorderOuter.value);
     sourceVector(this.#tier, this.#from ?? NONE, uniforms.lookBorderA.value);
     sourceVector(this.#tier, this.#to ?? NONE, uniforms.lookBorderB.value);
     uniforms.lookBorderMix.value = this.#mix;
@@ -600,7 +606,8 @@ const bound = new WeakMap<Material, ClockBorders>();
 
 /**
  * Where a look holds the border steps (Explore enabled), allocates and warms its array, and binds
- * the borders' runtime to its material for the modes to drive; otherwise null.
+ * the borders' runtime to its material for the modes to drive, its outer line weighted as `weight`
+ * names; otherwise null.
  */
 export function attachBorderSteps(
   renderer: WebGLRenderer,
@@ -608,12 +615,13 @@ export function attachBorderSteps(
   uploads: BehindUploads,
   { borderSteps: section, dataHost }: Pick<Release, 'borderSteps' | 'dataHost'>,
   tier: Tier,
+  weight?: () => string,
 ): ClockBorders | null {
   const uniforms = stepUniformsOf(material);
   if (!uniforms) return null;
   const gpu = new BorderArray(renderer, uniforms.lookBorderField.value, tier);
   gpu.warm();
-  const borders = new ClockBorders({ section, dataHost, uniforms, gpu, uploads, tier });
+  const borders = new ClockBorders({ section, dataHost, uniforms, gpu, uploads, tier, weight });
   bound.set(material, borders);
   return borders;
 }
