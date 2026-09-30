@@ -2,6 +2,7 @@
 // glyph alone; and the look without marks compiles none of their code.
 import { Color, Vector4 } from 'three';
 import { describe, expect, it } from 'vitest';
+import { tunables } from '../config/tunables';
 import { lookFragment } from '../look/lookFragment.glsl';
 import { FAMILIES, familyUniforms, FAMILY_VEC4S, MARK_VARIANTS, PACES } from './families';
 
@@ -16,6 +17,20 @@ describe('FAMILIES', () => {
       expect(new Set(looks).size).toBe(PACES.length);
     },
   );
+});
+
+describe('the cast token', () => {
+  it('holds its glyph over three quarters of its seal, inside the rim, at every size', () => {
+    const smallest = Math.min(...tunables.markPx.map((row) => row.px));
+    for (const pace of PACES) {
+      const { disc, glyph } = FAMILIES[pace].variants[0];
+      const radius = disc?.radius ?? 0;
+      // A glyph keeps to its grid's inscribed circle, 28 of its 32 units from the centre.
+      expect(glyph.scale * (28 / 32), pace).toBeLessThan(0.7 * radius);
+      expect(glyph.scale / radius, pace).toBeCloseTo(0.74);
+      expect(glyph.scale * smallest, pace).toBeGreaterThan(7);
+    }
+  });
 });
 
 describe('familyUniforms', () => {
