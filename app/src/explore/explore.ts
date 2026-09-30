@@ -1,16 +1,18 @@
 // Explore (issue #79): free time over the globe, as a mode the lobby dives into (walk/mode.ts). The
-// dive opens the free clock on an event, the ruler showing exploreOpenYears around its day, and
-// flies to the world view over its place while the ruler rises; from there the visitor turns the
-// globe and scrubs through all of history. The arrow keys keep panning the view, as in the lobby.
-// Where the release has its event index and the look cuts marks, the events of the now window
-// mark the globe (exploreEvents.ts), the opening focal among them; the layer's data-explore-marks
-// counts the events marked in view. Once the dive has landed, a mark pointed at brings its plate,
-// a click pins it, and the keyboard reaches the marks through one listbox (labels.ts). The globe shows the climate at the clock's date wherever
-// ModE-RA has it and the ruler is close enough (exploreClimate.ts). Its sound (audio/clockScore.ts)
-// hears the clock's day, what the ruler engraves around it, and whether a free flight has the
-// camera. Leaving stops input on the ruler, stops asking for events, eases their marks and the
-// climate out and fades the sound to the room; ending releases the clock, ruler, event worker and
-// climate years and takes the marks off, so the world clock has one owner at a time.
+// dive opens the free clock on an event the visitor has not seen lately (openings.ts), the ruler
+// showing exploreOpenYears around its day, and flies to the world view over its place while the
+// ruler rises; from there the visitor turns the globe and scrubs through all of history. The arrow
+// keys keep panning the view, as in the lobby. Where the release has its event index and the look
+// cuts marks, the events of the now window mark the globe (exploreEvents.ts), the opening focal
+// among them; the layer's data-explore-marks counts the events marked in view. The dive lands with
+// the opening's plate pinned, its written line on it; from then a mark pointed at brings its
+// plate, a click pins it, and the keyboard reaches the marks through one listbox (labels.ts). The
+// globe shows the climate at the clock's date wherever ModE-RA has it and the ruler is close
+// enough (exploreClimate.ts). Its sound (audio/clockScore.ts) hears the clock's day, what the ruler
+// engraves around it, and whether a free flight has the camera. Leaving stops input on the ruler,
+// stops asking for events, eases their marks and the climate out and fades the sound to the room;
+// ending releases the clock, ruler, event worker and climate years and takes the marks off, so the
+// world clock has one owner at a time.
 // window.__worldTime, window.__exploreEvents and window.__exploreLabels serve scripts while
 // Explore runs.
 import '../story/ui/tokens.css';
@@ -37,17 +39,7 @@ import type { Mode } from '../walk/mode';
 import { ExploreClimate } from './exploreClimate';
 import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { ExploreLabels } from './labels';
-import { openings, type Opening } from './openings';
-
-/**
- * The opening until Explore picks among its openings: Waterloo, which the fixture holds, as the
- * bundled lock gives it. A lock without it fails the dive, not the page.
- */
-export function waterloo(): Opening {
-  const found = openings.find((opening) => opening.qid === 'Q48314');
-  if (!found) throw new Error('the openings lock lacks Waterloo (Q48314)');
-  return found;
-}
+import { openingForDive, openings, type Opening } from './openings';
 
 /** The dive's view keeps the event's latitude within this, degrees, so no pole faces the lamp. */
 const WORLD_LAT = 35;
@@ -112,7 +104,10 @@ export interface ExploreParts {
   /** Flown to from the lobby's view, or started where the view already stands (the dev page). */
   arrive: 'jump' | 'fly';
   clock?: WorldClock;
-  /** The event the free clock opens on, the place the dive flies to and the focal event. */
+  /**
+   * The event the free clock opens on, the place the dive flies to, and the focal event, pinned
+   * when the dive lands; by default the one openingForDive picks.
+   */
   opening?: Pick<Opening, 'qid' | 'day' | 'at' | 'precision' | 'class'>;
   /** Where to find the events, or null for a globe without them. */
   events?: EventsSource | null;
@@ -142,7 +137,7 @@ export function startExplore({
   sound,
   arrive,
   clock = worldClock,
-  opening = waterloo(),
+  opening = openingForDive(),
   events: source = null,
   look,
   release,
@@ -193,7 +188,7 @@ export function startExplore({
   const landings = new Set<() => void>();
   const land = () => {
     flight = null;
-    labels?.land(null);
+    labels?.land(opening);
     for (const landed of [...landings]) landed();
   };
   // Started where the view stands (the dev page), Explore has landed already.

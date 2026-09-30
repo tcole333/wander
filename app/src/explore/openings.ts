@@ -65,6 +65,14 @@ export function openingsFromLock(lock: OpeningsLock): Opening[] {
 export const openings: readonly Opening[] = openingsFromLock(bundledLock);
 
 /**
+ * The opening a dive from `page` opens on: the one ?opening= pins there, on this machine, else one
+ * the visitor has not seen lately (pickOpening).
+ */
+export function openingForDive(page: { hostname: string; search: string } = location): Opening {
+  return pickOpening(openings, { pinned: openingRequested(page) });
+}
+
+/**
  * The opening a page on this machine pins with ?opening=Q…, as given, or null without one; public
  * URLs never pin one. A value the list lacks, well-formed or not, reaches `pickOpening`, which
  * throws on it.
