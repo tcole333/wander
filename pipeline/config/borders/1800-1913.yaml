@@ -450,3 +450,136 @@ corrections:
       title: Mexican Revolution
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Mexican_Revolution
+  # Names out of date in 1914, renamed over the years they are wrong.
+  - years: [1862, 1929]
+    rename:
+      polity: Argentine Confederation
+      to: Argentine Republic
+    why: >-
+      The Argentine Confederation lasted from 1831 to 1861; after Pavón (September 1861) Buenos
+      Aires rejoined and the unified country became the Argentine Republic, the name of Cliopatria's
+      rows from 1930.
+    source:
+      title: Argentine Confederation
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Argentine_Confederation
+  - years: [1821, 1849]
+    rename:
+      polity: Empire of Haiti
+      to: Republic of Haiti
+    why: >-
+      Haiti was a republic from 1820 until Faustin I was proclaimed emperor in August 1849.
+    source: &haiti
+      title: Second Empire of Haiti
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Empire_of_Haiti
+  - years: [1860, 1915]
+    rename:
+      polity: Empire of Haiti
+      to: Republic of Haiti
+    why: >-
+      Faustin I abdicated on 15 January 1859 and a republic was proclaimed; Cliopatria names its
+      rows Empire of Haiti until 1915.
+    source: *haiti
+  - years: [1801, 1922]
+    rename:
+      polity: Kingdom of Great Britain
+      to: United Kingdom of Great Britain and Ireland
+    why: >-
+      The Acts of Union made Great Britain and Ireland one kingdom on 1 January 1801, until the Irish
+      Free State left in 1922.
+    source:
+      title: United Kingdom of Great Britain and Ireland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/United_Kingdom_of_Great_Britain_and_Ireland
+  - years: [1815, 1940]
+    rename:
+      polity: Denmark-Norway
+      to: Kingdom of Denmark
+    why: >-
+      By the Treaty of Kiel (14 January 1814) Denmark ceded Norway to Sweden, keeping Greenland,
+      Iceland and the Faroes; Cliopatria's Denmark-Norway rows are Denmark from 1815.
+    source:
+      title: Treaty of Kiel
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Kiel
+  - years: [1815, 1939]
+    rename:
+      polity: Kingdom of Monaco
+      to: Principality of Monaco
+    why: >-
+      Monaco has been a principality under the Grimaldis since Honoré II took the title of prince in
+      1612; it was never a kingdom.
+    source: &monaco
+      title: Monaco
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Monaco
+  - years: [1816, 1860]
+    member:
+      polity: Principality of Monaco
+      of: Kingdom of Sardinia
+    why: >-
+      The Congress of Vienna made Monaco a protectorate of the Kingdom of Sardinia in 1815, until
+      Sardinian forces left in 1860.
+    source: *monaco
+  - years: [1815, 1879]
+    rename:
+      polity: Serbs
+      to: Principality of Serbia
+    why: >-
+      The Principality of Serbia emerged in 1815 and was recognised as autonomous in 1830; Cliopatria
+      names its rows Serbs.
+    source:
+      title: Principality of Serbia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Principality_of_Serbia
+  - years: [1885, 1915]
+    rename:
+      polity: Serbs
+      to: Kingdom of Serbia
+    why: >-
+      Serbia was a kingdom from 6 March 1882 until 1918, as Cliopatria's own rows for 1880–1884 name
+      it.
+    source:
+      title: Kingdom of Serbia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Serbia
+  - years: [1863, 1881]
+    rename:
+      polity: United Principalities of Moldavia and Wallachia
+      to: Principality of Romania
+    why: >-
+      The two principalities were formally united as the Principality of Romania in January 1862.
+    source: &romania
+      title: Kingdom of Romania
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Romania
+  - years: [1882, 1916]
+    rename:
+      polity: United Principalities of Moldavia and Wallachia
+      to: Kingdom of Romania
+    why: >-
+      Romania became a kingdom on 15 March 1881, the name of Cliopatria's rows from 1919.
+    source: *romania
+  - years: [1909, 1944]
+    rename:
+      polity: Principality of Bulgaria
+      to: Kingdom of Bulgaria
+    why: >-
+      Bulgaria was raised from a principality to a tsardom on 5 October 1908, until the monarchy
+      was abolished in 1946.
+    source:
+      title: Kingdom of Bulgaria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bulgaria
+  - years: [1833, 1924]
+    rename:
+      polity: First Hellenic Republic
+      to: Kingdom of Greece
+    why: >-
+      The Treaty of Constantinople (1832) made Greece a monarchy, and King Otto arrived in 1833; the
+      Second Hellenic Republic followed in 1924.
+    source:
+      title: Kingdom of Greece
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Greece
