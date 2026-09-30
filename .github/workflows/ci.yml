@@ -70,6 +70,7 @@ jobs:
       - run: npm run fixture
       - run: npm run lint
       - run: npm test
+      # The typecheck, and the build the deploy job ships once every e2e shard has tested it.
       - run: npm run build
       - name: Record the build's sha256
         id: dist
@@ -87,7 +88,8 @@ jobs:
           retention-days: 7
 
   # The browser tests, as parallel jobs: the shards app/e2e/shards.ts names, one runner and one
-  # worker each. Each builds its own dist and records its sha256 for the Tested build job.
+  # worker each. Each one's npm run e2e builds its own dist, whose sha256 it records for the Tested
+  # build job.
   e2e:
     name: E2E (${{ matrix.shard }})
     runs-on: ubuntu-latest
@@ -127,8 +129,12 @@ jobs:
       - run: uv sync --locked
         working-directory: pipeline
       - run: npm run fixture
-      - run: npm run build
-      - name: Record the build's sha256
+      - run: npx playwright install --with-deps --only-shell chromium
+      # npm run e2e builds app/dist with vite build, then runs this shard's specs against it.
+      - run: npm run e2e
+        env:
+          WANDER_E2E_SHARD: ${{ matrix.shard }}
+      - name: Record the tested build's sha256
         id: dist
         env:
           SHARD: ${{ matrix.shard }}
@@ -136,10 +142,6 @@ jobs:
           sha=$(../.github/scripts/dist-sha256.sh dist)
           echo "dist sha256 $sha"
           echo "$SHARD=$sha" >> "$GITHUB_OUTPUT"
-      - run: npx playwright install --with-deps --only-shell chromium
-      - run: npm run e2e
-        env:
-          WANDER_E2E_SHARD: ${{ matrix.shard }}
       - name: Upload the Playwright report
         if: failure()
         uses: actions/upload-artifact@v7
