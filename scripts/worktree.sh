@@ -26,7 +26,7 @@ link_bake() {
     fi
     mkdir -p "$1/build/$part"
     for entry in "$main/build/$part"/*; do
-      [ -e "$entry" ] && ln -s "$entry" "$1/build/$part/"
+      if [ -e "$entry" ]; then ln -s "$entry" "$1/build/$part/"; fi
     done
   done
 }
