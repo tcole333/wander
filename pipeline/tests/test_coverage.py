@@ -38,17 +38,9 @@ LEVEL_SIZES = [6 * 4**level for level in range(5)]
 
 
 @pytest.fixture(scope="module")
-def fixture_record(tmp_path_factory):
-    """The coverage stage run on the fixture profile, into a temporary build folder."""
-    build = tmp_path_factory.mktemp("build")
-    ctx = dataclasses.replace(
-        make_context(Profile.FIXTURE, 2),
-        out=build / "fixture",
-        stages_dir=build / "stages",
-        cache=build / "cache",
-    )
-    coverage.run(ctx)
-    return json.loads(record_path(ctx, "coverage").read_text())
+def fixture_record(fixture_coverage):
+    """The coverage stage's record on the fixture profile (conftest's one run per session)."""
+    return json.loads(record_path(fixture_coverage, "coverage").read_text())
 
 
 def some_land(tiles: list[Tile]) -> list[bool]:
