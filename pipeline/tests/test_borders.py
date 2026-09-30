@@ -205,9 +205,10 @@ def test_the_stage_writes_the_fixtures_two_steps_their_previews_polities_and_not
     years, layers = step_fields.read_chunk((ctx.out / chunk).read_bytes())
     assert years == [1815, 1830] and layers.shape[0] == 2
     polities = json.loads((ctx.out / steps["polities"]).read_bytes())
-    # British from 1812 to 1816 (1800-1913.yaml), with Sumbawa's states of 1815 among its members
+    # The Indies British from 1812 to 1816 (1800-1913.yaml), and Sumbawa's states of 1815 Dutch
+    # members all the same (owner decision 37)
     assert polities["Dutch East Indies"]["steps"] == [[1830, 1830, "(Netherlands)"]]
-    assert polities["Kingdom of Tambora"]["steps"] == [[1815, 1815, "(British Empire)"]]
+    assert polities["Kingdom of Tambora"]["steps"] == [[1815, 1815, "(Netherlands)"]]
     notice = (ctx.out / steps["notice"]).read_text(encoding="utf-8")
     for line in ("Cliopatria", "https://creativecommons.org/licenses/by/4.0/", "Bennett"):
         assert line in notice

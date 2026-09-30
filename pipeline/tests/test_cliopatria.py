@@ -701,14 +701,15 @@ def test_the_fixture_draws_its_polities_with_their_ids_wikidata_and_outer_units(
     assert "" not in document
 
 
-def test_the_fixture_draws_sumbawas_states_of_1815_as_british_members(fixture_steps):
+def test_the_fixture_draws_sumbawas_states_of_1815_as_dutch_members(fixture_steps):
+    # Owner decision 37: Dutch members, while the rest of the Indies is British.
     source, settings, steps = fixture_steps
     document = clio.polities_document(
         source, settings, [(y, chosen.outers()) for y, chosen in sorted(steps.items())]
     )
     assert document["Kingdom of Sanggar"]["wikidata"] == ["Q20427303"]
     for state in ("Kingdom of Tambora", "Kingdom of Sanggar", "Sultanate of Bima"):
-        assert document[state]["steps"][0] == [1815, 1815, "(British Empire)"]
+        assert document[state]["steps"][0] == [1815, 1815, "(Netherlands)"]
 
 
 def test_a_polity_lists_a_run_of_steps_for_each_outer_unit_it_is_drawn_in():
