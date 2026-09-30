@@ -1775,7 +1775,11 @@ and the release's `media` section lists every key the locks name (3.8).
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
   samples, 3.0 item 9) in `build/stages/fixture/expect/`. It runs `coverage`, `surface`, `events`
-  and `modera`. Pytest checks the real excerpts' cold European summer of 1816, monthly and annual
+  and `modera`. Off CI, each full build also goes into the fixture store,
+  `~/.cache/wander/fixture/<inputs>/` keyed by the stamp's tree hash (7.2), when no input changed
+  while it ran; a build whose inputs the store holds replaces both folders with that copy, stamp
+  last, in about a second instead of building (`pipeline/src/prebuild/fixture_store.py`), and
+  `--rebuild` builds anyway. The store keeps the 16 most recently used builds. Pytest checks the real excerpts' cold European summer of 1816, monthly and annual
   climate output, Waterloo's date, place, score and parents, and a curated date correction; Vitest
   decodes and blends the built climate. Synthetic tests still cover edge cases. `meanwhile`
   remains disabled until the fixture has a story and lock of its own and the stage validates

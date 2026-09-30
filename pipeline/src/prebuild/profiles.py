@@ -36,6 +36,7 @@ class Context:
     jobs: int
     story: str | None = None  # the story the media stage builds (--story)
     offline: bool = False  # media reads committed sources instead of Commons (--offline)
+    rebuild: bool = False  # a full fixture build skips the fixture store (--rebuild)
 
 
 def make_context(
@@ -45,6 +46,7 @@ def make_context(
     *,
     story: str | None = None,
     offline: bool = False,
+    rebuild: bool = False,
 ) -> Context:
     build = repo / "build"
     return Context(
@@ -57,6 +59,7 @@ def make_context(
         jobs=jobs,
         story=story,
         offline=offline,
+        rebuild=rebuild,
     )
 
 

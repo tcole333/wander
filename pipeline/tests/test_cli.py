@@ -6,8 +6,9 @@ from pathlib import Path
 import pytest
 
 from prebuild.cli import STAGES, main, plan, run
+from prebuild.fixture_store import prune, store_root
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
-from prebuild.profiles import Profile
+from prebuild.profiles import Context, Profile
 
 REPO = Path("/repo")
 # Stand-ins for the stages of streaming.md 7.1 that have not landed, in their order.
@@ -227,3 +228,114 @@ def test_main_prints_usage_for_help(capsys):
     assert "usage: prebuild [-h] [--profile {global,region,fixture}] [--jobs N]" in (
         capsys.readouterr().out
     )
+
+
+# The fixture store
+
+
+def building_stages(ran: list[str]):
+    """Stand-ins whose coverage stage writes a tile and a record, as a fixture build would."""
+
+    def coverage(ctx):
+        ran.append("coverage")
+        (ctx.out / "surf").mkdir(parents=True, exist_ok=True)
+        (ctx.out / "surf" / "0.wst").write_bytes(b"tile")
+        ctx.stages_dir.mkdir(parents=True, exist_ok=True)
+        (ctx.stages_dir / "coverage.json").write_text("{}")
+
+    return {**STAND_INS, "coverage": coverage}
+
+
+def build_fixture(repo: Path, *argv: str) -> tuple[list[str], Context]:
+    ran: list[str] = []
+    stages = building_stages(ran)
+    ctx, names = plan(["--profile", "fixture", *argv], stages=stages, repo=repo)
+    run(ctx, names, stages)
+    return ran, ctx
+
+
+def files_under(root: Path) -> dict[str, bytes]:
+    return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+
+
+def test_a_full_fixture_build_goes_into_the_store_under_its_inputs(tmp_path):
+    _, ctx = build_fixture(tmp_path)
+    stamp = json.loads((ctx.stages_dir / "stamp.json").read_text())
+    entry = store_root() / stamp["inputs"]
+    assert files_under(entry / "out") == files_under(ctx.out)
+    assert files_under(entry / "stages") == files_under(ctx.stages_dir)
+
+
+def test_a_build_of_stored_inputs_restores_them_in_place_of_what_was_there(tmp_path):
+    _, built = build_fixture(tmp_path)
+    expected = files_under(tmp_path / "build")
+    (built.out / "surf" / "0.wst").write_bytes(b"changed")
+    (built.out / "left-over.wst").write_bytes(b"old")
+    ran, _ = build_fixture(tmp_path)
+    assert ran == []
+    assert files_under(tmp_path / "build") == expected
+
+
+def test_rebuild_builds_even_when_the_store_holds_the_inputs(tmp_path):
+    build_fixture(tmp_path)
+    ran, _ = build_fixture(tmp_path, "--rebuild")
+    assert ran == ["coverage"]
+
+
+def test_other_inputs_miss_the_store(tmp_path):
+    build_fixture(tmp_path)
+    (tmp_path / "pipeline" / "sources.toml").parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "pipeline" / "sources.toml").write_text("[pins]\n")
+    ran, _ = build_fixture(tmp_path)
+    assert ran == ["coverage"]
+
+
+def test_a_build_whose_inputs_changed_while_it_ran_is_not_stored(tmp_path):
+    source = tmp_path / "pipeline" / "src" / "stage.py"
+    source.parent.mkdir(parents=True)
+    source.write_text("print('before')\n")
+    stages = {**building_stages([]), "surface": lambda ctx: source.write_text("print('during')\n")}
+    before = tree_sha(FIXTURE_PATHS, tmp_path)
+    ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
+    run(ctx, names, stages)
+    assert not (store_root() / before).exists()
+
+
+def test_ci_keeps_no_store(tmp_path, monkeypatch):
+    monkeypatch.setenv("CI", "true")
+    build_fixture(tmp_path)
+    ran, _ = build_fixture(tmp_path)
+    assert ran == ["coverage"]
+
+
+def test_a_partial_fixture_build_neither_reads_nor_fills_the_store(tmp_path):
+    build_fixture(tmp_path)
+    ran: list[str] = []
+    stages = building_stages(ran)
+    ctx, names = plan(["--profile", "fixture", "coverage"], stages=stages, repo=tmp_path)
+    run(ctx, names, stages)
+    assert ran == ["coverage"]
+    assert not (ctx.stages_dir / "stamp.json").exists()
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ("--rebuild",),
+        ("--profile", "region", "--rebuild"),
+        ("--profile", "fixture", "surface", "--rebuild"),
+    ],
+)
+def test_rebuild_goes_only_with_a_full_fixture_build(argv):
+    with pytest.raises(SystemExit) as exited:
+        planned(*argv)
+    assert exited.value.code == 2
+
+
+def test_the_store_keeps_the_most_recently_used_builds(tmp_path):
+    for age, name in enumerate("abcd"):
+        (tmp_path / name).mkdir()
+        os.utime(tmp_path / name, (1000 - age, 1000 - age))
+    (tmp_path / ".tmp-1").mkdir()
+    prune(tmp_path, keep=2)
+    assert sorted(p.name for p in tmp_path.iterdir()) == [".tmp-1", "a", "b"]

@@ -1,4 +1,5 @@
 import contextlib
+import uuid
 import warnings
 from dataclasses import replace
 from pathlib import Path
@@ -28,6 +29,12 @@ def pytest_configure(config: pytest.Config) -> None:
 def no_raw_data(monkeypatch, tmp_path_factory):
     """Tests never read the raw-data folder: WANDER_DATA names a folder that does not exist."""
     monkeypatch.setenv("WANDER_DATA", str(tmp_path_factory.getbasetemp() / "no-wander-data"))
+
+
+@pytest.fixture(autouse=True)
+def own_cache(monkeypatch, tmp_path_factory):
+    """Each test has a fixture store of its own: WANDER_CACHE names a folder no other test uses."""
+    monkeypatch.setenv("WANDER_CACHE", str(tmp_path_factory.getbasetemp() / uuid.uuid4().hex))
 
 
 @pytest.fixture(scope="session")
