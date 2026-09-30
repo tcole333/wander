@@ -145,12 +145,14 @@ describe('jobs queued behind the tiles (the border steps, 3.3)', () => {
     expect(written).toEqual(['band#0', 'a#0', 'band#1']);
   });
 
-  test('count in the queue and its pending bytes, and cancel as tiles do', () => {
+  test('count apart from the tiles, in the pending bytes, and cancel as tiles do', () => {
     const queue = new UploadQueue(options);
     const written: string[] = [];
     queue.enqueue(job('band', [10, 10], written), true);
-    expect([queue.length, queue.pendingBytes, queue.retainedBytes]).toEqual([1, 20, 0]);
+    expect([queue.length, queue.behindLength, queue.pendingBytes, queue.retainedBytes]).toEqual([
+      0, 1, 20, 0,
+    ]);
     queue.cancel('band');
-    expect([queue.length, queue.run(100).stoppedBy]).toEqual([0, 'empty']);
+    expect([queue.behindLength, queue.run(100).stoppedBy]).toEqual([0, 'empty']);
   });
 });
