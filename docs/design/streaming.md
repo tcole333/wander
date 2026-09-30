@@ -1701,10 +1701,10 @@ and the release's `media` section lists every key the locks name (3.8).
   key; it lets lab and dev pages read a local build before any release is published.
 - **CI** (GitHub Actions, Linux, per PR and per push to `main`; `.github/workflows/ci.yml`) runs
   in parallel jobs: Pipeline (ruff, pytest), App checks (lint, Vitest, build), one E2E job per
-  Playwright shard, and the release check; a push to `main` then deploys. A newer push to a ref
-  cancels that ref's older run, on `main` too, since the newer commit contains the older one. Every
-  job logs its runner's CPU model: runner speed varies about 2x between runs, so a timing compares
-  only against the same CPU.
+  Playwright shard, and the release check, then the Tested build check; a push to `main` then
+  deploys. A newer push to a ref cancels that ref's older run, on `main` too, since the newer
+  commit contains the older one. Every job logs its runner's CPU model: runner speed varies about
+  2x between runs, so a timing compares only against the same CPU.
   1. Lint: `ruff check` and `ruff format --check` in `pipeline/`; ESLint and Prettier in `app/`.
   2. `uv run pytest` on the excerpts, plus a synthetic global `.nc` through the production GEBCO
      reader.
@@ -1795,9 +1795,12 @@ and the release's `media` section lists every key the locks name (3.8).
      1815-1817), with the app's `Origin`, checking R2's headers (4.2): one missing year turns the
      walk's climate off. It runs as its own job on every pull request and push, so a page naming
      data that is not live cannot merge, and the Pages deploy on `main` waits for it.
-  8. **Deploy** (`main` only), after every other job passes: it ships the app checks job's build,
-     and refuses it unless its sha256 equals the one each E2E job recorded for the build it
-     tested. The deployment is then checked for `/`, `/credits` and a real 404.
+  8. **Tested build**, after the app checks and E2E jobs, on every run: the sha256 each E2E job
+     recorded for the build it tested must equal the app checks job's, so a pull request proves
+     that every shard tested the build `main` would deploy.
+  9. **Deploy** (`main` only), after every other job passes: it ships the app checks job's build,
+     and refuses it unless its sha256 is the one the app checks job recorded. The deployment is
+     then checked for `/`, `/credits` and a real 404.
 - **Bake check (local):** `npm run verify:bake -- [region|global]` decodes every tile in
   `build/region/` (the default) or `build/out/`, reading `build/stages/<profile>/`, and checks,
   with the fixture's seam code:
