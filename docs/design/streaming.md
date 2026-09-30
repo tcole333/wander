@@ -1839,22 +1839,22 @@ each builds one story, named with `--story <id>`. A bare run builds the global p
 decision 17). Each profile has its own output root: `build/out/` for global, `build/region/` for the
 milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the same
 `--profile` (4.3). The fixture profile skips `fetch`, `wikidata` and `excerpts`, so it needs no raw
-data, and `borders`, whose tests use synthetic snapshots. It runs `events` and `modera` on committed
-excerpts (7.3). `meanwhile` stays disabled until a fixture story has its own lock, so the fixture
-cannot rewrite Tambora's global-build lock, and `openings` never runs there, since it checks its
-list against the whole index. `--jobs` defaults to min(8, CPUs), with spawn-context worker
-processes. `media` also takes `--offline`.
+data. It runs `events`, `modera` and `borders` on committed excerpts (7.3); `borders` bakes two
+steps there and no 1815 field, whose GPL source is never committed. `meanwhile` stays disabled until
+a fixture story has its own lock, so the fixture cannot rewrite Tambora's global-build lock, and
+`openings` never runs there, since it checks its list against the whole index. `--jobs` defaults to
+min(8, CPUs), with spawn-context worker processes. `media` also takes `--offline`.
 
 | Stage | Input → output | Expected runtime | Where |
 |---|---|---|---|
-| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive, historical-basemaps' `world_1815.geojson` at commit da7a4b7 (GPL-3.0, never committed), the Wikidata events export (verify-only, pinned by `wikidata`), and the open-world layers' sources ahead of their stages (Cliopatria v0.2.0, Reba, Reitsma and Seto's historical cities, HYDE 3.2.1's baseline population and land-use grids from DANS, RESOLVE Ecoregions 2017, and the USGS petroleum provinces and critical minerals), and the instrument's and the room's series (NOAA NCEI's Antarctic CO2 composite and Law Dome record, NOAA GML's Mauna Loa monthly and annual CO2, Our World in Data's long-run population and the Maddison Project Database 2023; GML and OWID rewrite their files in place, so those pins are renewed when a fresh download no longer matches); later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
+| `fetch` | `pipeline/sources.toml` (owner decisions 10 and 11): per source, keyed by its raw-data manifest id, the manifest's fields plus a version or commit, and per file its `path`, `bytes`, `sha256` and `source_url` (a file without one is verify-only: checked, never downloaded); an `unzipped` table pins the GEBCO `.nc` beside its zip. It holds GEBCO_2026 (zip, `.nc` and PDFs), NE 10m land, minor islands, lakes and rivers from the NE 5.1.2 release path, ModE-RA's temp2 ensemble mean and spread with the project readme from NOAA's paleo archive, historical-basemaps' `world_1815.geojson` at commit da7a4b7 (GPL-3.0, never committed) for milestone 1's border field, Cliopatria v0.2.0's polities for the borders through time, the Wikidata events export (verify-only, pinned by `wikidata`), and the open-world layers' sources ahead of their stages (Reba, Reitsma and Seto's historical cities, HYDE 3.2.1's baseline population and land-use grids from DANS, RESOLVE Ecoregions 2017, and the USGS petroleum provinces and critical minerals), and the instrument's and the room's series (NOAA NCEI's Antarctic CO2 composite and Law Dome record, NOAA GML's Mauna Loa monthly and annual CO2, Our World in Data's long-run population and the Maddison Project Database 2023; GML and OWID rewrite their files in place, so those pins are renewed when a fresh download no longer matches); later issues add the inputs their stages read → downloads what is missing into `$WANDER_DATA/sources/<id>/`, unzips GEBCO beside its zip, and verifies every sha256 | minutes (network) | local |
 | `wikidata` | `pipeline/queries/events.rq` once per class of `pipeline/config/event-classes.yaml`, against QLever's public Wikidata endpoint, one request at a time with a 5 s pause, waiting 1, 3 and 10 min on a 429, a 5xx or a dropped connection → `events.tsv.gz` and `export.json` in `$WANDER_DATA/sources/wikidata-events-<date>/`, pinned verify-only in `sources.toml` once the last export's pin is deleted (3.4) | 6.5-17 min for 39 classes and 94K rows (2.3 MB), as busy as the endpoint is [M] | local |
-| `excerpts` | verified sources → ≤ 3 MB committed excerpts (7.3) | minutes | local |
+| `excerpts` | verified sources → ≤ 3 MB committed excerpts, Cliopatria's rows for the fixture's border steps among them (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
-| `borders` | 54 `world_*.geojson` → `.wot`, index and meta per snapshot + previews. Milestone 1: each `world_<stem>.geojson` pinned in `sources.toml` (1815) + `pipeline/config/borders-<stem>.yaml` → `fd/borders/<ver8>/<stem>.bin`, its notice and corrected source under `lic/` (3.3); the fixture skips it, and its tests draw synthetic snapshots | 31 s for 1815 [M] | local |
+| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml` and the era correction files) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged, and the review queue (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`. The fixture bakes two steps from its excerpt, and no 1815 field | about an hour with `--jobs` for the 505 steps [E: 6.5 s a step with 3 workers in the look renders]; 31 s for the 1815 field [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
-| `labels` | range names + polity names from borders → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
+| `labels` | range names + polity names from `polities.json` → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
 | `openings` | `explore/openings.yaml` + `ev/events.tsv.gz` in the profile's output root → the committed `explore/openings.lock.json` (3.4); it stops, naming `events`, when the events record's `inputs` differ from the current export and configs | under 1 s [M] | local |
 | `event-files` | that table and its pinned local export + the event, era and region configs + `explore/openings.lock.json`, whose openings join the overview → versioned overview and all-events `.wev`, or era pages above the thresholds, with percentile scores and display parents (3.4); runs for the fixture too | about 1 s for 30,070 rows [M] | local |
@@ -1902,7 +1902,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{stems[], years[], ver{stem}, previews, bytes{stem: {index, meta}}}`; milestone 1: `{ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`, 3.8's section as is |
+| borders | `{steps, beats, unacknowledged, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, which `publish-data` refuses (3.3); `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The review queue goes beside the record, in `borders-review.json`: the smaller overlaps, the names that vanish and return, and each step's pockets given and enclosures kept |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -1930,17 +1930,20 @@ and the release's `media` section lists every key the locks name (3.8).
   faces meet (4' over L3-L4, 1' over L5-L6, 15" over L7; owner decision 15); the 0.5° global grid;
   NE land polygons (tiered), minor islands, lakes and rivers; ModE-RA monthly mean and spread for
   all of 1815-1817; and a slice of the pinned Wikidata export. ModE-RA keeps the original float32
-  cells centered inside 15°W–35°E, 35–65°N on its 96 × 192 native grid, marking other cells
-  missing. Its excerpts are gzipped NetCDF classic files, so the stage uses the same NetCDF
-  reader, quantizer and annual means as a global build. The events excerpt keeps every statement
-  of events with any date in 1815-1817, and all their ancestors present in the export, in source
-  order: 394 statements for 239 events. The source pins, licenses, credits and selection rules
-  sit in JSON sidecars. The ModE-RA and events excerpts take 139 KB; all excerpts take 1.98 MB [M].
-  GEBCO rasters are int16 gzip and NE vectors gzipped WKB, each with a JSON sidecar; FlatGeobuf
-  output is not deterministic. Borders keep synthetic snapshots in pytest; their GPL source stays
-  out of the repo. An ecoregion sample, the deep-time/BCE event cases and the 3-beat mini story
-  in `stories/_fixture/` (3.9), with a public-domain JPEG, CC0 WAV, route and spread, remain later
-  fixture work. Deep-time and BCE dates are currently tested on synthetic inputs.
+  cells centered inside 15°W–35°E, 35–65°N on its 96 × 192 native grid, marking other cells missing.
+  Its excerpts are gzipped NetCDF classic files, so the stage uses the same NetCDF reader, quantizer
+  and annual means as a global build. The events excerpt keeps every statement of events with any
+  date in 1815-1817, and all their ancestors present in the export, in source order: 394 statements
+  for 239 events. Cliopatria's excerpt keeps the POLITY rows valid in 1815 or 1830, 246 rows in
+  0.56 MB of gzipped GeoJSON [M Cliopatria v0.2.0], so the fixture bakes those two border steps with
+  the real selection, hierarchy and field code; the 1,073 rows valid in 1790-1830 would take 4.3 MB,
+  past the cap. The source pins, licenses, credits and selection rules sit in JSON sidecars. The
+  ModE-RA and events excerpts take 139 KB; all excerpts took 1.98 MB [M] before Cliopatria's. GEBCO
+  rasters are int16 gzip and NE vectors gzipped WKB, each with a JSON sidecar; FlatGeobuf output is
+  not deterministic. Milestone 1's 1815 field keeps synthetic snapshots in pytest, since its GPL
+  source stays out of the repo. An ecoregion sample, the deep-time/BCE event cases and the 3-beat
+  mini story in `stories/_fixture/` (3.9), with a public-domain JPEG, CC0 WAV, route and spread,
+  remain later fixture work. Deep-time and BCE dates are currently tested on synthetic inputs.
 - **Fixture sources and tiles:** `pipeline/config/fixture.yaml` gives the fixture its own source
   per level and window: L0-L1 and the Kirkuk L2 tiles from the 0.5° grid, and the pyramids above
   elsewhere. Only the sources differ from 3.1's rule; the real encoder runs. It lists 55 tiles: all
@@ -1973,17 +1976,21 @@ and the release's `media` section lists every key the locks name (3.8).
   since below L1 it bakes only the nested Kirkuk and Sumbawa chains.
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
-  samples, 3.0 item 9) in `build/stages/fixture/expect/`. It runs `coverage`, `surface`, `events`
-  and `modera`. Off CI, each full build also goes into the fixture store,
-  `~/.cache/wander/fixture/<inputs>/` keyed by the stamp's tree hash (7.2), when no input changed
-  while it ran; a build whose inputs the store holds replaces both folders with that copy, stamp
-  last, in about a second instead of building (`pipeline/src/prebuild/fixture_store.py`), and
-  `--rebuild` builds anyway and replaces the stored copy. The store keeps the 16 most recently used
-  builds. Pytest checks the real excerpts' cold European summer of 1816, monthly and annual
-  climate output, Waterloo's date, place, score and parents, and a curated date correction; Vitest
-  decodes and blends the built climate. Synthetic tests still cover edge cases. `meanwhile`
-  remains disabled until the fixture has a story and lock of its own and the stage validates
-  excerpt inputs; Tambora's committed lock changes only from its global build.
+  samples, 3.0 item 9) in `build/stages/fixture/expect/`. It runs `coverage`, `surface`, `events`,
+  `modera` and `borders` (the 1815 and 1830 steps). Off CI, each full build also goes into the
+  fixture store, `~/.cache/wander/fixture/<inputs>/` keyed by the stamp's tree hash (7.2), when no
+  input changed while it ran; a build whose inputs the store holds replaces both folders with that
+  copy, stamp last, in about a second instead of building
+  (`pipeline/src/prebuild/fixture_store.py`), and `--rebuild` builds anyway and replaces the stored
+  copy. The store keeps the 16 most recently used builds. Pytest checks the real excerpts' cold
+  European summer of 1816, monthly and annual climate output, Waterloo's date, place, score and
+  parents, and a curated date correction; Vitest decodes and blends the built climate. Synthetic
+  tests still cover edge cases, and for borders: the year mapping; the hierarchy rules, the
+  size-tier mask and a leaf reaching two roots failing; every unclaimed-land rule, a large stateless
+  enclosure staying among them; the overlap records; every correction operation, and the coverage
+  check failing; WBF2 and WBP2 round trips; and keys stable across an unrelated correction.
+  `meanwhile` remains disabled until the fixture has a story and lock of its own and the stage
+  validates excerpt inputs; Tambora's committed lock changes only from its global build.
   Until the fixture story lands (#9), the fixture bakes no story images; it will bake them with
   `media --story _fixture --offline`. `--offline` reads the committed test image and the metadata
   Commons would give it (`pipeline/tests/data/media/`), and pytest runs the stage that way on a
@@ -2041,8 +2048,10 @@ and the release's `media` section lists every key the locks name (3.8).
        shading seam shows at a face edge is E2's call, on the real bake (normals within ~2°).
      - pure logic: `lod.ts` (balancing) and the seam flags it calls (`seamFlags.ts`), the scheduler
        (fake clock, network shim), the flight time-warp, the event query and page residency, date
-       conversion including the −15 Myr row, and the snapshot rule (on 50-07-01 CE the tie goes to
-       `bc1`)
+       conversion including the −15 Myr row, and `stepAt` across 1582, year 0 and 3400 BCE
+     - borders (3.3): the state machine (rest, abort, bands, dissolve, previews, scrub fade,
+       reversal and rocking), `inflateBands`, the shared upload queue and cell pairing, the WBF2 and
+       WBP2 decoders, the plate's labels, and every `borders.*` memory owner at 0 after `end()`
      - the vertex mirror (`vertexMirror.ts`, 5.6's rules as the shader runs them, in float32), on
        the mesh scenarios and both tiers: every instance holding a shared lattice point gets its
        code, shore, land, h, direction and position bit for bit; every T-junction lies within
@@ -2063,25 +2072,29 @@ and the release's `media` section lists every key the locks name (3.8).
      build, which the script builds first, under `vite preview` on :6273, the Vite dev server on
      :6274 and `build/fixture` on :6275 with production headers, ports no manual command defaults
      to. Locally the script runs Playwright under a machine-wide lock (`app/scripts/slot.sh`), so
-     one run at a time holds those ports and the GPU, and stops any server a killed run left on
-     them first; no run reuses a server already listening. It checks: the one-frame render smoke
-     test (8.1 step 0); zero key-check magenta at each beat once ready; no new program after the
-     lobby; landing at desired−1 or finer, no hold over `holdMax`, and fetched object counts per
-     beat within 10% of the plan (bytes reported); an injected 3 s stall still lands; a seam depth
-     scan; in-place context-loss restore decoding from the byte cache with the network blocked, and
-     a reload with `?s&b` landing on the Continue plate; no request to the Pages origin after boot;
+     one run at a time holds those ports and the GPU, and stops any server a killed run left on them
+     first; no run reuses a server already listening. It checks: the one-frame render smoke test
+     (8.1 step 0); zero key-check magenta at each beat once ready; no new program after the lobby;
+     landing at desired−1 or finer, no hold over `holdMax`, and fetched object counts per beat
+     within 10% of the plan (bytes reported); an injected 3 s stall still lands; a seam depth scan;
+     in-place context-loss restore decoding from the byte cache with the network blocked, and a
+     reload with `?s&b` landing on the Continue plate; no request to the Pages origin after boot;
      each L0 URL fetched once (the preload is used); every label renders; reduced motion, the
-     article page and the no-WebGL2 redirect; the pool smoke test (5.5); and the surface vertex
-     readback (5.6). The pool and readback tests run test-only pages on the Vite dev server, not
-     the production build, so nothing of them reaches the bundle. CI runs it as four E2E jobs, one
-     per shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan`
-     (story-selection), `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks)
-     and `rest`, every spec the others do not name, so a new spec lands there; a Vitest test holds
-     `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec
-     runs. Each job runs one test at a time, since two SwiftShader walks starve a four-core runner,
-     and builds its own dist, recording its sha256. The dev server scans the test pages at startup
-     (`optimizeDeps.entries`), so each job's cold server bundles their imports before a test loads
-     them.
+     article page and the no-WebGL2 redirect; the pool smoke test (5.5); the surface vertex readback
+     (5.6); borders, failing on any console error: an 1815 opening shows "Borders · 1815", a scrub
+     to 1830 changes it, and Tambora's beat 6 draws borders; and the borders probe
+     (`e2e/borders.html`, on synthetic fields, on SwiftShader and Metal): only outer lines at 8,000
+     km across and inner lines too at 2,000 km, soft edges lighter, half strength mid-dissolve, both
+     previews of a cell decoded, and no seam at ±180°. The pool, readback and probe tests run
+     test-only pages on the Vite dev server, not the production build, so nothing of them reaches
+     the bundle. CI runs it as four E2E jobs, one per shard that `app/e2e/shards.ts` names from the
+     specs' CI times: `magellan` (story-selection), `lobby` (lobby-round-trip, globe-mesh),
+     `explore` (explore-entry, marks) and `rest`, every spec the others do not name, so a new spec
+     lands there; a Vitest test holds `ci.yml`'s lists of the shards to that module.
+     `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one test at a time, since
+     two SwiftShader walks starve a four-core runner, and builds its own dist, recording its sha256.
+     The dev server scans the test pages at startup (`optimizeDeps.entries`), so each job's cold
+     server bundles their imports before a test loads them.
      - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
        in the decode workers, uploads it through the upload queue into the real pools, packs every
        mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
@@ -2103,12 +2116,13 @@ and the release's `media` section lists every key the locks name (3.8).
   7. `npm run check-release` (`app/scripts/checkRelease.ts`): HEAD `rel/<id>.json` on the data
      host and, once it answers, GET `bounds.bin`, the six L0 tiles, when the release has a
      `modera` section the climate years the walk loads as it starts (`fd/modera/<ver>/mean/`
-     1815-1817), when it has a `borders` section the 1815 border field (3.3), each story's first
-     image (its opening beat's 256w JPEG, which the release's `media` must name, 3.8) and, when it
-     names the event files, their overview (3.4), with the app's `Origin`, checking R2's headers
-     (4.2): one missing year turns the walk's climate off, and a missing overview leaves Explore
-     only its opening's mark. It runs as its own job on every pull request and push, so a page
-     naming data that is not live cannot merge, and the Pages deploy on `main` waits for it.
+     1815-1817), when it has a `borders` section the 1815 border field (3.3), when it has a
+     `borderSteps` section the 1815 step, its preview chunk and the notice (3.3), each story's
+     first image (its opening beat's 256w JPEG, which the release's `media` must name, 3.8) and,
+     when it names the event files, their overview (3.4), with the app's `Origin`, checking R2's
+     headers (4.2): one missing year turns the walk's climate off, and a missing overview leaves
+     Explore only its opening's mark. It runs as its own job on every pull request and push, so a
+     page naming data that is not live cannot merge, and the Pages deploy on `main` waits for it.
   8. **Tested build**, after the app checks and E2E jobs, on every run: the sha256 each E2E job
      recorded for the build it tested must equal the app checks job's, so a pull request proves
      that every shard tested the build `main` would deploy.
@@ -2162,6 +2176,11 @@ and the release's `media` section lists every key the locks name (3.8).
     step of GEBCO's lowest and highest cells around them, read on both sides of ±180°; Tambora's
     summit texel at L7 decodes no lower than its texel mean (2,586.3 m) less qLand/2 and no higher
     than GEBCO's 2,605 m there, since a texel mean cannot reach the highest single cell
+  - borders, global only: every step and preview chunk decodes; no border runs within one texel of
+    a lake shore for more than 50 km, and a planted lake ring fails; the previews' signs agree with
+    the fields near R borders; each step holds as many leaves as Cliopatria has rows valid in its
+    year, apart from corrections; and the overlap pairs no `overlap` correction acknowledges are
+    reported (3.3)
 
   Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
   which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
@@ -2225,9 +2244,8 @@ and the release's `media` section lists every key the locks name (3.8).
    (b), the lite tap count, the seam rules and the AA method, and give the owner a zoom-floor look.
 3. **Globe runtime:** `lod.ts`, the scheduler, the byte cache, the instanced globe, and the lobby with
    its poster and precompile.
-4. **Data stages:** borders (the 1815 snapshot as one global field, 3.3; the other snapshots, the
-   previews and the overlay tiles come with explore mode), labels, modera, events (run E5 here), and
-   fx for Tambora.
+4. **Data stages:** borders (the 1815 snapshot as one global field, 3.3), labels, modera, events
+   (run E5 here), and fx for Tambora.
 5. **Story:** the story compiler, media, the Tambora story (owner decision 7), the director and flights,
    and audio (UI synthesis and the Tambora bed).
 6. **Publish:** `publish-data`, `release.json` and the Pages deploy. E3 on the real hostname is
@@ -2268,9 +2286,10 @@ simpler piece carried the Tambora walk:
   needs the byte cache. With two stories, a failure before a choice shows both titles and blurbs;
   a failure in a dive or walk shows the chosen story. No WebGL offers no Reload; other failures
   retain their existing Reload plates.
-- **Borders:** one six-face distance field for the one 1815 snapshot (3.3), not `.wot` tiles, 54
-  previews and crossfades: 1815 is the nearest snapshot to every Tambora date, and one 1.27 MB
-  field loaded in the lobby draws it wherever the walk goes.
+- **Borders:** one six-face distance field for historical-basemaps' 1815 snapshot (3.3), not
+  borders through time: 1815 is the nearest snapshot to every Tambora date, and one 1.27 MB field
+  loaded in the lobby draws it wherever the walk goes. Cliopatria's steps replace it when Tambora
+  moves onto them (owner decision 33).
 - **Sea names:** inlaid by the look from a bundled list (section 2; owner decision 25), not troika
   labels from a `labels` stage: at sea level they never bend with relief, take the lamp, ash and
   climate as the lacquer does, and cost nothing to fetch. Polity and range names wait for the
@@ -2374,9 +2393,9 @@ acceptance).**
 - **Script:** press Next and Back every 200 ms; interrupt and retarget flights; disconnect after entry;
   force `WEBGL_lose_context`; deploy a new release with an old tab open, then visit an unvisited beat in
   that tab; reload with URL state. Run cold at 25 Mbps / 50 ms, then at 5 Mbps / 150 ms.
-- **Measure:** also the overlay pool peak with every layer on, at every beat view and during a snapshot
-  crossfade (sets the overlay slot count); pool pressure with tilt and exaggeration; the entry bundle
-  size; per-beat object counts and bytes; AAC loop seams in each browser.
+- **Measure:** also the overlay pool peak with every layer on, at every beat view (sets the overlay
+  slot count); pool pressure with tilt and exaggeration; the entry bundle size; per-beat object
+  counts and bytes; AAC loop seams in each browser.
 - **Pass:**
   - essential text, previews and effects are always there, and no optional refinement holds navigation
     beyond `holdMax`
@@ -2457,7 +2476,7 @@ acceptance).**
   paging; a real-file paged run and the 465K-row set remain to be measured.
 
 **E6. Overlay fidelity at island zoom.**
-- **Setup:** bake ecoregions, petroleum, mountains and borders 1815 + 1878 as L0-L5 `.wot`.
+- **Setup:** bake ecoregions, petroleum and mountains as L0-L5 `.wot`.
 - **Measure:** view Sumbawa close and the Sierra Nevada at 300 km; report the bytes per layer.
 - **Pass:** the owner accepts the edges and fills by eye.
 - **If it fails:** use `maxLevel` 6 (1.22 km) for the failing layer (the indirection is sized by
