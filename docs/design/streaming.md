@@ -556,7 +556,9 @@ in; one that adds or removes a step moves every later chunk (≤ 1.9 MB).
 climate wash and before the ash:
 - `lookBorderDist` reads R, G and the previews with four `texelFetch` taps each and interpolates by
   hand, since a packed bit cannot be filtered; softness is the taps' bits interpolated, and preview
-  taps wrap inside their cell.
+  taps wrap at the dateline inside their cell and hold at the poles. A preview's distance is baked
+  in grid texels, whose columns narrow with the cosine of the latitude, so the look scales it to
+  arc along the taps' own gradient, and a line keeps its width whichever way it runs.
 - **Outer line:** milestone 1's dotted groove of constant on-screen width and pitch, a dot of about
   2 px every 5 px, 2 px wide, darkening the metal by 0.75 and leaving it a touch rougher. The dots
   tell frontiers from the solid river lines, as engraved maps of the period do; a solid groove read
@@ -582,26 +584,40 @@ cells, 32 previews, 256 KiB an upload. The array takes the border field's sample
 - `steps.ts` is pure: `stepAt(day)` returns the last step whose first day is at or before `day`, and
   none before 3400 BCE; `chunkOf` and `cellOf` locate a step's preview; and it finds the steps either
   side of one.
-- `clockBorders.ts` follows `worldClock`. A step in slot A draws. A step in slot B: A dissolves into
-  B over `borderFade`, then the slots swap. A step in neither, in Explore: its preview draws, and
-  previews dissolve into each other over `borderScrubFade`; once the clock has rested for
-  `borderRest`, the step streams in and the preview dissolves into it. A clock crossing more than
-  one step a frame fades borders out until it slows. Before 3400 BCE nothing draws. Rocking back
-  and forth across one boundary swaps the slots without refetching; a third slot (+12 MiB) comes
-  only if the rocking test lags.
+- `clockBorders.ts` follows `worldClock`, which the director or Explore's ruler writes, and the
+  active mode says each frame whether borders draw and whether previews may stand in. A step in a
+  slot draws from it, and a step moving to the other slot dissolves into it over `borderFade`. A
+  step in neither, in Explore: its preview draws, and previews dissolve into each other over
+  `borderScrubFade`; once the clock has rested for `borderRest`, the step streams in and the
+  preview dissolves into it over `borderFade`. While the clock's step has no source yet, what is
+  drawn holds for `borderScrubFade`, then fades out, so no borders of another time stay. A dissolve
+  that turns back mid-way reverses where it stands. A clock crossing more than one step a frame
+  fades borders out until it slows. Before 3400 BCE nothing draws. Rocking back and forth across
+  one boundary swaps the slots without refetching; a third slot (+12 MiB) comes only if the rocking
+  test lags.
 - **Fetches:** only a beat that lists borders, Explore with borders on, and the lobby's preload of
   the walk's first border step fetch borders; the lobby's own clock fetches none. `fetchData` takes
   an `AbortSignal`, with no request classes (owner decision 30). A step is fetched once the clock has
-  rested in it for `borderRest`, or as a beat's readiness item (5.7), and a new target aborts it. On
-  the full tier, once a step draws, the next step in the scrub direction fills the free slot.
-  Explore fetches all 32 chunks after its dive, the clock's own first, and keeps them compressed
-  until `end()`, so scrubbing needs neither the network nor the HTTP cache; a cell decodes by
-  streaming its chunk through one 256 KiB running sum. Walks never draw previews.
-- **Uploads:** `inflateBands` yields 256 KiB bands from `DecompressionStream`, since the surface
-  decoder allocates its whole output, so a step's peak is its compressed file and two bands. The
-  bands join the streamer's `UploadQueue` behind its tiles, within `uploadAnimated` and
-  `uploadIdle`: a field takes at least 24 frames on full and 48 on lite.
-- **Memory:** `borders.slots`, `borders.previews` and `borders.cpu` report what they hold, and
+  rested in it for `borderRest`, or as a beat's readiness item (5.7), and a new target more than a
+  step away aborts it. A step loads into a slot no source draws, an empty one first; on lite, whose
+  one slot draws, the preview (or, in a walk, nothing) stands in until it frees. On the full tier,
+  once a step draws, the next step in the scrub direction fills the free slot, but never in place
+  of the step across the boundary just crossed, which rocking needs. Explore fetches all 32 chunks
+  after its dive, two at a time and the clock's own first, and keeps them compressed until
+  `end()`, so scrubbing needs neither the network nor the HTTP cache; a cell decodes by streaming
+  its chunk through one 256 KiB running sum, one cell at a time, the clock's own and then those
+  either side, the scrub direction's first, into the least recently used cell no source draws.
+  Walks never draw previews. A step or chunk that does not arrive logs once and waits
+  `degradeFor`; one the data host lacks, or that does not decode, never comes back.
+- **Uploads:** `inflateBands` yields 256 KiB bands, 128 rows of one face each, from
+  `DecompressionStream`, since the surface decoder allocates its whole output, and the next band
+  inflates only once fewer than two are in hand, so a step's peak is its compressed file and two
+  bands. The bands and the cells join the streamer's `UploadQueue` behind its tiles (5.4), within
+  `uploadAnimated` and `uploadIdle`: a field takes at least 24 frames on full and 48 on lite. Each
+  writes through a staging texture, as the surface pools do (5.5).
+- **Memory:** `borders.slots` and `borders.previews` count the array's CPU side, its mirror and its
+  staging for bands and cells, empty between writes; `borders.cpu` counts the runtime's buffers:
+  the step being read, its bands in hand, Explore's compressed chunks and a cell awaiting upload.
   Explore's `end()` empties the slots and the ring and drops the chunks.
 
 **Stories and Explore.** The director writes the clock, and a beat draws borders only when its
@@ -1429,6 +1445,8 @@ only a failed start or a worker error ends the worker.
   crosses a tick as slow [M `e2/results/surface-upload-*.json`, with format v1's 359 KiB slot]. v2's
   slot adds 10 KiB of edges; the second frame still carries 195,288 B, under lite's 256 KiB [D].
 - **Order:** roots, the current view coarsest first, a toggled layer, N+1 critical, then the rest.
+  The border steps' bands and preview cells (3.3) queue behind every tile and run only once no tile
+  has a part left, within the same frame's budget.
 - **Tuning:** the caps rise only from E1/E2 measurements on the target machines (see the hardware
   note in 8.2).
 
