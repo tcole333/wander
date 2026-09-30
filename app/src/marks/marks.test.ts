@@ -423,6 +423,10 @@ describe('MarkLayer', () => {
     marks.set('events', [mark('peak', at)]);
     marks.place(onLand);
     expect(marks.hit(top.x, top.y)).toBeNull();
+    // Without the terrain's ceiling, the mark stands where its sea-level place does.
+    const flat = marks.span('peak')!;
+    expect([flat.x1 - flat.x0, flat.y1 - flat.y0]).toEqual([0, 0]);
+    expect([flat.x0, flat.y0].map(Math.round)).toEqual([sea.x, sea.y].map(Math.round));
     const ceilings: number[] = [];
     marks.useClearance({
       ceilingM: (_dir: number[], _cap: number, k: number) => {
@@ -432,6 +436,11 @@ describe('MarkLayer', () => {
       hMax: liftedM / kLand,
     } as unknown as ClearanceField);
     expect(marks.hit(top.x, top.y)).toBe('peak');
+    // What stands clear of it stands clear of all the way the relief can lift it.
+    const lifted = marks.span('peak')!;
+    expect(lifted.x1).toBeCloseTo(top.x, 3);
+    expect(lifted.y1).toBeCloseTo(top.y, 3);
+    expect(marks.span('elsewhere')).toBeNull();
     expect(marks.hit((sea.x + top.x) / 2, (sea.y + top.y) / 2)).toBe('peak');
     expect(marks.hit(sea.x, sea.y)).toBe('peak');
     expect(ceilings).toContain(kLand);
