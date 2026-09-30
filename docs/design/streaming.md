@@ -534,12 +534,16 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   one row per event, which Meanwhile and the lobby's glows draw from. It keeps statements dated to
   the year or finer, and events with an English label, a place other than 0°, 0° (their own, else
   their location's, flagged) and a Wikipedia edition. An event takes its heaviest class, which
-  weighs its score, and is displayed as its most specific: of the classes it was exported under,
-  the one the export gives the fewest events, since the export takes each class with its
-  subclasses and a subclass never holds more events than its class (ties go to the heavier, then
-  the first listed). So the 1815 eruption of Tambora, exported as a volcanic eruption and a natural
-  disaster, is scored as the heavier natural disaster and its mark draws an eruption; a slice of
-  the export, the fixture's, counts its own events. Its date is its point in time, else its
+  weighs its score, and is displayed as the most specific of its classes that the export nests
+  within that one. The export takes each class with its subclasses, so a class is nested within
+  another when every event exported under it is exported under the other too. So the 1815 eruption
+  of Tambora, exported as a volcanic eruption and a natural disaster, is scored as the heavier
+  natural disaster and its mark draws an eruption, since the export gives every volcanic eruption
+  as a natural disaster. Classes that only share events are not nested, however rare either is: a
+  riot that is also a massacre keeps the massacre's glyph and pace layer, and a battle that is also
+  a shipwreck the battle's. Among classes the export cannot tell apart, or nested within the
+  heaviest but not in one another, the heavier shows, then the first listed; a slice of the
+  export, the fixture's, nests its own events. Its date is its point in time, else its
   start, else its end, the most precise and then the earliest, or
   the day `events-curated.yaml` gives where a better source shows Wikidata's wrong; and its span
   `t0`-`t1` runs from the earliest of its date and starts to the latest of its date and ends,

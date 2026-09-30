@@ -42,7 +42,7 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     events.run(ctx)
     # The runtime's percentile boosts must not change the legacy table's scores or bytes.
     assert hashlib.sha256((ctx.out / events.KEY).read_bytes()).hexdigest() == (
-        "061887223af7fcdb02cc1dae62f2a2a999e56ec5d48aeb6219c482b770dfcdc2"
+        "e6880ccb5fffe252290fb366b8605b767b7317b4487d648a318683d665a3a898"
     )
     wev.run(ctx)
     record = read_record(ctx, wev.STAGE)

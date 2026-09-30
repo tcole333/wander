@@ -105,7 +105,7 @@ class Event:
     score: float
     parents: tuple[str, ...]
     cls: str = ""  # its heaviest class's name in event-classes.yaml, which weighs its score
-    display: str = ""  # its most specific class's name, which its mark draws
+    display: str = ""  # the most specific class nested within that one, which its mark draws
 
     @property
     def dated(self) -> tuple[int, int]:
