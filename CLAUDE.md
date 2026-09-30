@@ -73,8 +73,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, the
-  event overview when the release names the event files and the first story image, and checks R2's
+  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, each
+  story's first image and, when the release names the event files, their overview, and checks R2's
   headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
   `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
