@@ -406,7 +406,8 @@ parent; leaves become outer units almost one for one (130 → 125 in 1500, 74 �
 merges is mostly the colonial blocs [M]. `pipeline/config/borders/hierarchy.yaml` classes each
 composite and each vassalage relation, every entry with a `why` and a `source`:
 - An `empire`'s members share one outer border, and the lines between them are inner. A
-  `grouping`'s members stay apart: nine composites group rivals, such as Warring States China.
+  `grouping`'s members stay apart: 16 of the 43 are groupings, among them the rivals of Warring
+  States China and the Kalmar Union's kingdoms, separate states under one monarch.
 - Membership comes from a valid composite's `Components`, then from `MemberOf`, which settles 26 of
   the 27 member-years whose `MemberOf` names a composite not valid that year [M].
 - Each vassalage relation (six, such as Bohemia's to the Holy Roman Empire) is marked a membership
@@ -495,28 +496,37 @@ A step shows the world as it stood on 1 January of its year, so a correction cov
 begins in 1812.
 
 A correction must change every step in its range, or the build fails, naming the unchanged steps.
-The era files hold 96 corrections, each cited. Besides the 23 pairs:
+The era files hold 100 corrections, each cited. Besides the 23 pairs:
 - **Gaps and swaps:** Mexico carries its 1912 row through 1913-19. Kuwait, drawn as Ottoman, Omani
   and British in Cliopatria, carries its 1820-72 shape from 1873 to 1960 and the State of Kuwait's
-  into 1990. Poland (1946-52), Czechoslovakia (1946, 1969-90), Hungary (1946), Romania and Bulgaria
-  (1945-46), which Cliopatria draws as Soviet, carry their own rows, and Persia and the Indies get
-  back the names Cliopatria swaps in 1895-97.
+  into 1990. Khiva, which fell in June 1873, carries its 1872 row into 1873, and Bukhara, which lost
+  Samarkand in 1868 and became a protectorate in 1873, its 1867 row into 1868 and its 1918 shape
+  through 1869-73. Poland (1946-52), Czechoslovakia (1946, 1969-90), Hungary (1946), Romania and
+  Bulgaria (1945-46), which Cliopatria draws as Soviet, carry their own rows, and Persia and the
+  Indies get back the names Cliopatria swaps in 1895-97. The Mughal emperor's Delhi, which
+  Cliopatria keeps into 1858, is British from 1858, the British having retaken it in September
+  1857.
 - **The Indies:** the Dutch East Indies are British from 1812 to 1816: the British took Java in
   September 1811 and returned the Indies in 1816, and in 1812-13 Cliopatria's smaller Dutch row
   outdraws its British one. Sumbawa's six states of 1815 are drawn from Chambert-Loir's map as
   reproduced by de Jong Boers (1995), each cited to Hägerdal's *Held's History of Sumbawa*: Tambora
   and Pekat for 1815 only, since the eruption destroyed them and their land lay empty until 1866,
   and Sanggar, Dompu, western Sumbawa's sultanate and Bima's land on the island for 1815 and 1816.
-  All six are British members in those years, since the Sumbawan contracts passed to the British
-  with the Dutch posts and Raffles's government kept a Resident at Bima.
-- **Dependents by treaty:** the Carnatic (1793-1802), Awadh (1799-1802), Hyderabad (1799-1947),
-  Mysore (1800-1947), the Mughal emperor (1804-57), Yogyakarta and Surakarta (Dutch, British from
-  1812 to 1816, Dutch again to 1827), the Batavian Cape (1804-06), Monaco under Sardinia (1816-60),
-  Bukhara and Khiva (1874-1917), Afghanistan (1880-1919), Kuwait (1900-61) and Bhutan (1911-47) are
-  members. Hyderabad keeps its 1798 shape until the Ceded Districts pass to the Company in 1800 and
-  then takes Cliopatria's own 1947 shape; Mysore's is traced from the Imperial Gazetteer's 1909 map;
-  Bukhara and Khiva take their 1918 rows' shapes. Kedah and Chiang Mai, tributaries of Siam, stay
-  out, and other princely states stay a listed gap.
+  All six are drawn as British members in those years, with the rest of the Indies, where owner
+  decision 37 names them Dutch members: they were bound to the Dutch by contract, but the Indies
+  are British here, Raffles's government sent Lieutenant Owen Phillips to Sumbawa after the
+  eruption, and the Dutch extended the contracts in 1817 (de Jong Boers, pp. 41, 46). No source
+  binds them to Britain by treaty, so which paramount they draw under is the owner's call.
+- **Dependents by treaty:** the Carnatic (1793-1802), Awadh (1776-1802), Hyderabad (1799-1947),
+  Mysore (1800-1947), Yogyakarta and Surakarta (Dutch from 1800, British from 1812 to 1816, Dutch
+  again to 1829), the Batavian Cape (1804-06), Monaco under Sardinia (1816-60), Bukhara and Khiva
+  (1874-1917), Afghanistan (1880-1919), Kuwait (1900-61) and Bhutan (1911-47) are members. So is the
+  Mughal emperor (1804-57), whom the Company took under its protection in 1803 as its pensioner,
+  though by no treaty; whether that meets decision 34 is the owner's call. Hyderabad keeps its
+  1798 shape until the Ceded Districts pass to the Company in 1800 and then takes Cliopatria's own
+  1947 shape; Mysore's is traced from the Imperial Gazetteer's 1909 map; Bukhara and Khiva take
+  their 1918 rows' shapes. Kedah and Chiang Mai, tributaries of Siam, stay out, and other princely
+  states stay a listed gap.
 - **Names:** the out-of-date names Cliopatria carries into 1914 are renamed over the years they are
   wrong: Denmark-Norway after 1814, the Kingdom of Great Britain after 1800, Serbs, the United
   Principalities, the Principality of Bulgaria, the First Hellenic Republic, the Empire of Haiti,
