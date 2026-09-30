@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryAccount } from '../perf/memory';
 import { dayFromIso } from '../story/dates';
 import { audioClock } from '../test/audio';
-import { magellanBed, rumbleLevel, tamboraBed } from './bed';
+import { magellanBed, museumBed, prepareBed, rumbleLevel, tamboraBed } from './bed';
 import { startCue } from './cues';
 import { SoundEngine } from './engine';
 import { gainOf, mix } from './mix';
@@ -20,6 +20,26 @@ describe("the Tambora bed's rumble", () => {
     expect(at('1815-03-01')).toBeLessThan(at('1815-04-05'));
     expect(at('1816-07-01')).toBeLessThan(at('1815-07-15'));
     expect(at('1818-01-01')).toBe(0);
+  });
+});
+
+describe('a prepared bed', () => {
+  it.each([
+    ['museum', museumBed],
+    ['tambora', tamboraBed],
+    ['magellan', magellanBed],
+  ] as const)("builds all of the %s bed's noise beforehand, and no more", (voice, bed) => {
+    const clock = audioClock();
+    const engine = new SoundEngine(clock.ctx);
+    prepareBed(engine, voice);
+    vi.runAllTimers();
+    const prepared = clock.buffers.length;
+    bed(engine, dayFromIso('1815-04-11'), 0).stop(0);
+    expect(clock.buffers).toHaveLength(prepared);
+    clock.advance(2);
+    const account = new MemoryAccount();
+    engine.inspectMemory(account);
+    expect(account.details.audio).toMatchObject({ cachedNoiseBuffers: 0 });
   });
 });
 
