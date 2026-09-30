@@ -206,7 +206,10 @@ export class ExploreLabels {
   /** A pin not yet read out: its plate's words go to the live region once known. */
   #unread = false;
   #options: Option[] = [];
-  #optionsKey = '';
+  /** The options' marks and words as last listed, in the worker's order. */
+  #listed: { ids: readonly string[]; texts: readonly string[] } = { ids: [], texts: [] };
+  /** Each worker label's option words, kept with the label, which each answer makes anew. */
+  readonly #optionTexts = new WeakMap<EventLabel, string>();
   /** The active option's mark, while the listbox has the focus. */
   #active: string | null = null;
   #listFocused = false;
@@ -389,6 +392,7 @@ export class ExploreLabels {
       () => {
         this.#listFocused = true;
         this.#caption.classList.add('is-shown');
+        this.#sortOptions();
         this.#activate(this.#firstActive());
       },
       { signal },
@@ -456,42 +460,30 @@ export class ExploreLabels {
 
   /**
    * The listbox's options: the worker's labels for the events marked in view, and the focal
-   * event's while the lock draws it, left to right.
+   * event's while the lock draws it. Only a change in the events or their words lists them anew,
+   * left to right; while the same events stand, their marks' places follow the globe, and their
+   * order is set again only as the listbox takes the focus.
    */
   #syncOptions(placed: ReadonlyMap<string, PlacedMark>): void {
-    const entries: { id: string; text: string; x: number; y: number }[] = [];
-    const named = new Set<string>();
+    const ids: string[] = [];
+    const texts: string[] = [];
     for (const label of this.#events.labels()) {
       if (!label.anchorVisible || label.fade.to !== 1) continue;
       const id = markIdOf(label.qid, label.context);
-      const mark = placed.get(id);
-      if (!mark || named.has(id)) continue;
-      named.add(id);
-      const opening = this.#openings.get(label.qid);
-      const { name, date } =
-        opening && finer(opening.precision, precisionOf(label.prec))
-          ? openingText(opening)
-          : { name: eventName(label.text), date: eventDate(label.t0, label.t1, label.prec) };
-      const text = `${name}, ${date}`;
-      entries.push({ id, text, x: mark.x, y: mark.y });
+      if (!placed.has(id) || ids.includes(id)) continue;
+      ids.push(id);
+      texts.push(this.#optionText(label));
     }
     const focal = this.#events.focal;
     const focalId = focal ? markIdOf(focal.qid) : null;
-    const focalMark = focalId === null ? undefined : placed.get(focalId);
-    if (focalId !== null && focalMark && !named.has(focalId)) {
+    if (focalId !== null && placed.has(focalId) && !ids.includes(focalId)) {
       const text = this.#textOf(focalId);
       if (text) {
-        entries.push({
-          id: focalId,
-          text: `${text.name}, ${text.date}`,
-          x: focalMark.x,
-          y: focalMark.y,
-        });
+        ids.push(focalId);
+        texts.push(`${text.name}, ${text.date}`);
       }
     }
-    entries.sort((a, b) => a.x - b.x || a.y - b.y);
-    const key = entries.map((entry) => `${entry.id}\t${entry.text}`).join('\n');
-    if (key === this.#optionsKey) {
+    if (sameList(ids, this.#listed.ids) && sameList(texts, this.#listed.texts)) {
       // The same options, their marks moved with the globe.
       for (const option of this.#options) {
         const mark = placed.get(option.id);
@@ -499,15 +491,16 @@ export class ExploreLabels {
       }
       return;
     }
-    this.#optionsKey = key;
+    this.#listed = { ids, texts };
     const was = this.#options.find((option) => option.id === this.#active);
-    this.#options = entries.map(({ id, text, x, y }) => {
-      const element = el('div', 'xl-option', text);
+    this.#options = ids.map((id, i) => {
+      const element = el('div', 'xl-option', texts[i]);
       element.id = `xl-${id.replace('/', '-')}`;
       element.setAttribute('role', 'option');
-      return { id, x, y, element };
+      const mark = placed.get(id);
+      return { id, x: mark?.x ?? 0, y: mark?.y ?? 0, element };
     });
-    this.#list.replaceChildren(...this.#options.map((option) => option.element));
+    this.#sortOptions();
     if (!this.#listFocused) return;
     // The active mark went: the option nearest where it stood takes its place.
     const stays = this.#options.some((option) => option.id === this.#active);
@@ -520,6 +513,26 @@ export class ExploreLabels {
       }
     }
     this.#activate(next);
+  }
+
+  /** An option's words for a worker's label: as its plate names and dates it. */
+  #optionText(label: EventLabel): string {
+    const known = this.#optionTexts.get(label);
+    if (known !== undefined) return known;
+    const opening = this.#openings.get(label.qid);
+    const { name, date } =
+      opening && finer(opening.precision, precisionOf(label.prec))
+        ? openingText(opening)
+        : { name: eventName(label.text), date: eventDate(label.t0, label.t1, label.prec) };
+    const text = `${name}, ${date}`;
+    this.#optionTexts.set(label, text);
+    return text;
+  }
+
+  /** The options left to right as their marks stand now, in the listbox's order. */
+  #sortOptions(): void {
+    this.#options.sort((a, b) => a.x - b.x || a.y - b.y);
+    this.#list.replaceChildren(...this.#options.map((option) => option.element));
   }
 
   /**
@@ -641,6 +654,10 @@ export class ExploreLabels {
     this.#panelBoxes = this.#panels().map(boxOf);
     this.#captionBox = boxOf(this.#caption);
   }
+}
+
+function sameList(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((value, i) => value === b[i]);
 }
 
 /** Whether a date known at precision `a` is known more finely than at `b`. */
