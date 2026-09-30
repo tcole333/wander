@@ -1,13 +1,22 @@
 // No browser or rasterizer: run the actual geometry constructors and size the actual canvas
 // sources. Rendering equivalence belongs to e2e:gpu and the walk shots on Metal.
 import { afterEach, expect, it, vi } from 'vitest';
-import { Mesh, Texture, type BufferGeometry } from 'three';
+import {
+  Mesh,
+  ShaderLib,
+  Texture,
+  type BufferGeometry,
+  type Material,
+  type WebGLProgramParametersWithUniforms,
+  type WebGLRenderer,
+} from 'three';
 import { MemoryAccount } from '../perf/memory';
 import { buildInstrument } from './instrument';
 
 afterEach(() => vi.unstubAllGlobals());
 
-it('accounts for the built instrument, including shared material maps only once', () => {
+/** A 2D canvas that draws nothing, for the engraving and the brushed noise. */
+function stubCanvas(): void {
   const noop = () => {};
   const context = {
     createImageData: (width: number, height: number) => ({
@@ -29,6 +38,10 @@ it('accounts for the built instrument, including shared material maps only once'
   vi.stubGlobal('document', {
     createElement: () => ({ width: 0, height: 0, getContext: () => context }),
   });
+}
+
+it('accounts for the built instrument, including shared material maps only once', () => {
+  stubCanvas();
   const instrument = buildInstrument();
   const account = new MemoryAccount();
   account.object('instrument', instrument.fixed);
@@ -60,4 +73,29 @@ it('accounts for the built instrument, including shared material maps only once'
   uploaded.object('instrument', instrument.tilting);
   expect(uploaded.report().totals.canvasPixels).toBe(0);
   expect(uploaded.report().totals.arrayBuffers).toBe(0);
+});
+
+it('finishes the rings, and only the rings, in brass whose per-part copies keep the finish', () => {
+  stubCanvas();
+  const instrument = buildInstrument();
+  const rings = [instrument.meridian, instrument.outer];
+  // The scene fades each part through its own clone of its materials.
+  const finished = (material: Material) => {
+    const shader = { fragmentShader: ShaderLib.physical.fragmentShader };
+    material
+      .clone()
+      .onBeforeCompile(shader as WebGLProgramParametersWithUniforms, {} as WebGLRenderer);
+    return shader.fragmentShader !== ShaderLib.physical.fragmentShader;
+  };
+  const mismatched: string[] = [];
+  for (const root of [instrument.fixed, instrument.tilting]) {
+    root.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      const ring = rings.some((mesh) => mesh === object);
+      for (const material of [object.material as Material | Material[]].flat()) {
+        if (finished(material) !== ring) mismatched.push(object.name || 'part');
+      }
+    });
+  }
+  expect(mismatched).toEqual([]);
 });

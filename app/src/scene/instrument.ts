@@ -21,8 +21,10 @@ import {
   Vector3,
   type BufferGeometry,
   type Object3D,
+  type WebGLProgramParametersWithUniforms,
 } from 'three';
 import { releaseCanvasAfterUpload, releaseGeometryAfterUpload } from '../gpu/uploadOnce';
+import { BLOOM_THRESHOLD } from './lens';
 
 /** A piece of the instrument that fades as the camera nears it. */
 export interface FadePart {
@@ -88,6 +90,53 @@ function brassMaterial(color: number, roughness: number, aged: number): MeshPhys
     clearcoatRoughness: 0.55,
     envMapIntensity: 1.5,
   });
+}
+
+/**
+ * The rings' finish. The engraving's grooves turn the normal faster than a pixel resolves, and
+ * under the lamp each would catch it in a string of glints, which the bloom beads into sparks and
+ * flares along the bevels. So the rings' roughness grows with the normal's change across the pixel
+ * (specular anti-aliasing, as Filament filters its normals), by at most RING_SPREAD_MAX in
+ * roughness squared, and their highlights ease from RING_KNEE toward a ceiling under the bloom's
+ * threshold: the lamp lights the brass and its graduations without any of it sparkling.
+ */
+const RING_SPREAD_MAX = 0.5;
+const RING_KNEE = 0.6;
+const RING_CEILING = 0.95 * BLOOM_THRESHOLD;
+const RING_ROUGHNESS = /* glsl */ `{
+  vec3 normalDx = dFdx( normal );
+  vec3 normalDy = dFdy( normal );
+  float spread = dot( normalDx, normalDx ) + dot( normalDy, normalDy );
+  spread = min( spread, ${RING_SPREAD_MAX.toFixed(4)} );
+  material.roughness = sqrt( min( 1.0, material.roughness * material.roughness + spread ) );
+}`;
+const RING_HIGHLIGHTS = /* glsl */ `{
+  const float knee = ${RING_KNEE.toFixed(4)};
+  const float ceiling = ${RING_CEILING.toFixed(4)};
+  float light = luminance( outgoingLight );
+  if ( light > knee ) {
+    float eased = knee + ( ceiling - knee ) * ( 1.0 - exp( ( knee - light ) / ( ceiling - knee ) ) );
+    outgoingLight *= eased / light;
+  }
+}`;
+
+/** Brass in the rings' finish. A subclass, so the scene's per-part copies (clone) keep it. */
+class RingBrass extends MeshPhysicalMaterial {
+  override onBeforeCompile(shader: WebGLProgramParametersWithUniforms): void {
+    const lit = inject(shader.fragmentShader, 'lights_physical_fragment', 'after', RING_ROUGHNESS);
+    shader.fragmentShader = inject(lit, 'opaque_fragment', 'before', RING_HIGHLIGHTS);
+  }
+
+  override customProgramCacheKey(): string {
+    return 'wander-ring-brass';
+  }
+}
+
+/** Three's shader `source` with `glsl` just after or before its `#include <chunk>`. */
+function inject(source: string, chunk: string, place: 'after' | 'before', glsl: string): string {
+  const include = `#include <${chunk}>`;
+  if (!source.includes(include)) throw new Error(`three's shader has no ${include}`);
+  return source.replace(include, place === 'after' ? `${include}\n${glsl}` : `${glsl}\n${include}`);
 }
 
 const ENGRAVING_FONT = '"Hoefler Text", Baskerville, Georgia, serif';
@@ -198,13 +247,13 @@ function graduatedRing({ inner, outer, depth, numerals, label = '', brass }: Rin
   });
   geometry.translate(0, 0, -depth / 2);
   const engraving = engravedRingTexture(inner, outer, numerals, label);
-  const face = brass.clone();
+  const face = new RingBrass().copy(brass);
   face.bumpMap = engraving;
   face.bumpScale = 1.6;
   // The map darkens the grooves like niello.
   face.map = engraving;
   face.color = brass.color.clone().multiplyScalar(1.05);
-  const mesh = new Mesh(geometry, [face, brass]);
+  const mesh = new Mesh(geometry, [face, new RingBrass().copy(brass)]);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
