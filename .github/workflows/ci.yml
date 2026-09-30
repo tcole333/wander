@@ -87,7 +87,7 @@ jobs:
           retention-days: 7
 
   # The browser tests, as parallel jobs: the shards app/playwright.config.ts names, one runner and
-  # one worker each. Each builds its own dist and records its sha256 for the deploy's check.
+  # one worker each. Each builds its own dist and records its sha256 for the Tested build job.
   e2e:
     name: E2E (${{ matrix.shard }})
     runs-on: ubuntu-latest
@@ -170,10 +170,34 @@ jobs:
       # Plain Node with a type import only, so it needs no npm ci.
       - run: npm run check-release
 
+  # The deploy ships the checks job's build, so every shard must have tested that build byte for
+  # byte. This runs on every event, so a pull request proves the check before main relies on it.
+  tested-build:
+    name: Tested build
+    needs: [checks, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Log the runner's CPU
+        run: |
+          echo "$(nproc) CPUs, $(lscpu | sed -n 's/^Model name: *//p')"
+      - name: Check that every e2e shard tested the checks job's build
+        env:
+          CHECKS: ${{ needs.checks.outputs.dist-sha256 }}
+          TESTED: ${{ toJSON(needs.e2e.outputs) }}
+          SHARDS: magellan lobby explore rest
+        run: |
+          echo "the checks job built dist sha256 $CHECKS"
+          test -n "$CHECKS" || { echo "The checks job recorded no dist sha256."; exit 1; }
+          for shard in $SHARDS; do
+            tested=$(jq -r --arg shard "$shard" '.[$shard] // ""' <<<"$TESTED")
+            test "$tested" = "$CHECKS" || { echo "The $shard shard tested dist '$tested', not $CHECKS."; exit 1; }
+          done
+
   deploy:
     name: Deploy to Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [pipeline, checks, e2e, release]
+    needs: [pipeline, checks, e2e, tested-build, release]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
@@ -192,19 +216,14 @@ jobs:
         with:
           name: app-dist
           path: app/dist
-      # The deploy ships the checks job's build, and only when it is the build every shard tested.
-      - name: Check that every e2e shard tested this build
+      # The Tested build job found every shard tested the checks job's build; this must be it.
+      - name: Check that this is the build every e2e shard tested
         env:
           CHECKS: ${{ needs.checks.outputs.dist-sha256 }}
-          TESTED: ${{ toJSON(needs.e2e.outputs) }}
         run: |
           deployed=$(.github/scripts/dist-sha256.sh app/dist)
           echo "deploying dist sha256 $deployed"
           test "$CHECKS" = "$deployed" || { echo "app-dist is $deployed, not the checks job's $CHECKS."; exit 1; }
-          for shard in magellan lobby explore rest; do
-            tested=$(jq -r --arg shard "$shard" '.[$shard] // ""' <<<"$TESTED")
-            test "$tested" = "$deployed" || { echo "The $shard shard tested dist '$tested', not $deployed."; exit 1; }
-          done
       - name: Deploy
         id: deploy
         # Pinned by commit: this action receives the deploy token.
