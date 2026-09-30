@@ -4,19 +4,18 @@
 // opening starts, and crossfades into it, its mark gliding onto the lobby's. Data that does not
 // arrive brings a plate with a Reload control; a browser that cannot draw the globe (no WebGL 2
 // context, a shader that does not link) brings both stories' titles and blurbs instead, never a
-// reload loop. A failure after choosing shows that story's card, or Explore's. A lost context
+// reload loop. A failure after choosing shows that story's card, or Explore's, whose plaque stands
+// last in the lobby wherever the release names its event index (walk/boot.ts). A lost context
 // reloads once; a second loss within a few minutes brings the card (page/contextLoss.ts).
 //
 // On a page served from this machine, ?data=<origin>|fixture|region|global reads a local data
-// server's release instead (page/dataOrigin.ts), for the smoke test and local checks, and ?explore
-// enables Explore before it goes live (page/features.ts).
+// server's release instead (page/dataOrigin.ts), for the smoke test and local checks.
 import './page/room.css';
 import { DataError, fetchData } from './data/surfaceLayer';
 import type { Release } from './data/release';
 import bundled from './generated/release.json';
 import { afterContextLoss } from './page/contextLoss';
-import { dataOverride, exploreRequested, memoryRequested } from './page/dataOrigin';
-import { EXPLORE_LIVE } from './page/features';
+import { dataOverride, memoryRequested } from './page/dataOrigin';
 import { dataPlate, explorePlate, lobbyPlate, Room, storyPlate, type Unable } from './page/room';
 import { stories } from './story/catalog';
 import { bootWalk, DrawError } from './walk/boot';
@@ -65,7 +64,6 @@ async function main(): Promise<void> {
     const release = await readRelease();
     const walk = await bootWalk(document.body, release, {
       stories,
-      explore: EXPLORE_LIVE || exploreRequested(location),
       lobby: true,
       onStory: (choice) => {
         chosen = choice;

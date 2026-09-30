@@ -7,10 +7,10 @@
 // follows the walk from the visitor's first gesture (audio/walkAudio.ts). It starts paused on the
 // first beat; Left and Right step beats, Space plays or pauses, WANDER and Escape return to the
 // lobby, and M mutes. Or it starts in the lobby (lobby/lobby.ts), where choosing
-// the story's plaque starts the walk and flies into its first beat. Where Explore is enabled, its
-// plaque dives into free time instead (explore/explore.ts), whose events the look cuts into the
-// globe as marks. A story or Explore is the page's one active mode (walk/mode.ts), which the frame
-// loop calls at fixed points.
+// the story's plaque starts the walk and flies into its first beat. Where the release names its
+// event index, Explore's plaque stands last and dives into free time instead (explore/explore.ts),
+// whose events the look cuts into the globe as marks. A story or Explore is the page's one active
+// mode (walk/mode.ts), which the frame loop calls at fixed points.
 //
 // The first frame follows the roots (L0-L1), every face the page draws (story/ui/fonts.ts) and the
 // precompile; in the lobby the opening starts on it. The climate's years load the first time the
@@ -90,19 +90,14 @@ export interface StorySource {
 export interface BootOptions {
   /**
    * The story, or Explore, to start on directly; without one, starts in the lobby if stories are
-   * supplied or Explore is enabled.
+   * supplied or the release names its event index.
    */
   story?: StorySource | 'explore' | null;
   /** The lobby's stories, in plaque order. Defaults to the direct story alone. */
   stories?: readonly StorySource[];
   /**
-   * Enables Explore: the lobby shows its plaque last, where the release has its events, and the
-   * look cuts event marks into the globe (look.marks).
-   */
-  explore?: boolean;
-  /**
-   * Starts in the lobby, where choosing a plaque starts its story. Needs at least one story, or
-   * Explore.
+   * Starts in the lobby, where choosing a plaque starts its story. Needs at least one story, or a
+   * release naming its event index.
    */
   lobby?: boolean;
   /** Where the view starts. */
@@ -188,7 +183,6 @@ async function assemble(
   {
     story: start = null,
     stories: sources = start && start !== 'explore' ? [start] : [],
-    explore = false,
     lobby: inLobby = start === null,
     view = WORLD,
     tune = () => {},
@@ -226,10 +220,14 @@ async function assemble(
   made.push(() => museum.dispose());
   museum.setSize(innerWidth, innerHeight, devicePixelRatio);
 
+  // Explore stands wherever the release names its event index: the lobby shows its plaque last and
+  // the look cuts event marks into the globe (look.marks). A page that starts in Explore (the dev
+  // shell) has it too, drawing no events where the release has none.
+  const explore = start === 'explore' || release.events !== undefined;
   // The lobby stands where there are stories to choose, or Explore.
   const hasLobby = sources.length > 0 || explore;
-  // Every story's faces load with the roots, and where Explore is enabled, those its plaque's
-  // words reach and its label faces with them: switching plaques never fetches another font.
+  // Every story's faces load with the roots, and where Explore stands, those its plaque's words
+  // reach and its label faces with them: switching plaques never fetches another font.
   const faces = hasLobby
     ? loadFaces(
         sources.map(({ story, meanwhile }) => JSON.stringify({ story, meanwhile })).join('') +
@@ -406,7 +404,7 @@ async function assemble(
           control,
           chrome,
           // The plaque needs the event index, which the release names once event-files has run.
-          explore: explore && release.events !== undefined,
+          explore: release.events !== undefined,
           initial: inLobby ? 'lobby' : start === 'explore' ? 'explore' : 'story',
           enter: (choice) => begin(choice, 'fly'),
           leave: () => mode?.leave(),

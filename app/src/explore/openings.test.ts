@@ -147,10 +147,10 @@ describe('the pick', () => {
 
 describe('?opening=', () => {
   it('pins an opening on a page served from this machine only', () => {
-    expect(openingRequested({ hostname: '127.0.0.1', search: '?explore&opening=Q48314' })).toBe(
-      'Q48314',
-    );
-    expect(openingRequested({ hostname: 'localhost', search: '?explore' })).toBeNull();
+    expect(
+      openingRequested({ hostname: '127.0.0.1', search: '?data=fixture&opening=Q48314' }),
+    ).toBe('Q48314');
+    expect(openingRequested({ hostname: 'localhost', search: '?data=fixture' })).toBeNull();
     expect(
       openingRequested({ hostname: 'wander.traviscole.xyz', search: '?opening=Q48314' }),
     ).toBeNull();
