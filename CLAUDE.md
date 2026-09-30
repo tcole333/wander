@@ -77,7 +77,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   data server through `?data=`, its story images answered by the media stage's test image, and
   fail on any request to Wikimedia; the other tests run test-only pages on the Vite dev server,
   reading the fixture from its data server, so none of it reaches the build.
-  Run `npx playwright install chromium` once first.
+  Run `npx playwright install chromium` once first. CI runs the specs as four parallel shards that
+  `app/playwright.config.ts` names; `WANDER_E2E_SHARD=<shard>` runs one, as its CI job does.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only. It is the start of the GPU matrix
   (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
