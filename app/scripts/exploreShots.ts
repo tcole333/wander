@@ -4,31 +4,53 @@
 //
 //   node scripts/exploreShots.ts --demo --url http://127.0.0.1:5173 --out ../build/explore/r1
 //     [--data http://127.0.0.1:8795] [--e1b <E1b.png>] [--scene <name>] [--no-gpu]
+//   node scripts/exploreShots.ts --events --url http://127.0.0.1:5173 --out ../build/explore/r2
+//     [--data http://127.0.0.1:8795] [--variants 0,1,2,3] [--scene <name>] [--no-video]
 //
-// --demo: the dev page's ?markDemo (the lobby's glows as marks in the four test glyphs), every
+// --demo: the dev page's ?markDemo (the lobby's glows as marks in the event glyphs), every
 // mark variant at world view, 3,000 km over Europe, 3,000 km over the demo's specimen tray in the
-// Sahara and 300 km tilted over the Alps, each with one focal mark; a contact sheet per variant and one of all variants side by side, beside E1b's cast
-// token (--e1b, by default docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png, which
-// must exist: no sheet goes without it); and
-// the GPU time of 140, 256 and 512 marks at world view over the marks turned off, in explore.json
-// with any console errors. The time is the scene drawn into a target of the canvas's size, 400
-// samples of three draws each with the marks on and as many off, in turn (markDemo.ts, gpuAB):
-// the fastest twentieth of each, where other work sharing the GPU has added least, and the median.
-// --scene renders one scene only, and --no-gpu skips the timing.
+// Sahara and 300 km tilted over the Alps, each with one focal mark; a contact sheet per variant
+// and one of all variants side by side, beside E1b's cast token (--e1b, by default
+// docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png, which must exist: no sheet
+// goes without it); and the GPU time of 140, 256 and 512 marks at world view over the marks
+// turned off, in explore.json with any console errors. The time is the scene drawn into a target
+// of the canvas's size, 400 samples of three draws each with the marks on and as many off, in
+// turn (markDemo.ts, gpuAB): the fastest twentieth of each, where other work sharing the GPU has
+// added least, and the median. --scene renders one scene only, and --no-gpu skips the timing.
+//
+// --events: Explore's own events on the dev page, in each variant of --variants in turn (the
+// owner's default, 0, first): three openings at world view, each focal in its twenty years; Europe
+// in 1805-1815 from the world view down to 3,000 km, the Napoleonic Wars giving way to their
+// wars and battles as the view closes; Lepanto in 1571 at 800 km; and the Julian Alps at 300 km,
+// tilted, among the Isonzo's battles in 1917. A contact sheet per variant, one of the European
+// sequence, one of all variants side by side, and a video of the ruler scrubbing from 3000 BCE to
+// 2000 at world view with a sheet of its frames (--no-video skips it); explore.json lists every
+// render's marks with their events' names, and any console errors.
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { chromium, type Browser, type Page } from '@playwright/test';
+import { gunzipSync } from 'node:zlib';
+import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import type { Release } from '../src/data/release.ts';
+import type { ExploreEventsHook, WorldTimeHook } from '../src/explore/explore.ts';
 import { MARK_VARIANTS } from '../src/marks/families.ts';
 import type { MarkSpec, PlacedMark } from '../src/marks/marks.ts';
 import type { MarkDemoApi } from '../src/prototype/app/markDemo.ts';
+import { dayFromHistorical } from '../src/story/dates.ts';
 import type { LonLat } from '../src/story/story.ts';
 import type { ViewState } from '../src/view/viewState.ts';
 
 interface ShotPage extends Window {
-  __proto?: { ready(): boolean; view(view: ViewState, instant?: boolean): void; error?: string };
+  __proto?: {
+    ready(): boolean;
+    view(view: ViewState, instant?: boolean): void;
+    stats(): { view: ViewState };
+    error?: string;
+  };
   __markDemo?: MarkDemoApi;
+  __worldTime?: WorldTimeHook;
+  __exploreEvents?: ExploreEventsHook;
 }
 
 /** The demo's scenes: a view, and the place whose mark is focal there. */
@@ -55,6 +77,93 @@ const SCENES: { name: string; view: ViewState; focal: LonLat }[] = [
   },
 ];
 
+/** An Explore scene: a view, the ruler's playhead and width, and the focal event, if any. */
+interface EventScene {
+  name: string;
+  caption: string;
+  view: ViewState;
+  /** The playhead's day in the historical calendar the ruler engraves. */
+  date: { year: number; month: number; day: number };
+  /** The ruler's width in years: the now window is a tenth of it. */
+  years: number;
+  focal: string | null;
+  /** The mark the sheets look closer at, when not the focal one. */
+  spot?: string;
+}
+
+const WORLD_VIEW = { viewKm: Infinity, tilt: 0, heading: 0 };
+/**
+ * Europe with the ruler over 1805-1815, now 1810, as the view closes over Iberia: the Peninsular
+ * War, whole from afar, gives way to its battles and sieges and stays as a hollow glyph.
+ */
+const EUROPE_KM = [Infinity, 12_000, 6000, 3000];
+const PENINSULAR_WAR = 'Q152499';
+/** The stretch the European sheet's crops show about the war, km across: the peninsula. */
+const IBERIA_KM = 1500;
+
+const EVENT_SCENES: EventScene[] = [
+  {
+    name: 'opening-waterloo',
+    caption: 'Waterloo, 18 June 1815, its twenty years, at world view',
+    view: { lon: 4.41222, lat: 35, ...WORLD_VIEW },
+    date: { year: 1815, month: 6, day: 18 },
+    years: 200,
+    focal: 'Q48314',
+  },
+  {
+    name: 'opening-krakatoa',
+    caption: 'Krakatoa, 27 August 1883, its twenty years, at world view',
+    view: { lon: 105.423, lat: -6.102, ...WORLD_VIEW },
+    date: { year: 1883, month: 8, day: 27 },
+    years: 200,
+    focal: 'Q8094772',
+  },
+  {
+    name: 'opening-titanic',
+    caption: 'The Titanic, 15 April 1912, its twenty years, at world view',
+    view: { lon: -49.94583, lat: 35, ...WORLD_VIEW },
+    date: { year: 1912, month: 4, day: 15 },
+    years: 200,
+    focal: 'Q2577588',
+  },
+  ...EUROPE_KM.map((viewKm) => ({
+    name: `europe-1810-${viewKm === Infinity ? 'world' : `${viewKm}km`}`,
+    caption: `Europe, the ruler over 1805-1815, now 1810, ${viewKm === Infinity ? 'at world view' : `${viewKm.toLocaleString('en')} km wide`}`,
+    view: { lon: -3, lat: 42, viewKm, tilt: 0, heading: 0 },
+    date: { year: 1810, month: 7, day: 1 },
+    years: 10,
+    focal: null,
+    spot: PENINSULAR_WAR,
+  })),
+  {
+    name: 'lepanto-800km',
+    caption: 'Lepanto, 7 October 1571, 800 km wide',
+    view: { lon: 21.0, lat: 38.3, viewKm: 800, tilt: 30, heading: 0 },
+    date: { year: 1571, month: 10, day: 7 },
+    years: 20,
+    focal: 'Q165425',
+  },
+  {
+    name: 'isonzo-300km-tilted',
+    caption: 'Caporetto, 24 October 1917, among the Julian Alps, 300 km wide and tilted',
+    view: { lon: 13.6, lat: 46.0, viewKm: 300, tilt: 50, heading: 0 },
+    date: { year: 1917, month: 10, day: 24 },
+    years: 20,
+    focal: 'Q242644',
+  },
+];
+
+/** The scrub: the ruler's playhead from 3000 BCE to 2000 at world view, over SCRUB_MS. */
+const SCRUB = {
+  view: { lon: 30, lat: 30, ...WORLD_VIEW },
+  from: { year: -2999, month: 1, day: 1 },
+  to: { year: 2000, month: 12, day: 31 },
+  years: 400,
+  ms: 30_000,
+  /** The years whose frames the scrub's sheet shows. */
+  frames: [-2999, -1499, -499, 1, 800, 1300, 1600, 1800, 1914, 1990],
+};
+
 /** E1b's cast-brass ship, cropped from the 1586 x 992 render. */
 const E1B_DEFAULT = new URL(
   '../../docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png',
@@ -68,16 +177,21 @@ const { values } = parseArgs({
     out: { type: 'string' },
     data: { type: 'string', default: 'http://127.0.0.1:8795' },
     demo: { type: 'boolean', default: false },
+    events: { type: 'boolean', default: false },
+    variants: { type: 'string', default: '0,1,2,3' },
+    'no-video': { type: 'boolean', default: false },
     timeout: { type: 'string', default: '120' },
     e1b: { type: 'string', default: E1B_DEFAULT },
     scene: { type: 'string' },
     'no-gpu': { type: 'boolean', default: false },
   },
 });
+if (values.demo === values.events) throw new Error('pass one of --demo and --events');
 const scenes = SCENES.filter((scene) => !values.scene || scene.name === values.scene);
-if (scenes.length === 0) throw new Error(`no scene '${values.scene}'`);
+const eventScenes = EVENT_SCENES.filter((scene) => !values.scene || scene.name === values.scene);
+if ((values.demo ? scenes : eventScenes).length === 0)
+  throw new Error(`no scene '${values.scene}'`);
 if (!values.out) throw new Error('--out <dir> is required');
-if (!values.demo) throw new Error('only --demo renders so far: pass --demo');
 const origin = new URL(values.url);
 if (!['localhost', '127.0.0.1', '[::1]'].includes(origin.hostname)) {
   throw new Error('--url must be a local Vite server');
@@ -86,7 +200,7 @@ const dataOrigin = new URL(values.data);
 if (!['localhost', '127.0.0.1', '[::1]'].includes(dataOrigin.hostname)) {
   throw new Error('--data must be a local data server');
 }
-if (!existsSync(values.e1b)) {
+if (values.demo && !existsSync(values.e1b)) {
   throw new Error(`no E1b render at ${values.e1b}: every sheet sets it beside the marks (--e1b)`);
 }
 const timeout = Number(values.timeout) * 1000;
@@ -97,13 +211,17 @@ const browser = await chromium.launch({ args: ['--use-angle=metal'] });
 const errors: string[] = [];
 const report: Record<string, unknown> = { data: dataOrigin.origin };
 try {
-  const page = await open(browser);
-  const shots = await demoShots(page);
-  report.shots = shots;
-  if (!values['no-gpu']) report.gpu = await gpuTimes(page);
-  await sheets(browser, shots);
+  if (values.demo) {
+    const page = await open(browser);
+    const shots = await demoShots(page);
+    report.shots = shots;
+    if (!values['no-gpu']) report.gpu = await gpuTimes(page);
+    await sheets(browser, shots);
+    console.log(`${shots.length} renders and their sheets in ${out}`);
+  } else {
+    await eventRenders(browser, report);
+  }
   assert.deepEqual(errors, [], 'browser console');
-  console.log(`${shots.length} renders and their sheets in ${out}`);
 } finally {
   report.errors = errors;
   writeFileSync(join(out, 'explore.json'), JSON.stringify(report, null, 2));
@@ -343,5 +461,400 @@ async function sheets(browser: Browser, shots: Shot[]): Promise<void> {
       join(out, 'sheet-tray.png'),
     );
   }
+  await page.close();
+}
+
+/** Each event's name and class, by Q number, from the data server's event files. */
+async function eventNames(): Promise<Map<number, { label: string; cls: string }>> {
+  const release = (await (await fetch(new URL('/release.json', dataOrigin))).json()) as Release;
+  if (!release.events) throw new Error(`${dataOrigin.origin} serves no event index`);
+  const names = new Map<number, { label: string; cls: string }>();
+  let classes: string[] = [];
+  const keys = [
+    release.events.overview,
+    ...release.events.files.map((f) => f.key).filter((k) => k !== release.events!.overview),
+  ];
+  for (const key of keys) {
+    const bytes = Buffer.from(await (await fetch(new URL(`/${key}`, dataOrigin))).arrayBuffer());
+    const doc = JSON.parse(gunzipSync(bytes).toString('utf8')) as {
+      classes?: string[];
+      qid: number[];
+      label: string[];
+      cls: number[];
+    };
+    if (doc.classes) classes = doc.classes;
+    doc.qid.forEach((qid, i) =>
+      names.set(qid, { label: doc.label[i] ?? '', cls: classes[doc.cls[i] ?? -1] ?? '?' }),
+    );
+  }
+  return names;
+}
+
+/** A mark as a render drew it: its place and size, its treatment and its event. */
+interface DrawnMark extends PlacedMark {
+  at: LonLat;
+  glyph: string;
+  pace: string;
+  focal: boolean;
+  hollow: boolean;
+  soft: boolean;
+  label: string;
+  cls: string;
+}
+
+interface EventShot {
+  name: string;
+  variant: number;
+  scene: string;
+  caption: string;
+  path: string;
+  focal: string | null;
+  spot?: string;
+  /** The view's width, km, as the camera drew it: the world view's is the zoom's widest. */
+  viewKm: number;
+  marks: DrawnMark[];
+}
+
+/** Opens the dev page in Explore, the marks in `variant`. */
+async function openExplore(context: BrowserContext, variant: number): Promise<Page> {
+  const page = await context.newPage();
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.route('**/*', (route) => {
+    const url = new URL(route.request().url());
+    return [origin.origin, dataOrigin.origin].includes(url.origin)
+      ? route.continue()
+      : route.abort();
+  });
+  const url = new URL('/prototype.html', origin);
+  url.search = `data=${encodeURIComponent(dataOrigin.origin)}&ui=0&markVariant=${variant}`;
+  await page.goto(url.href);
+  await page.waitForFunction(
+    () => {
+      const w = window as ShotPage;
+      return w.__proto?.error !== undefined || w.__exploreEvents !== undefined;
+    },
+    null,
+    { timeout },
+  );
+  const failed = await page.evaluate(() => (window as ShotPage).__proto?.error);
+  if (failed) throw new Error(failed);
+  return page;
+}
+
+/** Sets the scene's view at once, the ruler's playhead and width, and its focal event. */
+async function stage(
+  page: Page,
+  view: ViewState,
+  day: number,
+  years: number,
+  focal: string | null,
+): Promise<void> {
+  await page.evaluate(
+    ({ view, day, years, focal }) => {
+      const w = window as ShotPage;
+      w.__proto!.view(view, true);
+      const time = w.__worldTime!;
+      time.seek(day);
+      const { start, end } = time.span();
+      time.zoom((years * 365.2425) / (end - start), 0.5);
+      time.seek(day);
+      w.__exploreEvents!.focus(focal);
+    },
+    { view, day, years, focal },
+  );
+}
+
+/** Waits for the tiles, the event worker and the marks' fades to rest. */
+async function settleEvents(page: Page): Promise<void> {
+  await frames(page, 3);
+  await page.waitForFunction(
+    () => {
+      const w = window as ShotPage;
+      return w.__proto?.ready() === true && w.__exploreEvents?.settled() === true;
+    },
+    null,
+    { timeout },
+  );
+  await frames(page, 2);
+}
+
+/** The marks drawn in view, with their treatments and their events' names. */
+async function drawnMarks(
+  page: Page,
+  names: Map<number, { label: string; cls: string }>,
+): Promise<{ focal: string | null; marks: DrawnMark[] }> {
+  const { focal, placed, specs } = await page.evaluate(() => {
+    const events = (window as ShotPage).__exploreEvents!;
+    return { focal: events.focal(), placed: events.placed(), specs: events.marks() };
+  });
+  const marks = placed.map((mark) => {
+    // A war splitting into its battles is drawn twice for a moment: its solid mark fading out
+    // and its hollow one fading in. The strongest names it.
+    const spec = specs.filter((s) => s.id === mark.id).sort((a, b) => b.opacity - a.opacity)[0];
+    const named = names.get(Number(mark.id.slice(1)));
+    return {
+      ...mark,
+      at: spec?.at ?? [NaN, NaN],
+      glyph: spec?.glyph ?? '?',
+      pace: spec?.pace ?? '?',
+      focal: spec?.focal === true,
+      hollow: spec?.hollow === true,
+      soft: spec?.soft === true,
+      label: named?.label ?? mark.id,
+      cls: named?.cls ?? '?',
+    };
+  });
+  return { focal, marks };
+}
+
+async function eventRenders(browser: Browser, report: Record<string, unknown>): Promise<void> {
+  const variants = values.variants.split(',').map(Number);
+  if (variants.some((v) => !Number.isInteger(v) || v < 0 || v >= MARK_VARIANTS.length)) {
+    throw new Error(`--variants takes 0-${MARK_VARIANTS.length - 1}, comma-separated`);
+  }
+  const names = await eventNames();
+  const shots: EventShot[] = [];
+  for (const variant of variants) {
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 1,
+    });
+    const page = await openExplore(context, variant);
+    for (const scene of eventScenes) {
+      await stage(page, scene.view, dayFromHistorical(scene.date), scene.years, scene.focal);
+      await settleEvents(page);
+      const name = `v${variant}-${scene.name}`;
+      const path = join(out, `${name}.png`);
+      await page.screenshot({ path });
+      const { focal, marks } = await drawnMarks(page, names);
+      const viewKm = await page.evaluate(() => (window as ShotPage).__proto!.stats().view.viewKm);
+      shots.push({
+        name,
+        variant,
+        scene: scene.name,
+        caption: scene.caption,
+        path,
+        focal,
+        spot: scene.spot,
+        viewKm,
+        marks,
+      });
+      const hollow = marks.filter((m) => m.hollow).length;
+      console.log(`${path}: ${marks.length} marks, ${hollow} hollow, focal ${focal ?? 'none'}`);
+    }
+    await context.close();
+  }
+  report.shots = shots.map(({ path, ...shot }) => ({ path, ...shot }));
+  await eventSheets(browser, shots);
+  if (!values['no-video']) report.scrub = await scrubVideo(browser, names);
+}
+
+/** The scrub from 3000 BCE to 2000 at world view, as a video and a sheet of frames. */
+async function scrubVideo(
+  browser: Browser,
+  names: Map<number, { label: string; cls: string }>,
+): Promise<unknown> {
+  const size = { width: 1440, height: 900 };
+  const from = dayFromHistorical(SCRUB.from);
+  const to = dayFromHistorical(SCRUB.to);
+  // The frames first, each settled.
+  const still = await browser.newContext({ viewport: size, deviceScaleFactor: 1 });
+  const page = await openExplore(still, 0);
+  const frameShots: { year: number; path: string; marks: number }[] = [];
+  for (const year of SCRUB.frames) {
+    await stage(page, SCRUB.view, dayFromHistorical({ year, month: 7, day: 1 }), SCRUB.years, null);
+    await settleEvents(page);
+    const path = join(out, `scrub-${year < 1 ? `${1 - year}bce` : year}.png`);
+    await page.screenshot({ path });
+    const { marks } = await drawnMarks(page, names);
+    frameShots.push({ year, path, marks: marks.length });
+    console.log(`${path}: ${marks.length} marks`);
+  }
+  await still.close();
+
+  const recording = await browser.newContext({
+    viewport: size,
+    deviceScaleFactor: 1,
+    recordVideo: { dir: out, size },
+  });
+  const filmed = await openExplore(recording, 0);
+  await stage(filmed, SCRUB.view, from, SCRUB.years, null);
+  await settleEvents(filmed);
+  // The playhead moves at a steady pace through the years, a frame at a time.
+  const stats = await filmed.evaluate(
+    async ({ from, to, ms }) => {
+      const time = (window as ShotPage).__worldTime!;
+      const start = performance.now();
+      let frames = 0;
+      let longest = 0;
+      let last = start;
+      for (;;) {
+        const now = await new Promise<number>((done) => requestAnimationFrame(done));
+        longest = Math.max(longest, now - last);
+        last = now;
+        frames++;
+        const t = Math.min(1, (now - start) / ms);
+        time.seek(from + (to - from) * t);
+        if (t >= 1) break;
+      }
+      return { frames, longestFrameMs: longest, ms: performance.now() - start };
+    },
+    { from, to, ms: SCRUB.ms },
+  );
+  await filmed.waitForTimeout(1500);
+  const video = filmed.video();
+  await recording.close();
+  const path = join(out, 'scrub.webm');
+  if (video) renameSync(await video.path(), path);
+  console.log(`${path}: ${stats.frames} frames in ${Math.round(stats.ms)} ms`);
+
+  const sheet = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+  // The globe, which the world view leaves small, at twice its size.
+  const cells = frameShots.map(
+    ({ year, path, marks }) =>
+      `<figure>${cropOf(path, { x: 720, y: 370 }, 240, 190)}
+      <figcaption>${year < 1 ? `${1 - year} BCE` : year}, ${marks} marks, 2×</figcaption></figure>`,
+  );
+  await shootSheet(
+    sheet,
+    `<h1>The ruler scrubbed from 3000 BCE to 2000 at world view, a ${SCRUB.years}-year ruler (a ${SCRUB.years / 10}-year now window), variant 0</h1><div class="grid3">${cells.join('')}</div>`,
+    join(out, 'sheet-scrub.png'),
+  );
+  await sheet.close();
+  return { video: path, ...stats, frames: frameShots };
+}
+
+/** A render as an image's source. */
+function png(path: string): string {
+  return `data:image/png;base64,${readFileSync(path).toString('base64')}`;
+}
+
+/** A `w` x `h` crop of a render about a point, kept on screen and off the ruler, at `k` times. */
+function cropOf(path: string, at: { x: number; y: number }, w: number, h: number, k = 2): string {
+  const x = Math.max(0, Math.min(1440 - w, at.x - w / 2));
+  const y = Math.max(0, Math.min(780 - h, at.y - h / 2));
+  return `<div class="crop" style="width:${w * k}px;height:${h * k}px">
+    <img src="${png(path)}" style="transform:scale(${k}) translate(${-x}px,${-y}px)"></div>`;
+}
+
+/** The sheets' style: set before the renders run, as the module's top level awaits them. */
+function sheetStyle(): string {
+  return `<style>
+  body { margin: 0; padding: 16px; background: #120c07; color: #d9c7a3;
+    font: 15px Georgia, serif; width: max-content; }
+  h1 { font-weight: normal; font-size: 20px; margin: 0 0 10px; max-width: 1500px; }
+  .row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 720px); gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 480px); gap: 12px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  img.full { width: 720px; height: 450px; }
+  .crop { position: relative; overflow: hidden; }
+  .crop img { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  figcaption { font-size: 13px; opacity: 0.85; max-width: 720px; line-height: 1.35; }
+</style>`;
+}
+
+async function shootSheet(page: Page, html: string, path: string): Promise<void> {
+  await page.setContent(
+    `<!doctype html><html><head>${sheetStyle()}</head><body>${html}</body></html>`,
+  );
+  await page.evaluate(() => Promise.all([...document.images].map((img) => img.decode())));
+  await page.screenshot({ path, fullPage: true });
+  console.log(path);
+}
+
+/** Where to look closer: the focal mark, else the middle of the densest cluster of marks. */
+function spotOf(shot: EventShot): { x: number; y: number } {
+  // On relief seen tilted, a mark stands above its sea-level place.
+  const lift = shot.scene.includes('tilted') ? 25 : 0;
+  const focal = shot.marks.find((m) => m.focal || m.id === shot.spot);
+  if (focal) return { x: focal.x, y: focal.y - lift };
+  const inView = shot.marks.filter((m) => m.x > 60 && m.x < 1380 && m.y > 60 && m.y < 760);
+  const crowd = (m: DrawnMark) =>
+    inView.filter((o) => Math.hypot(o.x - m.x, o.y - m.y) < 110).length;
+  const busiest = [...inView].sort((a, b) => crowd(b) - crowd(a))[0];
+  return busiest ? { x: busiest.x, y: busiest.y - lift } : { x: 720, y: 400 };
+}
+
+/** A render's marks in words: the hollow parents, the solid ones by class, and the focal one. */
+function tally(shot: EventShot): string {
+  const hollow = shot.marks.filter((m) => m.hollow).map((m) => m.label);
+  const solid = shot.marks.filter((m) => !m.hollow);
+  const byClass = new Map<string, number>();
+  for (const m of solid) byClass.set(m.cls, (byClass.get(m.cls) ?? 0) + 1);
+  const classes = [...byClass]
+    .sort((a, b) => b[1] - a[1])
+    .map(([cls, n]) => `${n} ${cls}`)
+    .join(', ');
+  const focal = shot.marks.find((m) => m.focal)?.label;
+  return [
+    `${shot.marks.length} marks: ${classes || 'none'}`,
+    hollow.length ? `hollow: ${hollow.join('; ')}` : '',
+    focal ? `focal: ${focal}` : '',
+  ]
+    .filter(Boolean)
+    .join('. ');
+}
+
+async function eventSheets(browser: Browser, shots: EventShot[]): Promise<void> {
+  const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+  const figure = (inner: string, caption: string) =>
+    `<figure>${inner}<figcaption>${caption}</figcaption></figure>`;
+  const variants = [...new Set(shots.map((s) => s.variant))];
+  for (const variant of variants) {
+    const rows = shots
+      .filter((shot) => shot.variant === variant)
+      .map(
+        (shot) => `<div class="row">
+          ${figure(`<img class="full" src="${png(shot.path)}">`, `${shot.caption}. ${tally(shot)}`)}
+          ${figure(cropOf(shot.path, spotOf(shot), 220, 180), shot.focal ? 'the focal mark, 2×' : 'the densest marks, 2×')}
+        </div>`,
+      );
+    await shootSheet(
+      page,
+      `<h1>Explore's events, variant ${variant}: ${MARK_VARIANTS[variant]}</h1>${rows.join('')}`,
+      join(out, `sheet-v${variant}.png`),
+    );
+  }
+  // Europe as the view closes, in the first variant rendered.
+  const europe = shots.filter((s) => s.variant === variants[0] && s.scene.startsWith('europe'));
+  if (europe.length > 0) {
+    const cells = europe.map((shot) =>
+      figure(`<img class="full" src="${png(shot.path)}">`, `${shot.caption}. ${tally(shot)}`),
+    );
+    // The same stretch of the globe in each, IBERIA_KM across about the war's mark.
+    const crops = europe.map((shot) => {
+      const w = Math.max(24, (IBERIA_KM * 1440) / shot.viewKm);
+      const k = 340 / w;
+      const at = spotOf(shot);
+      return figure(
+        cropOf(shot.path, at, w, 0.8 * w, k),
+        `${shot.caption.replace(/.*, /, '')}, ${k.toFixed(1)}×`,
+      );
+    });
+    await shootSheet(
+      page,
+      `<h1>Europe, the ruler over 1805-1815, now 1810, as the view closes over Iberia, variant ${variants[0]}: the Peninsular War gives way to its battles and sieges and stays as a hollow glyph</h1>
+      <div class="row">${crops.join('')}</div>
+      <div class="grid2">${cells.join('')}</div>`,
+      join(out, 'sheet-europe.png'),
+    );
+  }
+  // Every variant side by side, a crop of each scene.
+  const scenesDrawn = [...new Set(shots.map((s) => s.scene))];
+  const rows = scenesDrawn.map((scene) => {
+    const own = shots.filter((s) => s.scene === scene);
+    const cells = own.map((shot) =>
+      figure(
+        cropOf(shot.path, spotOf(shot), 240, 170, 1.5),
+        `${shot.variant} ${MARK_VARIANTS[shot.variant]}`,
+      ),
+    );
+    return `<h1>${own[0]?.caption ?? scene}</h1><div class="row">${cells.join('')}</div>`;
+  });
+  await shootSheet(page, rows.join(''), join(out, 'sheet-all.png'));
   await page.close();
 }
