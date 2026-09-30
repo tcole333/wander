@@ -54,11 +54,15 @@ relations, the members whose composite is not valid, the overlap pairs, the name
 return, and each step's leftovers, pockets given by rule (a hole filled as its state's names the
 state) and enclosed stateless pieces kept with the outer units around them, and the leaves it
 draws that no valid row gives it or that a valid row gives it and it does not draw, naming those
-no correction names. It exits 1 when a step fails or a correction leaves a step unchanged, after
+no correction names; and what the steps owe the history pass (owner decision 38), which
+publish-data refuses: each stateless hole of OWED_KM2 or more no correction cites, and each gap,
+land held on both sides of a stateless run of at most GAP_YEARS, as each step's stateless land on a
+CELL_DEG grid shows it. It exits 1 when a step fails or a correction leaves a step unchanged, after
 writing the queue.
 """
 
 import argparse
+import base64
 import hashlib
 import itertools
 import json
@@ -79,6 +83,7 @@ import pyogrio.raw
 import shapely
 import shapely.affinity
 import yaml
+from scipy import ndimage
 
 from prebuild.config import ConfigError, load_water
 from prebuild.natural_earth import (
@@ -130,6 +135,13 @@ LARGE_POCKET_KM2 = 1000  # the review queue lists pockets this large one by one,
 SEAM_DEG = 1e-6  # a shape this close to ±180° runs along the antimeridian
 SEAM_REACH_DEG = 20.0  # land across the antimeridian goes to the polity there when within this
 REVIEW = "borders-review.json"
+# The history pass owes a cited verdict (owner decision 38) for each stateless hole this large, and
+# for each gap this large: land held in the steps on both sides of a stateless run of at most
+# GAP_YEARS, which is how a row Cliopatria drops for a while shows (Prussia's in 1866-70). Land
+# stateless for longer is more often a state's real end, which decision 35 leaves blank.
+OWED_KM2 = 10_000
+GAP_YEARS = 25
+CELL_DEG = 0.5  # the grid each step records its stateless land on, for the gaps
 
 
 class SelectionError(ValueError):
@@ -845,6 +857,7 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
         **membership,
         "overlaps": overlaps,
         "stateless": unclaimed,
+        "statelessCells": pack_cells(cells(stateless)),
     }
     return Selection(
         year, parts, stateless, frozenset(applied), unacknowledged, report, filled, holes
@@ -1485,6 +1498,123 @@ def _opening(piece: shapely.Geometry, radius_km: float) -> shapely.Geometry:
 # Coverage, polities and the review queue --------------------------------------------------------
 
 
+def cells(geometry: shapely.Geometry) -> np.ndarray:
+    """Whether each cell of the CELL_DEG grid has its centre in `geometry`: rows from the south,
+    columns from 180° W."""
+    lon = np.arange(-180 + CELL_DEG / 2, 180, CELL_DEG)
+    lat = np.arange(-90 + CELL_DEG / 2, 90, CELL_DEG)
+    x, y = np.meshgrid(lon, lat)
+    shapely.prepare(geometry)
+    return shapely.contains_xy(geometry, x, y)
+
+
+def pack_cells(mask: np.ndarray) -> str:
+    return base64.b64encode(np.packbits(mask)).decode("ascii")
+
+
+def unpack_cells(text: str) -> np.ndarray:
+    rows, columns = round(180 / CELL_DEG), round(360 / CELL_DEG)
+    bits = np.unpackbits(np.frombuffer(base64.b64decode(text), np.uint8))
+    return bits[: rows * columns].reshape(rows, columns).astype(bool)
+
+
+def _cell_of(at: Sequence[float]) -> tuple[int, int]:
+    rows, columns = round(180 / CELL_DEG), round(360 / CELL_DEG)
+    row = min(rows - 1, max(0, math.floor((at[1] + 90) / CELL_DEG)))
+    return row, min(columns - 1, max(0, math.floor((at[0] + 180) / CELL_DEG)))
+
+
+def owed(
+    years: Sequence[int],
+    reports: Mapping[int, dict[str, Any]],
+    config: Config,
+    land: np.ndarray,
+) -> dict[str, list[dict[str, Any]]]:
+    """What the steps owe the history pass, which publish-data refuses (owner decision 38): each
+    stateless hole of OWED_KM2 or more no pocket correction cites, as a place over its run of steps,
+    and each gap of OWED_KM2 or more, land held in the steps on both sides of a stateless run of at
+    most GAP_YEARS, holding no such hole and no stateless pocket's point. `land` is the cells of
+    the terrain's dry land; each place's years run from its first step to the day before the step
+    after its last."""
+    steps = [y for y in years if y in reports]
+    if not steps:
+        return {"holes": [], "gaps": []}
+    ends = {y: after - 1 for y, after in itertools.pairwise(steps)} | {steps[-1]: LAST_YEAR}
+    holes: list[dict[str, Any]] = []
+    last: list[tuple[dict[str, Any], list[float]]] = []  # the places in the step before, and where
+    for year in steps:
+        now = []
+        for entry in reports[year]["stateless"]["enclosed"]:
+            if entry["km2"] < OWED_KM2 or entry.get("correction"):
+                continue
+            place = next((p for p, at in last if _near(at, entry["at"])), None)
+            if place is None:
+                place = {"at": entry["at"], "km2": 0, "years": [year, year], "states": []}
+                holes.append(place)
+            place["years"][1] = ends[year]
+            if entry["km2"] > place["km2"]:
+                place["km2"], place["at"] = entry["km2"], entry["at"]
+            place["states"] = sorted(set(place["states"]) | set(entry["states"]))
+            place["lake"] = place.get("lake", False) or entry["lake"]
+            now.append((place, entry["at"]))
+        last = now
+    return {"holes": holes, "gaps": _gaps(steps, ends, reports, config, land)}
+
+
+def _near(a: Sequence[float], b: Sequence[float]) -> bool:
+    """Two points of one hole in steps side by side: its outline moves, but not far."""
+    return abs(a[0] - b[0]) <= 2 and abs(a[1] - b[1]) <= 2
+
+
+def _gaps(
+    steps: Sequence[int],
+    ends: Mapping[int, int],
+    reports: Mapping[int, dict[str, Any]],
+    config: Config,
+    land: np.ndarray,
+) -> list[dict[str, Any]]:
+    stateless = np.stack([unpack_cells(reports[y]["statelessCells"]) for y in steps])
+    held = land[None] & ~stateless
+    lat = np.arange(-90 + CELL_DEG / 2, 90, CELL_DEG)
+    cell_km2 = (EARTH_KM * math.radians(CELL_DEG)) ** 2 * np.cos(np.radians(lat))[:, None]
+    cited = [
+        (c.years, _cell_of(c.op.at))
+        for c in config.corrections
+        if isinstance(c.op, Pocket) and c.op.stateless
+    ]
+    listed = [
+        (year, _cell_of(entry["at"]))
+        for year in steps
+        for entry in reports[year]["stateless"]["enclosed"]
+        if entry["km2"] >= OWED_KM2
+    ]
+    gaps = []
+    for a in range(1, len(steps) - 1):
+        alive = held[a - 1] & stateless[a]
+        for b in range(a, len(steps) - 1):
+            if not alive.any() or steps[b + 1] - steps[a] > GAP_YEARS:
+                break
+            labels, count = ndimage.label(alive & held[b + 1])
+            first, last = steps[a], ends[steps[b]]
+            for k in range(1, count + 1):
+                region = labels == k
+                km2 = float((cell_km2 * region).sum())
+                if km2 < OWED_KM2:
+                    continue
+                if any(first <= y <= last and region[cell] for y, cell in listed):
+                    continue
+                if any(f <= last and first <= t and region[cell] for (f, t), cell in cited):
+                    continue
+                rows, columns = np.nonzero(region)
+                at = [
+                    round(float(columns.mean()) * CELL_DEG - 180 + CELL_DEG / 2, 1),
+                    round(float(rows.mean()) * CELL_DEG - 90 + CELL_DEG / 2, 1),
+                ]
+                gaps.append({"at": at, "km2": round(km2), "years": [first, last]})
+            alive &= stateless[b + 1]
+    return sorted(gaps, key=lambda g: (g["years"], g["at"]))
+
+
 def unchanged(
     config: Config, years: Sequence[int], applied: Mapping[int, frozenset[int]]
 ) -> list[str]:
@@ -1553,8 +1683,9 @@ def review_queue(
     reports: Mapping[int, dict[str, Any]],
     failed: Mapping[int, str],
     errors: Sequence[str],
+    owing: Mapping[str, list[dict[str, Any]]],
 ) -> dict[str, Any]:
-    """What the history pass reviews, gathered over every step."""
+    """What the history pass reviews, gathered over every step, with what it owes (`owed`)."""
     unclassified: dict[str, dict[str, list[int]]] = {"composites": {}, "relations": {}}
     unsettled: dict[tuple[str, tuple[str, ...]], list[int]] = defaultdict(list)
     pairs: dict[tuple[str, str], dict[str, Any]] = {}
@@ -1610,6 +1741,7 @@ def review_queue(
             "smaller": [p for p in ordered if not p["duplicate"]],
         },
         "returns": returns(source),
+        "owed": dict(owing),
         "byStep": {
             str(y): {
                 key: reports[y][key]
@@ -1714,7 +1846,8 @@ def write_review(ctx: Context) -> int:
         assert report is not None
         reports[year] = report
     errors = unchanged(config, [y for y in years if y not in failed], applied)
-    queue = review_queue(source, config, years, reports, failed, errors)
+    owing = owed(years, reports, config, cells(terrain.dry))
+    queue = review_queue(source, config, years, reports, failed, errors, owing)
     path = ctx.stages_dir / REVIEW
     write_json(path, queue)
     overlaps = queue["overlaps"]
@@ -1723,6 +1856,7 @@ def write_review(ctx: Context) -> int:
         f"{len(failed)} steps failed, {len(errors)} corrections unchanged, "
         f"{len(overlaps['unacknowledged'])} unacknowledged pairs, "
         f"{len(overlaps['smaller'])} smaller overlaps, {len(queue['returns'])} returns, "
+        f"{len(owing['holes'])} holes and {len(owing['gaps'])} gaps owed, "
         f"{time.perf_counter() - started:.0f} s",
         flush=True,
     )

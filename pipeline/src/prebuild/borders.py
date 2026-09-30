@@ -45,9 +45,10 @@ stored gzip level 9, mtime 0, as `fd/borders/<ver8>/<stem>.bin`, the corrected s
 source is never committed.
 
 The record `build/stages/<profile>/borders.json` holds release.json's `borderSteps` section as
-`steps`, the step each story's border beats draw, the overlap pairs no correction acknowledges and
-the composites and relations `hierarchy.yaml` does not class, and the 1815 field's `borders`
-section as is (streaming.md 3.8, 7.2).
+`steps`, the step each story's border beats draw, the overlap pairs no correction acknowledges,
+the composites and relations `hierarchy.yaml` does not class, the stateless holes and gaps the
+history pass owes a cited verdict (`owed`), and the 1815 field's `borders` section as is
+(streaming.md 3.8, 7.2).
 """
 
 import bisect
@@ -143,7 +144,7 @@ def run(ctx: Context) -> None:
 
 def bake_steps(ctx: Context) -> dict[str, Any]:
     """Selects and bakes every step, writes their files, and returns the record's steps, beats,
-    unacknowledged and unclassified entries and inputs."""
+    unacknowledged, unclassified and owed entries and inputs."""
     started = time.perf_counter()
     code = tree_sha(CODE_PATHS, ctx.repo)  # before the stage reads it, so a later edit is stale
     source = clio.load_cliopatria(ctx)
@@ -176,7 +177,8 @@ def bake_steps(ctx: Context) -> dict[str, Any]:
     }
     unchanged = clio.unchanged(config, sorted(baked), applied)
     reports = {year: step.report for year, step in baked.items()}
-    queue = clio.review_queue(source, config, years, reports, failed, unchanged)
+    owing = clio.owed(years, reports, config, clio.cells(terrain.dry))
+    queue = clio.review_queue(source, config, years, reports, failed, unchanged, owing)
     for year, used in applied.items():
         labels = [config.corrections[k].label() for k in sorted(used)]
         queue["byStep"][str(year)]["corrections"] = labels
@@ -206,6 +208,7 @@ def bake_steps(ctx: Context) -> dict[str, Any]:
             kind: [entry["name"] for entry in queue["unclassified"][kind]]
             for kind in ("composites", "relations")
         },
+        "owed": owing,
         "inputs": {"code": code, "cliopatria": source_sha(ctx)},
     }
 

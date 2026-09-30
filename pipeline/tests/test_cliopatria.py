@@ -904,10 +904,59 @@ def test_the_review_queue_gathers_the_pairs_and_unclassified_entries_over_the_st
     settings = config()
     years = clio.step_years(source, settings)
     reports = {y: clio.select(y, source, settings, terrain).report for y in years}
-    queue = clio.review_queue(source, settings, years, reports, {1816: "fails"}, [])
+    owing = clio.owed(years, reports, settings, clio.cells(terrain.dry))
+    queue = clio.review_queue(source, settings, years, reports, {1816: "fails"}, [], owing)
     assert queue["steps"] == [1800, 1810, 1816]
     assert queue["failed"] == [{"year": 1816, "error": "fails"}]
     assert queue["unclassified"]["composites"] == [{"name": "(States)", "steps": [[1810, 1810]]}]
     (pair,) = queue["overlaps"]["unacknowledged"]
     assert pair["polities"] == ["Colony", "Republic"]
     assert pair["steps"] == pair["duplicate"] == pair["unacknowledged"] == [1800, 1810]
+    assert queue["owed"] == owing
+
+
+def owed_over(rows, terrain, corrections=()):
+    """The owed list over every step of `rows`."""
+    source = clio.Cliopatria(tuple(rows), None)
+    settings = config(corrections=corrections)
+    years = clio.step_years(source, settings)
+    reports = {y: clio.select(y, source, settings, terrain).report for y in years}
+    return clio.owed(years, reports, settings, clio.cells(terrain.dry))
+
+
+HOLE = box(-15, -4, -11, 0)  # about 197,000 km², touching no lake, across the line at -13°
+
+
+def test_a_hole_between_states_no_correction_cites_is_owed_over_its_steps(terrain):
+    rows = [
+        *(row(r.name, r.geometry, 1800, 1815) for r in split(shapely.difference(LAND, HOLE), -13)),
+        row("Upstart", box(15, 5, 16, 6), 1810, 1815),
+    ]
+    owing = owed_over(rows, terrain)
+    (hole,) = owing["holes"]
+    assert hole["years"] == [1800, 1815]
+    assert hole["states"] == ["East", "West"]
+    assert hole["km2"] == pytest.approx(197_000, rel=0.02)
+    assert shapely.contains(HOLE, shapely.Point(hole["at"]))
+
+
+def test_a_cited_correction_settles_a_hole_between_states(terrain):
+    rows = [row(r.name, r.geometry, 1800, 1815) for r in split(shapely.difference(LAND, HOLE), -13)]
+    cited = correction(clio.Pocket(at=(-12.5, -2.0), stateless=True), years=(1800, 1815))
+    assert owed_over(rows, terrain, [cited])["holes"] == []
+
+
+def held(first, last):
+    return row("Realm", LAND, first, last)
+
+
+def test_land_held_on_both_sides_of_a_short_stateless_run_is_an_owed_gap(terrain):
+    (gap,) = owed_over([held(1800, 1809), held(1820, 1830)], terrain)["gaps"]
+    assert gap["years"] == [1810, 1819]
+    assert gap["km2"] == pytest.approx(clio.km2(shapely.difference(LAND, LAKE)), rel=0.05)
+
+
+def test_land_stateless_past_gap_years_or_cited_owes_nothing(terrain):
+    assert owed_over([held(1800, 1809), held(1850, 1860)], terrain)["gaps"] == []
+    cited = correction(clio.Pocket(at=(10.0, 5.0), stateless=True), years=(1810, 1819))
+    assert owed_over([held(1800, 1809), held(1820, 1830)], terrain, [cited])["gaps"] == []
