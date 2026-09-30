@@ -167,6 +167,38 @@ export interface Whir {
   stop(at?: number): void;
 }
 
+/** The least change in pace worth passing to the whir. */
+const PACE_STEP = 0.02;
+
+/** The whir through each flight, a story's or a free one: it starts with the flight and ends with it. */
+export class FlightWhir {
+  readonly #engine: SoundEngine;
+  #whir: Whir | null = null;
+  #pace = 0;
+
+  constructor(engine: SoundEngine) {
+    this.#engine = engine;
+  }
+
+  /** A frame: while `flying`, the whir sounds at the camera's `pace`; otherwise it stops. */
+  frame(flying: boolean, pace: number, at: number): void {
+    if (!flying) {
+      this.stop(at);
+      return;
+    }
+    this.#whir ??= whir(this.#engine, at);
+    if (Math.abs(pace - this.#pace) < PACE_STEP) return;
+    this.#whir.setPace(pace, at);
+    this.#pace = pace;
+  }
+
+  stop(at: number): void {
+    this.#whir?.stop(at);
+    this.#whir = null;
+    this.#pace = 0;
+  }
+}
+
 /**
  * A soft clockwork whir, silent until it is given a pace: an escapement's teeth ticking faster as
  * the pace rises, the air of its fly, and a faint tone of the gears in mesh.

@@ -32,6 +32,10 @@ vi.mock('./voices', () => ({
   Detents: class {
     play() {}
   },
+  FlightWhir: class {
+    frame() {}
+    stop() {}
+  },
 }));
 vi.mock('./bed', () => ({
   museumBed() {
