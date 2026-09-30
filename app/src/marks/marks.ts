@@ -216,6 +216,8 @@ export function markReachPx(
 }
 
 const toCamera = new Vector3();
+const liftedScratch = new Vector3();
+const clipScratch = new Vector4();
 
 /** The cosine between the globe's normal at `dir` and the way to the camera at `camera`. */
 function facingOf(dir: Vector3, camera: Vector3): number {
@@ -663,8 +665,8 @@ export class MarkLayer {
 
   /** Where the place at `dir`, lifted `meters` off sea level, stands on screen, CSS px. */
   #lifted(dir: Vector3, meters: number): [number, number] | null {
-    const lifted = dir.clone().multiplyScalar(1 + meters / EARTH_M);
-    const clip = new Vector4(lifted.x, lifted.y, lifted.z, 1).applyMatrix4(this.#view.toClip);
+    const lifted = liftedScratch.copy(dir).multiplyScalar(1 + meters / EARTH_M);
+    const clip = clipScratch.set(lifted.x, lifted.y, lifted.z, 1).applyMatrix4(this.#view.toClip);
     if (clip.w <= 0) return null;
     return [
       (clip.x / clip.w / 2 + 0.5) * this.#view.width,
