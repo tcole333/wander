@@ -156,6 +156,16 @@ describe("the clock's climate", () => {
     expect(climate.month).toEqual({ year: 1900, month: 7 });
   });
 
+  it('names no month once the day has left the one drawn, while the layer eases out', async () => {
+    const { climate, frames } = setup({
+      fetch: (url) =>
+        yearOf(url) < 1890 ? Promise.resolve(stored(yearOf(url))) : new Promise(() => {}),
+    });
+    await frames(at('1816-07-01'));
+    climate.update(at('1900-07-01'), 1 / 30);
+    expect([climate.drawn > 0, climate.month]).toEqual([true, null]);
+  });
+
   it('names the months as the ruler does, Julian before the reform', async () => {
     const { climate, frames } = setup();
     // 25 February 1500 in the Julian calendar, 6 March in the Gregorian.
