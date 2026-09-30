@@ -83,22 +83,26 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
   `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
-- `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
-  The smoke tests run against that build in `app/dist/` (it does not rebuild), on the fixture's
-  data server through `?data=`, its story images answered by the media stage's test image, and
-  fail on any request to Wikimedia; the other tests run test-only pages on the Vite dev server,
-  reading the fixture from its data server, so none of it reaches the build.
-  Run `npx playwright install chromium` once first. CI runs the specs as four parallel shards that
-  `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>` runs one, as its CI job does.
+- `npm run fixture`, then `npm run e2e`: Playwright on SwiftShader, as in CI. It builds
+  `app/dist/` with `vite build` first, then takes the machine-wide e2e lock and a heavy-work slot
+  (`app/scripts/slot.sh`) and starts its own servers on :6273-6275, ports no manual command
+  defaults to; a server already listening there fails the run. The smoke tests run against that
+  build, on the fixture's data server through `?data=`, its story images answered by the media
+  stage's test image, and fail on any request to Wikimedia; the other tests run test-only pages
+  on the Vite dev server, reading the fixture from its data server, so none of it reaches the
+  build. Pass Playwright's arguments after `--` (`npm run e2e -- e2e/smoke.spec.ts`); a bare
+  `npx playwright test` skips the lock. Run `npx playwright install chromium` once first. CI runs
+  the specs as four parallel shards that `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>`
+  runs one, as its CI job does.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only. It is the start of the GPU matrix
   (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
   put the result in the PR description.
 - `npm run lab`: the experiments' lab runs on this Mac: Chromium on Metal through Playwright, and
   the installed Safari and Firefox through lab pages that post their reports to the dev server
-  (`build/lab/`). It needs no build; the lab specs that read the region bake start its data server
-  and fail, naming the command, when the bake is missing. Local only; it opens a tab in both
-  browsers.
+  (`build/lab/`). It needs no build and takes the e2e lock, since it shares e2e's dev server port;
+  the lab specs that read the region bake start its data server and fail, naming the command, when
+  the bake is missing. Local only; it opens a tab in both browsers.
 - `npm run dev`, then `/prototype-audio.html`: the Sound Cabinet, every sound in `app/src/audio/`
   on one page with its level. Every level lives in `app/src/audio/mix.ts`; Copy settings copies the
   mix as JSON to paste over it. With the dev server up, `node scripts/renderSounds.ts --out <dir>`

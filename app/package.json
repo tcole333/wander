@@ -19,9 +19,9 @@
     "publish-data": "node scripts/publish.ts",
     "check-release": "node scripts/checkRelease.ts",
     "fixture": "uv run --directory ../pipeline --locked prebuild --profile fixture",
-    "e2e": "playwright test --project=swiftshader",
-    "e2e:gpu": "playwright test --project=gpu-chromium",
-    "lab": "WANDER_LAB=1 playwright test --project=lab"
+    "e2e": "vite build && sh scripts/slot.sh e2e playwright test --project=swiftshader",
+    "e2e:gpu": "vite build && sh scripts/slot.sh e2e playwright test --project=gpu-chromium",
+    "lab": "WANDER_LAB=1 sh scripts/slot.sh e2e playwright test --project=lab"
   },
   "dependencies": {
     "@fontsource/libre-baskerville": "5.3.0",

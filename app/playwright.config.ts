@@ -1,6 +1,12 @@
 import { defineConfig, devices, type Project } from '@playwright/test';
-import type { Profile } from './scripts/release';
-import { DATA_URL, DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/servers';
+import {
+  DATA_URL,
+  DEV_PORT,
+  DEV_URL,
+  FIXTURE_DATA_PORT,
+  PREVIEW_PORT,
+  PREVIEW_URL,
+} from './e2e/servers';
 import { shardSpecs } from './e2e/shards';
 
 // WANDER_E2E_SHARD picks one of the shards e2e/shards.ts names, as each CI e2e job does.
@@ -54,24 +60,26 @@ const lab: Project = {
 
 const LAB = !!process.env.WANDER_LAB;
 
-// vite preview serves the production build for the smoke test; the lab needs only the dev server.
-// Lab specs that read the region bake start its data server themselves.
+// vite preview serves the production build for the smoke test, which npm run e2e builds first;
+// the lab needs only the dev server. Lab specs that read the region bake start its data server
+// themselves. No run reuses a server already listening: it could hold another worktree's build or
+// fixture, so a port in use fails the run instead.
 const preview = {
   command: `npm run preview -- --host 127.0.0.1 --port ${PREVIEW_PORT} --strictPort`,
   url: PREVIEW_URL,
-  reuseExistingServer: !process.env.CI,
+  reuseExistingServer: false,
 };
 const dev = {
   command: `npm run dev -- --host 127.0.0.1 --port ${DEV_PORT} --strictPort`,
   url: DEV_URL,
-  reuseExistingServer: !process.env.CI,
+  reuseExistingServer: false,
 };
 // The fixture served as R2 serves it, for every run but the lab's (CI builds it first).
-const data = (profile: Profile) => ({
-  command: `node scripts/dataServer.ts --profile ${profile}`,
-  url: `${DATA_URL[profile]}/release.json`,
-  reuseExistingServer: !process.env.CI,
-});
+const fixtureData = {
+  command: `node scripts/dataServer.ts --profile fixture --port ${FIXTURE_DATA_PORT}`,
+  url: `${DATA_URL.fixture}/release.json`,
+  reuseExistingServer: false,
+};
 
 export default defineConfig({
   testDir: 'e2e',
@@ -88,5 +96,5 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: process.env.CI ? [swiftshader] : LAB ? [lab] : [swiftshader, gpuChromium],
-  webServer: LAB ? [dev] : [preview, dev, data('fixture')],
+  webServer: LAB ? [dev] : [preview, dev, fixtureData],
 });
