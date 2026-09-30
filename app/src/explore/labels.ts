@@ -480,9 +480,10 @@ export class ExploreLabels {
 
   /**
    * The listbox's options: the worker's labels for the events marked in view, and the focal
-   * event's while the lock draws it. Only a change in the events or their words lists them anew,
-   * left to right; while the same events stand, their marks' places follow the globe, and their
-   * order is set again only as the listbox takes the focus.
+   * event's while the lock draws it or it stands solid where the labels name its hollow mark. Only
+   * a change in the events or their words lists them anew, left to right; while the same events
+   * stand, their marks' places follow the globe, and their order is set again only as the listbox
+   * takes the focus.
    */
   #syncOptions(placed: ReadonlyMap<string, PlacedMark>): void {
     const ids: string[] = [];
@@ -496,11 +497,15 @@ export class ExploreLabels {
     }
     const focal = this.#events.focal;
     const focalId = focal ? markIdOf(focal.qid) : null;
-    if (focalId !== null && placed.has(focalId) && !ids.includes(focalId)) {
-      const text = this.#textOf(focalId);
+    if (focal && focalId !== null && placed.has(focalId) && !ids.includes(focalId)) {
+      // Named as the worker labels it, a war pinned while split by its hollow mark's label, which
+      // the keyboard may pin before the worker has described it; else as its plate names it.
+      const label = this.#events.labels().find((label) => label.qid === focal.qid);
+      const words = label ? null : this.#textOf(focalId);
+      const text = label ? this.#optionText(label) : words && `${words.name}, ${words.date}`;
       if (text) {
         ids.push(focalId);
-        texts.push(`${text.name}, ${text.date}`);
+        texts.push(text);
       }
     }
     if (sameList(ids, this.#listed.ids) && sameList(texts, this.#listed.texts)) {

@@ -25,12 +25,16 @@ interface OnScreen {
   lock?: boolean;
   /** How far up the screen, CSS px, the relief may lift its mark. */
   lift?: number;
+  /** The mark the worker's label names, when not this one: a war's hollow one as it turns solid. */
+  labelled?: string;
+  /** Not yet described by the worker. */
+  undescribed?: boolean;
 }
 
 /** Explore's events as the labels see them: marks placed on screen, 8 px in radius. */
 function fakeEvents(shown: OnScreen[]) {
   const qidOf = (id: string) => Number(id.replace(/^Q/, '').replace('/outline', ''));
-  const mark = (on: OnScreen, row: number): EventMark => ({
+  const mark = (on: OnScreen, row: number, labelled = false): EventMark => ({
     row,
     qid: qidOf(on.id),
     at: [0, 0],
@@ -46,15 +50,18 @@ function fakeEvents(shown: OnScreen[]) {
     unc: 0,
     parent: -1,
     focal: false,
-    context: on.id.endsWith('/outline'),
+    context: (labelled ? (on.labelled ?? on.id) : on.id).endsWith('/outline'),
   });
-  const marks = new Map(shown.map((on, row) => [on.id, on.lock ? null : mark(on, row)]));
   const events = {
     focal: null as FocalEvent | null,
     hovered: null as string | null,
     focused: [] as (FocalEvent | null)[],
     placed: (): PlacedMark[] => shown.map(({ id, x, y }) => ({ id, x, y, rPx: 8, alpha: 1 })),
-    event: (id: string) => marks.get(id),
+    event(id: string) {
+      const row = shown.findIndex((on) => on.id === id);
+      if (row < 0) return undefined;
+      return shown[row]!.lock ? null : mark(shown[row]!, row);
+    },
     hit: (x: number, y: number) =>
       shown.find((on) => Math.hypot(on.x - x, on.y - y) <= 8)?.id ?? null,
     span(id: string) {
@@ -72,13 +79,13 @@ function fakeEvents(shown: OnScreen[]) {
       shown
         .filter((on) => !on.lock)
         .map((on, row) => ({
-          ...mark(on, row),
+          ...mark(on, row, true),
           text: on.label,
           fade: { phase: 'steady', from: 1, to: 1, start: 0, duration: 0 },
         })),
     description(row: number): EventDescription | undefined {
       const on = shown[row];
-      if (!on || on.lock) return undefined;
+      if (!on || on.lock || on.undescribed) return undefined;
       return {
         row,
         qid: qidOf(on.id),
@@ -552,6 +559,25 @@ describe('Explore’s labels', () => {
     // Pinned, the war stands solid in its hollow mark's place: the keyboard stays with it.
     shown[1] = { id: 'Q743046', x: 800, y: 380, label: 'Russo-Turkish Wars' };
     labels.update(16);
+    expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q743046');
+  });
+
+  it('list a war pinned while split before the worker describes it, by its hollow mark’s label', () => {
+    const shown: OnScreen[] = [
+      { id: 'Q209312', x: 800, y: 380, label: 'Eighth Russo-Turkish War' },
+      { id: 'Q743046/outline', x: 800, y: 380, label: 'Russo-Turkish Wars', undescribed: true },
+    ];
+    const { labels, list, key } = setup(shown);
+    labels.land(null);
+    labels.update(0);
+    list.dispatchEvent(new Event('focus'));
+    key(list, 'End');
+    key(list, 'Enter');
+    // Solid now, the war is still named by the worker's label for its hollow mark.
+    shown[1] = { ...shown[1]!, id: 'Q743046', labelled: 'Q743046/outline' };
+    labels.update(16);
+    const option = (list.children as FakeElement[]).find((o) => o.id === 'xl-Q743046');
+    expect(option?.textContent).toBe('Russo-Turkish Wars, 18 June 1815');
     expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q743046');
   });
 
