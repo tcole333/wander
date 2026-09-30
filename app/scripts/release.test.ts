@@ -216,13 +216,13 @@ describe('the borders record', () => {
     unclassified: { composites: ['(Mughal Empire)'], relations: [] },
   };
 
-  function released(record: object) {
+  function released(record: object, options?: { borderSteps?: boolean }) {
     const stages = mkdtempSync(join(tmpdir(), 'wander-borders-release-'));
     try {
       writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
       writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
       writeFileSync(join(stages, 'borders.json'), JSON.stringify(record));
-      return localRelease(stages, 'https://data.example');
+      return localRelease(stages, 'https://data.example', undefined, options);
     } finally {
       rmSync(stages, { recursive: true, force: true });
     }
@@ -232,6 +232,13 @@ describe('the borders record', () => {
     const release = released({ steps, beats: {}, ...owed, inputs: { code: 'x' }, ...snapshot });
     expect(release.borderSteps).toEqual(steps);
     expect(release.borders).toEqual(snapshot);
+  });
+
+  test('leaves the steps out when asked, as publish-data does until their first publish', () => {
+    const held = released({ steps, beats: {}, ...snapshot }, { borderSteps: false });
+    expect(held.borderSteps).toBeUndefined();
+    expect(held.borders).toEqual(snapshot);
+    expect(held.id).not.toBe(released({ steps, beats: {}, ...snapshot }).id);
   });
 
   test('leaves out the section a profile does not bake', () => {
