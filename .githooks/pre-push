@@ -7,9 +7,9 @@ set -eu
 
 zero=0000000000000000000000000000000000000000
 
-# Whether commit $2 changes only docs since $1.
+# Whether commit $2 changes only docs since $1; a move counts at both its ends.
 docs_only() {
-  git diff --name-only "$1" "$2" | while IFS= read -r path; do
+  git diff --name-only --no-renames "$1" "$2" | while IFS= read -r path; do
     case $path in
       docs/design/streaming.md) exit 1 ;;
       docs/* | LICENSE) ;;
