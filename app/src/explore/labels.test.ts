@@ -95,6 +95,8 @@ const SHOWN: OnScreen[] = [
 ];
 
 let document: FakeDocument;
+/** The window, which hears what bubbles past the canvas. */
+let win: EventTarget;
 
 function setup(shown = SHOWN, panels: Element[] = []) {
   const events = fakeEvents(shown);
@@ -141,6 +143,8 @@ const shown = (plate: FakeElement) => plate.classList.contains('is-shown');
 
 beforeEach(() => {
   document = stubDocument();
+  win = new EventTarget();
+  vi.stubGlobal('addEventListener', win.addEventListener.bind(win));
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -175,6 +179,28 @@ describe('Explore’s labels', () => {
     labels.update(tunables.hoverQueue * 3);
     expect(canvas.classList.contains('is-over-mark')).toBe(true);
     labels.update(tunables.hoverQueue * 4);
+    expect(events.hovered).toBe('Q48314');
+  });
+
+  it('bring plates again once a press the canvas does not see end is let go', () => {
+    const { events, labels, pointer } = setup();
+    labels.land(null);
+    // The middle button, which the view does not capture, let go over a panel.
+    pointer('pointerdown', 702, 401, 1);
+    labels.update(0);
+    labels.update(tunables.hoverQueue * 2);
+    expect(events.hovered).toBeNull();
+    win.dispatchEvent(Object.assign(new Event('pointerup'), { button: 1 }));
+    labels.update(tunables.hoverQueue * 3);
+    labels.update(tunables.hoverQueue * 4);
+    expect(events.hovered).toBe('Q48314');
+    // A press the window's losing the focus cut short.
+    pointer('pointerdown', 702, 401);
+    labels.update(tunables.hoverQueue * 5);
+    expect(events.hovered).toBeNull();
+    win.dispatchEvent(new Event('blur'));
+    labels.update(tunables.hoverQueue * 6);
+    labels.update(tunables.hoverQueue * 7);
     expect(events.hovered).toBe('Q48314');
   });
 
