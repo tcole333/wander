@@ -69,8 +69,19 @@ vi.mock('../story/ui/rulerCraft', () => ({
     dispose() {}
   },
 }));
+vi.mock('../explore/timeRuler', () => ({
+  TimeRuler: class {
+    element = {};
+    panels = [];
+    pin = null;
+    unit = 'year';
+    yearStep = 20;
+    frame() {}
+    dispose() {}
+  },
+}));
 vi.mock('../story/ui/dom', () => ({
-  el: () => ({ append() {}, remove() {}, inert: false }),
+  el: () => ({ append() {}, prepend() {}, remove() {}, inert: false }),
 }));
 
 const story = storyNamed('tambora')!.story;
