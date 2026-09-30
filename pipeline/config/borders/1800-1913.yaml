@@ -299,6 +299,18 @@ corrections:
       title: Shah Alam II
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Shah_Alam_II
+  - years: [1858, 1858]
+    give:
+      polity: Mughal Empire
+      to: British Empire
+    why: >-
+      The British retook Delhi in September 1857 and captured Bahadur Shah II at Humayun's Tomb on
+      20 September; tried at the Red Fort and exiled to Rangoon, he was the last of his dynasty.
+      Cliopatria keeps his Delhi row into 1858.
+    source:
+      title: Bahadur Shah Zafar
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bahadur_Shah_Zafar
   # The Cape, Persia, Arabia, Central Asia and Mexico.
   - years: [1803, 1803]
     overlap:
