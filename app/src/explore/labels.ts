@@ -190,8 +190,8 @@ export class ExploreLabels {
   readonly #hoverPlate = new Plate(false);
   /** The pointer over the canvas, CSS px, or null. */
   #pointer: { x: number; y: number } | null = null;
-  /** Where a press on the canvas began, while it lasts. */
-  #press: { x: number; y: number } | null = null;
+  /** Where a press on the canvas began, and with which button, while it lasts. */
+  #press: { x: number; y: number; button: number } | null = null;
   /** The mark under the pointer, and since when, for hoverQueue. */
   #candidate: string | null = null;
   #since = 0;
@@ -318,7 +318,7 @@ export class ExploreLabels {
       'pointerdown',
       (event) => {
         this.#pointer = { x: event.clientX, y: event.clientY };
-        this.#press = event.button === 0 ? { x: event.clientX, y: event.clientY } : null;
+        this.#press = { x: event.clientX, y: event.clientY, button: event.button };
       },
       { signal },
     );
@@ -327,7 +327,7 @@ export class ExploreLabels {
       (event) => {
         const press = this.#press;
         this.#press = null;
-        if (!press || !this.#landed || event.button !== 0) return;
+        if (!press || press.button !== 0 || !this.#landed || event.button !== 0) return;
         if (Math.hypot(event.clientX - press.x, event.clientY - press.y) >= CLICK_PX) return;
         const id = this.#events.hit(event.clientX, event.clientY);
         if (id) this.pin(id);
@@ -484,23 +484,24 @@ export class ExploreLabels {
     this.#activate(next);
   }
 
-  /** The mark hovered: the active option's at once, else the pointer's after hoverQueue. */
+  /**
+   * The mark hovered: the active option's at once, else the pointer's after hoverQueue; none while
+   * a press drags the globe. The pointer's mark alone takes the pointing cursor.
+   */
   #hover(nowMs: number): void {
-    let target: string | null = null;
-    let queued = true;
-    if (this.#listFocused && this.#active) {
-      target = this.#active;
-      queued = false;
-    } else if (this.#landed && this.#pointer && !this.#press) {
-      target = this.#events.hit(this.#pointer.x, this.#pointer.y);
-    }
+    const pointed =
+      this.#landed && this.#pointer && !this.#press
+        ? this.#events.hit(this.#pointer.x, this.#pointer.y)
+        : null;
+    this.#canvas.classList.toggle('is-over-mark', pointed !== null);
+    const keyed = this.#listFocused ? this.#active : null;
+    const target = keyed ?? pointed;
     if (target !== this.#candidate) {
       this.#candidate = target;
       this.#since = nowMs;
     }
-    const hovered =
-      target !== null && (!queued || nowMs - this.#since >= tunables.hoverQueue) ? target : null;
-    this.#canvas.classList.toggle('is-over-mark', !this.#press && this.#candidate !== null);
+    const rested = keyed !== null || nowMs - this.#since >= tunables.hoverQueue;
+    const hovered = target !== null && rested ? target : null;
     if (hovered === this.#hovered) return;
     this.#hovered = hovered;
     this.#events.hover(hovered);
