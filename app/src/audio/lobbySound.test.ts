@@ -155,6 +155,27 @@ describe('the lobby after a walk', () => {
     audio.dispose();
   });
 
+  it("builds a story's bed during its dive, not in its landing's frame", () => {
+    const { audio, run, bedBuffers } = page();
+    const control = new ViewControl(LOBBY);
+    control.minKmAt = () => 1;
+    const director = createWalk(story, control, { ready: () => true, arrive: 'fly' });
+    audio.start(true);
+    let beforeLanding: number | undefined;
+    run(8, () => {
+      director.update(0, DT);
+      control.step(0, DT);
+      const state = director.state();
+      // The landing's frame: the bed comes in as this frame is heard.
+      if (state.flight === null) beforeLanding ??= bedBuffers();
+      return { heard: { state, unit: 'day' as const }, view: drawnView(control.current) };
+    });
+    expect(beforeLanding).toBe(TAMBORA.length);
+    expect(bedBuffers()).toBe(TAMBORA.length);
+    director.dispose();
+    audio.dispose();
+  });
+
   it("builds Explore's room tone during its dive, not in its landing's frame", () => {
     const { audio, run, bedBuffers } = page();
     audio.start(true);
