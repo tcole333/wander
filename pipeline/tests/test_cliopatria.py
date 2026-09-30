@@ -9,6 +9,7 @@ import shapely
 from prebuild import cliopatria as clio
 from prebuild.config import ConfigError
 from prebuild.paths import config_dir
+from prebuild.profiles import Profile, make_context
 
 YEAR = 1815
 SOURCE = {"title": "A history", "publisher": "A press", "url": "https://example.org"}
@@ -119,6 +120,11 @@ def test_a_step_begins_in_every_change_year_unless_nothing_changes():
         1828,
         1830,
     ]
+
+
+def test_the_fixture_selects_only_its_excerpts_years():
+    source = clio.load_cliopatria(make_context(Profile.FIXTURE, 1))
+    assert clio.step_years(source, clio.load_config()) == [1815, 1830]
 
 
 def test_ids_number_the_sorted_names_after_stateless_land():
@@ -548,7 +554,37 @@ def test_a_file_the_borders_do_not_read_fails(tmp_path):
         clio.load_config(folder)
 
 
-# Polities --------------------------------------------------------------------------------------
+# The fixture's steps and the polities ----------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def fixture_steps():
+    ctx = make_context(Profile.FIXTURE, 1)
+    source, settings = clio.load_cliopatria(ctx), clio.load_config()
+    terrain = clio.load_terrain(ctx)
+    return source, settings, {y: clio.select(y, source, settings, terrain) for y in source.years}
+
+
+def test_each_fixture_step_draws_every_polity_row_valid_in_its_year(fixture_steps):
+    source, _, steps = fixture_steps
+    for year, chosen in steps.items():
+        valid = {r.name for r in source.rows if r.holds(year) and not r.composite}
+        assert chosen.report["leaves"] == len(valid)
+        assert valid <= set(chosen.outers())
+    assert steps[1815].report["leaves"] == 139
+
+
+def test_the_fixture_draws_its_polities_with_their_ids_wikidata_and_outer_units(fixture_steps):
+    source, settings, steps = fixture_steps
+    document = clio.polities_document(
+        source, settings, [(y, chosen.outers()) for y, chosen in sorted(steps.items())]
+    )
+    indies = document["Dutch East Indies"]
+    assert indies["id"] == clio.polity_ids(source, settings)["Dutch East Indies"]
+    assert indies["wikidata"] == ["Q188161"]
+    assert indies["steps"] == [[1815, 1830, "(Netherlands)"]]
+    assert document["(Netherlands)"]["steps"] == [[1815, 1830, "(Netherlands)"]]
+    assert "" not in document
 
 
 def test_a_polity_lists_a_run_of_steps_for_each_outer_unit_it_is_drawn_in():

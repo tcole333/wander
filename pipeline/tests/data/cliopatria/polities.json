@@ -1,0 +1,16 @@
+{
+  "source": "cliopatria",
+  "file": "sources/cliopatria/cliopatria.geojson.zip",
+  "sha256": "d01ae3a20d358cc5d54f69d9d725d390767d9c8759ac89ad6f90c58d106f3370",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "attribution": "Bennett et al. (2025), Cliopatria, Seshat Global History Databank, v0.2.0, DOI 10.5281/zenodo.20274630; publication DOI 10.1038/s41597-025-04516-9.",
+  "landing_page": "https://github.com/Seshat-Global-History-Databank/cliopatria",
+  "member": "cliopatria_polities_only.geojson",
+  "years": [
+    1815,
+    1830
+  ],
+  "rows": 246,
+  "selection": "The POLITY rows valid in any of these astronomical years, in source order, with every property and geometry as the source gives them."
+}
