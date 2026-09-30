@@ -449,9 +449,18 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   lake or lies in a hole of the polities and is under `pocketKm2` (100,000 km²; the old Aral bed and
   Victoria's shore are about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout.
   A hole that touches a lake is filled only under that cap too (owner decision 36), since 1500 has
-  a 260,000 km² stateless hole in the Urals beside a small lake.
+  a 260,000 km² stateless hole in the Urals beside a small lake. A pocket that touches a polity is
+  filled from the polities alone, before the fill below: across a lake stateless land can lie
+  nearer than the polity beside it, and lower Michigan, a pocket of the United States in 1822-33,
+  split along Lake Michigan's east shore before this. One that touches none, an island in a lake
+  among stateless shores, is left to the fill.
 - **Other enclosed pieces stay stateless,** since they may be real stateless enclaves. The pockets
-  given and the pieces kept are listed per step, and a `pocket` correction overrides the rule.
+  given and the pieces kept are listed per step, and a `pocket` correction overrides the rule, for a
+  coastal piece too.
+- **The antimeridian:** Cliopatria's shapes stop at 180°, so land just across it that no polity
+  holds, in pieces within 20° of it, goes to the one polity whose shape runs along the other side
+  where the piece meets the meridian. Otherwise Chukotka east of 180° is stateless whenever
+  Russia's shape reaches the meridian, from 1778, and a soft border runs down it.
 - The sea and the drawn lakes are emptied, even where a polity's shape reaches over them, and they
   and every subpixel nothing holds then take the nearest id, stateless land's included, so no
   border follows a coast or rings a lake.
@@ -486,17 +495,20 @@ fails the build:
   already or a new one, optionally as a member;
 - `carry: {polity, from}` draws a polity with its shape in another year where Cliopatria has no row
   of it; `add: {polity, shape, wikidata, member_of}` draws a cited shape, a GeoJSON file beside the
-  era files; `member: {polity, of}` adds a membership; `rename: {polity, to}` renames a polity and
-  what names it;
-- `pocket: {at, stateless}` keeps the enclosed stateless piece holding `at` stateless or gives it to
-  its neighbours; `overlap: {polities, winner}` names which of two keeps the land they share.
+  era files; `drop: {polity, shape}` takes away the polity's pieces lying wholly inside a shape, as
+  scraps its rows carry; `member: {polity, of}` adds a membership; `rename: {polity, to}` renames a
+  polity and what names it;
+- `pocket: {at, stateless}` keeps the stateless piece holding `at`, enclosed or on a coast,
+  stateless whole or gives it whole to its neighbours, and fails the step when that piece is
+  `pocketKm2` or larger; `overlap: {polities, winner}` names which of two keeps the land they
+  share.
 
 A step shows the world as it stood on 1 January of its year, so a correction covers the years whose
 1 January falls within its dates: the British took Java in September 1811, so their correction
 begins in 1812.
 
 A correction must change every step in its range, or the build fails, naming the unchanged steps.
-The era files hold 100 corrections, each cited. Besides the 23 pairs:
+The era files hold 104 corrections, each cited. Besides the 23 pairs:
 - **Gaps and swaps:** Mexico carries its 1912 row through 1913-19. Kuwait, drawn as Ottoman, Omani
   and British in Cliopatria, carries its 1820-72 shape from 1873 to 1960 and the State of Kuwait's
   into 1990. Khiva, which fell in June 1873, carries its 1872 row into 1873, and Bukhara, which lost
@@ -531,6 +543,15 @@ The era files hold 100 corrections, each cited. Besides the 23 pairs:
   wrong: Denmark-Norway after 1814, the Kingdom of Great Britain after 1800, Serbs, the United
   Principalities, the Principality of Bulgaria, the First Hellenic Republic, the Empire of Haiti,
   the Kingdom of Monaco and the Argentine Confederation.
+- **Scraps and bays:** every Nazi Germany row from 1936 to 1944 repeats 185 scraps far from the
+  Reich, strips along the shores of Ladoga, Onega, Peipus, the IJsselmeer, Mälaren and the Sea of
+  Galilee among them, which drew rings of inner border round those lakes; its 1936 row, when
+  Germany held no land beyond its borders, already has them, and a `drop` takes away the rows'
+  pieces inside them (`nazi-germany-scraps.geojson`, the 1936 row's pieces under 5,000 km² more
+  than 1° from its larger ones). The Dead Kultuk, the Caspian's northeast bay that dries to a salt
+  flat, is land in Natural Earth and sea in Cliopatria, so it stood stateless inside the state
+  holding its shores, ringed by a soft border, from 750 to 2000; three `pocket` corrections give it
+  to its neighbours in the years they enclose it.
 
 The 1815 field's corrections are not carried over: Cliopatria already has Brussels Dutch and Hong
 Kong Qing [M].
