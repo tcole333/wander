@@ -51,11 +51,12 @@ STAGES: dict[str, Runner] = {
 NAMED_ONLY = frozenset({"wikidata", "excerpts", "openings", "media", "meanwhile"})
 # Each builds the story named with --story.
 STORY_STAGES = frozenset({"media", "meanwhile"})
-# The fixture reads only committed excerpts, so it never runs the stages that read raw data.
-# Borders tests draw synthetic snapshots (borders.py). Meanwhile also stays out until it has a
-# fixture story and lock of its own: a fixture build must never rewrite the Tambora lock. Openings
-# stays out too: its lock is checked against the whole index, which the fixture holds a slice of.
-RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "borders", "meanwhile", "openings"})
+# The fixture reads only committed excerpts, so it never runs the stages that read raw data; its
+# borders bake two steps from Cliopatria's excerpt and no 1815 field (borders.py). Meanwhile also
+# stays out until it has a fixture story and lock of its own: a fixture build must never rewrite
+# the Tambora lock. Openings stays out too: its lock is checked against the whole index, which the
+# fixture holds a slice of.
+RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "meanwhile", "openings"})
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
@@ -149,7 +150,7 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
             "wikidata, excerpts, openings, media and meanwhile; the fixture profile also skips "
-            "fetch and borders."
+            "fetch."
         ),
     )
     parser.add_argument(

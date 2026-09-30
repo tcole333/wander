@@ -44,7 +44,8 @@ def planned(*argv: str) -> list[str]:
             ("--profile", "region"),
             ["fetch", "coverage", "surface", "borders", "events", "modera", "fx"],
         ),
-        (("--profile", "fixture"), ["coverage", "surface", "events", "modera", "fx"]),
+        (("--profile", "fixture"), ["coverage", "surface", "borders", "events", "modera", "fx"]),
+        (("--profile", "fixture", "borders"), ["borders"]),
         (("surface", "coverage"), ["coverage", "surface"]),
         (("coverage", "coverage"), ["coverage"]),
         (("excerpts",), ["excerpts"]),
@@ -67,7 +68,6 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("no-such-stage",),
         ("--profile", "fixture", "fetch"),
         ("--profile", "fixture", "excerpts"),
-        ("--profile", "fixture", "borders"),
         ("--profile", "fixture", "wikidata"),
         ("--profile", "moon"),
         ("--jobs", "0"),
@@ -152,7 +152,7 @@ def test_a_full_fixture_build_writes_the_sidecars_and_stamp(tmp_path):
     stages = recording_stages(ran)
     ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
     run(ctx, names, stages)
-    assert ran == ["coverage", "surface", "events", "modera", "fx"]
+    assert ran == ["coverage", "surface", "borders", "events", "modera", "fx"]
     assert (ctx.stages_dir / "expect" / "cube-samples.json").is_file()
     assert "inputs" in json.loads((ctx.stages_dir / "stamp.json").read_text())
 

@@ -1,12 +1,15 @@
+import dataclasses
+import gzip
 import json
 
 import numpy as np
 import pytest
 
-from prebuild import borders
+from prebuild import borders, step_fields
+from prebuild import cliopatria as clio
 from prebuild.profiles import Profile, make_context
 from prebuild.records import read_record
-from prebuild.sources import Source, SourceFile
+from prebuild.sources import Source, SourceFile, load_sources
 
 TEXELS = 64  # a small face: 56 texels across it and a 4-texel apron
 CENTER = TEXELS // 2  # texel 32 is the first east of s = 0, 31 the last west of it
@@ -154,3 +157,114 @@ def test_a_correction_that_joins_the_only_two_polities_leaves_no_border(built):
     ctx, record = built
     _, faces = borders.from_file((ctx.out / record["files"]["1815"]["key"]).read_bytes())
     assert np.all(faces == 255)
+
+
+STEP_TEXELS = 64
+RULES = clio.Rules(50_000, 100, 14, 100_000, 2_000, 0.5)
+CITED = {"title": "A history", "publisher": "A press", "url": "https://example.org"}
+
+
+def rename(years):
+    op = clio.Rename("Duchy", "Grand Duchy")
+    return clio.Correction("1800-1913", 1, years, "why", CITED, op)
+
+
+# The border steps, on the fixture's excerpt at 64 texels a face
+
+
+@pytest.fixture(scope="module")
+def staged(tmp_path_factory):
+    folder = tmp_path_factory.mktemp("borders")
+    ctx = dataclasses.replace(
+        make_context(Profile.FIXTURE, 1),
+        out=folder / "out",
+        stages_dir=folder / "stages",
+        cache=folder / "cache",
+    )
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(step_fields, "STEP_TEXELS", STEP_TEXELS)
+        borders.run(ctx)
+        first = read_record(ctx, borders.STAGE)
+        borders.run(ctx)  # again, from the cache
+    return ctx, first, read_record(ctx, borders.STAGE)
+
+
+def test_the_stage_writes_the_fixtures_two_steps_their_previews_polities_and_notice(staged):
+    ctx, record, _ = staged
+    steps = record["steps"]
+    assert steps["years"] == [1815, 1830]
+    assert (steps["size"], steps["apron"]) == (STEP_TEXELS, 4)
+    for key, size, year in zip(steps["keys"], steps["bytes"], steps["years"], strict=True):
+        assert key.startswith("fd/borders/s/") and key.endswith(".bin")
+        data = (ctx.out / key).read_bytes()
+        assert len(data) == size
+        stored_year, faces = step_fields.read_step(data)
+        assert stored_year == year and faces.shape == (6, STEP_TEXELS, STEP_TEXELS, 2)
+    assert steps["previews"]["per"] == step_fields.PER_CHUNK
+    [chunk] = steps["previews"]["keys"]
+    years, layers = step_fields.read_chunk((ctx.out / chunk).read_bytes())
+    assert years == [1815, 1830] and layers.shape[0] == 2
+    polities = json.loads((ctx.out / steps["polities"]).read_bytes())
+    assert polities["Dutch East Indies"]["steps"] == [[1815, 1830, "(Netherlands)"]]
+    notice = (ctx.out / steps["notice"]).read_text(encoding="utf-8")
+    for line in ("Cliopatria", "https://creativecommons.org/licenses/by/4.0/", "Bennett"):
+        assert line in notice
+    assert "files" not in record  # the fixture bakes no 1815 field
+
+
+def test_the_stage_records_the_beats_steps_and_what_the_history_pass_owes(staged):
+    ctx, record, _ = staged
+    assert record["beats"] == {
+        "tambora": {
+            "world-1815": 1815,
+            "europe-1816": 1815,
+            "new-england-1816": 1815,
+            "yunnan-bengal-1817": 1815,
+        }
+    }
+    pairs = [entry["polities"] for entry in record["unacknowledged"]]
+    assert ["British Cape Colony", "Napoleonic Batavia Republic"] in pairs
+    assert set(record["unclassified"]) == {"composites", "relations"}
+    assert record["inputs"]["code"]
+    queue = json.loads((ctx.stages_dir / clio.REVIEW).read_text(encoding="utf-8"))
+    assert queue["steps"] == [1815, 1830]
+    for name in (borders.SHORES, borders.LAND):
+        faces = gzip.decompress((ctx.stages_dir / name).read_bytes())
+        assert len(faces) == 6 * STEP_TEXELS * STEP_TEXELS
+    assert queue["byStep"]["1815"]["corrections"] == []
+
+
+def test_a_second_run_takes_every_step_from_the_cache_and_writes_the_same_record(staged):
+    _, first, second = staged
+    assert first == second
+
+
+def test_a_border_beat_before_the_first_step_fails(tmp_path):
+    story = tmp_path / "stories" / "voyage"
+    story.mkdir(parents=True)
+    beat = '```beat\nid: sail\ndate: "1519-09-20"\nlayers: [relief, borders]\n```\n'
+    (story / "story.md").write_text(beat, encoding="utf-8")
+    assert borders.border_beats(tmp_path, [1500, 1520]) == {"voyage": {"sail": 1500}}
+    with pytest.raises(borders.BordersError, match="before the first border step"):
+        borders.border_beats(tmp_path, [1520])
+
+
+def test_a_step_holds_from_its_first_of_january_in_the_historical_calendar():
+    assert borders.first_day(1583) - borders.first_day(1582) == 365 - 10
+    assert borders.first_day(1) == -2  # 1 January 1 CE (Julian) is 30 December 1 BCE
+
+
+def test_each_correction_is_described_in_the_notice():
+    config = clio.Config(
+        clio.Hierarchy({}, {}, {}),
+        RULES,
+        (
+            rename((1815, 1816)),
+            clio.Correction("bce", 1, (-43, -43), "Checked.", None, clio.Overlap(("A", "B"), "A")),
+        ),
+        {"1800-1913.yaml": "2026-09-29"},
+    )
+    text = " ".join(borders.steps_notice(load_sources()[clio.SOURCE], config).split())
+    assert "1815-1816: Duchy is named Grand Duchy. why Source: A history" in text
+    assert "44 BCE: where A and B overlap, A keeps the land. Checked." in text
+    assert "last on 2026-09-29" in text
