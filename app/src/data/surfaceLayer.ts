@@ -34,18 +34,31 @@ export class MissingError extends DataError {
  * for `stallBytes`, is aborted; a body that keeps arriving, however slowly, never is. A failure
  * other than a 404 retries after each of `retryDelays`, with jitter; the last failure rejects, and
  * so does a failure once `stillWanted` turns false while waiting to retry, freeing the request's
- * place for one somebody wants.
+ * place for one somebody wants. Aborting `signal` stops the request, or its wait to retry, and
+ * rejects with the signal's reason, never retrying.
  */
-export async function fetchData(url: string, stillWanted = () => true): Promise<ArrayBuffer> {
+export async function fetchData(
+  url: string,
+  stillWanted = () => true,
+  signal?: AbortSignal,
+): Promise<ArrayBuffer> {
+  const wanted = () => stillWanted() && !signal?.aborted;
   for (const delay of tunables.retryDelays) {
     try {
-      return await fetchOnce(url);
+      return await fetchOnce(url, signal);
     } catch (error) {
-      if (error instanceof MissingError) throw error;
-      await backoff(delay * (0.5 + Math.random()), stillWanted, error);
+      if (error instanceof MissingError || signal?.aborted) throw aborted(signal) ?? error;
+      await backoff(delay * (0.5 + Math.random()), wanted, error).catch((failed: unknown) => {
+        throw aborted(signal) ?? failed;
+      });
     }
   }
-  return fetchOnce(url);
+  return fetchOnce(url, signal);
+}
+
+/** The reason an aborted signal gives, or undefined while it is not aborted. */
+function aborted(signal: AbortSignal | undefined): unknown {
+  return signal?.aborted ? (signal.reason ?? new DOMException('aborted', 'AbortError')) : undefined;
 }
 
 /** How often a backoff asks whether the data is still wanted. */
@@ -60,8 +73,11 @@ async function backoff(ms: number, stillWanted: () => boolean, error: unknown): 
   }
 }
 
-async function fetchOnce(url: string): Promise<ArrayBuffer> {
+async function fetchOnce(url: string, signal?: AbortSignal): Promise<ArrayBuffer> {
+  if (signal?.aborted) throw aborted(signal);
   const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
   let timer: ReturnType<typeof setTimeout> | undefined;
   let stall: (error: DataError) => void = () => {};
   const stalled = new Promise<never>((_, reject) => {
@@ -100,10 +116,12 @@ async function fetchOnce(url: string): Promise<ArrayBuffer> {
   } catch (error) {
     // Lets go of a body left unread.
     controller.abort();
+    if (signal?.aborted) throw aborted(signal);
     if (error instanceof DataError) throw error;
     throw new DataError(`${url}: ${String(error)}`);
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
   }
 }
 

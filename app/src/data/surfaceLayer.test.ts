@@ -1,6 +1,6 @@
 // fetchData on a public network, with fetch stubbed and the clock faked: failures retry with
 // backoff until nobody wants the bytes, stalls abort and retry, a slow body that keeps arriving is
-// left alone, and a 404 is final.
+// left alone, a 404 is final, and an abort stops the request and never retries.
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { tunables } from '../config/tunables';
 import { DataError, fetchData, MissingError } from './surfaceLayer';
@@ -131,5 +131,41 @@ describe('fetchData', () => {
     await vi.runAllTimersAsync();
     expect([...new Uint8Array(await bytes)]).toEqual([1, 2, 3, 4, 5]);
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('stops a request its signal aborts, rejecting with the reason and never retrying', async () => {
+    const fetch = network(silent);
+    const controller = new AbortController();
+    const reason = new DOMException('a new target', 'AbortError');
+    const failure = expect(fetchData(TILE, () => true, controller.signal)).rejects.toBe(reason);
+    await vi.advanceTimersByTimeAsync(10);
+    controller.abort(reason);
+    await failure;
+    expect(fetch.mock.calls[0]?.[1].signal?.aborted).toBe(true);
+    await vi.runAllTimersAsync();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('stops waiting to retry once its signal aborts', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(1);
+    const fetch = network(lost);
+    const controller = new AbortController();
+    let failure: unknown;
+    fetchData(TILE, () => true, controller.signal).catch((error: unknown) => (failure = error));
+    await vi.advanceTimersByTimeAsync(1);
+    controller.abort();
+    await vi.advanceTimersByTimeAsync(tunables.retryDelays[0]);
+    expect((failure as Error).name).toBe('AbortError');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('never starts a request whose signal has already aborted', async () => {
+    const fetch = network(lost);
+    const controller = new AbortController();
+    controller.abort();
+    await expect(fetchData(TILE, () => true, controller.signal)).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
