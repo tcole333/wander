@@ -24,6 +24,10 @@
 // without the event index, so Explore's own event marks stay off; the panel gains a Marks folder,
 // and ?markVariant=0-3, ?marks=0 and the other marks params apply. The marks compile only where
 // Explore stands, so ?markDemo with ?story stops the page, naming the conflict.
+//
+// ?borderSteps=0 boots on the release without its border steps, as the published release stands
+// until publish-data's --border-steps: a walk draws milestone 1's 1815 field, and Explore no
+// borders (scripts/bordersVideos.ts).
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';
@@ -115,6 +119,7 @@ async function main(): Promise<void> {
   const release = (await response.json()) as Release;
   // The mark demo draws its marks alone: without the event index, Explore sets none beside them.
   if (query.has('markDemo')) delete release.events;
+  if (query.get('borderSteps') === '0') delete release.borderSteps;
 
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
