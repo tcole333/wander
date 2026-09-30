@@ -17,10 +17,14 @@ export class FakeElement extends EventTarget {
   title = '';
   type = '';
   href = '';
+  target = '';
+  rel = '';
+  tabIndex = -1;
   inert = false;
   hidden = false;
   offsetLeft = 0;
   offsetWidth = 0;
+  offsetHeight = 0;
   scrollTop = 0;
 
   readonly classList = {
@@ -74,6 +78,10 @@ export class FakeElement extends EventTarget {
     return this.#attributes.get(name) ?? null;
   }
 
+  removeAttribute(name: string): void {
+    this.#attributes.delete(name);
+  }
+
   append(...nodes: (FakeElement | string)[]): void {
     for (const node of nodes) {
       if (typeof node === 'string') {
@@ -124,7 +132,7 @@ export class FakeElement extends EventTarget {
   }
 }
 
-export class FakeDocument {
+export class FakeDocument extends EventTarget {
   activeElement: FakeElement | null = null;
 
   createElement = (tag: string) => new FakeElement(tag, this);
