@@ -346,6 +346,65 @@ def test_a_cited_correction_keeps_a_hole_inside_one_state_stateless(terrain):
     assert kept["states"] == ["Realm"] and kept["correction"] is True
 
 
+def test_a_cited_correction_keeps_a_hole_between_states_stateless_as_the_rules_do(terrain):
+    rows = split(shapely.difference(LAND, box(-15, -3, -13, -1)), at=-14)
+    keep = correction(clio.Pocket((-14, -2), stateless=True))
+    chosen = select(rows, terrain, corrections=[keep])
+    assert stateless_at(chosen, -14, -2)
+    assert chosen.applied == {0}
+    (kept,) = chosen.report["stateless"]["enclosed"]
+    assert kept["correction"] is True
+
+
+def test_a_pocket_correction_draws_a_hole_between_states_as_the_polity_it_names(terrain):
+    # A hole of about 990,000 km², past pocketKm2, around the lake between West and East.
+    rows = split(shapely.difference(LAND, box(-5, -4, 5, 4)))
+    fill = correction(clio.Pocket((-3, 0), to="East"))
+    chosen = select(rows, terrain, corrections=[fill])
+    east = shapely.union_all([p.geometry for p in chosen.parts if p.polity == "East"])
+    assert shapely.contains(east, shapely.Point(-3, 0))
+    assert not shapely.contains(east, shapely.Point(0, 0))  # the lake stays empty
+    assert chosen.applied == {0}
+    assert chosen.report["stateless"]["enclosed"] == []
+    (given,) = chosen.report["stateless"]["largePockets"]
+    assert (given["rule"], given["polity"]) == ("correction", "East")
+
+
+def test_a_pocket_correction_draws_a_polity_the_step_lacks_from_the_hole_alone(terrain):
+    # Cliopatria's Duchy begins only in 1830; the hole is its land in 1815.
+    hole = box(-15, -3, -13, -1)
+    rows = [*split(shapely.difference(LAND, hole), at=-14), row("Duchy", hole, 1830, 1840)]
+    fill = correction(clio.Pocket((-14, -2), to="Duchy"))
+    chosen = select(rows, terrain, corrections=[fill])
+    assert outers(chosen)["Duchy"] == "Duchy"
+    assert area_of(chosen, "Duchy") == pytest.approx(clio.km2(hole), rel=0.01)
+    assert (chosen.report["added"], chosen.report["unexplained"]) == (["Duchy"], [])
+    slip = correction(clio.Pocket((-14, -2), to="Duchie"))
+    with pytest.raises(clio.SelectionError, match="no polity named Duchie"):
+        select(rows, terrain, corrections=[slip])
+
+
+def test_a_pocket_correction_draws_only_the_part_inside_another_years_shape_or_a_cited_one(
+    terrain,
+):
+    # West held the hole's western half in 1816; its eastern half stays stateless.
+    hole = box(-15, -3, -13, -1)
+    rows = [
+        *split(shapely.difference(LAND, hole), at=-14),
+        row("West", box(-20, -10, -14, 10), first=1816, last=1816),
+    ]
+    fill = correction(clio.Pocket((-14.5, -2), to="West", shape_from=("West", 1816)))
+    chosen = select(rows, terrain, corrections=[fill])
+    assert not stateless_at(chosen, -14.5, -2)
+    assert stateless_at(chosen, -13.5, -2)
+    assert chosen.applied == {0}
+    cited = correction(clio.Pocket((-14.5, -2), to="West", shape=box(-20, -10, -14, 10)))
+    drawn = select(rows, terrain, corrections=[cited])
+    assert not stateless_at(drawn, -14.5, -2) and stateless_at(drawn, -13.5, -2)
+    missed = correction(clio.Pocket((0, 5), to="West", shape_from=("West", 1816)))
+    assert select(rows, terrain, corrections=[missed]).applied == set()
+
+
 def test_a_hole_between_two_states_stays_stateless_however_small(terrain):
     small = box(-15, -3, -14.5, -2.5)  # about 3,100 km², across the line at -14.75°
     rows = split(shapely.difference(LAND, small), at=-14.75)
@@ -658,9 +717,39 @@ def test_an_era_file_loads_every_operation(tmp_path):
     assert loaded.corrections[7].source is None
 
 
+def pocket_entry(**pocket):
+    return {"years": [1815, 1815], "why": "w", "source": SOURCE, "pocket": pocket}
+
+
+def test_a_pocket_names_the_polity_it_draws_and_the_shape_it_takes_the_part_inside(tmp_path):
+    shape = tmp_path / "borders" / "hole.geojson"
+    shape.parent.mkdir(parents=True)
+    shape.write_text(shapely.to_geojson(box(1, 2, 3, 4)))
+    rows = [
+        pocket_entry(at=[1, 2], to="A"),
+        pocket_entry(at=[1, 2], to="A", shape_from={"polity": "B", "year": 1820}),
+        pocket_entry(at=[1, 2], to="A", shape="hole.geojson"),
+    ]
+    whole, inside_row, inside_shape = clio.load_config(write_config(shape.parent, rows)).corrections
+    assert whole.op == clio.Pocket((1.0, 2.0), to="A")
+    assert inside_row.op == clio.Pocket((1.0, 2.0), to="A", shape_from=("B", 1820))
+    assert inside_shape.op.shape.bounds == pytest.approx((1, 2, 3, 4))
+
+
 @pytest.mark.parametrize(
     ("entry", "message"),
     [
+        (pocket_entry(at=[1, 2]), "stateless or to"),
+        (pocket_entry(at=[1, 2], stateless=True, to="A"), "stateless or to"),
+        (
+            pocket_entry(at=[1, 2], stateless=False, shape_from={"polity": "B", "year": 1820}),
+            "only with to",
+        ),
+        (
+            pocket_entry(at=[1, 2], to="A", shape_from={"polity": "B", "year": 1820}, shape="x"),
+            "not both",
+        ),
+        (pocket_entry(at=[1, 2], to="A", shape_from={"polity": "B"}), "needs"),
         (
             {
                 "years": [1815, 1815],

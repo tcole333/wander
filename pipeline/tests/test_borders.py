@@ -263,10 +263,35 @@ def test_each_correction_is_described_in_the_notice():
         (
             rename((1815, 1816)),
             clio.Correction("bce", 1, (-43, -43), "Checked.", None, clio.Overlap(("A", "B"), "A")),
+            clio.Correction(
+                "1800-1913",
+                2,
+                (1877, 1877),
+                "Held.",
+                CITED,
+                clio.Pocket((-103.4, 47.5), to="United States of America"),
+            ),
+            clio.Correction(
+                "1800-1913",
+                3,
+                (1900, 1900),
+                "Treaties.",
+                CITED,
+                clio.Pocket((8.0, 8.0), to="British Africa", shape_from=("British Africa", 1905)),
+            ),
+            clio.Correction(
+                "1800-1913", 4, (1677, 1677), "No state.", CITED, clio.Pocket((-74.7, 41.7), True)
+            ),
         ),
         {"1800-1913.yaml": "2026-09-29"},
     )
     text = " ".join(borders.steps_notice(load_sources()[clio.SOURCE], config).split())
     assert "1815-1816: Duchy is named Grand Duchy. why Source: A history" in text
     assert "44 BCE: where A and B overlap, A keeps the land. Checked." in text
+    assert "1877: the stateless land at -103.4, 47.5 is drawn as United States of America." in text
+    assert (
+        "1900: the part of the stateless land at 8.0, 8.0 inside British Africa's shape of 1905 "
+        "is drawn as British Africa."
+    ) in text
+    assert "1677: the stateless land at -74.7, 41.7 stays stateless. No state." in text
     assert "last on 2026-09-29" in text
