@@ -2676,8 +2676,9 @@ acceptance).**
 
 ## 10. Tunables
 
-Starting values, in `app/src/config/tunables.ts`. "Eye" or "ear" means tuned by looking or listening;
-an E-number means that experiment sets it. Paired values are lite / full.
+Starting values, in `app/src/config/tunables.ts`, except the borders' build rules, which live in
+`pipeline/config/borders/rules.yaml`. "Eye" or "ear" means tuned by looking or listening; an
+E-number means that experiment sets it. Paired values are lite / full.
 
 | Name | Start | Controls | Tuned by |
 |---|---|---|---|
@@ -2693,6 +2694,9 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `borderScrubFade` | 120 ms | border previews dissolving into each other while the clock moves | eye |
 | `borderCloseKm` | 400 to 220 km across | borders fading out as the view closes in | owner decision 36 |
 | `borderInnerKm` | 6,000 to 2,500 km across | the inner border line fading in as the view narrows | owner decision 36 |
+| `minorKm2`, `pocketKm2` | 50,000 km², 100,000 km² | build rules in `pipeline/config/borders/rules.yaml` (3.3): a piece of an outer unit under `minorKm2` draws its borders with other outer units as inner lines; an enclosed stateless piece that touches a lake goes to its neighbours under `pocketKm2` | owner decision 36 |
+| `sliverKm`, `leftoverKm2` | 14 km, 100 km² | build rules in `rules.yaml` (3.3): stateless land narrower than 2·`sliverKm` goes to its neighbours, and land within `sliverKm` of a lake and of another polity is emptied for the fill; a composite's own land is drawn from `leftoverKm2` | eye, on the still renders |
+| `reviewKm2`, `duplicateShare` | 2,000 km², 0.5 | build rules in `rules.yaml` (3.3): two polities overlapping past `reviewKm2` go to the review queue, and past `duplicateShare` of the larger need an `overlap` correction | the history pass |
 | `borderWarnYears` | 20 | build warning: beat far from its snapshot | author note |
 | `l7WarnViewKm` | 400 | build warning: close beat outside L7 regions | author note |
 | `eventQueryHz` | 30 | event query rate while moving | E5 |
