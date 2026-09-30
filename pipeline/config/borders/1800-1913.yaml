@@ -391,6 +391,38 @@ corrections:
       A British protected state by the Anglo-Kuwaiti Agreement of 23 January 1899, which put its
       foreign affairs in British hands, until 19 June 1961.
     source: *kuwait
+  - years: [1873, 1873]
+    carry:
+      polity: Khanate of Khiva
+      from: 1872
+    why: >-
+      Khiva was an independent khanate until Russian troops took the city on 10 June 1873; on
+      1 January 1873 it stood, but Cliopatria's rows end in 1872 and draw its land as Russian.
+    source:
+      title: Khanate of Khiva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khanate_of_Khiva
+  - years: [1868, 1868]
+    carry:
+      polity: Emirate of Bukhara
+      from: 1867
+    why: >-
+      Bukhara was an independent emirate until 1873, and lost Samarkand to Russia only in the war
+      of 1868; on 1 January 1868 it held its 1864–1867 shape, but Cliopatria's rows end in 1867
+      and draw its land as Russian.
+    source: &bukhara
+      title: Emirate of Bukhara
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  - years: [1869, 1873]
+    carry:
+      polity: Emirate of Bukhara
+      from: 1918
+    why: >-
+      After the war of 1868 Russia annexed much of the emirate, Samarkand among it, and the rest
+      stayed independent until it became a Russian protectorate in 1873; its own 1918 shape, the
+      emirate without Samarkand, stands for it.
+    source: *bukhara
   - years: [1874, 1916]
     give:
       polity: Russian Empire
@@ -415,10 +447,7 @@ corrections:
       After losing Samarkand to Russia in 1868, the rest of the emirate became a Russian protectorate
       in 1873 until the Bolsheviks took it in 1920; Cliopatria draws its land as Russian until 1917,
       so its own 1918 shape returns as a Russian member.
-    source:
-      title: Emirate of Bukhara
-      publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+    source: *bukhara
   - years: [1880, 1919]
     member:
       polity: Emirate of Afghanistan
