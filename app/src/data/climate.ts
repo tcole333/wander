@@ -1,11 +1,12 @@
 // The climate layer's files (streaming.md 3.5), the inverse of pipeline/src/prebuild/modera.py:
 // ModE-RA's monthly 2 m temperature anomalies, in K against 1901-2000, one WCY1 file of 12 frames
 // per year on the native grid (row 0 northmost, column 0 centered at the release's lon0), stored
-// gzip. parseClimate reads an inflated file; monthsAround names the two monthly frames a story day
-// falls between, each month's frame standing at its middle; blendMonths mixes them into one field.
-// Pure and without three, like the surface decoder.
+// gzip. parseClimate reads an inflated file; monthsAround names the two monthly frames a day falls
+// between, each month's frame standing at its middle, in the calendar that names the months (a
+// story's Gregorian, or the historical one Explore's ruler engraves); blendMonths mixes them into
+// one field. Pure and without three, like the surface decoder.
 import constants from '@shared/constants.json' with { type: 'json' };
-import { civilFromDay, dayFromCivil } from '../story/dates';
+import { GREGORIAN, type Calendar } from '../story/dates';
 import type { ModeraRelease } from './release';
 
 export const CLIMATE_MAGIC: string = constants.formats.climate.magic;
@@ -98,17 +99,21 @@ function monthAt(index: number): Month {
 }
 
 /** A month's middle, as a day number: halfway between its first day and the next month's. */
-function middle(index: number): number {
-  const start = (i: number) => dayFromCivil({ ...monthAt(i), day: 1 });
+function middle(index: number, calendar: Calendar): number {
+  const start = (i: number) => calendar.day({ ...monthAt(i), day: 1 });
   return (start(index) + start(index + 1)) / 2;
 }
 
-/** The months around `day`: each month's frame stands at its middle, and days between blend. */
-export function monthsAround(day: number): MonthBlend {
-  const { year, month } = civilFromDay(day);
+/**
+ * The months around `day`, as `calendar` names them: each month's frame stands at its middle, and
+ * days between blend.
+ */
+export function monthsAround(day: number, calendar: Calendar = GREGORIAN): MonthBlend {
+  const { year, month } = calendar.civil(day);
   let index = year * 12 + month - 1;
-  if (day < middle(index)) index -= 1;
-  const w = (day - middle(index)) / (middle(index + 1) - middle(index));
+  if (day < middle(index, calendar)) index -= 1;
+  const [a, b] = [middle(index, calendar), middle(index + 1, calendar)];
+  const w = (day - a) / (b - a);
   return { from: monthAt(index), to: monthAt(index + 1), w: Math.min(1, Math.max(0, w)) };
 }
 
