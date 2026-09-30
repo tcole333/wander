@@ -26,6 +26,25 @@ export interface Bed {
   stop(at?: number, fade?: number): void;
 }
 
+/** The voice of the museum's own bed, its room tone alone: Explore's, and a story's without one. */
+export const MUSEUM = 'museum';
+
+/** A bed a walk or Explore left playing room tone, and the voice that made it. */
+export interface RoomBed {
+  bed: Bed;
+  voice: string;
+}
+
+/**
+ * The bed for `voice` at a landing: the room's own, when the same voice made it, else a new one
+ * from `make`, the room's fading out as it comes in.
+ */
+export function landBed(room: RoomBed | null, voice: string, make: () => Bed, at: number): Bed {
+  if (room?.voice === voice) return room.bed;
+  room?.bed.stop(at);
+  return make();
+}
+
 /**
  * The rumble's level, 0 to 1, on a story day: it grows from 1812, when a cloud first hangs over
  * the summit, to the explosions of 5 April 1815, peaks at the eruption on 10-11 April, stays high

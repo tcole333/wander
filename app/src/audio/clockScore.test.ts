@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { dayFromHistorical, type Precision } from '../story/dates';
 import { HISTORY } from '../time/exploreTime';
+import type { RoomBed } from './bed';
 import { ClockScore } from './clockScore';
 import type { SoundEngine } from './engine';
 
@@ -27,7 +28,8 @@ vi.mock('./voices', () => ({
     }
   },
 }));
-vi.mock('./bed', () => ({
+vi.mock('./bed', async (original) => ({
+  ...(await original<typeof import('./bed')>()),
   museumBed() {
     heard.bed.push('museum');
     return {
@@ -41,10 +43,23 @@ vi.mock('./bed', () => ({
 const DT = 1 / 60;
 const on = (year: number, month = 1, day = 1) => dayFromHistorical({ year, month, day });
 
+/** A room the lobby holds, left by a walk or an earlier Explore in `voice`. */
+function room(voice: string): RoomBed {
+  return {
+    voice,
+    bed: {
+      setDay() {},
+      setMix() {},
+      toRoom: () => heard.bed.push(`${voice} room`),
+      stop: () => heard.bed.push(`${voice} stop`),
+    },
+  };
+}
+
 /** A score on an engine without audio, and frames of the free clock moving into it. */
-function setup(day: number) {
+function setup(day: number, lobby: RoomBed | null = null) {
   const engine = { ctx: { currentTime: 0 }, soon: () => engine.ctx.currentTime + 0.05 };
-  const score = new ClockScore(engine as unknown as SoundEngine, day);
+  const score = new ClockScore(engine as unknown as SoundEngine, day, lobby);
   const frame = (day: number, unit: Precision, yearStep = 1, flying = false, pace = 0) => {
     engine.ctx.currentTime += DT;
     score.frame({
@@ -125,13 +140,45 @@ describe("Explore's score", () => {
     expect(heard.detents.every((detent) => detent.weight === 'year')).toBe(true);
   });
 
+  it("takes up the lobby's museum room tone at its landing rather than starting its own", () => {
+    const lobby = room('museum');
+    const { frame, score, engine } = setup(on(1815, 6, 18), lobby);
+    frame(on(1815, 6, 18), 'year', 10, true, 0.4);
+    frame(on(1815, 6, 18), 'year', 10, false);
+    expect(heard.bed).toEqual([]);
+    expect(score.toRoom(engine.soon())).toEqual(lobby);
+    expect(heard.bed).toEqual(['museum room']);
+  });
+
+  it("crossfades a story's room tone to the museum's at its landing", () => {
+    const { frame, score, engine } = setup(on(1815, 6, 18), room('tambora'));
+    frame(on(1815, 6, 18), 'year', 10, true, 0.4);
+    expect(heard.bed).toEqual([]);
+    frame(on(1815, 6, 18), 'year', 10, false);
+    expect(heard.bed).toEqual(['tambora stop', 'museum']);
+    expect(score.toRoom(engine.soon())?.voice).toBe('museum');
+  });
+
+  it('hands on the room it has not yet landed on, or stops it with everything else', () => {
+    const lobby = room('tambora');
+    const left = setup(on(1815, 6, 18), lobby);
+    left.frame(on(1815, 6, 18), 'year', 10, true, 0.4);
+    expect(left.score.toRoom(left.engine.soon())).toBe(lobby);
+    heard.bed = [];
+    const stopped = setup(on(1815, 6, 18), room('tambora'));
+    stopped.frame(on(1815, 6, 18), 'year', 10, true, 0.4);
+    stopped.score.stop(stopped.engine.soon());
+    expect(heard.bed).toEqual(['tambora stop']);
+  });
+
   it('leaves room tone playing for the lobby, and stops everything when stopped', () => {
     const { frame, score, engine } = setup(on(1066, 10, 14));
     frame(on(1066, 10, 14), 'day');
-    const room = score.toRoom(engine.soon());
+    const lobby = score.toRoom(engine.soon());
     expect(heard.bed).toEqual(['museum', 'room']);
     expect(heard.whirStops).toBe(1);
-    room?.stop();
+    expect(lobby?.voice).toBe('museum');
+    lobby?.bed.stop();
     expect(heard.bed.at(-1)).toBe('stop');
     expect(score.toRoom(engine.soon())).toBeNull();
   });
