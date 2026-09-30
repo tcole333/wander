@@ -36,7 +36,7 @@ class Context:
     jobs: int
     story: str | None = None  # the story the media stage builds (--story)
     offline: bool = False  # media reads committed sources instead of Commons (--offline)
-    rebuild: bool = False  # a full fixture build skips the fixture store (--rebuild)
+    rebuild: bool = False  # a full fixture build replaces the stored copy (--rebuild)
 
 
 def make_context(

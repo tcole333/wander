@@ -71,9 +71,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   fixture story and lock of its own, and borders stay synthetic. Vitest checks against it and fails,
   naming this command, when it is missing or was built from other inputs than the working tree
   holds: pipeline code, shared constants, excerpts, stories, Explore's openings, source pins or
-  Python version (`FIXTURE_PATHS` in `pipeline/src/prebuild/hashing.py`). Every build goes into
-  the fixture store, `~/.cache/wander/fixture/<inputs>/`, which any checkout with the same inputs
-  restores in about a second; `npm run fixture -- --rebuild` builds anyway.
+  Python version (`FIXTURE_PATHS` in `pipeline/src/prebuild/hashing.py`). Off CI every build goes
+  into the fixture store, `~/.cache/wander/fixture/<inputs>/`, which any checkout with the same
+  inputs restores in about a second; `npm run fixture -- --rebuild` builds anyway and replaces
+  the stored copy.
 - `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).

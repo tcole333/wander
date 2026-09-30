@@ -282,6 +282,17 @@ def test_rebuild_builds_even_when_the_store_holds_the_inputs(tmp_path):
     assert ran == ["coverage"]
 
 
+def test_a_rebuild_replaces_the_stored_build_of_its_inputs(tmp_path):
+    _, ctx = build_fixture(tmp_path)
+    entry = store_root() / json.loads((ctx.stages_dir / "stamp.json").read_text())["inputs"]
+    (entry / "out" / "surf" / "0.wst").write_bytes(b"suspect")
+    (entry / "out" / "left-over.wst").write_bytes(b"old")
+    build_fixture(tmp_path, "--rebuild")
+    assert files_under(entry / "out") == files_under(ctx.out)
+    assert files_under(entry / "stages") == files_under(ctx.stages_dir)
+    assert [path.name for path in entry.parent.iterdir()] == [entry.name]
+
+
 def test_other_inputs_miss_the_store(tmp_path):
     build_fixture(tmp_path)
     (tmp_path / "pipeline" / "sources.toml").parent.mkdir(parents=True, exist_ok=True)
