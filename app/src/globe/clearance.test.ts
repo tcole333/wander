@@ -168,13 +168,13 @@ describe('the ceiling', () => {
         const cap = capKm / EARTH_KM;
         const ceiling = field.ceilingM(dir, cap, K);
         const cosCap = Math.cos(cap);
+        // The highest vertex within the cap: one expect a cap rather than one a vertex, which
+        // kept the test near its timeout while the suite runs in parallel.
+        let highest = 0;
         for (const vertex of vertices) {
-          if (dot(vertex.dir, dir) >= cosCap) {
-            expect(K * Math.max(0, vertex.h), `${capKm.toFixed(1)} km cap`).toBeLessThanOrEqual(
-              ceiling,
-            );
-          }
+          if (dot(vertex.dir, dir) >= cosCap) highest = Math.max(highest, vertex.h);
         }
+        expect(K * highest, `${capKm.toFixed(1)} km cap`).toBeLessThanOrEqual(ceiling);
       }
     }
   });
