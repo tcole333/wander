@@ -81,8 +81,15 @@ function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTI
   const fetched: { url: string; signal: AbortSignal }[] = [];
   /** URLs whose fetch waits until released, rejecting when aborted. */
   const held = new Map<string, () => void>();
+  /** URLs whose next fetches fail as a dropped connection does, and how many. */
+  const flaky = new Map<string, number>();
   const load = vi.fn((url: string, signal: AbortSignal) => {
     fetched.push({ url, signal });
+    const failures = flaky.get(url) ?? 0;
+    if (failures > 0) {
+      flaky.set(url, failures - 1);
+      return Promise.reject(new TypeError('Failed to fetch'));
+    }
     const bytes = file(url);
     if (!bytes) return Promise.reject(new Error(`no ${url}`));
     if (!held.has(url)) return Promise.resolve(bytes);
@@ -115,6 +122,7 @@ function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTI
     writes,
     fetched,
     held,
+    flaky,
     queue,
     get peakQueued() {
       return peakQueued;
@@ -123,7 +131,7 @@ function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTI
     async frame(ms = 16, frame: Partial<BordersFrame> = {}) {
       t += ms;
       borders.update({ wanted: true, previews: false, viewKm: 3000, strength: 1, ...frame });
-      peakQueued = Math.max(peakQueued, queue.length);
+      peakQueued = Math.max(peakQueued, queue.behindLength);
       queue.run(tunables.uploadAnimated.full);
       // Room for Node's inflater, a thread-pool round trip a piece, and the loads to move on.
       for (let i = 0; i < 32; i += 1) await new Promise((wake) => setImmediate(wake));
@@ -194,7 +202,7 @@ describe('a step', () => {
     h.clock.set(inYear(1800));
     await h.frame();
     expect(h.fetched[0]?.signal.aborted).toBe(true);
-    expect(h.queue.length).toBe(0);
+    expect(h.queue.behindLength).toBe(0);
   });
 
   test('keeps streaming when the clock moves a single step away', async () => {
@@ -309,6 +317,24 @@ describe('previews', () => {
     expect(h.uniforms.lookBorderMix.value).toBe(1);
   });
 
+  test('come back after degradeFor when a chunk does not arrive', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const h = harness();
+    const chunk = `${HOST}/${SECTION.previews.keys[0]}`;
+    h.flaky.set(chunk, 1);
+    h.held.set(`${HOST}/${SECTION.keys[at(1815)]}`, () => {});
+    h.borders.loadPreviews();
+    await h.frames(20, 16, explore);
+    expect(h.fetched.filter(({ url }) => url === chunk)).toHaveLength(1);
+    expect(h.uniforms.lookBorderB.value.x).toBe(0);
+    await h.frames(Math.ceil(tunables.degradeFor / 1000) - 1, 1000, explore);
+    expect(h.fetched.filter(({ url }) => url === chunk)).toHaveLength(1);
+    await h.until(() => h.uniforms.lookBorderB.value.x > 0, explore);
+    expect(h.fetched.filter(({ url }) => url === chunk)).toHaveLength(2);
+    expect(h.borders.shown).toMatchObject({ year: 1815, preview: true });
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
   test('never draw in a walk', async () => {
     const h = harness();
     h.held.set(`${HOST}/${SECTION.keys[at(1815)]}`, () => {});
@@ -367,7 +393,7 @@ describe('end()', () => {
     h.borders.end();
     expect(h.borders.slotSteps).toEqual([null, null]);
     expect(h.cpu()).toBe(0);
-    expect(h.queue.length).toBe(0);
+    expect(h.queue.behindLength).toBe(0);
     expect(h.fetched.every(({ signal, url }) => signal.aborted || !h.held.has(url))).toBe(true);
     expect(h.uniforms.lookBorderStrength.value).toBe(0);
   });

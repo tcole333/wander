@@ -15,7 +15,8 @@
 // preview chunks stay compressed, and a cell decodes by streaming its chunk through the cell, the
 // clock's own and those either side, least recently used first out. end() empties the slots and
 // the ring and drops the chunks. A step or chunk that does not arrive logs once and waits
-// `degradeFor`; one the data host lacks, or that does not decode, never comes back.
+// `degradeFor`, and is fetched again once the clock wants it; one the data host lacks, or that
+// does not decode, never comes back.
 import type { Material, WebGLRenderer } from 'three';
 import { tunables, type Tier } from '../config/tunables';
 import { BordersError, CELL_BYTES, decodePreviewPair, stepBands } from '../data/borders';
@@ -120,6 +121,8 @@ export class ClockBorders {
   readonly #cells: Cell[];
   #chunks: (ArrayBuffer | null)[] = [];
   #chunkLoads = new Map<number, AbortController>();
+  /** Whether Explore has asked for the chunks, until end(). */
+  #chunksWanted = false;
   #decode: Decode | null = null;
   /** Keys that failed, with the time each may be fetched again: never, for a 404. */
   readonly #failed = new Map<string, number>();
@@ -210,44 +213,50 @@ export class ClockBorders {
 
   /** Fetches Explore's preview chunks, the clock's own first, to hold compressed until end(). */
   loadPreviews(): void {
-    const steps = this.#steps;
     const section = this.#section;
-    if (!steps || !section) return;
+    if (!this.#steps || !section) return;
     const count = section.previews.keys.length;
     if (this.#chunks.length !== count)
       this.#chunks = new Array<ArrayBuffer | null>(count).fill(null);
+    this.#chunksWanted = true;
+    this.#pumpChunks();
+  }
+
+  /**
+   * Fetches the chunks not held, loading or failing, those nearest the clock's step first, two at
+   * a time, so they never crowd the tiles' fetches. It runs again as each fetch ends, and while a
+   * cell the clock may reach lacks its chunk, so a chunk that failed comes back after degradeFor.
+   */
+  #pumpChunks(): void {
+    const steps = this.#steps;
+    const section = this.#section;
+    if (!steps || !section || !this.#chunksWanted) return;
     const own = chunkOf(steps, stepAt(steps, this.#clock.state().day) ?? 0).chunk;
-    const order = Array.from({ length: count }, (_, i) => i).sort(
+    const order = Array.from({ length: this.#chunks.length }, (_, i) => i).sort(
       (a, b) => Math.abs(a - own) - Math.abs(b - own) || a - b,
     );
-    // Two at a time, so they never crowd the tiles' fetches.
-    let next = 0;
-    const pump = (): void => {
-      while (next < order.length && this.#chunkLoads.size < 2) {
-        const chunk = order[next] ?? 0;
-        next += 1;
-        if (this.#chunks[chunk] || this.#chunkLoads.has(chunk)) continue;
-        const key = section.previews.keys[chunk] ?? '';
-        if (this.#failing(key)) continue;
-        const abort = new AbortController();
-        this.#chunkLoads.set(chunk, abort);
-        this.#load(`${this.#dataHost}/${key}`, abort.signal).then(
-          (stored) => {
-            if (abort.signal.aborted) return;
-            this.#chunkLoads.delete(chunk);
-            this.#chunks[chunk] = stored;
-            pump();
-          },
-          (error: unknown) => {
-            if (abort.signal.aborted) return;
-            this.#chunkLoads.delete(chunk);
-            this.#fail(key, error);
-            pump();
-          },
-        );
-      }
-    };
-    pump();
+    for (const chunk of order) {
+      if (this.#chunkLoads.size >= 2) return;
+      if (this.#chunks[chunk] || this.#chunkLoads.has(chunk)) continue;
+      const key = section.previews.keys[chunk] ?? '';
+      if (this.#failing(key)) continue;
+      const abort = new AbortController();
+      this.#chunkLoads.set(chunk, abort);
+      this.#load(`${this.#dataHost}/${key}`, abort.signal).then(
+        (stored) => {
+          if (abort.signal.aborted) return;
+          this.#chunkLoads.delete(chunk);
+          this.#chunks[chunk] = stored;
+          this.#pumpChunks();
+        },
+        (error: unknown) => {
+          if (abort.signal.aborted) return;
+          this.#chunkLoads.delete(chunk);
+          this.#fail(key, error);
+          this.#pumpChunks();
+        },
+      );
+    }
   }
 
   /** Clears the borders from the view, keeping what the slots and cells hold. */
@@ -266,6 +275,7 @@ export class ClockBorders {
     for (const abort of this.#chunkLoads.values()) abort.abort();
     this.#chunkLoads.clear();
     this.#chunks = [];
+    this.#chunksWanted = false;
     this.#target = null;
     this.hide();
   }
@@ -466,7 +476,10 @@ export class ClockBorders {
       if (this.#decode) return;
       const { chunk, index } = chunkOf(steps, 2 * pair);
       const stored = this.#chunks[chunk];
-      if (!stored) continue;
+      if (!stored) {
+        this.#pumpChunks();
+        continue;
+      }
       const cell = this.#freeCell();
       if (cell < 0) return;
       void this.#decodeCell(cell, pair, stored, index, now);
