@@ -124,7 +124,7 @@ test('cancel drops the rest of a tile', () => {
 
 describe('jobs queued behind the tiles (the border steps, 3.3)', () => {
   test('run only once no tile has a part left, within the same budget', () => {
-    const queue = new UploadQueue(options);
+    const queue = queueOn();
     const written: string[] = [];
     queue.enqueue(job('band', [10], written), true);
     queue.enqueue(job('a', [10, 10], written));
@@ -135,7 +135,7 @@ describe('jobs queued behind the tiles (the border steps, 3.3)', () => {
   });
 
   test('wait behind a tile queued after them', () => {
-    const queue = new UploadQueue(options);
+    const queue = queueOn();
     const written: string[] = [];
     queue.enqueue(job('band', [10, 10], written), true);
     queue.run(10);
@@ -146,7 +146,7 @@ describe('jobs queued behind the tiles (the border steps, 3.3)', () => {
   });
 
   test('count apart from the tiles, in the pending bytes, and cancel as tiles do', () => {
-    const queue = new UploadQueue(options);
+    const queue = queueOn();
     const written: string[] = [];
     queue.enqueue(job('band', [10, 10], written), true);
     expect([queue.length, queue.behindLength, queue.pendingBytes, queue.retainedBytes]).toEqual([
