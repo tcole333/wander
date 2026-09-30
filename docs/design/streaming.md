@@ -57,7 +57,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders and range names follow Mountains. Ocean and sea names follow Labels: a curated list of modern English names bundled with the app (`app/src/look/seaNames.json`: text, place, em size in degrees, tracking, angle, and the view widths it shows within), lettered at boot into one canvas atlas (oceans in the display face's tracked capitals, seas in the reading face's italic) and inlaid by the surface look in the lacquer at sea level, as the graticule is. Each name fades in and out with its em on screen (7-48 px) and toward the limb, so a sea shows several names across zoom levels, each with its own size and place; of the names in the view, the 16 strongest are inlaid, so none beyond its edges holds back one on screen. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. Inlaid in the look, the sea names never bend with relief and take the lamp, ash and climate as the lacquer does; they are lettered into one R8 atlas 2048 texels wide and as tall as the list needs (1638 for milestone 1's 50 placements of 42 names: ~4.3 MiB on the GPU with mips, plus the 3.2 MiB of texels three keeps; the lettering canvas is released), with nothing to fetch and no labels stage. |
-| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 523 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. A plate names the step drawn ("Borders · 1815"). Milestone 1's walk draws its 1815 field from historical-basemaps (3.3) until Tambora moves onto the steps. | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
+| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 521 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. A plate names the step drawn ("Borders · 1815"). Milestone 1's walk draws its 1815 field from historical-basemaps (3.3) until Tambora moves onto the steps. | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
 | **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore stands: wherever the release names its event index (3.4), and where a page starts in Explore, as the dev shell does. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The tiles run three past each edge of the viewport, since a mark on relief seen tilted stands above the sea-level foot its tile is found from. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and three texels a mark, uploaded only when the view or a fade changed. The look finds a fragment's tile from its inlay direction, so relief never moves it out of its mark's tile, and cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own, by default the cast token: a raised bronze boss for nature, a dark seal with a niello glyph for governance and a small gilt seal with its glyph sunk for infrastructure, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`TOKEN_INK`, 0.8 of its radius, clear of the rim its bevel casts); `?markVariant` and the dev panel draw the other candidates. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. A hovered expanded parent's extent is a dashed line engraved about 2 px wide at full weight: the graticule's brass over the sea and niello over land, between walls that slope into it and take the lamp. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. The cast token is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it while Explore is open: bundled inline in the entry, started at each dive and terminated when Explore ends (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. Inlined, it fetches nothing from Pages after boot. Ended with Explore, it holds nothing during a walk, whose memory already stands at its CPU line (6). |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: one monthly field the CPU blends, and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
@@ -387,9 +387,9 @@ field per step.
 
 **Steps.** A step begins in every change year: a POLITY row's first year, or the year after its
 last, once corrections apply. From 3400 BCE, Cliopatria's first year, to 2000 its rows give 505, a
-median of 5 years apart [M Cliopatria v0.2.0], and 523 with the corrections' years [M]; a step
-whose field equals the one before is dropped. A step holds from its year's 1 January in the
-historical calendar until the next step begins (3.0).
+median of 5 years apart [M Cliopatria v0.2.0], and 524 with the corrections' years; a step whose
+field equals the one before is dropped, which leaves 521 [M global bake, 30 September]. A step holds
+from its year's 1 January in the historical calendar until the next step begins (3.0).
 The stage record lists the step each story's border beats draw, and a beat before the first step
 fails the build.
 
@@ -563,11 +563,12 @@ u8 rg[6][size][size][2]
   hierarchy's classes of those, the operations (not the `why` or `source`) of the corrections
   active in it, the rules, the land and lakes, and the step code; `build/cache/borders/` keeps each
   baked step under its key, so a rebuild bakes only the steps whose key changed.
-- **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 256 MB for
-  all 505 [M global bake, 30 September]. A step takes about 22 CPU-seconds to select and bake, 3.1
-  CPU-hours for all 505: 4.3 s a step with 5 workers on the M5 when nothing else runs (about 36
-  minutes in all), and it took 96 minutes beside other builds; a rerun that changes no step takes
-  7 s from the cache [M].
+- **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 271 MB for
+  all 521 [M global bake, 30 September]. A step takes about 22 CPU-seconds to select and bake, 3.1
+  CPU-hours for the first bake's 505: 4.3 s a step with 5 workers on the M5 when nothing else runs
+  (about 36 minutes in all), and it took 96 minutes beside other builds. The history pass's
+  corrections changed the keys of 404 steps, which took 39 minutes with 6 workers beside other
+  work; a rerun that changes no step takes 7 s from the cache [M].
 
 **Previews,** in chunks of at most 16 steps, each starting at an even step index, so the two steps a
 ring cell pairs (below) never span two chunks:
@@ -582,7 +583,7 @@ u8 layer[count][256][512]   equirect (3.0); the first raw, each later one (v −
 A preview is its own raster of the step's outer units at 4×4 subpixels a preview texel, with the
 field's R mask, sea and lakes, wrapped 12 texels past ±180° so no line breaks at the seam.
 
-The 32 chunks take 16-127 KB each, 1.9 MB in all [M global bake, 30 September].
+The 33 chunks take 16-115 KB each, 1.9 MB in all [M global bake, 30 September].
 
 **Keys** go through `write_object` (`layers.py`), named by content: `fd/borders/s/<sha16>.bin` for a
 step, `fd/borders/p/<sha16>.bin` for a chunk, `fd/borders/m/<sha16>.json` for the polities and
@@ -640,7 +641,7 @@ cells, 32 previews, 256 KiB an upload. The array takes the border field's sample
   step away aborts it. A step loads into a slot no source draws, an empty one first; on lite, whose
   one slot draws, the preview (or, in a walk, nothing) stands in until it frees. On the full tier,
   once a step draws, the next step in the scrub direction fills the free slot, but never in place
-  of the step across the boundary just crossed, which rocking needs. Explore fetches all 32 chunks
+  of the step across the boundary just crossed, which rocking needs. Explore fetches all 33 chunks
   after its dive, two at a time and the clock's own first, and keeps them compressed until
   `end()`, so scrubbing needs neither the network nor the HTTP cache; a cell decodes by streaming
   its chunk through one 256 KiB running sum, one cell at a time, the clock's own and then those
@@ -659,12 +660,12 @@ cells, 32 previews, 256 KiB an upload. The array takes the border field's sample
   Explore's `end()` empties the slots and the ring and drops the chunks.
 
 **Stories and Explore.** The director writes the clock, and a beat draws borders only when its
-layers list them. Tambora's border beats of 1815-04-01, 1816-07-01 and 1816-06-06 draw the 1815
-step, with Java British, since no step begins in 1816 [M Cliopatria v0.2.0]; its Yunnan beat of
-1817-08-28 draws 1817's, which returns Java to the Dutch outside its view. Magellan's beats list
-none. Explore (behind `?explore`) draws borders from
-its dive, which fetches the opening's step and the chunks. Polity names come with the labels stage
-(owner decision 26), and Cliopatria gives no capitals.
+layers list them. Tambora's border beat of 1815-04-01 draws the 1815 step, and its beats of
+1816-07-01 and 1816-06-06 the 1816 step, which the corrections begin (Tambora and Pekat end, Serbia
+is a principality), both with the Indies British; its Yunnan beat of 1817-08-28 draws 1817's, which
+returns Java to the Dutch outside its view [M global bake]. Magellan's beats list none. Explore
+(behind `?explore`) draws borders from its dive, which fetches the opening's step and the chunks.
+Polity names come with the labels stage (owner decision 26), and Cliopatria gives no capitals.
 
 **Year plate:** a small riveted plate of Meanwhile's cast brass at the top of the page, between the
 mark and the sound knob, names the step drawn by its first year ("Borders · 1815", "Borders ·
@@ -1006,7 +1007,7 @@ pages are built from the same JSON.
   "surface": {"ver", "maxLevel":7, "qLand":[…per level], "c200":[…], "avail":"<base64, 1 bit per node>",
               "bounds":"surf/<ver8>/bounds.bin"},
   "thematic": {"ecoregions":{"ver","maxLevel":5}, "petroleum":{…}, "mountains":{…}},
-  "borderSteps": {"ver", "size":1024, "apron":4, "years":[…505, astronomical],
+  "borderSteps": {"ver", "size":1024, "apron":4, "years":[…521, astronomical],
                   "keys":["fd/borders/s/<sha16>.bin", …], "bytes":[…],
                   "previews":{"per":16, "keys":["fd/borders/p/<sha16>.bin", …], "bytes":[…]},
                   "polities":"fd/borders/m/<sha16>.json", "notice":"lic/<sha16>.txt"},
@@ -1909,8 +1910,8 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 |---|---|---|
 | **Before the first live frame** | **2.20 MB** [M `e3/results/live-2026-09-28.json`]. The requirement stays a live frame < 3 s at cold 25 Mbps / 50 ms (owner decision 5). | The room waits for L0-L1 and the page's fonts: 0.515 MB from Pages and 1.684 MB from the data host arrive before it opens. Where the release names its event index, the fonts include Explore's label family, Source Serif 4 400 and 600 in Latin and Latin Extended (`story/ui/fonts.ts`): four woff2 files, 78 KB, the same the reading face already fetches for the page's own text, so they add no bytes. Keep the entry's ≤ 500 KB br and the worker modules' ≤ 40 KB allowances for growth; the instrument and environment are procedural. |
 | **First paint / first live frame** | **0.19 s / 1.24 s** cold at 25/50; live frame **< 3 s** required | Medians of three cold live loads [M `e3/results/live-2026-09-28.json`]. The CSS room covers pool allocation, compiles and L0-L1. At 5/150 the medians are 0.47 s / 4.51 s; that connection's requirement is whole beat landings. |
-| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. Once Tambora moves onto the border steps, the lobby preloads its first step (≤ 1.2 MB) in place of the 1815 field; Explore's 3.2 MB of preview chunks arrive after its dive (3.3). |
-| **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; the border steps its beats draw (0.92-0.93 MB each around 1815 [M global bake]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D] before its two border steps. |
+| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. Once Tambora moves onto the border steps, the lobby preloads its first step (≤ 1.2 MB) in place of the 1815 field; Explore's 1.9 MB of preview chunks arrive after its dive (3.3). |
+| **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; the border steps its beats draw (0.92-0.93 MB each around 1815 [M global bake]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D] before its three border steps (2.8 MB together), which put it over the line. |
 | **Critical set per beat** | planning line: (median flight 1.7 s + `holdMax`) × the floor bandwidth, 2.0 MB at 5 Mbps (owner decision 5) | For the per-beat plans deferred in 8.1: model, full, median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors, as milestone 1's queue already does. |
 | **New bytes per beat** | reported above **10 MiB** | Beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each on the full tier [M `e3/results/live-2026-09-28.json`]. Round the measured maximum up to a whole MiB to flag growth in later walks. Every beat lands whole at 5/150, so this line reports refinement traffic without holding navigation. |
 | **Per story** | reported above **48 MiB** (full) / 18 MiB (lite, model) | Tambora fetches 47.8 MiB across its eight beats, rounded up to a whole MiB for the full tier's reporting line [M `e3/results/live-2026-09-28.json`]. The lite tier is unmeasured; its planning allowance remains: model tiles 7.5-11.3 MB ×1.3 for mountains, images ~1.2 MB, audio ≤ 0.32 MiB, overlays and effects 0.5-2 MB, about 18.2 MB at the upper estimates [D]. |
@@ -2281,15 +2282,15 @@ and the release's `media` section lists every key the locks name (3.8).
       the steps holding 1000, 1500, 1800, 1815 and 1914 hold task 0's 126, 130, 121, 139 and 74;
     - the overlap pairs no `overlap` correction acknowledges are listed with their steps (3.3).
 
-    On 30 September the 505 steps and 32 chunks decoded and checked in 8 s. The previews agreed on
-    351,425 of 351,621 texels and every step drew its rows' leaves; 23 pairs across 92 steps await
-    acknowledgement. Four borders run beside a lake shore for 53-77 km and fail the check, left to
-    the history pass: Lake Ladoga's west shore in 1936-44, where Cliopatria's Nazi Germany row holds
-    a chain of small pieces beside it; Lake Michigan's east shore in 1822-30, where the lower
-    peninsula is a stateless pocket the fill gives its neighbours, and Green Bay's in 1834-36; and
-    Lake Sevan in 1734, which the fill splits lengthwise between Georgia and the Ottomans, the line
-    passing its narrows [M]. The lake-shore rule (3.3) had removed the rest: before it, Lake Urmia's
-    west shore carried a border for 126 km.
+    On 30 September, after the history pass, the 521 steps and 33 chunks decoded and checked in 9 s.
+    The previews agreed on 368,388 of 368,582 texels, every step drew its rows' leaves, and no pair
+    awaits acknowledgement. Four borders run beside a lake shore for 53-77 km and fail the check,
+    which none of the history pass's corrections reaches: Lake Ladoga's west shore in 1936-44, where
+    Cliopatria's Nazi Germany row holds a chain of small pieces beside it; Lake Michigan's east
+    shore in 1822-33, where the lower peninsula is a stateless pocket the fill gives its neighbours,
+    and Green Bay's in 1834-36; and Lake Sevan in 1734, which the fill splits lengthwise between
+    Georgia and the Ottomans, the line passing its narrows [M]. The lake-shore rule (3.3) had
+    removed the rest: before it, Lake Urmia's west shore carried a border for 126 km.
 
   Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
   which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
@@ -2705,7 +2706,7 @@ Review items not taken as written, one line each:
   warning stays an author note for the 1815 field until Tambora moves onto the steps.
 - **Border steps on a grid of years, or folded (#80):** not taken. A grid shows states that had
   already ended in 29% of first-millennium years, and a fold hides 29 states, while a step at every
-  change year costs only storage, 256 MB for 505 steps [M].
+  change year costs only storage, 271 MB for 521 steps [M].
 - **Sparse border tiles (#80, Design 2):** not taken at 1024 texels, where two whole-field slots fit
   the GPU budget with one sampler and no indirection. They return if the fields go to 2048 texels,
   where two slots would reach the 320 MiB line.
