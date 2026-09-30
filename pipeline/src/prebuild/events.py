@@ -25,7 +25,9 @@ Wikipedia edition. Per event it takes:
   war with a point in time still spans its years; a curated date leaves out the statement it
   corrects, so a one-day battle Wikidata dates two years late spans its one day, and a curated
   `end` stands in for its end times (P582);
-- the place: its own coordinates, else those of its location (`inherited` 1);
+- the place: the `place` in `places` in `pipeline/config/events-curated.yaml`, where a better
+  source puts it than Wikidata's coordinates; else its own coordinates, else those of its location
+  (`inherited` 1);
 - the score: log2(1 + Wikipedia editions) times the class's weight, plus any legacyBoost in
   `pipeline/config/events-curated.yaml`;
 - its part-of parents (P361) as Wikidata gives them, whether or not they are in the index.
@@ -68,9 +70,11 @@ from prebuild.config import (
     EVENT_CURATED,
     CuratedDays,
     EventClass,
+    curated_places,
     load_event_boosts,
     load_event_classes,
     load_event_dates,
+    load_event_places,
 )
 from prebuild.hashing import sha256_file
 from prebuild.paths import excerpts_dir
@@ -190,7 +194,11 @@ def run(ctx: Context) -> None:
         )
     with gzip.open(paths[TABLE], "rt", encoding="utf-8") as stream:
         events = index(
-            read_export(stream), classes, load_event_boosts(legacy=True), load_event_dates()
+            read_export(stream),
+            classes,
+            load_event_boosts(legacy=True),
+            load_event_dates(),
+            places=curated_places(load_event_places()),
         )
     payload = encode(events)
     stored = gzip.compress(payload, compresslevel=9, mtime=0)
@@ -283,10 +291,11 @@ def index(
     dates: Mapping[str, CuratedDays] | None = None,
     *,
     keep_unlocated: bool = False,
+    places: Mapping[str, LonLat] | None = None,
 ) -> list[Event]:
     """The cleaned, scored events, in score order, then by qid. A curated date (`dates`, by qid)
     stands in for Wikidata's, in the span as well as the date, and a curated end for its end
-    times."""
+    times; a curated place (`places`, by qid) for its coordinates and its location's."""
     by_qid = {c.qid: c for c in classes}
     listed = {c.qid: i for i, c in enumerate(classes)}
     grouped: dict[str, list[Statement]] = {}
@@ -301,7 +310,8 @@ def index(
         editions = max(s.editions for s in group)
         coord = next((s.coord for s in group if s.coord), None)
         place = next((s.place for s in group if s.place), None)
-        lon_lat = coord or place
+        curated_place = places.get(qid) if places else None
+        lon_lat = curated_place or coord or place
         if not label or not editions or (lon_lat is None and not keep_unlocated):
             continue
         # The event-files stage places exported parents from their children. The legacy table
@@ -337,7 +347,7 @@ def index(
                 t1=max([day, *([end] if end else []), *(_last_day(s) for s in ends)]),
                 lon=lon_lat[0],
                 lat=lon_lat[1],
-                inherited=coord is None,
+                inherited=coord is None and curated_place is None,
                 editions=editions,
                 score=math.log2(1 + editions) * cls.weight + boosts.get(qid, 0.0),
                 parents=tuple(sorted({p for s in group for p in s.parents}, key=_number)),

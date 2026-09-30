@@ -9,7 +9,8 @@ each opening as Meanwhile's entries give an event (`meanwhile.entry`), with its 
 and the class its mark draws (the index's `display`), in date order. A written `date` (an ISO day
 or month, proleptic Gregorian as the index's) stands in for the index's, as in Meanwhile, where it
 falls within the index's span for the event, which its mark in the overview keeps. Its place is
-always the index's, as its mark's is.
+always the index's, as its mark's is: a place the index has wrong is curated in
+`events-curated.yaml`, as a date is.
 It stops on:
 
 - an opening the index lacks;
@@ -137,7 +138,7 @@ def check_written(event: meanwhile.Event, fields: Mapping[str, Any]) -> None:
     if "at" in fields:
         raise OpeningsError(
             f"{event.qid} ({event.label}) is written with an `at`, but its mark keeps the "
-            "index's place: leave it out"
+            "index's place: curate the place in events-curated.yaml or leave it out"
         )
     if "date" not in fields:
         return

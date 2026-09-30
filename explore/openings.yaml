@@ -2,9 +2,10 @@
 # line its plate pins on landing, in the walk's voice, and the source that line rests on. `date`
 # gives the day a source dates the event to where the index holds only its month or year, or a
 # span of years, as an ISO day in the proleptic Gregorian calendar the index uses; it falls within
-# the index's span for the event, which its mark keeps (a date the index has wrong is curated in
-# pipeline/config/events-curated.yaml). Its place is always the index's. A line never names a day
-# and month other than the event's date as its sources give it (Julian before 15 October 1582).
+# the index's span for the event, which its mark keeps. Its place is always the index's. A date or
+# place the index has wrong is curated in pipeline/config/events-curated.yaml. A line never names
+# a day and month other than the event's date as its sources give it (Julian before 15 October
+# 1582).
 # `uv run prebuild openings` checks the list against the event index and writes
 # openings.lock.json beside it, which the app bundles and event-files forces into the overview.
 

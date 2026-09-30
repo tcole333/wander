@@ -146,6 +146,32 @@ def test_a_curated_end_stands_in_for_wikidata_s_end_times():
     )
 
 
+def test_a_curated_place_stands_in_for_an_event_s_coordinates_and_its_location_s():
+    statements = events.read_export(
+        [
+            HEADER,
+            row(
+                "Q191055",
+                "P585",
+                "1755-11-01T00:00:00Z",
+                11,
+                cls=EARTHQUAKE,
+                coord="POINT(-11.000000 36.000000)",
+                place="POINT(-9.139016 38.708042)",
+            ),
+            row("Q2", "P585", "1755-11-01T00:00:00Z", 11, coord="", place="POINT(1 2)"),
+        ]
+    )
+    places = {"Q191055": (-9.14, 38.71), "Q2": (3.0, 4.0)}
+    kept = {e.qid: e for e in events.index(statements, load_event_classes(), {}, places=places)}
+    assert (kept["Q191055"].lon, kept["Q191055"].lat, kept["Q191055"].inherited) == (
+        -9.14,
+        38.71,
+        False,
+    )
+    assert (kept["Q2"].lon, kept["Q2"].lat, kept["Q2"].inherited) == (3.0, 4.0, False)
+
+
 def test_of_several_dates_the_most_precise_wins_then_the_earliest():
     kept = indexed(
         row("Q1", "P585", "1816-06-01T00:00:00Z", 10),

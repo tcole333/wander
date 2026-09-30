@@ -237,18 +237,30 @@ def load_contested_events(path: Path = EVENT_CURATED) -> frozenset[str]:
 
 
 def load_event_places(path: Path = EVENT_CURATED) -> dict[str, dict[str, tuple[float, float]]]:
-    """Unlocated parents: a sourced P17 centroid, then a last-resort override (`at`)."""
+    """Curated places by event qid, each position by its key: a located event's `place`, where a
+    better source (`source: {title, url}`) puts it, standing in for its own coordinates and its
+    location's; or, for an unlocated parent, a sourced P17 `countryCentroid`, then a last-resort
+    override (`at`)."""
     places = {}
     for row in _curated(path, "places"):
         fields = _mapping(row, f"{path.name} place")
-        if set(fields) - {"qid", "why", "countryCentroid", "at"}:
-            raise ConfigError(f"{path.name}: unknown parent place field")
-        qid = _qid(fields.get("qid"), "parent place")
+        if set(fields) - {"qid", "why", "countryCentroid", "at", "place", "source"}:
+            raise ConfigError(f"{path.name}: unknown place field")
+        qid = _qid(fields.get("qid"), "place")
         _text(fields.get("why"), f"place {qid} why")
         if qid in places:
             raise ConfigError(f"{path.name} places {qid} twice")
+        if "place" in fields:
+            if fields.keys() & {"countryCentroid", "at"}:
+                raise ConfigError(f"place {qid} gives a place, which leaves no fallback to take")
+            source = _mapping(fields.get("source"), f"place {qid} source", {"title", "url"})
+            _text(source["title"], f"place {qid} source title")
+            if not _text(source["url"], f"place {qid} source url").startswith("https://"):
+                raise ConfigError(f"place {qid} source url is not https")
+        elif "source" in fields:
+            raise ConfigError(f"place {qid} cites a source for no place")
         positions = {}
-        for key in ("countryCentroid", "at"):
+        for key in ("place", "countryCentroid", "at"):
             if key not in fields:
                 continue
             point = _list(fields[key], f"place {qid} {key}")
@@ -259,9 +271,16 @@ def load_event_places(path: Path = EVENT_CURATED) -> dict[str, dict[str, tuple[f
                 raise ConfigError(f"place {qid} is outside Earth")
             positions[key] = (lon, lat)
         if not positions:
-            raise ConfigError(f"place {qid} needs countryCentroid or at")
+            raise ConfigError(f"place {qid} needs a place, a countryCentroid or an at")
         places[qid] = positions
     return places
+
+
+def curated_places(
+    places: dict[str, dict[str, tuple[float, float]]],
+) -> dict[str, tuple[float, float]]:
+    """The events a curated `place` puts elsewhere than Wikidata's coordinates, by qid."""
+    return {qid: positions["place"] for qid, positions in places.items() if "place" in positions}
 
 
 def _curated(path: Path, key: str) -> list[Any]:

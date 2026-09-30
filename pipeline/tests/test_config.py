@@ -6,6 +6,7 @@ from prebuild.config import (
     CONFIG_DIR,
     SCALERANKS,
     ConfigError,
+    curated_places,
     load_contested_events,
     load_event_boosts,
     load_event_dates,
@@ -172,13 +173,37 @@ def test_parent_places_keep_both_sourced_fallbacks(tmp_path):
     assert load_event_places(write(tmp_path, "places: []")) == {}
 
 
+def test_a_located_event_s_curated_place_gives_its_source(tmp_path):
+    path = write(
+        tmp_path,
+        "places: [{qid: Q1, why: w, place: [1, 2], source: {title: T, url: 'https://x.org'}}]",
+    )
+    assert load_event_places(path) == {"Q1": {"place": (1, 2)}}
+    assert curated_places(load_event_places(path)) == {"Q1": (1, 2)}
+
+
 @pytest.mark.parametrize(
     ("entry", "complaint"),
     [
-        ("{qid: Q1, why: source, place: [0, 0]}", "unknown parent place field"),
+        ("{qid: Q1, why: source, where: [0, 0]}", "unknown place field"),
+        ("{qid: Q1, why: source, place: [0, 0]}", "source is not a mapping"),
+        ("{qid: Q1, why: w, place: [0, 0], source: {title: T}}", "source needs exactly"),
+        (
+            "{qid: Q1, why: w, place: [0, 0], source: {title: T, url: 'http://x.org'}}",
+            "source url is not https",
+        ),
+        (
+            "{qid: Q1, why: w, place: [0, 0], at: [1, 1], source: {title: T, url: 'https://x'}}",
+            "leaves no fallback",
+        ),
+        ("{qid: Q1, why: w, at: [0, 0], source: {title: T, url: 'https://x'}}", "for no place"),
+        (
+            "{qid: Q1, why: w, place: [200, 0], source: {title: T, url: 'https://x'}}",
+            "outside Earth",
+        ),
         ("{qid: Q0, why: source, at: [0, 0]}", "not a Wikidata item id"),
         ("{qid: Q1, at: [0, 0]}", "why.*not a name"),
-        ("{qid: Q1, why: source}", "needs countryCentroid or at"),
+        ("{qid: Q1, why: source}", "needs a place, a countryCentroid or an at"),
         ("{qid: Q1, why: source, at: [1]}", "needs longitude and latitude"),
         ("{qid: Q1, why: source, at: point}", "not a list"),
         ("{qid: Q1, why: source, at: [true, 0]}", "not a number"),
