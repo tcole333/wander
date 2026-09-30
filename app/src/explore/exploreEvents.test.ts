@@ -13,6 +13,7 @@ import { FrameContext } from '../scene/frameContext';
 import { dayFromHistorical } from '../story/dates';
 import { lonLatToDir, toThree } from '../surface/cube';
 import { pageOf, releaseOf, type TestEvent } from '../test/events';
+import { HISTORY } from '../time/exploreTime';
 import type { WorldTime } from '../time/worldClock';
 import {
   ExploreEvents,
@@ -123,6 +124,10 @@ function frameOver(lon: number, lat: number, altitude: number): FrameContext {
 }
 
 const at = (day: number, spanDays = 200): WorldTime => ({ day, spanDays });
+const dayOf = (year: number, month: number, day: number) => dayFromHistorical({ year, month, day });
+/** The ruler at either end of history, 400 years wide: its now window reaches 20 years past it. */
+const HISTORY_END = at(HISTORY.end, 400 * 365.2425);
+const HISTORY_START = at(HISTORY.start, 400 * 365.2425);
 const WORLD = frameOver(10, 45, 9);
 const byId = (specs: MarkSpec[], qid: number, hollow = false) =>
   specs.find((s) => s.id === markIdOf(qid, hollow));
@@ -200,6 +205,42 @@ describe("Explore's events", () => {
     events.update(frameOver(10, 45, 2), at(5000, 3650), 16);
     events.update(frameOver(10, 45, 2), at(5001, 3650), 32);
     expect(worker.asked).toHaveLength(3);
+  });
+
+  it('marks nothing after 2000 with the ruler at history’s end', () => {
+    const kosovo = { t0: dayOf(1999, 3, 24), t1: dayOf(1999, 6, 10) };
+    // The Arab Spring and the Syrian Civil War: in the index, but past history's end.
+    const arabSpring = { t0: dayOf(2010, 12, 17), t1: dayOf(2012, 12, 31) };
+    const syria = { t0: dayOf(2011, 3, 15), t1: dayOf(2024, 12, 8) };
+    const { worker, marks } = setup([
+      { row: 0, qid: 1, lon: 20, lat: 42, ...kosovo, cls: WAR },
+      { row: 1, qid: 2, lon: 10, lat: 34, ...arabSpring, cls: WAR },
+      { row: 2, qid: 3, lon: 38, lat: 35, ...syria, cls: WAR },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, HISTORY_END, 0);
+    events.update(WORLD, HISTORY_END, tunables.eventFade * 2);
+    expect(marks.specs.map((s) => s.id)).toEqual(['Q1']);
+  });
+
+  it('marks nothing before 10,000 BCE with the ruler at history’s start', () => {
+    const { worker, marks } = setup([
+      { row: 0, qid: 1, lon: 20, lat: 42, t0: HISTORY.start + 90, t1: HISTORY.start + 90 },
+      { row: 1, qid: 2, lon: 10, lat: 34, t0: HISTORY.start - 3650, t1: HISTORY.start - 3650 },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, HISTORY_START, 0);
+    events.update(WORLD, HISTORY_START, tunables.eventFade * 2);
+    expect(marks.specs.map((s) => s.id)).toEqual(['Q1']);
+  });
+
+  it('drops a focal event dated after 2000 once the ruler reaches history’s end', () => {
+    const arabSpring = { t0: dayOf(2010, 12, 17), t1: dayOf(2012, 12, 31) };
+    const { worker, marks } = setup([{ row: 0, qid: 33761, lon: 10, lat: 34, ...arabSpring }]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.focus({ qid: 33761, span: arabSpring });
+    events.update(WORLD, HISTORY_END, 0);
+    expect(events.focal).toBeNull();
   });
 
   it('drops the focal event once the now window leaves its dates, keeping it as a mark', () => {
