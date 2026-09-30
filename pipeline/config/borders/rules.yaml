@@ -7,7 +7,8 @@ minorKm2: 50000
 # A composite's land beyond its components' is drawn when at least this large.
 leftoverKm2: 100
 # Stateless land narrower than twice this goes to its neighbours: slivers on coasts, and enclosed
-# pieces that narrow throughout.
+# pieces that narrow throughout. Land within this of a lake and of another polity goes to the fill,
+# so a border crosses the lake rather than following its far shore.
 sliverKm: 14
 # An enclosed stateless piece that touches a lake or lies in a hole of the polities goes to its
 # neighbours under this, so no border rings a lake; a larger one stays stateless.
