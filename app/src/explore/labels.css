@@ -2,7 +2,7 @@
    over a dark edge, the lamp's lit edge at the upper left), set in the label family. A pinned
    plate is riveted at its corners and takes presses, for its source; a hovered one lets them
    through to the globe. The listbox and live region are for the keyboard and screen readers
-   only. */
+   only; while the listbox has the focus, a small tag names it. */
 
 .wu > .xl {
   position: absolute;
@@ -75,9 +75,44 @@
 }
 
 /* The keyboard's mark: its plate, ringed as focus is elsewhere. */
-.xl-plate.is-active {
+.xl-plate.is-active,
+.xl-focus {
   outline: 1px solid var(--brass-hi);
   outline-offset: 2px;
+}
+
+/* The listbox's name while it has the focus: a small vellum tag at the top, clear of the globe,
+   engraved as a plate's date is. */
+.xl-focus {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 4px 12px 5px;
+  font: 400 10px/1.3 var(--label);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-shadow: var(--engraved);
+  background: var(--vellum-light), var(--fiber), var(--vellum-ground);
+  border: 1px solid #a27f45;
+  box-shadow:
+    inset 1px 1px 0 rgb(255 248 226 / 0.7),
+    inset -1px -1px 0 rgb(80 50 15 / 0.45),
+    var(--cast-near);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s 0.25s;
+}
+
+.xl-focus.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s;
 }
 
 .xl-plate p {
@@ -147,7 +182,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .xl-plate,
-  .xl-plate.is-shown {
+  .xl-plate.is-shown,
+  .xl-focus,
+  .xl-focus.is-shown {
     transition: none;
   }
 }
