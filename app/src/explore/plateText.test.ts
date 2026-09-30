@@ -10,6 +10,7 @@ import {
   precisionOf,
   sourceOf,
   spoken,
+  writtenLine,
 } from './plateText';
 import { openings } from './openings';
 
@@ -65,6 +66,15 @@ describe('an event’s plate', () => {
     expect(spoken(text)).toBe('Battle of Waterloo, 18 June 1815, Part of: Hundred Days');
   });
 
+  it('keeps a number with its unit of measure, and with nothing else', () => {
+    expect(writtenLine('heard 4,800 km away, 30 m waves, 5 km² of ash, 40 °C')).toBe(
+      'heard 4,800\u00a0km away, 30\u00a0m waves, 5\u00a0km² of ash, 40\u00a0°C',
+    );
+    expect(writtenLine('some 1,500 people die in 1912 at sea; 3 miles')).toBe(
+      'some 1,500 people die in 1912 at sea; 3 miles',
+    );
+  });
+
   it('links an event’s source to the Wikipedia article Wikidata gives it', () => {
     expect(sourceOf(48314)).toEqual({
       title: 'Wikipedia',
@@ -85,6 +95,9 @@ describe('an event’s plate', () => {
     // A line's straight quotes read as typographer's.
     const fire = openings.find((opening) => opening.qid === 'Q164679')!;
     expect(pinnedText(openingText(fire), 164679, fire).line).toContain('Old St Paul’s');
+    // A number stays on one line with its unit.
+    const krakatoa = openings.find((opening) => opening.qid === 'Q8094772')!;
+    expect(pinnedText(openingText(krakatoa), 8094772, krakatoa).line).toContain('4,800\u00a0km');
     expect(pinnedText({ name: 'Battle of Ligny', date: '16 June 1815' }, 207318)).toEqual({
       name: 'Battle of Ligny',
       date: '16 June 1815',

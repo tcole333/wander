@@ -10,6 +10,12 @@ import { curlyQuotes } from '../story/ui/format';
 import { PART_OF, SOURCE_NAME } from './copy';
 import type { Opening } from './openings';
 
+/**
+ * A space between a number and its unit of measure ('4,800 km'), where a written line keeps them
+ * together on one line of its plate.
+ */
+const NUMBER_UNIT = /(\d) (km²?|m|cm|mm|mi|kg|t|ha|°[CF])(?![\p{L}\d])/gu;
+
 /** Wikidata's precision of a day; a month's is one less, a year's two less. */
 const DAY_PRECISION = 11;
 const MONTH_PRECISION = 10;
@@ -79,8 +85,13 @@ export function openingText(opening: Opening): PlateText {
  */
 export function pinnedText(text: PlateText, qid: number, opening?: Opening): PinnedText {
   if (!opening) return { ...text, source: sourceOf(qid) };
-  const line = opening.label === opening.name ? {} : { line: curlyQuotes(opening.label) };
+  const line = opening.label === opening.name ? {} : { line: writtenLine(opening.label) };
   return { ...text, ...line, source: opening.source };
+}
+
+/** A written line as its plate sets it: typographer's quotes, each number kept with its unit. */
+export function writtenLine(line: string): string {
+  return curlyQuotes(line).replace(NUMBER_UNIT, '$1\u00a0$2');
 }
 
 /** The plate's words as one line, for the live region and the listbox. */
