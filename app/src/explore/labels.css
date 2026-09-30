@@ -49,6 +49,12 @@
     visibility 0s 0.25s;
 }
 
+/* A hovered plate, the one the visitor is asking about, stands over the pinned one where no side
+   clears it, as for the keyboard's option on a mark the pinned plate covers. */
+.xl-plate:not(.is-pinned) {
+  z-index: 1;
+}
+
 .xl-plate.is-shown {
   opacity: 1;
   visibility: visible;
