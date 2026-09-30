@@ -17,20 +17,21 @@
 // At most two plates stand, the pinned one and the hovered one, each on the first side of its mark
 // that stays in view and clear of the other plate, the panels (the ruler, Meanwhile, the legend
 // and the page's mark and sound knob), the listbox's name while it shows and the focal ember
-// (platePlacement.ts). Plates, options and the live region are set in the label family
+// (platePlacement.ts), taking each mark, as the arrow keys do, where the relief may lift it on
+// screen (MarkLayer.span). Plates, options and the live region are set in the label family
 // (story/ui/fonts.ts), loaded whole before the room opens.
 import './labels.css';
 import { tunables } from '../config/tunables';
 import type { EventDescription } from '../events/describe';
 import type { EventMark } from '../events/query';
-import type { PlacedMark } from '../marks/marks';
+import type { MarkSpan, PlacedMark } from '../marks/marks';
 import { EMBER_RING } from '../marks/marks.glsl';
 import type { Precision } from '../story/dates';
 import { el } from '../story/ui/dom';
 import { EVENTS_LIST, PART_OF } from './copy';
 import { markIdOf, markQid, qidNumber, type EventLabel, type FocalEvent } from './exploreEvents';
 import type { Opening } from './openings';
-import { boxAround, placePlate, type Box, type PlateAnchor, type Side } from './platePlacement';
+import { placePlate, type Box, type PlateAnchor, type Side } from './platePlacement';
 import {
   describedText,
   eventDate,
@@ -55,6 +56,8 @@ export interface LabelEvents {
   placed(): PlacedMark[];
   event(id: string): EventMark | null | undefined;
   hit(x: number, y: number): string | null;
+  /** Where the mark with this id may stand on screen, the relief lifting it, or null. */
+  span(id: string): MarkSpan | null;
   hover(id: string | null): void;
   readonly focal: FocalEvent | null;
   focus(focal: FocalEvent | null): void;
@@ -416,8 +419,9 @@ export class ExploreLabels {
     const active = options.find((option) => option.id === this.#active);
     let next: string | null | undefined;
     if (event.key in ARROWS) {
-      const from = active ?? this.#center();
-      next = nearestToward(from, options, event.key as ArrowKey) ?? active?.id ?? null;
+      const marks = options.map((option) => ({ id: option.id, ...this.#drawnAt(option) }));
+      const from = marks.find((mark) => mark.id === active?.id) ?? this.#center();
+      next = nearestToward(from, marks, event.key as ArrowKey) ?? active?.id ?? null;
     } else if (event.key === 'Home') next = options[0]?.id ?? null;
     else if (event.key === 'End') next = options.at(-1)?.id ?? null;
     else if (event.key === 'Enter') {
@@ -435,15 +439,26 @@ export class ExploreLabels {
     return { x: width / 2, y: height / 2 };
   }
 
+  /**
+   * Where an option's mark is drawn, as near as it is known: halfway along the way the relief may
+   * lift it, which over land in a tilted view can stand well above its sea-level place.
+   */
+  #drawnAt(option: Option): { x: number; y: number } {
+    const span = this.#events.span(option.id);
+    if (!span) return { x: option.x, y: option.y };
+    return { x: (span.x0 + span.x1) / 2, y: (span.y0 + span.y1) / 2 };
+  }
+
   /** The option the listbox starts on: the pinned event's, else the one nearest the center. */
   #firstActive(): string | null {
     const pinned = this.#options.find((option) => markQid(option.id) === this.#pinned);
     if (pinned) return pinned.id;
     const center = this.#center();
-    let best: Option | undefined;
+    let best: { id: string; d: number } | undefined;
     for (const option of this.#options) {
-      const d = Math.hypot(option.x - center.x, option.y - center.y);
-      if (!best || d < Math.hypot(best.x - center.x, best.y - center.y)) best = option;
+      const { x, y } = this.#drawnAt(option);
+      const d = Math.hypot(x - center.x, y - center.y);
+      if (!best || d < best.d) best = { id: option.id, d };
     }
     return best?.id ?? null;
   }
@@ -588,13 +603,35 @@ export class ExploreLabels {
     const view = this.#view();
     const focal = this.#events.focal;
     const focalMark = focal ? placed.get(markIdOf(focal.qid)) : undefined;
-    const ember = (mark: PlacedMark) =>
-      boxAround(mark.x, mark.y, (EMBER_RING.radius + EMBER_RING.half) * mark.rPx + 2);
-    const anchor = (mark: PlacedMark): PlateAnchor => ({
-      x: mark.x,
-      y: mark.y,
-      gap: (mark === focalMark ? EMBER_RING.radius + EMBER_RING.half : 1) * mark.rPx + GAP_PX,
-    });
+    // Each mark as far as the relief may lift it: a plate stands clear of all the way.
+    const spans = new Map<PlacedMark, MarkSpan>();
+    const spanOf = (mark: PlacedMark): MarkSpan => {
+      let span = spans.get(mark);
+      if (!span) {
+        span = this.#events.span(mark.id) ?? { x0: mark.x, y0: mark.y, x1: mark.x, y1: mark.y };
+        spans.set(mark, span);
+      }
+      return span;
+    };
+    const ember = (mark: PlacedMark): Box => {
+      const { x0, y0, x1, y1 } = spanOf(mark);
+      const reach = (EMBER_RING.radius + EMBER_RING.half) * mark.rPx + 2;
+      return {
+        left: Math.min(x0, x1) - reach,
+        right: Math.max(x0, x1) + reach,
+        top: Math.min(y0, y1) - reach,
+        bottom: Math.max(y0, y1) + reach,
+      };
+    };
+    const anchor = (mark: PlacedMark): PlateAnchor => {
+      const { x0, y0, x1, y1 } = spanOf(mark);
+      return {
+        x: x0,
+        y: y0,
+        lift: { x: x1, y: y1 },
+        gap: (mark === focalMark ? EMBER_RING.radius + EMBER_RING.half : 1) * mark.rPx + GAP_PX,
+      };
+    };
     const avoid = (own: PlacedMark, other: Box | null): Box[] => [
       ...this.#panelBoxes,
       ...(this.#listFocused && this.#captionBox ? [this.#captionBox] : []),

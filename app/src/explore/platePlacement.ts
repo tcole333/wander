@@ -1,6 +1,7 @@
 // Where an event's plate stands beside its mark (spec section 3, Avoidance): on the first side of
 // right, left, above and below whose plate stays in view and clear of what it must not cover (the
-// other plate, the ruler, Meanwhile, the legend and the focal ember). A plate keeps its side while
+// other plate, the ruler, Meanwhile, the legend and the focal ember), and of its own mark wherever
+// the relief may lift it. A plate keeps its side while
 // that side still serves, with a few pixels' grace, so it does not hop from side to side as the
 // globe turns under it; only when its side is blocked does it take the first that is not. When
 // none is clear it keeps its side, held within the view.
@@ -24,9 +25,14 @@ export const EDGE_PX = 12;
 export const GRACE_PX = 8;
 
 export interface PlateAnchor {
-  /** The mark's center, CSS px. */
+  /** The mark's center at sea level, CSS px. */
   x: number;
   y: number;
+  /**
+   * Its center lifted as high as the relief there may draw it, CSS px (marks.ts, MarkSpan): the
+   * plate stands clear of the whole way. At sea level where omitted.
+   */
+  lift?: { x: number; y: number };
   /** How far from the center the plate's near edge stands, CSS px: the mark's reach and a gap. */
   gap: number;
 }
@@ -36,32 +42,50 @@ export interface Placement {
   box: Box;
 }
 
-/** The plate's box on `side` of its mark: centered across that side. */
+/** The plate's box on `side` of its mark, wherever it stands: centered across that side. */
 export function plateBox(
-  { x, y, gap }: PlateAnchor,
+  { x, y, lift = { x, y }, gap }: PlateAnchor,
   { width, height }: { width: number; height: number },
   side: Side,
 ): Box {
+  const [x0, x1] = [Math.min(x, lift.x), Math.max(x, lift.x)];
+  const [y0, y1] = [Math.min(y, lift.y), Math.max(y, lift.y)];
+  const [cx, cy] = [(x0 + x1) / 2, (y0 + y1) / 2];
   switch (side) {
     case 'right':
-      return { left: x + gap, right: x + gap + width, top: y - height / 2, bottom: y + height / 2 };
+      return {
+        left: x1 + gap,
+        right: x1 + gap + width,
+        top: cy - height / 2,
+        bottom: cy + height / 2,
+      };
     case 'left':
-      return { left: x - gap - width, right: x - gap, top: y - height / 2, bottom: y + height / 2 };
+      return {
+        left: x0 - gap - width,
+        right: x0 - gap,
+        top: cy - height / 2,
+        bottom: cy + height / 2,
+      };
     case 'above':
-      return { left: x - width / 2, right: x + width / 2, top: y - gap - height, bottom: y - gap };
+      return {
+        left: cx - width / 2,
+        right: cx + width / 2,
+        top: y0 - gap - height,
+        bottom: y0 - gap,
+      };
     case 'below':
-      return { left: x - width / 2, right: x + width / 2, top: y + gap, bottom: y + gap + height };
+      return {
+        left: cx - width / 2,
+        right: cx + width / 2,
+        top: y1 + gap,
+        bottom: y1 + gap + height,
+      };
   }
 }
 
 /** Whether two boxes overlap by more than their edges. */
 export function overlaps(a: Box, b: Box): boolean {
   return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-}
-
-/** The box a circle about (x, y) fills. */
-export function boxAround(x: number, y: number, radius: number): Box {
-  return { left: x - radius, right: x + radius, top: y - radius, bottom: y + radius };
 }
 
 /** A box with any of zero size, as a hidden panel measures, blocks nothing. */

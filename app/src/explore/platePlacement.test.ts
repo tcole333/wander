@@ -51,6 +51,20 @@ describe('a plate’s place', () => {
     );
   });
 
+  it('stands clear of its mark wherever the relief may lift it', () => {
+    // A mark on a mountain seen tilted: it may stand anywhere up to 60 px above its sea-level place.
+    const lifted = { x: 700, y: 400, lift: { x: 704, y: 340 }, gap: 16 };
+    expect(plateBox(lifted, SIZE, 'right')).toEqual({
+      left: 720,
+      right: 880,
+      top: 345,
+      bottom: 395,
+    });
+    expect(plateBox(lifted, SIZE, 'above').bottom).toBe(324);
+    expect(plateBox(lifted, SIZE, 'below').top).toBe(416);
+    expect(plateBox(lifted, SIZE, 'left').right).toBe(684);
+  });
+
   it('keeps its side, held in view, when no side is clear', () => {
     const everywhere: Box = { left: 0, right: 1440, top: 0, bottom: 900 };
     const { side, box } = placePlate(anchor(1420, 400), SIZE, 'right', [everywhere], VIEW);

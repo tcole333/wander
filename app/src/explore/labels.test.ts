@@ -23,6 +23,8 @@ interface OnScreen {
   parent?: string;
   /** Its mark drawn from the openings lock, which the worker has not described. */
   lock?: boolean;
+  /** How far up the screen, CSS px, the relief may lift its mark. */
+  lift?: number;
 }
 
 /** Explore's events as the labels see them: marks placed on screen, 8 px in radius. */
@@ -55,6 +57,10 @@ function fakeEvents(shown: OnScreen[]) {
     event: (id: string) => marks.get(id),
     hit: (x: number, y: number) =>
       shown.find((on) => Math.hypot(on.x - x, on.y - y) <= 8)?.id ?? null,
+    span(id: string) {
+      const on = shown.find((mark) => mark.id === id);
+      return on ? { x0: on.x, y0: on.y, x1: on.x, y1: on.y - (on.lift ?? 0) } : null;
+    },
     hover(id: string | null) {
       events.hovered = id;
     },
@@ -335,6 +341,50 @@ describe('Explore’s labels', () => {
     labels.update(2 * tunables.hoverQueue + 16);
     // Under the ruler every side but the one above is covered.
     expect(plate$(root, false).getAttribute('data-side')).toBe('above');
+  });
+
+  it('stand a plate and the ember’s keep-out clear of a mark wherever the relief may lift it', () => {
+    // Waterloo on a mountain seen tilted, focal, its mark lifted up to 60 px; Ligny beside it.
+    const { events, labels, root, pointer } = setup([
+      { id: 'Q48314', x: 700, y: 400, label: 'Battle of Waterloo', lift: 60 },
+      { id: 'Q207318', x: 520, y: 340, label: 'Battle of Ligny' },
+    ]);
+    events.focal = { qid: 48314 };
+    labels.land(null);
+    pointer('pointermove', 700, 400);
+    labels.update(0);
+    labels.update(tunables.hoverQueue);
+    const hovered = plate$(root, false);
+    // Right of it, centered on the way up: rows 346 to 394, less the plate's half height.
+    expect(hovered.getAttribute('data-side')).toBe('right');
+    expect(hovered.style.getPropertyValue('translate')).toBe(
+      `${(700 + 1.42 * 8 + 8).toFixed(1)}px ${(370 - 24).toFixed(1)}px`,
+    );
+    // Ligny's plate, right of it, would cover the ember's reach up the mountain.
+    pointer('pointermove', 520, 340);
+    labels.update(tunables.hoverQueue + 16);
+    labels.update(2 * tunables.hoverQueue + 16);
+    expect(plate$(root, false).getAttribute('data-side')).not.toBe('right');
+  });
+
+  it('move the keyboard among the marks as they are drawn, lifted by the relief', () => {
+    // Waterloo's foot lies below Ligny, but the relief draws it above.
+    const { labels, list, key } = setup([
+      { id: 'Q48314', x: 700, y: 400, label: 'Battle of Waterloo', lift: 60 },
+      { id: 'Q207318', x: 700, y: 385, label: 'Battle of Ligny' },
+      { id: 'Q10', x: 700, y: 480, label: 'Congress of Vienna' },
+    ]);
+    labels.land(null);
+    labels.update(0);
+    list.dispatchEvent(new Event('focus'));
+    const from = (id: string, arrow: string) => {
+      key(list, 'Home');
+      while (list.getAttribute('aria-activedescendant') !== `xl-${id}`) key(list, 'ArrowDown');
+      key(list, arrow);
+      return list.getAttribute('aria-activedescendant');
+    };
+    expect(from('Q207318', 'ArrowDown')).toBe('xl-Q10');
+    expect(from('Q207318', 'ArrowUp')).toBe('xl-Q48314');
   });
 
   it('pin the opening at the landing, with its line and the source it rests on', () => {

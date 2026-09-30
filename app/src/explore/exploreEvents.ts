@@ -26,7 +26,7 @@ import type { EventReply } from '../events/runtime';
 import { eventViewOf, type EventView, type ViewFrame } from '../events/view';
 import { GLOW_FADE_S } from '../lobby/lobby';
 import { eventSymbol, mirroredAt } from '../marks/eventSymbols';
-import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
+import type { MarkLayer, MarkSpan, MarkSpec, PlacedMark } from '../marks/marks';
 import type { MemoryAccount } from '../perf/memory';
 import { dayFromHistorical, historicalCivil, type Precision } from '../story/dates';
 import type { LonLat } from '../story/story';
@@ -40,7 +40,7 @@ export type EventSource = Pick<
 >;
 
 /** What Explore's events need of the look's marks. */
-export type EventMarks = Pick<MarkLayer, 'set' | 'placed' | 'strength' | 'hit'>;
+export type EventMarks = Pick<MarkLayer, 'set' | 'placed' | 'strength' | 'hit' | 'span'>;
 
 /** A label the worker gives, for an event marked in view. */
 export type EventLabel = Fading<EventMark & { text: string }>;
@@ -247,6 +247,11 @@ export class ExploreEvents {
   hit(x: number, y: number): string | null {
     const id = this.#marks.hit(x, y);
     return id !== null && this.#shown.has(id) ? id : null;
+  }
+
+  /** Where the event's mark with this id may stand on screen, the relief lifting it, or null. */
+  span(id: string): MarkSpan | null {
+    return this.#shown.has(id) ? this.#marks.span(id) : null;
   }
 
   /** The labels the worker last gave: the events it names in view, within the label budget. */
