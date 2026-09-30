@@ -289,9 +289,10 @@ export class ExploreEvents {
   /**
    * Every frame, once the frame is placed: asks for the events the view shows in the now window,
    * takes the worker's replies, drops the focal event once the window has left it, and sets the
-   * marks, their fades at `nowMs`.
+   * marks, their fades at `nowMs`. While `hold` (a flight through time) it asks nothing and drops
+   * nothing, and asks for where the flight lands once it has.
    */
-  update(frame: ViewFrame, time: WorldTime, nowMs: number): void {
+  update(frame: ViewFrame, time: WorldTime, nowMs: number, hold = false): void {
     if (this.#disposed) return;
     const dtS = this.#lastMs === null ? 0 : Math.min(STEP_MAX_S, (nowMs - this.#lastMs) / 1000);
     this.#lastMs = nowMs;
@@ -303,11 +304,11 @@ export class ExploreEvents {
 
     const window = exploreWindow(time);
     const focal = this.#focal;
-    if (focal?.span && !inWindow(focal.span, window)) {
+    if (!hold && focal?.span && !inWindow(focal.span, window)) {
       this.#focal = null;
       this.#changed = true;
     }
-    if (!this.#left && !this.#dead) {
+    if (!hold && !this.#left && !this.#dead) {
       const asked: Asked = {
         window,
         view: eventViewOf(frame),

@@ -26,7 +26,9 @@ interface ClockPage extends Window {
     state(): WorldTime;
     span(): Span;
     seek(day: number): void;
-    zoom(factor: number, share: number): void;
+    zoom(factor: number, share?: number): void;
+    pan(days: number): void;
+    moving(): boolean;
   };
   __proto: { stats(): { view: ViewState }; error?: string };
 }

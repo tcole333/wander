@@ -72,7 +72,7 @@ export function overviewTicks(
     ticks.push({ day, kind, length, width });
   };
   const era = calendar.day({ year: 1, month: 1, day: 1 });
-  add(era, 'era', 11, 0.7);
+  add(era, 'era', 8, 0.7);
   for (const year of yearsIn(extent, 1000, calendar)) add(year.start, 'millennium', 7, 1);
   for (const [step, kind, length, width] of [
     [100, 'century', 4, 0.8],

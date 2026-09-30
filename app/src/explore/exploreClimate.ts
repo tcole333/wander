@@ -12,7 +12,7 @@ import { climateUniformsOf } from '../look/climateHook';
 import type { MemoryAccount } from '../perf/memory';
 import type { ClimateShown } from '../story/contract';
 import { ClimateLegend } from '../story/ui/climateLegend';
-import type { WorldClock } from '../time/worldClock';
+import type { WorldClock, WorldTime } from '../time/worldClock';
 
 export class ExploreClimate {
   readonly #look: SurfaceLook;
@@ -21,6 +21,8 @@ export class ExploreClimate {
   readonly #legend = new ClimateLegend();
   /** The mode's fade, 0 to 1. */
   #fade = 0;
+  /** The date drawn, which a flight through time holds. */
+  #held: WorldTime | null = null;
 
   /** Draws on `look`'s field from `source`'s years, its legend first in Explore's `layer`. */
   constructor(look: SurfaceLook, source: ClimateSource, clock: WorldClock, layer: HTMLElement) {
@@ -35,10 +37,15 @@ export class ExploreClimate {
     return this.#legend.element;
   }
 
-  /** Every frame, before the look updates: the clock's date, drawn under the mode's fade. */
-  update(dtS: number, fade: number): void {
+  /**
+   * Every frame, before the look updates: the clock's date, drawn under the mode's fade. While
+   * `hold` (a flight through time) it keeps the date it had, so the field stays through the flight
+   * even where its rise crosses climateMonthlySpan, and draws where the flight lands once it has.
+   */
+  update(dtS: number, fade: number, hold = false): void {
     this.#fade = fade;
-    this.#climate.update(this.#clock.state(), dtS, fade);
+    if (!hold || !this.#held) this.#held = this.#clock.state();
+    this.#climate.update(this.#held, dtS, fade);
   }
 
   /** The climate drawn, for the legend; null while none is. */

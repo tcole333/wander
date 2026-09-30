@@ -429,12 +429,19 @@
    the page and rises during the dive, and the card and Meanwhile come in at the landing. Only the
    mode's layer: the Credits panel's sheet is a .wu-card too. */
 
-.lobby-dive .wu-mode .rc {
+.lobby-dive .wu-mode .rc,
+.lobby-dive .wu-mode .xr {
   transition: translate 1.6s cubic-bezier(0.22, 0.8, 0.3, 1) 0.35s;
 }
 
 .lobby-ruler-down .wu-mode .rc {
   translate: 0 105%;
+  transition: none;
+}
+
+/* Explore's plaque stands above its ruler's box, so the box goes lower to take it out of view. */
+.lobby-ruler-down .wu-mode .xr {
+  translate: 0 calc(100% + 32px);
   transition: none;
 }
 
@@ -487,5 +494,10 @@
 
 .lobby-return .wu-mode .rc {
   translate: 0 105%;
+  transition: translate 1.6s cubic-bezier(0.5, 0, 0.75, 0) 0.35s;
+}
+
+.lobby-return .wu-mode .xr {
+  translate: 0 calc(100% + 32px);
   transition: translate 1.6s cubic-bezier(0.5, 0, 0.75, 0) 0.35s;
 }

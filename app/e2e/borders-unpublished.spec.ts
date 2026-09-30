@@ -68,7 +68,7 @@ test('draws no border steps in Explore or the Tambora walk where the release nam
   await explorePlaque.scrollIntoViewIfNeeded();
   await explorePlaque.click();
   await phase(page, 'gone');
-  await expect(page.locator('.wu-explore .rc')).toBeVisible();
+  await expect(page.locator('.wu-explore .xr')).toBeVisible();
   expect(await page.evaluate(() => window.__borders === undefined)).toBe(true);
 
   // The dive lands with the opening's plate pinned; the mark takes the page back to the lobby.
