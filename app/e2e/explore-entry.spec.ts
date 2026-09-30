@@ -1,12 +1,14 @@
 // Explore from the production build's lobby (dist/ under vite preview, on the fixture's data server
 // through ?data=). The fixture's release names its event index, so Explore's plaque stands last; it
-// dives into free time over its opening, where the now window's events mark the globe and the ruler
-// scrubs the world clock, and WANDER or Escape returns to the lobby. A release that names no event
-// index, as the bundled one does until the event files are published, shows the stories' plaques
-// alone. Nothing logs an error, no request goes to Wikimedia, and once the room opens nothing more
-// is fetched from the app's own host.
+// dives into free time over its opening (?opening= pins Waterloo), landing with the opening's
+// line pinned on its plate, where the now window's events mark the globe, a mark pointed at shows
+// its plate, the keyboard pins one from the events' listbox, Meanwhile flies to an entry and pins
+// it, and the ruler scrubs the world clock. WANDER returns to the lobby, and Escape unpins a plate,
+// then returns. A release that names no event index, as the bundled one does until the event
+// files are published, shows the stories' plaques alone. Nothing logs an error, no request goes to
+// Wikimedia, and once the room opens nothing more is fetched from the app's own host.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
-import type { ExploreEventsHook } from '../src/explore/explore';
+import type { ExploreEventsHook, ExploreLabelsHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
 import { fetchedSinceOpening, markOpening } from './opening';
 import { DATA_URL, PREVIEW_URL } from './servers';
@@ -15,7 +17,22 @@ const TIMEOUT = 90_000;
 const expect = playwrightExpect.configure({ timeout: TIMEOUT });
 const WATERLOO = dayFromIso('1815-06-18');
 
-type ExplorePage = Window & { __exploreEvents?: ExploreEventsHook };
+type ExplorePage = Window & {
+  __exploreEvents?: ExploreEventsHook;
+  __exploreLabels?: ExploreLabelsHook;
+};
+
+/** The event pinned, `Q…`, or null. */
+function pinned(page: Page): Promise<string | null> {
+  return page.evaluate(() => (window as ExplorePage).__exploreLabels?.pinned() ?? null);
+}
+
+/** Waits for the event worker, the marks' fades and Meanwhile's answer to rest. */
+async function settled(page: Page): Promise<void> {
+  await expect
+    .poll(() => page.evaluate(() => (window as ExplorePage).__exploreEvents?.settled() ?? false))
+    .toBe(true);
+}
 
 // CI's software renderer needs fewer pixels per frame.
 test.use({ viewport: { width: 640, height: 400 } });
@@ -70,7 +87,7 @@ test('shows no Explore plaque where the release names no event index', async ({ 
   expect(errors).toEqual([]);
 });
 
-test('shows Explore’s plaque last, dives in, scrubs and returns by WANDER and Escape', async ({
+test('shows Explore’s plaque last, dives in, labels its marks, scrubs and returns by WANDER and Escape', async ({
   page,
 }) => {
   test.setTimeout(600_000);
@@ -102,6 +119,34 @@ test('shows Explore’s plaque last, dives in, scrubs and returns by WANDER and 
     )
     .toBe(48314);
 
+  // The dive lands with the opening pinned, its written line on its plate.
+  const pinnedPlate = page.locator('.xl-plate.is-pinned');
+  await expect(pinnedPlate).toHaveClass(/is-shown/);
+  await expect(pinnedPlate.locator('.xl-line')).toHaveText(/^At Waterloo/);
+  expect(await pinned(page)).toBe('Q48314');
+
+  // A mark the pointer rests on, where nothing stands over the globe, brings its plate.
+  await settled(page);
+  const free = await page.evaluate(() =>
+    (window as ExplorePage)
+      .__exploreEvents!.placed()
+      .filter(
+        (mark) =>
+          mark.id !== 'Q48314' &&
+          mark.alpha > 0.5 &&
+          document.elementFromPoint(mark.x, mark.y)?.classList.contains('walk-canvas'),
+      ),
+  );
+  const [pointed] = free;
+  if (!pointed) throw new Error('no mark stands clear of the panels');
+  await page.mouse.move(pointed.x, pointed.y);
+  const hoverPlate = page.locator('.xl-plate:not(.is-pinned)');
+  await expect(hoverPlate).toHaveClass(/is-shown/);
+  await expect(hoverPlate.locator('.xl-name')).not.toBeEmpty();
+  expect(await page.evaluate(() => (window as ExplorePage).__exploreLabels?.hovered())).toBe(
+    pointed.id,
+  );
+
   // The ruler's date plaque scrubs the world clock from the keyboard.
   await clock.focus();
   await page.keyboard.press('ArrowRight');
@@ -115,10 +160,50 @@ test('shows Explore’s plaque last, dives in, scrubs and returns by WANDER and 
   await expect(page.locator('.wu-explore')).toHaveCount(0);
   await expect(plaque).toBeFocused();
 
-  // The focused plaque dives again from the keyboard, and Escape returns.
+  // The focused plaque dives again from the keyboard.
   await page.keyboard.press('Enter');
   await phase(page, 'gone');
   await expect(clock).toHaveAttribute('aria-valuenow', String(WATERLOO));
+  await expect.poll(() => pinned(page)).toBe('Q48314');
+  await settled(page);
+
+  // Tab reaches the events' listbox, which starts on the pinned mark; an arrow moves to another,
+  // and Enter pins it.
+  const list = page.getByRole('listbox', { name: 'Events' });
+  for (
+    let tab = 0;
+    tab < 12 && !(await list.evaluate((el) => el === document.activeElement));
+    tab++
+  )
+    await page.keyboard.press('Tab');
+  await expect(list).toBeFocused();
+  const active = () => list.getAttribute('aria-activedescendant');
+  await expect.poll(active).toBe('xl-Q48314');
+  for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp']) {
+    await page.keyboard.press(key);
+    if ((await active()) !== 'xl-Q48314') break;
+  }
+  const chosen = await active();
+  expect(chosen).toMatch(/^xl-Q[0-9]+/);
+  expect(chosen).not.toBe('xl-Q48314');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => pinned(page)).toBe(/^xl-(Q[0-9]+)/.exec(chosen!)![1]);
+
+  // Meanwhile names what happens elsewhere; choosing an entry flies there and pins it.
+  const entry = page.locator('.wu-meanwhile .wu-mw-entry').first();
+  await expect(entry).toBeVisible();
+  const name = await entry.locator('.wu-mw-label').textContent();
+  await entry.click();
+  await expect(pinnedPlate.locator('.xl-name')).toHaveText(name!);
+  await expect(pinnedPlate).toHaveClass(/is-shown/);
+  const entryPinned = await pinned(page);
+  expect(entryPinned).not.toBe('Q48314');
+
+  // Escape unpins first, then returns to the lobby.
+  await page.keyboard.press('Escape');
+  await expect(pinnedPlate).not.toHaveClass(/is-shown/);
+  expect(await pinned(page)).toBeNull();
+  await phase(page, 'gone');
   await page.keyboard.press('Escape');
   await phase(page, 'idle');
   await expect(page.locator('.wu-explore')).toHaveCount(0);
