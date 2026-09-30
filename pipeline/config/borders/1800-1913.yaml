@@ -175,13 +175,13 @@ corrections:
   - years: [1815, 1815]
     member:
       polity: Kingdom of Tambora
-      of: British Colonial Empire
+      of: Netherlands
     why: &sumbawa-members >-
-      The Sumbawan states were bound to the Dutch by contract, and are drawn with the rest of the
-      Indies, British from 1812 to 1816. In 1815 Bima had a Resident, and Raffles's government sent
-      Lieutenant Owen Phillips to inspect the eruption's damage and help the islanders. The
-      contracts were extended in 1817, when the governor at Makassar excused the rulers of Bima,
-      Dompu and Sanggar from coming there for it.
+      The Sumbawan states were bound to the Dutch by contract, so they are drawn as Dutch members
+      (owner decision 37) while the rest of the Indies is British, from 1812 to 1816. Raffles's
+      government sent Lieutenant Owen Phillips to inspect the eruption's damage and help the
+      islanders, but the contracts were Dutch, and they were extended in 1817, when the governor at
+      Makassar excused the rulers of Bima, Dompu and Sanggar from coming there for it.
     source: &dejongboers
       title: "Mount Tambora in 1815: A Volcanic Eruption in Indonesia and its Aftermath (Bernice de Jong Boers)"
       publisher: Indonesia 60 (1995), Cornell University Southeast Asia Program
@@ -190,31 +190,31 @@ corrections:
   - years: [1815, 1815]
     member:
       polity: Kingdom of Pekat
-      of: British Colonial Empire
+      of: Netherlands
     why: *sumbawa-members
     source: *dejongboers
   - years: [1815, 1816]
     member:
       polity: Kingdom of Sanggar
-      of: British Colonial Empire
+      of: Netherlands
     why: *sumbawa-members
     source: *dejongboers
   - years: [1815, 1816]
     member:
       polity: Sultanate of Dompu
-      of: British Colonial Empire
+      of: Netherlands
     why: *sumbawa-members
     source: *dejongboers
   - years: [1815, 1816]
     member:
       polity: Sultanate of Sumbawa
-      of: British Colonial Empire
+      of: Netherlands
     why: *sumbawa-members
     source: *dejongboers
   - years: [1815, 1816]
     member:
       polity: Sultanate of Bima
-      of: British Colonial Empire
+      of: Netherlands
     why: *sumbawa-members
     source: *dejongboers
   # India: Mysore, Hyderabad and the Mughal emperor.
