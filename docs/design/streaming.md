@@ -450,8 +450,14 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   a 260,000 km² stateless hole in the Urals beside a small lake.
 - **Other enclosed pieces stay stateless,** since they may be real stateless enclaves. The pockets
   given and the pieces kept are listed per step, and a `pocket` correction overrides the rule.
-- The sea, the lakes and every subpixel nothing holds then take the nearest id, stateless land's
-  included, so no border follows a coast.
+- The sea and the drawn lakes are emptied, even where a polity's shape reaches over them, and they
+  and every subpixel nothing holds then take the nearest id, stateless land's included, so no
+  border follows a coast or rings a lake.
+- **Lake shores:** so is the land within `sliverKm` of a drawn lake that lies within `sliverKm` of
+  another id (a square of 13 subpixels on a face, 3 on the preview grid), since a shape that reaches
+  over a lake onto a thin strip of the far shore would otherwise draw its border along that shore:
+  Lake Urmia's west shore carried one for 126 km through the first centuries CE, and Balkhash's and
+  the IJsselmeer's up to 93 km [M]. The fill then carries the border across the lake.
 
 **Overlaps.** Of two overlapping polities the smaller keeps the land they share. That is
 right for an enclave, such as Luxembourg in 1914, and wrong for a near-duplicate: 'Napoleonic
@@ -499,7 +505,7 @@ u8 rg[6][size][size][2]
   R: min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels to the nearest R border, + on the higher outer id
   G: bit 7 soft, where the nearest R border has stateless land on one side;
      bits 0-6 rha(64 + 8·clamp(d, −8, 7.875)), d in texels to the nearest G border, + on the higher
-     leaf id; 127 where none is in reach
+     leaf id; 127 where the face holds none
 ```
 
 - **Geometry:** each face is 1,016 texels across (about 9.8 km a texel) plus a 4-texel apron past
@@ -512,9 +518,18 @@ u8 rg[6][size][size][2]
   the sign flips without passing a border; there a texel takes the mean size of its subpixels, and
   the look treats four texels that span such a jump (more than 2 texels apart across zero) as far
   from any border.
-- **Size:** 12 MiB inflated; a step stores 0.47-1.18 MB, about 0.37 GB for all 505 [M]. The bake
-  skips a step whose inputs are unchanged, and the global build takes about an hour with `--jobs`
-  [E: the look renders baked a step in 6.5 s with 3 workers].
+- **Bake** (`step_fields.py`): one raster of the step's parts and stateless land, as raster ids,
+  makes both planes through a mask of the id pairs each keeps. Signs compare the polities' ids,
+  which number the sorted names, so a correction elsewhere in time that adds a name changes no
+  other step's bytes. A step's key hashes its year, the POLITY and vassalage rows valid in it, the
+  hierarchy's classes of those, the operations (not the `why` or `source`) of the corrections
+  active in it, the rules, the land and lakes, and the step code; `build/cache/borders/` keeps each
+  baked step under its key, so a rebuild bakes only the steps whose key changed.
+- **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 256 MB for
+  all 505 [M global bake, 30 September]. A step takes about 22 CPU-seconds to select and bake, 3.1
+  CPU-hours for all 505: 4.3 s a step with 5 workers on the M5 when nothing else runs (about 36
+  minutes in all), and it took 96 minutes beside other builds; a rerun that changes no step takes
+  7 s from the cache [M].
 
 **Previews,** in chunks of at most 16 steps, each starting at an even step index, so the two steps a
 ring cell pairs (below) never span two chunks:
@@ -526,13 +541,16 @@ u8 layer[count][256][512]   equirect (3.0); the first raw, each later one (v −
   d in preview texels (78 km at the equator) to the nearest R border, + on the higher outer id
 ```
 
-The 32 chunks take 93-107 KB each, 3.2 MB in all [M].
+A preview is its own raster of the step's outer units at 4×4 subpixels a preview texel, with the
+field's R mask, sea and lakes, wrapped 12 texels past ±180° so no line breaks at the seam.
+
+The 32 chunks take 16-127 KB each, 1.9 MB in all [M global bake, 30 September].
 
 **Keys** go through `write_object` (`layers.py`), named by content: `fd/borders/s/<sha16>.bin` for a
 step, `fd/borders/p/<sha16>.bin` for a chunk, `fd/borders/m/<sha16>.json` for the polities and
 `lic/<sha16>.txt` for the notice, about 540 files, each with an extension, since an object's headers
 follow it (4.2). A correction uploads only the steps it changes and the chunks their previews fall
-in; one that adds or removes a step moves every later chunk (≤ 3.2 MB).
+in; one that adds or removes a step moves every later chunk (≤ 1.9 MB).
 
 **Look** (`app/src/look/bordersHook.ts`), on land and lakes, ending at the drawn coast, after the
 climate wash and before the ash:
@@ -1150,8 +1168,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      profile's output root, so versions left there by older builds stay local
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
      upload, because keys are content-versioned and a mismatch means a broken build or upload
-   - stops before any upload when the borders record lists an overlap pair that no `overlap`
-     correction acknowledges, or a composite or relation `hierarchy.yaml` does not class (3.3)
+   - stops, before it reads R2, when the borders record lists an overlap pair that no `overlap`
+     correction acknowledges, or a composite or relation `hierarchy.yaml` does not class (3.3), so
+     `--dry-run` refuses them too
    - stops before any upload when it would send the 1815 field's GPL notice and origin lacks the
      `borders-<ver8>` tag the notice links the build scripts at (3.3)
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
@@ -1835,7 +1854,7 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 | **Before the first live frame** | **2.20 MB** [M `e3/results/live-2026-09-28.json`]. The requirement stays a live frame < 3 s at cold 25 Mbps / 50 ms (owner decision 5). | The room waits for L0-L1 and the page's fonts: 0.515 MB from Pages and 1.684 MB from the data host arrive before it opens. Where the release names its event index, the fonts include Explore's label family, Source Serif 4 400 and 600 in Latin and Latin Extended (`story/ui/fonts.ts`): four woff2 files, 78 KB, the same the reading face already fetches for the page's own text, so they add no bytes. Keep the entry's ≤ 500 KB br and the worker modules' ≤ 40 KB allowances for growth; the instrument and environment are procedural. |
 | **First paint / first live frame** | **0.19 s / 1.24 s** cold at 25/50; live frame **< 3 s** required | Medians of three cold live loads [M `e3/results/live-2026-09-28.json`]. The CSS room covers pool allocation, compiles and L0-L1. At 5/150 the medians are 0.47 s / 4.51 s; that connection's requirement is whole beat landings. |
 | **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. Once Tambora moves onto the border steps, the lobby preloads its first step (≤ 1.2 MB) in place of the 1815 field; Explore's 3.2 MB of preview chunks arrive after its dive (3.3). |
-| **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; the border steps its beats draw (0.47-1.18 MB each [M Cliopatria v0.2.0]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D] before its two border steps. |
+| **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; the border steps its beats draw (0.92-0.93 MB each around 1815 [M global bake]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D] before its two border steps. |
 | **Critical set per beat** | planning line: (median flight 1.7 s + `holdMax`) × the floor bandwidth, 2.0 MB at 5 Mbps (owner decision 5) | For the per-beat plans deferred in 8.1: model, full, median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors, as milestone 1's queue already does. |
 | **New bytes per beat** | reported above **10 MiB** | Beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each on the full tier [M `e3/results/live-2026-09-28.json`]. Round the measured maximum up to a whole MiB to flag growth in later walks. Every beat lands whole at 5/150, so this line reports refinement traffic without holding navigation. |
 | **Per story** | reported above **48 MiB** (full) / 18 MiB (lite, model) | Tambora fetches 47.8 MiB across its eight beats, rounded up to a whole MiB for the full tier's reporting line [M `e3/results/live-2026-09-28.json`]. The lite tier is unmeasured; its planning allowance remains: model tiles 7.5-11.3 MB ×1.3 for mountains, images ~1.2 MB, audio ≤ 0.32 MiB, overlays and effects 0.5-2 MB, about 18.2 MB at the upper estimates [D]. |
@@ -1872,7 +1891,7 @@ min(8, CPUs), with spawn-context worker processes. `media` also takes `--offline
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts, Cliopatria's rows for the fixture's border steps among them (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
-| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml` and the era correction files) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged, and the review queue (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`. The fixture bakes two steps from its excerpt, and no 1815 field | about an hour with `--jobs` for the 505 steps [E: 6.5 s a step with 3 workers in the look renders]; 31 s for the 1815 field [M] | local |
+| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml` and the era correction files) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged (`build/cache/borders/`), the review queue and the lakes and land `verify:bake` reads (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`; the region profile bakes only that field. The fixture bakes two steps from its excerpt, and no 1815 field | about 22 CPU-seconds a step: 4.3 s a step with 5 workers on a quiet M5 (about 36 min for the 505), 7 s when none changed; 28 s for the 1815 field; 38 s for the fixture's two steps with 8 workers [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | range names + polity names from `polities.json` → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
@@ -1922,7 +1941,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, unclassified, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names and `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, which `publish-data` refuses (3.3); `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The review queue goes beside the record, in `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leftovers, pockets given and enclosures kept. `uv run python -m prebuild.cliopatria` writes it alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
+| borders | `{steps, beats, unacknowledged, unclassified, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, and `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given, enclosures kept and corrections applied; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -2004,12 +2023,14 @@ and the release's `media` section lists every key the locks name (3.8).
   (`pipeline/src/prebuild/fixture_store.py`), and `--rebuild` builds anyway and replaces the stored
   copy. The store keeps the 16 most recently used builds. Pytest checks the real excerpts' cold
   European summer of 1816, monthly and annual climate output, Waterloo's date, place, score and
-  parents, and a curated date correction; Vitest decodes and blends the built climate. Synthetic
-  tests still cover edge cases, and for borders: the year mapping; the hierarchy rules, the
-  size-tier mask and a leaf reaching two roots failing; every unclaimed-land rule, a large stateless
-  enclosure staying among them; the overlap records; every correction operation, and the coverage
-  check failing; WBF2 and WBP2 round trips; and keys stable across an unrelated correction.
-  `meanwhile` remains disabled until the fixture has a story and lock of its own and the stage
+  parents, and a curated date correction; Vitest decodes and blends the built climate and decodes
+  the two border steps and their preview chunk. Synthetic tests still cover edge cases, and for
+  borders: the year mapping; the hierarchy rules, the size-tier mask and a leaf reaching two roots
+  failing; every unclaimed-land rule, a large stateless enclosure staying among them; the overlap
+  records; every correction operation, and the coverage check failing; the planes' masks and signs,
+  the soft bit and the preview's wrap; WBF2 and WBP2 round trips; keys stable across an unrelated
+  correction; and the stage on the fixture's excerpt at 64 texels a face, from the cache on a second
+  run. `meanwhile` remains disabled until the fixture has a story and lock of its own and the stage
   validates excerpt inputs; Tambora's committed lock changes only from its global build.
   Until the fixture story lands (#9), the fixture bakes no story images; it will bake them with
   `media --story _fixture --offline`. `--offline` reads the committed test image and the metadata
@@ -2149,9 +2170,9 @@ and the release's `media` section lists every key the locks name (3.8).
   9. **Deploy** (`main` only), after every other job passes: it ships the app checks job's build,
      and refuses it unless its sha256 is the one the app checks job recorded. The deployment is
      then checked for `/`, `/credits` and a real 404.
-- **Bake check (local):** `npm run verify:bake -- [region|global]` decodes every tile in
-  `build/region/` (the default) or `build/out/`, reading `build/stages/<profile>/`, and checks,
-  with the fixture's seam code:
+- **Bake check (local):** `npm run verify:bake -- [region|global] [surface|borders]` decodes every
+  tile in `build/region/` (the default) or `build/out/`, reading `build/stages/<profile>/`, and
+  checks, with the fixture's seam code (a second argument runs one part's checks alone):
   - within a face, mip 0-2 border identity for every pair of available neighbors; across a face
     edge, edge-profile identity at every mip, codes and shore bytes alike, for every pair of
     available neighbors, and each entry within 0.5 of the owner tile's own mip-m corner mean where
@@ -2196,11 +2217,33 @@ and the release's `media` section lists every key the locks name (3.8).
     step of GEBCO's lowest and highest cells around them, read on both sides of ±180°; Tambora's
     summit texel at L7 decodes no lower than its texel mean (2,586.3 m) less qLand/2 and no higher
     than GEBCO's 2,605 m there, since a texel mean cannot reach the highest single cell
-  - borders, global only: every step and preview chunk decodes; no border runs within one texel of
-    a lake shore for more than 50 km, and a planted lake ring fails; the previews' signs agree with
-    the fields near R borders; each step holds as many leaves as Cliopatria has rows valid in its
-    year, apart from corrections; and the overlap pairs no `overlap` correction acknowledges are
-    reported (3.3)
+  - borders, global only (`src/data/borderSteps.verify.ts`, reading the record, the review queue,
+    `polities.json` and the lakes and land beside the record; a record built from other pipeline
+    code or another Cliopatria is stale, naming `uv run prebuild borders`):
+    - every step and preview chunk decodes, with the years and sizes the record gives;
+    - no border, R or G, runs within one texel of a lake's shore on land for more than 50 km (its
+      run's bounding diagonal), where the lake reaches at least a texel from its shore within
+      three texels: a lake narrower than about two texels holds any border that follows it within
+      a texel of both shores, as the St Lawrence does the US-Canada line. A ring planted along
+      every lake shore of one face of a real step is found;
+    - each preview agrees in sign with its field on land 2 to 7 field texels from an R border and
+      at least half a preview texel from one, where the field keeps one sign across the preview
+      texel (a sign jump between two borders in it is no disagreement), in at least 99% of such
+      texels in every step;
+    - each step draws as many leaves, `polities.json`'s names not in parentheses, as Cliopatria has
+      rows valid in its year (the review queue), apart from the steps a correction changes, and
+      the steps holding 1000, 1500, 1800, 1815 and 1914 hold task 0's 126, 130, 121, 139 and 74;
+    - the overlap pairs no `overlap` correction acknowledges are listed with their steps (3.3).
+
+    On 30 September the 505 steps and 32 chunks decoded and checked in 8 s. The previews agreed on
+    351,425 of 351,621 texels and every step drew its rows' leaves; 23 pairs across 92 steps await
+    acknowledgement. Four borders run beside a lake shore for 53-77 km and fail the check, left to
+    the history pass: Lake Ladoga's west shore in 1936-44, where Cliopatria's Nazi Germany row holds
+    a chain of small pieces beside it; Lake Michigan's east shore in 1822-30, where the lower
+    peninsula is a stateless pocket the fill gives its neighbours, and Green Bay's in 1834-36; and
+    Lake Sevan in 1734, which the fill splits lengthwise between Georgia and the Ottomans, the line
+    passing its narrows [M]. The lake-shore rule (3.3) had removed the rest: before it, Lake Urmia's
+    west shore carried a border for 126 km.
 
   Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
   which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
@@ -2216,7 +2259,8 @@ and the release's `media` section lists every key the locks name (3.8).
   `work/surface-bake/global-verify-2026-09-28.json`]. The bound needs to account for those
   differences; rendered shading remains E2 work. The exact shared-vertex checks passed.
 
-  Re-verifying global needs `uv run prebuild --profile global coverage surface` first: the check
+  Re-verifying global needs `uv run prebuild --profile global coverage surface` first, and its
+  borders `uv run prebuild borders`, which takes the unchanged steps from its cache: each check
   requires the working tree's exact pipeline hash. It fails, naming the command, when the bake
   is missing or was built from other pipeline code, configs or pinned sources (7.2). It covers
   what the fixture never exercises: the overviews, global reads
@@ -2618,7 +2662,7 @@ Review items not taken as written, one line each:
   warning stays an author note for the 1815 field until Tambora moves onto the steps.
 - **Border steps on a grid of years, or folded (#80):** not taken. A grid shows states that had
   already ended in 29% of first-millennium years, and a fold hides 29 states, while a step at every
-  change year costs only storage, 0.37 GB for 505 steps.
+  change year costs only storage, 256 MB for 505 steps [M].
 - **Sparse border tiles (#80, Design 2):** not taken at 1024 texels, where two whole-field slots fit
   the GPU budget with one sampler and no indirection. They return if the fields go to 2048 texels,
   where two slots would reach the 320 MiB line.
