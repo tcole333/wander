@@ -38,10 +38,12 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["--strict-markers"]
+# Four workers, each taking whole files, so a module's bake runs once; -n 0 runs one process.
+addopts = ["--strict-markers", "-n", "4", "--dist", "loadfile"]
 
 [dependency-groups]
 dev = [
     "pytest==9.1.1",
+    "pytest-xdist==3.8.0",
     "ruff==0.16.9",
 ]
