@@ -18,8 +18,8 @@
 // turn on; the lake shores verify:bake has flagged, the Dead Kultuk and Chukotka across the
 // antimeridian; and Africa and the Americas in 1500. Writes <out>/shots/<view>-<year>.png (-none
 // without borders), <out>/<set>.png and <out>/<set>-detail.png, and <out>/shots.json: each
-// shot's camera, the step drawn, its year plate's words and any console problems. --view adds a
-// view of its own, in the given years, to the sheet `views` (a km of 0 is the widest view).
+// shot's camera, the step drawn and its first year, and any console problems. --view adds a view
+// of its own, in the given years, to the sheet `views` (a km of 0 is the widest view).
 import { chromium, type Browser } from '@playwright/test';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -222,7 +222,6 @@ interface Shot {
   path: string;
   step?: number;
   stepYear?: number;
-  plate?: string;
   camera?: ViewState;
   problems: string[];
 }
@@ -239,8 +238,8 @@ const firstDay = (year: number) => dayFromHistorical({ year, month: 1, day: 1 })
 /** The step that holds on 1 July of `year`, as borders/steps.ts's stepAt finds it. */
 const stepIn = (year: number) =>
   stepYears.findLastIndex((first) => firstDay(first) <= clockDay(year));
-/** The year plate's words, as borders/steps.ts's plateLabel writes them. */
-const plateLabel = (year: number) => `Borders · ${formatHistorical(firstDay(year), 'year')}`;
+/** A step's first year, as history writes it. */
+const stepLabel = (year: number) => `step ${formatHistorical(firstDay(year), 'year')}`;
 
 // Views asked for on the command line: one row each in the sheet `views`.
 const asked = values.view.map((spec) => {
@@ -359,10 +358,14 @@ async function render(browser: Browser): Promise<void> {
       );
       const shot: Shot = { view: name, year, path, camera, problems: problems.splice(0) };
       if (step !== null && step >= 0 && stepYear !== null) {
-        Object.assign(shot, { step, stepYear, plate: plateLabel(stepYear) });
+        Object.assign(shot, { step, stepYear });
       }
       report.set(path, shot);
-      console.log(path, shot.plate ?? 'no borders', shot.problems.length || '');
+      console.log(
+        path,
+        shot.stepYear === undefined ? 'no borders' : stepLabel(shot.stepYear),
+        shot.problems.length || '',
+      );
     }
   }
   await page.close();
@@ -398,9 +401,10 @@ async function sheets(browser: Browser): Promise<void> {
           if (!shot || !existsSync(shot.path)) {
             return `<figure><div class="cell"></div><figcaption>${title}, ${year}: not rendered</figcaption></figure>`;
           }
-          const plate = shot.stepYear === year ? shot.plate : `${shot.plate} (clock ${year})`;
+          const step = shot.stepYear === undefined ? 'no borders' : stepLabel(shot.stepYear);
+          const drawn = shot.stepYear === year ? step : `${step} (clock ${year})`;
           return `<figure><div class="cell"><img class="${detail ? 'centre' : 'half'}" src="${png(shot.path)}"></div>
-            <figcaption>${title}: ${plate}</figcaption></figure>`;
+            <figcaption>${title}: ${drawn}</figcaption></figure>`;
         });
         return `<div class="row"><div class="label">${row.label}</div>${cells.join('')}</div>`;
       });

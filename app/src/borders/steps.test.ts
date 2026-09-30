@@ -1,18 +1,9 @@
 // The border steps in time: which step holds on a day, across the calendar reform of 1582, the
-// year 0 and Cliopatria's first year, 3400 BCE; where a step's preview is; and the plate's words.
+// year 0 and Cliopatria's first year, 3400 BCE; and where a step's preview is.
 import { describe, expect, test } from 'vitest';
 import type { BorderStepsRelease } from '../data/release';
 import { dayFromCivil, dayFromJulian } from '../story/dates';
-import {
-  borderSteps,
-  cellOf,
-  chunkOf,
-  firstDay,
-  neighbours,
-  plateLabel,
-  stepAt,
-  StepsError,
-} from './steps';
+import { borderSteps, cellOf, chunkOf, firstDay, neighbours, stepAt, StepsError } from './steps';
 
 const YEARS = [-3399, -44, -1, 0, 1, 1581, 1582, 1583, 1815, 1817];
 
@@ -85,12 +76,6 @@ describe('a step', () => {
       { pair: 2, channel: 0 },
       { pair: 2, channel: 1 },
     ]);
-  });
-
-  test('names its year on the plate as history writes it', () => {
-    expect(plateLabel(1815)).toBe('Borders · 1815');
-    expect(plateLabel(-43)).toBe('Borders · 44 BCE');
-    expect(plateLabel(0)).toBe('Borders · 1 BCE');
   });
 });
 

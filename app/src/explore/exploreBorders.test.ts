@@ -1,16 +1,15 @@
 // Explore's borders over a stand-in for the border steps' runtime: they are wanted with previews
 // from the first frame and ease in over borderFade, at the view's width under the camera; the
-// preview chunks load when the dive lands; the plate names a step drawn from a slot and withdraws
-// while a preview stands in; leaving eases them out until they are no longer wanted; the script
-// hook turns them off and on; and ending empties the runtime.
+// preview chunks load when the dive lands; leaving eases them out until they are no longer wanted;
+// the script hook names the step drawn and turns them off and on; and ending empties the
+// runtime.
 import { PerspectiveCamera } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type { BordersFrame, StepShown } from '../borders/clockBorders';
 import { tunables } from '../config/tunables';
 import { FrameContext } from '../scene/frameContext';
-import type { BordersShown } from '../story/contract';
 import { EARTH_KM } from '../story/effects/geo';
-import { ExploreBorders, viewWidthKm, type Plate, type StepsRuntime } from './exploreBorders';
+import { ExploreBorders, viewWidthKm, type StepsRuntime } from './exploreBorders';
 
 /** A frame whose camera stands `altitude` globe radii above the surface, 16:10. */
 function frameAt(altitude: number): FrameContext {
@@ -32,12 +31,7 @@ function setup() {
       return shown;
     },
   };
-  const plated: (BordersShown | null)[] = [];
-  const plate: Plate = {
-    element: {} as HTMLElement,
-    update: (borders) => plated.push(borders),
-  };
-  const borders = new ExploreBorders(steps, plate);
+  const borders = new ExploreBorders(steps);
   const frame = frameAt(1);
   /** Runs `ms` of frames at 60 fps and returns the last one the runtime was given. */
   const run = (ms: number): BordersFrame => {
@@ -48,7 +42,6 @@ function setup() {
     borders,
     steps,
     frames,
-    plated,
     run,
     show: (next: StepShown | null) => (shown = next),
   };
@@ -80,15 +73,14 @@ describe("Explore's borders", () => {
     expect(steps.loadPreviews).toHaveBeenCalledTimes(1);
   });
 
-  it('name the step drawn on the plate, and withdraw it while a preview stands in', () => {
-    const { borders, plated, show } = setup();
+  it('name the step drawn, or a preview standing in, to scripts', () => {
+    const { borders, show } = setup();
     show({ year: 1815, strength: 1, preview: false });
-    borders.ui();
+    expect(borders.hook.shown()).toEqual({ year: 1815, strength: 1, preview: false });
     show({ year: 1830, strength: 1, preview: true });
-    borders.ui();
+    expect(borders.hook.shown()).toEqual({ year: 1830, strength: 1, preview: true });
     show(null);
-    borders.ui();
-    expect(plated).toEqual([{ year: 1815, strength: 1, preview: false }, null, null]);
+    expect(borders.hook.shown()).toBeNull();
   });
 
   it('ease out as the lobby takes the view back, then are no longer wanted', () => {

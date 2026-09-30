@@ -1,9 +1,9 @@
 // Explore's borders from the production build's lobby (dist/ under vite preview, on the fixture's
 // data server through ?data=, with ?explore): the fixture's border steps begin in 1815 and 1830.
-// The dive opens on Waterloo, where the 1815 step draws under its year plate; a scrub to 1830
-// changes the plate once the clock rests there; and back in the lobby, Tambora's sixth beat, the
-// first after the eruption to list borders, draws its step under the walk's plate, its images
-// answered by the media stage's test image. Nothing logs an error.
+// The dive opens on Waterloo, where the 1815 step draws from its slot with no plate of its own; a
+// scrub to 1830 draws that step once the clock rests there; and back in the lobby, Tambora's sixth
+// beat, the first after the eruption to list borders, draws its step under the walk's plate, its
+// images answered by the media stage's test image. Nothing logs an error.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { dayFromIso } from '../src/story/dates';
@@ -32,6 +32,14 @@ async function phase(page: Page, name: string): Promise<void> {
   await expect(page.locator('body')).toHaveAttribute('data-lobby', name);
 }
 
+/** The year of the step Explore draws from a slot at full strength, or null. */
+async function stepDrawn(page: Page): Promise<number | null> {
+  return page.evaluate(() => {
+    const shown = window.__borders?.shown();
+    return shown && !shown.preview && shown.strength > 0.999 ? shown.year : null;
+  });
+}
+
 test('draws the border steps in Explore as its clock moves, and in the Tambora walk', async ({
   page,
 }) => {
@@ -58,11 +66,11 @@ test('draws the border steps in Explore as its clock moves, and in the Tambora w
   await explorePlaque.scrollIntoViewIfNeeded();
   await explorePlaque.click();
   await phase(page, 'gone');
-  const plate = page.locator('.wu-explore .wu-borders.is-shown');
-  await expect(plate).toHaveText('Borders · 1815');
+  await expect.poll(() => stepDrawn(page), { timeout: TIMEOUT }).toBe(1815);
+  await expect(page.locator('.wu-explore .wu-borders')).toHaveCount(0);
 
   await page.evaluate((day) => window.__worldTime?.seek(day), dayFromIso('1830-07-01'));
-  await expect(plate).toHaveText('Borders · 1830');
+  await expect.poll(() => stepDrawn(page), { timeout: TIMEOUT }).toBe(1830);
 
   await page.keyboard.press('Escape');
   await phase(page, 'idle');

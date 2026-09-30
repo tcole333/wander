@@ -15,9 +15,9 @@
 // stops asking for events, eases their marks and the climate out and fades the sound to the room;
 // ending releases the clock, ruler, event worker and climate years and takes the marks off, so the
 // world clock has one owner at a time. Where the look holds the border steps, the borders follow
-// the clock from the dive on, under their year plate (exploreBorders.ts).
-// window.__worldTime, window.__exploreEvents, window.__exploreLabels and window.__borders serve
-// scripts while Explore runs.
+// the clock from the dive on (exploreBorders.ts), with no plate of their own: the ruler and the
+// Credits carry the dates. window.__worldTime, window.__exploreEvents, window.__exploreLabels and
+// window.__borders serve scripts while Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
@@ -175,7 +175,6 @@ export function startExplore({
   const layer = el('div', 'wu wu-explore wu-mode');
   const climate = look && release ? new ExploreClimate(look, release, clock, layer) : null;
   const borders = steps ? new ExploreBorders(steps) : null;
-  if (borders) layer.append(borders.element);
   const ruler = new CraftRuler(time);
   let client: EventClient | null;
   try {
@@ -311,7 +310,6 @@ export function startExplore({
     },
     ui(drawn, nowMs) {
       climate?.ui();
-      borders?.ui();
       labels?.update(nowMs);
       meanwhile?.update(drawn, clock.state());
       if (!events) return;
