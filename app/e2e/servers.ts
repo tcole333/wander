@@ -7,7 +7,8 @@ import { DATA_PORTS } from '../scripts/dataServer';
 // e2e's own ports, which no manual command defaults to (vite preview takes 4173, npm run data
 // 8791-8793), so a server someone started by hand never collides with a run. The run starts all
 // three itself and refuses one already listening: the e2e lock (scripts/slot.sh) lets one run at
-// a time use them.
+// a time use them, and slot.sh stops any server a killed run left there before the next starts.
+// Its WANDER_E2E_PORTS default names the same ports.
 export const PREVIEW_PORT = 6273;
 export const DEV_PORT = 6274;
 export const FIXTURE_DATA_PORT = 6275;

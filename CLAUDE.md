@@ -92,17 +92,18 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `npm run e2e[:gpu] -- --last-failed` reruns only the specs that failed.
 - `npm run fixture`, then `npm run e2e`: Playwright on SwiftShader, as in CI, where it must pass
   before a merge. Run it locally only to reproduce a CI SwiftShader failure, or before pushing a
-  change to walk pacing, e2e timeouts or the swiftshader project; it runs two workers here. It builds
-  `app/dist/` with `vite build` first, then takes the machine-wide e2e lock and a heavy-work slot
-  (`app/scripts/slot.sh`) and starts its own servers on :6273-6275, ports no manual command
-  defaults to; a server already listening there fails the run. The smoke tests run against that
-  build, on the fixture's data server through `?data=`, its story images answered by the media
-  stage's test image, and fail on any request to Wikimedia; the other tests run test-only pages
-  on the Vite dev server, reading the fixture from its data server, so none of it reaches the
-  build. Pass Playwright's arguments after `--` (`npm run e2e -- e2e/smoke.spec.ts`); a bare
-  `npx playwright test` skips the lock. Run `npx playwright install chromium` once first. CI runs
-  the specs as four parallel shards that `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>`
-  runs one, as its CI job does.
+  change to walk pacing, e2e timeouts or the swiftshader project; it runs two workers here. It
+  builds `app/dist/` with `vite build` first, then takes the machine-wide e2e lock and a heavy-work
+  slot (`app/scripts/slot.sh`) and starts its own servers on :6273-6275, ports no manual command
+  defaults to. Holding the lock, it first stops any server a killed run left there, so a port in
+  use after that is a run outside the lock; `lsof -nP -iTCP:6273-6275 -sTCP:LISTEN` names it. The
+  smoke tests run against that build, on the fixture's data server through `?data=`, its story
+  images answered by the media stage's test image, and fail on any request to Wikimedia; the other
+  tests run test-only pages on the Vite dev server, reading the fixture from its data server, so
+  none of it reaches the build. Pass Playwright's arguments after `--`
+  (`npm run e2e -- e2e/smoke.spec.ts`); a bare `npx playwright test` skips the lock. Run
+  `npx playwright install chromium` once first. CI runs the specs as four parallel shards that
+  `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>` runs one, as its CI job does.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only, and the e2e `npm run gate` runs before a push. It is the
   start of the GPU matrix (`docs/design/streaming.md` 7.3): when renderer, streaming or format

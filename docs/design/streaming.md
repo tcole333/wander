@@ -1864,24 +1864,25 @@ and the release's `media` section lists every key the locks name (3.8).
      build, which the script builds first, under `vite preview` on :6273, the Vite dev server on
      :6274 and `build/fixture` on :6275 with production headers, ports no manual command defaults
      to. Locally the script runs Playwright under a machine-wide lock (`app/scripts/slot.sh`), so
-     one run at a time holds those ports and the GPU; no run reuses a server already listening. It
-     checks: the one-frame render smoke test (8.1 step 0); zero key-check magenta at each beat once
-     ready; no new program after the lobby; landing at desired−1 or finer, no hold over `holdMax`,
-     and fetched object counts per beat within 10% of the plan (bytes reported); an injected 3 s
-     stall still lands; a seam depth scan; in-place context-loss restore decoding from the byte
-     cache with the network blocked, and a reload with `?s&b` landing on the Continue plate; no
-     request to the Pages origin after boot; each L0 URL fetched once (the preload is used); every
-     label renders; reduced motion, the article page and the no-WebGL2 redirect; the pool smoke test
-     (5.5); and the surface vertex readback (5.6). The pool and readback tests run test-only pages
-     on the Vite dev server, not the production build, so nothing of them reaches the bundle. CI
-     runs it as four E2E jobs, one per shard that `app/e2e/shards.ts` names from the specs' CI
-     times: `magellan` (story-selection), `lobby` (lobby-round-trip, globe-mesh), `explore`
-     (explore-entry, marks) and `rest`, every spec the others do not name, so a new spec lands
-     there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD`
-     picks one; unset, every spec runs. Each job runs one test at a time, since two SwiftShader
-     walks starve a four-core runner, and builds its own dist, recording its sha256. The dev server
-     scans the test pages at startup (`optimizeDeps.entries`), so each job's cold server bundles
-     their imports before a test loads them.
+     one run at a time holds those ports and the GPU, and stops any server a killed run left on
+     them first; no run reuses a server already listening. It checks: the one-frame render smoke
+     test (8.1 step 0); zero key-check magenta at each beat once ready; no new program after the
+     lobby; landing at desired−1 or finer, no hold over `holdMax`, and fetched object counts per
+     beat within 10% of the plan (bytes reported); an injected 3 s stall still lands; a seam depth
+     scan; in-place context-loss restore decoding from the byte cache with the network blocked, and
+     a reload with `?s&b` landing on the Continue plate; no request to the Pages origin after boot;
+     each L0 URL fetched once (the preload is used); every label renders; reduced motion, the
+     article page and the no-WebGL2 redirect; the pool smoke test (5.5); and the surface vertex
+     readback (5.6). The pool and readback tests run test-only pages on the Vite dev server, not
+     the production build, so nothing of them reaches the bundle. CI runs it as four E2E jobs, one
+     per shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan`
+     (story-selection), `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks)
+     and `rest`, every spec the others do not name, so a new spec lands there; a Vitest test holds
+     `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec
+     runs. Each job runs one test at a time, since two SwiftShader walks starve a four-core runner,
+     and builds its own dist, recording its sha256. The dev server scans the test pages at startup
+     (`optimizeDeps.entries`), so each job's cold server bundles their imports before a test loads
+     them.
      - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
        in the decode workers, uploads it through the upload queue into the real pools, packs every
        mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
