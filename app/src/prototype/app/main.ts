@@ -17,9 +17,10 @@
 // production page does. ?memory=1 installs window.__wanderMemory() (perf/memoryHook.ts), as on
 // the production page.
 //
-// ?markDemo, without a story, boots in Explore with its marks cut into the look and sets the demo's
-// (markDemo.ts), without the event index, so Explore's own event marks stay off; the panel gains a
-// Marks folder, and ?markVariant=0-3, ?marks=0 and the other marks params apply.
+// ?markDemo boots in Explore with its marks cut into the look and sets the demo's (markDemo.ts),
+// without the event index, so Explore's own event marks stay off; the panel gains a Marks folder,
+// and ?markVariant=0-3, ?marks=0 and the other marks params apply. The marks compile only where
+// Explore stands, so ?markDemo with ?story stops the page, naming the conflict.
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';
@@ -100,6 +101,9 @@ async function main(): Promise<void> {
   const query = new URLSearchParams(location.search);
   const showUi = query.get('ui') !== '0';
   const source = storyNamed(query.get('story'));
+  if (source && query.has('markDemo')) {
+    throw new Error('?markDemo runs in Explore, where the marks compile: drop ?story');
+  }
   const data = await pickData(query.get('data'));
   const releaseUrl = `${DATA_SERVERS[data] ?? data}/release.json`;
   const response = await fetch(releaseUrl);
