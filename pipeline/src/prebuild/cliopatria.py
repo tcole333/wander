@@ -27,9 +27,10 @@ year here is astronomical.
   touches the sea loses its parts narrower than 2·`sliverKm` to the polity nearest them (an opening
   on an equal-area projection about the piece). One that does not, a hole in the polities, is
   filled as the land of the state around it when the drawn land it touches is all one outer unit's
-  (owner decision 38); one between states goes to its neighbours when it touches a lake and is
-  under `pocketKm2`, or when it is narrower than 2·`sliverKm` throughout. The bake fills a pocket
-  that touches a polity from the polities alone, since across a lake stateless land can lie
+  (owner decision 38): the bake fills it from that state's land alone, since across a lake another
+  state's can lie nearer. One between states goes to its neighbours when it touches a lake and is
+  under `pocketKm2`, or when it is narrower than 2·`sliverKm` throughout: the bake fills such a
+  pocket that touches a polity from the polities alone, since across a lake stateless land can lie
   nearer. Other holes between states stay stateless, since they may be real stateless enclaves; a
   `pocket` correction overrides the rules, for a coastal piece too, and is how a place really
   without a state inside one stays stateless.
@@ -754,6 +755,9 @@ class Part:
     geometry: shapely.Geometry
 
 
+type Holes = tuple[tuple[str, shapely.Geometry], ...]  # an outer unit's name and its holes
+
+
 @dataclass(frozen=True)
 class Selection:
     year: int
@@ -762,8 +766,10 @@ class Selection:
     applied: frozenset[int]  # the corrections, by index in Config.corrections, that changed it
     unacknowledged: tuple[tuple[str, str], ...]  # pairs past duplicateShare no correction names
     report: dict[str, Any]
-    # The pockets given that touch a polity, which the bake fills from the polities alone.
+    # The other pockets given that touch a polity, which the bake fills from the polities alone.
     pockets: shapely.Geometry = field(default_factory=shapely.MultiPolygon)
+    # The holes inside one state, by its outer unit, which the bake fills from that unit's land.
+    holes: Holes = ()
 
     def outers(self) -> dict[str, str]:
         """Each drawn polity's outer unit."""
@@ -786,7 +792,7 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     drawn, overlaps, unacknowledged = _overlaps(year, leaves, config, active, applied)
     held = shapely.union_all(list(leaves.values())) if leaves else shapely.Polygon()
     pockets = [(k, c.op) for k, c in active if isinstance(c.op, Pocket)]
-    stateless, filled, unclaimed = _stateless(
+    stateless, filled, holes, unclaimed = _stateless(
         held, drawn, outer, terrain, config.rules, pockets, applied
     )
     parts, minor = _parts(drawn, outer, config.rules)
@@ -808,7 +814,9 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
         "overlaps": overlaps,
         "stateless": unclaimed,
     }
-    return Selection(year, parts, stateless, frozenset(applied), unacknowledged, report, filled)
+    return Selection(
+        year, parts, stateless, frozenset(applied), unacknowledged, report, filled, holes
+    )
 
 
 def _names_of(op: Operation) -> set[str]:
@@ -1157,10 +1165,10 @@ def _stateless(
     rules: Rules,
     pockets: Sequence[tuple[int, Pocket]],
     applied: set[int],
-) -> tuple[shapely.Geometry, shapely.Geometry, dict[str, Any]]:
-    """The stateless land kept, the pockets given that touch a polity, and what the rules did with
-    the rest. A pocket that touches none, an island in a lake among stateless shores, is left to
-    the fill, as the sea is."""
+) -> tuple[shapely.Geometry, shapely.Geometry, Holes, dict[str, Any]]:
+    """The stateless land kept, the other pockets given that touch a polity, the holes inside one
+    state by its outer unit, and what the rules did with the rest. A pocket that touches no polity,
+    an island in a lake among stateless shores, is left to the fill, as the sea is."""
     free = shapely.difference(terrain.dry, held)
     pieces = parts_of_dimension(free, 2)
     sea = _touching(pieces, terrain.coast)
@@ -1174,6 +1182,7 @@ def _stateless(
             overrides[holding[0]] = (pocket.stateless, k)
     shapely.prepare(held)
     kept, given, enclosed, filled = [], [], [], []
+    holes: dict[str, list[shapely.Geometry]] = {}
     sliver_km2 = 0.0
     radius = rules.sliver_km
     for i, piece in enumerate(pieces):
@@ -1223,10 +1232,11 @@ def _stateless(
                 enclosed.append(entry)
         else:
             entry = {"km2": round(area), "at": where, "rule": rule}
+            given.append(entry)
             if rule == "state":
                 entry["state"] = states[i][0]
-            given.append(entry)
-            if shapely.dwithin(piece, held, TOUCH_DEG):
+                holes.setdefault(states[i][0], []).append(piece)
+            elif shapely.dwithin(piece, held, TOUCH_DEG):
                 filled.append(piece)
     report = {
         "pieces": int(pieces.size),
@@ -1245,7 +1255,8 @@ def _stateless(
     }
     stateless = shapely.multipolygons(kept) if kept else shapely.MultiPolygon()
     pocketed = shapely.multipolygons(filled) if filled else shapely.MultiPolygon()
-    return stateless, pocketed, report
+    inside = tuple((unit, shapely.multipolygons(holes[unit])) for unit in sorted(holes))
+    return stateless, pocketed, inside, report
 
 
 def _enclosing(

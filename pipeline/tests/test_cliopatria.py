@@ -297,8 +297,11 @@ def test_a_hole_inside_one_state_is_that_states_land_whatever_its_size(terrain):
     chosen = select(rows, terrain)
     assert not stateless_at(chosen, -14.75, -2.75)
     assert not stateless_at(chosen, 10, 0)
-    assert shapely.intersects(chosen.pockets, shapely.Point(-14.75, -2.75))
-    assert shapely.intersects(chosen.pockets, shapely.Point(10, 0))
+    [(state, holes)] = chosen.holes
+    assert state == "Realm"
+    assert shapely.intersects(holes, shapely.Point(-14.75, -2.75))
+    assert shapely.intersects(holes, shapely.Point(10, 0))
+    assert shapely.is_empty(chosen.pockets)
     assert chosen.report["stateless"]["enclosed"] == []
     assert chosen.report["stateless"]["byRule"]["state"] == 2
     assert [(p["rule"], p["state"]) for p in chosen.report["stateless"]["largePockets"]] == [
@@ -318,6 +321,18 @@ def test_a_hole_among_one_empires_members_is_the_empires_land(terrain):
     assert not stateless_at(chosen, 0, 4)
     (filled,) = chosen.report["stateless"]["largePockets"]
     assert (filled["rule"], filled["state"]) == ("state", "(Empire)")
+
+
+def test_a_hole_inside_one_state_by_a_lake_is_its_land_though_another_holds_the_far_shore(
+    terrain,
+):
+    # Realm leaves a hole on the lake's west shore, and Other holds a block on its east shore.
+    hole, other = box(-3, -1, -1, 1), box(1, -1, 3, 1)
+    rows = [row("Realm", shapely.difference(LAND, shapely.union(hole, other))), row("Other", other)]
+    chosen = select(rows, terrain)
+    [(state, holes)] = chosen.holes
+    assert state == "Realm" and shapely.intersects(holes, shapely.Point(-2, 0))
+    assert not shapely.intersects(chosen.pockets, shapely.Point(-2, 0))
 
 
 def test_a_cited_correction_keeps_a_hole_inside_one_state_stateless(terrain):
@@ -386,14 +401,15 @@ def test_a_pocket_correction_overrides_the_rule(terrain):
     assert kept.applied == {0}
 
 
-def test_a_pocket_that_touches_a_polity_is_filled_from_the_polities(terrain):
-    # A ring around the lake is a pocket beside Realm; an island in a second lake, in stateless
-    # land, touches no polity and is left to the fill.
+def test_a_pocket_between_states_that_touches_a_polity_is_filled_from_the_polities(terrain):
+    # A ring around the lake is a pocket between West and East; an island in a second lake, in
+    # stateless land, touches no polity and is left to the fill.
     lakes = shapely.union(LAKE, box(14, -1, 16, 1))
     land = shapely.difference(LAND, box(14.3, -0.3, 15.7, 0.3))
     islands = clio.Terrain.of(shapely.union(land, box(14.8, -0.2, 15.2, 0.2)), lakes)
-    rows = [row("Realm", shapely.difference(box(-20, -10, 10, 10), box(-1.5, -1.5, 1.5, 1.5)))]
+    rows = split(shapely.difference(box(-20, -10, 10, 10), box(-1.5, -1.5, 1.5, 1.5)))
     chosen = select(rows, islands)
+    assert chosen.holes == ()
     assert shapely.intersects(chosen.pockets, shapely.Point(1.25, 0))
     assert not shapely.intersects(chosen.pockets, shapely.Point(15, 0))
     assert not stateless_at(chosen, 15, 0)
