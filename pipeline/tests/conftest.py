@@ -33,8 +33,11 @@ def no_raw_data(monkeypatch, tmp_path_factory):
 
 @pytest.fixture(autouse=True)
 def own_cache(monkeypatch, tmp_path_factory):
-    """Each test has a fixture store of its own: WANDER_CACHE names a folder no other test uses."""
+    """Each test has a fixture store of its own: WANDER_CACHE names a folder no other test uses.
+    CI is unset so that the store exists on CI too, where the prebuild keeps none; the test of
+    that sets CI itself."""
     monkeypatch.setenv("WANDER_CACHE", str(tmp_path_factory.getbasetemp() / uuid.uuid4().hex))
+    monkeypatch.delenv("CI", raising=False)
 
 
 @pytest.fixture(scope="session")
