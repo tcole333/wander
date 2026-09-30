@@ -631,3 +631,228 @@ corrections:
       title: Kingdom of Greece
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Kingdom_of_Greece
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, or a place without a state kept stateless, each cited (owner decision 38).
+  - years: [1805, 1810]
+    pocket:
+      at: [40.94, 32.5]
+      stateless: true
+    why: &syrian-desert >-
+      The Syrian Desert west of the Euphrates (Rutba, Nukhayb, the Hamad) was the range of the camel
+      tribes, the Aneza and Shammar, who had moved north out of Najd partly to escape the Wahhabi
+      movement, saw themselves as no subjects of the Sultan, paid no taxes and were regarded as
+      free; only the sheep-herding tribes on the settled margins paid Ottoman taxes. Cliopatria
+      itself leaves this desert empty in every other step before the mandates. The 1811 step, whose
+      outline differs, is left for review.
+    source: &chatty
+      title: 'The Bedouin in Contemporary Syria: The Persistence of Tribal Authority and Control'
+      publisher: Middle East Journal
+      url: https://www.ou.edu/mideast/Additional%20pages%20-%20non-catagory/Chatty_Tribes_of_Syria_2010_MEJpdf.pdf
+      locator: vol. 64, no. 1 (2010), pp. 30-31
+  - years: [1812, 1819]
+    pocket:
+      at: [40.94, 32.5]
+      stateless: true
+    why: *syrian-desert
+    source: *chatty
+  - years: [1814, 1819]
+    pocket:
+      at: [-61.28, -26.66]
+      stateless: true
+    why: >-
+      The Chaco south of the Bermejo (today's Chaco province, northern Santa Fe and eastern Santiago
+      del Estero) was held by its own peoples, who defeated Spanish and Portuguese attempts to
+      control it and kept their independence; Argentina's conquest began about 1870 and was declared
+      finished in 1917. Cliopatria draws the same land as Río de la Plata in 1811-1813 and from
+      1820, a claim rather than rule.
+    source:
+      title: Conquista del Chaco (Argentina)
+      publisher: Wikipedia (Spanish)
+      url: https://es.wikipedia.org/wiki/Conquista_del_Chaco_(Argentina)
+  - years: [1822, 1913]
+    pocket:
+      at: [94.4, 27.96]
+      stateless: true
+    why: >-
+      The hills north of the Brahmaputra from Bhutan to the Siang (Itanagar, Ziro, Daporijo, Along,
+      Seppa), with the Lohit and Patkai hills east of them in 1825-1827, lay largely outside the
+      direct rule of Assam's valley kingdoms and of Tibet, governed by their own communities under
+      customary law, clan authority, village councils and chiefs; the Adi and Mishmi kept
+      independent chiefdoms. British administration began only with the frontier tracts of 1912-1913
+      and the McMahon Line of 1914. In 1828-1833 the Upper Assam plains south of them, which
+      Cliopatria leaves out, are drawn British.
+    source:
+      title: Arunachal Pradesh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Arunachal_Pradesh
+      locator: History
+  - years: [1825, 1825]
+    pocket:
+      at: [93.92, 24.79]
+      to: Burma
+      shape_from: {polity: Burma, year: 1824}
+    why: >-
+      On 1 January 1825 the Manipur valley was still under Burmese occupation: Gambhir Singh drove
+      the Burmese out and began his reign only in June 1825. Cliopatria draws it Burmese to 1824;
+      the northern Lushai hills in the same hole, under no state, stay stateless.
+    source:
+      title: Gambhir Singh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gambhir_Singh
+  - years: [1828, 1833]
+    pocket:
+      at: [94.47, 27.0]
+      to: British Empire
+      shape: assam-1827.geojson
+    why: >-
+      After the Treaty of Yandabo (1826) the British were masters of the Brahmaputra valley, and
+      they restored Upper Assam to Purandar Singha as a protected prince only in April 1833.
+      Cliopatria's British shape leaves the plains from Golaghat to Sadiya out in 1828-1833; they
+      take its shape of 1827, clipped to the valley, and the hills north of them stay stateless.
+    source:
+      title: Purandar Singha
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Purandar_Singha
+  - years: [1846, 1847]
+    pocket:
+      at: [-97.29, 35.7]
+      to: United States of America
+    why: >-
+      Indian Territory and the Osage lands (Tulsa, Oklahoma City, Fort Gibson, Wichita) were land
+      the United States set aside for the removed nations, its borders set by the Indian Intercourse
+      Act of 1834: never an organized territory, but the United States'. Cliopatria draws it so from
+      1866.
+    source:
+      title: Indian Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Indian_Territory
+  - years: [1864, 1865]
+    pocket:
+      at: [13.4, 52.52]
+      to: Kingdom of Prussia
+      shape_from: {polity: German Confederation, year: 1863}
+    why: &prussia >-
+      Cliopatria draws Prussia under the name German Confederation until 1863 and not at all from
+      1864 to 1870, so its land stood stateless: the Rhine Province and Westphalia enclosed by the
+      states around them, the rest along the coast. Prussia's provinces are drawn as the Kingdom of
+      Prussia in 1864-1865, from Cliopatria's shape of 1863 where the land reaches the coast and
+      whole where a hole lies inside it; after the annexations of 1866 its shape waits for review.
+    source: &prussia-source
+      title: Provinces of Prussia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Provinces_of_Prussia
+  - years: [1864, 1865]
+    pocket:
+      at: [6.58, 50.89]
+      to: Kingdom of Prussia
+    why: *prussia
+    source: *prussia-source
+  - years: [1877, 1879]
+    pocket:
+      at: [-103.3, 47.53]
+      to: United States of America
+    why: >-
+      Western North Dakota and eastern Montana, to the Canadian line, lay in Dakota Territory, which
+      had the present Dakotas' bounds by 1868, and in Montana Territory. Cliopatria's United States
+      leaves the land out until 1880.
+    source:
+      title: Dakota Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dakota_Territory
+  - years: [1877, 1884]
+    pocket:
+      at: [28.08, -29.6]
+      to: British Cape Colony
+    why: >-
+      Basutoland, British from 12 March 1868, was annexed to the Cape Colony by the Cape's Act of
+      1871 and ruled from the Cape until the Order in Council that took effect on 18 March 1884
+      returned it to the Crown. Cliopatria's Cape leaves it out.
+    source:
+      title: Basutoland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Basutoland
+  - years: [1877, 1904]
+    pocket:
+      at: [-59.47, 3.68]
+      stateless: true
+    why: >-
+      The Pirara, between the Takutu, the Ireng and the Rupununi, was neutralized in 1842 when
+      Brazil proposed and Britain accepted that neither hold it until the dispute was settled, and
+      its peoples were independent; the King of Italy's award of 1904 divided it.
+    source:
+      title: Questão do Pirara
+      publisher: Wikipedia (Portuguese)
+      url: https://pt.wikipedia.org/wiki/Quest%C3%A3o_do_Pirara
+  - years: [1895, 1910]
+    pocket:
+      at: [19.67, -15.27]
+      to: Kingdom of Portugal
+    why: &angola >-
+      South-eastern Angola (Menongue, Cuito Cuanavale, Mavinga) lay on the Portuguese side of every
+      line of the period: the German-Portuguese declaration of 1886 in the south, the
+      Anglo-Portuguese modus vivendi of 1893 on the Zambezi and the Kabompo, and from 1905 the King
+      of Italy's award on the Kwando and 22°E, the hole's eastern edge. Cliopatria draws it
+      Portuguese from 1914.
+    source: &ibs119
+      title: 'International Boundary Study No. 119: Angola – Zambia Boundary'
+      publisher: Office of the Geographer, US Department of State
+      url: https://library.law.fsu.edu/Digital-Collections/LimitsinSeas/pdf/ibs119.pdf
+  - years: [1911, 1913]
+    pocket:
+      at: [19.67, -15.27]
+      to: Portuguese Republic
+    why: *angola
+    source: *ibs119
+  - years: [1900, 1904]
+    pocket:
+      at: [4.16, 10.35]
+      to: British Africa
+    why: >-
+      Borgu west of the Niger was divided between Britain and France in 1898, and the British half
+      became part of the Northern Nigeria Protectorate; Cliopatria's British Africa takes it in from
+      1905.
+    source:
+      title: Borgu
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Borgu
+  - years: [1900, 1904]
+    pocket:
+      at: [7.06, 7.54]
+      to: British Africa
+      shape_from: {polity: British Africa, year: 1905}
+    why: >-
+      The band from Lokoja on the Niger to southern Chad, which Cliopatria leaves empty until 1905
+      and then splits among the three colonies as the partition treaties drew them, takes that split
+      in 1900. Its western part, Nigeria's Middle Belt, came under the British government on 1
+      January 1900, when it revoked the Royal Niger Company's charter; Lokoja was the protectorate's
+      capital from 1900.
+    source:
+      title: Northern Nigeria Protectorate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Northern_Nigeria_Protectorate
+  - years: [1900, 1904]
+    pocket:
+      at: [14.16, 6.96]
+      to: German Africa
+      shape_from: {polity: German Africa, year: 1905}
+    why: >-
+      The middle of the band, the southern fringe of Adamawa, lay in Kamerun, whose line with the
+      French sphere France and Germany drew roughly in 1885 and more precisely in 1894. It takes
+      Cliopatria's German shape of 1905.
+    source:
+      title: Cameroon–Chad border
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Cameroon%E2%80%93Chad_border
+  - years: [1900, 1904]
+    pocket:
+      at: [18.09, 9.28]
+      to: French Africa
+      shape_from: {polity: French Africa, year: 1905}
+    why: >-
+      The east of the band, the Sara country of southern Chad (Moundou, Doba, Sarh), was France's:
+      Émile Gentil founded Fort Archambault, today's Sarh, on the Chari in 1897. It takes
+      Cliopatria's French shape of 1905.
+    source:
+      title: Sarh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sarh
