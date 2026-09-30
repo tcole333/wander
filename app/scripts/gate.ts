@@ -17,7 +17,7 @@ import { homedir } from 'node:os';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { git, inert, mergeBase, REPO, under } from './changes.ts';
+import { diffPaths, git, inert, mergeBase, REPO, under } from './changes.ts';
 import { localRelease } from './release.ts';
 
 export type Step =
@@ -142,7 +142,7 @@ function main(): number {
   }
   const tree = git(['rev-parse', 'HEAD^{tree}']);
   const base = mergeBase();
-  const changed = git(['diff', '--name-only', base, 'HEAD']).split('\n').filter(Boolean);
+  const changed = diffPaths(base, 'HEAD');
   const plan = planGate(changed, values.swiftshader);
   console.log(`gate: ${changed.length} paths changed since ${base.slice(0, 12)}`);
   const ran: Ran[] = [];

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { assertFixtureFresh, REPO_ROOT } from '../src/test/fixture';
 import { treeSha } from '../src/test/stamp.ts';
+import { changedSince, diffPaths } from './changes.ts';
 import { planGate, sameFixture, treeShaAt } from './gate.ts';
 
 const HOOK = fileURLToPath(new URL('../../.githooks/pre-push', import.meta.url));
@@ -73,6 +74,30 @@ function write(root: string, path: string, text: string): void {
   writeFileSync(join(root, path), text);
 }
 
+describe('a move', () => {
+  const moved = () => {
+    const { root, run } = repository();
+    write(root, 'app/x.ts', 'x');
+    write(root, 'docs/a.md', 'a');
+    run('add', '-A');
+    run('commit', '-q', '-m', 'base');
+    const base = run('rev-parse', 'HEAD');
+    run('mv', 'app/x.ts', 'docs/x.md');
+    return { root, run, base };
+  };
+
+  test('counts as a committed change at both its ends', () => {
+    const { root, run, base } = moved();
+    run('commit', '-q', '-m', 'move');
+    expect(diffPaths(base, 'HEAD', root)).toEqual(['app/x.ts', 'docs/x.md']);
+  });
+
+  test('counts as a change in the working tree at both its ends', () => {
+    const { root, base } = moved();
+    expect(changedSince(base, root)).toEqual(['app/x.ts', 'docs/x.md']);
+  });
+});
+
 test('treeShaAt hashes a commit’s files as the stamp hashes the working tree', () => {
   const { root, run } = repository();
   write(root, 'pipeline/src/a.py', 'a = 1\n');
@@ -122,6 +147,12 @@ describe('the pre-push hook', () => {
       expect(pushed.stderr).toContain('has not passed npm run gate');
     },
   );
+
+  test('refuses moving an app file into docs/ without a gate record', () => {
+    run('mv', 'app/x.ts', 'docs/x.md');
+    run('commit', '-q', '-m', 'move');
+    expect(push(run('rev-parse', 'HEAD')).status).toBe(1);
+  });
 
   test('lets a commit through once the gate recorded its tree', () => {
     const sha = commit('app/x.ts');
