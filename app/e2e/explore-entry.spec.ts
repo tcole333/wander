@@ -1,9 +1,10 @@
 // Explore from the production build's lobby (dist/ under vite preview, on the fixture's data server
-// through ?data=). Without ?explore the lobby shows the stories' plaques alone; with it, Explore's
-// plaque stands last, dives into free time over its opening, where the now window's events mark
-// the globe and the ruler scrubs the world clock, and WANDER or Escape returns to the lobby.
-// Nothing logs an error, no request goes to Wikimedia, and once the room opens nothing more is
-// fetched from the app's own host.
+// through ?data=). The fixture's release names its event index, so Explore's plaque stands last; it
+// dives into free time over its opening, where the now window's events mark the globe and the ruler
+// scrubs the world clock, and WANDER or Escape returns to the lobby. A release that names no event
+// index, as the bundled one does until the event files are published, shows the stories' plaques
+// alone. Nothing logs an error, no request goes to Wikimedia, and once the room opens nothing more
+// is fetched from the app's own host.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import type { ExploreEventsHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
@@ -47,9 +48,18 @@ async function openLobby(page: Page, query: string): Promise<void> {
   await phase(page, 'idle');
 }
 
-test('shows no Explore plaque without the flag', async ({ page }) => {
+test('shows no Explore plaque where the release names no event index', async ({ page }) => {
   test.setTimeout(240_000);
   const { errors, wikimedia } = watch(page);
+  // The fixture's release without its event index, as the bundled release stands until the event
+  // files are published.
+  await page.route(`${DATA_URL.fixture}/release.json`, async (route) => {
+    const response = await route.fetch();
+    const release = (await response.json()) as { events?: unknown };
+    expect(release.events).toBeDefined();
+    delete release.events;
+    await route.fulfill({ response, json: release });
+  });
   await markOpening(page);
   await openLobby(page, '');
   await expect(page.locator('.lobby-plaque[data-story]')).toHaveCount(2);
@@ -60,13 +70,13 @@ test('shows no Explore plaque without the flag', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('dives into Explore, scrubs the clock and returns, by WANDER and by Escape', async ({
+test('shows Explore’s plaque last, dives in, scrubs and returns by WANDER and Escape', async ({
   page,
 }) => {
   test.setTimeout(600_000);
   const { errors, wikimedia } = watch(page);
   await markOpening(page);
-  await openLobby(page, '&explore&opening=Q48314');
+  await openLobby(page, '&opening=Q48314');
 
   const plaque = page.locator('.lobby-plaque[data-choice="explore"]');
   await expect(page.locator('.lobby-plaque')).toHaveCount(3);
