@@ -554,7 +554,7 @@ def test_a_file_the_borders_do_not_read_fails(tmp_path):
         clio.load_config(folder)
 
 
-# The fixture's steps and the polities ----------------------------------------------------------
+# The fixture's steps, the polities and the review queue ----------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -603,3 +603,35 @@ def test_a_polity_lists_a_run_of_steps_for_each_outer_unit_it_is_drawn_in():
         [1840, 1840, "(Empire)"],
     ]
     assert document["(Empire)"]["steps"] == [[1810, 1820, "(Empire)"], [1840, 1840, "(Empire)"]]
+
+
+def test_names_that_vanish_and_return_are_listed_with_the_years_they_are_gone():
+    rows = [
+        row("Duchy", box(0, 0, 1, 1), 1500, 1509),
+        row("Duchy", box(0, 0, 1, 1), 1520, 1530),
+        row("Duchy", box(0, 0, 1, 1), 1531, 1540),
+        row("(League)", box(0, 0, 1, 1), 1500, 1501),
+        row("(League)", box(0, 0, 1, 1), 1510, 1520),
+    ]
+    assert clio.returns(clio.Cliopatria(tuple(rows), None)) == [
+        {"polity": "Duchy", "gone": [1510, 1519]}
+    ]
+
+
+def test_the_review_queue_gathers_the_pairs_and_unclassified_entries_over_the_steps(terrain):
+    rows = [
+        row("Colony", box(0, 0, 4, 4), 1800, 1815),
+        row("Republic", box(0, 0, 4, 4.5), 1800, 1815),
+        row("(States)", box(0, 0, 4, 4.5), 1810, 1815, components=["Colony"]),
+    ]
+    source = clio.Cliopatria(tuple(rows), None)
+    settings = config()
+    years = clio.step_years(source, settings)
+    reports = {y: clio.select(y, source, settings, terrain).report for y in years}
+    queue = clio.review_queue(source, settings, years, reports, {1816: "fails"}, [])
+    assert queue["steps"] == [1800, 1810, 1816]
+    assert queue["failed"] == [{"year": 1816, "error": "fails"}]
+    assert queue["unclassified"]["composites"] == [{"name": "(States)", "steps": [[1810, 1810]]}]
+    (pair,) = queue["overlaps"]["unacknowledged"]
+    assert pair["polities"] == ["Colony", "Republic"]
+    assert pair["steps"] == pair["duplicate"] == pair["unacknowledged"] == [1800, 1810]

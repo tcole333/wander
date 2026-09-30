@@ -36,14 +36,28 @@ year here is astronomical.
 Polity ids number the sorted names of every POLITY row and every name a correction draws, from 2;
 stateless land is 1 and 0 means none. The fixture reads the committed excerpt, the POLITY rows
 valid in its two years, and selects only those years.
+
+    uv run python -m prebuild.cliopatria [--profile global|region|fixture] [--jobs N]
+
+selects every step and writes the review queue `build/stages/<profile>/borders-review.json`: the
+steps that fail and the corrections that leave a step unchanged, the unclassified composites and
+relations, the members whose composite is not valid, the overlap pairs, the names that vanish and
+return, and each step's leftovers, pockets given and stateless pieces kept. It exits 1 when a step
+fails or a correction leaves a step unchanged, after writing the queue.
 """
 
+import argparse
 import hashlib
+import itertools
 import json
 import math
+import multiprocessing
 import re
+import sys
+import time
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -65,7 +79,8 @@ from prebuild.natural_earth import (
     records,
 )
 from prebuild.paths import config_dir, excerpts_dir
-from prebuild.profiles import Context, Profile
+from prebuild.profiles import Context, Profile, default_jobs, make_context
+from prebuild.records import write_json
 from prebuild.sources import SourceUnavailable, verified_path
 
 SOURCE = "cliopatria"  # the source id in sources.toml
@@ -99,6 +114,7 @@ PIECE_GAP_DEG = 0.01  # parts of one outer unit this close are one piece
 OPENING_TOLERANCE_KM = 2.0  # the stateless openings simplify coasts this far
 POLE_LAT = 89.9  # a stateless piece reaching this far north or south is never opened
 LARGE_POCKET_KM2 = 1000  # the review queue lists pockets this large one by one, and counts the rest
+REVIEW = "borders-review.json"
 
 
 class SelectionError(ValueError):
@@ -1209,7 +1225,7 @@ def _opening(piece: shapely.Geometry, radius_km: float) -> shapely.Geometry:
     return polygons(shapely.intersection(piece, reach))
 
 
-# Coverage and polities -------------------------------------------------------------------------
+# Coverage, polities and the review queue --------------------------------------------------------
 
 
 def unchanged(
@@ -1256,3 +1272,204 @@ def polities_document(
         name: {"id": ids[name], "wikidata": wikidata.get(name, []), "steps": runs[name]}
         for name in sorted(runs)
     }
+
+
+def returns(source: Cliopatria) -> list[dict[str, Any]]:
+    """Each time a polity's rows stop and later resume: its name and the years it is gone."""
+    spans: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    for row in source.rows:
+        if row.polity and not row.composite:
+            spans[row.name].append((row.first, row.last))
+    gone = []
+    for name, found in sorted(spans.items()):
+        found.sort()
+        for (_, last), (first, _) in itertools.pairwise(found):
+            if first > last + 1:
+                gone.append({"polity": name, "gone": [last + 1, first - 1]})
+    return gone
+
+
+def review_queue(
+    source: Cliopatria,
+    config: Config,
+    years: Sequence[int],
+    reports: Mapping[int, dict[str, Any]],
+    failed: Mapping[int, str],
+    errors: Sequence[str],
+) -> dict[str, Any]:
+    """What the history pass reviews, gathered over every step."""
+    unclassified: dict[str, dict[str, list[int]]] = {"composites": {}, "relations": {}}
+    unsettled: dict[tuple[str, tuple[str, ...]], list[int]] = defaultdict(list)
+    pairs: dict[tuple[str, str], dict[str, Any]] = {}
+    for year in years:
+        report = reports.get(year)
+        if report is None:
+            continue
+        for kind in ("composites", "relations"):
+            for name in report["unclassified"][kind]:
+                unclassified[kind].setdefault(name, []).append(year)
+        for entry in report["unsettled"]:
+            unsettled[(entry["polity"], tuple(entry["memberOf"]))].append(year)
+        for overlap in report["overlaps"]:
+            key = tuple(overlap["polities"])
+            seen = pairs.setdefault(
+                key,
+                {
+                    "polities": list(key),
+                    "steps": [],
+                    "duplicate": [],
+                    "unacknowledged": [],
+                    "km2": 0,
+                    "share": 0.0,
+                    "winners": [],
+                },
+            )
+            seen["steps"].append(year)
+            if overlap["duplicate"]:
+                seen["duplicate"].append(year)
+                if not overlap["acknowledged"]:
+                    seen["unacknowledged"].append(year)
+            seen["km2"] = max(seen["km2"], overlap["km2"])
+            seen["share"] = max(seen["share"], overlap["share"])
+            if overlap["winner"] not in seen["winners"]:
+                seen["winners"].append(overlap["winner"])
+    ordered = sorted(pairs.values(), key=lambda p: (p["steps"][0], p["polities"]))
+    return {
+        "source": SOURCE,
+        "steps": list(years),
+        "failed": [{"year": y, "error": failed[y]} for y in sorted(failed)],
+        "unchanged": list(errors),
+        "unclassified": {
+            kind: [{"name": n, "steps": _spans(ys, years)} for n, ys in sorted(found.items())]
+            for kind, found in unclassified.items()
+        },
+        "unsettled": [
+            {"polity": p, "memberOf": list(m), "steps": _spans(ys, years)}
+            for (p, m), ys in sorted(unsettled.items())
+        ],
+        "overlaps": {
+            "unacknowledged": [p for p in ordered if p["unacknowledged"]],
+            "acknowledged": [p for p in ordered if p["duplicate"] and not p["unacknowledged"]],
+            "smaller": [p for p in ordered if not p["duplicate"]],
+        },
+        "returns": returns(source),
+        "byStep": {
+            str(y): {
+                key: reports[y][key]
+                for key in ("leaves", "drawn", "outer", "minorPieces", "leftovers", "stateless")
+            }
+            for y in years
+            if y in reports
+        },
+    }
+
+
+def _spans(found: Sequence[int], years: Sequence[int]) -> list[list[int]]:
+    """Runs of consecutive steps, as [first step, last step]."""
+    index = {y: k for k, y in enumerate(years)}
+    spans: list[list[int]] = []
+    for year in found:
+        if spans and index[spans[-1][1]] == index[year] - 1:
+            spans[-1][1] = year
+        else:
+            spans.append([year, year])
+    return spans
+
+
+# Running every step ----------------------------------------------------------------------------
+
+_worker: tuple[Cliopatria, Config, Terrain] | None = None
+
+
+def selections(
+    ctx: Context, years: Sequence[int], source: Cliopatria, config: Config, terrain: Terrain
+) -> Iterator[tuple[int, dict[str, Any] | None, frozenset[int], dict[str, str], str | None]]:
+    """Each step's report, the corrections it applied, its polities' outer units and its error, in
+    year order, from `ctx.jobs` worker processes."""
+    if ctx.jobs <= 1:
+        for year in years:
+            yield _select_summary(year, source, config, terrain)
+        return
+    with ProcessPoolExecutor(
+        max_workers=ctx.jobs,
+        mp_context=multiprocessing.get_context("spawn"),
+        initializer=_start,
+        initargs=(ctx, terrain.to_wkb()),
+    ) as pool:
+        yield from pool.map(_task, years)
+
+
+def _start(ctx: Context, terrain: bytes) -> None:
+    global _worker
+    _worker = (
+        load_cliopatria(ctx),
+        load_config(config_dir(ctx.repo) / CONFIG),
+        Terrain.from_wkb(terrain),
+    )
+
+
+def _task(year: int):
+    if _worker is None:
+        raise RuntimeError("the selection's inputs exist only inside a selection worker")
+    return _select_summary(year, *_worker)
+
+
+def _select_summary(year: int, source: Cliopatria, config: Config, terrain: Terrain):
+    try:
+        chosen = select(year, source, config, terrain)
+    except SelectionError as error:
+        return year, None, frozenset(), {}, str(error)
+    return year, chosen.report, chosen.applied, chosen.outers(), None
+
+
+def write_review(ctx: Context) -> int:
+    """Selects every step and writes the review queue; the count of failed steps and unchanged
+    corrections."""
+    started = time.perf_counter()
+    source = load_cliopatria(ctx)
+    config = load_config(config_dir(ctx.repo) / CONFIG)
+    terrain = load_terrain(ctx)
+    years = step_years(source, config)
+    print(f"cliopatria: {len(source.rows)} rows, {len(years)} steps", flush=True)
+    reports: dict[int, dict[str, Any]] = {}
+    applied: dict[int, frozenset[int]] = {}
+    failed: dict[int, str] = {}
+    chosen = selections(ctx, years, source, config, terrain)
+    for count, (year, report, used, _, error) in enumerate(chosen, 1):
+        applied[year] = used
+        if count % 25 == 0:
+            seconds = time.perf_counter() - started
+            print(f"cliopatria: {count} of {len(years)} steps, {year}, {seconds:.0f} s", flush=True)
+        if error is not None:
+            failed[year] = error
+            print(f"cliopatria: {year} fails: {error}", flush=True)
+            continue
+        assert report is not None
+        reports[year] = report
+    errors = unchanged(config, [y for y in years if y not in failed], applied)
+    queue = review_queue(source, config, years, reports, failed, errors)
+    path = ctx.stages_dir / REVIEW
+    write_json(path, queue)
+    overlaps = queue["overlaps"]
+    print(
+        f"cliopatria: {path.relative_to(ctx.repo) if path.is_relative_to(ctx.repo) else path}: "
+        f"{len(failed)} steps failed, {len(errors)} corrections unchanged, "
+        f"{len(overlaps['unacknowledged'])} unacknowledged pairs, "
+        f"{len(overlaps['smaller'])} smaller overlaps, {len(queue['returns'])} returns, "
+        f"{time.perf_counter() - started:.0f} s",
+        flush=True,
+    )
+    return len(failed) + len(errors)
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="python -m prebuild.cliopatria")
+    parser.add_argument("--profile", choices=[p.value for p in Profile], default="global")
+    parser.add_argument("--jobs", type=int, default=default_jobs())
+    args = parser.parse_args(argv)
+    ctx = make_context(Profile(args.profile), args.jobs)
+    sys.exit(1 if write_review(ctx) else 0)
+
+
+if __name__ == "__main__":
+    main()
