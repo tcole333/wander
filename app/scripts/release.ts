@@ -186,8 +186,14 @@ export function historyOwed(record: BordersRecord): string[] {
  * The modera record is 3.8's section as is (7.2), so it goes in unchanged when the build has one;
  * the borders record gives the borderSteps section as its `steps` and the borders section as the
  * 1815 field's fields; the event-files record goes in without its `inputs` (`eventsRelease`).
+ * `borderSteps: false` leaves the steps out, as publish-data does until their first publish.
  */
-export function localRelease(stages: string, dataHost: string, lock = OPENINGS_LOCK): Release {
+export function localRelease(
+  stages: string,
+  dataHost: string,
+  lock = OPENINGS_LOCK,
+  { borderSteps = true }: { borderSteps?: boolean } = {},
+): Release {
   const coverage = readRecord<CoverageRecord>(stages, 'coverage');
   const surface = readRecord<SurfaceRecord>(stages, 'surface');
   const built = statSync(join(stages, 'surface.json')).mtime.toISOString();
@@ -201,7 +207,7 @@ export function localRelease(stages: string, dataHost: string, lock = OPENINGS_L
     surface: surfaceRelease(coverage, surface),
     modera: optional<ModeraRelease>('modera'),
     borders: borders && snapshotRelease(borders),
-    borderSteps: borders?.steps,
+    borderSteps: borderSteps ? borders?.steps : undefined,
     fx: optional<FxRelease>('fx'),
     events: eventFiles ? eventsRelease(eventFiles, stages, lock) : undefined,
     media: mediaRelease(),
