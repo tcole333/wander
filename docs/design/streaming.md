@@ -2504,7 +2504,10 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `revealHold`, `revealMorph` | 300 ms, 700 ms | still-camera batched reveal | eye, E2 |
 | `tileFade` | 250 ms | per-tile crossfade while moving | eye |
 | `bevelFade` | 400 ms | L1 coastal bevel fade-in | eye |
-| `borderFade`, `borderRest` | 400 ms, 250 ms | snapshot crossfade; ruler rest before detail tiles | eye |
+| `borderFade`, `borderRest` | 400 ms, 250 ms | a step's dissolve into the next, and a beat's borders easing in and out; the clock's rest in a step before the step streams in (3.3) | eye |
+| `borderScrubFade` | 120 ms | border previews dissolving into each other while the clock moves | eye |
+| `borderCloseKm` | 400 to 220 km across | borders fading out as the view closes in | owner decision 36 |
+| `borderInnerKm` | 6,000 to 2,500 km across | the inner border line fading in as the view narrows | owner decision 36 |
 | `borderWarnYears` | 20 | build warning: beat far from its snapshot | author note |
 | `l7WarnViewKm` | 400 | build warning: close beat outside L7 regions | author note |
 | `eventQueryHz` | 30 | event query rate while moving | E5 |

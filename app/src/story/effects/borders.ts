@@ -2,8 +2,8 @@
 // the nearest to every Tambora date, drawn on the beats whose layers list borders. Its field loads
 // in the background once the room is open: fetched from the data host, inflated a few MiB at a
 // time and uploaded one face a frame, so no frame hitches. Once every face is in, the look's groove
-// eases in and out over borderFade as beats change, and fades as the view closes in from 400 to
-// 220 km across, where one of the field's texels spans tens of pixels. Without a borders section in
+// eases in and out over borderFade as beats change, and fades as the view closes in over
+// borderCloseKm, where one of the field's texels spans tens of pixels. Without a borders section in
 // the release, or once the file fails, it logs once and draws no borders: the walk never breaks
 // over them.
 import { tunables } from '../../config/tunables';
@@ -20,9 +20,6 @@ export interface BordersSource {
   dataHost: string;
   borders?: BordersRelease;
 }
-
-/** The view widths, km across, over which the borders fade out as the view closes in. */
-export const BORDER_FADE_KM: readonly [number, number] = [220, 400];
 
 export class WalkBorders {
   readonly #uniforms: BorderUniforms | undefined;
@@ -96,7 +93,7 @@ export class WalkBorders {
     const wanted = this.ready && state.story.beats[state.beat]?.layers.includes('borders') === true;
     const step = (1000 * dtS) / tunables.borderFade;
     this.#shown += Math.max(-step, Math.min(step, (wanted ? 1 : 0) - this.#shown));
-    const [near, far] = BORDER_FADE_KM;
+    const { near, far } = tunables.borderCloseKm;
     this.#strength = smoothstep(0, 1, this.#shown) * smoothstep(near, far, viewKm) * strength;
     uniforms.lookBorderStrength.value = this.#strength;
   }

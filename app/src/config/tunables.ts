@@ -28,6 +28,13 @@ export const tunables = {
   bevelFade: 400,
   borderFade: 400,
   borderRest: 250,
+  // Border previews dissolving into each other while the clock moves (streaming.md 3.3).
+  borderScrubFade: 120,
+  // View widths, km across, over which borders fade out as the view closes in: gone at near.
+  borderCloseKm: { near: 220, far: 400 },
+  // View widths, km across, over which the inner border line fades in as the view narrows: full
+  // at near.
+  borderInnerKm: { near: 2500, far: 6000 },
   borderWarnYears: 20,
   l7WarnViewKm: 400,
   eventQueryHz: 30,
