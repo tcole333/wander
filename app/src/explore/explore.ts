@@ -8,8 +8,9 @@
 // the opening's plate pinned, its written line on it; from then a mark pointed at brings its
 // plate, a click pins it, and the keyboard reaches the marks through one listbox (labels.ts).
 // Meanwhile names what happens then elsewhere, as the event worker picks it (exploreMeanwhile.ts);
-// choosing an entry flies there, 1,500 km wide, and pins it on landing. The globe shows the climate at the clock's date wherever ModE-RA has it and the ruler is close
-// enough (exploreClimate.ts). Its sound (audio/clockScore.ts) hears the clock's day, what the ruler
+// choosing an entry flies there, 1,500 km wide, and pins it on landing. The globe shows the
+// climate at the clock's date wherever ModE-RA has it and the ruler is close enough
+// (exploreClimate.ts). Its sound (audio/clockScore.ts) hears the clock's day, what the ruler
 // engraves around it, and whether a free flight has the camera. Leaving stops input on the ruler,
 // stops asking for events, eases their marks and the climate out and fades the sound to the room;
 // ending releases the clock, ruler, event worker and climate years and takes the marks off, so the
