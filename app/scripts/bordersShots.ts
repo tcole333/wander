@@ -14,7 +14,8 @@
 // The sets: 1000, 1500, 1800 and 1914 on the comparison's matched views; Europe and India in those
 // years at world view, 6,000 and 2,500 km across; Kuwait, Victoria, the Aral, Java, Sumbawa,
 // Hyderabad and Mysore at 1,500 km in those years and 1815, and in the years their corrections
-// turn on; and Africa and the Americas in 1500. Writes <out>/shots/<view>-<year>.png (-none
+// turn on; the lake shores verify:bake has flagged, the Dead Kultuk and Chukotka across the
+// antimeridian; and Africa and the Americas in 1500. Writes <out>/shots/<view>-<year>.png (-none
 // without borders), <out>/<set>.png and <out>/<set>-detail.png, and <out>/shots.json: each
 // shot's camera, the step drawn, its year plate's words and any console problems. --view adds a
 // view of its own, in the given years, to the sheet `views` (a km of 0 is the widest view).
@@ -76,6 +77,9 @@ const VIEWS: Record<string, View> = {
   ladoga: { lon: 31, lat: 60.8, km: 1500, title: 'Lake Ladoga, 1,500 km' },
   michigan: { lon: -86.8, lat: 44.6, km: 1500, title: 'Lake Michigan, 1,500 km' },
   sevan: { lon: 45.2, lat: 40.4, km: 1500, title: 'Lake Sevan, 1,500 km' },
+  onega: { lon: 35, lat: 62, km: 1500, title: 'Lake Onega, 1,500 km' },
+  kultuk: { lon: 54, lat: 45.3, km: 800, title: 'The Dead Kultuk, 800 km' },
+  chukotka: { lon: 178, lat: 66, km: 2500, title: 'Chukotka, 2,500 km' },
   mesoamerica: { lon: -95, lat: 18, km: 3500, title: 'Mesoamerica, 3,500 km' },
   andes: { lon: -70, lat: -14, km: 4500, title: 'The Andes, 4,500 km' },
   'west-africa': { lon: 0, lat: 12, km: 4500, title: 'West Africa, 4,500 km' },
@@ -149,23 +153,32 @@ const SHEETS: Record<string, Sheet> = {
     ],
   },
   lakes: {
-    title: 'The lake shores verify:bake flags',
+    title: 'Lake shores, the Dead Kultuk and the antimeridian',
     rows: [
       {
-        label: 'Ladoga',
+        label: 'Ladoga, Onega',
         shots: [
           ['ladoga', 1938],
           ['ladoga', 1941],
+          ['onega', 1938],
         ],
       },
       {
-        label: 'Michigan',
+        label: 'Michigan, Sevan',
         shots: [
           ['michigan', 1825],
           ['michigan', 1835],
+          ['sevan', 1734],
         ],
       },
-      { label: 'Sevan', shots: [['sevan', 1734]] },
+      {
+        label: 'Kultuk, Chukotka',
+        shots: [
+          ['kultuk', 1914],
+          ['chukotka', 1800],
+          ['chukotka', 1914],
+        ],
+      },
     ],
   },
   'new-world-1500': {
