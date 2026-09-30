@@ -685,28 +685,24 @@ climate wash and before the ash:
   none and skips the other three taps. Most of the land takes the one tap, which halves a step's
   cost at rest close in, and a quad that draws keeps all its fragments, so the dots' derivatives
   hold.
-- **Outer line:** milestone 1's dotted groove of constant on-screen width and pitch, a dot of about
-  2 px every 5 px, 2 px wide, darkening the metal by 0.75 and leaving it a touch rougher. The dots
-  tell frontiers from the solid river lines, as engraved maps of the period do; a solid groove read
-  as one more river at the beats' distances.
+- **Outer line:** at 6,000 km across and closer, milestone 1's dotted groove of constant on-screen
+  width and pitch, a dot of about 2 px every 5 px, 2 px wide, darkening the metal by 0.75 and
+  leaving it a touch rougher. The dots tell frontiers from the solid river lines, as engraved maps
+  of the period do; a solid groove read as one more river at the beats' distances.
 - **Inner line:** 0.55 darkening, 2 px dots every 4 px, 1.5 px wide, fading in as the view narrows
   from 6,000 to 2,500 km across (`borderInnerKm`): fainter and finer than the outer line, the
   empire far and its members near (owner decisions 34 and 36).
 - **Soft edge:** where R's nearest border has stateless land on one side, two thirds of the
   darkening, feathered from 0.25 to 2.5 px from the line's middle, as task 0 rendered it (owner
   decisions 35 and 36).
-- **Weight far out:** at world view and 17,500 km across the outer line is hard to see under
-  Explore's lighting, so the look holds heavier weights for the owner to choose among on renders
-  (`BORDER_WEIGHTS` in `look/bordersHook.ts`, the dev page's `?borderWeight=`,
-  `scripts/bordersWeights.ts`): `wide`, a 3 px groove darkening 0.9 with dots of 3.5 px in 5, its
-  soft edges widening and darkening with it; `solid`, the hard lines between states unbroken, 2.5 px
-  and 0.9, soft edges as today's; and `eased`, a weight that grows with the view's width, its dots
-  closing up, through about 3 px and 0.88 at 17,500 km to 3.5 px, 0.95 and dots of 4.5 px in 5 at
-  world view. `wide` and `solid` reach their look at 10,000 km. Every weight draws today's line at
-  6,000 km across and closer, easing on a log scale of the view's width, and a line wider than 2 px
-  narrows toward 2 px as a pixel spans more texels, to 3 px at 3 texels and 2 px at 4, where the
-  field's reach could no longer hold it, so it fades as today's does. Today's stays the default
-  until the owner picks; the chosen weight's cost is measured then.
+- **Weight far out** (owner decision 40): at 6,000 km across and closer the outer line is the one
+  above; wider, it eases on a log scale of the view's width (`borderWeightKm`) to a 3.5 px groove
+  darkening 0.95, its dots closing up to 4.5 px in 5, at 32,000 km and at world view, through about
+  3 px and 0.88 at 17,500 km, since under Explore's lighting the near line is hard to see that far
+  out. Its soft edges take on its width, darkening and dots as it grows (`OUTER_NEAR` and
+  `OUTER_FAR` in `look/bordersHook.ts`). A line wider than 2 px narrows toward 2 px as a pixel spans
+  more texels, to 3 px at 3 texels and 2 px at 4, where the field's reach could no longer hold it,
+  so it fades as the near line does.
 - **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
   where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
   reach of 8 texels no longer spans the line.
@@ -2282,31 +2278,30 @@ and the release's `media` section lists every key the locks name (3.8).
        lerps the profile on a face edge; and skirt bottoms sit `skirtTexels` node texels radially
        below their tops
   5. Compile the stories, then build the app.
-  6. **Playwright** (`npm run e2e`): Chromium with
-     `--use-angle=swiftshader --enable-unsafe-swiftshader`, ~960×600, lite tier; the production
-     build under `vite preview` on :4173 and `build/fixture` on :8791 with production headers. It
-     checks: the one-frame render smoke test (8.1 step 0); zero key-check magenta at each beat once
-     ready; no new program after the lobby; landing at desired−1 or finer, no hold over `holdMax`,
-     and fetched object counts per beat within 10% of the plan (bytes reported); an injected 3 s
-     stall still lands; a seam depth scan; in-place context-loss restore decoding from the byte
-     cache with the network blocked, and a reload with `?s&b` landing on the Continue plate; no
-     request to the Pages origin after boot; each L0 URL fetched once (the preload is used); every
-     label renders; reduced motion, the article page and the no-WebGL2 redirect; the pool smoke test
-     (5.5); the surface vertex readback (5.6); borders, failing on any console error: an 1815
-     opening draws the 1815 step from its slot with no plate of its own, a scrub to 1830 draws
-     1830's, and Tambora's beat 6 draws borders under the walk's plate; and the borders probe
-     (`e2e/borders.html`, on synthetic fields, on SwiftShader and Metal): only outer lines at
-     8,000 km across and inner lines too at 2,000 km, soft edges lighter, half strength
-     mid-dissolve, both previews of a cell decoded, and no seam at ±180°. The pool, readback and
-     probe tests run test-only pages on the Vite dev server, not the production build, so nothing
-     of them reaches the bundle. CI runs it as four E2E jobs, one per shard that `app/e2e/shards.ts` names from the specs' CI
-     times: `magellan` (story-selection), `lobby` (lobby-round-trip, globe-mesh), `explore`
-     (explore-entry, marks) and `rest`, every spec the others do not name, so a new spec lands
-     there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD`
-     picks one; unset, every spec runs. Each job runs one test at a time, since two SwiftShader
-     walks starve a four-core runner, and builds its own dist, recording its sha256. The dev server
-     scans the test pages at startup (`optimizeDeps.entries`), so each job's cold server bundles
-     their imports before a test loads them.
+  6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader
+     --enable-unsafe-swiftshader`, ~960×600, lite tier; the production build under `vite preview` on
+     :4173 and `build/fixture` on :8791 with production headers. It checks: the one-frame render
+     smoke test (8.1 step 0); zero key-check magenta at each beat once ready; no new program after
+     the lobby; landing at desired−1 or finer, no hold over `holdMax`, and fetched object counts per
+     beat within 10% of the plan (bytes reported); an injected 3 s stall still lands; a seam depth
+     scan; in-place context-loss restore decoding from the byte cache with the network blocked, and
+     a reload with `?s&b` landing on the Continue plate; no request to the Pages origin after boot;
+     each L0 URL fetched once (the preload is used); every label renders; reduced motion, the
+     article page and the no-WebGL2 redirect; the pool smoke test (5.5); the surface vertex readback
+     (5.6); borders, failing on any console error: an 1815 opening draws the 1815 step from its slot
+     with no plate of its own, a scrub to 1830 draws 1830's, and Tambora's beat 6 draws borders
+     under the walk's plate; and the borders probe (`e2e/borders.html`, on synthetic fields, on
+     SwiftShader and Metal): only outer lines at 8,000 km across and inner lines too at 2,000 km,
+     soft edges lighter, half strength mid-dissolve, both previews of a cell decoded, and no seam at
+     ±180°. The pool, readback and probe tests run test-only pages on the Vite dev server, not the
+     production build, so nothing of them reaches the bundle. CI runs it as four E2E jobs, one per
+     shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
+     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks) and `rest`, every spec
+     the others do not name, so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the
+     shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
+     test at a time, since two SwiftShader walks starve a four-core runner, and builds its own dist,
+     recording its sha256. The dev server scans the test pages at startup (`optimizeDeps.entries`),
+     so each job's cold server bundles their imports before a test loads them.
      - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
        in the decode workers, uploads it through the upload queue into the real pools, packs every
        mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
@@ -2762,6 +2757,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `borderScrubFade` | 120 ms | border previews dissolving into each other while the clock moves | eye |
 | `borderCloseKm` | 400 to 220 km across | borders fading out as the view closes in | owner decision 36 |
 | `borderInnerKm` | 6,000 to 2,500 km across | the inner border line fading in as the view narrows | owner decision 36 |
+| `borderWeightKm` | 6,000 to 32,000 km across | the outer border line easing from its near weight to its world-view weight (3.3) | owner decision 40 |
 | `minorKm2`, `pocketKm2` | 50,000 km², 100,000 km² | build rules in `pipeline/config/borders/rules.yaml` (3.3): a piece of an outer unit under `minorKm2` draws its borders with other outer units as inner lines; a hole between states that touches a lake goes to its neighbours under `pocketKm2`, while a hole inside one state is its land whatever its size | owner decisions 36 and 38 |
 | `sliverKm`, `leftoverKm2` | 14 km, 100 km² | build rules in `rules.yaml` (3.3): stateless land narrower than 2·`sliverKm` goes to its neighbours, and land within `sliverKm` of a lake and of another polity is emptied for the fill; a composite's own land is drawn from `leftoverKm2` | eye, on the still renders |
 | `reviewKm2`, `duplicateShare` | 2,000 km², 0.5 | build rules in `rules.yaml` (3.3): two polities overlapping past `reviewKm2` go to the review queue, and past `duplicateShare` of the larger need an `overlap` correction | the history pass |
@@ -2993,3 +2989,10 @@ the look renders baked from Cliopatria:
     state stays stateless only through a cited correction.
 39. **No year plate in Explore:** Explore's borders draw with no plate naming their year; the ruler
     and the Credits carry the dates. The story walks keep theirs.
+
+Decided on the renders of the outer line's weights far out (issue #80), 2026-09-30:
+
+40. **The outer line far out:** the eased weight. At 6,000 km across and closer the outer line
+    stays as decision 36 left it; wider, it grows with the view's width all the way out, to a
+    3.5 px groove darkening 0.95 with dots of 4.5 px in 5 at world view, its soft edges taking on
+    its weight.
