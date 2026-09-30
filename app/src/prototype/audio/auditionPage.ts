@@ -23,7 +23,7 @@ import { dayFromCivil, dayFromIso, formatDay } from '../../story/dates';
 import { parseStory } from '../../story/story';
 import { button, el, svg } from '../../story/ui/dom';
 import { SoundKnob } from '../../story/ui/soundKnob';
-import { flight, scrub } from './demos';
+import { exploreStretch, flight, scrub } from './demos';
 import { render, TAKES, type Rendered } from './render';
 
 declare global {
@@ -197,6 +197,22 @@ function mechanismDrawer(): HTMLElement {
     1.4,
   );
 
+  // Explore's score (audio/clockScore.ts): its detents fall on the free ruler's marks, and a
+  // labelled step of years sounds the year's detent.
+  const HISTORY_S = 30;
+  const scrubHistory = slip(
+    'Scrub · history',
+    "Explore's dive, then decades, millennia, months and days dragged past the playhead",
+    [
+      trigger('Play', (jewel) => {
+        const e = sound();
+        exploreStretch(e, HISTORY_S, e.soon());
+        flash(jewel, HISTORY_S * 1000);
+      }),
+    ],
+  );
+  scrubHistory.append(levelOf('detentYear'));
+
   const clunkSlip = slip('Clunk', 'A beat changes', [
     trigger('Sound', (jewel) => {
       clunk(sound());
@@ -239,7 +255,16 @@ function mechanismDrawer(): HTMLElement {
   whirSlip.append(paceRow, levelOf('whir'));
   remix.push(() => held?.setPace(pace));
 
-  drawer.append(detentDay, detentMonth, detentYear, scrubMonths, scrubDays, clunkSlip, whirSlip);
+  drawer.append(
+    detentDay,
+    detentMonth,
+    detentYear,
+    scrubMonths,
+    scrubDays,
+    scrubHistory,
+    clunkSlip,
+    whirSlip,
+  );
   return drawer;
 }
 
