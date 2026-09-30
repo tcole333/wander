@@ -365,6 +365,7 @@ async function assemble(
         arrive,
         look,
         release,
+        borders,
         // The events mark the globe where the release has their index and the look cuts marks.
         events:
           release.events && look.marks

@@ -14,12 +14,14 @@
 // engraves around it, and whether a free flight has the camera. Leaving stops input on the ruler,
 // stops asking for events, eases their marks and the climate out and fades the sound to the room;
 // ending releases the clock, ruler, event worker and climate years and takes the marks off, so the
-// world clock has one owner at a time.
-// window.__worldTime, window.__exploreEvents and window.__exploreLabels serve scripts while
-// Explore runs.
+// world clock has one owner at a time. Where the look holds the border steps, the borders follow
+// the clock from the dive on, under their year plate (exploreBorders.ts).
+// window.__worldTime, window.__exploreEvents, window.__exploreLabels and window.__borders serve
+// scripts while Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
+import type { ClockBorders } from '../borders/clockBorders';
 import type { ClimateSource } from '../climate/years';
 import { tunables } from '../config/tunables';
 import type { SurfaceLook } from '../contract';
@@ -40,6 +42,7 @@ import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Mode } from '../walk/mode';
+import { ExploreBorders } from './exploreBorders';
 import { ExploreClimate } from './exploreClimate';
 import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { ExploreLabels } from './labels';
@@ -128,6 +131,8 @@ export interface ExploreParts {
    */
   look?: SurfaceLook;
   release?: ClimateSource;
+  /** The look's border steps, where it holds them. */
+  borders?: ClockBorders | null;
 }
 
 /** The world view over `at`, its latitude kept within WORLD_LAT. */
@@ -153,11 +158,12 @@ export function startExplore({
   events: source = null,
   look,
   release,
+  borders: steps = null,
 }: ExploreParts): Mode {
-  // The clock, flight, layer and climate hold no listeners and stand nowhere on the page, so they
-  // come first, then the ruler, the one part holding listeners, and the event worker, and only then
-  // are the page, the view's control, the marks and the script hooks touched: a dive that throws
-  // on the way leaves nothing behind, since the boot never gets a mode to end.
+  // The clock, flight, layer, climate and borders hold no listeners and stand nowhere on the page,
+  // so they come first, then the ruler, the one part holding listeners, and the event worker, and
+  // only then are the page, the view's control, the marks and the script hooks touched: a dive
+  // that throws on the way leaves nothing behind, since the boot never gets a mode to end.
   const focal = focalOf(opening);
   const time = new ExploreTime(clock, HISTORY, opening.day, {
     openYears: tunables.exploreOpenYears,
@@ -168,6 +174,8 @@ export function startExplore({
       : null;
   const layer = el('div', 'wu wu-explore wu-mode');
   const climate = look && release ? new ExploreClimate(look, release, clock, layer) : null;
+  const borders = steps ? new ExploreBorders(steps) : null;
+  if (borders) layer.append(borders.element);
   const ruler = new CraftRuler(time);
   let client: EventClient | null;
   try {
@@ -226,6 +234,7 @@ export function startExplore({
       return;
     }
     dived = true;
+    borders?.landed();
     labels?.land(opening);
     for (const landed of [...landings]) landed();
   };
@@ -276,6 +285,9 @@ export function startExplore({
     hovered: () => labels.hovered,
   };
   if (labelsHook) window.__exploreLabels = labelsHook;
+  if (borders) window.__borders = borders.hook;
+  // A jump has no dive to wait for.
+  if (!flight) borders?.landed();
 
   return {
     landed(cb) {
@@ -292,12 +304,14 @@ export function startExplore({
     },
     afterPlace(frame, nowMs) {
       climate?.update(frameS, fade);
+      borders?.update(frame, frameS);
       events?.update(frame, clock.state(), nowMs);
       if (dived && !left)
         meanwhile?.ask(frame, clock.state(), [control.current.lon, control.current.lat]);
     },
     ui(drawn, nowMs) {
       climate?.ui();
+      borders?.ui();
       labels?.update(nowMs);
       meanwhile?.update(drawn, clock.state());
       if (!events) return;
@@ -321,6 +335,7 @@ export function startExplore({
       layer.inert = true;
       labels?.leave();
       events?.leave();
+      borders?.leave();
       sound.leave();
     },
     end() {
@@ -329,12 +344,14 @@ export function startExplore({
       landings.clear();
       labels?.dispose();
       events?.dispose();
+      borders?.end();
       ruler.dispose();
       climate?.end();
       layer.remove();
       if (window.__worldTime === hook) delete window.__worldTime;
       if (eventsHook && window.__exploreEvents === eventsHook) delete window.__exploreEvents;
       if (labelsHook && window.__exploreLabels === labelsHook) delete window.__exploreLabels;
+      if (borders && window.__borders === borders.hook) delete window.__borders;
     },
     inspectMemory(account) {
       events?.inspectMemory(account);
