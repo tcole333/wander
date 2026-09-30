@@ -35,6 +35,9 @@ export const tunables = {
   // View widths, km across, over which the inner border line fades in as the view narrows: full
   // at near.
   borderInnerKm: { near: 2500, far: 6000 },
+  // View widths, km across, over which the outer border line eases, on a log scale, from its near
+  // weight at near to its world-view weight at far (look/bordersHook.ts, outerLook).
+  borderWeightKm: { near: 6000, far: 32_000 },
   borderWarnYears: 20,
   l7WarnViewKm: 400,
   eventQueryHz: 30,

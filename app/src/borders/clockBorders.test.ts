@@ -10,7 +10,7 @@ import { tunables, type Tier } from '../config/tunables';
 import { BAND_BYTES, STEP_BANDS } from '../data/borders';
 import type { BorderStepsRelease } from '../data/release';
 import { UploadQueue } from '../gpu/uploadQueue';
-import { createStepUniforms, outerWeight, sourceVector } from '../look/bordersHook';
+import { createStepUniforms, OUTER_NEAR, outerLook, sourceVector } from '../look/bordersHook';
 import { MemoryAccount } from '../perf/memory';
 import { dayFromCivil } from '../story/dates';
 import { previewChunk, stepFile } from '../test/borderFiles';
@@ -64,11 +64,7 @@ const inYear = (year: number, month = 6) => dayFromCivil({ year, month, day: 1 }
 
 afterEach(() => vi.restoreAllMocks());
 
-function harness(
-  tier: Tier = 'full',
-  section: BorderStepsRelease | null = SECTION,
-  weight?: () => string,
-) {
+function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTION) {
   const clock = new WorldClock(inYear(1815), 365);
   let t = 0;
   const queue = new UploadQueue({ stopMs: Infinity, slowCallMs: Infinity, now: () => 0 });
@@ -116,7 +112,6 @@ function harness(
     clock,
     load,
     now: () => t,
-    weight,
   });
   /** The bands and cells in hand: queued, not yet landed. */
   let peakQueued = 0;
@@ -387,18 +382,14 @@ describe('the clock', () => {
     expect(h.uniforms.lookBorderStrength.value).toBe(0);
   });
 
-  test("the outer line takes the weight named, at the view's width", async () => {
-    let weight = 'today';
-    const h = harness('full', SECTION, () => weight);
+  test("the outer line's weight follows the view's width", async () => {
+    const h = harness();
     const outer = () => [...h.uniforms.lookBorderOuter.value.toArray()];
     await h.frame(16, { viewKm: 20_000 });
-    expect(outer()).toEqual([...outerWeight('today', 20_000).toArray()]);
-    weight = 'wide';
-    await h.frame(16, { viewKm: 20_000 });
-    expect(outer()).toEqual([...outerWeight('wide', 20_000).toArray()]);
-    expect(outer()).not.toEqual([...outerWeight('today', 20_000).toArray()]);
+    expect(outer()).toEqual([...outerLook(20_000).toArray()]);
     await h.frame(16, { viewKm: 4000 });
-    expect(outer()).toEqual([...outerWeight('today', 4000).toArray()]);
+    const { widthPx, darken, halfDotPx, follow } = OUTER_NEAR;
+    expect(outer()).toEqual([widthPx, darken, halfDotPx, follow]);
   });
 });
 
