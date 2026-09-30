@@ -445,30 +445,33 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   on the piece's coast simplified to 2 km and cuts its result from the piece as drawn, which takes
   the 3400 BCE step from 100 s to 17 s [M]. Antarctica, which reaches a pole, keeps its slivers: no
   projection about its centroid holds it, and no polity lies near it.
-- **A hole inside one state is its land** (owner decision 38): a stateless piece that touches no
-  sea and whose edge runs along one outer unit's land alone, lakes aside, is filled as that
-  state's, whatever its size, since most such holes are gaps in Cliopatria's shapes; among an
-  empire's members, each takes the part nearest it. Of the 78 places where a hole of 10,000 km² or
-  more touching no lake stood stateless before this rule, 4 lie inside one state and are filled:
-  two in the Khasi hills inside British India in 1825-34, one in the hills of northern Odisha
-  inside it in 1857-58, and one in eastern Henan inside the Qing in 1853-58. The other 74 each
-  touch two to thirteen states, the one along most of its edge running along 22% to 87% of it, so
-  they keep the rules below, Cliopatria's gaps among them: the Rhineland and Westphalia in 1864-65,
-  which Cliopatria's German Confederation row covers until 1863 (Hanover, the Netherlands, Nassau,
-  France, Belgium and eight more lie around them), western Dakota in 1877 (the United States along
-  84% of its edge, British Canada along 17%), Basutoland in 1877-82 (the Orange Free State, the
-  Cape and Natal) and the central highlands of Vietnam in 1967-69 (the United States, Laos,
-  Cambodia and North Vietnam) [M global selection, 30 September]. A place really without a state
-  inside one stays stateless only through a cited `pocket` correction.
-- **Pockets between states** go to their neighbours: a hole touching two or more states goes when
-  it touches a lake and is under `pocketKm2` (100,000 km²; the old Aral bed and Victoria's shore
-  are about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout. Such a hole that
+- **A hole inside one state is its land** (owner decision 38): a stateless piece that touches no sea
+  and whose edge runs along one outer unit's land alone, lakes aside, is filled as that state's,
+  whatever its size, since most such holes are gaps in Cliopatria's shapes. The bake fills it from
+  that state's land alone, among an empire's members each taking the part nearest it, before the
+  other pockets and the fill below: across a lake another state's land, or stateless land, can lie
+  nearer. Filled by nearness, lower Michigan, a hole inside the United States in 1822-33, split
+  along Lake Michigan's east shore, and 1796's hole in western New York left about 130 km² of its
+  Lake Erie shore near Dunkirk to the British Empire across the lake. Of the 78 places where a hole
+  of 10,000 km² or more touching no lake stood stateless before this rule, 4 lie inside one state
+  and are filled: two in the Khasi hills inside British India in 1825-34, one in the hills of
+  northern Odisha inside it in 1857-58, and one in eastern Henan inside the Qing in 1853-58. The
+  other 74 each touch two to thirteen states, the one along most of its edge running along 22% to
+  87% of it, so they keep the rules below, Cliopatria's gaps among them: the Rhineland and
+  Westphalia in 1864-65, which Cliopatria's German Confederation row covers until 1863 (Hanover, the
+  Netherlands, Nassau, France, Belgium and eight more lie around them), western Dakota in 1877 (the
+  United States along 84% of its edge, British Canada along 17%), Basutoland in 1877-82 (the Orange
+  Free State, the Cape and Natal) and the central highlands of Vietnam in 1967-69 (the United
+  States, Laos, Cambodia and North Vietnam) [M global selection, 30 September]. A place really
+  without a state inside one stays stateless only through a cited `pocket` correction.
+- **Pockets between states** go to their neighbours: a hole touching two or more states goes when it
+  touches a lake and is under `pocketKm2` (100,000 km²; the old Aral bed and Victoria's shore are
+  about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout. Such a hole that
   touches a lake is filled only under that cap (owner decision 36), since 1500 has a 260,000 km²
-  stateless hole in the Urals beside a small lake. A pocket that touches a polity, a hole inside
-  one state included, is filled from the polities alone, before the fill below: across a lake
-  stateless land can lie nearer than the polity beside it, and lower Michigan, a pocket of the
-  United States in 1822-33, split along Lake Michigan's east shore before this. One that touches
-  none, an island in a lake among stateless shores, is left to the fill.
+  stateless hole in the Urals beside a small lake. Such a pocket that touches a polity is filled
+  from the polities alone, before the fill below, since across a lake stateless land can lie nearer
+  than the polity beside it. One that touches none, an island in a lake among stateless shores, is
+  left to the fill.
 - **Other holes between states stay stateless,** however small, since they may be real stateless
   enclaves. The pockets given, each with its rule and a hole inside one state with that state, and
   the enclosed pieces kept, each with the outer units around it, are listed per step, and a
