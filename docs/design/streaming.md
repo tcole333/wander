@@ -621,6 +621,12 @@ climate wash and before the ash:
   taps wrap at the dateline inside their cell and hold at the poles. A preview's distance is baked
   in grid texels, whose columns narrow with the cosine of the latitude, so the look scales it to
   arc along the taps' own gradient, and a line keeps its width whichever way it runs.
+- **One tap far from a line:** a source first reads the texel nearest the fragment, and where that
+  texel lies farther from every line the source draws than a line reaches (2.5 px), with what a
+  neighbor in its quad and the other taps can add (4 px and 2.5 texels in all), the fragment draws
+  none and skips the other three taps. Most of the land takes the one tap, which halves a step's
+  cost at rest close in, and a quad that draws keeps all its fragments, so the dots' derivatives
+  hold.
 - **Outer line:** milestone 1's dotted groove of constant on-screen width and pitch, a dot of about
   2 px every 5 px, 2 px wide, darkening the metal by 0.75 and leaving it a touch rougher. The dots
   tell frontiers from the solid river lines, as engraved maps of the period do; a solid groove read
@@ -687,8 +693,25 @@ layers list them. Tambora's border beat of 1815-04-01 draws the 1815 step, and i
 1816-07-01 and 1816-06-06 the 1816 step, which the corrections begin (Tambora and Pekat end, Serbia
 is a principality), both with the Indies British; its Yunnan beat of 1817-08-28 draws 1817's, which
 returns Java to the Dutch outside its view [M global bake]. Magellan's beats list none. Explore
-(behind `?explore`) draws borders from its dive, which fetches the opening's step and the chunks.
-Polity names come with the labels stage (owner decision 26), and Cliopatria gives no capitals.
+(behind `?explore`, `app/src/explore/exploreBorders.ts`) draws borders from its dive: they ease in
+over `borderFade` as it starts, the opening's step streams in once the clock has rested, the chunks
+come once the dive lands, so they never crowd the tiles the landing view needs, and the borders
+ease out as the lobby takes the view back. Polity names come with the labels stage (owner decision
+26), and Cliopatria gives no capitals.
+
+**Measured** on the M5 at 1440×900, Chromium on Metal, the dev page on the global bake
+(`scripts/bordersVideos.ts`) [M `borders/results/explore-2026-09-30.json`]:
+- **CPU:** in Explore `borders.*` reached 3.2 MiB while a step and the chunks loaded and settled at
+  1.8 MiB, the chunks. The Tambora walk reached 1.4 MiB while a step loaded and settled at 0, where
+  the 1815 field it replaces reaches 24 MiB while it loads; both walks' accounts settle equal.
+- **GPU:** the array holds 28 MiB on full. A scene draw takes this much more than with the borders
+  off, at world view, and at 2,500 and 4,000 km over Europe: a step at rest 0.20, 0.28 and
+  0.38 ms; two slots mid-dissolve 0.35, 0.45 and 0.95 ms; two previews mid-dissolve 0.30, 0.98 and
+  1.41 ms. At Tambora's sixth beat a step at rest takes 0.27 ms and the 1815 field 0.25 ms.
+- **Frames:** scrubbing through all 521 steps at world view, eight a second, and from 1900 to 1950
+  over Europe, five a second, no task passed 50 ms, and every frame at world view came within
+  16.8 ms. Over Europe at 4,000 km, 6% of frames come late (over 20 ms) with the borders off and
+  10% with a step at rest; at world view and at 2,500 km none do.
 
 **Year plate:** a small riveted plate of Meanwhile's cast brass at the top of the page, between the
 mark and the sound knob, names the step drawn by its first year ("Borders · 1815", "Borders ·
@@ -1941,7 +1964,7 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 | **Reading pace** | navigation stays on ancestors while refinement arrives | The measured 9.5 MiB maximum needs about 16 s at 5 Mbps before round trips, so a 15 s read need not hide all refinement [D from `e3/results/live-2026-09-28.json`]. Next-beat prefetch remains deferred (8.1); its later plan must account for that transfer time. |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + borders 28 (two step slots and the preview ring, 3.3) + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **248**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + borders 16 (one slot and the ring) + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **175**. Milestone 1's 24 MiB 1815 field is left out: the look holds it or the steps' array, never both (3.3). Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4 + borders, in a walk ≤ 2 while a step loads and 0 once it is uploaded, in Explore ≤ 6 loading and ≤ 4 settled, its preview chunks held compressed (3.3); event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. Milestone 1's walk holds 252-258 MiB live, once it releases the sources it has uploaded and never reads again; about 25 MiB of that is cached audio noise, past `audioDecodedMax` [M `e3/results/live-2026-09-28-trims.json`, `e3/results/local-2026-09-28-cpu-after.json`]. Once a return lands, the lobby keeps only the noise of the room tone playing on in it, 9.2 MiB after a Tambora walk, so Explore opens from a lobby a walk has visited without the rest. |
-| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8 (borders ≤ 0.3 ms of it, mid-dissolve), instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
+| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8 (borders 0.2-0.4 ms of it at rest, and up to 1 ms mid-dissolve and 1.4 ms for previews close in, 3.3), instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year inflated and one 72 KiB climate field uploaded per frame; border previews dissolve over `borderScrubFade` from Explore's resident chunks with no fetch, and a step streams in only once the clock rests (3.3) |
 
 ---
