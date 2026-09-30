@@ -15,6 +15,7 @@ import {
   rand,
   releaseOnEnd,
   Sources,
+  type NoiseColor,
 } from './synth';
 
 export interface Bed {
@@ -84,6 +85,30 @@ function rumbleGain(mix: Mix, level: number): number {
   return gainOf(mix.bed.rumble) * level ** 1.5;
 }
 
+/** The voices a bed plays in. */
+type BedVoice = 'museum' | 'tambora' | 'magellan';
+
+/** The room's noise: its air in each ear and the ventilation's hush, as makeBed asks for them. */
+const ROOM_NOISE: [NoiseColor, number][] = [
+  ['pink', 7.3],
+  ['pink', 8.9],
+  ['brown', 10.1],
+];
+/** The noise each bed plays: the room's, which Magellan's ocean borrows, and Tambora's rumble. */
+const BED_NOISE: Record<BedVoice, [NoiseColor, number][]> = {
+  museum: ROOM_NOISE,
+  magellan: ROOM_NOISE,
+  tambora: [...ROOM_NOISE, ['brown', 11.3], ['brown', 12.7]],
+};
+
+/**
+ * Starts building the noise a bed of `voice` plays (SoundEngine.prepareNoise), so the bed finds it
+ * cached when it comes in at a dive's landing rather than building it in that frame.
+ */
+export function prepareBed(engine: SoundEngine, voice: BedVoice): void {
+  for (const [color, seconds] of BED_NOISE[voice]) engine.prepareNoise(color, seconds);
+}
+
 /** The shared museum ambience, with no story rumble. */
 export function museumBed(engine: SoundEngine, day: number, at = engine.ctx.currentTime): Bed {
   return makeBed(engine, 'museum', day, at);
@@ -97,12 +122,7 @@ export function magellanBed(engine: SoundEngine, day: number, at = engine.ctx.cu
   return makeBed(engine, 'magellan', day, at);
 }
 
-function makeBed(
-  engine: SoundEngine,
-  story: 'museum' | 'tambora' | 'magellan',
-  day: number,
-  at: number,
-): Bed {
+function makeBed(engine: SoundEngine, story: BedVoice, day: number, at: number): Bed {
   const ctx = engine.ctx;
   const sources = new Sources();
   const out = new GainNode(ctx, { gain: 0 });

@@ -1,13 +1,14 @@
 // Explore's sound (issue #79), in the walk's voices (walkAudio.ts) with no story to follow: the
 // museum's room tone, coming in once the dive has landed, as a story's bed does, since the whir
-// carries the dive, and reusing the lobby's room tone when a museum bed plays it; the whir through every free flight (view/freeFlight.ts) at the camera's pace;
-// and a detent for each mark the free ruler's playhead passes among those the ruler engraves at
-// that moment: its days and months as a story's ruler does, or, coarser, each year it labels,
-// every year or every labelled step of decades, centuries or millennia, walking from one labelled
-// year to the next rather than day by day. The free ruler engraves history's calendar, Julian
+// carries the dive (the lobby's own room tone when a museum bed plays it, else a new bed, whose
+// noise builds between the dive's frames); the whir through every free flight
+// (view/freeFlight.ts) at the camera's pace; and a detent for each mark the free ruler's playhead
+// passes among those the ruler engraves at that moment: its days and months as a story's ruler
+// does, or, coarser, each year it labels, every year or every labelled step of decades, centuries
+// or millennia, walking from one labelled year to the next rather than day by day. The free ruler engraves history's calendar, Julian
 // before the reform (story/dates.ts), and its detents fall where its marks do.
 import { HISTORICAL, type Precision } from '../story/dates';
-import { landBed, MUSEUM, museumBed, type Bed, type RoomBed } from './bed';
+import { landBed, MUSEUM, museumBed, prepareBed, type Bed, type RoomBed } from './bed';
 import type { SoundEngine } from './engine';
 import { marksPassed } from './marks';
 import { Detents, FlightWhir } from './voices';
@@ -58,6 +59,8 @@ export class ClockScore {
     this.#detents = new Detents(engine);
     this.#whir = new FlightWhir(engine);
     this.#day = day;
+    // The room tone's noise builds between the dive's frames, rather than in its landing's.
+    prepareBed(engine, MUSEUM);
   }
 
   frame({ clock, flying, pace, at, dt }: ClockFrame): void {

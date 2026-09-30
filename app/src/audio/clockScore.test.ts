@@ -11,6 +11,7 @@ const heard = vi.hoisted(() => ({
   whir: [] as [flying: boolean, pace: number][],
   whirStops: 0,
   bed: [] as string[],
+  prepared: [] as string[],
 }));
 
 vi.mock('./voices', () => ({
@@ -30,6 +31,7 @@ vi.mock('./voices', () => ({
 }));
 vi.mock('./bed', async (original) => ({
   ...(await original<typeof import('./bed')>()),
+  prepareBed: (_engine: unknown, voice: string) => heard.prepared.push(voice),
   museumBed() {
     heard.bed.push('museum');
     return {
@@ -86,10 +88,13 @@ describe("Explore's score", () => {
     heard.whir = [];
     heard.whirStops = 0;
     heard.bed = [];
+    heard.prepared = [];
   });
 
   it("whirs through the dive at the camera's pace, and brings room tone at its landing", () => {
     const { frame } = setup(on(1815, 6, 18));
+    // The room tone's noise starts building as the dive begins.
+    expect(heard.prepared).toEqual(['museum']);
     frame(on(1815, 6, 18), 'year', 10, true, 0.4);
     frame(on(1815, 6, 18), 'year', 10, true, 0.9);
     expect(heard.whir).toEqual([

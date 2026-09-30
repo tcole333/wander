@@ -155,6 +155,24 @@ describe('the lobby after a walk', () => {
     audio.dispose();
   });
 
+  it("builds Explore's room tone during its dive, not in its landing's frame", () => {
+    const { audio, run, bedBuffers } = page();
+    audio.start(true);
+    const clock = {
+      day: dayFromHistorical({ year: 1815, month: 6, day: 18 }),
+      unit: 'year' as const,
+    };
+    const frame = (flying: boolean) => () => ({
+      heard: { clock: { ...clock, yearStep: 10 }, flying },
+      view: LOBBY,
+    });
+    run(1, frame(true));
+    expect(bedBuffers()).toBe(ROOM_TONE.length);
+    run(1, frame(false));
+    expect(bedBuffers()).toBe(ROOM_TONE.length);
+    audio.dispose();
+  });
+
   it("gives Explore the museum's room tone from the walk's noise, and the lobby keeps only that", () => {
     const { audio, cached, bedBuffers, walk, explore } = page();
     walk(1);
