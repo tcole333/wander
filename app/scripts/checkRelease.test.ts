@@ -1,6 +1,7 @@
 // check-release against the local data server on the fixture build, which serves R2's headers:
-// from a root that also holds the release's copy and each story's first image it passes; from the
-// build alone, which holds neither, it names the missing copy and fetches nothing else. On the bundled
+// from a root that also holds the release's copy and each story's first image it passes, and
+// without the event files it names the missing overview; from the build alone, which holds
+// neither copy nor images, it names the missing copy and fetches nothing else. On the bundled
 // release it reads every climate year the walk loads as it starts, and the 1815 border field.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -33,26 +34,45 @@ async function serve(repo?: string): Promise<Release> {
   return (await (await fetch(`${server.url}/release.json`)).json()) as Release;
 }
 
+/**
+ * A release served from a repo whose fixture root is the build's surface and climate, the event
+ * files when `events`, the release's copy and stand-ins for the story images the check reads.
+ */
+async function hosted(events: boolean): Promise<Release> {
+  const repo = mkdtempSync(join(scratch, 'repo-'));
+  const root = join(repo, 'build', 'fixture');
+  mkdirSync(join(root, 'rel'), { recursive: true });
+  mkdirSync(join(repo, 'build', 'stages'), { recursive: true });
+  const linked = events ? ['surf', 'fd', 'ev'] : ['surf', 'fd'];
+  for (const dir of linked) symlinkSync(join(REPO_ROOT, 'build', 'fixture', dir), join(root, dir));
+  symlinkSync(
+    join(REPO_ROOT, 'build', 'stages', 'fixture'),
+    join(repo, 'build', 'stages', 'fixture'),
+  );
+  const release = await serve(repo);
+  writeFileSync(join(root, 'rel', `${release.id}.json`), JSON.stringify(release));
+  // The fixture bakes no story images, so stand-ins answer for the openings the check reads.
+  mkdirSync(join(root, 'img'), { recursive: true });
+  for (const key of releaseKeys(release).data.filter((key) => key.startsWith('img/'))) {
+    writeFileSync(join(root, key), Buffer.alloc(64));
+  }
+  return release;
+}
+
 describe('check-release', () => {
   test('passes a release whose copy and data are on the host', async () => {
-    // A repo whose fixture root is the build's surface and climate plus the release's copy.
-    const root = join(scratch, 'build', 'fixture');
-    mkdirSync(join(root, 'rel'), { recursive: true });
-    mkdirSync(join(scratch, 'build', 'stages'), { recursive: true });
-    symlinkSync(join(REPO_ROOT, 'build', 'fixture', 'surf'), join(root, 'surf'));
-    symlinkSync(join(REPO_ROOT, 'build', 'fixture', 'fd'), join(root, 'fd'));
-    symlinkSync(
-      join(REPO_ROOT, 'build', 'stages', 'fixture'),
-      join(scratch, 'build', 'stages', 'fixture'),
-    );
-    const release = await serve(scratch);
-    writeFileSync(join(root, 'rel', `${release.id}.json`), JSON.stringify(release));
-    // The fixture bakes no story images, so stand-ins answer for the openings the check reads.
-    mkdirSync(join(root, 'img'), { recursive: true });
-    for (const key of releaseKeys(release).data.filter((key) => key.startsWith('img/'))) {
-      writeFileSync(join(root, key), Buffer.alloc(64));
-    }
+    const release = await hosted(true);
     expect(await checkRelease(release)).toEqual([]);
+  });
+
+  test("names a release's event overview that is not on the host", async () => {
+    const release = await hosted(false);
+    expect(await checkRelease(release)).toEqual([`${release.events?.overview}: HTTP 404`]);
+  });
+
+  test('reads no event file when the release names none', async () => {
+    const release = { ...(await serve()), events: undefined };
+    expect(releaseKeys(release).data.filter((key) => key.startsWith('ev/'))).toEqual([]);
   });
 
   test('names a release whose copy is not on the host', async () => {
