@@ -25,11 +25,14 @@ year here is astronomical.
 - **Stateless land** is Natural Earth land less its drawn lakes and every polity, under one id.
   Lakes stay empty, so the bake's fill splits each among its neighbours. A stateless piece that
   touches the sea loses its parts narrower than 2·`sliverKm` to the polity nearest them (an opening
-  on an equal-area projection about the piece). One that does not goes to its neighbours when it
-  touches a lake and is under `pocketKm2`, or when it is narrower than 2·`sliverKm` throughout: the
-  bake fills a pocket that touches a polity from the polities alone, since across a lake stateless
-  land can lie nearer. Other enclosed pieces stay stateless, since they may be real stateless
-  enclaves; a `pocket` correction overrides the rule, for a coastal piece too.
+  on an equal-area projection about the piece). One that does not, a hole in the polities, is
+  filled as the land of the state around it when the drawn land it touches is all one outer unit's
+  (owner decision 38); one between states goes to its neighbours when it touches a lake and is
+  under `pocketKm2`, or when it is narrower than 2·`sliverKm` throughout. The bake fills a pocket
+  that touches a polity from the polities alone, since across a lake stateless land can lie
+  nearer. Other holes between states stay stateless, since they may be real stateless enclaves; a
+  `pocket` correction overrides the rules, for a coastal piece too, and is how a place really
+  without a state inside one stays stateless.
 - **The antimeridian:** Cliopatria's shapes stop at ±180°, so land just across it that no polity
   holds goes to the polity whose shape runs along the other side at the same latitudes: otherwise
   Chukotka east of the meridian is stateless from 1778 and a border runs down it.
@@ -46,7 +49,8 @@ valid in its two years, and selects only those years.
 selects every step and writes the review queue `build/stages/<profile>/borders-review.json`: the
 steps that fail and the corrections that leave a step unchanged, the unclassified composites and
 relations, the members whose composite is not valid, the overlap pairs, the names that vanish and
-return, and each step's leftovers, pockets given and stateless pieces kept, and the leaves it
+return, and each step's leftovers, pockets given by rule (a hole filled as its state's names the
+state) and enclosed stateless pieces kept with the outer units around them, and the leaves it
 draws that no valid row gives it or that a valid row gives it and it does not draw, naming those
 no correction names. It exits 1 when a step fails or a correction leaves a step unchanged, after
 writing the queue.
@@ -342,8 +346,8 @@ class Rename:
 
 @dataclass(frozen=True)
 class Pocket:
-    """The stateless piece holding `at`, enclosed or on a coast, stays stateless whole, or goes to
-    its neighbours."""
+    """The stateless piece holding `at`, enclosed or on a coast, stays stateless whole, as a place
+    really without a state does even inside one, or goes to its neighbours."""
 
     at: tuple[float, float]
     stateless: bool
@@ -782,7 +786,9 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     drawn, overlaps, unacknowledged = _overlaps(year, leaves, config, active, applied)
     held = shapely.union_all(list(leaves.values())) if leaves else shapely.Polygon()
     pockets = [(k, c.op) for k, c in active if isinstance(c.op, Pocket)]
-    stateless, filled, unclaimed = _stateless(held, terrain, config.rules, pockets, applied)
+    stateless, filled, unclaimed = _stateless(
+        held, drawn, outer, terrain, config.rules, pockets, applied
+    )
     parts, minor = _parts(drawn, outer, config.rules)
     valid = {name for name, r in polities.items() if not r.composite}
     shown = {name for name in drawn if not name.startswith("(")}
@@ -1145,6 +1151,8 @@ def _given(op: Give, leaves: Mapping[str, shapely.Geometry], source: Cliopatria)
 
 def _stateless(
     held: shapely.Geometry,
+    drawn: Mapping[str, shapely.Geometry],
+    outer: Mapping[str, str],
     terrain: Terrain,
     rules: Rules,
     pockets: Sequence[tuple[int, Pocket]],
@@ -1157,6 +1165,7 @@ def _stateless(
     pieces = parts_of_dimension(free, 2)
     sea = _touching(pieces, terrain.coast)
     lake = _touching(pieces, terrain.lake_tree)
+    states = _enclosing(pieces, drawn, outer)
     overrides = {}  # a piece's index -> whether it stays stateless, and the correction
     for k, pocket in pockets:
         point = shapely.Point(pocket.at)
@@ -1184,7 +1193,9 @@ def _stateless(
             rule = None if stateless else "correction"
         else:
             rule = None
-            if lake[i] and area < rules.pocket_km2:
+            if len(states[i]) == 1:
+                rule = "state"
+            elif lake[i] and area < rules.pocket_km2:
                 rule = "lake"
             elif shapely.is_empty(_opening(piece, radius)):
                 rule = "narrow"
@@ -1201,9 +1212,20 @@ def _stateless(
         if rule is None:
             kept.append(piece)
             if not sea[i]:
-                enclosed.append({"km2": round(area), "at": where, "lake": bool(lake[i])})
+                entry = {
+                    "km2": round(area),
+                    "at": where,
+                    "lake": bool(lake[i]),
+                    "states": states[i],
+                }
+                if i in overrides:
+                    entry["correction"] = True
+                enclosed.append(entry)
         else:
-            given.append({"km2": round(area), "at": where, "rule": rule})
+            entry = {"km2": round(area), "at": where, "rule": rule}
+            if rule == "state":
+                entry["state"] = states[i][0]
+            given.append(entry)
             if shapely.dwithin(piece, held, TOUCH_DEG):
                 filled.append(piece)
     report = {
@@ -1211,6 +1233,10 @@ def _stateless(
         "sliverKm2": round(sliver_km2),
         "pockets": len(given),
         "pocketKm2": sum(p["km2"] for p in given),
+        "byRule": {
+            rule: sum(1 for p in given if p["rule"] == rule)
+            for rule in ("state", "lake", "narrow", "correction")
+        },
         "largePockets": sorted(
             (p for p in given if p["km2"] >= LARGE_POCKET_KM2), key=lambda p: -p["km2"]
         ),
@@ -1220,6 +1246,20 @@ def _stateless(
     stateless = shapely.multipolygons(kept) if kept else shapely.MultiPolygon()
     pocketed = shapely.multipolygons(filled) if filled else shapely.MultiPolygon()
     return stateless, pocketed, report
+
+
+def _enclosing(
+    pieces: np.ndarray, drawn: Mapping[str, shapely.Geometry], outer: Mapping[str, str]
+) -> list[list[str]]:
+    """The outer units whose drawn land each piece touches, sorted."""
+    touched: list[set[str]] = [set() for _ in range(pieces.size)]
+    names = sorted(drawn)
+    if pieces.size and names:
+        tree = shapely.STRtree(np.array([drawn[n] for n in names], dtype=object))
+        found = tree.query(pieces, predicate="dwithin", distance=TOUCH_DEG)
+        for i, j in found.T:
+            touched[int(i)].add(outer[names[int(j)]])
+    return [sorted(units) for units in touched]
 
 
 def _touching(pieces: np.ndarray, tree: shapely.STRtree) -> np.ndarray:
