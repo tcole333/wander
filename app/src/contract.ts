@@ -15,6 +15,7 @@ import type {
 import type { Release, SurfaceRelease } from './data/release';
 import type { SurfaceLayer } from './data/surfaceLayer';
 import type { SurfacePools } from './gpu/surfaceUploads';
+import type { UploadJob } from './gpu/uploadQueue';
 import type { GlyphSet } from './marks/glyphs';
 import type { MarkLayer } from './marks/marks';
 import type { MemoryAccount } from './perf/memory';
@@ -56,6 +57,13 @@ export interface SurfaceStreamer {
    * the frame's byte budget, and repack the instances.
    */
   update(camera: PerspectiveCamera, viewport: ViewportCss, globe: Object3D): void;
+  /**
+   * Queues an upload behind the tiles', run within the same frame's byte budget once no tile has a
+   * part left: the border steps' bands and preview cells (streaming.md 3.3).
+   */
+  uploadBehind(job: UploadJob): void;
+  /** Drops the rest of an upload queued behind. */
+  cancelUpload(key: string): void;
   stats(): StreamerStats;
   dispose(): void;
 }
