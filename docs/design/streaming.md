@@ -1860,7 +1860,10 @@ and the release's `media` section lists every key the locks name (3.8).
   5. Compile the stories, then build the app.
   6. **Playwright** (`npm run e2e`): Chromium with
      `--use-angle=swiftshader --enable-unsafe-swiftshader`, ~960×600, lite tier; the production
-     build under `vite preview` on :4173 and `build/fixture` on :8791 with production headers. It
+     build, which the script builds first, under `vite preview` on :6273, the Vite dev server on
+     :6274 and `build/fixture` on :6275 with production headers, ports no manual command defaults
+     to. Locally the script runs Playwright under a machine-wide lock (`app/scripts/slot.sh`), so
+     one run at a time holds those ports and the GPU; no run reuses a server already listening. It
      checks: the one-frame render smoke test (8.1 step 0); zero key-check magenta at each beat once
      ready; no new program after the lobby; landing at desired−1 or finer, no hold over `holdMax`,
      and fetched object counts per beat within 10% of the plan (bytes reported); an injected 3 s
