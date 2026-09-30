@@ -84,7 +84,7 @@ export interface SurfaceLook {
 export type CreateSurfaceLook = (
   pools: SurfacePools,
   surface: SurfaceRelease,
-  /** `marks`: the glyphs of the marks to cut into the surface, only where Explore is enabled. */
+  /** `marks`: the glyphs of the marks to cut into the surface, only where Explore stands. */
   options?: { marks?: GlyphSet },
 ) => SurfaceLook;
 

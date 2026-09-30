@@ -8,7 +8,7 @@
 //
 // Explore's labels (--label in tokens.css) name events from the whole index, whose text no one
 // knows at boot. Their family, "Wander Label", is Source Serif 4 in 400 and 600 with its Latin and
-// Latin Extended subsets only, declared and loaded whole where Explore is enabled; a letter
+// Latin Extended subsets only, declared and loaded whole where Explore stands; a letter
 // outside them (the few Vietnamese and Cyrillic labels) draws in the system serif rather than
 // fetching another subset.
 import '@fontsource/libre-baskerville/400.css';
