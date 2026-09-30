@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import { labReports } from './e2e/lab/reports.ts';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
@@ -35,5 +35,20 @@ export default defineConfig({
     // past 120 s at load 75-110.
     testTimeout: 60_000,
     hookTimeout: 300_000,
+    // Inputs tests read from disk rather than import: vitest --changed (npm run check) and watch
+    // mode run the whole suite when one of them changes. The fixture's inputs, the stories,
+    // Explore's openings, the design doc and the HTML entries.
+    forceRerunTriggers: [
+      ...configDefaults.forceRerunTriggers,
+      '**/pipeline/src/**',
+      '**/pipeline/config/**',
+      '**/pipeline/tests/data/**',
+      '**/pipeline/{pyproject.toml,uv.lock,sources.toml,.python-version}',
+      '**/shared/**',
+      '**/stories/**',
+      '**/explore/**',
+      '**/docs/design/streaming.md',
+      '**/app/*.html',
+    ],
   },
 });
