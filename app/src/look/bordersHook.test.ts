@@ -1,7 +1,14 @@
-import { expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { BORDER_FACES, BORDER_TEXELS } from '../data/borders';
 import { MemoryAccount } from '../perf/memory';
-import { createBorderUniforms, fillBorderField, uploadBorderFace } from './bordersHook';
+import {
+  createBorderUniforms,
+  createStepUniforms,
+  fillBorderField,
+  sourceVector,
+  uploadBorderFace,
+  type BorderSource,
+} from './bordersHook';
 
 it('keeps the border backing buffer through partial uploads and releases it after the last upload', () => {
   const uniforms = createBorderUniforms();
@@ -29,4 +36,28 @@ it('keeps the border backing buffer through partial uploads and releases it afte
     depth: BORDER_FACES,
   });
   expect(texture.onUpdate).toBeNull();
+});
+
+describe("the steps' sources", () => {
+  it('name a slot by its first layer and a cell by its ring layer, place and channel', () => {
+    const at = (tier: 'full' | 'lite', source: BorderSource) => [
+      ...sourceVector(tier, source).toArray(),
+    ];
+    expect(at('full', { kind: 'none' })).toEqual([0, 0, 0, 0]);
+    expect(at('full', { kind: 'slot', slot: 1 })).toEqual([1, 6, 0, 0]);
+    expect(at('full', { kind: 'cell', cell: 5, channel: 0 })).toEqual([2, 12, 512, 512]);
+    expect(at('full', { kind: 'cell', cell: 12, channel: 1 })).toEqual([3, 13, 0, 512]);
+    expect(at('lite', { kind: 'cell', cell: 0, channel: 1 })).toEqual([3, 6, 0, 0]);
+  });
+
+  it('draw nothing until the runtime gives them a step', () => {
+    const uniforms = createStepUniforms('lite');
+    expect(uniforms.lookBorderStrength.value).toBe(0);
+    expect(uniforms.lookBorderField.value.image).toMatchObject({
+      width: 1024,
+      height: 1024,
+      depth: 8,
+    });
+    expect([...uniforms.lookBorderB.value.toArray()]).toEqual([0, 0, 0, 0]);
+  });
 });

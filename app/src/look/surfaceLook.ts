@@ -4,6 +4,8 @@
 // (seaNames.ts). A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
 // own shadows. Given a glyph set, where Explore stands, the look also cuts marks into its
 // surface (marks/marks.ts, look.marks); without one, its program and atlas are the look's alone.
+// Given a tier for the border steps, where the release names them, its border array holds the
+// steps' slots and preview ring (bordersHook.ts) in place of milestone 1's 1815 field.
 // The faces the sea names are lettered in, declared wherever the look is made.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -30,7 +32,10 @@ import {
   BORDERS_FRAGMENT_APPLY,
   BORDERS_FRAGMENT_PARS,
   createBorderUniforms,
+  createStepUniforms,
   registerBorders,
+  registerBorderSteps,
+  STEPS_FRAGMENT_PARS,
 } from './bordersHook';
 import {
   CLIMATE_FRAGMENT_APPLY,
@@ -165,7 +170,9 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
   // (bordersHook.ts), off until its effects set a strength.
   const ash = createAshUniforms();
   const climate = createClimateUniforms();
-  const borders = createBorderUniforms();
+  const steps = options.borderSteps ? createStepUniforms(options.borderSteps) : null;
+  const field = steps ? null : createBorderUniforms();
+  const borderField = (steps ?? field)?.lookBorderField.value;
   const seaNames = new SeaNameLayer(options.marks ?? null);
   const marks = options.marks ? new MarkLayer(() => seaNames.glyphCells) : null;
   const fragment = lookFragment({ marks: marks !== null });
@@ -177,7 +184,8 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     ...look,
     ...ash,
     ...climate,
-    ...borders,
+    ...steps,
+    ...field,
     ...routes,
     ...seaNames.uniforms,
     ...marks?.uniforms,
@@ -187,7 +195,8 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
   material.name = 'wander-surface-look';
   registerAsh(material, ash);
   registerClimate(material, climate);
-  registerBorders(material, borders);
+  if (steps) registerBorderSteps(material, steps);
+  if (field) registerBorders(material, field);
   registerRoutes(material, routes);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule and the sea names need the camera in the globe frame: the mesh's local frame.
@@ -235,7 +244,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
+        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${steps ? STEPS_FRAGMENT_PARS : BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
       ],
       [
         '#include <color_fragment>',
@@ -288,7 +297,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     ready: seaNames.ready,
     marks,
     inspectMemory(account) {
-      account.texture('borders.1815', borders.lookBorderField.value);
+      if (borderField) account.texture(steps ? 'borders.slots' : 'borders.1815', borderField);
       account.texture('climate.uploadField', climate.lookClimateField.value);
       account.texture('labels.seaAtlas', seaNames.uniforms.lookSeaAtlas.value);
       account.texture('routes.segments', routes.lookRouteSegments.value);
@@ -301,7 +310,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
       material.dispose();
       depthMaterial.dispose();
       climate.lookClimateField.value.dispose();
-      borders.lookBorderField.value.dispose();
+      borderField?.dispose();
       disposeRouteTextures(routes);
       seaNames.dispose();
       marks?.dispose();
