@@ -726,7 +726,7 @@ corrections:
       title: Indian Territory
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Indian_Territory
-  - years: [1864, 1865]
+  - years: [1864, 1870]
     pocket:
       at: [13.4, 52.52]
       to: Kingdom of Prussia
@@ -734,9 +734,9 @@ corrections:
     why: &prussia >-
       Cliopatria draws Prussia under the name German Confederation until 1863 and not at all from
       1864 to 1870, so its land stood stateless: the Rhine Province and Westphalia enclosed by the
-      states around them, the rest along the coast. Prussia's provinces are drawn as the Kingdom of
-      Prussia in 1864-1865, from Cliopatria's shape of 1863 where the land reaches the coast and
-      whole where a hole lies inside it; after the annexations of 1866 its shape waits for review.
+      states around them in 1864-1865, the rest along the coast. Prussia's provinces are drawn as
+      the Kingdom of Prussia in 1864-1870 from Cliopatria's shape of 1863, whole where a hole lies
+      inside it; the states it annexed in 1866 join it from 1867.
     source: &prussia-source
       title: Provinces of Prussia
       publisher: Wikipedia
@@ -747,6 +747,230 @@ corrections:
       to: Kingdom of Prussia
     why: *prussia
     source: *prussia-source
+  # On 1 January 1866 the north German states Cliopatria leaves out from 1866 stood as in 1865:
+  # the Austro-Prussian War began in June.
+  - years: [1866, 1866]
+    pocket:
+      at: [9.73, 52.37]
+      to: Kingdom of Hanover
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: >-
+      Hanover was a kingdom until Prussia annexed it on 20 September 1866, after the Battle of
+      Langensalza; Cliopatria's rows end in 1865, and it takes its shape of that year.
+    source:
+      title: Kingdom of Hanover
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Hanover
+  - years: [1866, 1866]
+    pocket:
+      at: [9.79, 51.48]
+      to: Kingdom of Hanover
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: >-
+      Hanover's southern part, Göttingen and Grubenhagen, beside Prussia and Brunswick: the kingdom
+      stood until Prussia annexed it on 20 September 1866, and this part takes its shape of 1865 as
+      the rest does.
+    source:
+      title: Kingdom of Hanover
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Hanover
+  - years: [1866, 1866]
+    pocket:
+      at: [9.68, 50.55]
+      to: Electorate of Hesse
+      shape_from: {polity: Electorate of Hesse, year: 1865}
+    why: >-
+      Hesse-Kassel stood until Prussian troops took Kassel on 20 June 1866 and the Peace of Prague
+      gave it to Prussia; Cliopatria's row of 1866 keeps only a scrap of it, and it takes its shape
+      of 1865.
+    source:
+      title: Electorate of Hesse
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Electorate_of_Hesse
+  - years: [1866, 1866]
+    pocket:
+      at: [8.24, 50.08]
+      to: Duchy of Nassau
+      shape_from: {polity: Duchy of Nassau, year: 1865}
+    why: >-
+      Nassau sided with Austria when the war began on 14 June 1866, and Prussia annexed it after the
+      Peace of Prague of 23 August; Cliopatria's rows end in 1865, and it takes its shape of that
+      year.
+    source:
+      title: Duchy of Nassau
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Duchy_of_Nassau
+  - years: [1866, 1866]
+    pocket:
+      at: [8.27, 50.0]
+      to: Free City of Frankfurt
+      shape_from: {polity: Free City of Frankfurt, year: 1865}
+    why: >-
+      Frankfurt was a free city until the Prussian army occupied it on 16 July 1866 and the King of
+      Prussia annexed it by decree on 20 September; Cliopatria's rows end in 1865, and it takes its
+      shape of that year.
+    source:
+      title: Free City of Frankfurt
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Free_City_of_Frankfurt
+  - years: [1866, 1867]
+    pocket:
+      at: [8.65, 49.87]
+      to: Grand Duchy of Hesse
+      shape_from: {polity: Grand Duchy of Hesse, year: 1865}
+    why: >-
+      Hesse-Darmstadt, a grand duchy from 1806 to 1918, lost only 82 km² to Prussia by the treaty of
+      3 September 1866. Cliopatria has no row of it in 1866-1867, and it takes its shape of 1865.
+    source:
+      title: Grand Duchy of Hesse
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Grand_Duchy_of_Hesse
+  - years: [1866, 1866]
+    pocket:
+      at: [8.77, 50.75]
+      to: Grand Duchy of Hesse
+      shape_from: {polity: Grand Duchy of Hesse, year: 1865}
+    why: >-
+      Upper Hesse, the grand duchy's land north of the Main, which joined the North German
+      Confederation after the war while the grand duchy lost only 82 km² to Prussia: on 1 January
+      1866 it lies in a piece of its own, and takes the grand duchy's shape of 1865 as the south
+      does.
+    source:
+      title: Grand Duchy of Hesse
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Grand_Duchy_of_Hesse
+  - years: [1866, 1867]
+    pocket:
+      at: [12.37, 51.34]
+      to: Duchy of Warsaw
+      shape_from: {polity: Duchy of Warsaw, year: 1865}
+    why: >-
+      The Kingdom of Saxony, which Cliopatria names Duchy of Warsaw from 1820, escaped the
+      annexations that ended Hanover after the war of 1866 and joined the North German
+      Confederation the next year. Cliopatria has no row of it in 1866-1867, and it takes its shape
+      of 1865 under Cliopatria's name.
+    source:
+      title: Kingdom of Saxony
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Saxony
+  - years: [1866, 1867]
+    pocket:
+      at: [14.42, 50.08]
+      to: Austrian Empire
+      shape_from: {polity: Austrian Empire, year: 1865}
+    why: >-
+      Bohemia and Moravia were crown lands of the Austrian Empire until the Compromise of 1867 made
+      them Cisleithania's. Cliopatria's Austrian row of 1866-1867 leaves them out, and they take
+      its shape of 1865.
+    source:
+      title: Kingdom of Bohemia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bohemia
+  - years: [1866, 1866]
+    pocket:
+      at: [10.13, 54.32]
+      to: Austrian Empire
+      shape_from: {polity: Austrian Empire, year: 1865}
+    why: &gastein >-
+      By the Gastein Convention of 14 August 1865 Austria ruled Holstein and Prussia Schleswig,
+      until the war of 1866. Cliopatria draws Holstein as Austria's in 1864-1865 and neither duchy
+      from 1866; on 1 January 1866 Holstein takes Austria's shape of 1865, and Schleswig is
+      Prussia's.
+    source: &gastein-source
+      title: Gastein Convention
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gastein_Convention
+  - years: [1866, 1866]
+    pocket:
+      at: [9.43, 54.78]
+      to: Kingdom of Prussia
+    why: *gastein
+    source: *gastein-source
+  # From 1 January 1867, Prussia with the states it took in 1866.
+  - years: [1867, 1870]
+    pocket:
+      at: [9.73, 52.37]
+      to: Kingdom of Prussia
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: &annexed >-
+      After the Austro-Prussian War (14 June to 22 July 1866) Prussia annexed Hanover, Hesse-Kassel,
+      Nassau and Frankfurt, which Cliopatria leaves out from 1866; each joins Prussia in its shape
+      of 1865.
+    source: &annexed-source
+      title: Austro-Prussian War
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Austro-Prussian_War
+  - years: [1867, 1870]
+    pocket:
+      at: [9.79, 51.48]
+      to: Kingdom of Prussia
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1870]
+    pocket:
+      at: [9.68, 50.55]
+      to: Kingdom of Prussia
+      shape_from: {polity: Electorate of Hesse, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1870]
+    pocket:
+      at: [8.24, 50.08]
+      to: Kingdom of Prussia
+      shape_from: {polity: Duchy of Nassau, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1869]
+    pocket:
+      at: [8.27, 50.0]
+      to: Kingdom of Prussia
+      shape_from: {polity: Free City of Frankfurt, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1867]
+    give:
+      polity: Electorate of Hesse
+      to: Kingdom of Prussia
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1870]
+    pocket:
+      at: [10.13, 54.32]
+      to: Kingdom of Prussia
+    why: >-
+      Prussia held Schleswig and Holstein from the war of 1866, which ended in Austria's defeat, and
+      Wilhelm I annexed both by decree on 12 January 1867; they became the Province of
+      Schleswig-Holstein in 1868. Cliopatria draws neither from 1866.
+    source:
+      title: Province of Schleswig-Holstein
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Province_of_Schleswig-Holstein
+  - years: [1870, 1870]
+    pocket:
+      at: [4.87, 49.02]
+      to: Second French Empire
+      shape_from: {polity: Second French Empire, year: 1869}
+    why: >-
+      On 1 January 1870 the Second French Empire, which fell on 4 September 1870 after Sedan, held
+      all of north-eastern France. Cliopatria's row of 1870 leaves Champagne, Lorraine and Alsace
+      out, and they take its shape of 1869.
+    source:
+      title: Second French Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_French_Empire
+  - years: [1870, 1870]
+    pocket:
+      at: [7.85, 49.45]
+      to: Kingdom of Bavaria
+      shape_from: {polity: Kingdom of Bavaria, year: 1869}
+    why: >-
+      The Palatinate west of the Rhine was Bavaria's from the Treaty of Munich of 1816 until 1947.
+      Cliopatria's Bavarian row of 1870 leaves it out, and it takes Bavaria's shape of 1869.
+    source:
+      title: Palatinate (region)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Palatinate_(region)
   - years: [1877, 1879]
     pocket:
       at: [-103.3, 47.53]
