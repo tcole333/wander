@@ -94,6 +94,9 @@ vi.mock('../events/client', () => ({
 vi.mock('../story/ui/rulerCraft', () => ({
   CraftRuler: class {
     element = { ruler: true };
+    // What the ruler engraves at the world view's span: years, labelled every decade.
+    unit = 'year';
+    yearStep = 10;
     constructor() {
       if (drawn.broken === 'ruler') throw new Error('the ruler cannot be drawn');
       drawn.rulers++;
@@ -240,6 +243,40 @@ describe('Explore', () => {
     tick();
     expect(control.current).toEqual(view);
     expect(landed).not.toHaveBeenCalled();
+  });
+
+  it("tells its sound the clock's day, the ruler's engraving and the dive's flight", () => {
+    const { clock, mode, tick } = setup();
+    const heard = (flying: boolean) => ({
+      clock: { day: clock.state().day, unit: 'year', yearStep: 10 },
+      flying,
+    });
+    expect(mode.audio()).toEqual(heard(true));
+    tick();
+    expect(mode.audio()).toEqual(heard(true));
+    const landed = vi.fn();
+    mode.landed(landed);
+    for (let frame = 0; frame < 600 && !landed.mock.calls.length; frame++) tick();
+    expect(mode.audio()).toEqual(heard(false));
+    window.__worldTime?.seek(dayFromIso('1066-10-14'));
+    expect(mode.audio()).toMatchObject({ clock: { day: dayFromIso('1066-10-14') } });
+    expect(mode.audio()).toEqual(heard(false));
+  });
+
+  it('tells its sound the dive has landed once the visitor takes the view', () => {
+    const { control, mode, tick } = setup();
+    tick();
+    control.onInput();
+    expect(mode.audio()).toMatchObject({ flying: false });
+  });
+
+  it('gives its sound nothing to follow once it has left', () => {
+    const { mode, tick } = setup();
+    tick();
+    mode.leave();
+    expect(mode.audio()).toBeNull();
+    tick();
+    expect(mode.audio()).toBeNull();
   });
 
   it('leaves, then releases its ruler, layer and script hook', () => {
