@@ -2578,11 +2578,19 @@ Review items not taken as written, one line each:
   (cube conventions, seam rules, build contract, fixture, story source, milestone order) and the
   tunables table add more, so the doc grew about 30%.
 - **Event density, Meanwhile during break-out, place-label toggles, beat layers on Next/Back, AA method,
-  per-story caps, data hostname, milestone 1 surface scope, all 54 snapshots in milestone 1 (raised as
-  owner questions):**
-  decided in the doc, as technical choices or direct consequences of the owner's rules.
-- **Border pins as an open owner question (audit):** not reopened. The owner already chose the nearest
-  snapshot with its year shown, so pins are removed; the 20-year build warning stays as an author note.
+  per-story caps, data hostname, milestone 1 surface scope (raised as owner questions):** decided in
+  the doc, as technical choices or direct consequences of the owner's rules.
+- **Border pins as an open owner question (audit):** not reopened. A beat draws the step that holds
+  at its date (3.3), and the borders record lists the step each border beat draws; the 20-year build
+  warning stays an author note for the 1815 field until Tambora moves onto the steps.
+- **Border steps on a grid of years, or folded (#80):** not taken. A grid shows states that had
+  already ended in 29% of first-millennium years, and a fold hides 29 states, while a step at every
+  change year costs only storage, 0.37 GB for 505 steps.
+- **Sparse border tiles (#80, Design 2):** not taken at 1024 texels, where two whole-field slots fit
+  the GPU budget with one sampler and no indirection. They return if the fields go to 2048 texels,
+  where two slots would reach the 320 MiB line.
+- **Request classes for border fetches (#80):** not taken (owner decision 30). `fetchData` takes an
+  `AbortSignal`: a step is fetched once the clock rests in it, and a new target aborts it.
 
 ## Owner decisions
 
