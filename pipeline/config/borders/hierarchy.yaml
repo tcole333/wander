@@ -8,35 +8,197 @@
 # not territory and are never listed. Every entry has a `why` and a `source`: {title, publisher,
 # url[, locator]}.
 #
-# These entries class the composites valid in 1500, 1800, 1815 or 1914 and the vassalage relation
-# valid in 1500, as task 0's renders did; the history pass classes the rest. Until it does, a
-# composite this file does not list keeps its members apart, a relation it does not list makes no
-# member, and the borders stage lists both as unclassified.
+# A class holds for every year a composite's rows cover, so each `why` speaks for all of them. A
+# component Cliopatria lists in years it did not belong is named in the `why` and left for review.
 modified: 2026-09-29
 composites:
-  (Bourbon Kingdom of France):
-    kind: empire
-    why: One component in 1815, the restored kingdom itself; the class changes nothing.
+  (Anglo-Saxon England):
+    kind: grouping
+    why: >-
+      Its components (Kent, Sussex, Essex, Wessex, Mercia, East Anglia, Deira, Bernicia,
+      Northumbria, the Hwicce) were separate kingdoms, from the petty kingdoms to the four dominant
+      ones of the eighth century.
     source:
-      title: Bourbon Restoration in France
+      title: Heptarchy
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Bourbon_Restoration_in_France
-  (Kingdom of France):
+      url: https://en.wikipedia.org/wiki/Heptarchy
+  (Batavian Republic):
     kind: empire
     why: >-
-      Its other components (the counties of Nevers, Foix and Auvergne and the Bourbon lands) were
-      fiefs held of the French crown inside the kingdom, so the kingdom's frontier is the outer
-      line and theirs are inner.
+      The Batavian Republic and, from 1800, the Dutch East Indies, the Dutch East India Company's
+      possessions, which the Republic took over when the company was dissolved.
     source:
-      title: Kingdom of France
+      title: Dutch East Indies
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Kingdom_of_France
+      url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+  (Bourbon Kingdom of France):
+    kind: empire
+    why: >-
+      The restored kingdom and its colonies in Africa, beginning with Algiers, conquered from 1830
+      and ruled as a French colony.
+    source:
+      title: French Algeria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Algeria
+  (British Empire):
+    kind: empire
+    why: >-
+      Great Britain and the lands it ruled or administered: the colonies, the East India Company's
+      territories and the Raj, the Cape and Ceylon, British Africa, and the Trucial States under
+      their treaties with Britain.
+    source:
+      title: British Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/British_Empire
+      locator: opening paragraph
+  (Brythonic Kingdoms):
+    kind: grouping
+    why: >-
+      The Brittonic kingdoms (Gwynedd, Powys, Gwent, Brycheiniog, Rheged, Strathclyde, Dumnonia and
+      the rest) remained separate kingdoms that fought one another as much as the English.
+    source:
+      title: Wales in the Early Middle Ages
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Wales_in_the_Early_Middle_Ages
+  (Carolingian Empire):
+    kind: grouping
+    why: >-
+      Cliopatria draws the empire before 843 as one polity; from the Treaty of Verdun (843) its
+      components are the West, Middle and East Frankish kingdoms and the Burgundies, separate
+      kingdoms under at most a nominal imperial overlordship.
+    source:
+      title: Treaty of Verdun
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Verdun
+  (Chenla):
+    kind: grouping
+    why: >-
+      One component, Chenla itself; historians doubt it was ever one kingdom, and after 707 it split
+      into Land and Water Chenla, so its leftover land stays apart.
+    source:
+      title: Chenla
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Chenla
+  (Commonwealth of Nations):
+    kind: empire
+    why: >-
+      Despite its name, its components are the United Kingdom and the British Overseas Territories,
+      which are dependent territories of the United Kingdom.
+    source:
+      title: British Overseas Territories
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/British_Overseas_Territories
+  (Delhi Sultanate):
+    kind: empire
+    why: >-
+      Its components are the sultanate's successive dynasties (Mamluk, Khalji, Tughlaq, Lodi), one
+      at a time, so the class only joins a dynasty to the composite's leftover land.
+    source:
+      title: Delhi Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Delhi_Sultanate
+  (Duchies of Poland):
+    kind: grouping
+    why: >-
+      After Bolesław III divided Poland among his sons in 1138, the Piast dukes ruled their duchies
+      apart and fought one another until the kingdom was restored in 1320.
+    source:
+      title: Fragmentation of Poland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Fragmentation_of_Poland
+  (Dutch Republic):
+    kind: empire
+    why: >-
+      The Republic and its Gold Coast and Ceylon possessions, held for it by the chartered East and
+      West India Companies.
+    source:
+      title: Dutch Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_Empire
+  (Eighteen Kingdoms):
+    kind: grouping
+    why: >-
+      The kingdoms Xiang Yu carved from the Qin empire in 206 BCE, which fought one another in the
+      Chu–Han Contention.
+    source:
+      title: Eighteen Kingdoms
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Eighteen_Kingdoms
+  (First French Empire):
+    kind: empire
+    why: >-
+      France and French India, a French colony. Britain occupied the Indian posts from August 1803
+      to 1816, and Cliopatria's French India rows also hold the Mascarenes; both are left for
+      review.
+    source:
+      title: French India
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_India
+  (Five Dynasties and Ten Kingdoms):
+    kind: grouping
+    why: The rival regimes of China's political division from 907 to 979.
+    source:
+      title: Five Dynasties and Ten Kingdoms period
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Five_Dynasties_and_Ten_Kingdoms_period
+  (French Consulate):
+    kind: empire
+    why: >-
+      France and French India, a French colony, which Britain returned in June 1802 and occupied
+      again in August 1803; the occupations are left for review.
+    source:
+      title: French India
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_India
+  (French Directory):
+    kind: empire
+    why: >-
+      France and French India, a French colony; Britain's occupation of the Indian posts from 1793
+      to 1802 is left for review.
+    source:
+      title: French India
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_India
+  (French First Republic):
+    kind: empire
+    why: >-
+      France and French India, a French colony until Britain occupied the Indian posts in August
+      1793; the occupation is left for review.
+    source:
+      title: French India
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_India
+  (French Fourth Republic):
+    kind: empire
+    why: >-
+      France and its overseas territories in Africa and Indochina, joined with it in the French
+      Union of 1946.
+    source:
+      title: French Union
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Union
+  (French Second Republic):
+    kind: empire
+    why: >-
+      France and French Africa; the 1848 constitution made Algeria departments of France.
+    source:
+      title: French Algeria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Algeria
+  (French Third Republic):
+    kind: empire
+    why: >-
+      France, French Africa, French Indochina and, from 1920, the Levant mandate: the colonial
+      possessions the Third Republic established and ruled.
+    source:
+      title: French Third Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Third_Republic
   (Habsburg Monarchy):
     kind: empire
     why: >-
-      One dynasty's hereditary lands: in 1500 Maximilian I's Austrian lands and the Burgundian
-      Netherlands of his son Philip, which do not touch, so the class draws no line; in 1800 one
-      component.
+      The lands ruled by the House of Habsburg, a composite monarchy, which Cliopatria draws as the
+      house's and the monarchy's rows.
     source:
       title: Habsburg monarchy
       publisher: Wikipedia
@@ -44,112 +206,255 @@ composites:
   (Holy Roman Empire):
     kind: empire
     why: >-
-      Its one component is the Empire's minor states, drawn as one polity, so the class changes
-      nothing here; the electorates and great houses are rows of their own with no membership, a
-      gap for the history pass.
+      Its components are the Empire itself and its estates, the electorates, duchies, counties and
+      cities whose rulers answered only to the emperor and sat in the Imperial Diet; from 1459
+      Cliopatria draws the lesser estates as one row. The Teutonic Order's Prussia and Livonia,
+      listed from 1236, lay outside the Empire and are left for review.
     source:
-      title: Holy Roman Empire
+      title: Imperial State
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Holy_Roman_Empire
+      url: https://en.wikipedia.org/wiki/Imperial_State
   (Kalmar Union):
     kind: empire
     why: >-
-      One component, the union itself, which Cliopatria draws as one polity; the class changes
-      nothing.
+      Denmark, Norway and Sweden under one king, which Cliopatria draws as one polity; its other
+      component, the House of Oldenburg (1450–1458), is Christian I's share of the union's realms.
     source:
       title: Kalmar Union
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Kalmar_Union
-  (Kingdom of England):
-    kind: empire
-    why: One component, the kingdom itself; the class changes nothing.
-    source:
-      title: Kingdom of England
-      publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Kingdom_of_England
   (Kingdom of Bohemia):
     kind: empire
     why: >-
-      One component, the kingdom with its crown lands as one polity; the class changes nothing.
+      The kingdom and the Margraviate of Moravia, a Bohemian fief and one of the lands of the
+      Bohemian crown.
     source:
-      title: Kingdom of Bohemia
+      title: Lands of the Bohemian Crown
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Kingdom_of_Bohemia
-  (Delhi Sultanate):
-    kind: empire
-    why: One component, the Lodi dynasty's sultanate; the class changes nothing.
-    source:
-      title: Delhi Sultanate
-      publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Delhi_Sultanate
-  (Portuguese Empire):
+      url: https://en.wikipedia.org/wiki/Lands_of_the_Bohemian_Crown
+  (Kingdom of Denmark):
     kind: empire
     why: >-
-      Brazil and the African and Asian posts were the Portuguese crown's, ruled from Lisbon, so the
-      kingdom and its colonies share one outer border.
+      The kingdom and, as Danish Magnates, the crown's outlying lands, among them Danish Estonia, a
+      direct dominion of the Danish king until its sale in 1346.
     source:
-      title: Portuguese Empire
+      title: Duchy of Estonia (1219–1346)
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Portuguese_Empire
-  (French Consulate):
+      url: https://en.wikipedia.org/wiki/Duchy_of_Estonia_(1219%E2%80%931346)
+  (Kingdom of England):
     kind: empire
     why: >-
-      France's remaining overseas posts (Cliopatria's French India) were French possessions under
-      the Consulate.
+      The lands of the kings of England: Normandy and Maine after 1066, the Angevin lands (a
+      composite monarchy under the English king), the Irish earldoms and the English colonies. The
+      Viking kingdom of York, listed as Danelaw from 936 to 959, is left for review.
     source:
-      title: French Consulate
+      title: Angevin Empire
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/French_Consulate
-  (British Empire):
+      url: https://en.wikipedia.org/wiki/Angevin_Empire
+  (Kingdom of France):
     kind: empire
     why: >-
-      Great Britain and the lands under British sovereignty: the East India Company's territories,
-      Ceylon and the Cape (taken in 1796 and 1795), the colonies, and in 1914 the Raj and British
-      Africa.
+      The king's domain and the great fiefs his vassals held of the French crown (Normandy,
+      Aquitaine, Burgundy, Flanders, Champagne, Toulouse and the lesser counties), then the
+      kingdom's colonies. The Kingdom of Arles and the Angevin houses' Provence, listed from 1034
+      and 1260, lay in the Empire and are left for review.
     source:
-      title: British Empire
+      title: Peerage of France
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/British_Empire
-  (Spanish Empire):
+      url: https://en.wikipedia.org/wiki/Peerage_of_France
+  (Kingdom of Poland):
+    kind: grouping
+    why: >-
+      Its only years with more than one component (1305–1313) add the Silesian duchies of Głogów,
+      Legnica and Jawor, ruled apart by their own Piast dukes before the kingdom's restoration in
+      1320.
+    source:
+      title: Fragmentation of Poland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Fragmentation_of_Poland
+  (Kingdom of the Franks):
     kind: empire
     why: >-
-      The American viceroyalties and the Philippines were the Spanish crown's in 1800; in 1914 one
-      component.
+      Francia was one realm divided among the king's sons; Burgundy, conquered in 534, was kept as
+      one of its primary divisions.
     source:
-      title: Spanish Empire
+      title: Francia
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Spanish_Empire
-  (Batavian Republic):
+      url: https://en.wikipedia.org/wiki/Francia
+  (Macedonian Empire):
     kind: empire
     why: >-
-      The Dutch East India Company's possessions passed to the Batavian Republic on 1 January 1800,
-      as the Dutch East Indies.
+      Macedon and Alexander's empire; in 323 BCE the regent Perdiccas divided its satrapies among
+      the generals under the joint kings, so his Babylonia and Laomedon's Syria stay inside it.
     source:
-      title: Batavian Republic
+      title: Partition of Babylon
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/Batavian_Republic
-  (French Third Republic):
+      url: https://en.wikipedia.org/wiki/Partition_of_Babylon
+  (Mahajanapadas):
+    kind: grouping
+    why: >-
+      The sixteen kingdoms and republics of ancient India, rivals until Magadha annexed them.
+    source:
+      title: Mahajanapadas
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Mahajanapadas
+  (Merovingian Empire):
     kind: empire
     why: >-
-      French Africa and French Indochina were colonies and protectorates governed from Paris.
+      Francia under the Merovingians was one realm divided among the king's sons, with Burgundy as
+      one of its primary divisions.
     source:
-      title: French Third Republic
+      title: Francia
       publisher: Wikipedia
-      url: https://en.wikipedia.org/wiki/French_Third_Republic
+      url: https://en.wikipedia.org/wiki/Francia
   (Netherlands):
     kind: empire
-    why: The Dutch East Indies were a Dutch colony, governed from The Hague.
+    why: >-
+      The Netherlands and the Dutch East Indies, a colony governed through the Ministry of Colonies
+      in The Hague until 1949.
     source:
       title: Dutch East Indies
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+  (Phoenician Empire):
+    kind: grouping
+    why: >-
+      The Phoenician city-states were independent and competed with one another, and by the seventh
+      century BCE the western colonies had come under Carthage.
+    source:
+      title: Phoenicia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Phoenicia
+  (Polish-Lithuania Kingdom):
+    kind: grouping
+    why: >-
+      The Union of Krewo (1385) joined Poland and Lithuania only in the monarch; Lithuania kept its
+      sovereignty until the Union of Lublin (1569).
+    source:
+      title: Union of Krewo
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Union_of_Krewo
+  (Portuguese Empire):
+    kind: empire
+    why: >-
+      Portugal and its colonies and trading posts in the Americas, Africa and Asia, which kept their
+      own administration during the Iberian Union (1580–1640).
+    source:
+      title: Portuguese Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Portuguese_Empire
+  (Russian Federation):
+    kind: grouping
+    why: >-
+      Its other component, the Russian-occupied territories, are breakaway states such as
+      Transnistria, internationally recognised as parts of their neighbours, not Russian land.
+    source:
+      title: Transnistria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Transnistria
+  (Second French Empire):
+    kind: empire
+    why: France and its colonies in Africa and Indochina, which Napoleon III doubled.
+    source:
+      title: Second French Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_French_Empire
+  (Spanish Empire):
+    kind: empire
+    why: >-
+      The Spanish crown's lands: Spain and its viceroyalties in the Americas and the Philippines,
+      with the Iberian Union's rows for 1582–1639.
+    source:
+      title: Spanish Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Spanish_Empire
+  (Spring and Autumn States):
+    kind: grouping
+    why: >-
+      The Zhou court held only nominal power over the states of the Spring and Autumn period, which
+      acted on their own.
+    source:
+      title: Spring and Autumn period
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Spring_and_Autumn_period
+  (Taifas of Iberia):
+    kind: grouping
+    why: >-
+      The taifas were independent Muslim kingdoms of al-Andalus, after the Caliphate of Córdoba fell
+      and again after the Almoravids and the Almohads.
+    source:
+      title: Taifa
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Taifa
+  (Vichy France):
+    kind: empire
+    why: >-
+      Vichy kept the French colonial empire under its control; North Africa was an integral part of
+      Vichy until the Allies landed in 1942.
+    source:
+      title: Vichy France
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Vichy_France
+  (Warring States China):
+    kind: grouping
+    why: >-
+      The states of the Warring States period fought one another until Qin annexed them in 221 BCE.
+    source:
+      title: Warring States period
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Warring_States_period
 relations:
+  (Vassalage of Electorate of Brandenburg to Holy Roman Empire):
+    member: true
+    why: >-
+      Brandenburg was an imperial estate and, by the Golden Bull of 1356, one of the Empire's seven
+      electorates.
+    source:
+      title: Golden Bull of 1356
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Golden_Bull_of_1356
   (Vassalage of Jaffna kingdom to Vijayanagara Empire):
     member: false
     why: >-
-      A tributary kingdom, which Cliopatria records as Vijayanagara's vassal through 1501. Tribute
-      relations stay out (owner decision 34), so it keeps its own outer border.
+      Jaffna became Vijayanagara's vassal in the 1440s but kept its own kings, vassalage without a
+      treaty of protection, so it keeps its own outer border (owner decision 34).
     source:
       title: Jaffna kingdom
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Jaffna_kingdom
+  (Vassalage of Kingdom of Bohemia to Holy Roman Empire):
+    member: true
+    why: >-
+      The King of Bohemia was an imperial estate and, by the Golden Bull of 1356, one of the
+      Empire's seven electors.
+    source:
+      title: Golden Bull of 1356
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Golden_Bull_of_1356
+  (Vassalage of Kingdom of Georgia to Timurid Empire):
+    member: false
+    why: >-
+      After Timur's invasions Georgia became tributary to the Timurids and kept its independence as
+      a Christian kingdom; tribute relations stay out (owner decision 34).
+    source:
+      title: Timur's invasions of Georgia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Timur%27s_invasions_of_Georgia
+  (Vassalage of Qara Qoyunlu to Timurid Empire):
+    member: false
+    why: >-
+      The Qara Qoyunlu took Tabriz from the Timurids and ruled on their own; Jahan Shah held it as
+      Shah Rukh's vassal only from 1436 to 1447. No treaty of protection, so it stays out.
+    source:
+      title: Qara Qoyunlu
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qara_Qoyunlu
+  (Vassalage of Western Xia to Great Jin):
+    member: false
+    why: >-
+      Western Xia declared itself a vassal of Jin in 1124 but ran its own affairs and even made war
+      on Jin; tribute relations stay out (owner decision 34).
+    source:
+      title: Western Xia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Western_Xia
