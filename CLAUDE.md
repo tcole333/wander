@@ -69,8 +69,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   uv) into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for
   1815-1817 and the scored events of those years, from real excerpts. Meanwhile waits for a
   fixture story and lock of its own, and borders stay synthetic. Vitest checks against it and fails,
-  naming this command, when it is missing or was built from other pipeline code, shared constants
-  or excerpts than the working tree holds.
+  naming this command, when it is missing or was built from other inputs than the working tree
+  holds: pipeline code, shared constants, excerpts, stories, Explore's openings, source pins or
+  Python version (`FIXTURE_PATHS` in `pipeline/src/prebuild/hashing.py`).
 - `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).
