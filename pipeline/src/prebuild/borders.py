@@ -397,6 +397,8 @@ def describe(op: clio.Operation) -> str:
         case clio.Add(polity, _, _, member_of):
             member = f", a member of {member_of}" if member_of else ""
             return f"{polity} is drawn with a shape from the source{member}"
+        case clio.Drop(polity, _):
+            return f"{polity}'s pieces inside a shape from the source are taken away"
         case clio.Member(polity, of):
             return f"{polity} is a member of {of}"
         case clio.Rename(polity, to):

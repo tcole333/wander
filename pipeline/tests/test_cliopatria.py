@@ -414,6 +414,20 @@ def test_add_draws_a_cited_shape_and_member_makes_a_member(terrain):
     assert chosen.applied == {0, 1}
 
 
+def test_drop_takes_away_a_politys_pieces_inside_a_shape(terrain):
+    # The Reich's row carries a scrap far from its body, inside a neighbour's land; the shape also
+    # reaches its body, which it does not hold whole.
+    rows = [
+        row("Reich", shapely.union(box(-10, -5, 0, 5), box(12, 2, 12.5, 2.5))),
+        row("Neighbour", box(10, -5, 20, 5)),
+    ]
+    drop = correction(clio.Drop("Reich", box(-1, 1, 14, 4)))
+    chosen = select(rows, terrain, corrections=[drop])
+    assert area_of(chosen, "Reich") == pytest.approx(clio.km2(box(-10, -5, 0, 5)), rel=0.01)
+    assert area_of(chosen, "Neighbour") == pytest.approx(clio.km2(box(10, -5, 20, 5)), rel=0.01)
+    assert chosen.applied == {0}
+
+
 def test_rename_renames_a_polity_and_what_names_it(terrain):
     rows = [
         row("German Empire", box(-10, -5, 0, 5)),
@@ -470,6 +484,11 @@ def test_an_era_file_loads_every_operation(tmp_path):
             "years": [1815, 1815],
             "add": {"polity": "Sanggar", "shape": "shapes/sanggar.geojson"},
         },
+        {
+            **cited,
+            "years": [1815, 1815],
+            "drop": {"polity": "A", "shape": "shapes/sanggar.geojson"},
+        },
         {**cited, "years": [1815, 1815], "member": {"polity": "A", "of": "B"}},
         {**cited, "years": [1815, 1815], "rename": {"polity": "A", "to": "C"}},
         {**cited, "years": [1815, 1815], "pocket": {"at": [1, 2], "stateless": True}},
@@ -481,9 +500,10 @@ def test_an_era_file_loads_every_operation(tmp_path):
     ]
     loaded = clio.load_config(write_config(tmp_path / "borders", rows))
     ops = [type(c.op).__name__ for c in loaded.corrections]
-    assert ops == ["Give", "Carry", "Add", "Member", "Rename", "Pocket", "Overlap"]
+    assert ops == ["Give", "Carry", "Add", "Drop", "Member", "Rename", "Pocket", "Overlap"]
     assert loaded.corrections[2].op.shape.bounds == pytest.approx((118, -8.4, 118.4, -8.1))
-    assert loaded.corrections[6].source is None
+    assert loaded.corrections[3].op.shape.bounds == pytest.approx((118, -8.4, 118.4, -8.1))
+    assert loaded.corrections[7].source is None
 
 
 @pytest.mark.parametrize(
