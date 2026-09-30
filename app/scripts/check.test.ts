@@ -81,12 +81,15 @@ describe('npm run check', () => {
     expect(plan(path)).toMatchObject({ pytest: 'all', vitest: 'all' });
   });
 
-  test.each(['app/package.json', 'app/vite.config.ts', 'app/credits.html', '.githooks/pre-push'])(
-    'runs all of Vitest for %s, which no test imports',
-    (path) => {
-      expect(plan(path).vitest).toBe('all');
-    },
-  );
+  test.each([
+    'app/package.json',
+    'app/vite.config.ts',
+    'app/credits.html',
+    '.githooks/pre-push',
+    '.github/workflows/ci.yml',
+  ])('runs all of Vitest for %s, which no test imports', (path) => {
+    expect(plan(path).vitest).toBe('all');
+  });
 
   test('runs all of Vitest and the slot tests of pytest for slot.sh, which both read', () => {
     expect(plan('app/scripts/slot.sh')).toMatchObject({
