@@ -7,7 +7,7 @@
 // and dropped as the day leaves them; end() empties them. At most one year is decoded and the field
 // rewritten once a frame, so a scrub stacks no work into one frame. While the years a new day needs
 // are on their way, the field drawn stays up only if it is within a month of the day; further, the
-// layer eases out until they come. A failed year logs once and draws no more climate: Explore goes
+// layer eases out until they come, its month unnamed at once. A failed year logs once and draws no more climate: Explore goes
 // on without it until its next dive.
 import { tunables } from '../config/tunables';
 import { monthsAround, type ClimateFile, type Month, type MonthBlend } from '../data/climate';
@@ -71,6 +71,8 @@ export class ClockClimate {
   #decoding = false;
   /** The months the field was last drawn with here, and the day's month they were drawn for. */
   #drawn: { from: number; month: Month } | null = null;
+  /** Whether the months drawn are within one of the day's, so they may be named as its. */
+  #near = false;
   /** 0 to 1, before its easing curve. */
   #shown = 0;
   #off: boolean;
@@ -107,9 +109,9 @@ export class ClockClimate {
     return this.#drawn ? smoothstep(0, 1, this.#shown) : 0;
   }
 
-  /** The month drawn, while any climate is. */
+  /** The month drawn, while any climate is and it is within a month of the day's. */
   get month(): Month | null {
-    return this.drawn > 0 ? (this.#drawn?.month ?? null) : null;
+    return this.drawn > 0 && this.#near ? (this.#drawn?.month ?? null) : null;
   }
 
   /** The years resident or on their way, for tests and the memory account. */
@@ -129,8 +131,8 @@ export class ClockClimate {
     const order = this.#keep(this.#calendar.civil(day).year, blend, wanted);
     this.#decodeNext(order);
     if (wanted) this.#draw(field, blend, day);
-    const near = this.#drawn !== null && Math.abs(this.#drawn.from - monthIndex(blend.from)) <= 1;
-    const target = wanted && near ? 1 : 0;
+    this.#near = this.#drawn !== null && Math.abs(this.#drawn.from - monthIndex(blend.from)) <= 1;
+    const target = wanted && this.#near ? 1 : 0;
     const step = dtS / EASE_S;
     this.#shown += Math.max(-step, Math.min(step, target - this.#shown));
     field.strength = this.drawn * strength;
