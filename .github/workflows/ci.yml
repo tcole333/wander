@@ -8,9 +8,11 @@ on:
 permissions:
   contents: read
 
+# A newer push to a ref cancels that ref's older run, on main too: the newer commit contains the
+# older one, and its run tests and deploys it. The deploy job keeps a group of its own.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   pipeline:
