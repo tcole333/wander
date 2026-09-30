@@ -284,6 +284,15 @@ describe('refuseOwedBorders', () => {
     rmSync(folder, { recursive: true, force: true });
   });
 
+  test('stops a build whose steps hold a stateless gap no correction gives a verdict', () => {
+    const gap = { at: [13.9, 52.5], km2: 336877, years: [1866, 1870] };
+    const folder = stages({ ...settled, owed: { holes: [], gaps: [gap] } });
+    expect(() => refuseOwedBorders(folder, withSteps)).toThrow(
+      /stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870\).*cite each stateless hole and gap/,
+    );
+    rmSync(folder, { recursive: true, force: true });
+  });
+
   test('lets a settled build, or one without steps, go on', () => {
     const folder = stages(settled);
     expect(() => refuseOwedBorders(folder, withSteps)).not.toThrow();

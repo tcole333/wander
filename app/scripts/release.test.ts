@@ -256,4 +256,23 @@ describe('the borders record', () => {
     ).toEqual([]);
     expect(snapshotRelease({ steps })).toBeUndefined();
   });
+
+  test('owes the history pass each stateless hole and gap no correction gives a verdict', () => {
+    const hole = {
+      at: [42.48, 29.31] as [number, number],
+      km2: 508122,
+      years: [1825, 1915] as [number, number],
+      states: ['Emirate of Nejd', 'Ottoman Empire'],
+    };
+    const gap = {
+      at: [13.9, 52.5] as [number, number],
+      km2: 336877,
+      years: [1866, 1870] as [number, number],
+    };
+    expect(historyOwed({ owed: { holes: [hole], gaps: [gap] } })).toEqual([
+      'stateless hole of 508,122 km² at 42.48, 29.31 in 1825-1915 (Emirate of Nejd, Ottoman Empire)',
+      'stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870',
+    ]);
+    expect(historyOwed({ owed: { holes: [], gaps: [] } })).toEqual([]);
+  });
 });
