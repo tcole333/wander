@@ -879,7 +879,7 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 { "v":1, "id":"tambora", "title", "blurb", "credits":[…], "eventsVer":"…",
   "core": [{"key":"img/<sha16>-256.avif","bytes":…}, {"key":"fx/<sha16>.bin","bytes":…},
            {"key":"fd/modera/<ver8>/mean/1815.bin","bytes":…},
-           {"key":"ov/borders-1815/<ver8>/index.bin","bytes":…}, {"key":"aud/<sha16>.m4a","bytes":…}, …],
+           {"key":"fd/borders/s/<sha16>.bin","bytes":…}, {"key":"aud/<sha16>.m4a","bytes":…}, …],
   "bed": {"synth":{…}, "loops":[{"key","gain","loopStart","loopEnd"}], "oneShots":[…]},
   "beats": [{
     "id", "date": {"t", "t0", "t1", "precision"},           // day numbers (3.0)
@@ -899,8 +899,9 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
     "core": [indexes into story.core] }] }
 ```
 
-The border snapshot is not in the beat; the runtime computes it from the date (3.0). Events are named
-by qid only. The story index (titles, plaque text, beat 1's date, camera and layers) and the article
+The border step is not in the beat: the runtime finds it from the date (`stepAt`, 3.3), and the
+story's core takes the steps its border beats draw from the borders record. Events are named by qid
+only. The story index (titles, plaque text, beat 1's date, camera and layers) and the article
 pages are built from the same JSON.
 
 ### 3.8 `app/src/generated/release.json` (committed and bundled; copy at `rel/<id>.json`)
@@ -913,6 +914,10 @@ pages are built from the same JSON.
   "surface": {"ver", "maxLevel":7, "qLand":[…per level], "c200":[…], "avail":"<base64, 1 bit per node>",
               "bounds":"surf/<ver8>/bounds.bin"},
   "thematic": {"ecoregions":{"ver","maxLevel":5}, "petroleum":{…}, "mountains":{…}},
+  "borderSteps": {"ver", "size":1024, "apron":4, "years":[…505, astronomical],
+                  "keys":["fd/borders/s/<sha16>.bin", …], "bytes":[…],
+                  "previews":{"per":16, "keys":["fd/borders/p/<sha16>.bin", …], "bytes":[…]},
+                  "polities":"fd/borders/m/<sha16>.json", "notice":"lic/<sha16>.txt"},
   "borders": {"ver", "stems":["1815"], "years":[1815],
               "files":{"1815":{"key":"fd/borders/<ver8>/1815.bin", "bytes",
                                "notice":"lic/<sha16>.txt", "source":"lic/<sha16>.geojson"}}},
@@ -926,8 +931,12 @@ pages are built from the same JSON.
   "media": {"images":["img/<sha16>-1024.jpg", "img/<sha16>-256.jpg", …]} }
 ```
 
-`borders` is milestone 1's (3.3): a field per snapshot, with its notice and corrected source. Explore
-mode adds every snapshot's overlay version and the previews' key (3.2, 3.3).
+`borderSteps` names every step's field and every preview chunk, in step order, with their stored
+sizes, the polities and the notice (3.3), about 6 KB under Brotli. `ver`, the layer version over all
+of its files (section 3), names the set, while each key is its own file's content hash, so a
+correction uploads only what it changes. `borders` is milestone 1's 1815 field with its notice and
+corrected source (3.3). The steps take a section of their own because the walk reads
+`borders.stems[0]`; Tambora's move onto the steps retires `borders`.
 
 `events` is optional until the `event-files` stage has run. Its record is copied into the release:
 `rows` counts unique events, `eraEdges` converts the ruler window to bins, and `files` includes the
@@ -1062,16 +1071,17 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
 
 ```
 surf/<ver8>/<L>/<face>/<x>/<y>.wst | bounds.bin        surface tiles, per-node height bounds
-ov/<layer>/<ver8>/index.bin | meta.json | <L>/<face>/<x>/<y>.wot     overlays (borders-<stem> per snapshot)
-ov/borders-previews/<ver8>/previews.bin
+ov/<layer>/<ver8>/index.bin | meta.json | <L>/<face>/<x>/<y>.wot     thematic overlays
 ev/<ver8>/overview.wev | all.wev | pNN.wev | long.wev | details/<n>.json
 fd/modera/<ver8>/mean/<year>.bin | spread/<year>.bin | annual.bin
-fd/borders/<ver8>/<stem>.bin                            milestone 1's border field per snapshot (3.3)
+fd/borders/s/<sha16>.bin | p/<sha16>.bin | m/<sha16>.json border steps, preview chunks, polities (3.3)
+fd/borders/<ver8>/<stem>.bin                            milestone 1's 1815 border field (3.3)
 fx/<sha16>.bin | fx/<sha16>.json                        story datasets
 pt/<sha16>.json  lb/<sha16>.json                        minerals, place labels
 img/<sha16>-1024.jpg | -256.jpg                         story images (AVIF deferred)
 aud/<sha16>.m4a    fn/<sha16>.woff | .woff2
-lic/<sha16>.txt | lic/<sha16>.geojson                   GPL notice (license URL, source commit, changes, build-script link) and corrected source (owner decision 6)
+lic/<sha16>.txt                                         the steps' CC BY notice: attribution, license URL, every correction and its source (owner decision 33)
+lic/<sha16>.txt | lic/<sha16>.geojson                   the 1815 field's GPL notice (license URL, source commit, changes, build-script link) and corrected source (owner decision 6)
 rel/<id>.json                                           immutable copy of each release.json
 _smoke/<sha16>.*  _e4/…                                 hosting checks (issue #1), E4 test objects; in no release
 ```
@@ -1120,7 +1130,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      profile's output root, so versions left there by older builds stay local
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
      upload, because keys are content-versioned and a mismatch means a broken build or upload
-   - stops before any upload when it would send a borders notice and origin lacks the
+   - stops before any upload when the borders record lists an overlap pair that no `overlap`
+     correction acknowledges (3.3)
+   - stops before any upload when it would send the 1815 field's GPL notice and origin lacks the
      `borders-<ver8>` tag the notice links the build scripts at (3.3)
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
      them over the S3 API before anything else goes up, since a key is never overwritten and the
