@@ -30,11 +30,15 @@ const expect = playwrightExpect.configure({ timeout: TIMEOUT });
 /** The lobby's plaques' titles, in order. */
 const LOBBY_TITLES = ['Tambora', 'Magellan–Elcano', 'All of History'];
 
-// Fewer pixels for SwiftShader; the scrollable column still reaches both plaques.
+// Fewer pixels for SwiftShader; the scrollable column still reaches every plaque.
 test.use({ viewport: { width: 640, height: 400 } });
 
+/**
+ * Waits for the lobby's phase. A dive into a story's first beat or a return is some 40 frames at
+ * the walk's step, which SwiftShader on a loaded machine draws at under half a frame a second.
+ */
 async function phase(page: Page, name: string): Promise<void> {
-  await expect(page.locator('body')).toHaveAttribute('data-lobby', name);
+  await expect(page.locator('body')).toHaveAttribute('data-lobby', name, { timeout: 4 * TIMEOUT });
 }
 
 for (const entry of ['production', 'dev'] as const) {
