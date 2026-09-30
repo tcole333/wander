@@ -13,8 +13,14 @@
 // among the others; until the index holds it, or once the worker has failed, the openings lock
 // draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
 // lobby's glows; disposing ends the worker and takes the marks off the globe.
+//
+// Explore's labels (labels.ts) pick the marks under the pointer, hover one (a hollow parent then
+// draws its extent's ring), read the worker's labels and describe their events through here, and
+// its Meanwhile (exploreMeanwhile.ts) asks the worker its question and reads the answer.
 import { tunables, type Tier } from '../config/tunables';
 import type { EventClient } from '../events/client';
+import type { EventDescription } from '../events/describe';
+import type { MeanwhileEvent, MeanwhileQuery } from '../events/meanwhile';
 import { fadeOpacity, type EventMark, type EventResult, type Fading } from '../events/query';
 import type { EventReply } from '../events/runtime';
 import { eventViewOf, type EventView, type ViewFrame } from '../events/view';
@@ -28,10 +34,16 @@ import { exploreWindow } from '../time/exploreTime';
 import type { DayWindow, WorldTime } from '../time/worldClock';
 
 /** What Explore's events need of the event client. */
-export type EventSource = Pick<EventClient, 'query' | 'drain' | 'idle' | 'dispose'>;
+export type EventSource = Pick<
+  EventClient,
+  'query' | 'drain' | 'idle' | 'dispose' | 'description' | 'meanwhile'
+>;
 
 /** What Explore's events need of the look's marks. */
-export type EventMarks = Pick<MarkLayer, 'set' | 'placed' | 'strength'>;
+export type EventMarks = Pick<MarkLayer, 'set' | 'placed' | 'strength' | 'hit'>;
+
+/** A label the worker gives, for an event marked in view. */
+export type EventLabel = Fading<EventMark & { text: string }>;
 
 /** The event the view attends to: its ember, and a time filter it bypasses until it drops. */
 export interface FocalEvent {
@@ -192,6 +204,10 @@ export class ExploreEvents {
   /** Something changed since the marks were last set; or a fade moves, so they change each frame. */
   #changed = true;
   #fading = false;
+  /** The mark the visitor points at or has chosen from the keyboard, drawn hovered. */
+  #hovered: string | null = null;
+  /** The worker's last Meanwhile answer. */
+  #meanwhile: readonly MeanwhileEvent[] | null = null;
   readonly #reported = new Set<string>();
 
   constructor({ client, marks, focal = null, arrive = 'fly', tier = 'full' }: ExploreEventsParts) {
@@ -213,6 +229,56 @@ export class ExploreEvents {
     if (this.#disposed) return;
     this.#focal = focal;
     this.#changed = true;
+  }
+
+  /** The mark drawn hovered, or none. */
+  get hovered(): string | null {
+    return this.#hovered;
+  }
+
+  /** Draws the mark with this id hovered (a hollow parent's with its extent's ring), or none. */
+  hover(id: string | null): void {
+    if (this.#disposed || id === this.#hovered) return;
+    this.#hovered = id;
+    this.#changed = true;
+  }
+
+  /** The event's mark under CSS px (x, y), as the look last drew it, or null. */
+  hit(x: number, y: number): string | null {
+    const id = this.#marks.hit(x, y);
+    return id !== null && this.#shown.has(id) ? id : null;
+  }
+
+  /** The labels the worker last gave: the events it names in view, within the label budget. */
+  labels(): readonly EventLabel[] {
+    return this.#result?.labels ?? [];
+  }
+
+  /**
+   * The event in `row` as the worker describes it, once it has answered; until then, undefined,
+   * and the worker is asked.
+   */
+  description(row: number): EventDescription | undefined {
+    return this.#disposed ? undefined : this.#client.description(row);
+  }
+
+  /** The Q numbers of the events marked, each once, though a crossfade marks a parent twice. */
+  drawnQids(): number[] {
+    return [...new Set([...this.#shown.keys()].map(markQid))];
+  }
+
+  /**
+   * Stands Meanwhile's question for this frame; the client asks it once the clock and view have
+   * rested (EventClient.meanwhile). Nothing is asked once Explore leaves or the worker has failed.
+   */
+  askMeanwhile(query: MeanwhileQuery): void {
+    if (this.#left || this.#dead || this.#disposed) return;
+    this.#client.meanwhile(query);
+  }
+
+  /** The worker's last Meanwhile answer, a new list with each answer; null before the first. */
+  get meanwhile(): readonly MeanwhileEvent[] | null {
+    return this.#meanwhile;
   }
 
   /**
@@ -298,6 +364,8 @@ export class ExploreEvents {
     this.#specs = [];
     this.#result = null;
     this.#resident = 0;
+    this.#hovered = null;
+    this.#meanwhile = null;
   }
 
   /** The index the worker holds for Explore, in its own heap. */
@@ -328,6 +396,9 @@ export class ExploreEvents {
         if (focal && found) this.#focal = { ...focal, span: { t0: found.t0, t1: found.t1 } };
         return;
       }
+      case 'meanwhile':
+        if (!this.#dead) this.#meanwhile = reply.events;
+        return;
       case 'error':
         this.#report(reply.key ?? reply.request ?? 'worker', reply.message);
         // The worker itself failed, and the client asks it nothing more: its marks go, rather
@@ -363,13 +434,13 @@ export class ExploreEvents {
       if (own !== mark.fade.to && !isFocal) fading = true;
       const opacity = own * (1 - veil);
       if (opacity <= 0) return 0;
+      const id = markIdOf(mark.qid, hollow);
       const name = this.#classes[mark.cls];
       const symbol = name === undefined ? undefined : eventSymbol(name);
       if (!symbol) {
         this.#report(`class ${mark.cls}`, `no mark for the class '${name ?? mark.cls}'`);
         return 0;
       }
-      const id = markIdOf(mark.qid, hollow);
       specs.push({
         id,
         at: mark.at,
@@ -378,6 +449,7 @@ export class ExploreEvents {
         pace: symbol.pace,
         opacity,
         focal: isFocal,
+        hover: id === this.#hovered,
         hollow,
         soft: isSoft(mark),
         ringRad: hollow ? ringRadOf(mark) : undefined,
@@ -420,6 +492,7 @@ export class ExploreEvents {
           pace: symbol.pace,
           opacity: 1,
           focal: true,
+          hover: id === this.#hovered,
           soft: lock.soft,
         });
         shown.set(id, null);

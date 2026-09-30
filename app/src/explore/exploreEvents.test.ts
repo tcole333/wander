@@ -3,6 +3,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
 import { tunables } from '../config/tunables';
+import { describe as describeRow, type EventDescription } from '../events/describe';
+import { meanwhileEvents, type MeanwhileQuery } from '../events/meanwhile';
 import type { EventPage } from '../events/page';
 import { EventQueryEngine, type EventQuery } from '../events/query';
 import { EventIndex } from '../events/residency';
@@ -48,6 +50,8 @@ class InPlaceWorker implements EventSource {
   extra: EventReply[] = [];
   /** The error each result's plan carries, as a window past the index cap gives it. */
   planError: string | undefined;
+  /** Meanwhile's questions, as stood each frame. */
+  meanwhileAsked: MeanwhileQuery[] = [];
   #pending: EventQuery | undefined;
   #stated = false;
   #generation = 0;
@@ -86,13 +90,25 @@ class InPlaceWorker implements EventSource {
   idle(): boolean {
     return !this.#pending;
   }
+  description(row: number): EventDescription | undefined {
+    return describeRow(this.index, row);
+  }
+  /** Answers at once, on the next drain, as the client would once the question has rested. */
+  meanwhile(query: MeanwhileQuery): void {
+    this.meanwhileAsked.push(query);
+    this.extra.push({
+      type: 'meanwhile',
+      generation: 1,
+      events: meanwhileEvents(this.index, query),
+    });
+  }
   dispose(): void {
     this.disposed = true;
   }
 }
 
 /** The look's marks as Explore hands them over: the last list set, and its strength. */
-function marksLayer(): EventMarks & { specs: MarkSpec[]; sets: number } {
+function marksLayer(): EventMarks & { specs: MarkSpec[]; sets: number; under: string | null } {
   const layer = {
     specs: [] as MarkSpec[],
     sets: 0,
@@ -104,6 +120,9 @@ function marksLayer(): EventMarks & { specs: MarkSpec[]; sets: number } {
     },
     placed: (): PlacedMark[] =>
       layer.specs.map((s) => ({ id: s.id, x: 0, y: 0, rPx: 8, alpha: s.opacity })),
+    /** The mark the pointer is over, as the test puts it there. */
+    under: null as string | null,
+    hit: () => layer.under,
   };
   return layer;
 }
@@ -493,6 +512,74 @@ describe("Explore's events", () => {
     expect(after.owners['explore.events']?.arrayBuffers).toBe(0);
     events.update(WORLD, at(1000), 2000);
     expect(marks.specs).toEqual([]);
+  });
+
+  it('draws the mark pointed at hovered, a hollow parent with its extent’s ring', () => {
+    const war = { row: 0, qid: 100, lon: 10, lat: 45, t0: 900, t1: 1100, cls: WAR };
+    const { worker, marks } = setup([
+      { ...war, ext: [0, 38, 22, 52] },
+      { row: 1, qid: 101, lon: 4, lat: 50, t0: 990, t1: 990, parent: 0, cls: BATTLE },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    const close = frameOver(10, 45, 1);
+    for (const now of [0, 1000, 2000]) events.update(close, at(1000), now);
+    const hovered = () => marks.specs.filter((s) => s.hover).map((s) => s.id);
+    expect(hovered()).toEqual([]);
+    events.hover('Q100/outline');
+    events.update(close, at(1000), 2100);
+    expect(hovered()).toEqual(['Q100/outline']);
+    expect(byId(marks.specs, 100, true)!.ringRad).toBeGreaterThan(0);
+    events.hover(null);
+    events.update(close, at(1000), 2200);
+    expect(hovered()).toEqual([]);
+  });
+
+  it('picks only its own marks under the pointer', () => {
+    const { worker, marks } = setup([{ row: 0, qid: 1, lon: 10, lat: 45, t0: 1000, t1: 1000 }]);
+    const events = new ExploreEvents({ client: worker, marks });
+    for (const now of [0, 1000]) events.update(WORLD, at(1000), now);
+    marks.under = 'Q1';
+    expect(events.hit(0, 0)).toBe('Q1');
+    // Another layer's mark, or none.
+    marks.under = 'demo-3';
+    expect(events.hit(0, 0)).toBeNull();
+    marks.under = null;
+    expect(events.hit(0, 0)).toBeNull();
+  });
+
+  it('names the events it marks in view, and describes them, a child with its parent', () => {
+    const { worker, marks } = setup([
+      { row: 0, qid: 100, lon: 10, lat: 45, t0: 900, t1: 1100, label: 'Napoleonic Wars' },
+      { row: 1, qid: 101, lon: 11, lat: 44, t0: 990, t1: 990, parent: 0, label: 'Battle of Ulm' },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    for (const now of [0, 1000]) events.update(WORLD, at(1000), now);
+    expect(events.labels().map((label) => label.text)).toContain('Napoleonic Wars');
+    expect(events.description(1)).toMatchObject({
+      label: 'Battle of Ulm',
+      parent: 'Napoleonic Wars',
+    });
+    // From afar the war stands for its battle.
+    expect(events.drawnQids()).toEqual([100]);
+  });
+
+  it('stands Meanwhile’s question and keeps the worker’s answer until it leaves', () => {
+    const { worker, marks } = setup([
+      { row: 0, qid: 1, lon: 10, lat: 45, t0: 1000, t1: 1000 },
+      // On the far side of the globe.
+      { row: 1, qid: 2, lon: -170, lat: -10, t0: 1000, t1: 1000 },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, at(1000), 0);
+    expect(events.meanwhile).toBeNull();
+    const view = worker.asked[0]!.view;
+    const query = { t0: 990, t1: 1010, center: [10, 45] as [number, number], view };
+    events.askMeanwhile({ ...query, count: 3, exclude: [1], focalQids: [] });
+    events.update(WORLD, at(1000), 16);
+    expect(events.meanwhile?.map((event) => event.qid)).toEqual([2]);
+    events.leave();
+    events.askMeanwhile({ ...query, count: 3, exclude: [], focalQids: [] });
+    expect(worker.meanwhileAsked).toHaveLength(1);
   });
 });
 
