@@ -5,6 +5,7 @@
 // Nothing logs an error, no request goes to Wikimedia, and once the room opens nothing more is
 // fetched from the app's own host.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import type { ExploreEventsHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
 import { fetchedSinceOpening, markOpening } from './opening';
 import { DATA_URL, PREVIEW_URL } from './servers';
@@ -12,6 +13,8 @@ import { DATA_URL, PREVIEW_URL } from './servers';
 const TIMEOUT = 90_000;
 const expect = playwrightExpect.configure({ timeout: TIMEOUT });
 const WATERLOO = dayFromIso('1815-06-18');
+
+type ExplorePage = Window & { __exploreEvents?: ExploreEventsHook };
 
 // CI's software renderer needs fewer pixels per frame.
 test.use({ viewport: { width: 640, height: 400 } });
@@ -78,10 +81,16 @@ test('dives into Explore, scrubs the clock and returns, by WANDER and by Escape'
   await phase(page, 'gone');
   await expect(page.locator('.wu-explore .rc')).toBeVisible();
   await expect(clock).toHaveAttribute('aria-valuenow', String(WATERLOO));
-  // The now window's events mark the globe, Waterloo's among them.
+  // The event worker answers from the fixture's index: the now window's events mark the globe,
+  // more than the openings lock's one mark, and Waterloo's mark is the index's own.
   await expect
     .poll(async () => Number(await page.locator('.wu-explore').getAttribute('data-explore-marks')))
-    .toBeGreaterThan(0);
+    .toBeGreaterThan(1);
+  await expect
+    .poll(() =>
+      page.evaluate(() => (window as ExplorePage).__exploreEvents?.event('Q48314')?.qid ?? null),
+    )
+    .toBe(48314);
 
   // The ruler's date plaque scrubs the world clock from the keyboard.
   await clock.focus();
