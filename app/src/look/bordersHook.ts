@@ -300,6 +300,43 @@ vec3 lookStepDist(vec2 st, int layer) {
   return vec3(lookBorderLerp(r, fr), lookBorderLerp(inner, fr), lookBorderLerp1(soft, fr));
 }
 
+// Whether a fragment lies too far from any line for it, or any other fragment of its quad, to
+// draw one, given its nearest texel's distance to the nearest line the source draws, in the
+// source's texels: more than a line reaches (2.5 px), and what a neighbor 1 px away and the taps
+// around it can add. Most of the land takes that one tap, not four, and skips the line, while a
+// quad that draws one keeps all its fragments, so the dots' derivatives hold.
+bool lookBorderFar(float near, float texPx) {
+  return near > 4.0 * texPx + 2.5;
+}
+
+// The nearest texel of a step's face layer: its distance to the nearest outer line, and to the
+// nearest inner line too while inner lines draw, in field texels.
+float lookStepNear(vec2 st, int layer) {
+  ivec2 n = clamp(
+    ivec2((st + 1.0) * ${f(STEP_INTERIOR / 2)} + ${f(BORDER_APRON)}),
+    ivec2(0),
+    ivec2(${STEP_TEXELS - 1})
+  );
+  vec2 v = texelFetch(lookBorderField, ivec3(n, layer), 0).rg;
+  float outer = abs(v.x * ${f(255 / 16)} - 8.0);
+  if (lookBorderInner <= 0.0) return outer;
+  float g = floor(v.y * 255.0 + 0.5);
+  return min(outer, abs((g - 128.0 * step(127.5, g)) * 0.125 - 8.0));
+}
+
+// The nearest texel of a preview at ll: its distance to the nearest outer line in preview texels,
+// shortened by the cosine of the latitude, the most lookPreviewDist's scaling to arc can take off.
+float lookPreviewNear(vec2 ll, vec4 src) {
+  ivec2 n = ivec2(
+    int(mod((ll.x + 180.0) * ${f(PREVIEW_W / 360)}, ${f(PREVIEW_W)})),
+    clamp(int((90.0 - ll.y) * ${f(PREVIEW_H / 180)}), 0, ${PREVIEW_H - 1})
+  );
+  n.x = min(n.x, ${PREVIEW_W - 1});
+  vec4 v = texelFetch(lookBorderField, ivec3(ivec2(src.zw + 0.5) + n, int(src.y + 0.5)), 0);
+  float q = floor(floor((src.x < 2.5 ? v.r : v.g) * 255.0 + 0.5) * 0.5);
+  return abs(q * 0.125 - 8.0) * cos(radians(ll.y));
+}
+
 // A preview's distance at longitude and latitude ll in degrees: x the outer, in preview texels of
 // latitude, y none, and z its softness. Its taps wrap around the dateline inside their cell and
 // hold at the poles, so none reads a neighboring cell. The distance is baked in the grid's texels,
@@ -350,11 +387,14 @@ float lookBorderGroove(vec4 src, vec2 ll, float degPx) {
   vec3 fd;
   float texPx;
   if (src.x < 1.5) {
-    fd = lookStepDist(vLookSt, int(src.y + 0.5) + vLookFace);
+    int layer = int(src.y + 0.5) + vLookFace;
     texPx = max(max(length(dFdx(vLookSt)), length(dFdy(vLookSt))) * ${f(STEP_INTERIOR / 2)}, 1e-4);
+    if (lookBorderFar(lookStepNear(vLookSt, layer), texPx)) return 0.0;
+    fd = lookStepDist(vLookSt, layer);
   } else {
-    fd = lookPreviewDist(ll, src);
     texPx = max(degPx * ${f(PREVIEW_H / 180)}, 1e-4);
+    if (lookBorderFar(lookPreviewNear(ll, src), texPx)) return 0.0;
+    fd = lookPreviewDist(ll, src);
   }
   float wide = 1.0 - smoothstep(${f(BORDER_LOOK.fadeTexPx[0])}, ${f(BORDER_LOOK.fadeTexPx[1])}, texPx);
   float soft = fd.z;
