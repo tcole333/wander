@@ -11,6 +11,7 @@
 //   node scripts/bordersShots.ts --url http://127.0.0.1:5173 --data http://127.0.0.1:8793
 //     [--out ../build/borders/renders] [--only matched,europe,...] [--skip-existing]
 //     [--sheets-only] [--view <name>=<lon>:<lat>:<km>@<year>+<year>...]...
+//     [--param <name>=<value>]...
 //
 // The sets: 1000, 1500, 1800 and 1914 on the comparison's matched views; Europe and India in those
 // years at world view, 6,000 and 2,500 km across; Kuwait, Victoria, the Aral, Java, Sumbawa,
@@ -19,7 +20,9 @@
 // antimeridian; and Africa and the Americas in 1500. Writes <out>/shots/<view>-<year>.png (-none
 // without borders), <out>/<set>.png and <out>/<set>-detail.png, and <out>/shots.json: each
 // shot's camera, the step drawn and its first year, and any console problems. --view adds a view
-// of its own, in the given years, to the sheet `views` (a km of 0 is the widest view).
+// of its own, in the given years, to the sheet `views` (a km of 0 is the widest view). --param
+// sets a dev page param as its query does: --param borderWeight=wide draws the outer line under one
+// of the look's BORDER_WEIGHTS (look/bordersHook.ts), which scripts/bordersWeights.ts compares.
 import { chromium, type Browser } from '@playwright/test';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -40,6 +43,7 @@ const { values } = parseArgs({
     view: { type: 'string', multiple: true, default: [] },
     settle: { type: 'string', default: '1500' },
     timeout: { type: 'string', default: '120' },
+    param: { type: 'string', multiple: true, default: [] },
   },
 });
 const out = resolve(values.out);
@@ -300,6 +304,11 @@ async function render(browser: Browser): Promise<void> {
   });
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
   const query = new URLSearchParams({ data: values.data, ui: '0' });
+  for (const param of values.param) {
+    const [name = '', value = ''] = param.split('=');
+    if (!name || !value) throw new Error(`--param ${param}: expected <name>=<value>`);
+    query.set(name, value);
+  }
   await page.goto(`${values.url}/prototype.html?${query}`);
   await page.waitForFunction(
     () => {
