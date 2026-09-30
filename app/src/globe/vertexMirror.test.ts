@@ -271,8 +271,6 @@ describe('a node deep under its source', () => {
 });
 
 const FAMILIES = fixtureFamilies();
-// Every scenario on one tier: about 4 s on the M5.
-const SWEEP_TIMEOUT = 120_000;
 
 type ControlKind = 'cS' | 'cN' | 'dN';
 
@@ -378,7 +376,7 @@ describe.each(TIER_NAMES)('the fixture families (%s)', (tier) => {
         controls.push(...(await negativeControls(family, mirrored, groups)));
       }
     }
-  }, SWEEP_TIMEOUT);
+  });
 
   test('every instance holding a shared point gets its code, shore, land, h, direction and position bit for bit', () => {
     expect(shared).toEqual([]);
@@ -467,7 +465,7 @@ describe('coverage', () => {
         scenarios.flatMap((s) => TIER_NAMES.flatMap((tier) => [...combinationsOf(s, tier)])),
       ),
     );
-  }, SWEEP_TIMEOUT);
+  });
   const excluded = (c: Combination) => EXCLUDED.some(({ where }) => matches(c, where));
 
   test('the families reach every required combination but the excluded ones', () => {
