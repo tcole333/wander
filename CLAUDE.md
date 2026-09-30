@@ -89,7 +89,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   from disk changes), ruff on the changed Python files and pytest on the changed pipeline modules'
   own tests. It restores a stale fixture first. While fixing an e2e failure,
   `npm run e2e[:gpu] -- --last-failed` reruns only the specs that failed.
-- `npm run fixture`, then `npm run e2e`: Playwright on SwiftShader, as in CI. It builds
+- `npm run fixture`, then `npm run e2e`: Playwright on SwiftShader, as in CI, where it must pass
+  before a merge. Run it locally only to reproduce a CI SwiftShader failure, or before pushing a
+  change to walk pacing, e2e timeouts or the swiftshader project; it runs two workers here. It builds
   `app/dist/` with `vite build` first, then takes the machine-wide e2e lock and a heavy-work slot
   (`app/scripts/slot.sh`) and starts its own servers on :6273-6275, ports no manual command
   defaults to; a server already listening there fails the run. The smoke tests run against that
@@ -101,9 +103,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   the specs as four parallel shards that `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>`
   runs one, as its CI job does.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
-  `--use-angle=metal`), local only. It is the start of the GPU matrix
-  (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
-  put the result in the PR description.
+  `--use-angle=metal`), local only, and the e2e `npm run gate` runs before a push. It is the
+  start of the GPU matrix (`docs/design/streaming.md` 7.3): when renderer, streaming or format
+  code changes, put its result in the PR description.
 - `npm run lab`: the experiments' lab runs on this Mac: Chromium on Metal through Playwright, and
   the installed Safari and Firefox through lab pages that post their reports to the dev server
   (`build/lab/`). It needs no build and takes the e2e lock, since it shares e2e's dev server port;
@@ -210,7 +212,23 @@ works without the raw-data folder.
   uv sync, links to the main checkout's global bake and the fixture (from the store when it holds
   those inputs). `scripts/worktree.sh remove <path>` deletes the links before removing it.
 - Small commits in conventional-commit form (`feat(app): ...`, `fix(pipeline): ...`).
-- Every test passes before a push. CI runs on every pull request.
+- Before a push, `npm run gate` in `app/` on the committed tree: it runs what the change since
+  origin/main calls for (nothing for docs; lint, typecheck, Vitest and `npm run e2e:gpu` for app
+  inputs; ruff and pytest for the pipeline, with the fixture and Vitest, and e2e unless the
+  fixture came out the same as the base's) and records the tree in `build/gate/`. The tracked
+  `.githooks/pre-push` refuses a push whose tree has no record unless it changes only docs; turn
+  it on once with `git config core.hooksPath .githooks` in the main checkout, which every worktree
+  shares, and use `git push --no-verify` only in an emergency. Every test that runs locally
+  passes before a push, and CI, which runs on every pull request, passes before a merge,
+  SwiftShader e2e included; there are no unrelated failures. `npm run gate -- --swiftshader`
+  adds local SwiftShader for the cases the `npm run e2e` bullet names.
+- Run e2e only as `npm run e2e[:gpu] -- <args>` (`--workers=1` for a single spec): the script
+  takes the machine-wide e2e lock, so no brief needs a lock of its own, and a bare
+  `npx playwright test` skips it.
+- Heavy work queues for one of two machine-wide slots: `npm test`, the e2e scripts, every
+  `uv run prebuild` and every pytest run take one (`app/scripts/slot.sh`,
+  `pipeline/src/prebuild/slots.py`; `WANDER_HEAVY_SLOTS` changes the count). A direct `npx vitest`
+  ignores them.
 - Check visual work in a real browser with a real GPU. Headless Chromium on this Mac can use the
   GPU with `--use-angle=metal`; SwiftShader screenshots misrepresent rendering and timing.
 - Performance is measured on this MacBook Pro (Apple M5) for now, at 1440x900, with the lite

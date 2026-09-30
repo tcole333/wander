@@ -18,10 +18,15 @@ its own git worktree, naming the issue, the design sections to read and when the
 ## Checks
 
 Your sandbox writes only inside the worktree and can open neither a browser nor a local port, so the
-tests that start a local server fail there. Run `npm run lint`, `npm test`, `npm run build`,
-`uv run pytest` and the ruff checks there. Claude runs `npm run e2e`, `npm run e2e:gpu`, the
-local-server tests and every render on the Mac's GPU; when a task needs a browser measurement, write
-the script and give the command that runs it.
+tests that start a local server fail there. While you work, `npm run check` runs the checks
+scoped to your change; before you hand off, run `npm run lint`, `npm test`, `npm run build`,
+`uv run pytest` and the ruff checks. Outside the worktree your sandbox reaches neither the Mac's
+heavy-work slots nor the fixture store, so those commands run without a slot and
+`npm run fixture` builds. Claude runs `npm run gate` before each push, e2e on the Mac's GPU
+(`npm run e2e:gpu`) included, the local-server tests and every render; CI runs SwiftShader e2e.
+Run e2e only as `npm run e2e[:gpu] -- <args>`, which takes the machine-wide e2e lock, never as a
+bare `npx playwright test`. When a task needs a browser measurement, write the script and give the
+command that runs it.
 
 ## Standing rules
 

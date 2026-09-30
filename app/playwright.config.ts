@@ -20,6 +20,9 @@ const swiftshader: Project = {
   name: 'swiftshader',
   ...shard,
   grepInvert: /@gpu\b/,
+  // Locally at most two SwiftShader walks at once: five on a loaded Mac starved each other of CPU
+  // and failed where CI passed. CI runs one (workers below).
+  workers: 2,
   use: {
     ...devices['Desktop Chrome'],
     viewport: { width: 960, height: 600 },

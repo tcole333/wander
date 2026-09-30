@@ -1987,12 +1987,15 @@ and the release's `media` section lists every key the locks name (3.8).
   The mixed-level, moving and GPU checks remain with the fixture and E2.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
   starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
-  matrix as WebKit and Firefox projects join. It runs when renderer, streaming or format code
-  changes, and at milestone releases; results go in the PR description. It covers frame p95 across
+  matrix as WebKit and Firefox projects join. `npm run gate` runs it before every push that
+  touches the app's inputs, and it runs at milestone releases; when renderer, streaming or format
+  code changes, results go in the PR description. It covers frame p95 across
   every story walk; seams at Sumbawa, the Strait of Magellan, Florence, the Sierra Nevada, the Kirkuk
   corner and a pole; and throttled walks at 10 Mbps / 60 ms and 5 Mbps / 150 ms through the app's
   fetch shim (`?net=…`, dev and test builds only). The 30-minute soak runs in E1, and again only if
   the governor changes.
+  SwiftShader e2e belongs to CI, where a failure blocks the merge; it runs locally only to
+  reproduce a CI failure or for a change to walk pacing, e2e timeouts or the swiftshader project.
 - **Lab (local):** `npm run lab` runs the `*.lab.ts` files: the experiments' measurements and
   cross-browser checks. Chromium runs on Metal through Playwright. The installed Safari and Firefox,
   which Playwright does not drive, open lab pages with `open -a`, and the pages post their reports to
