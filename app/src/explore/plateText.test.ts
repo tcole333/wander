@@ -62,7 +62,7 @@ describe('an event’s plate', () => {
       date: '18 June 1815',
       parent: 'Hundred Days',
     });
-    expect(spoken(text)).toBe('Battle of Waterloo, 18 June 1815, Part of Hundred Days');
+    expect(spoken(text)).toBe('Battle of Waterloo, 18 June 1815, Part of: Hundred Days');
   });
 
   it('links an event’s source to the Wikipedia article Wikidata gives it', () => {
