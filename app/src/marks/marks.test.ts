@@ -7,6 +7,7 @@ import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
 import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
+import { FAMILIES, FAMILY_VEC4S } from './families';
 import { MARK_ROW, SLOT_ROW, SLOTS_MAX, TABLE_WIDTH, TILE_COUNT_MAX } from './marks.glsl';
 import {
   binDiscs,
@@ -138,6 +139,15 @@ describe('MarkLayer', () => {
     // The camera is 3,000 km up with a 30-degree field: the view is about 2,400 km across.
     expect(placed?.rPx).toBeCloseTo(markPx(2400) / 2, 0);
     expect(marks.uniforms.lookMarksOn.value).toBe(true);
+  });
+
+  it('draws the owner’s cast token unless asked for another variant', () => {
+    const marks = layer();
+    marks.update(0);
+    const token = FAMILIES.governance.variants[0];
+    expect(marks.params.markVariant).toBe(0);
+    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S + 1]?.w).toBe(token.glyph.scale);
+    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S]?.w).toBe(token.disc?.radius);
   });
 
   it('places nothing on the far side of the globe', () => {
