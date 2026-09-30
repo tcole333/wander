@@ -1,4 +1,30 @@
-# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here
-# before 1 CE (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43.
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here before
+# 1 CE (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43. A step shows the state
+# of 1 January of its year, so a correction covers the years whose 1 January falls in its dates.
 modified: 2026-09-29
-corrections: []
+corrections:
+  - years: [-649, -615]
+    overlap:
+      polities: [Assyrian Egypt, Neo-Assyrian Empire]
+      winner: Neo-Assyrian Empire
+    why: >-
+      Cliopatria's Assyrian Egypt rows for 650–616 BCE repeat nearly the whole empire's shape, the
+      Levant and Mesopotamia with Egypt, so the empire's own row keeps the land they share. Egypt
+      itself, where Psamtik I held all of the country by 654 BCE, is left for review.
+    source:
+      title: Psamtik I
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Psamtik_I
+      locator: Reign
+  - years: [-499, -480]
+    overlap:
+      polities: [Wu, Yue]
+      winner: Yue
+    why: >-
+      Smaller wins, checked: Wu and Yue were separate rival states until Goujian of Yue annexed Wu
+      in 473 BCE, and Wu's row covers Yue's land. Yue's row reaches Wu's heartland round Lake Tai,
+      which was Wu's until 473 BCE; that is left for review.
+    source:
+      title: Yue (state)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yue_(state)

@@ -1,4 +1,40 @@
-# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here
-# from 0001 to 0999 (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43.
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from 1
+# to 999 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction covers
+# the years whose 1 January falls in its dates.
 modified: 2026-09-29
-corrections: []
+corrections:
+  - years: [407, 409]
+    overlap:
+      polities: [Northern Liang, Western Liang]
+      winner: Western Liang
+    why: >-
+      Smaller wins, checked: Western Liang (400–421) was a separate state in the western Hexi
+      Corridor, Northern Liang's rival until it conquered it in 421.
+    source:
+      title: Western Liang (Sixteen Kingdoms)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Western_Liang_(Sixteen_Kingdoms)
+  - years: [410, 442]
+    overlap:
+      polities: [Kidarites, White Huns]
+      winner: Kidarites
+    why: >-
+      The Kidarites ruled Bactria and the lands north of the Oxus until the Hephthalites (the White
+      Huns) took their Transoxianan lands around 466, so the land Cliopatria gives both from 410 is
+      the Kidarites'.
+    source:
+      title: Hephthalites
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hephthalites
+      locator: Conquest of Bactria
+  - years: [577, 601]
+    overlap:
+      polities: [Himyarite Kingdom, Kingdom of Axum]
+      winner: Himyarite Kingdom
+    why: >-
+      Smaller wins, checked: the Persians ended Aksumite rule in Yemen in 570 and set Himyarite
+      kings over it as their vassals, so Yemen is Himyar's, not Axum's.
+    source:
+      title: Sasanian Yemen
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sasanian_Yemen
