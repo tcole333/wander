@@ -626,7 +626,7 @@ export function attachBorderSteps(
   return borders;
 }
 
-/** The border steps' runtime of a look's material, where Explore is enabled. */
+/** The border steps' runtime of a look's material, where the release names the steps. */
 export function clockBordersOf(material: Material): ClockBorders | undefined {
   return bound.get(material);
 }

@@ -7,8 +7,8 @@
 // the release, or once the file fails, it logs once and draws no borders: the walk never breaks
 // over them.
 //
-// Where Explore is enabled, the look holds the border steps instead, and the walk draws its beats'
-// steps (StepBorders): the director writes the world clock, the steps follow it
+// Where the release names the border steps, the look holds them instead, and the walk draws its
+// beats' steps (StepBorders): the director writes the world clock, the steps follow it
 // (borders/clockBorders.ts), and the walk keeps the beat's layers as the gate. Walks never draw
 // previews.
 import type { ClockBorders } from '../../borders/clockBorders';

@@ -243,13 +243,14 @@ async function assemble(
   const streamer = await createSurfaceStreamer(renderer, release);
   made.push(() => streamer.dispose());
   const layer = streamer.layer;
-  const look = createSurfaceLook(
-    streamer.pools,
-    release.surface,
-    explore ? { marks: MARK_GLYPHS, borderSteps: BORDER_TIER } : {},
-  );
+  // The look cuts event marks where Explore stands, and holds the border steps where the release
+  // names them: Explore's borders and the walks' border beats follow the world clock through them.
+  // Without them a walk draws milestone 1's 1815 field, and Explore no borders.
+  const look = createSurfaceLook(streamer.pools, release.surface, {
+    ...(explore ? { marks: MARK_GLYPHS } : {}),
+    ...(release.borderSteps ? { borderSteps: BORDER_TIER } : {}),
+  });
   made.push(() => look.dispose());
-  // Where Explore is enabled the look holds the border steps, which follow the world clock.
   const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER, () =>
     String(look.params.borderWeight),
   );
