@@ -153,6 +153,8 @@ export interface Label {
 
 export interface Scale extends Record<TickKind, string> {
   labels: Label[];
+  /** The angles of round years whose ticks stay but whose names give way to an end's. */
+  unnamed: number[];
 }
 
 /**
@@ -194,7 +196,7 @@ function yearStep(arc: Arc, span: Span, calendar: Calendar): number {
  * Days and months retain the walk's two rows. Years and coarser spans use whole calendar
  * years, stepping by 1/2/5 multiples of years, decades, centuries or millennia as needed. Days,
  * months and years are `calendar`'s: in the historical one, 4 October 1582 is followed by the 15th.
- * `extent` is the whole stretch the ruler can show, whose own ends are named wherever they fit.
+ * `extent` is the whole stretch the ruler can show, whose own ends are always named.
  */
 export function engraveScale(
   arc: Arc,
@@ -203,7 +205,7 @@ export function engraveScale(
   calendar: Calendar = GREGORIAN,
   extent?: Span,
 ): Scale {
-  const scale: Scale = { full: '', major: '', minor: '', labels: [] };
+  const scale: Scale = { full: '', major: '', minor: '', labels: [], unnamed: [] };
   const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
   const unit = engravedUnit(arc, span, calendar);
   const yearText = (year: number) => calendarYearLabel(year, span.start < 0 && span.end >= 0);
@@ -332,8 +334,9 @@ export function engraveScale(
     if (step > 1) {
       // Round calendar ticks take precedence. An unround edge is named only where it keeps its
       // own length of bare rule from every tick label, so it reads as the rule's end rather than
-      // crowding the round year beside it, though the extent's own ends (history's) need only
-      // fit; the exclusive end never names a new year.
+      // crowding the round year beside it. The extent's own ends (history's) are named wherever
+      // they clear the other end's label, the round years beside them giving way (clearEnds).
+      // The exclusive end never names a new year.
       for (const [day, anchor] of [
         [span.start, 'start'],
         [span.end, 'end'],
@@ -354,6 +357,7 @@ export function engraveScale(
         const clear = bound ? 4 : right - left;
         if (
           scale.labels.some((label) => {
+            if (bound && label.anchor !== (anchor === 'start' ? 'end' : 'start')) return false;
             const [a, b] = yearLabelEdges(arc, label);
             return left < b + clear && right + clear > a;
           })
@@ -362,6 +366,7 @@ export function engraveScale(
         scale.major += edges(angle(day), 7);
         scale.labels.push(edge);
       }
+      clearEnds(arc, scale);
       scale.labels = spaceYears(arc, scale.labels);
     }
   }
@@ -374,6 +379,33 @@ function yearLabelEdges(arc: Arc, label: Label): [number, number] {
   const left =
     label.angle * arc.r - width * (label.anchor === 'start' ? 0 : label.anchor === 'end' ? 1 : 0.5);
   return [left, left + width];
+}
+
+/**
+ * The label at either end of the rule that turns inward off its tick, an edge's or a round
+ * year's too near the end to centre on its tick, keeps its own length of bare rule from the next
+ * label in, as an unround edge must: the round years within that length keep their ticks but
+ * give up their names, so the rule's end reads as its end rather than crowding the year beside it.
+ */
+function clearEnds(arc: Arc, scale: Scale): void {
+  const sorted = scale.labels.toSorted((a, b) => a.angle - b.angle);
+  const dropped = new Set<Label>();
+  for (const [end, side, other] of [
+    [sorted[0], 'start', 'end'],
+    [sorted.at(-1), 'end', 'start'],
+  ] as const) {
+    if (end?.anchor !== side) continue;
+    const [left, right] = yearLabelEdges(arc, end);
+    const clear = right - left;
+    for (const label of sorted) {
+      // The other end's own label never gives way.
+      if (label === end || !label.key.startsWith('c') || label.anchor === other) continue;
+      const [a, b] = yearLabelEdges(arc, label);
+      if (side === 'start' ? a < right + clear : b > left - clear) dropped.add(label);
+    }
+  }
+  scale.labels = scale.labels.filter((label) => !dropped.has(label));
+  scale.unnamed.push(...[...dropped].map((label) => label.angle));
 }
 
 /** Nudge neighboring labels apart when an edge label turns inward; their ticks stay put. */
@@ -465,6 +497,7 @@ export function engraveHistoryTier(arc: Arc, history: Span): ReturnType<typeof e
     tier.years += radial(arc, label.tickAngle ?? label.angle, TIER_RULE, TIER_RULE - 8);
     tier.labels.push({ ...label, row: TIER_ROW, cls: 'rc-tier-year' });
   }
+  for (const angle of scale.unnamed) tier.years += radial(arc, angle, TIER_RULE, TIER_RULE - 8);
   return tier;
 }
 
