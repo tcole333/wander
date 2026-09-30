@@ -12,6 +12,48 @@ export type GlyphSet = Readonly<Record<string, string>>;
 /** The grid a glyph is drawn on, in units. */
 export const GLYPH_UNITS = 64;
 
+/**
+ * How far a glyph's outline reaches from its grid's center, in units: the farthest of its vertices
+ * and of the circles its arcs are drawn on. Paths are absolute M, L, H, V, A and Z, as the glyphs
+ * are drawn; anything else throws.
+ */
+export function glyphReach(path: string): number {
+  const center = GLYPH_UNITS / 2;
+  const from = (x: number, y: number) => Math.hypot(x - center, y - center);
+  let [x, y] = [0, 0];
+  let most = 0;
+  for (const [, command, args] of path.matchAll(/([A-Za-z])([^A-Za-z]*)/g)) {
+    const n = (args?.match(/-?[\d.]+(?:e-?\d+)?/g) ?? []).map(Number);
+    if ((command === 'M' || command === 'L') && n.length === 2) [x, y] = [n[0]!, n[1]!];
+    else if (command === 'H' && n.length === 1) x = n[0]!;
+    else if (command === 'V' && n.length === 1) y = n[0]!;
+    else if (command === 'A' && n.length === 7) {
+      // The arc's circle (SVG's endpoint to center conversion, for a circle), whole: the arc
+      // reaches no farther than its circle's far side.
+      const [r, , , large, sweep, x2, y2] = n as [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+      ];
+      const [dx, dy] = [(x2 - x) / 2, (y2 - y) / 2];
+      const half = Math.hypot(dx, dy);
+      const radius = Math.max(r, half);
+      const h = Math.sqrt(radius * radius - half * half) * (large === sweep ? -1 : 1);
+      const [cx, cy] = half > 0 ? [x + dx - (h * dy) / half, y + dy + (h * dx) / half] : [x, y];
+      most = Math.max(most, from(cx, cy) + radius);
+      [x, y] = [x2, y2];
+    } else if (command !== 'Z' || n.length > 0) {
+      throw new Error(`glyphReach reads no ${command}${args ?? ''}`);
+    }
+    most = Math.max(most, from(x, y));
+  }
+  return most;
+}
+
 /** A regular star of `points` points about (32, 32), from radius `outer` to `inner`, clockwise. */
 function star(points: number, outer: number, inner: number): string {
   const corners: string[] = [];

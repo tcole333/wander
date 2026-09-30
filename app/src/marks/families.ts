@@ -75,12 +75,12 @@ const worn = (color: string, fill = 1) => ({ color, roughness: 0.35, metalness: 
 /** A cast token standing on the relief, which it hides, casting a contact shadow. */
 const token = { flatten: 0.9, shadow: true, rim: 0 };
 /**
- * The share of a token's diameter its glyph spans, about two thirds of the way to its rim. At the
- * smallest mark, 12 px, a glyph over 0.6 of it drew 7 px wide and governance's niello glyphs read
- * as dots on their dark seals; over 0.74 each reads, and at 16 and 20 px its seal keeps a rim
- * (renders at world view on Metal, 29 September).
+ * How far a cast token's glyph may reach from the token's center, as a share of its seal's radius:
+ * its farthest ink keeps to the seal's face, clear of the rim the seal's bevel (markBevel) casts.
+ * Each family's glyph scale is the largest that holds its farthest-reaching glyph there, which
+ * families.test.ts measures; legible on the smallest mark is markMinDevicePx's part.
  */
-const TOKEN_GLYPH = 0.74;
+export const TOKEN_INK = 0.8;
 /**
  * Cut or laid into the bronze: the relief carries on round it, smoothed under the glyph so the
  * glyph's own edges catch the lamp, even at world view.
@@ -101,11 +101,8 @@ export const FAMILIES: Record<Pace, Family> = {
   nature: {
     backend: 'inlay',
     variants: [
-      {
-        disc: disc(1, 0.13, '#76552a', 0.5),
-        glyph: glyph(TOKEN_GLYPH, 0.04, worn('#ecd08c')),
-        ...token,
-      },
+      // The eruption and the slide reach 37.5 of the grid's 32 units from its center.
+      { disc: disc(1, 0.13, '#76552a', 0.5), glyph: glyph(0.68, 0.04, worn('#ecd08c')), ...token },
       { disc: null, glyph: glyph(0.96, 0.1, worn('#e2bc72', 0.8)), ...cut },
       {
         disc: disc(1, 0.015, '#43604e', 0.65, 0.3),
@@ -118,11 +115,8 @@ export const FAMILIES: Record<Pace, Family> = {
   governance: {
     backend: 'inlay',
     variants: [
-      {
-        disc: disc(1, 0.12, '#5a4029', 0.5, 0.85),
-        glyph: glyph(TOKEN_GLYPH, -0.07, NIELLO),
-        ...token,
-      },
+      // The treaty's seal reaches 35.4 units.
+      { disc: disc(1, 0.12, '#5a4029', 0.5, 0.85), glyph: glyph(0.72, -0.07, NIELLO), ...token },
       { disc: null, glyph: glyph(0.96, -0.07, NIELLO), ...cut },
       { disc: disc(1, 0.015, '#a06a36', 0.35), glyph: glyph(0.66, -0.02, NIELLO), ...inlay },
       enamel('#6a2620'),
@@ -132,8 +126,9 @@ export const FAMILIES: Record<Pace, Family> = {
     backend: 'inlay',
     variants: [
       {
+        // The wreck reaches 36.1 units, on a seal 0.8 of the mark's radius.
         disc: { ...GILT, radius: 0.8, height: 0.12 },
-        glyph: glyph(TOKEN_GLYPH * 0.8, -0.05, worn('#7d5b26', 0.85)),
+        glyph: glyph(0.56, -0.05, worn('#7d5b26', 0.85)),
         ...token,
       },
       {

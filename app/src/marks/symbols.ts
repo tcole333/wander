@@ -2,13 +2,16 @@
 // layer, after Otto and Marie Neurath and Gerd Arntz. Each glyph is a solid silhouette with no
 // outline, drawn as SVG path data on a 64-unit grid, y down and north up, which the marks' glyph
 // atlas turns into a distance field and scripts/glyphSheet.ts prints. The drawing rules keep them
-// legible on the globe's smallest marks, 12 px across, whose cast tokens hold the glyph at about
-// 9 px (7 px on infrastructure's smaller gilt seal), a unit to a seventh of a pixel:
+// legible on the globe's smallest marks, 12 CSS px and at least 16 device px across
+// (tunables.markMinDevicePx), whose cast tokens hold the glyph 9 device px wide or more, a unit
+// to a seventh of a pixel, and never less than 7:
 // - every stroke and gap a glyph needs to be read is at least 6 units wide; finer details, such
 //   as a charter's lines or the points of the sun's rays, may fade at the smallest sizes;
 // - the glyphs of one family part by their silhouettes, since inner detail fades first;
-// - each glyph keeps 4 units clear of the cell's edge and sits in about the cell's inscribed
-//   circle, so a family's seal or boss holds it with its rim to spare;
+// - each glyph keeps 4 units clear of the cell's edge, and the nearer it keeps to the cell's
+//   inscribed circle the larger its family's token holds it: a token holds its family's
+//   farthest-reaching glyph on its seal's face (families.ts, TOKEN_INK), so a glyph that fills
+//   the cell's corners draws every glyph of its family smaller;
 // - paths are filled with the nonzero rule, canvas's and SVG's default: solids wind clockwise on
 //   screen and may overlap, and each hole winds against the one solid it is cut from.
 // Which glyph and pace layer each class of event takes is eventSymbols.ts's, and the material
