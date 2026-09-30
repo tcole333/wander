@@ -13,7 +13,7 @@
     "typecheck": "tsc -b",
     "lint": "eslint . && prettier --check --cache .",
     "format": "prettier --write .",
-    "test": "vitest run",
+    "test": "sh scripts/slot.sh heavy vitest run",
     "verify:bake": "node scripts/verifyBake.ts",
     "data": "node scripts/dataServer.ts",
     "publish-data": "node scripts/publish.ts",

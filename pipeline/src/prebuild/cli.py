@@ -24,6 +24,7 @@ from prebuild.expect import clear_stamp, write_expectations
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
 from prebuild.paths import REPO_ROOT
 from prebuild.profiles import DEFAULT_PROFILE, Context, Profile, default_jobs, make_context
+from prebuild.slots import heavy_slot
 
 type Runner = Callable[[Context], None]
 
@@ -117,7 +118,8 @@ def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGE
 
 def main(argv: Sequence[str] | None = None) -> int:
     ctx, names = plan(sys.argv[1:] if argv is None else argv)
-    run(ctx, names)
+    with heavy_slot():
+        run(ctx, names)
     return 0
 
 
