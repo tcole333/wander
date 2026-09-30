@@ -29,6 +29,55 @@ corrections:
       title: Emirate of Bukhara
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  - years: [1918, 1918]
+    overlap:
+      polities: [Kingdom of Denmark, Kingdom of Iceland]
+      winner: Kingdom of Denmark
+    why: >-
+      Iceland became a sovereign kingdom in personal union with Denmark only on 1 December 1918, so
+      on 1 January 1918 it was still Danish.
+    source: &iceland
+      title: Danish–Icelandic Act of Union
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Danish%E2%80%93Icelandic_Act_of_Union
+  - years: [1919, 1921]
+    overlap:
+      polities: [Kingdom of Denmark, Kingdom of Iceland]
+      winner: Kingdom of Iceland
+    why: >-
+      Smaller wins, checked: from 1 December 1918 Iceland was a sovereign kingdom sharing only its
+      king with Denmark.
+    source: *iceland
+  - years: [1923, 2000]
+    rename:
+      polity: Kingdom of Great Britain
+      to: United Kingdom
+    why: >-
+      After the Irish Free State left in 1922 the state was the United Kingdom of Great Britain and
+      Northern Ireland, the name it took in 1927.
+    source:
+      title: United Kingdom of Great Britain and Ireland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/United_Kingdom_of_Great_Britain_and_Ireland
+  - years: [1925, 1935]
+    rename:
+      polity: First Hellenic Republic
+      to: Second Hellenic Republic
+    why: >-
+      Parliament proclaimed the fall of the monarchy on 25 March 1924, and the Second Hellenic
+      Republic lasted until the monarchy's restoration in November 1935.
+    source: &greece
+      title: Second Hellenic Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Hellenic_Republic
+  - years: [1936, 1940]
+    rename:
+      polity: First Hellenic Republic
+      to: Kingdom of Greece
+    why: >-
+      The monarchy was restored in November 1935, and George II returned on 23 November; the name of
+      Cliopatria's rows from 1945.
+    source: *greece
   # Eastern Europe after the war: Cliopatria's Soviet row covers states that stood on their own.
   - years: [1945, 1946]
     carry:
