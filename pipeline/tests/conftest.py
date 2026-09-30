@@ -1,3 +1,4 @@
+import contextlib
 import warnings
 from dataclasses import replace
 from pathlib import Path
@@ -9,7 +10,18 @@ import pytest
 from prebuild import coverage
 from prebuild.cube import Tile
 from prebuild.profiles import Context, Profile, make_context
+from prebuild.slots import heavy_slot
 from prebuild.tiles import Surface, TileSources, open_sources, surface
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """The run holds one heavy-work slot (prebuild/slots.py) from its start to its end; xdist's
+    workers run inside their controller's."""
+    if hasattr(config, "workerinput"):
+        return
+    slot = contextlib.ExitStack()
+    slot.enter_context(heavy_slot())
+    config.add_cleanup(slot.close)
 
 
 @pytest.fixture(autouse=True)
