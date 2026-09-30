@@ -9,10 +9,16 @@ import { FIXED_SLOTS } from '../gpu/slotTable';
 import { nodeFromIndex, nodeIndex, tileKey, type Tile, type Vec3 } from '../surface/cube';
 import type { DecodedWst } from '../surface/wst';
 import { flagsNeedUp, packInstance, type InstanceState } from '../globe/instances';
-import { gridVertex, sharedPointGroups, tJunctions, type VertexRef } from '../globe/meshGroups';
+import {
+  boundaryVertices,
+  gridVertex,
+  sharedPointGroups,
+  tJunctions,
+  type VertexRef,
+} from '../globe/meshGroups';
 import { packScenario, type PackedScenario, type Scenario } from '../globe/meshScenarios';
 import { ancestorAt, isTJunction } from '../globe/seamFlags';
-import { buildTileGrid, SKIRT, SURFACE, type Segments, type TileGrid } from '../globe/tileGrid';
+import { buildTileGrid, SKIRT, type Segments, type TileGrid } from '../globe/tileGrid';
 import {
   mirrorInstance,
   mirrorSlot,
@@ -148,11 +154,9 @@ function mirrorOne(
   options: MirrorOptions,
 ): MirrorVertex[] {
   if (!options.boundary) return mirrorInstance(words, instance, grid, ctx);
-  const G = grid.segments;
   const vertices: MirrorVertex[] = [];
-  for (let v = 0; v < grid.vertexCount; v += 1) {
+  for (const v of boundaryVertices(grid).withSkirts) {
     const [k, l, role] = gridVertex(grid, v);
-    if (role === SURFACE && k > 0 && k < G && l > 0 && l < G) continue;
     vertices[v] = mirrorVertex(words, instance, k, l, role, ctx);
   }
   return vertices;
@@ -184,13 +188,25 @@ export function sharedMismatches(
     const v = mirrored.vertices[instance]?.[vertex];
     const tile = mirrored.packed.instances[instance]?.node.tile;
     if (!v || !tile) throw new RangeError(`no vertex ${vertex} of instance ${instance}`);
+    return { v, tile };
+  };
+  // Names are built only for a pair that differs, which fieldMismatches then reports.
+  const named = ({ v, tile }: ReturnType<typeof at>, { vertex }: VertexRef): NamedVertex => {
     const [k, l] = gridVertex(mirrored.grid, vertex);
     return { v, name: `${tileKey(tile)} (${k}, ${l})` };
   };
   for (const [point, members] of groups) {
-    const [first, ...rest] = members.map(at);
-    if (!first) continue;
-    for (const other of rest) out.push(...fieldMismatches(point, first, other, fields));
+    const firstRef = members[0];
+    if (!firstRef) continue;
+    const first = at(firstRef);
+    for (let i = 1; i < members.length; i += 1) {
+      const otherRef = members[i];
+      if (!otherRef) continue;
+      const other = at(otherRef);
+      if (fields.every((field) => identical(first.v[field], other.v[field]))) continue;
+      const pair = [named(first, firstRef), named(other, otherRef)] as const;
+      out.push(...fieldMismatches(point, ...pair, fields));
+    }
   }
   return out;
 }
@@ -213,13 +229,26 @@ export function fieldMismatches(
 ): string[] {
   const out: string[] = [];
   for (const field of fields) {
-    const x = [a.v[field]].flat();
-    const y = [b.v[field]].flat();
-    if (!x.every((value, i) => value === y[i] && Object.is(value, y[i]))) {
+    if (!identical(a.v[field], b.v[field])) {
+      const [x, y] = [[a.v[field]].flat(), [b.v[field]].flat()];
       out.push(`${point} ${field}: ${a.name} ${x.join()} vs ${b.name} ${y.join()}`);
     }
   }
   return out;
+}
+
+/**
+ * Whether a field's values are identical: each of the first's components (a scalar is one) equal
+ * to the second's at the same index, of the same sign at zero, and not NaN.
+ */
+function identical(x: MirrorVertex[SharedField], y: MirrorVertex[SharedField]): boolean {
+  const count = Array.isArray(x) ? x.length : 1;
+  for (let i = 0; i < count; i += 1) {
+    const value = Array.isArray(x) ? x[i] : x;
+    const other = Array.isArray(y) ? y[i] : i === 0 ? y : undefined;
+    if (!(value === other && Object.is(value, other))) return false;
+  }
+  return true;
 }
 
 export interface ChordOffset {

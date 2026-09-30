@@ -19,6 +19,30 @@ export function gridVertex(grid: TileGrid, v: number): [k: number, l: number, ro
   return [k, l, role];
 }
 
+const boundaries = new WeakMap<TileGrid, { surface: Int32Array; withSkirts: Int32Array }>();
+
+/**
+ * The grid's vertices on its boundary, the only ones instances can share, in vertex order: the
+ * surface vertices alone, and with the skirt bottoms. Built once per grid.
+ */
+export function boundaryVertices(grid: TileGrid): { surface: Int32Array; withSkirts: Int32Array } {
+  let found = boundaries.get(grid);
+  if (!found) {
+    const G = grid.segments;
+    const surface: number[] = [];
+    const withSkirts: number[] = [];
+    for (let vertex = 0; vertex < grid.vertexCount; vertex += 1) {
+      const [k, l, role] = gridVertex(grid, vertex);
+      if (role === SURFACE && k > 0 && k < G && l > 0 && l < G) continue;
+      withSkirts.push(vertex);
+      if (role === SURFACE) surface.push(vertex);
+    }
+    found = { surface: Int32Array.from(surface), withSkirts: Int32Array.from(withSkirts) };
+    boundaries.set(grid, found);
+  }
+  return found;
+}
+
 /** The surface vertex a grid vertex (a skirt bottom's top, or itself) sits on. */
 export function surfaceVertexOf(grid: TileGrid, v: number): number {
   const [k, l] = gridVertex(grid, v);
@@ -34,11 +58,11 @@ export function sharedPointGroups(
   grid: TileGrid,
 ): Map<string, VertexRef[]> {
   const G = grid.segments;
+  const boundary = boundaryVertices(grid).surface;
   const all = new Map<string, VertexRef[]>();
   packed.instances.forEach(({ node }, instance) => {
-    for (let vertex = 0; vertex < grid.vertexCount; vertex += 1) {
-      const [k, l, role] = gridVertex(grid, vertex);
-      if (role !== SURFACE || (k > 0 && k < G && l > 0 && l < G)) continue;
+    for (const vertex of boundary) {
+      const [k, l] = gridVertex(grid, vertex);
       const key = latticePoint(node.tile, k, l, G);
       const members = all.get(key);
       if (members) members.push({ instance, vertex });
@@ -62,11 +86,13 @@ export function tJunctions(
   groups: Map<string, VertexRef[]>,
 ): TJunction[] {
   const G = grid.segments;
+  // T-junctions lie on a node's edges, so only the boundary's surface vertices can be one.
+  const boundary = boundaryVertices(grid).surface;
   const out: TJunction[] = [];
   packed.instances.forEach(({ node, state }, instance) => {
-    for (let vertex = 0; vertex < grid.vertexCount; vertex += 1) {
-      const [k, l, role] = gridVertex(grid, vertex);
-      if (role !== SURFACE || !isTJunction(state.flags, k, l, G)) continue;
+    for (const vertex of boundary) {
+      const [k, l] = gridVertex(grid, vertex);
+      if (!isTJunction(state.flags, k, l, G)) continue;
       const at = `${tileKey(node.tile)} (${k}, ${l})`;
       const [dk, dl] = l === 0 || l === G ? [1, 0] : [0, 1];
       const end = (d: number): VertexRef => {
