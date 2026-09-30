@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1500 to 1799 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-29
+modified: 2026-09-30
 corrections:
   - years: [1572, 1587]
     overlap:
@@ -64,8 +64,10 @@ corrections:
       polity: Carnatic Sultanate
       of: British Empire
     why: >-
-      A dependent by treaty: by the treaties of 1763 to 1792 the English managed the Carnatic for the
-      Nawab, and after 1799 they assumed its government. From 1793, after the treaty of 1792.
+      A dependent by treaty: by the treaties of 1763, 1781, 1785, 1787 and 1792 the English came to
+      manage the Carnatic for the Nawab, to settle his debts, and after 1799 they assumed its
+      government. Drawn from 1793, once the last of those treaties had taken effect, and through
+      1802, the last year of Cliopatria's row.
     source:
       title: Dictionary of Indian Biography, 'Carnatic, Muhammad Ali Khan Walajah, Nawab of the'
       publisher: Wikisource (C. E. Buckland, 1906)
@@ -92,14 +94,15 @@ corrections:
       title: Hyderabad State
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Hyderabad_State
-  - years: [1799, 1802]
+  - years: [1776, 1802]
     member:
       polity: Nawab of Awadh
       of: British Empire
     why: >-
-      A dependent by treaty: the treaty of 21 February 1798 with Saadat Ali Khan II raised the
-      subsidy Awadh paid for Company troops, and in 1801 he ceded half his state. Cliopatria's
-      Awadh ends in 1802; its later, smaller shape is left for review.
+      A subsidiary ally by treaty: Asaf-ud-Daula acceded with British aid in exchange for the Treaty
+      of Benares (1775), which raised what Awadh paid for Company troops and ceded Benares; the
+      treaty of 21 February 1798 raised the subsidy again, and in 1801 Saadat Ali Khan II ceded half
+      his state. Cliopatria's Awadh ends in 1802; its later, smaller shape is left for review.
     source:
       title: Oudh State
       publisher: Wikipedia
