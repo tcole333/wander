@@ -1,20 +1,21 @@
 // Explore's Meanwhile (spec section 5; streaming.md 5.3): what else happens in the now window,
 // elsewhere, in the story's panel (story/ui/meanwhile.ts, MeanwhileList). Each frame once the dive
-// has landed it stands the event worker's Meanwhile question for the now window and the view, the
-// events the globe draws and the focal one left out; the client asks it once the clock and view
-// have rested for meanwhileRest. Each answer lists up to meanwhileCount events off the screen, each
-// named as its plate names it (plateText.ts), dated as history writes it and sourced to its
-// Wikipedia article; an entry whose dates the now window has left goes at once, before the next
-// answer. Choosing one flies there (explore.ts), and the landing pins it. A keyboard visitor on an
-// entry keeps their place as answers change the list; once none is left, the focus goes to `heir`
-// (Explore's events listbox).
+// has landed it stands the event worker's Meanwhile question for the now window, kept within
+// history (time/exploreTime.ts, exploreWindow), and the view, the events the globe draws and the
+// focal one left out; the client asks it once the clock and view have rested for meanwhileRest.
+// Each answer lists up to meanwhileCount events off the screen, each named as its plate names it
+// (plateText.ts), dated as history writes it and sourced to its Wikipedia article; an entry whose
+// dates the now window has left goes at once, before the next answer. Choosing one flies there
+// (explore.ts), and the landing pins it. A keyboard visitor on an entry keeps their place as
+// answers change the list; once none is left, the focus goes to `heir` (Explore's events listbox).
 import { tunables } from '../config/tunables';
 import type { MeanwhileEvent, MeanwhileQuery } from '../events/meanwhile';
 import { eventViewOf, type ViewFrame } from '../events/view';
 import type { MeanwhileEntry } from '../story/contract';
 import type { LonLat } from '../story/story';
 import { MeanwhileList } from '../story/ui/meanwhile';
-import { nowWindow, type WorldTime } from '../time/worldClock';
+import { exploreWindow } from '../time/exploreTime';
+import type { WorldTime } from '../time/worldClock';
 import type { ViewState } from '../view/viewState';
 import { inWindow, type FocalEvent } from './exploreEvents';
 import { eventDate, eventName, sourceOf } from './plateText';
@@ -72,7 +73,7 @@ export class ExploreMeanwhile {
 
   /** Every frame, once the frame is placed: Meanwhile's question for the now window and view. */
   ask(frame: ViewFrame, time: WorldTime, [lon, lat]: LonLat): void {
-    const window = nowWindow(time);
+    const window = exploreWindow(time);
     const focal = this.#events.focal;
     this.#events.askMeanwhile({
       t0: window.start,
@@ -94,7 +95,7 @@ export class ExploreMeanwhile {
         (answer ?? []).map((event) => [`Q${event.qid}`, { entry: entryOf(event), event }]),
       );
     }
-    const window = nowWindow(time);
+    const window = exploreWindow(time);
     const now = [...this.#listed.values()].filter(({ event }) => inWindow(event, window));
     const shown = now.map(({ event }) => event.qid).join(' ');
     if (shown !== this.#shown) {
