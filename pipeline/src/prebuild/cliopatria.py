@@ -46,8 +46,10 @@ valid in its two years, and selects only those years.
 selects every step and writes the review queue `build/stages/<profile>/borders-review.json`: the
 steps that fail and the corrections that leave a step unchanged, the unclassified composites and
 relations, the members whose composite is not valid, the overlap pairs, the names that vanish and
-return, and each step's leftovers, pockets given and stateless pieces kept. It exits 1 when a step
-fails or a correction leaves a step unchanged, after writing the queue.
+return, and each step's leftovers, pockets given and stateless pieces kept, and the leaves it
+draws that no valid row gives it or that a valid row gives it and it does not draw, naming those
+no correction names. It exits 1 when a step fails or a correction leaves a step unchanged, after
+writing the queue.
 """
 
 import argparse
@@ -782,10 +784,17 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     pockets = [(k, c.op) for k, c in active if isinstance(c.op, Pocket)]
     stateless, filled, unclaimed = _stateless(held, terrain, config.rules, pockets, applied)
     parts, minor = _parts(drawn, outer, config.rules)
+    valid = {name for name, r in polities.items() if not r.composite}
+    shown = {name for name in drawn if not name.startswith("(")}
+    named = set().union(*(_names_of(config.corrections[k].op) for k in applied))
+    changed = sorted((shown - valid) | (valid - shown))
     report = {
         "year": year,
         "leaves": counted,
         "drawn": len(drawn),
+        "added": sorted(shown - valid),
+        "removed": sorted(valid - shown),
+        "unexplained": [name for name in changed if name not in named],
         "outer": len(set(outer.values())),
         "minorPieces": minor,
         "leftovers": [{"composite": n, "km2": round(a)} for n, (_, a) in leftovers.items()],
@@ -794,6 +803,19 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
         "stateless": unclaimed,
     }
     return Selection(year, parts, stateless, frozenset(applied), unacknowledged, report, filled)
+
+
+def _names_of(op: Operation) -> set[str]:
+    """The polities a correction names, which it may add to a step's leaves or take from them."""
+    match op:
+        case Give() | Rename():
+            return {op.polity, op.to}
+        case Carry() | Add() | Drop():
+            return {op.polity}
+        case Overlap():
+            return set(op.polities)
+        case _:
+            return set()
 
 
 def _valid_rows(
@@ -1442,7 +1464,17 @@ def review_queue(
         "byStep": {
             str(y): {
                 key: reports[y][key]
-                for key in ("leaves", "drawn", "outer", "minorPieces", "leftovers", "stateless")
+                for key in (
+                    "leaves",
+                    "drawn",
+                    "added",
+                    "removed",
+                    "unexplained",
+                    "outer",
+                    "minorPieces",
+                    "leftovers",
+                    "stateless",
+                )
             }
             for y in years
             if y in reports
