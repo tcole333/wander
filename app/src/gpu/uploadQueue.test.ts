@@ -33,9 +33,11 @@ function job(
   };
 }
 
-// The rules' own numbers, so the tests below state what they check; the surface tile test uses
-// the real tunables.
-const options = { stopMs: 1, slowCallMs: 0.5 };
+// A queue on the rules' own numbers, so the tests below state what they check, measuring time
+// only on `time`, never the machine's clock; the surface tile test uses the real tunables.
+function queueOn(time = clock()): UploadQueue {
+  return new UploadQueue({ stopMs: 1, slowCallMs: 0.5, now: time.now });
+}
 
 describe('a surface tile at the lite animated budget', () => {
   test('takes two frames, height first', () => {
@@ -61,7 +63,7 @@ describe('a surface tile at the lite animated budget', () => {
 });
 
 test('publishes a tile only when its last part lands', () => {
-  const queue = new UploadQueue(options);
+  const queue = queueOn();
   const published: string[] = [];
   queue.enqueue({
     key: 'a',
@@ -78,7 +80,7 @@ test('publishes a tile only when its last part lands', () => {
 });
 
 test('runs tiles in the order they were queued', () => {
-  const queue = new UploadQueue(options);
+  const queue = queueOn();
   const written: string[] = [];
   queue.enqueue(job('a', [5, 5], written));
   queue.enqueue(job('b', [5], written));
@@ -87,21 +89,21 @@ test('runs tiles in the order they were queued', () => {
 });
 
 test('sends a part larger than the whole budget when it is the first of the frame', () => {
-  const queue = new UploadQueue(options);
+  const queue = queueOn();
   queue.enqueue(job('a', [300_000, 10], []));
   expect(queue.run(256_000)).toMatchObject({ parts: 1, bytes: 300_000, stoppedBy: 'budget' });
 });
 
 test('stops after the measured time passes stopMs', () => {
   const time = clock();
-  const queue = new UploadQueue({ ...options, now: time.now });
+  const queue = queueOn(time);
   queue.enqueue(job('a', [1, 1, 1, 1, 1], [], 0.4, time));
   expect(queue.run(1_000_000)).toMatchObject({ parts: 3, stoppedBy: 'time' });
 });
 
 test('stops after any single write over slowCallMs', () => {
   const time = clock();
-  const queue = new UploadQueue({ ...options, now: time.now });
+  const queue = queueOn(time);
   queue.enqueue(job('a', [1], [], 0.6, time));
   queue.enqueue(job('b', [1], [], 0.01, time));
   const run = queue.run(1_000_000);
@@ -110,7 +112,7 @@ test('stops after any single write over slowCallMs', () => {
 });
 
 test('cancel drops the rest of a tile', () => {
-  const queue = new UploadQueue(options);
+  const queue = queueOn();
   const written: string[] = [];
   queue.enqueue(job('a', [10, 10], written));
   queue.run(10);
