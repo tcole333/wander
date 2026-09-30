@@ -1,122 +1,245 @@
 import { describe, expect, it, vi } from 'vitest';
-import { dayFromIso, historicalCivil } from '../story/dates';
+import { dayFromHistorical, dayFromIso, historicalCivil } from '../story/dates';
 import { WorldClock } from './worldClock';
-import { ExploreTime, HISTORY, MIN_EXPLORE_DAYS, wheelZoom } from './exploreTime';
+import {
+  ExploreTime,
+  HISTORY,
+  MAX_EXPLORE_DAYS,
+  MIN_EXPLORE_DAYS,
+  tapeWindow,
+  wheelPixels,
+} from './exploreTime';
+import { YEAR_DAYS } from './overviewScale';
 
-function setup() {
+const WATERLOO = dayFromIso('1815-06-18');
+const Y200 = 200 * YEAR_DAYS;
+
+function setup(day = WATERLOO, openYears: number | null = 200, reduced = false) {
   const clock = new WorldClock();
-  const explore = new ExploreTime(clock);
-  return { clock, explore };
+  const time = new ExploreTime(clock, HISTORY, day, {
+    openYears: openYears ?? undefined,
+    reducedMotion: () => reduced,
+  });
+  let now = 1000;
+  /** Runs frames at 60 Hz until nothing moves, or for `ms` when given. */
+  const run = (ms?: number) => {
+    const until = now + (ms ?? 5000);
+    time.tick(now);
+    while (now < until) {
+      now += 1000 / 60;
+      time.tick(now);
+      if (ms === undefined && !time.moving) break;
+    }
+  };
+  return { clock, time, run };
 }
 
-describe('the free ruler', () => {
-  it('opens at 1 CE with all of 10,000 BCE through 2000 CE in view', () => {
-    const { clock, explore } = setup();
+describe('Explore’s time', () => {
+  it('holds all of 10,000 BCE through 2000 CE in the historical calendar', () => {
     expect(historicalCivil(HISTORY.start)).toEqual({ year: -9999, month: 1, day: 1 });
     expect(historicalCivil(HISTORY.end)).toEqual({ year: 2000, month: 12, day: 31 });
-    expect(explore.span).toEqual({ start: HISTORY.start, end: HISTORY.end + 1 });
-    expect(clock.state()).toEqual({ day: 0, spanDays: HISTORY.end - HISTORY.start + 1 });
   });
 
-  it('opens a given number of years wide, centered on the day and kept within history', () => {
-    const clock = new WorldClock();
-    const waterloo = dayFromIso('1815-06-18');
-    const explore = new ExploreTime(clock, HISTORY, waterloo, { openYears: 200 });
-    expect(clock.state()).toEqual({ day: waterloo, spanDays: 200 * 365.2425 });
-    expect((explore.span.start + explore.span.end) / 2).toBeCloseTo(waterloo, 6);
+  it('opens its span centred on the day, the widest by default', () => {
+    const { clock, time } = setup(WATERLOO, null);
+    expect(clock.state()).toEqual({ day: WATERLOO, spanDays: MAX_EXPLORE_DAYS });
+    expect(MAX_EXPLORE_DAYS).toBe(5000 * YEAR_DAYS);
+    expect((time.span.start + time.span.end) / 2).toBe(WATERLOO);
+  });
 
+  it('keeps the span centred on the day even where it runs past history', () => {
     const late = dayFromIso('1990-01-01');
-    const clamped = new ExploreTime(clock, HISTORY, late, { openYears: 200 });
-    expect(clamped.span.end).toBe(HISTORY.end + 1);
-    expect(clamped.span.end - clamped.span.start).toBeCloseTo(200 * 365.2425, 6);
-    expect(clock.state().day).toBe(late);
-
-    new ExploreTime(clock, HISTORY, 0, { openYears: 1e9 });
-    expect(clock.state().spanDays).toBe(HISTORY.end - HISTORY.start + 1);
+    const { clock, time } = setup(late);
+    expect(clock.state()).toEqual({ day: late, spanDays: Y200 });
+    expect(time.span.end).toBeGreaterThan(HISTORY.end + 1);
+    expect((time.span.start + time.span.end) / 2).toBe(late);
+    expect(tapeWindow(clock.state()).end).toBe(HISTORY.end);
   });
 
-  it('zooms about the pointer date and publishes the same width as the view', () => {
-    const { clock, explore } = setup();
-    for (const share of [0.1, 0.5, 0.9]) {
-      const before = explore.span;
-      const pivot = before.start + share * (before.end - before.start);
-      explore.zoom(0.5, share);
-      const after = explore.span;
-      expect(after.start + share * (after.end - after.start)).toBeCloseTo(pivot, 8);
-      expect(clock.state().spanDays).toBeCloseTo(after.end - after.start, 8);
-      expect(clock.state().day).toBeGreaterThanOrEqual(after.start);
-      expect(clock.state().day).toBeLessThan(after.end);
+  it('keeps the day within history however far it is sent', () => {
+    const { clock, time } = setup();
+    time.seek(-1e9);
+    expect(clock.state().day).toBe(HISTORY.start);
+    time.pan(1e12);
+    expect(clock.state().day).toBe(HISTORY.end);
+  });
+
+  it('zooms about the needle, never moving the date, between 10 days and 5,000 years', () => {
+    const { clock, time } = setup();
+    for (const factor of [0.5, 3, 1e-9, 1e9]) {
+      time.zoomBy(factor);
+      expect(clock.state().day).toBe(WATERLOO);
+      expect((time.span.start + time.span.end) / 2).toBe(WATERLOO);
     }
+    expect(clock.state().spanDays).toBe(MAX_EXPLORE_DAYS);
+    time.zoomBy(1e-12);
+    expect(clock.state().spanDays).toBe(MIN_EXPLORE_DAYS);
+    expect(MIN_EXPLORE_DAYS).toBe(10);
   });
 
-  it('keeps a visible date on zoom, otherwise brings it to the nearest whole day in view', () => {
-    const { clock, explore } = setup();
-    const share = (0 - explore.span.start) / (explore.span.end - explore.span.start);
-    explore.zoom(0.5, share);
-    expect(clock.state().day).toBe(0);
-    explore.zoom(0.1, 0.1);
-    expect(clock.state().day).toBe(Math.ceil(explore.span.end) - 1);
+  it('pans the needle along, keeping the span', () => {
+    const { clock, time } = setup();
+    time.pan(-365);
+    expect(clock.state()).toEqual({ day: WATERLOO - 365, spanDays: Y200 });
   });
 
-  it.each([HISTORY.start, HISTORY.end])(
-    'reaches and holds the history limit %s at every zoom',
-    (end) => {
-      const { clock, explore } = setup();
-      const earlier = end === HISTORY.start;
-      explore.scrub(earlier ? -1e9 : 1e9);
-      expect(clock.state().day).toBe(end);
-      for (let i = 0; i < 30; i += 1) {
-        explore.zoom(0.5, earlier ? 0 : 1);
-        expect(clock.state().day).toBe(end);
-        expect(explore.span.start).toBeGreaterThanOrEqual(HISTORY.start);
-        expect(explore.span.end).toBeLessThanOrEqual(HISTORY.end + 1);
-      }
-      expect(clock.state().spanDays).toBe(MIN_EXPLORE_DAYS);
-      explore.seek(earlier ? HISTORY.end : HISTORY.start);
-      expect(clock.state().day).toBe(earlier ? HISTORY.end : HISTORY.start);
-      explore.zoom(1e12, 0.5);
-      expect(explore.span).toEqual(explore.extent);
-    },
-  );
-
-  it('scrubs through the era seam in whole days and moves the zoomed view with it', () => {
-    const { clock, explore } = setup();
-    explore.zoom(1e-9, 0.5);
-    explore.seek(dayFromIso('0000-12-31'));
-    explore.scrub(-0.25);
-    expect(clock.state().day).toBe(-1);
-    explore.scrub(0);
-    expect(clock.state().day).toBe(dayFromIso('0001-01-01'));
-    explore.scrub(100);
-    expect(explore.span.start).toBeLessThan(100);
-    expect(explore.span.end).toBeGreaterThan(100);
+  it('flies to a date, landing exactly on it', () => {
+    const { clock, time, run } = setup();
+    const hastings = dayFromHistorical({ year: 1066, month: 10, day: 14 });
+    time.fly(hastings, 20 * YEAR_DAYS, { jump: true });
+    expect(time.flying).toBe(true);
+    run();
+    expect(time.moving).toBe(false);
+    expect(clock.state()).toEqual({ day: hastings, spanDays: 20 * YEAR_DAYS });
   });
 
-  it('notifies a recenter even when the day and zoom stay the same; detaches cleanly', () => {
-    const { clock, explore } = setup();
-    explore.zoom(0.25, 0.5);
-    const before = clock.state();
-    const span = explore.span;
+  it('leaves a return point on a jump past half a span, and back() toggles', () => {
+    const { clock, time, run } = setup();
+    time.fly(WATERLOO + 0.4 * Y200, Y200, { jump: true });
+    run();
+    expect(time.returnDay).toBeNull();
+    time.seek(WATERLOO);
+    const far = dayFromHistorical({ year: 1066, month: 7, day: 2 });
+    time.fly(far, Y200, { jump: true });
+    run();
+    expect(time.returnDay).toBe(WATERLOO);
+    expect(time.back()).toBe(true);
+    run();
+    expect(clock.state().day).toBe(WATERLOO);
+    expect(time.returnDay).toBe(far);
+    time.back();
+    run();
+    expect(clock.state().day).toBe(far);
+  });
+
+  it('counts keys during a flight from where it is going', () => {
+    const { clock, time, run } = setup();
+    time.detent(1);
+    time.detent(1);
+    run();
+    expect(clock.state().spanDays).toBeCloseTo(1000 * YEAR_DAYS, 6);
+    time.detent(-1);
+    time.detent(-1);
+    time.detent(-1);
+    run();
+    expect(clock.state().spanDays).toBeCloseTo(100 * YEAR_DAYS, 6);
+    expect(clock.state().day).toBe(WATERLOO);
+  });
+
+  it('steps onto the ticks the tape engraves', () => {
+    const { clock, time, run } = setup();
+    time.step(1, 'fine');
+    run();
+    expect(historicalCivil(clock.state().day)).toEqual({ year: 1816, month: 1, day: 1 });
+    time.step(1, 'label');
+    run();
+    expect(historicalCivil(clock.state().day).year).toBe(1820);
+    time.step(-1, 'span');
+    run();
+    expect(historicalCivil(clock.state().day).year).toBe(1620);
+  });
+
+  it('hands a flight to a hand at the span it was going to', () => {
+    const { clock, time, run } = setup();
+    time.fly(dayFromIso('1066-10-14'), 20 * YEAR_DAYS, { jump: true });
+    run(200);
+    const between = clock.state().day;
+    expect(between).toBeLessThan(WATERLOO);
+    expect(between).toBeGreaterThan(dayFromIso('1066-10-14'));
+    time.interrupt();
+    expect(time.moving).toBe(false);
+    expect(clock.state()).toEqual({ day: between, spanDays: 20 * YEAR_DAYS });
+  });
+
+  it('coasts after a flick, at most two spans', () => {
+    const hastings = dayFromIso('1066-10-14');
+    const { clock, time, run } = setup(hastings);
+    time.fling(1e9);
+    run();
+    expect(clock.state().day - hastings).toBeLessThanOrEqual(2 * Y200);
+    expect(clock.state().day - hastings).toBeGreaterThan(1.9 * Y200);
+  });
+
+  it('stops a coast at history’s end, runs on a little and springs back', () => {
+    const { clock, time, run } = setup(HISTORY.end - 10 * YEAR_DAYS);
+    time.fling(1e9);
+    run(300);
+    expect(clock.state().day).toBe(HISTORY.end);
+    run();
+    expect(time.center).toBe(HISTORY.end);
+    expect(time.moving).toBe(false);
+  });
+
+  it('gives way less and less to a pull past history’s end, springing back on release', () => {
+    const { clock, time, run } = setup(HISTORY.start + YEAR_DAYS);
+    time.drag(HISTORY.start - 10 * Y200);
+    expect(clock.state().day).toBe(HISTORY.start);
+    expect(time.center).toBeLessThan(HISTORY.start);
+    expect(HISTORY.start - time.center).toBeLessThan(0.06 * Y200);
+    time.release(0);
+    run();
+    expect(time.center).toBe(HISTORY.start);
+  });
+
+  it('glides while an arrow is held, then eases on to the next tick', () => {
+    const { clock, time, run } = setup();
+    time.hold(1);
+    run(250);
+    const stepped = clock.state().day;
+    expect(historicalCivil(stepped)).toEqual({ year: 1816, month: 1, day: 1 });
+    run(1000);
+    const glided = clock.state().day;
+    // A quarter of a span a second, rising.
+    expect(glided - stepped).toBeGreaterThan(0.2 * Y200);
+    time.letGo();
+    run();
+    const { year, month, day } = historicalCivil(clock.state().day);
+    expect([month, day]).toEqual([1, 1]);
+    expect(year % 2).toBe(0);
+    expect(clock.state().day).toBeGreaterThan(glided);
+  });
+
+  it('with reduced motion flies in 150 ms and never coasts', () => {
+    const { clock, time, run } = setup(WATERLOO, 200, true);
+    time.fling(1e9);
+    expect(time.moving).toBe(false);
+    time.fly(dayFromIso('1066-10-14'), Y200, { jump: true });
+    run(170);
+    expect(time.moving).toBe(false);
+    expect(clock.state().day).toBe(dayFromIso('1066-10-14'));
+  });
+
+  it('tells its listeners of each change, and of a stretch the clock does not see', () => {
+    const { time } = setup(HISTORY.end);
     const seen = vi.fn();
-    const stop = explore.subscribe(seen);
-    explore.seek(before.day);
-    expect(clock.state()).toBe(before);
-    expect(explore.span).not.toEqual(span);
+    const stop = time.subscribe(seen);
+    time.pan(0);
+    expect(seen).not.toHaveBeenCalled();
+    time.pan(-1);
     expect(seen).toHaveBeenCalledTimes(1);
+    time.seek(HISTORY.end);
+    time.drag(HISTORY.end + YEAR_DAYS);
+    expect(seen).toHaveBeenCalledTimes(3);
     stop();
-    explore.scrub(before.day - 10);
-    expect(seen).toHaveBeenCalledTimes(1);
+    time.pan(-10);
+    expect(seen).toHaveBeenCalledTimes(3);
   });
 
-  it('normalizes wheel units and ignores invalid gestures', () => {
-    expect(wheelZoom(3, 1, 900)).toBe(wheelZoom(48, 0, 900));
-    expect(wheelZoom(0.1, 2, 900)).toBe(wheelZoom(90, 0, 900));
-    expect(wheelZoom(-120, 0, 900)).toBeLessThan(1);
-    const { clock, explore } = setup();
+  it('ignores gestures that name no number', () => {
+    const { clock, time } = setup();
     const before = clock.state();
-    for (const factor of [0, -1, NaN, Infinity]) explore.zoom(factor, 0.5);
-    explore.scrub(NaN);
-    explore.seek(Infinity);
+    for (const factor of [0, -1, NaN, Infinity]) time.zoomBy(factor);
+    time.seek(NaN);
+    time.pan(Infinity);
+    time.fly(NaN);
+    time.drag(NaN);
     expect(clock.state()).toBe(before);
+    expect(time.moving).toBe(false);
+  });
+
+  it('reads wheel lines and pages as pixels', () => {
+    expect(wheelPixels(3, 1, 900)).toBe(48);
+    expect(wheelPixels(0.1, 2, 900)).toBe(90);
+    expect(wheelPixels(-120, 0, 900)).toBe(-120);
   });
 });

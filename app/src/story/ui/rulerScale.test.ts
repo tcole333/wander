@@ -334,21 +334,19 @@ describe("the free ruler's ends", () => {
     for (const width of [1024, 1280, 1440, 1920]) {
       const sized = arcFor(width);
       for (let k = 0; k <= 80; k += 1) {
-        // Zoomed to every width of view from 20 years to all of history, then taken to its
-        // start by the tier and to its end by the playhead, where the extent stops the view.
-        const explore = new ExploreTime(new WorldClock());
-        const full = explore.extent.end - explore.extent.start;
-        explore.zoom((20 * 365.2425 * (12001 / 20) ** (k / 80)) / full, 0.5);
-        for (const [go, day, text] of [
-          ['seek', HISTORY.start, /^10000 BCE$/],
-          ['scrub', HISTORY.end, /^2000( CE)?$/],
+        // Every width of view from 20 years to all of history, stopped at its start and at its
+        // end, as the extent stops the view.
+        const extent = new ExploreTime(new WorldClock()).extent;
+        const full = extent.end - extent.start;
+        const wide = Math.min(full, 20 * 365.2425 * (12001 / 20) ** (k / 80));
+        for (const [go, span, text] of [
+          ['seek', { start: extent.start, end: extent.start + wide }, /^10000 BCE$/],
+          ['scrub', { start: extent.end - wide, end: extent.end }, /^2000( CE)?$/],
         ] as const) {
-          explore[go](day);
-          const span = explore.span;
           if (labelledYearStep(sized, span, HISTORICAL) === 1) continue;
           const angle = (at: number) =>
             ((2 * (at - span.start)) / (span.end - span.start) - 1) * sized.reach;
-          const labels = engraveScale(sized, span, angle, HISTORICAL, explore.extent)
+          const labels = engraveScale(sized, span, angle, HISTORICAL, extent)
             .labels.filter((label) => label.row === LOWER_ROW)
             .toSorted((a, b) => a.angle - b.angle);
           const years = Math.round((span.end - span.start) / 365.2425);

@@ -171,8 +171,7 @@ export function exploreStretch(engine: SoundEngine, seconds: number, at: number)
     let ratio: number | undefined;
     return (u: number) => {
       ratio ??= (years * 365.2425) / width();
-      const share = (day() - time.span.start) / width();
-      time.zoom(ratio ** (u - done), share);
+      time.zoomBy(ratio ** (u - done));
       done = u;
     };
   };
