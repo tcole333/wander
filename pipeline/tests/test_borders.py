@@ -205,7 +205,9 @@ def test_the_stage_writes_the_fixtures_two_steps_their_previews_polities_and_not
     years, layers = step_fields.read_chunk((ctx.out / chunk).read_bytes())
     assert years == [1815, 1830] and layers.shape[0] == 2
     polities = json.loads((ctx.out / steps["polities"]).read_bytes())
-    assert polities["Dutch East Indies"]["steps"] == [[1815, 1830, "(Netherlands)"]]
+    # British from 1812 to 1816 (1800-1913.yaml), with Sumbawa's states of 1815 among its members
+    assert polities["Dutch East Indies"]["steps"] == [[1830, 1830, "(Netherlands)"]]
+    assert polities["Kingdom of Tambora"]["steps"] == [[1815, 1815, "(British Empire)"]]
     notice = (ctx.out / steps["notice"]).read_text(encoding="utf-8")
     for line in ("Cliopatria", "https://creativecommons.org/licenses/by/4.0/", "Bennett"):
         assert line in notice
@@ -222,8 +224,7 @@ def test_the_stage_records_the_beats_steps_and_what_the_history_pass_owes(staged
             "yunnan-bengal-1817": 1815,
         }
     }
-    pairs = [entry["polities"] for entry in record["unacknowledged"]]
-    assert ["British Cape Colony", "Napoleonic Batavia Republic"] in pairs
+    assert record["unacknowledged"] == []  # the era files settle the Cape's pair
     assert set(record["unclassified"]) == {"composites", "relations"}
     assert record["inputs"]["code"]
     queue = json.loads((ctx.stages_dir / clio.REVIEW).read_text(encoding="utf-8"))
@@ -231,7 +232,7 @@ def test_the_stage_records_the_beats_steps_and_what_the_history_pass_owes(staged
     for name in (borders.SHORES, borders.LAND):
         faces = gzip.decompress((ctx.stages_dir / name).read_bytes())
         assert len(faces) == 6 * STEP_TEXELS * STEP_TEXELS
-    assert queue["byStep"]["1815"]["corrections"] == []
+    assert "1800-1913.yaml correction 2 (give, 1812-1816)" in queue["byStep"]["1815"]["corrections"]
 
 
 def test_a_second_run_takes_every_step_from_the_cache_and_writes_the_same_record(staged):
