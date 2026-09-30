@@ -55,8 +55,9 @@ const nextFrame = () => new Promise((done) => requestAnimationFrame(done));
 
 async function probe(dataHost: string): Promise<MarksProbe> {
   const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
-  // Explore brings the lobby, whose opening holds the view; the probe poses the view itself.
-  const page = await bootWalk(document.body, release, { explore: true, lobby: false });
+  // The fixture's event index brings Explore, its marks and the lobby, whose opening holds the
+  // view; the probe poses the view itself.
+  const page = await bootWalk(document.body, release, { lobby: false });
   const marks = page.look.marks;
   if (!marks) throw new Error('the look has no marks');
   const globe = findMesh(page.museum.scene, page.look.material);

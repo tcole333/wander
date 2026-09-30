@@ -13,15 +13,16 @@
 // Without a story the page starts in Explore (explore/explore.ts) where the view stands, its
 // crafted ruler driving world time from 10,000 BCE through 2000 CE, with the lobby, mark and sound
 // knob for the way back; window.__worldTime serves scripts/exploreClockShots.ts. A story's page
-// shows Explore's plaque in its lobby only with ?explore, as the production page does. ?memory=1
-// installs window.__wanderMemory() (perf/memoryHook.ts), as on the production page.
+// shows Explore's plaque in its lobby wherever the release names its event index, as the
+// production page does. ?memory=1 installs window.__wanderMemory() (perf/memoryHook.ts), as on
+// the production page.
 //
-// ?markDemo boots with Explore's marks cut into the look and sets the demo's (markDemo.ts), without
-// the event index, so Explore's own event marks stay off; the panel gains a Marks folder, and
-// ?markVariant=0-3, ?marks=0 and the other marks params apply.
+// ?markDemo, without a story, boots in Explore with its marks cut into the look and sets the demo's
+// (markDemo.ts), without the event index, so Explore's own event marks stay off; the panel gains a
+// Marks folder, and ?markVariant=0-3, ?marks=0 and the other marks params apply.
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
-import { DATA_SERVERS, exploreRequested, memoryRequested } from '../../page/dataOrigin';
+import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';
 import type { WalkState } from '../../story/contract';
 import type { DirectedWalk, FlightRecord } from '../../story/director';
 import { stories, storyNamed } from '../../story/catalog';
@@ -112,7 +113,6 @@ async function main(): Promise<void> {
   const page = await bootWalk(document.body, release, {
     story: source ?? 'explore',
     stories,
-    explore: source === null || exploreRequested(location) || query.has('markDemo'),
     lobby: false,
     view: PRESETS[preset],
     tune: (params) => applyQuery(params, query),
