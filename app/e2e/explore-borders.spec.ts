@@ -1,5 +1,6 @@
 // Explore's borders from the production build's lobby (dist/ under vite preview, on the fixture's
-// data server through ?data=, with ?explore): the fixture's border steps begin in 1815 and 1830.
+// data server through ?data=, whose release names the border steps and the event files): the
+// fixture's border steps begin in 1815 and 1830.
 // The dive opens on Waterloo, where the 1815 step draws from its slot with no plate of its own; a
 // scrub to 1830 draws that step once the clock rests there; and back in the lobby, Tambora's sixth
 // beat, the first after the eruption to list borders, draws its step under the walk's plate, its
@@ -57,7 +58,7 @@ test('draws the border steps in Explore as its clock moves, and in the Tambora w
     }),
   );
 
-  await page.goto(`${PREVIEW_URL}/?data=${DATA_URL.fixture}&explore`);
+  await page.goto(`${PREVIEW_URL}/?data=${DATA_URL.fixture}`);
   await expect(page.locator('#room')).toBeHidden();
   await page.keyboard.press('Shift');
   await phase(page, 'idle');

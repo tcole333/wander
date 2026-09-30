@@ -1,13 +1,13 @@
-// Test-only, served by Vite for e2e/borders.spec.ts: boots the walk with Explore on the fixture at
-// ?data=<origin>, so the look holds the border steps, fills its array with synthetic steps and
-// previews through the runtime's own upload parts and decoder, and checks what the look draws of
-// them. Each check renders the scene as the composer's first pass does, linear and before the
-// bloom, into a float target, once with the borders off and once on, with the relief flat so
-// every place sits where it projects. Slot 0 holds a step whose outer border runs along 20°E,
-// soft north of 5°N, and whose inner border runs along 30°E; slot 1 a step with no border in
-// reach. The ring holds a preview pair decoded from a chunk (25°E in R, 35°E in G), a cell of
-// previews just clear of a border beside a cell just clear of the other side, and a cell whose
-// border runs along 0° and the dateline.
+// Test-only, served by Vite for e2e/borders.spec.ts: boots the walk on the fixture at
+// ?data=<origin>, whose release names the border steps, so the look holds them, fills its array
+// with synthetic steps and previews through the runtime's own upload parts and decoder, and checks
+// what the look draws of them. Each check renders the scene as the composer's first pass does,
+// linear and before the bloom, into a float target, once with the borders off and once on, with the
+// relief flat so every place sits where it projects. Slot 0 holds a step whose outer border runs
+// along 20°E, soft north of 5°N, and whose inner border runs along 30°E; slot 1 a step with no
+// border in reach. The ring holds a preview pair decoded from a chunk (25°E in R, 35°E in G), a
+// cell of previews just clear of a border beside a cell just clear of the other side, and a cell
+// whose border runs along 0° and the dateline.
 import { FloatType, Mesh, RGBAFormat, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import { BorderArray } from '../src/borders/borderArray';
@@ -68,7 +68,7 @@ const luminance = (p: Float32Array, i: number) =>
 
 async function probe(dataHost: string): Promise<BordersProbe> {
   const release = (await (await fetch(`${dataHost}/release.json`)).json()) as Release;
-  const page = await bootWalk(document.body, release, { explore: true, lobby: false });
+  const page = await bootWalk(document.body, release, { lobby: false });
   const uniforms = stepUniformsOf(page.look.material);
   if (!uniforms) throw new Error('the look holds no border steps');
   page.look.params.flatRelief = true;

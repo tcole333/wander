@@ -330,7 +330,7 @@ export function registerBorderSteps(material: Material, uniforms: StepUniforms):
   stepRegistry.set(material, uniforms);
 }
 
-/** The step uniforms of a surface look's material, where Explore is enabled. */
+/** The step uniforms of a surface look's material, where the release names the steps. */
 export function stepUniformsOf(material: Material): StepUniforms | undefined {
   return stepRegistry.get(material);
 }
