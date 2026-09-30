@@ -1,11 +1,12 @@
 // Marks as the look places them: one size at a given scale, faded toward the limb and gone past
 // it, binned into screen tiles focal first, packed into the table only when something changed, and
 // picked where they are drawn.
-import { Matrix3, Matrix4, PerspectiveCamera, Vector3 } from 'three';
+import { Matrix3, Matrix4, PerspectiveCamera, Vector3, Vector4 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
-import { dirOf } from '../story/effects/geo';
+import type { ClearanceField } from '../globe/clearance';
+import { dirOf, EARTH_M } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
 import { FAMILIES, FAMILY_VEC4S } from './families';
 import {
@@ -390,5 +391,48 @@ describe('MarkLayer', () => {
     expect(marks.hit(720, 450)).toBe('a');
     expect(marks.hit((b?.x ?? 0) + 2, b?.y ?? 0)).toBe('b');
     expect(marks.hit(720, 300)).toBeNull();
+  });
+
+  it('picks a mark on land anywhere between its place and where the relief can lift it', () => {
+    // A tilted view north over a place: its relief rises toward the top of the screen.
+    const at: LonLat = [20, 10];
+    const liftedM = 20_000;
+    const camera = new PerspectiveCamera(30, 1440 / 900, 0.001, 100);
+    camera.position.copy(dirOf([20, 4]).multiplyScalar(1.1));
+    camera.up.copy(dirOf([20, 4]));
+    camera.lookAt(dirOf(at));
+    camera.updateMatrixWorld();
+    const onLand: MarkView = {
+      ...view,
+      camera: camera.position.clone(),
+      forward: camera.getWorldDirection(new Vector3()),
+      toClip: new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+      kLand: 8,
+    };
+    const project = (dir: Vector3) => {
+      const clip = new Vector4(dir.x, dir.y, dir.z, 1).applyMatrix4(onLand.toClip);
+      return { x: (clip.x / clip.w / 2 + 0.5) * 1440, y: (0.5 - clip.y / clip.w / 2) * 900 };
+    };
+    const sea = project(dirOf(at));
+    const top = project(dirOf(at).multiplyScalar(1 + liftedM / EARTH_M));
+    // The lifted mark stands well clear of its sea-level disc.
+    expect(sea.y - top.y).toBeGreaterThan(20);
+    const marks = layer();
+    marks.set('events', [mark('peak', at)]);
+    marks.place(onLand);
+    expect(marks.hit(top.x, top.y)).toBeNull();
+    const ceilings: number[] = [];
+    marks.useClearance({
+      ceilingM: (_dir: number[], _cap: number, kLand: number) => {
+        ceilings.push(kLand);
+        return liftedM;
+      },
+    } as unknown as ClearanceField);
+    expect(marks.hit(top.x, top.y)).toBe('peak');
+    expect(marks.hit((sea.x + top.x) / 2, (sea.y + top.y) / 2)).toBe('peak');
+    expect(marks.hit(sea.x, sea.y)).toBe('peak');
+    expect(ceilings).toContain(8);
+    // Past its lifted place, nothing.
+    expect(marks.hit(top.x, top.y - 20)).toBeNull();
   });
 });
