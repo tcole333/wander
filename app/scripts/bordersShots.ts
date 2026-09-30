@@ -21,8 +21,7 @@
 // without borders), <out>/<set>.png and <out>/<set>-detail.png, and <out>/shots.json: each
 // shot's camera, the step drawn and its first year, and any console problems. --view adds a view
 // of its own, in the given years, to the sheet `views` (a km of 0 is the widest view). --param
-// sets a dev page param as its query does: --param borderWeight=wide draws the outer line under one
-// of the look's BORDER_WEIGHTS (look/bordersHook.ts), which scripts/bordersWeights.ts compares.
+// sets a dev page param as its query does, such as --param grain=0 for renders without film grain.
 import { chromium, type Browser } from '@playwright/test';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
