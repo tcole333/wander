@@ -110,7 +110,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
   to Pages and repeated walks for leaks (`docs/design/streaming.md` 8.2). Local only, about 20
   minutes, with nothing else on the GPU.
-- `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
+- `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`. pytest
+  runs on four workers, a whole file each; `-n 0` runs it in one process.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
