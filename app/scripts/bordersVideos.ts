@@ -19,10 +19,11 @@
 // (borders.*, from ?memory=1's account) every 250 ms: the most at any point and the most once the
 // last rest has settled.
 // - gpu: the GPU time a scene draw adds with the borders at rest and mid-dissolve, two slots and
-//   two previews, over the borders off (prototype/app/bordersTiming.ts), at world view and at
-//   4,000 and 2,500 km over Europe; how many of 400 frames there come more than 20 ms after the
-//   last, a step at rest and the borders off in turn, twice each; and the border array's size on
-//   the GPU.
+//   two previews, over the borders off, with the outer line at the view's weight and again at its
+//   near weight (prototype/app/bordersTiming.ts), at world view, at 17,500 km over the Old World
+//   and at 4,000 and 2,500 km over Europe; how many of 400 frames there come more than 20 ms after
+//   the last, a step at rest and the borders off in turn, twice each; and the border array's size
+//   on the GPU.
 // - walk: the Tambora walk on the dev page, drawing border steps, which the data server's release
 //   names, and milestone 1's 1815 field (?borderSteps=0), sampling borders.* every 50 ms from the
 //   first beat through the sixth, the most while a border beat's step loads, each account's total
@@ -370,6 +371,7 @@ async function gpu(browser: Browser): Promise<void> {
   const day = firstDay(1815) + 180;
   const views: Record<string, ViewState> = {
     world: { lon: 40, lat: 25, viewKm: WIDEST_KM, tilt: 0, heading: 0 },
+    'oldworld-17500': { lon: 40, lat: 30, viewKm: 17_500, tilt: 0, heading: 0 },
     'europe-4000': PLANS[1]!.view,
     'europe-2500': { lon: 12, lat: 48, viewKm: 2500, tilt: 0, heading: 0 },
   };

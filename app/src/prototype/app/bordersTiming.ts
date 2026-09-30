@@ -1,11 +1,13 @@
 // window.__bordersTiming on the dev page: what the borders cost the GPU (#80's budgets,
 // streaming.md 3.3). The scene is drawn into a target of the canvas's size, as the composer's first
 // pass draws it, in each of a few passes in turn, after each frame, samples of three draws each, as
-// scripts/exploreShots.ts times the marks. Where the look holds the border steps (Explore enabled)
-// the passes are the borders off, at rest (one step slot) and mid-dissolve (two slots halfway into
-// each other, and two previews halfway), each with the inner line at full strength; where it holds
-// milestone 1's 1815 field, the borders off and drawn. The renderer and camera are the page's own,
-// taken as it draws the globe. It also gives the border array's size on the GPU.
+// scripts/exploreShots.ts times the marks. Where the look holds the border steps (the release names
+// them) the passes are the borders off, at rest (one step slot) and mid-dissolve (two slots halfway
+// into each other, and two previews halfway), each with the inner line at full strength and the
+// outer line at the view's weight, and each again with the outer line at its near weight
+// (`restNear`, `slotsNear`, `previewsNear`), which the heavier line far out is measured against;
+// where it holds milestone 1's 1815 field, the borders off and drawn. The renderer and camera are
+// the page's own, taken as it draws the globe. It also gives the border array's size on the GPU.
 // scripts/bordersVideos.ts reads it.
 import {
   HalfFloatType,
@@ -20,6 +22,7 @@ import {
 import type { MuseumScene } from '../../contract';
 import {
   borderUniformsOf,
+  OUTER_NEAR,
   sourceVector,
   stepLayers,
   stepUniformsOf,
@@ -92,17 +95,27 @@ function stepPasses(uniforms: StepUniforms, tier: 'full' | 'lite'): Passes {
     mix: uniforms.lookBorderMix.value,
     a: uniforms.lookBorderA.value.clone(),
     b: uniforms.lookBorderB.value.clone(),
+    outer: uniforms.lookBorderOuter.value.clone(),
   };
+  const { widthPx, darken, halfDotPx, follow } = OUTER_NEAR;
   const passes: Record<string, () => void> = {
     off: () => (uniforms.lookBorderStrength.value = 0),
   };
   for (const [name, [a, b]] of Object.entries(SOURCES)) {
-    passes[name] = () => {
+    const draw = () => {
       uniforms.lookBorderStrength.value = 1;
       uniforms.lookBorderInner.value = 1;
       sourceVector(tier, a, uniforms.lookBorderA.value);
       sourceVector(tier, b, uniforms.lookBorderB.value);
       uniforms.lookBorderMix.value = name === 'rest' ? 1 : 0.5;
+    };
+    passes[name] = () => {
+      draw();
+      uniforms.lookBorderOuter.value.copy(was.outer);
+    };
+    passes[`${name}Near`] = () => {
+      draw();
+      uniforms.lookBorderOuter.value.set(widthPx, darken, halfDotPx, follow);
     };
   }
   return {
@@ -113,6 +126,7 @@ function stepPasses(uniforms: StepUniforms, tier: 'full' | 'lite'): Passes {
       uniforms.lookBorderMix.value = was.mix;
       uniforms.lookBorderA.value.copy(was.a);
       uniforms.lookBorderB.value.copy(was.b);
+      uniforms.lookBorderOuter.value.copy(was.outer);
     },
   };
 }
