@@ -14,6 +14,7 @@ import type { WalkAudio } from '../audio/walkAudio';
 import { tunables } from '../config/tunables';
 import type { EventsRelease } from '../data/release';
 import { EventClient } from '../events/client';
+import type { EventMark } from '../events/query';
 import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
 import type { LonLat } from '../story/story';
 import { el } from '../story/ui/dom';
@@ -59,7 +60,9 @@ export interface ExploreEventsHook {
   marks(): MarkSpec[];
   /** The marks the look drew in view in the last draw. */
   placed(): PlacedMark[];
-  /** Nothing is on its way from the event worker and no mark is fading. */
+  /** The event a mark stands for: null for the lock's focal mark, undefined for no such mark. */
+  event(id: string): EventMark | null | undefined;
+  /** Nothing is on its way from the event worker, or it has failed, and no mark is fading. */
   settled(): boolean;
 }
 
@@ -169,6 +172,7 @@ export function startExplore({
     },
     marks: () => events.marks(),
     placed: () => events.placed(),
+    event: (id) => events.event(id),
     settled: () => events.settled(),
   };
   if (eventsHook) window.__exploreEvents = eventsHook;

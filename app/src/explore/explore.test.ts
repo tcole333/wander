@@ -301,6 +301,8 @@ describe('Explore', () => {
       expect(drawn.layers[0]!.dataset.exploreMarks).toBe('1');
       expect(window.__exploreEvents?.focal()).toBe('Q48314');
       expect(window.__exploreEvents?.placed().map((m) => m.id)).toEqual(['Q48314']);
+      // The worker's answer holds it, so its mark is the index's rather than the lock's.
+      expect(window.__exploreEvents?.event('Q48314')).toMatchObject({ row: 39, focal: true });
       const account = new MemoryAccount();
       mode.inspectMemory(account);
       expect(account.owners['explore.events']?.arrayBuffers).toBe(4096);
