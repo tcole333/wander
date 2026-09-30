@@ -509,6 +509,25 @@ def test_rename_renames_a_polity_and_what_names_it(terrain):
     assert outers(chosen) == {"Germany": "(Empire)"}
 
 
+def test_a_step_records_the_leaves_its_corrections_add_and_take_away(terrain):
+    rows = [
+        row("Realm", box(-20, -10, 0, 10)),
+        row("Duchy", box(0, -10, 10, 10)),
+        row("March", box(10, -10, 20, 10), first=1800, last=1800),
+    ]
+    fixes = [correction(clio.Carry("March", 1800)), correction(clio.Give("Duchy", "Realm"))]
+    report = select(rows, terrain, corrections=fixes).report
+    assert (report["leaves"], report["added"], report["removed"]) == (2, ["March"], ["Duchy"])
+    assert report["unexplained"] == []
+
+
+def test_a_leaf_no_correction_takes_away_is_unexplained(terrain):
+    # Two rows of one shape: the one whose name sorts later loses all of it to the other.
+    rows = [row("Alpha", box(0, 0, 4, 4)), row("Beta", box(0, 0, 4, 4))]
+    report = select(rows, terrain).report
+    assert (report["removed"], report["unexplained"]) == (["Beta"], ["Beta"])
+
+
 def test_a_correction_that_leaves_a_step_unchanged_is_named_with_the_steps(terrain):
     rows = [row("Mexico", box(-10, -5, 0, 5), first=1900, last=1914)]
     source = clio.Cliopatria(tuple(rows), None)
