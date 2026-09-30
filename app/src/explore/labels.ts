@@ -332,7 +332,11 @@ export class ExploreLabels {
     const canvas = this.#canvas;
     canvas.addEventListener(
       'pointermove',
-      (event) => (this.#pointer = { x: event.clientX, y: event.clientY }),
+      (event) => {
+        this.#pointer = { x: event.clientX, y: event.clientY };
+        // No button is down, whatever became of the press.
+        if (event.buttons === 0) this.#press = null;
+      },
       { signal },
     );
     canvas.addEventListener('pointerleave', () => (this.#pointer = null), { signal });
@@ -358,6 +362,13 @@ export class ExploreLabels {
       { signal },
     );
     canvas.addEventListener('pointercancel', () => (this.#press = null), { signal });
+    // A press the canvas does not see end (a button the view does not capture, let go off the
+    // canvas, or the window losing the focus mid-press) ends all the same; the canvas's own
+    // pointerup hears it first.
+    const release = () => (this.#press = null);
+    addEventListener('pointerup', release, { signal });
+    addEventListener('pointercancel', release, { signal });
+    addEventListener('blur', release, { signal });
     // Before the lobby's own, on the window: a pin takes the first Escape.
     document.addEventListener(
       'keydown',
