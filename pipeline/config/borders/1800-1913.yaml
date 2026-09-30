@@ -297,3 +297,156 @@ corrections:
       title: Shah Alam II
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Shah_Alam_II
+  # The Cape, Persia, Arabia, Central Asia and Mexico.
+  - years: [1803, 1803]
+    overlap:
+      polities: [British Cape Colony, Napoleonic Batavia Republic]
+      winner: British Cape Colony
+    why: >-
+      Britain handed the Cape back to the Batavian Republic only on 1 March 1803, so on 1 January it
+      was still British.
+    source: &cape
+      title: Dutch Cape Colony
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_Cape_Colony
+  - years: [1804, 1806]
+    overlap:
+      polities: [British Cape Colony, Napoleonic Batavia Republic]
+      winner: Napoleonic Batavia Republic
+    why: >-
+      Smaller wins, checked: the Batavian Republic held the Cape from March 1803 until the British
+      took it in January 1806.
+    source: *cape
+  - years: [1804, 1806]
+    member:
+      polity: Napoleonic Batavia Republic
+      of: (Batavian Republic)
+    why: >-
+      The Batavian Republic's colony at the Cape, so it shares the Republic's outer border.
+    source: *cape
+  - years: [1807, 1867]
+    give:
+      polity: Napoleonic Batavia Republic
+      to: British Cape Colony
+    why: >-
+      The British occupied the Cape again in January 1806 after Blaauwberg, and the Anglo-Dutch
+      Treaty of 1814 confirmed it British; Cliopatria keeps a Batavian row to 1867.
+    source: *cape
+  - years: [1895, 1897]
+    give:
+      polity: Qajar Dynasty
+      to: Dutch East Indies
+      shape_from: {polity: Dutch East Indies, year: 1898}
+    why: >-
+      Cliopatria's rows for 1895–1897 swap two names: its Qajar Dynasty row holds the Indies and its
+      Dutch East Indies row holds Persia. This gives the Indies back to the colony that held them;
+      the next correction gives Persia back.
+    source:
+      title: Dutch East Indies
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+  - years: [1895, 1897]
+    give:
+      polity: Dutch East Indies
+      to: Qajar Dynasty
+      shape_from: {polity: Qajar Dynasty, year: 1898}
+    why: >-
+      Persia under the Qajars (1789–1925), drawn in 1895–1897 under the Dutch East Indies' name,
+      returns to the Qajar Dynasty.
+    source:
+      title: Qajar Iran
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qajar_Iran
+  - years: [1842, 1845]
+    overlap:
+      polities: [Emirate of Jabal Shammar, Emirate of Nejd]
+      winner: Emirate of Nejd
+    why: >-
+      Cliopatria's Jabal Shammar row for 1842–1845 repeats Nejd's shape; the Rashidis governed Ha'il
+      as the second Saudi state's vassals until 1891, so the land is Nejd's. Jabal Shammar's own
+      Ha'il is left for review.
+    source:
+      title: Emirate of Jabal Shammar
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Jabal_Shammar
+  - years: [1873, 1960]
+    carry:
+      polity: Kuwait
+      from: 1820
+    why: >-
+      Cliopatria ends Kuwait in 1872 and draws its land as Ottoman, Omani and British. The sheikhdom
+      went on: a nominal Ottoman vassal from 1871, a British protected state from 1899 until
+      independence on 19 June 1961. Its 1820 shape is carried until the State of Kuwait's row.
+    source: &kuwait
+      title: Sheikhdom of Kuwait
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sheikhdom_of_Kuwait
+  - years: [1900, 1960]
+    member:
+      polity: Kuwait
+      of: (British Empire)
+    why: >-
+      A British protected state by the Anglo-Kuwaiti Agreement of 23 January 1899, which put its
+      foreign affairs in British hands, until 19 June 1961.
+    source: *kuwait
+  - years: [1874, 1916]
+    give:
+      polity: Russian Empire
+      to: Khanate of Khiva
+      shape_from: {polity: Khanate of Khiva, year: 1918}
+      member_of: Russian Empire
+    why: >-
+      By the peace of 12 August 1873 Khiva became a quasi-independent Russian protectorate until its
+      khan abdicated in 1920; Cliopatria draws its land as Russian until 1917, so its own 1918 shape
+      returns as a Russian member.
+    source:
+      title: Khanate of Khiva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khanate_of_Khiva
+  - years: [1874, 1916]
+    give:
+      polity: Russian Empire
+      to: Emirate of Bukhara
+      shape_from: {polity: Emirate of Bukhara, year: 1918}
+      member_of: Russian Empire
+    why: >-
+      After losing Samarkand to Russia in 1868, the rest of the emirate became a Russian protectorate
+      in 1873 until the Bolsheviks took it in 1920; Cliopatria draws its land as Russian until 1917,
+      so its own 1918 shape returns as a Russian member.
+    source:
+      title: Emirate of Bukhara
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  - years: [1880, 1919]
+    member:
+      polity: Emirate of Afghanistan
+      of: British Raj
+    why: >-
+      A British protected state from the Treaty of Gandamak (1879), which gave Britain its foreign
+      affairs, until the Anglo-Afghan Treaty of 1919.
+    source:
+      title: Emirate of Afghanistan
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Afghanistan
+  - years: [1911, 1947]
+    member:
+      polity: Kingdom of Bhutan
+      of: British Raj
+    why: >-
+      By the Treaty of Punakha (8 January 1910) Bhutan agreed to be guided by Britain in its
+      external relations, until 1947.
+    source:
+      title: Treaty of Punakha
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Punakha
+  - years: [1913, 1919]
+    carry:
+      polity: Mexico
+      from: 1912
+    why: >-
+      Cliopatria has no Mexico from 1913 to 1919, but the state went on through the revolution under
+      Huerta (1913–1914) and Carranza, president under the 1917 constitution until 1920.
+    source:
+      title: Mexican Revolution
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Mexican_Revolution

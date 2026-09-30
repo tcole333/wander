@@ -1,4 +1,162 @@
-# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here
-# from 1914 to 2000 (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43.
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
+# 1914 to 2000 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
+# covers the years whose 1 January falls in its dates.
 modified: 2026-09-29
-corrections: []
+corrections:
+  - years: [1917, 1917]
+    give:
+      polity: Russian Republic
+      to: Khanate of Khiva
+      shape_from: {polity: Khanate of Khiva, year: 1918}
+      member_of: Russian Republic
+    why: >-
+      Khiva was still a Russian protectorate on 1 January 1917, from the peace of 1873 until its
+      khan abdicated in 1920.
+    source:
+      title: Khanate of Khiva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khanate_of_Khiva
+  - years: [1917, 1917]
+    give:
+      polity: Russian Republic
+      to: Emirate of Bukhara
+      shape_from: {polity: Emirate of Bukhara, year: 1918}
+      member_of: Russian Republic
+    why: >-
+      Bukhara was still a Russian protectorate on 1 January 1917, from 1873 until the Bolsheviks
+      took it in 1920.
+    source:
+      title: Emirate of Bukhara
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  # Eastern Europe after the war: Cliopatria's Soviet row covers states that stood on their own.
+  - years: [1945, 1946]
+    carry:
+      polity: Kingdom of Romania
+      from: 1947
+    why: >-
+      Cliopatria draws Romania as Soviet in 1945 and 1946, but the Kingdom of Romania lasted until
+      King Michael's abdication on 30 December 1947.
+    source:
+      title: Kingdom of Romania
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Romania
+  - years: [1945, 1946]
+    carry:
+      polity: Kingdom of Bulgaria
+      from: 1947
+    why: >-
+      Cliopatria draws Bulgaria as Soviet in 1945 and 1946, but the tsardom lasted until the
+      monarchy was abolished on 15 September 1946.
+    source:
+      title: Kingdom of Bulgaria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bulgaria
+  - years: [1946, 1946]
+    carry:
+      polity: Hungary
+      from: 1947
+    why: >-
+      Cliopatria draws Hungary as Soviet in 1946, but the Hungarian state stood: the kingdom until 1
+      February 1946, then the Second Hungarian Republic.
+    source:
+      title: Second Hungarian Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Hungarian_Republic
+  - years: [1946, 1946]
+    carry:
+      polity: Czechoslovakia
+      from: 1947
+    why: >-
+      Cliopatria draws Czechoslovakia as Soviet in 1946, but the Third Czechoslovak Republic was
+      formed in April 1945.
+    source: &czsr
+      title: Czechoslovak Socialist Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Czechoslovak_Socialist_Republic
+  - years: [1969, 1990]
+    carry:
+      polity: Czechoslovakia
+      from: 1968
+    why: >-
+      Cliopatria draws Czechoslovakia as Soviet from 1969 to 1990, but the Warsaw Pact invasion of
+      August 1968 occupied the Czechoslovak Socialist Republic and did not annex it; it stood until
+      its renaming in 1990.
+    source: *czsr
+  - years: [1946, 1946]
+    carry:
+      polity: Republic of Poland
+      from: 1953
+    why: >-
+      Cliopatria draws Poland as Soviet until 1952, but a Polish state stood: the Provisional
+      Government of National Unity, formed on 28 June 1945 and recognised by the Allies.
+    source:
+      title: Provisional Government of National Unity
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Provisional_Government_of_National_Unity
+  - years: [1947, 1952]
+    carry:
+      polity: Republic of Poland
+      from: 1953
+    why: >-
+      Cliopatria draws Poland as Soviet until 1952, but the Republic of Poland (1947–1952), then the
+      Polish People's Republic, was a Soviet satellite, not part of the Soviet Union.
+    source:
+      title: Polish People's Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Polish_People%27s_Republic
+  - years: [1961, 1961]
+    member:
+      polity: State of Kuwait
+      of: (British Empire)
+    why: >-
+      On 1 January 1961 Kuwait was still a British protected state; it became independent on 19
+      June 1961.
+    source: &kuwait
+      title: Sheikhdom of Kuwait
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sheikhdom_of_Kuwait
+  - years: [1990, 1990]
+    carry:
+      polity: State of Kuwait
+      from: 1987
+    why: >-
+      Cliopatria's Kuwait rows skip 1990 and its Iraqi row takes Kuwait's land, but Iraq invaded
+      only on 2 August 1990; on 1 January the State of Kuwait stood.
+    source:
+      title: Iraqi invasion of Kuwait
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Iraqi_invasion_of_Kuwait
+  - years: [1963, 2000]
+    overlap:
+      polities: [French Fifth Republic, People's Democratic Republic of Algeria]
+      winner: People's Democratic Republic of Algeria
+    why: >-
+      Smaller wins, checked: French rule in Algeria ended with independence on 5 July 1962, and the
+      Fifth Republic's row still covers it.
+    source:
+      title: French Algeria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Algeria
+  - years: [1967, 1968]
+    overlap:
+      polities: [British Colonial Empire, Guyana]
+      winner: Guyana
+    why: >-
+      Smaller wins, checked: Guyana became independent of the United Kingdom on 26 May 1966.
+    source:
+      title: Guyana
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Guyana
+  - years: [1976, 2000]
+    overlap:
+      polities: [Netherlands Antilles, Republic of Suriname]
+      winner: Republic of Suriname
+    why: >-
+      Smaller wins, checked: Suriname became independent on 25 November 1975, and the Netherlands
+      Antilles row still covers it; before 1975 Cliopatria draws Suriname under that name, which is
+      left for review.
+    source:
+      title: Suriname
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Suriname
