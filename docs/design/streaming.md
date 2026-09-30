@@ -781,6 +781,12 @@ stage (owner decision 26), and Cliopatria gives no capitals.
   1.41 ms. The budget is 0.3 ms mid-dissolve (section 6), which only the previews at world view
   meet: whether to allow the rest or cut the cost is open for the owner. At Tambora's sixth beat a
   step at rest adds 0.27 ms and the 1815 field 0.25 ms.
+- **The eased line** (owner decision 40) costs what the near line does. Timed in the same frames
+  with the outer line at each weight, on a quiet GPU, its passes and the near line's differ by at
+  most 0.09 ms either way at world view and at 17,500 km over two runs, about as much as two passes
+  drawing the same line differ at 4,000 km (0.07 ms). There a step at rest adds 0.15-0.38 ms and a
+  dissolve 0.24-0.46 ms, so the budget question above is as it was, and no frame came late in 400 at
+  any of the four views [M `borders/results/eased-2026-09-30.json`].
 - **Frames:** scrubbing through all the steps (521 in that bake) at world view, eight a second, and
   from 1900 to 1950 over Europe, five a second, no task passed 50 ms, and every frame at world view
   came within 16.8 ms. Over Europe at 4,000 km, 6% of frames come late (over 20 ms) with the borders
