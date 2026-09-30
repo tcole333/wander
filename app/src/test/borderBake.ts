@@ -40,6 +40,8 @@ export interface BordersRecord {
   steps?: BorderStepsRelease;
   unacknowledged?: { polities: string[]; steps: number[] }[];
   unclassified?: { composites: string[]; relations: string[] };
+  /** The stateless holes and gaps the history pass owes a cited verdict. */
+  owed?: { holes: unknown[]; gaps: unknown[] };
   inputs?: { code: string; cliopatria: string };
 }
 

@@ -162,6 +162,9 @@ describe.runIf(profile === 'global')('the border steps', () => {
         ...pairs.slice(0, SHOWN).map(({ polities, steps: years }) => {
           return `    ${polities.join(' / ')}: ${years.join(', ')}`;
         }),
+        `  ${bake.record.owed?.holes.length ?? 0} stateless holes and ` +
+          `${bake.record.owed?.gaps.length ?? 0} gaps owe the history pass a cited verdict; ` +
+          'publish-data refuses them too',
       ].join('\n'),
     );
   });
