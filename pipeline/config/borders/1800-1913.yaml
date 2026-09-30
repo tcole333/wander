@@ -1,4 +1,92 @@
-# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here
-# from 1800 to 1913 (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43.
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
+# 1800 to 1913 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
+# covers the years whose 1 January falls in its dates.
 modified: 2026-09-29
-corrections: []
+corrections:
+  # The Dutch East Indies and the British interregnum.
+  - years: [1800, 1802]
+    overlap:
+      polities: [Batavian Republic, Dutch East Indies]
+      winner: Dutch East Indies
+    why: >-
+      Smaller wins, checked: the Batavian Republic's row repeats the Indies it took over when the
+      Dutch East India Company was dissolved in 1800, and the Indies' own row keeps them.
+    source:
+      title: Dutch East Indies
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+  - years: [1812, 1816]
+    give:
+      polity: Dutch East Indies
+      to: British Colonial Empire
+    why: >-
+      The British took Java in 1811 (the Dutch surrendered on 18 September), Raffles governing it as
+      lieutenant-governor, and returned Java and the other East Indian possessions to the Dutch in
+      1816. Cliopatria's British rows end in 1813, and in 1812-1813 its smaller Dutch row outdraws
+      them.
+    source:
+      title: Invasion of Java (1811)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Invasion_of_Java_(1811)
+  - years: [1807, 1811]
+    member:
+      polity: Sultan of Yogyakarta
+      of: Dutch East Indies
+    why: >-
+      A dependent by treaty: Yogyakarta, made by the VOC's Treaty of Giyanti (1755), was a
+      protectorate of the Dutch from 1806 to 1811 and again from 1816.
+    source:
+      title: Yogyakarta Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yogyakarta_Sultanate
+  - years: [1807, 1811]
+    member:
+      polity: Surakarta Sunanate
+      of: Dutch East Indies
+    why: >-
+      A dependent by treaty: Surakarta, made by the VOC's Treaty of Giyanti (1755), was a
+      protectorate of the Dutch from 1806 to 1811 and again from 1816.
+    source:
+      title: Surakarta Sunanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Surakarta_Sunanate
+  - years: [1812, 1816]
+    member:
+      polity: Sultan of Yogyakarta
+      of: British Colonial Empire
+    why: A protectorate of the British East India Company from 1811 to 1816.
+    source:
+      title: Yogyakarta Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yogyakarta_Sultanate
+  - years: [1812, 1816]
+    member:
+      polity: Surakarta Sunanate
+      of: British Colonial Empire
+    why: A protectorate of the British East India Company from 1811 to 1816.
+    source:
+      title: Surakarta Sunanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Surakarta_Sunanate
+  - years: [1817, 1827]
+    member:
+      polity: Sultan of Yogyakarta
+      of: Dutch East Indies
+    why: >-
+      A protectorate of the Netherlands within the Dutch East Indies from 1816 to 1942; Cliopatria's
+      Yogyakarta rows end in 1827.
+    source:
+      title: Yogyakarta Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yogyakarta_Sultanate
+  - years: [1817, 1827]
+    member:
+      polity: Surakarta Sunanate
+      of: Dutch East Indies
+    why: >-
+      A protectorate of the Netherlands within the Dutch East Indies from 1816 to 1942; Cliopatria's
+      Surakarta rows end in 1827.
+    source:
+      title: Surakarta Sunanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Surakarta_Sunanate

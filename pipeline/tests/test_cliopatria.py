@@ -565,13 +565,17 @@ def fixture_steps():
     return source, settings, {y: clio.select(y, source, settings, terrain) for y in source.years}
 
 
-def test_each_fixture_step_draws_every_polity_row_valid_in_its_year(fixture_steps):
-    source, _, steps = fixture_steps
-    for year, chosen in steps.items():
+def test_each_fixture_step_draws_every_polity_row_valid_in_its_year():
+    ctx = make_context(Profile.FIXTURE, 1)
+    source, terrain = clio.load_cliopatria(ctx), clio.load_terrain(ctx)
+    uncorrected = replace(clio.load_config(), corrections=())
+    for year in source.years:
+        chosen = clio.select(year, source, uncorrected, terrain)
         valid = {r.name for r in source.rows if r.holds(year) and not r.composite}
         assert chosen.report["leaves"] == len(valid)
         assert valid <= set(chosen.outers())
-    assert steps[1815].report["leaves"] == 139
+        if year == 1815:
+            assert chosen.report["leaves"] == 139
 
 
 def test_the_fixture_draws_its_polities_with_their_ids_wikidata_and_outer_units(fixture_steps):
@@ -582,7 +586,7 @@ def test_the_fixture_draws_its_polities_with_their_ids_wikidata_and_outer_units(
     indies = document["Dutch East Indies"]
     assert indies["id"] == clio.polity_ids(source, settings)["Dutch East Indies"]
     assert indies["wikidata"] == ["Q188161"]
-    assert indies["steps"] == [[1815, 1830, "(Netherlands)"]]
+    assert indies["steps"] == [[1830, 1830, "(Netherlands)"]]  # British until 1816
     assert document["(Netherlands)"]["steps"] == [[1815, 1830, "(Netherlands)"]]
     assert "" not in document
 
