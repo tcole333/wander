@@ -18,6 +18,8 @@ from prebuild.wikidata import COLUMNS
 
 BATTLE, WAR = "Q178561", "Q198"
 DISASTER, ERUPTION, EARTHQUAKE = "Q8065", "Q7692360", "Q7944"
+RIOT, MASSACRE, SHIPWRECK = "Q124757", "Q3199915", "Q906512"
+CONFLAGRATION, WILDFIRE = "Q168983", "Q169950"
 HEADER = "\t".join(("?class", *COLUMNS))
 
 
@@ -83,6 +85,44 @@ def test_an_event_is_displayed_as_its_most_specific_class_and_scored_by_its_heav
     assert tambora.score == pytest.approx(math.log2(41) * 0.75)
     assert (kept["Q212618"].cls, kept["Q212618"].display) == ("natural disaster", "earthquake")
     assert (kept["Q1"].cls, kept["Q1"].display) == ("natural disaster", "natural disaster")
+
+
+def sharing(heavier: str, rarer: str) -> events.Event:
+    """Q1, exported under both classes, in an export that gives the rarer class one event the
+    heavier lacks: they share events, but neither holds the other's."""
+    day = "1900-01-01T00:00:00Z"
+    return indexed(
+        row("Q1", "P585", day, 11, cls=heavier),
+        row("Q1", "P585", day, 11, cls=rarer),
+        row("Q2", "P585", day, 11, cls=rarer),
+        row("Q3", "P585", day, 11, cls=heavier),
+        row("Q4", "P585", day, 11, cls=heavier),
+    )["Q1"]
+
+
+def test_a_riot_that_is_also_a_massacre_keeps_its_heaviest_class_s_glyph():
+    riot = sharing(heavier=MASSACRE, rarer=RIOT)
+    assert (riot.cls, riot.display) == ("massacre", "massacre")
+
+
+def test_a_battle_that_is_also_a_shipwreck_keeps_its_heaviest_class_s_glyph():
+    battle = sharing(heavier=BATTLE, rarer=SHIPWRECK)
+    assert (battle.cls, battle.display) == ("battle", "battle")
+
+
+def test_a_class_nested_within_another_than_the_heaviest_is_not_displayed():
+    # Wildfires are conflagrations, but not natural disasters: a fire exported as all three is
+    # scored and displayed as the natural disaster.
+    day = "1900-01-01T00:00:00Z"
+    kept = indexed(
+        *(row("Q1", "P585", day, 11, cls=c) for c in (DISASTER, CONFLAGRATION, WILDFIRE)),
+        row("Q2", "P585", day, 11, cls=CONFLAGRATION),
+        row("Q2", "P585", day, 11, cls=WILDFIRE),
+        row("Q3", "P585", day, 11, cls=CONFLAGRATION),
+        *(row(qid, "P585", day, 11, cls=DISASTER) for qid in ("Q4", "Q5")),
+    )
+    assert (kept["Q1"].cls, kept["Q1"].display) == ("natural disaster", "natural disaster")
+    assert (kept["Q2"].cls, kept["Q2"].display) == ("conflagration", "wildfire")
 
 
 def test_a_war_dated_at_its_end_still_spans_its_years():

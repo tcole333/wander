@@ -10,12 +10,17 @@ Wikipedia edition. Per event it takes:
 
 - the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`),
   which weighs its score;
-- the class it is displayed as, whose glyph its mark draws: the most specific of those it was
-  exported under, the one the export gives the fewest events. The export takes each class with its
-  subclasses, so a subclass never holds more events than its class: the 1815 eruption of Tambora,
-  exported as a volcanic eruption and a natural disaster, is scored as the heavier natural
-  disaster and displayed as a volcanic eruption. Where the export cannot tell two classes apart by
-  their counts, it is displayed as the heavier, then the one event-classes.yaml lists first;
+- the class it is displayed as, whose glyph its mark draws: of the classes it was exported under,
+  the most specific that the export nests within its heaviest. The export takes each class with
+  its subclasses, so it gives a class every event of each of its subclasses: a class is nested
+  within another when every event exported under it is also exported under the other. The 1815
+  eruption of Tambora, exported as a volcanic eruption and a natural disaster, is scored as the
+  heavier natural disaster and displayed as a volcanic eruption, since the export gives every
+  volcanic eruption as a natural disaster too. Two classes that merely share events are not
+  nested, whichever is rarer: the export's riots and massacres share 34 events and neither holds
+  the other, so a riot that is also a massacre keeps its heaviest class's glyph and pace layer.
+  Among classes the export cannot tell apart, or nested within the heaviest but not within one
+  another, it is displayed as the heavier, then the one event-classes.yaml lists first;
 - the date: its point in time (P585), else its start (P580), else its end (P582); among several of
   one property, the most precise, then the earliest; or the `date` in `dates` in
   `pipeline/config/events-curated.yaml`, where a better source dates it otherwise. A date of year
@@ -160,7 +165,7 @@ class Event:
     label: str
     enwiki: str
     cls: str  # the name of its heaviest class, which weighs its score
-    display: str  # the name of its most specific class, which its mark draws
+    display: str  # its most specific class nested within that one, which its mark draws
     day: Day
     precision: int
     t0: Day
@@ -302,8 +307,14 @@ def index(
     for s in statements:
         if s.precision >= YEAR and s.cls in by_qid:
             grouped.setdefault(s.qid, []).append(s)
-    # The events the export gives each class, which the most specific class has fewest of.
-    held = Counter(cls for group in grouped.values() for cls in {s.cls for s in group})
+    # The events the export gives each class, and each ordered pair of classes together: a class
+    # is nested within another when the export gives the other every one of its events.
+    held: Counter[str] = Counter()
+    both: Counter[tuple[str, str]] = Counter()
+    for group in grouped.values():
+        exported = {s.cls for s in group}
+        held.update(exported)
+        both.update((a, b) for a in exported for b in exported if a != b)
     events = []
     for qid, group in grouped.items():
         label = next((s.label for s in group if s.label), "")
@@ -318,7 +329,7 @@ def index(
         # and Meanwhile still require a source location; NaNs never reach that table.
         lon_lat = lon_lat or (math.nan, math.nan)
         cls = max((by_qid[s.cls] for s in group), key=lambda c: c.weight)
-        display = min({s.cls for s in group}, key=lambda c: (held[c], -by_qid[c].weight, listed[c]))
+        display = _displayed(cls.qid, {s.cls for s in group}, held, both, by_qid, listed)
         dated = min(group, key=lambda s: (DATE_ORDER.index(s.prop), -s.precision, s.day))
         curation = dates.get(qid, CuratedDays()) if dates else CuratedDays()
         curated = _historical_day(curation.date) if curation.date else None
@@ -355,6 +366,26 @@ def index(
         )
     events.sort(key=lambda e: (-e.score, _number(e.qid)))
     return events
+
+
+def _displayed(
+    heaviest: str,
+    exported: set[str],
+    held: Mapping[str, int],
+    both: Mapping[tuple[str, str], int],
+    by_qid: Mapping[str, EventClass],
+    listed: Mapping[str, int],
+) -> str:
+    """The class an event is displayed as: of the classes it was `exported` under, the most specific
+    that the export nests within its `heaviest`, then the heavier, then the first listed."""
+
+    def within(a: str, b: str) -> bool:
+        """Whether the export gives class b every event it gives class a."""
+        return a == b or both[(b, a)] == held[a]
+
+    nested = [c for c in exported if within(c, heaviest)]
+    deepest = [c for c in nested if not any(within(d, c) and held[d] < held[c] for d in nested)]
+    return min(deepest, key=lambda c: (-by_qid[c].weight, listed[c]))
 
 
 def encode(events: Iterable[Event]) -> bytes:

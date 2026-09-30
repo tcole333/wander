@@ -1,11 +1,12 @@
 # The event index's classes (streaming.md 3.4): `uv run prebuild wikidata` exports each with its
 # subclasses (wdt:P31/wdt:P279*), and the events stage scores an event log2(1 + Wikipedia editions)
-# x its class's weight. An event in several classes is scored by the heaviest and its mark draws
-# the most specific, the one the export gives the fewest events. The first eighteen are the
-# classes of the old us-1850-1900 snapshot, weighted by its kind priors; the rest widen it to the
-# risings, disasters and wrecks of every era. Sporting seasons, elections and similar noise stay
-# out by never being listed. A shipwreck is Wikidata's shipwrecking (Q906512), the sinking: its
-# shipwreck (Q852190) is the wreck on the sea floor, dated by the ship's service.
+# x its class's weight. An event in several classes is scored by the heaviest, and its mark draws
+# the most specific class the export nests within that one, a class every event of which the
+# export also gives the heaviest: every volcanic eruption is a natural disaster. The first eighteen
+# are the classes of the old us-1850-1900 snapshot, weighted by its kind priors; the rest widen it
+# to the risings, disasters and wrecks of every era. Sporting seasons, elections and similar noise
+# stay out by never being listed. A shipwreck is Wikidata's shipwrecking (Q906512), the sinking:
+# its shipwreck (Q852190) is the wreck on the sea floor, dated by the ship's service.
 classes:
   - {qid: Q198, name: war, weight: 1.0}
   - {qid: Q12184, name: pandemic, weight: 1.0}

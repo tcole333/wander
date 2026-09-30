@@ -1,13 +1,15 @@
 // The pace layer and glyph each class of the event index takes (pipeline/config/event-classes.yaml;
 // docs/design/globe-language.md, "Speeds and pace layers": an event belongs to the pace layer it
-// jolts). An event's mark draws its most specific class, the one of those it was exported under
-// that the export gives the fewest events (the events stage's `display`, which the .wev rows
-// index in the overview's class list, events/page.ts), whatever class weighs its score. Nature takes the disasters, epidemics and drought;
-// governance the wars, battles, sieges, treaties, uprisings, famines, assassinations and
-// atrocities, with one glyph for every atrocity; infrastructure the shipwrecks, expeditions and
-// conflagrations. A glyph belongs to one family, so every class that shares a glyph shares its
-// pace layer. A storm's glyph turns with its hemisphere, so an event's glyph goes through glyphAt
-// with its latitude.
+// jolts). An event's mark draws its display class: of the classes it was exported under, the most
+// specific the export nests within the heaviest, which weighs its score (the events stage's
+// `display`, which the .wev rows index in the overview's class list, events/page.ts). So an
+// eruption scored as a natural disaster draws an eruption, while a riot that is also a massacre,
+// two classes that only share events, keeps the massacre's glyph and pace layer. Nature takes the
+// disasters, epidemics and drought; governance the wars, battles, sieges, treaties, uprisings,
+// famines, assassinations and atrocities, with one glyph for every atrocity; infrastructure the
+// shipwrecks, expeditions and conflagrations. A glyph belongs to one family, so every class that
+// shares a glyph shares its pace layer. A storm's glyph turns with its hemisphere, so an event's
+// glyph goes through glyphAt with its latitude.
 import type { Pace } from './families';
 import type { GlyphId } from './symbols';
 
