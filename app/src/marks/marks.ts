@@ -154,6 +154,8 @@ const FACING_MIN = 0.05;
 const MARK_COS_MIN = 0.9;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
 const PICK_ALPHA_MIN = 0.25;
+/** Above any land the terrain holds, m: no relief lifts a mark higher than this, exaggerated. */
+const HIGHEST_M = 9000;
 
 /**
  * A mark's diameter in CSS px for a view `viewKm` wide (tunables.markPx), drawn at `pixelRatio`
@@ -632,31 +634,23 @@ export class MarkLayer {
   /**
    * The mark under CSS px (x, y), or null: the nearest drawn and not too faint whose disc reaches
    * the point. Over land the disc runs from the mark's sea-level place to where the terrain's
-   * ceiling there would lift it, since the mark is drawn on the relief somewhere between.
+   * ceiling there would lift it, since the mark is drawn on the relief somewhere between; only a
+   * mark within reach of the highest lift asks the ceiling, which costs a walk over tiles.
    */
   hit(x: number, y: number): string | null {
     let best: string | null = null;
     let bestD = Infinity;
-    const lifted = new Vector3();
-    const clip = new Vector4();
+    const field = this.#clearance;
+    const kLand = field ? this.#view.kLand : 0;
     for (const mark of this.#placed) {
       if (mark.alpha < PICK_ALPHA_MIN) continue;
       let [x1, y1] = [mark.x, mark.y];
-      const field = this.#clearance;
-      if (field && this.#view.kLand > 0) {
-        const ceiling = field.ceilingM(
-          [mark.dir.x, mark.dir.y, mark.dir.z],
-          Math.max(mark.r, 1e-5),
-          this.#view.kLand,
-        );
-        if (ceiling > 0) {
-          lifted.copy(mark.dir).multiplyScalar(1 + ceiling / EARTH_M);
-          clip.set(lifted.x, lifted.y, lifted.z, 1).applyMatrix4(this.#view.toClip);
-          if (clip.w > 0) {
-            x1 = (clip.x / clip.w / 2 + 0.5) * this.#view.width;
-            y1 = (0.5 - clip.y / clip.w / 2) * this.#view.height;
-          }
-        }
+      if (field && kLand > 0) {
+        const [xh, yh] = this.#lifted(mark.dir, kLand * HIGHEST_M) ?? [x1, y1];
+        if (segmentDistance(x, y, mark.x, mark.y, xh, yh) > mark.rPx) continue;
+        const dir: [number, number, number] = [mark.dir.x, mark.dir.y, mark.dir.z];
+        const ceiling = field.ceilingM(dir, Math.max(mark.r, 1e-5), kLand);
+        if (ceiling > 0) [x1, y1] = this.#lifted(mark.dir, ceiling) ?? [x1, y1];
       }
       const d = segmentDistance(x, y, mark.x, mark.y, x1, y1);
       if (d <= mark.rPx && d < bestD) {
@@ -665,6 +659,17 @@ export class MarkLayer {
       }
     }
     return best;
+  }
+
+  /** Where the place at `dir`, lifted `meters` off sea level, stands on screen, CSS px. */
+  #lifted(dir: Vector3, meters: number): [number, number] | null {
+    const lifted = dir.clone().multiplyScalar(1 + meters / EARTH_M);
+    const clip = new Vector4(lifted.x, lifted.y, lifted.z, 1).applyMatrix4(this.#view.toClip);
+    if (clip.w <= 0) return null;
+    return [
+      (clip.x / clip.w / 2 + 0.5) * this.#view.width,
+      (0.5 - clip.y / clip.w / 2) * this.#view.height,
+    ];
   }
 
   /** The table and its staging while marks are set; nothing, but the owner's row, otherwise. */
