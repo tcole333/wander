@@ -52,6 +52,8 @@ class InPlaceWorker implements EventSource {
   planError: string | undefined;
   /** Meanwhile's questions, as stood each frame. */
   meanwhileAsked: MeanwhileQuery[] = [];
+  /** Keeps the question asked unanswered, as a worker still busy with it would. */
+  busy = false;
   #pending: EventQuery | undefined;
   #stated = false;
   #generation = 0;
@@ -77,7 +79,7 @@ class InPlaceWorker implements EventSource {
       this.#stated = true;
       replies.push({ type: 'state', plan, classes: this.index.classes });
     }
-    if (this.#pending) {
+    if (this.#pending && !this.busy) {
       const result = this.engine.query(this.#pending, now);
       const planned = this.planError ? { ...plan, error: this.planError } : plan;
       replies.push({ type: 'result', generation: ++this.#generation, result, plan: planned });
@@ -534,6 +536,34 @@ describe("Explore's events", () => {
     events.hover(null);
     events.update(close, at(1000), 2200);
     expect(hovered()).toEqual([]);
+  });
+
+  it('stands a parent made focal while split solid and focal at once, before the worker answers', () => {
+    const { worker, marks } = setup([
+      { row: 0, qid: 100, lon: 10, lat: 45, t0: 900, t1: 1100, cls: WAR, ext: [0, 38, 22, 52] },
+      { row: 1, qid: 101, lon: 4, lat: 50, t0: 990, t1: 990, parent: 0, cls: BATTLE },
+      { row: 2, qid: 102, lon: 16, lat: 48, t0: 1005, t1: 1005, parent: 0, cls: BATTLE },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    const close = frameOver(10, 45, 1);
+    for (const now of [0, 1000, 2000]) events.update(close, at(1000), now);
+    const war = () =>
+      marks.specs
+        .filter((s) => s.id.startsWith('Q100'))
+        .map(({ id, focal, hollow, opacity }) => ({ id, focal, hollow, opacity }));
+    expect(war()).toEqual([{ id: 'Q100/outline', focal: false, hollow: true, opacity: 1 }]);
+
+    // Pinned, the war's ember stands at once, the worker still busy with the question.
+    worker.busy = true;
+    events.focus({ qid: 100 });
+    events.update(close, at(1000), 2100);
+    const solid = [{ id: 'Q100', focal: true, hollow: false, opacity: 1 }];
+    expect(war()).toEqual(solid);
+    expect(events.event(markIdOf(100))?.qid).toBe(100);
+    // Its answer draws the same mark.
+    worker.busy = false;
+    events.update(close, at(1000), 2200);
+    expect(war()).toEqual(solid);
   });
 
   it('picks only its own marks under the pointer', () => {
