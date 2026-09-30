@@ -13,7 +13,8 @@ sliverKm: 14
 # A hole in the polities that lies inside one state is that state's land, whatever its size (owner
 # decision 38). One between states that touches a lake goes to its neighbours under this, so no
 # border rings a lake; a larger one, and one that touches no lake, stays stateless (owner decision
-# 36). A pocket correction gives away no piece this large.
+# 36) unless a pocket correction names the state that held it. A pocket correction gives no piece
+# this large to its neighbours.
 pocketKm2: 100000
 # Two drawn polities overlapping by more than this go to the review queue.
 reviewKm2: 2000
