@@ -13,7 +13,8 @@
 // Without a story the page starts in Explore (explore/explore.ts) where the view stands, its
 // crafted ruler driving world time from 10,000 BCE through 2000 CE and the border steps following
 // it, with the lobby, mark and sound knob for the way back; window.__worldTime serves
-// scripts/exploreClockShots.ts, and window.__borders scripts/bordersShots.ts and bordersVideos.ts.
+// scripts/exploreClockShots.ts, window.__borders scripts/bordersShots.ts and bordersVideos.ts, and
+// window.__bordersTiming (bordersTiming.ts) the latter's GPU times.
 // A story's page shows Explore's plaque in its lobby wherever the release names its event index,
 // as the production page does. ?memory=1 installs window.__wanderMemory() (perf/memoryHook.ts),
 // and ?opening=Q… opens Explore on that opening (explore/openings.ts), as on the production page.
@@ -32,6 +33,7 @@ import type { LonLat } from '../../story/story';
 import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
 import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
+import { serveBordersTiming } from './bordersTiming';
 import { startMarkDemo } from './markDemo';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 
@@ -182,6 +184,7 @@ async function main(): Promise<void> {
     settings,
   };
   if (source) serveWalk(() => page.story?.walk ?? null, ready);
+  else serveBordersTiming(museum, look.material);
 
   const hud = document.getElementById('hud');
   if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);
