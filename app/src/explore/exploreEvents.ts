@@ -480,8 +480,13 @@ export class ExploreEvents {
       return veil;
     };
     const result = this.#result;
-    for (const mark of result?.markers ?? []) add(mark, false);
-    // The focal event stays a mark of its own when it is also a parent its children split.
+    const markers = result?.markers ?? [];
+    for (const mark of markers) add(mark, false);
+    // The focal event stays a mark of its own when it is also a parent its children split. Made
+    // focal while split, it stands solid at once from its hollow record, as the worker's answer
+    // will draw it, so it is never without a mark between the two.
+    const split = focal && result?.outlines.find((mark) => mark.qid === focal.qid);
+    if (split && !markers.some((mark) => mark.qid === split.qid)) add(split, false);
     const outlines = (result?.outlines ?? [])
       .filter((mark) => mark.qid !== focal?.qid)
       .sort((a, b) => b.score - a.score || a.row - b.row);
