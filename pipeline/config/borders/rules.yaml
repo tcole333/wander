@@ -10,8 +10,8 @@ leftoverKm2: 100
 # pieces that narrow throughout. Land within this of a lake and of another polity goes to the fill,
 # so a border crosses the lake rather than following its far shore.
 sliverKm: 14
-# An enclosed stateless piece that touches a lake or lies in a hole of the polities goes to its
-# neighbours under this, so no border rings a lake; a larger one stays stateless.
+# An enclosed stateless piece that touches a lake goes to its neighbours under this, so no border
+# rings a lake; a larger one, and one that touches no lake, stays stateless (owner decision 36).
 pocketKm2: 100000
 # Two drawn polities overlapping by more than this go to the review queue.
 reviewKm2: 2000
