@@ -4,7 +4,7 @@
 // consecutive steps, the even one in R and the odd in G; a chunk starts at an even step, so a
 // cell's two previews never span two chunks. Pure: no three, no fetches.
 import type { BorderStepsRelease } from '../data/release';
-import { dayFromHistorical, formatHistorical } from '../story/dates';
+import { dayFromHistorical } from '../story/dates';
 
 export class StepsError extends Error {
   override name = 'StepsError';
@@ -82,9 +82,4 @@ export function chunkOf(steps: BorderSteps, step: number): { chunk: number; inde
  */
 export function cellOf(step: number): { pair: number; channel: 0 | 1 } {
   return { pair: step >> 1, channel: (step & 1) as 0 | 1 };
-}
-
-/** The year plate's words for a step's first year, as history writes it: 'Borders · 44 BCE'. */
-export function plateLabel(year: number): string {
-  return `Borders · ${formatHistorical(firstDay(year), 'year')}`;
 }

@@ -165,7 +165,7 @@ export class ClockBorders {
     }));
   }
 
-  /** The step drawn, while any is: for the year plate. */
+  /** The step drawn, while any is: for a walk's year plate and for scripts. */
   get shown(): StepShown | null {
     const to = this.#to;
     if (!to || !this.#steps || this.#strength <= 0) return null;

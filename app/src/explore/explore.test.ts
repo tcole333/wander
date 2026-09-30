@@ -161,12 +161,6 @@ vi.mock('../view/freeFlight', async (importOriginal) => {
     },
   };
 });
-vi.mock('../story/ui/bordersPlate', () => ({
-  BordersPlate: class {
-    element = { plate: true };
-    update() {}
-  },
-}));
 vi.mock('../story/ui/dom', () => ({
   el: (_tag: string, className = '') => {
     const layer: FakeLayer = {
@@ -384,11 +378,11 @@ describe('Explore', () => {
     expect(window.__worldTime).toBeUndefined();
   });
 
-  it('draws the border steps under their plate, their previews loading once the dive lands', () => {
+  it('draws the border steps with no plate, their previews loading once the dive lands', () => {
     const steps = stepsRuntime();
     const { control, mode, tick } = setup('fly', null, steps.runtime);
     const layer = drawn.layers[0]!;
-    expect(layer.children).toEqual([{ plate: true }, { ruler: true }]);
+    expect(layer.children).toEqual([{ ruler: true }]);
     expect(window.__borders).toBeDefined();
     tick();
     expect(steps.loadPreviews).not.toHaveBeenCalled();

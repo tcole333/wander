@@ -8,7 +8,7 @@
 //
 // The videos scrub the clock from one step's first day to the next's at a steady number of steps a
 // second, faster than borderRest, so the previews draw while it moves, and rest a few seconds in
-// chosen years, where each step streams in under its plate:
+// chosen years, where each step streams in:
 // - world: 3400 BCE to 2000 at world view over the Old World, eight steps a second, resting in
 //   1000, 1500, 1800 and 1914, the ruler showing all of history;
 // - europe: 1900 to 1950 over Europe, 4,000 km across, five steps a second, resting in 1914, 1919,
