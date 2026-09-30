@@ -47,6 +47,28 @@ export interface BordersRelease {
 }
 
 /**
+ * release.json's `borderSteps` (3.3): Cliopatria's polities as one field per state of the world
+ * from 3400 BCE to 2000, each step with its astronomical first year, key and stored bytes in step
+ * order, the preview chunks, the polities and the CC BY notice.
+ */
+export interface BorderStepsRelease {
+  ver: string;
+  /** Texels a face side, apron included, and the apron past each face edge. */
+  size: number;
+  apron: number;
+  /** The year each step begins, astronomical, ascending; a step holds until the next begins. */
+  years: number[];
+  keys: string[];
+  bytes: number[];
+  /** Chunks of `per` steps' previews, the first starting at step 0. */
+  previews: { per: number; keys: string[]; bytes: number[] };
+  /** fd/borders/m/<sha16>.json: each polity's id, Wikidata ids and outer unit through the steps. */
+  polities: string;
+  /** lic/<sha16>.txt: Cliopatria's attribution, the license and every correction. */
+  notice: string;
+}
+
+/**
  * release.json's `media`: every key the stories' committed locks name (streaming.md 3.9), sorted,
  * so publish-data uploads them and check-release reads one.
  */
@@ -102,8 +124,10 @@ export interface Release {
   surface: SurfaceRelease;
   /** Present once the build has run the modera stage. */
   modera?: ModeraRelease;
-  /** Present once the build has run the borders stage. */
+  /** Present once the build has baked the 1815 field (not the fixture). */
   borders?: BordersRelease;
+  /** Present once the build has baked the border steps (not the region profile). */
+  borderSteps?: BorderStepsRelease;
   /** Present once the build has run the fx stage. */
   fx?: FxRelease;
   /** Present once the build has run event-files. */

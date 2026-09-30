@@ -4,8 +4,10 @@
 // so a key present with another size stops the run before any upload. The canary (bounds.bin and
 // the L0 tiles) goes up first and the headers R2 stored with it are checked, because a key is never
 // overwritten and the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
-// If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. A
-// borders notice goes up only once origin holds the tag it links the build scripts at. Last
+// If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. It
+// refuses, before reading R2, a build whose border steps still owe the history pass an overlap
+// acknowledgement or a hierarchy class, and the 1815 field's GPL notice goes up only once origin
+// holds the tag it links the build scripts at. Last
 // come the bundled app/src/generated/release.json and its copy rel/<id>.json; CI's
 // `npm run check-release` reads the same roots through the data host. The fixture never leaves
 // this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
@@ -18,6 +20,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type {
+  BorderStepsRelease,
   BordersRelease,
   EventsRelease,
   FxRelease,
@@ -28,7 +31,15 @@ import type {
 } from '../src/data/release.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
-import { localRelease, OUTPUT_DIR, profileBuild, ReleaseError, REPO_ROOT } from './release.ts';
+import {
+  historyOwed,
+  localRelease,
+  OUTPUT_DIR,
+  profileBuild,
+  readBordersRecord,
+  ReleaseError,
+  REPO_ROOT,
+} from './release.ts';
 
 const DATA_HOST = 'https://wander-data.traviscole.xyz';
 const GENERATED = join(REPO_ROOT, 'app', 'src', 'generated', 'release.json');
@@ -59,7 +70,20 @@ export interface Section {
 export function releaseSections(release: Release, root: string): Section[] {
   const sections = [surfaceSection(release.surface, root)];
   if (release.modera) sections.push(moderaSection(release.modera, root));
-  if (release.borders) sections.push(...bordersSections(release.borders, root));
+  const licenses: string[] = [];
+  if (release.borders) {
+    const { fields, notices } = bordersSection(release.borders, root);
+    sections.push(fields);
+    licenses.push(...notices);
+  }
+  if (release.borderSteps) {
+    sections.push(...borderStepsSections(release.borderSteps, root));
+    licenses.push(release.borderSteps.notice);
+  }
+  if (licenses.length > 0) {
+    const objects = [...new Set(licenses)].sort().map((key) => localObject(root, key));
+    sections.push({ prefix: 'lic/', objects });
+  }
   if (release.fx) sections.push(fxSection(release.fx, root));
   if (release.events) sections.push(eventsSection(release.events, root));
   sections.push(mediaSection(release.media, root));
@@ -116,9 +140,13 @@ function moderaSection(modera: ModeraRelease, root: string): Section {
 
 /**
  * Every border field the borders record lists under fd/borders/<ver>/, each the size the record
- * gives it, and under lic/ the GPL notice and the corrected source each is published with.
+ * gives it, and the keys under lic/ of the GPL notice and the corrected source each is published
+ * with.
  */
-function bordersSections(borders: BordersRelease, root: string): Section[] {
+function bordersSection(
+  borders: BordersRelease,
+  root: string,
+): { fields: Section; notices: string[] } {
   const files = borders.stems.map((stem) => {
     const file = borders.files[stem];
     if (!file) throw new PublishError(`the borders record lists no file for ${stem}`);
@@ -131,11 +159,53 @@ function bordersSections(borders: BordersRelease, root: string): Section[] {
     }
     return object;
   });
-  const licenses = files.flatMap(({ notice, source }) => [notice, source]);
+  const notices = files.flatMap(({ notice, source }) => [notice, source]);
+  return { fields: { prefix: `fd/borders/${borders.ver}/`, objects: fields }, notices };
+}
+
+/**
+ * The border steps under fd/borders/s/, their preview chunks under fd/borders/p/, each the size the
+ * section gives it, and the polities under fd/borders/m/ (streaming.md 3.3).
+ */
+function borderStepsSections(steps: BorderStepsRelease, root: string): Section[] {
+  const sized = (keys: string[], bytes: number[]) => {
+    if (keys.length !== bytes.length) {
+      throw new PublishError(
+        `the borderSteps section gives ${bytes.length} sizes for ${keys.length} keys`,
+      );
+    }
+    return keys.map((key, k) => {
+      const object = localObject(root, key);
+      if (object.size !== bytes[k]) {
+        throw new PublishError(
+          `${object.path} holds ${object.size} B, not the record's ${bytes[k]} B`,
+        );
+      }
+      return object;
+    });
+  };
   return [
-    { prefix: `fd/borders/${borders.ver}/`, objects: fields },
-    { prefix: 'lic/', objects: [...new Set(licenses)].map((key) => localObject(root, key)) },
+    { prefix: 'fd/borders/s/', objects: sized(steps.keys, steps.bytes) },
+    { prefix: 'fd/borders/p/', objects: sized(steps.previews.keys, steps.previews.bytes) },
+    { prefix: 'fd/borders/m/', objects: [localObject(root, steps.polities)] },
   ];
+}
+
+/**
+ * Stops the run, before R2 is read, when the border steps still owe the history pass an overlap
+ * acknowledgement or a hierarchy class (streaming.md 3.3, 4.3).
+ */
+export function refuseOwedBorders(stages: string, release: Release): void {
+  if (!release.borderSteps) return;
+  const owed = historyOwed(readBordersRecord(stages) ?? {});
+  if (owed.length === 0) return;
+  const shown = owed.slice(0, 5).join('; ');
+  throw new PublishError(
+    `the border steps owe the history pass ${owed.length} entries (${shown}${owed.length > 5 ? '; …' : ''}): ` +
+      'acknowledge each overlap pair with an `overlap` correction and class each composite and ' +
+      'relation in pipeline/config/borders/, then run `uv run prebuild borders` in pipeline/ with ' +
+      'the same --profile',
+  );
 }
 
 /**
@@ -245,6 +315,7 @@ export async function publish(options: PublishOptions): Promise<void> {
   const { profile, dryRun = false } = options;
   const { root, stages } = profileBuild(profile);
   const release = localRelease(stages, DATA_HOST);
+  refuseOwedBorders(stages, release);
   const json = releaseJson(release);
   const sections = releaseSections(release, root);
   const size = Buffer.byteLength(json);
