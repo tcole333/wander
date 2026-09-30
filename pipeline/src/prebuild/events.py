@@ -198,13 +198,17 @@ def run(ctx: Context) -> None:
             f"{source.id} lacks the classes {', '.join(missing)}: run `uv run prebuild wikidata`"
         )
     with gzip.open(paths[TABLE], "rt", encoding="utf-8") as stream:
-        events = index(
-            read_export(stream),
-            classes,
-            load_event_boosts(legacy=True),
-            load_event_dates(),
-            places=curated_places(load_event_places()),
-        )
+        statements = read_export(stream)
+    places = curated_places(load_event_places())
+    if not fixture:  # the fixture's slice holds the events of 1815-1817 only
+        check_places(statements, places, source.id)
+    events = index(
+        statements,
+        classes,
+        load_event_boosts(legacy=True),
+        load_event_dates(),
+        places=places,
+    )
     payload = encode(events)
     stored = gzip.compress(payload, compresslevel=9, mtime=0)
     target = ctx.out / KEY
@@ -256,6 +260,19 @@ def export_source(registry: Mapping[str, Source]) -> Source:
     return exports[0]
 
 
+def check_places(
+    statements: Iterable[Statement], places: Mapping[str, LonLat], export: str
+) -> None:
+    """Refuses a curated place for an event the whole export lacks, which would move nothing."""
+    exported = {s.qid for s in statements}
+    missing = sorted(places.keys() - exported, key=_number)
+    if missing:
+        raise EventsError(
+            f"events-curated.yaml places {', '.join(missing)}, which {export} lacks: "
+            "correct the qid or drop its place"
+        )
+
+
 def read_export(lines: Iterable[str]) -> list[Statement]:
     """The export's statements, after its header line."""
     rows = iter(lines)
@@ -300,13 +317,29 @@ def index(
 ) -> list[Event]:
     """The cleaned, scored events, in score order, then by qid. A curated date (`dates`, by qid)
     stands in for Wikidata's, in the span as well as the date, and a curated end for its end
-    times; a curated place (`places`, by qid) for its coordinates and its location's."""
+    times; a curated place (`places`, by qid) for a located event's coordinates and its location's.
+    A curated place for an event the export leaves unlocated is refused."""
     by_qid = {c.qid: c for c in classes}
     listed = {c.qid: i for i, c in enumerate(classes)}
     grouped: dict[str, list[Statement]] = {}
     for s in statements:
         if s.precision >= YEAR and s.cls in by_qid:
             grouped.setdefault(s.qid, []).append(s)
+    # A curated place moves a located event. An unlocated one is a parent, which the event-files
+    # stage places from its children, or else by a sourced countryCentroid or an at.
+    unlocated = sorted(
+        (
+            q
+            for q in (places or {})
+            if q in grouped and not any(s.coord or s.place for s in grouped[q])
+        ),
+        key=_number,
+    )
+    if unlocated:
+        raise EventsError(
+            f"events-curated.yaml gives {', '.join(unlocated)} a place, but the export leaves it "
+            "unlocated: give an unlocated parent a countryCentroid or an at"
+        )
     # The events the export gives each class, and each ordered pair of classes together: a class
     # is nested within another when the export gives the other every one of its events.
     held: Counter[str] = Counter()

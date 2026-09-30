@@ -6,10 +6,11 @@
 # writes it, in the Julian calendar before 15 October 1582. `contested` names the events whose
 # date the sources dispute, which Meanwhile, printing one date for each, leaves out: {qid, why}.
 # `places` moves a located event to where a better source puts it: {qid, place: [lon, lat], why,
-# source: {title, url}}, which stands in for its own coordinates and its location's. It also
-# supplies unlocated parents with a sourced P17 `countryCentroid: [lon, lat]` or a last-resort
-# `at: [lon, lat]`, each with qid and why. Children take precedence over both. The current export
-# does not carry P17, so no country position is guessed from the event's label.
+# source: {title, url}}, which stands in for its own coordinates and its location's; the events
+# stage refuses one for an event the export lacks or leaves unlocated. It also supplies unlocated
+# parents with a sourced P17 `countryCentroid: [lon, lat]` or a last-resort `at: [lon, lat]`, each
+# with qid and why. Children take precedence over both. The current export does not carry P17, so
+# no country position is guessed from the event's label.
 places:
   - qid: Q191055
     place: [-9.139016, 38.708042]
