@@ -6,10 +6,12 @@
 // overwritten and the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
 // If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. It
 // refuses, before reading R2, a build whose border steps still owe the history pass an overlap
-// acknowledgement or a hierarchy class, and the 1815 field's GPL notice goes up only once origin
-// holds the tag it links the build scripts at. The border steps stay out of the release until their
-// first publish, which moves Tambora onto them (#80's task 9): `--border-steps` publishes them,
-// about 270 MB that are never deleted. Last
+// acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap, and the 1815
+// field's GPL notice goes up only once origin holds the tag it links the build scripts at. The
+// border steps stay out of the release until their first publish: `--border-steps` publishes
+// them, about 270 MB that are never deleted, and moves Tambora onto them at once, so it waits on
+// #80's task 9, the lobby's preload of the walk's first border step and the step as the beat's
+// readiness item (streaming.md 3.3). Last
 // come the bundled app/src/generated/release.json and its copy rel/<id>.json; CI's
 // `npm run check-release` reads the same roots through the data host. The fixture never leaves
 // this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
@@ -195,7 +197,8 @@ function borderStepsSections(steps: BorderStepsRelease, root: string): Section[]
 
 /**
  * Stops the run, before R2 is read, when the border steps still owe the history pass an overlap
- * acknowledgement or a hierarchy class (streaming.md 3.3, 4.3).
+ * acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap (streaming.md
+ * 3.3, 4.3).
  */
 export function refuseOwedBorders(stages: string, release: Release): void {
   if (!release.borderSteps) return;
@@ -204,9 +207,10 @@ export function refuseOwedBorders(stages: string, release: Release): void {
   const shown = owed.slice(0, 5).join('; ');
   throw new PublishError(
     `the border steps owe the history pass ${owed.length} entries (${shown}${owed.length > 5 ? '; …' : ''}): ` +
-      'acknowledge each overlap pair with an `overlap` correction and class each composite and ' +
-      'relation in pipeline/config/borders/, then run `uv run prebuild borders` in pipeline/ with ' +
-      'the same --profile',
+      'acknowledge each overlap pair with an `overlap` correction, class each composite and ' +
+      'relation, and cite each stateless hole and gap with a `pocket` naming the state that held ' +
+      'it or keeping it stateless, in pipeline/config/borders/, then run ' +
+      '`uv run prebuild borders` in pipeline/ with the same --profile',
   );
 }
 

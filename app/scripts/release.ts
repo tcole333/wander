@@ -54,6 +54,13 @@ interface SurfaceRecord {
   bounds: string;
 }
 
+/** A stateless place the history pass owes a cited verdict: where, how large and when. */
+export interface OwedPlace {
+  at: [number, number];
+  km2: number;
+  years: [number, number];
+}
+
 /**
  * The borders stage's record (7.2): the steps' release section, the step each story's border beats
  * draw and what the history pass still owes, and milestone 1's 1815 field as its `borders` section.
@@ -66,6 +73,11 @@ export interface BordersRecord extends Partial<BordersRelease> {
   unacknowledged?: { polities: string[]; steps: number[] }[];
   /** Composites and vassalage relations hierarchy.yaml does not class. */
   unclassified?: { composites: string[]; relations: string[] };
+  /**
+   * Stateless holes of 10,000 km² or more no correction cites, with the states around them, and
+   * gaps of that size: land held on both sides of a stateless run of at most 25 years (3.3).
+   */
+  owed?: { holes: (OwedPlace & { states: string[] })[]; gaps: OwedPlace[] };
   inputs?: { code: string; cliopatria: string };
 }
 
@@ -167,8 +179,9 @@ export function snapshotRelease(record: BordersRecord): BordersRelease | undefin
 
 /**
  * What the borders record still owes the history pass (streaming.md 3.3), which publish-data
- * refuses to upload: each overlap pair no `overlap` correction acknowledges, and each composite or
- * vassalage relation hierarchy.yaml does not class. Empty when it owes nothing.
+ * refuses to upload: each overlap pair no `overlap` correction acknowledges, each composite or
+ * vassalage relation hierarchy.yaml does not class, and each stateless hole and gap no correction
+ * gives a verdict (owner decision 38). Empty when it owes nothing.
  */
 export function historyOwed(record: BordersRecord): string[] {
   const pairs = (record.unacknowledged ?? []).map(
@@ -176,7 +189,13 @@ export function historyOwed(record: BordersRecord): string[] {
   );
   const { composites = [], relations = [] } = record.unclassified ?? {};
   const unclassed = [...composites, ...relations].map((name) => `unclassified ${name}`);
-  return [...pairs, ...unclassed];
+  const place = ({ at, km2, years }: OwedPlace) =>
+    `${km2.toLocaleString('en')} km² at ${at[0]}, ${at[1]} in ${years[0]}-${years[1]}`;
+  const holes = (record.owed?.holes ?? []).map(
+    (hole) => `stateless hole of ${place(hole)} (${hole.states.join(', ')})`,
+  );
+  const gaps = (record.owed?.gaps ?? []).map((gap) => `stateless gap of ${place(gap)}`);
+  return [...pairs, ...unclassed, ...holes, ...gaps];
 }
 
 /**
