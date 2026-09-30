@@ -34,6 +34,12 @@ dates:
       The Battle of El Roble, on the Itata, is fought on 17 October 1813, as its article and the
       Academia de Historia Militar de Chile ('Combate de El Roble') give it; Wikidata's 1815 is
       two years late.
+  - qid: Q212618
+    date: "1960-05-22"
+    why: >-
+      The Valdivia earthquake's main shock strikes on 22 May 1960 at 19:11 UTC (15:11 local time),
+      as its article dates it; Wikidata's 21 May is the day of the Concepción earthquake that began
+      its foreshock sequence.
   - qid: Q160077
     end: "1453-05-29"
     why: >-

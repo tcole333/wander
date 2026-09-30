@@ -144,6 +144,7 @@ def test_the_curated_corrections_give_boosts_dates_and_contested_events():
     assert load_event_boosts(legacy=True)["Q48314"] == 1.5
     assert load_event_dates()["Q3656338"].date == "1816-09-30"
     assert load_event_dates()["Q160077"].end == "1453-05-29"
+    assert load_event_dates()["Q212618"].date == "1960-05-22"
     assert "Q12241904" in load_contested_events()
 
 
