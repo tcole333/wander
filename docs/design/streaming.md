@@ -445,21 +445,34 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   on the piece's coast simplified to 2 km and cuts its result from the piece as drawn, which takes
   the 3400 BCE step from 100 s to 17 s [M]. Antarctica, which reaches a pole, keeps its slivers: no
   projection about its centroid holds it, and no polity lies near it.
-- **Pockets** go to their neighbours: a stateless piece that touches no sea goes when it touches a
-  lake and is under `pocketKm2` (100,000 km²; the old Aral bed and Victoria's shore are about
-  68,000 km² each), or when it is narrower than 2·`sliverKm` throughout. A hole that touches a lake
-  is filled only under that cap (owner decision 36), since 1500 has a 260,000 km² stateless hole in
-  the Urals beside a small lake. A pocket that touches a polity is
-  filled from the polities alone, before the fill below: across a lake stateless land can lie
-  nearer than the polity beside it, and lower Michigan, a pocket of the United States in 1822-33,
-  split along Lake Michigan's east shore before this. One that touches none, an island in a lake
-  among stateless shores, is left to the fill.
-- **Other enclosed pieces stay stateless,** however small, since they may be real stateless
-  enclaves: every enclosed piece lies in a hole of the polities, so a rule that filled holes filled
-  them all, 244 times across the steps a piece of 10,000 km² or more, such as inland Sumatra in
-  1862 and the New Guinea highlands in 1943 [M global bake, 30 September]. The pockets given and
-  the pieces kept are listed per step, and a `pocket` correction overrides the rule, for a coastal
-  piece too.
+- **A hole inside one state is its land** (owner decision 38): a stateless piece that touches no
+  sea and whose edge runs along one outer unit's land alone, lakes aside, is filled as that
+  state's, whatever its size, since most such holes are gaps in Cliopatria's shapes; among an
+  empire's members, each takes the part nearest it. Of the 78 places where a hole of 10,000 km² or
+  more touching no lake stood stateless before this rule, 4 lie inside one state and are filled:
+  two in the Khasi hills inside British India in 1825-34, one in the hills of northern Odisha
+  inside it in 1857-58, and one in eastern Henan inside the Qing in 1853-58. The other 74 each
+  touch two to thirteen states, the one along most of its edge running along 22% to 87% of it, so
+  they keep the rules below, Cliopatria's gaps among them: the Rhineland and Westphalia in 1864-65,
+  which Cliopatria's German Confederation row covers until 1863 (Hanover, the Netherlands, Nassau,
+  France, Belgium and eight more lie around them), western Dakota in 1877 (the United States along
+  84% of its edge, British Canada along 17%), Basutoland in 1877-82 (the Orange Free State, the
+  Cape and Natal) and the central highlands of Vietnam in 1967-69 (the United States, Laos,
+  Cambodia and North Vietnam) [M global selection, 30 September]. A place really without a state
+  inside one stays stateless only through a cited `pocket` correction.
+- **Pockets between states** go to their neighbours: a hole touching two or more states goes when
+  it touches a lake and is under `pocketKm2` (100,000 km²; the old Aral bed and Victoria's shore
+  are about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout. Such a hole that
+  touches a lake is filled only under that cap (owner decision 36), since 1500 has a 260,000 km²
+  stateless hole in the Urals beside a small lake. A pocket that touches a polity, a hole inside
+  one state included, is filled from the polities alone, before the fill below: across a lake
+  stateless land can lie nearer than the polity beside it, and lower Michigan, a pocket of the
+  United States in 1822-33, split along Lake Michigan's east shore before this. One that touches
+  none, an island in a lake among stateless shores, is left to the fill.
+- **Other holes between states stay stateless,** however small, since they may be real stateless
+  enclaves. The pockets given, each with its rule and a hole inside one state with that state, and
+  the enclosed pieces kept, each with the outer units around it, are listed per step, and a
+  `pocket` correction overrides the rules, for a coastal piece too.
 - **The antimeridian:** Cliopatria's shapes stop at 180°, so land just across it that no polity
   holds, in pieces within 20° of it, goes to the one polity whose shape runs along the other side
   where the piece meets the meridian. Otherwise Chukotka east of 180° is stateless whenever
@@ -2056,7 +2069,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, unclassified, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, and `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given, enclosures kept and corrections applied; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
+| borders | `{steps, beats, unacknowledged, unclassified, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, and `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), enclosed pieces kept with the outer units around them, and corrections applied; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -2707,7 +2720,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `borderScrubFade` | 120 ms | border previews dissolving into each other while the clock moves | eye |
 | `borderCloseKm` | 400 to 220 km across | borders fading out as the view closes in | owner decision 36 |
 | `borderInnerKm` | 6,000 to 2,500 km across | the inner border line fading in as the view narrows | owner decision 36 |
-| `minorKm2`, `pocketKm2` | 50,000 km², 100,000 km² | build rules in `pipeline/config/borders/rules.yaml` (3.3): a piece of an outer unit under `minorKm2` draws its borders with other outer units as inner lines; an enclosed stateless piece that touches a lake goes to its neighbours under `pocketKm2` | owner decision 36 |
+| `minorKm2`, `pocketKm2` | 50,000 km², 100,000 km² | build rules in `pipeline/config/borders/rules.yaml` (3.3): a piece of an outer unit under `minorKm2` draws its borders with other outer units as inner lines; a hole between states that touches a lake goes to its neighbours under `pocketKm2`, while a hole inside one state is its land whatever its size | owner decisions 36 and 38 |
 | `sliverKm`, `leftoverKm2` | 14 km, 100 km² | build rules in `rules.yaml` (3.3): stateless land narrower than 2·`sliverKm` goes to its neighbours, and land within `sliverKm` of a lake and of another polity is emptied for the fill; a composite's own land is drawn from `leftoverKm2` | eye, on the still renders |
 | `reviewKm2`, `duplicateShare` | 2,000 km², 0.5 | build rules in `rules.yaml` (3.3): two polities overlapping past `reviewKm2` go to the review queue, and past `duplicateShare` of the larger need an `overlap` correction | the history pass |
 | `borderWarnYears` | 20 | build warning: beat far from its snapshot | author note |
@@ -2932,3 +2945,7 @@ the look renders baked from Cliopatria:
 37. **Sumbawa in 1815:** Sanggar, Tambora, Pekat, Dompu and western Sumbawa's sultanate, which
     Cliopatria lacks, join Bima as Dutch members under decision 34, cited to Hägerdal's *Held's
     History of Sumbawa* (2017), so the peninsula the story names is not drawn stateless.
+38. **Enclosed gaps:** a hole wholly enclosed by one state is filled as that state's land, since
+    most are gaps in Cliopatria's shapes. A place really without a state inside another stays
+    stateless only through a cited correction. Holes enclosed by more than one state keep the rules
+    of decision 36.
