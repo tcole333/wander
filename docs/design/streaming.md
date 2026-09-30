@@ -557,11 +557,10 @@ The era files hold 104 corrections, each cited. Besides the 23 pairs:
   (1874-1917), Afghanistan (1880-1919), Kuwait (1900-61) and Bhutan (1911-47) are members. The
   Mughal emperor, whom the Company took under its protection in 1803 as its pensioner by no treaty,
   is not: his Delhi keeps its own outer border until 1858, and whether that protection counts under
-  decision 34 is a question for the owner. Hyderabad keeps its
-  1798 shape until the Ceded Districts pass to the Company in 1800 and then takes Cliopatria's own
-  1947 shape; Mysore's is traced from the Imperial Gazetteer's 1909 map; Bukhara and Khiva take
-  their 1918 rows' shapes. Kedah and Chiang Mai, tributaries of Siam, stay out, and other princely
-  states stay a listed gap.
+  decision 34 is a question for the owner. Hyderabad keeps its 1798 shape until the Ceded Districts
+  pass to the Company in 1800 and then takes Cliopatria's own 1947 shape; Mysore's is traced from
+  the Imperial Gazetteer's 1909 map; Bukhara and Khiva take their 1918 rows' shapes. Kedah and
+  Chiang Mai, tributaries of Siam, stay out, and other princely states stay a listed gap.
 - **Names:** the out-of-date names Cliopatria carries into 1914 are renamed over the years they are
   wrong: Denmark-Norway after 1814, the Kingdom of Great Britain after 1800, Serbs, the United
   Principalities, the Principality of Bulgaria, the First Hellenic Republic, the Empire of Haiti,
@@ -665,14 +664,14 @@ climate wash and before the ash:
   Explore's lighting, so the look holds heavier weights for the owner to choose among on renders
   (`BORDER_WEIGHTS` in `look/bordersHook.ts`, the dev page's `?borderWeight=`,
   `scripts/bordersWeights.ts`): `wide`, a 3 px groove darkening 0.9 with dots of 3.5 px in 5, its
-  soft edges widening and darkening with it; `solid`, the hard lines between states unbroken,
-  2.5 px and 0.9, soft edges as today's; and `eased`, a weight that grows with the view's width,
-  its dots closing up, through about 3 px and 0.88 at 17,500 km to 3.5 px, 0.95 and dots of 4.5 px
-  in 5 at world view. `wide` and `solid` reach their look at 10,000 km. Every weight draws today's line at 6,000 km across and closer, easing on a log scale of
-  the view's width, and a line wider than 2 px narrows toward 2 px as a pixel spans more texels, to
-  3 px at 3 texels and 2 px at 4, where the field's reach could no longer hold it, so it fades as
-  today's does. Today's stays the default until the owner picks; the chosen weight's cost is
-  measured then.
+  soft edges widening and darkening with it; `solid`, the hard lines between states unbroken, 2.5 px
+  and 0.9, soft edges as today's; and `eased`, a weight that grows with the view's width, its dots
+  closing up, through about 3 px and 0.88 at 17,500 km to 3.5 px, 0.95 and dots of 4.5 px in 5 at
+  world view. `wide` and `solid` reach their look at 10,000 km. Every weight draws today's line at
+  6,000 km across and closer, easing on a log scale of the view's width, and a line wider than 2 px
+  narrows toward 2 px as a pixel spans more texels, to 3 px at 3 texels and 2 px at 4, where the
+  field's reach could no longer hold it, so it fades as today's does. Today's stays the default
+  until the owner picks; the chosen weight's cost is measured then.
 - **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
   where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
   reach of 8 texels no longer spans the line.
@@ -704,16 +703,17 @@ cells, 32 previews, 256 KiB an upload. The array takes the border field's sample
   Tambora moves onto the steps, the lobby's preload of the walk's first border step; the lobby's own
   clock fetches none. `fetchData` takes an `AbortSignal`, with no request classes (owner decision
   30). A step is fetched once the clock has rested in it for `borderRest`, and, with Tambora's move,
-  also as a beat's readiness item (5.7); a new target more than a step away aborts it. A step loads into a slot no source draws, an empty one first; on lite, whose
-  one slot draws, the preview (or, in a walk, nothing) stands in until it frees. On the full tier,
-  once a step draws, the next step in the scrub direction fills the free slot, but never in place
-  of the step across the boundary just crossed, which rocking needs. Explore fetches all 33 chunks
-  after its dive, two at a time and the clock's own first, and keeps them compressed until
-  `end()`, so scrubbing needs neither the network nor the HTTP cache; a cell decodes by streaming
-  its chunk through one 256 KiB running sum, one cell at a time, the clock's own and then those
-  either side, the scrub direction's first, into the least recently used cell no source draws.
-  Walks never draw previews. A step or chunk that does not arrive logs once and waits
-  `degradeFor`; one the data host lacks, or that does not decode, never comes back.
+  also as a beat's readiness item (5.7); a new target more than a step away aborts it. A step loads
+  into a slot no source draws, an empty one first; on lite, whose one slot draws, the preview (or,
+  in a walk, nothing) stands in until it frees. On the full tier, once a step draws, the next step
+  in the scrub direction fills the free slot, but never in place of the step across the boundary
+  just crossed, which rocking needs. Explore fetches all 33 chunks after its dive, two at a time and
+  the clock's own first, and keeps them compressed until `end()`, so scrubbing needs neither the
+  network nor the HTTP cache; a cell decodes by streaming its chunk through one 256 KiB running sum,
+  one cell at a time, the clock's own and then those either side, the scrub direction's first, into
+  the least recently used cell no source draws. Walks never draw previews. A step or chunk that does
+  not arrive logs once and waits `degradeFor`; one the data host lacks, or that does not decode,
+  never comes back.
 - **Uploads:** `inflateBands` yields 256 KiB bands, 128 rows of one face each, from
   `DecompressionStream`, since the surface decoder allocates its whole output, and the next band
   inflates only once fewer than two are in hand, so a step's peak is its compressed file and two
@@ -749,10 +749,11 @@ ease out as the lobby takes the view back. Polity names come with the labels sta
   1.41 ms. The budget is 0.3 ms mid-dissolve (section 6), which only the previews at world view
   meet: whether to allow the rest or cut the cost is open for the owner. At Tambora's sixth beat a
   step at rest adds 0.27 ms and the 1815 field 0.25 ms.
-- **Frames:** scrubbing through all the steps (521 in that bake) at world view, eight a second,
-  and from 1900 to 1950 over Europe, five a second, no task passed 50 ms, and every frame at world
-  view came within 16.8 ms. Over Europe at 4,000 km, 6% of frames come late (over 20 ms) with the borders off and
-  10% with a step at rest, in two runs of 400 frames each; at world view and at 2,500 km none do.
+- **Frames:** scrubbing through all the steps (521 in that bake) at world view, eight a second, and
+  from 1900 to 1950 over Europe, five a second, no task passed 50 ms, and every frame at world view
+  came within 16.8 ms. Over Europe at 4,000 km, 6% of frames come late (over 20 ms) with the borders
+  off and 10% with a step at rest, in two runs of 400 frames each; at world view and at 2,500 km
+  none do.
 
 **Dates:** Explore draws its borders with no year plate: the ruler carries the clock's date, which
 the step drawn, or the preview standing in while the clock moves, always holds at, and the Credits
