@@ -1851,11 +1851,13 @@ and the release's `media` section lists every key the locks name (3.8).
        GL error. All 419 scenarios on both tiers take about 16 s on SwiftShader and 13 s on Metal
        on the M5.
   7. `npm run check-release` (`app/scripts/checkRelease.ts`): HEAD `rel/<id>.json` on the data
-     host and, once it answers, GET `bounds.bin`, the six L0 tiles and, when the release has a
-     `modera` section, the climate years the walk loads as it starts (`fd/modera/<ver>/mean/`
-     1815-1817), and, when it names the event files, their overview (3.4), with the app's
-     `Origin`, checking R2's headers (4.2): one missing year turns the walk's climate off, and a
-     missing overview leaves Explore only its opening's mark. It runs as its own job on every
+     host and, once it answers, GET `bounds.bin`, the six L0 tiles, when the release has a
+     `modera` section the climate years the walk loads as it starts (`fd/modera/<ver>/mean/`
+     1815-1817), when it has a `borders` section the 1815 border field (3.3), each story's first
+     image (its opening beat's 256w JPEG, which the release's `media` must name, 3.8) and, when it
+     names the event files, their overview (3.4), with the app's `Origin`, checking R2's headers
+     (4.2): one missing year turns the walk's climate off, and a missing overview leaves Explore
+     only its opening's mark. It runs as its own job on every
      pull request and push, so a page naming data that is not live cannot merge, and the Pages
      deploy on `main` waits for it.
   8. **Tested build**, after the app checks and E2E jobs, on every run: the sha256 each E2E job
