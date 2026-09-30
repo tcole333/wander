@@ -116,15 +116,22 @@ export class Plaques {
 
   /**
    * Marks whether the plaques outrun the room down to the window's foot, which keeps a band there
-   * for More, and where plaques wait beyond the shelf's ends, for its fades and More.
+   * for More, and whether the first or last plaque passes the shelf's ends, for its fades and
+   * More. Scroll left in the shelf's padding, which holds only the plaques' shadows, hides none.
    */
   #edges(): void {
     const shelf = this.#shelf;
     const room = innerHeight - shelf.getBoundingClientRect().top;
     this.#column.classList.toggle('is-overflowing', shelf.scrollHeight > room + 1);
-    const { scrollTop, scrollHeight, clientHeight } = shelf;
-    this.#column.classList.toggle('is-more-above', scrollTop > 1);
-    this.#column.classList.toggle('is-more-below', scrollHeight - clientHeight - scrollTop > 1);
+    // Measured after the toggle, which moves the shelf's foot.
+    const { top, bottom } = shelf.getBoundingClientRect();
+    const first = shelf.firstElementChild?.getBoundingClientRect();
+    const last = shelf.lastElementChild?.getBoundingClientRect();
+    this.#column.classList.toggle('is-more-above', first !== undefined && first.top < top - 0.5);
+    this.#column.classList.toggle(
+      'is-more-below',
+      last !== undefined && last.bottom > bottom + 0.5,
+    );
   }
 
   /** Scrolls the first plaque the shelf's faded foot cuts off up to its head. */
