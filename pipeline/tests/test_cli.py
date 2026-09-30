@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from prebuild import fixture_store
 from prebuild.cli import STAGES, main, plan, run
 from prebuild.fixture_store import prune, store_root
 from prebuild.hashing import FIXTURE_PATHS, tree_sha
@@ -282,15 +283,23 @@ def test_rebuild_builds_even_when_the_store_holds_the_inputs(tmp_path):
     assert ran == ["coverage"]
 
 
-def test_a_store_that_cannot_be_written_still_restores(tmp_path, monkeypatch):
+@pytest.mark.parametrize("clones", [True, False], ids=["clonefile", "copy"])
+def test_a_store_that_cannot_be_written_still_restores(tmp_path, monkeypatch, clones):
     _, built = build_fixture(tmp_path)
     expected = files_under(tmp_path / "build")
     (built.out / "surf" / "0.wst").write_bytes(b"changed")
+    if not clones:
+        monkeypatch.setattr(fixture_store, "_clonefile", lambda source, target: False)
+    store = os.fsdecode(store_root())
+    utime = os.utime
 
-    def denied(*args, **kwargs):
-        raise PermissionError(1, "Operation not permitted")
+    def utime_outside_the_store(path, *args, **kwargs):
+        """os.utime as Codex's sandbox allows it: denied in the store, which it cannot write."""
+        if not isinstance(path, int) and os.fsdecode(path).startswith(store):
+            raise PermissionError(1, "Operation not permitted", path)
+        return utime(path, *args, **kwargs)
 
-    monkeypatch.setattr(os, "utime", denied)
+    monkeypatch.setattr(os, "utime", utime_outside_the_store)
     ran, _ = build_fixture(tmp_path)
     assert ran == []
     assert files_under(tmp_path / "build") == expected
