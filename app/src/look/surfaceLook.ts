@@ -205,7 +205,8 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     camLocal.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(toLocal);
     if (!(camera instanceof PerspectiveCamera)) return;
     renderer.getSize(viewport);
-    routes.lookRoutePixelRatio.value = renderer.getPixelRatio();
+    const pixelRatio = renderer.getPixelRatio();
+    routes.lookRoutePixelRatio.value = pixelRatio;
     const pxPerUnit = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.y;
     toClip
       .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
@@ -219,7 +220,14 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     else lampLocal.copy(LAMP_FALLBACK);
     lampLocal.applyMatrix4(toLocal);
     const kLand = params.flatRelief === true ? 0 : Number(params.kLand);
-    marks.place({ ...view, forward, toView: object.normalMatrix, lamp: lampLocal, kLand });
+    marks.place({
+      ...view,
+      pixelRatio,
+      forward,
+      toView: object.normalMatrix,
+      lamp: lampLocal,
+      kLand,
+    });
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
