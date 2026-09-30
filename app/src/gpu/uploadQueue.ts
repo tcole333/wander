@@ -53,9 +53,17 @@ export class UploadQueue {
     this.#options = { now: () => performance.now(), ...options };
   }
 
-  /** Jobs with parts still to write, those behind included. */
+  /**
+   * Tiles with parts still to write. Jobs behind are left out, so a walk that waits for the
+   * streamer to settle never waits for the borders' uploads (3.3).
+   */
   get length(): number {
-    return this.#queue.length + this.#behind.length;
+    return this.#queue.length;
+  }
+
+  /** Jobs behind with parts still to write. */
+  get behindLength(): number {
+    return this.#behind.length;
   }
 
   /**
