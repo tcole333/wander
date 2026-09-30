@@ -1172,7 +1172,9 @@ only a failed start or a worker error ends the worker.
   landed, keeps an answer's entries until the next, and drops at once an entry whose dates the now
   window has left. Choosing one flies there with a free flight, keeping the view's tilt and
   heading, to 1,500 km wide, and pins it on landing; input during the flight takes the view and
-  pins nothing.
+  pins nothing. A keyboard visitor on an entry keeps their place as the list changes, a story's as
+  Explore's: on that entry where the new list has it, else on the one now standing where it stood,
+  and once Explore's list empties, on the events' listbox.
 
 ### 5.4 Uploads per frame
 

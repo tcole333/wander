@@ -7,7 +7,9 @@
 // MeanwhileList is the panel, given its entries and what choosing one does. A story's panel
 // (MeanwhilePanel) lists the current beat's entries, or once the visitor has scrubbed story time
 // away from the beat's date, the month's, and flies the walk to the one chosen; Explore's
-// (explore/exploreMeanwhile.ts) lists what the event worker picks.
+// (explore/exploreMeanwhile.ts) lists what the event worker picks. A keyboard visitor on an entry
+// keeps their place as the list changes under them: on that entry where the new list has it, else
+// on the entry now standing where theirs stood, else, once the panel hides, at its heir.
 import { arcKm, type ViewState } from '../../view/viewState';
 import type { Meanwhile, MeanwhileEntry, Walk, WalkState } from '../contract';
 import { scrubbedEntries } from '../meanwhile';
@@ -24,6 +26,7 @@ const C = 20;
 
 interface Row {
   entry: MeanwhileEntry;
+  button: HTMLButtonElement;
   needle: SVGGElement;
   compass: HTMLElement;
   point: HTMLElement;
@@ -31,15 +34,22 @@ interface Row {
   drawn: string;
 }
 
+export interface MeanwhileListOptions {
+  /** What takes the keyboard's focus from an entry when the list empties and the panel hides. */
+  heir?: () => HTMLElement | null;
+}
+
 export class MeanwhileList {
   readonly element = el('aside', 'wu-meanwhile wu-brass');
   readonly #choose: (entry: MeanwhileEntry) => void;
+  readonly #heir: () => HTMLElement | null;
   readonly #list = el('ul', 'wu-mw-list');
   #rows: Row[] = [];
 
   /** `choose` flies to the entry chosen. */
-  constructor(choose: (entry: MeanwhileEntry) => void) {
+  constructor(choose: (entry: MeanwhileEntry) => void, { heir }: MeanwhileListOptions = {}) {
     this.#choose = choose;
+    this.#heir = heir ?? (() => null);
     const fold = new Fold({
       id: 'meanwhile',
       name: 'Meanwhile',
@@ -55,17 +65,32 @@ export class MeanwhileList {
 
   /** Lists `entries`, fading them in; with none, the panel hides. */
   show(entries: readonly MeanwhileEntry[]): void {
+    const held = this.element.ownerDocument.activeElement;
+    const at = this.#rows.findIndex((row) => row.button === held);
+    const kept = this.#rows[at]?.entry;
     this.element.hidden = entries.length === 0;
     this.#rows = entries.map((entry) => {
       const needle = svg('g', { class: 'wu-needle-g' });
       needle.append(...halves(C - 16, 2.2, 'wu-needle-n'), ...halves(C + 16, 2.2, 'wu-needle-s'));
       const compass = el('span', 'wu-compass');
-      return { entry, needle, compass, point: el('span', 'wu-compass-point'), drawn: '' };
+      const button = el('button', 'wu-mw-entry');
+      const point = el('span', 'wu-compass-point');
+      return { entry, button, needle, compass, point, drawn: '' };
     });
     this.#list.replaceChildren(...this.#rows.map((row) => this.#item(row)));
     this.element.classList.remove('is-fresh');
     void this.element.offsetWidth;
     this.element.classList.add('is-fresh');
+    if (kept) this.#keepFocus(kept, at);
+  }
+
+  /** Focuses `entry`'s row where it is listed still, else the row at `at`, else the heir. */
+  #keepFocus(entry: MeanwhileEntry, at: number): void {
+    const key = keyOf(entry);
+    const row =
+      this.#rows.find((r) => keyOf(r.entry) === key) ??
+      this.#rows[Math.min(at, this.#rows.length - 1)];
+    (row?.button ?? this.#heir())?.focus({ preventScroll: true });
   }
 
   /** Turns each entry's needle toward it from the center of `view`. */
@@ -83,9 +108,8 @@ export class MeanwhileList {
     }
   }
 
-  #item({ entry, needle, compass, point }: Row): HTMLLIElement {
+  #item({ entry, button: choose, needle, compass, point }: Row): HTMLLIElement {
     const item = el('li');
-    const choose = el('button', 'wu-mw-entry');
     choose.type = 'button';
     choose.title = `Source: ${entry.source.title}`;
     onPress(choose, () => this.#choose(entry));
@@ -135,6 +159,11 @@ export class MeanwhilePanel {
     if (scrubbed) return scrubbedEntries(this.#meanwhile, state.day);
     return this.#meanwhile.beats[beat.id] ?? [];
   }
+}
+
+/** An entry's identity from one list to the next: its event, else its words and day. */
+function keyOf(entry: MeanwhileEntry): string {
+  return entry.qid ?? `${entry.label}\n${entry.day}`;
 }
 
 /**

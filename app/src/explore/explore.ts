@@ -171,8 +171,15 @@ export function startExplore({
   }
   const events =
     source && client ? new ExploreEvents({ client, marks: source.marks, focal, arrive }) : null;
-  const meanwhile = events ? new ExploreMeanwhile(events, (event) => flyTo(event)) : null;
-  const labels =
+  // An emptied Meanwhile hands a keyboard visitor's focus to the events' listbox.
+  const meanwhile: ExploreMeanwhile | null = events
+    ? new ExploreMeanwhile(
+        events,
+        (event) => flyTo(event),
+        () => labels?.listbox ?? null,
+      )
+    : null;
+  const labels: ExploreLabels | null =
     events && canvas
       ? new ExploreLabels({
           events,

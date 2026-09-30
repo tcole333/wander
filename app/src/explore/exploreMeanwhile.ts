@@ -5,7 +5,9 @@
 // have rested for meanwhileRest. Each answer lists up to meanwhileCount events off the screen, each
 // named as its plate names it (plateText.ts), dated as history writes it and sourced to its
 // Wikipedia article; an entry whose dates the now window has left goes at once, before the next
-// answer. Choosing one flies there (explore.ts), and the landing pins it.
+// answer. Choosing one flies there (explore.ts), and the landing pins it. A keyboard visitor on an
+// entry keeps their place as answers change the list; once none is left, the focus goes to `heir`
+// (Explore's events listbox).
 import { tunables } from '../config/tunables';
 import type { MeanwhileEvent, MeanwhileQuery } from '../events/meanwhile';
 import { eventViewOf, type ViewFrame } from '../events/view';
@@ -46,14 +48,21 @@ export class ExploreMeanwhile {
   /** The Q numbers shown, to tell when they change. */
   #shown: string | null = null;
 
-  /** `choose` flies to the event chosen. */
-  constructor(events: MeanwhileEvents, choose: (event: MeanwhileEvent) => void) {
+  /** `choose` flies to the event chosen; `heir` takes the focus from an emptied list. */
+  constructor(
+    events: MeanwhileEvents,
+    choose: (event: MeanwhileEvent) => void,
+    heir: () => HTMLElement | null = () => null,
+  ) {
     this.#events = events;
     // By Q number: an answer naming the same events leaves their rows as they stand.
-    this.#list = new MeanwhileList((entry) => {
-      const listed = entry.qid === undefined ? undefined : this.#listed.get(entry.qid);
-      if (listed) choose(listed.event);
-    });
+    this.#list = new MeanwhileList(
+      (entry) => {
+        const listed = entry.qid === undefined ? undefined : this.#listed.get(entry.qid);
+        if (listed) choose(listed.event);
+      },
+      { heir },
+    );
     this.#list.element.hidden = true;
   }
 

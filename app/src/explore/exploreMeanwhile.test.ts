@@ -5,7 +5,7 @@ import { tunables } from '../config/tunables';
 import type { MeanwhileEvent, MeanwhileQuery } from '../events/meanwhile';
 import { FrameContext } from '../scene/frameContext';
 import { dayFromHistorical } from '../story/dates';
-import { byClass, fake, stubDocument, type FakeElement } from '../test/fakeDom';
+import { byClass, fake, stubDocument, type FakeDocument, type FakeElement } from '../test/fakeDom';
 import { lonLatToDir, toThree } from '../surface/cube';
 import type { FocalEvent } from './exploreEvents';
 import { entryOf, ExploreMeanwhile, type MeanwhileEvents } from './exploreMeanwhile';
@@ -49,8 +49,10 @@ const rows = (element: FakeElement) =>
     byClass(item, 'wu-mw-entry'),
   );
 
+let document: FakeDocument;
+
 beforeEach(() => {
-  stubDocument();
+  document = stubDocument();
   vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => {} });
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -124,5 +126,29 @@ describe('Explore’s Meanwhile', () => {
     meanwhile.update(VIEW, { day: LIGNY, spanDays: 20 });
     rows(element)[0]!.dispatchEvent(new CustomEvent('click', { detail: 0 }));
     expect(chosen).toEqual([ligny, ligny]);
+  });
+
+  it('keeps the keyboard on the list once the entry chosen is drawn, then hands it on', () => {
+    const events = fakeEvents();
+    const listbox = document.createElement('div');
+    const meanwhile = new ExploreMeanwhile(
+      events,
+      () => {},
+      () => listbox as unknown as HTMLElement,
+    );
+    const element = fake(meanwhile.element);
+    const now = { day: LIGNY, spanDays: 20 };
+    const [ligny, wavre] = [picked(1, 'Ligny', [4.6, 50.5]), picked(2, 'Wavre', [4.6, 50.7])];
+    events.meanwhile = [ligny, wavre];
+    meanwhile.update(VIEW, now);
+    rows(element)[0]!.focus();
+    // Ligny, chosen from the keyboard, is pinned and drawn, so the next answer leaves it out.
+    events.meanwhile = [wavre];
+    meanwhile.update(VIEW, now);
+    expect(document.activeElement).toBe(rows(element)[0]);
+    expect(document.activeElement?.textContent).toMatch(/^Wavre/);
+    events.meanwhile = [];
+    meanwhile.update(VIEW, now);
+    expect(document.activeElement).toBe(listbox);
   });
 });
