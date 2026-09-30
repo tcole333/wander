@@ -21,11 +21,12 @@
 // --events: Explore's own events on the dev page, in each variant of --variants in turn (the
 // owner's default, 0, first): three openings at world view, each focal in its twenty years; Europe
 // in 1805-1815 from the world view down to 3,000 km, the Napoleonic Wars giving way to their
-// wars and battles as the view closes; Lepanto in 1571 at 800 km; and the Julian Alps at 300 km,
-// tilted, among the Isonzo's battles in 1917. A contact sheet per variant, one of the European
-// sequence, one of all variants side by side, and a video of the ruler scrubbing from 3000 BCE to
-// 2000 at world view with a sheet of its frames (--no-video skips it); explore.json lists every
-// render's marks with their events' names, and any console errors.
+// wars and battles as the view closes; Lepanto in 1571 at 800 km; and the Julian Alps in 1917 at
+// 180 km, tilted, close enough that the Battles of the Isonzo span more than parentSplitPx and
+// give way to their battles. A contact sheet per variant, one of the European sequence, one of all
+// variants side by side, and a video of the ruler scrubbing from 3000 BCE to 2000 at world view
+// with a sheet of its frames (--no-video skips it); explore.json lists every render's marks with
+// their events' names, and any console errors.
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -144,9 +145,9 @@ const EVENT_SCENES: EventScene[] = [
     focal: 'Q165425',
   },
   {
-    name: 'isonzo-300km-tilted',
-    caption: 'Caporetto, 24 October 1917, among the Julian Alps, 300 km wide and tilted',
-    view: { lon: 13.6, lat: 46.0, viewKm: 300, tilt: 50, heading: 0 },
+    name: 'isonzo-180km-tilted',
+    caption: 'Caporetto, 24 October 1917, among the Julian Alps, 180 km wide and tilted',
+    view: { lon: 13.6, lat: 46.0, viewKm: 180, tilt: 50, heading: 0 },
     date: { year: 1917, month: 10, day: 24 },
     years: 20,
     focal: 'Q242644',
