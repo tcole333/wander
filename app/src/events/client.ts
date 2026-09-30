@@ -4,6 +4,7 @@
 import { tunables, type Tier } from '../config/tunables';
 import type { EventsRelease } from '../data/release';
 import { fetchData } from '../data/surfaceLayer';
+import { withinHistory } from '../time/exploreTime';
 import type { EventDescription } from './describe';
 // Bundled into the entry and started from a Blob URL, so a dive fetches nothing from Pages
 // (streaming.md 2). The dev server serves it as a module worker instead.
@@ -37,6 +38,15 @@ const sameView = (a: EventView, b: EventView) =>
 /** Q numbers ascending and without repeats, so two sets compare element by element. */
 const qidSet = (qids: readonly number[]) => [...new Set(qids)].sort((a, b) => a - b);
 
+/**
+ * A question's dates within history, so the worker marks and picks nothing after 2000 or before
+ * 10,000 BCE.
+ */
+function inHistory<Q extends { t0: number; t1: number }>(query: Q): Q {
+  const { start, end } = withinHistory({ start: query.t0, end: query.t1 });
+  return { ...query, t0: start, t1: end };
+}
+
 /** Two Meanwhile questions, their Q number lists made by qidSet, ask the same thing. */
 function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolean {
   return (
@@ -60,8 +70,10 @@ function sameMeanwhile(a: MeanwhileQuery, b: MeanwhileQuery | undefined): boolea
  *
  * Query t0/t1 are inclusive, possibly fractional, proleptic Gregorian day numbers since
  * 0001-01-01, with astronomical years (1 BCE is year 0), as in story/dates.ts. The clock chooses
- * the visitor's range; the index retains all its dates. Tier is 'lite' or 'full'; focalQids are
- * numeric Wikidata Q numbers. EventView defines the camera and CSS-pixel coordinate conventions.
+ * the visitor's range, which the client keeps within history (time/exploreTime.ts, HISTORY) for
+ * events and Meanwhile alike; the index retains all its dates. Tier is 'lite' or 'full';
+ * focalQids are numeric Wikidata Q numbers. EventView defines the camera and CSS-pixel coordinate
+ * conventions.
  *
  * Result replies contain markers, labels, parent outlines and missingFocal Q numbers. Draw
  * anchors only when anchorVisible; clip outline geometry independently. Interpolate each item's
@@ -132,7 +144,7 @@ export class EventClient {
   }
   /** Coalesce to the newest desired view. A generation is assigned when drain() sends it. */
   query(query: EventQuery): void {
-    this.#latest = query;
+    this.#latest = inHistory(query);
     this.#dirty = true;
     this.onready?.();
   }
@@ -145,7 +157,7 @@ export class EventClient {
   meanwhile(query: MeanwhileQuery): void {
     if (this.#disposed) return;
     const asked = {
-      ...query,
+      ...inHistory(query),
       exclude: qidSet(query.exclude),
       focalQids: qidSet(query.focalQids),
     };

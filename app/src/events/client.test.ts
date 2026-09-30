@@ -5,6 +5,7 @@ import type { EventDescription } from './describe';
 import type { MeanwhileQuery } from './meanwhile';
 import { type EventReply, type EventRequest } from './runtime';
 import { pageOf, releaseOf, viewOf } from '../test/events';
+import { HISTORY } from '../time/exploreTime';
 
 class FakeWorker implements EventWorker {
   onmessage: EventWorker['onmessage'] = null;
@@ -220,6 +221,22 @@ const described = (row: number): EventDescription => ({
   t0: 1,
   t1: 1,
   prec: 11,
+});
+
+test('asks the worker for events and Meanwhile only within history, 10,000 BCE to 2000', () => {
+  const worker = new FakeWorker();
+  const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+  const past = { t0: HISTORY.start - 7305, t1: HISTORY.end + 7305 };
+  client.query({ ...query, ...past });
+  client.meanwhile({ ...standing, ...past });
+  client.drain(0);
+  client.drain(tunables.meanwhileRest);
+  const within = { t0: HISTORY.start, t1: HISTORY.end };
+  expect([sentOf(worker, 'query')[0]!.query, sentOf(worker, 'meanwhile')[0]]).toMatchObject([
+    within,
+    within,
+  ]);
+  client.dispose();
 });
 
 describe('Meanwhile', () => {
