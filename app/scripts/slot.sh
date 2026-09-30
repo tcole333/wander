@@ -11,6 +11,10 @@
 # slots (pipeline/src/prebuild/slots.py). A held slot passes to child processes in
 # WANDER_HEAVY_SLOT, so heavy work nested in it takes no second one. On CI, off macOS, and
 # where the pool cannot be written (Codex's sandbox), the command runs at once.
+#
+# Only a run under the e2e lock starts servers on e2e's ports (app/e2e/servers.ts), so one still
+# listening there once the lock is taken was left by a run that was killed: Playwright starts its
+# servers in process groups of their own, which outlive it. The e2e mode stops them first.
 set -eu
 
 mode=${1:-}
@@ -18,6 +22,7 @@ mode=${1:-}
 pool=${WANDER_CACHE:-$HOME/.cache/wander}
 slots=${WANDER_HEAVY_SLOTS:-2}
 poll=${WANDER_SLOT_POLL:-2}
+ports=${WANDER_E2E_PORTS:-6273-6275}
 
 unlimited() {
   [ -n "${CI:-}" ] || [ "$(uname)" != Darwin ] || ! mkdir -p "$pool" 2>/dev/null ||
@@ -55,6 +60,28 @@ heavy() {
   done
 }
 
+# This user's processes listening on e2e's ports.
+listening() {
+  /usr/sbin/lsof -nP -a -u "$(id -u)" -iTCP:"$ports" -sTCP:LISTEN -t 2>/dev/null | sort -u
+}
+
+stop_leftovers() {
+  left=$(listening)
+  [ -n "$left" ] || return 0
+  echo "slot.sh: stopping the servers a killed e2e run left on ports $ports:" >&2
+  for pid in $left; do echo "  $pid $(ps -o command= -p "$pid" 2>/dev/null || true)" >&2; done
+  kill $left 2>/dev/null || true
+  tries=0
+  while [ -n "$(listening)" ] && [ "$tries" -lt 50 ]; do
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+  left=$(listening)
+  [ -z "$left" ] && return 0
+  echo "slot.sh: still listening on ports $ports; stop them with: kill -9" $left >&2
+  exit 1
+}
+
 e2e() {
   if unlimited; then run "$@"; fi
   exec 8>>"$pool/e2e.lock"
@@ -62,6 +89,7 @@ e2e() {
     echo "slot.sh: waiting for the e2e lock ($pool/e2e.lock)" >&2
     /usr/bin/lockf -s 8
   fi
+  stop_leftovers
   heavy "$@"
 }
 

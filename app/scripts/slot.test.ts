@@ -1,12 +1,34 @@
 // scripts/slot.sh: the heavy-work slots and the e2e lock, which exist only on macOS outside CI.
-import { spawn, spawnSync } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, test } from 'vitest';
+import { beforeAll, describe, expect, onTestFinished, test } from 'vitest';
+import { DEV_PORT, FIXTURE_DATA_PORT, PREVIEW_PORT } from '../e2e/servers';
 
 const SLOT_SH = fileURLToPath(new URL('./slot.sh', import.meta.url));
+
+/** A server in a process of its own, as a killed e2e run leaves one, and its port. */
+async function listener(): Promise<{ server: ChildProcess; port: string }> {
+  const script =
+    "const s = require('net').createServer().listen(0, '127.0.0.1', () => console.log(s.address().port))";
+  const server = spawn(process.execPath, ['-e', script]);
+  const port = await new Promise<string>((listening) =>
+    server.stdout.once('data', (data: Buffer) => listening(data.toString().trim())),
+  );
+  return { server, port };
+}
+
+// A port no one listens on, which the e2e mode's tests watch in place of e2e's own: a live run's
+// servers there must never be stopped by a test.
+let idlePort = '';
+beforeAll(async () => {
+  const { server, port } = await listener();
+  server.kill();
+  await new Promise((exited) => server.once('exit', exited));
+  idlePort = port;
+});
 
 function environment(pool: string, extra: Record<string, string> = {}): NodeJS.ProcessEnv {
   return {
@@ -14,6 +36,7 @@ function environment(pool: string, extra: Record<string, string> = {}): NodeJS.P
     HOME: pool,
     WANDER_CACHE: pool,
     WANDER_SLOT_POLL: '0.1',
+    WANDER_E2E_PORTS: idlePort,
     ...extra,
   };
 }
@@ -71,6 +94,17 @@ describe.skipIf(process.platform !== 'darwin')('slot.sh on macOS', () => {
     expect([ci.stdout, ci.seconds < 1]).toEqual(['none\n', true]);
   });
 
+  test('e2e stops a server a killed run left on its ports before it runs the command', async () => {
+    const pool = mkdtempSync(join(tmpdir(), 'wander-slots-'));
+    const { server, port } = await listener();
+    onTestFinished(() => void server.kill('SIGKILL'));
+    const exited = new Promise((settle) => server.once('exit', settle));
+    const run = wrapped(pool, ['e2e', 'echo', 'ran'], { WANDER_E2E_PORTS: port });
+    expect(run.stderr).toContain(`stopping the servers a killed e2e run left on ports ${port}`);
+    expect([run.status, run.stdout]).toEqual([0, 'ran\n']);
+    await exited;
+  });
+
   test('e2e waits for the e2e lock, then takes a slot', async () => {
     const pool = mkdtempSync(join(tmpdir(), 'wander-slots-'));
     await holding(pool, 'e2e.lock', 1);
@@ -79,4 +113,11 @@ describe.skipIf(process.platform !== 'darwin')('slot.sh on macOS', () => {
     expect(run.seconds).toBeGreaterThan(0.5);
     expect([run.status, run.stdout]).toEqual([0, '0\n']);
   });
+});
+
+test('the e2e mode watches the ports e2e’s servers use', () => {
+  const [, first = '', last = ''] =
+    /WANDER_E2E_PORTS:-(\d+)-(\d+)/.exec(readFileSync(SLOT_SH, 'utf8')) ?? [];
+  const watched = (port: number) => port >= Number(first) && port <= Number(last);
+  expect([PREVIEW_PORT, DEV_PORT, FIXTURE_DATA_PORT].filter((port) => !watched(port))).toEqual([]);
 });
