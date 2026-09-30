@@ -33,7 +33,8 @@ year here is astronomical.
   pocket that touches a polity from the polities alone, since across a lake stateless land can lie
   nearer. Other holes between states stay stateless, since they may be real stateless enclaves; a
   `pocket` correction overrides the rules, for a coastal piece too, and is how a place really
-  without a state inside one stays stateless.
+  without a state inside one stays stateless, how one between states is cited as stateless, and
+  how a gap in Cliopatria's shapes is drawn as the land of the state that held it.
 - **The antimeridian:** Cliopatria's shapes stop at ±180°, so land just across it that no polity
   holds goes to the polity whose shape runs along the other side at the same latitudes: otherwise
   Chukotka east of the meridian is stateless from 1778 and a border runs down it.
@@ -348,10 +349,15 @@ class Rename:
 @dataclass(frozen=True)
 class Pocket:
     """The stateless piece holding `at`, enclosed or on a coast, stays stateless whole, as a place
-    really without a state does even inside one, or goes to its neighbours."""
+    really without a state does even inside one, or goes to its neighbours; or, with `to`, it is
+    that polity's land, all of it or its part inside another polity's shape in another year or
+    inside a cited shape."""
 
     at: tuple[float, float]
-    stateless: bool
+    stateless: bool = False
+    to: str | None = None
+    shape_from: tuple[str, int] | None = None
+    shape: shapely.Geometry | None = None
 
 
 @dataclass(frozen=True)
@@ -506,18 +512,11 @@ def _operation(kind: str, value: Any, where: str, folder: Path) -> Operation:
         _keys(value, {"polity", "to"}, {"at", "shape_from", "member_of"}, where)
         if "at" in value and "shape_from" in value:
             raise ConfigError(f"{where}: give takes at or shape_from, not both")
-        shape_from = None
-        if "shape_from" in value:
-            spec = value["shape_from"]
-            if not isinstance(spec, dict):
-                raise ConfigError(f"{where}: shape_from is {{polity, year}}")
-            _keys(spec, {"polity", "year"}, set(), where)
-            shape_from = (_name(spec["polity"], where), _year(spec["year"], where))
         return Give(
             polity=_name(value["polity"], where),
             to=_name(value["to"], where),
             at=_point(value["at"], where) if "at" in value else None,
-            shape_from=shape_from,
+            shape_from=_shape_from(value["shape_from"], where) if "shape_from" in value else None,
             member_of=_name(value["member_of"], where) if "member_of" in value else None,
         )
     if kind == "carry":
@@ -544,10 +543,25 @@ def _operation(kind: str, value: Any, where: str, folder: Path) -> Operation:
         _keys(value, {"polity", "to"}, set(), where)
         return Rename(_name(value["polity"], where), _name(value["to"], where))
     if kind == "pocket":
-        _keys(value, {"at", "stateless"}, set(), where)
-        if not isinstance(value["stateless"], bool):
-            raise ConfigError(f"{where}: pocket's stateless is true or false")
-        return Pocket(_point(value["at"], where), value["stateless"])
+        _keys(value, {"at"}, {"stateless", "to", "shape_from", "shape"}, where)
+        if ("stateless" in value) == ("to" in value):
+            raise ConfigError(f"{where}: pocket takes stateless or to")
+        if "shape_from" in value and "shape" in value:
+            raise ConfigError(f"{where}: pocket takes shape_from or shape, not both")
+        if "stateless" in value:
+            if "shape_from" in value or "shape" in value:
+                raise ConfigError(f"{where}: pocket takes shape_from or shape only with to")
+            if not isinstance(value["stateless"], bool):
+                raise ConfigError(f"{where}: pocket's stateless is true or false")
+            return Pocket(_point(value["at"], where), value["stateless"])
+        return Pocket(
+            _point(value["at"], where),
+            to=_name(value["to"], where),
+            shape_from=_shape_from(value["shape_from"], where) if "shape_from" in value else None,
+            shape=_shape(folder / _name(value["shape"], where), where)
+            if "shape" in value
+            else None,
+        )
     _keys(value, {"polities", "winner"}, set(), where)
     pair = value["polities"]
     if not isinstance(pair, list) or len(pair) != 2 or pair[0] == pair[1]:
@@ -604,6 +618,13 @@ def _year(value: Any, where: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise ConfigError(f"{where}: {value!r} is not a year")
     return value
+
+
+def _shape_from(value: Any, where: str) -> tuple[str, int]:
+    if not isinstance(value, dict):
+        raise ConfigError(f"{where}: shape_from is {{polity, year}}")
+    _keys(value, {"polity", "year"}, set(), where)
+    return (_name(value["polity"], where), _year(value["year"], where))
 
 
 def _point(value: Any, where: str) -> tuple[float, float]:
@@ -737,6 +758,8 @@ def polity_ids(source: Cliopatria, config: Config) -> dict[str, int]:
             names.add(op.to)
         elif isinstance(op, Carry | Add):
             names.add(op.polity)
+        elif isinstance(op, Pocket) and op.to is not None:
+            names.add(op.to)
     if len(names) + 1 > MAX_ID:
         raise SelectionError(f"{len(names)} polities do not fit u16 ids")
     return {STATELESS: STATELESS_ID} | {n: k + 2 for k, n in enumerate(sorted(names))}
@@ -792,8 +815,17 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     drawn, overlaps, unacknowledged = _overlaps(year, leaves, config, active, applied)
     held = shapely.union_all(list(leaves.values())) if leaves else shapely.Polygon()
     pockets = [(k, c.op) for k, c in active if isinstance(c.op, Pocket)]
+    fills = [(k, op) for k, op in pockets if op.to is not None]
+    held, named_fills = _named_fills(fills, held, drawn, outer, terrain, source, applied)
     stateless, filled, holes, unclaimed = _stateless(
-        held, drawn, outer, terrain, config.rules, pockets, applied
+        held,
+        drawn,
+        outer,
+        terrain,
+        config.rules,
+        [(k, op) for k, op in pockets if op.to is None],
+        applied,
+        named_fills,
     )
     parts, minor = _parts(drawn, outer, config.rules)
     valid = {name for name, r in polities.items() if not r.composite}
@@ -828,6 +860,8 @@ def _names_of(op: Operation) -> set[str]:
             return {op.polity}
         case Overlap():
             return set(op.polities)
+        case Pocket(to=str() as to):
+            return {to}
         case _:
             return set()
 
@@ -1157,6 +1191,65 @@ def _given(op: Give, leaves: Mapping[str, shapely.Geometry], source: Cliopatria)
     return None if shapely.is_empty(moved) or km2(moved) <= 0 else moved
 
 
+def _named_fills(
+    fills: Sequence[tuple[int, Pocket]],
+    held: shapely.Geometry,
+    drawn: dict[str, shapely.Geometry],
+    outer: dict[str, str],
+    terrain: Terrain,
+    source: Cliopatria,
+    applied: set[int],
+) -> tuple[shapely.Geometry, list[dict[str, Any]]]:
+    """Draws, in file order, the stateless land each `pocket` with `to` names as that polity's: the
+    piece holding its point, or that piece's part inside another polity's shape in another year or
+    inside a cited shape. A Cliopatria polity the step does not draw otherwise is drawn from that
+    land alone, its own outer unit; a name Cliopatria never gives fails, as a slip would. No cap
+    holds, since one polity takes the land and no line is drawn through it. The land held after,
+    and the pockets given, for the report."""
+    given: list[dict[str, Any]] = []
+    if not fills:
+        return held, given
+    pieces = list(parts_of_dimension(shapely.difference(terrain.dry, held), 2))
+    for k, op in fills:
+        assert op.to is not None
+        if op.to not in drawn and not any(r.polity and r.name == op.to for r in source.rows):
+            raise SelectionError(f"pocket at {op.at}: Cliopatria has no polity named {op.to}")
+        point = shapely.Point(op.at)
+        found = next((i for i, p in enumerate(pieces) if shapely.contains(p, point)), None)
+        if found is None:
+            continue
+        piece = pieces[found]
+        if op.shape is not None:
+            moved = polygons(shapely.intersection(piece, op.shape))
+        elif op.shape_from is not None:
+            name, year = op.shape_from
+            row = source.at(name, year)
+            if row is None:
+                raise SelectionError(f"pocket at {op.at}: Cliopatria has no {name} in {year}")
+            moved = polygons(shapely.intersection(piece, row.geometry))
+        else:
+            moved = piece
+        area = km2(moved)
+        if shapely.is_empty(moved) or area <= 0:
+            continue
+        pieces[found : found + 1] = list(parts_of_dimension(shapely.difference(piece, moved), 2))
+        before = drawn.get(op.to)
+        drawn[op.to] = moved if before is None else polygons(shapely.union(before, moved))
+        outer.setdefault(op.to, op.to)
+        held = shapely.union(held, moved)
+        applied.add(k)
+        at = shapely.point_on_surface(moved)
+        given.append(
+            {
+                "km2": round(area),
+                "at": [round(at.x, 2), round(at.y, 2)],
+                "rule": "correction",
+                "polity": op.to,
+            }
+        )
+    return held, given
+
+
 def _stateless(
     held: shapely.Geometry,
     drawn: Mapping[str, shapely.Geometry],
@@ -1165,10 +1258,14 @@ def _stateless(
     rules: Rules,
     pockets: Sequence[tuple[int, Pocket]],
     applied: set[int],
+    named: Sequence[dict[str, Any]] = (),
 ) -> tuple[shapely.Geometry, shapely.Geometry, Holes, dict[str, Any]]:
     """The stateless land kept, the other pockets given that touch a polity, the holes inside one
-    state by its outer unit, and what the rules did with the rest. A pocket that touches no polity,
-    an island in a lake among stateless shores, is left to the fill, as the sea is."""
+    state by its outer unit, and what the rules did with the rest, with `named`, the pockets given
+    to the polities corrections name. A pocket that touches no polity, an island in a lake among
+    stateless shores, is left to the fill, as the sea is. A correction keeping a piece stateless
+    changes its step whenever it finds the piece, since it cites it, even where the rules keep it
+    too."""
     free = shapely.difference(terrain.dry, held)
     pieces = parts_of_dimension(free, 2)
     sea = _touching(pieces, terrain.coast)
@@ -1181,7 +1278,8 @@ def _stateless(
         if holding:
             overrides[holding[0]] = (pocket.stateless, k)
     shapely.prepare(held)
-    kept, given, enclosed, filled = [], [], [], []
+    kept, enclosed, filled = [], [], []
+    given = list(named)
     holes: dict[str, list[shapely.Geometry]] = {}
     sliver_km2 = 0.0
     radius = rules.sliver_km
@@ -1197,7 +1295,7 @@ def _stateless(
                 continue
             # A coastal piece a correction names is kept whole, or given whole.
             stateless, k = overrides[i]
-            if km2(core) < area if stateless else km2(core) > 0:
+            if stateless or km2(core) > 0:
                 applied.add(k)
             rule = None if stateless else "correction"
         else:
@@ -1210,7 +1308,7 @@ def _stateless(
                 rule = "narrow"
             if i in overrides:
                 stateless, k = overrides[i]
-                if stateless != (rule is None):
+                if stateless or rule is None:
                     applied.add(k)
                     rule = None if stateless else "correction"
         if rule == "correction" and area >= rules.pocket_km2:
