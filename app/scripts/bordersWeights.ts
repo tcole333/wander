@@ -1,13 +1,13 @@
-// The outer line's weights side by side (#80; BORDER_WEIGHTS in look/bordersHook.ts) on this
-// Mac's GPU, for the owner to choose among. For each weight, scripts/bordersShots.ts renders the
-// Old World and the Americas at world view and 17,500 km across in 1000, 1500, 1800 and 1914, and
-// Europe at 6,000 km in 1500 and 1914, where every weight draws today's line, into
-// <out>/<weight>/, with the film grain off, so the renders differ only where the lines do. Then
-// this lays them out, a row per view and year and a column per weight: <out>/weight.png, the world
-// views' globes and the rest at half size, and <out>/weight-crops.png, a part of each render where
-// borders run, its centre or South America, at twice its size, pixel for pixel. <out>/weight.json gives, for each weight, the share of Europe's
-// pixels that differ from today's render and by how much at most. Plain Node, run from app/ with
-// the Vite dev server and a global data server up:
+// The outer line's weights side by side (#80; BORDER_WEIGHTS in look/bordersHook.ts) on this Mac's
+// GPU, for the owner to choose among. For each weight, scripts/bordersShots.ts renders the Old
+// World and the Americas at world view and 17,500 km across in 1000, 1500, 1800 and 1914, and
+// Europe at 6,000 km in 1500 and 1914, where every weight draws today's line, into <out>/<weight>/,
+// with the film grain off, so the renders differ only where the lines do. Then this lays them out,
+// a row per view and year and a column per weight: <out>/weight.png, the world views' globes and
+// the rest at half size, and <out>/weight-crops.png, a part of each render where borders run, its
+// centre or South America, at twice its size, pixel for pixel. <out>/weight.json gives, for each
+// weight, the share of Europe's pixels that differ from today's render and by how much at most.
+// Plain Node, run from app/ with the Vite dev server and a global data server up:
 //
 //   node scripts/bordersWeights.ts --url http://127.0.0.1:5173 --data http://127.0.0.1:8793
 //     [--out ../build/borders/renders/weight] [--weights today,wide,solid,eased] [--sheets-only]
