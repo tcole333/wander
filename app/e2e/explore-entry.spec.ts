@@ -190,24 +190,12 @@ test('shows Explore’s plaque last, dives in, labels its marks, scrubs and retu
   await expect.poll(() => pinned(page)).toBe(/^xl-(Q[0-9]+)/.exec(chosen!)![1]);
 
   // Meanwhile names what happens elsewhere; choosing an entry flies there and pins it. The pin
-  // changed what the globe draws, so the list stands only once its new question has been asked
-  // and answered: it is read until it holds for a second.
+  // changed what the globe draws, so the list is read once its new question has been asked and
+  // answered, which settled() waits for.
   await settled(page);
   const entries = page.locator('.wu-meanwhile .wu-mw-entry');
   await expect(entries.first()).toBeVisible();
-  let listed = '';
-  await expect
-    .poll(
-      async () => {
-        const now = (await entries.locator('.wu-mw-label').allTextContents()).join('\n');
-        const held = now === listed && now !== '';
-        listed = now;
-        return held;
-      },
-      { intervals: [1000] },
-    )
-    .toBe(true);
-  const [name] = listed.split('\n');
+  const name = await entries.first().locator('.wu-mw-label').textContent();
   await entries.first().click();
   await expect(pinnedPlate.locator('.xl-name')).toHaveText(name!);
   await expect(pinnedPlate).toHaveClass(/is-shown/);
