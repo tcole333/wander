@@ -1094,7 +1094,9 @@ only a failed start or a worker error ends the worker.
   marks layer the markers and expanded parents. Each takes its class's glyph and its pace layer's
   family (`app/src/marks/eventSymbols.ts`) and the worker's fade, interpolated every frame; an
   expanded parent is hollow, a mark of its own (`Q…/outline`) beside its solid one so the two
-  crossfade as it splits or merges, the farthest reach of its extent the ring a hover draws; the
+  crossfade as it splits or merges, the farthest reach of its extent the ring a hover draws, and
+  it fades out while a mark of another event stands within one mark's radius of it on screen, the
+  highest-scored parent standing first, so parents sharing a borrowed place draw one glyph; the
   layer's `data-explore-marks` counts the events marked in view, each once; an inherited
   or derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser)
   is soft, its edge within a fifth of its radius so a 12 px seal keeps its shape, and half as deep.

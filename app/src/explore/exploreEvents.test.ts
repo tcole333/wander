@@ -336,6 +336,37 @@ describe("Explore's events", () => {
     expect(events.markedInView()).toBe(3);
   });
 
+  it('lets a hollow parent give way to one standing on its place, until that one goes', () => {
+    // Two wars borrow one place; each has a battle in view in 1000, the second in 1050 too.
+    const war = { lon: 10, lat: 45, t0: 900, cls: WAR, flags: 1 };
+    const { worker, marks } = setup([
+      { row: 0, qid: 200, ...war, t1: 1010, ext: [0, 38, 22, 52] },
+      { row: 1, qid: 201, ...war, t1: 1100, ext: [2, 40, 20, 50] },
+      { row: 2, qid: 202, lon: 4, lat: 50, t0: 1000, t1: 1000, parent: 0, cls: BATTLE },
+      { row: 3, qid: 203, lon: 16, lat: 48, t0: 1000, t1: 1000, parent: 1, cls: BATTLE },
+      { row: 4, qid: 204, lon: 16, lat: 47, t0: 1050, t1: 1050, parent: 1, cls: BATTLE },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    const close = frameOver(10, 45, 1);
+    const hollows = () =>
+      marks.specs.filter((s) => s.hollow).map(({ id, opacity }) => ({ id, opacity }));
+    events.update(close, at(1000), 0);
+    events.update(close, at(1000), tunables.eventFade * 2);
+    events.update(close, at(1000), tunables.eventFade * 3);
+    // The higher-scored war stands; the other is not drawn over it.
+    expect(hollows()).toEqual([{ id: 'Q200/outline', opacity: 1 }]);
+
+    // Past the first war's years, it fades and the second comes through as it goes.
+    events.update(close, at(1050), 1000);
+    events.update(close, at(1050), 1000 + tunables.eventFade / 2);
+    expect(hollows()).toEqual([
+      { id: 'Q200/outline', opacity: 0.5 },
+      { id: 'Q201/outline', opacity: 0.5 },
+    ]);
+    events.update(close, at(1050), 1000 + tunables.eventFade * 2);
+    expect(hollows()).toEqual([{ id: 'Q201/outline', opacity: 1 }]);
+  });
+
   it('logs a class without a mark once and draws the rest', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { worker, marks } = setup([
