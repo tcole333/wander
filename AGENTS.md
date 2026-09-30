@@ -33,5 +33,8 @@ the script and give the command that runs it.
   explore.
 - **The simplest visible version first.** Build what a visitor sees or what a real bug needs, and
   add proof machinery only where a render or a failure shows the need.
+- **A test over thousands of cases asserts once.** It checks each case in plain code, collects the
+  failures and asserts that none were found and that it checked any: an expect per case costs
+  seconds on a loaded Mac.
 - **Data and hosting stay with Claude.** Work from the local builds and the fixture; `npm run
   publish-data`, R2, Cloudflare, `~/.config/wander/` and `git push` are Claude's.
