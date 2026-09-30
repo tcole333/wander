@@ -1,12 +1,14 @@
 import warnings
+from dataclasses import replace
 from pathlib import Path
 
 import netCDF4
 import numpy as np
 import pytest
 
+from prebuild import coverage
 from prebuild.cube import Tile
-from prebuild.profiles import Profile, make_context
+from prebuild.profiles import Context, Profile, make_context
 from prebuild.tiles import Surface, TileSources, open_sources, surface
 
 
@@ -33,6 +35,21 @@ def fixture_surface(fixture_sources):
         return computed[tile]
 
     return get
+
+
+@pytest.fixture(scope="session")
+def fixture_coverage(tmp_path_factory) -> Context:
+    """The coverage stage run once per session on the fixture profile, into a temporary build
+    folder: its context, whose stages folder holds the record."""
+    build = tmp_path_factory.mktemp("coverage")
+    ctx = replace(
+        make_context(Profile.FIXTURE, 4),
+        out=build / "fixture",
+        stages_dir=build / "stages",
+        cache=build / "cache",
+    )
+    coverage.run(ctx)
+    return ctx
 
 
 @pytest.fixture

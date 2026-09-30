@@ -31,17 +31,16 @@ def fixture_context(root, jobs: int):
     )
 
 
-def bake(root, jobs: int):
-    ctx = fixture_context(root, jobs)
-    coverage.run(ctx)
+@pytest.fixture(scope="module")
+def baked(tmp_path_factory, fixture_coverage):
+    """The fixture bake with four workers, run over what an interrupted run left in the layer."""
+    ctx = fixture_context(tmp_path_factory.mktemp("four"), 4)
+    write_record(ctx, "coverage", read_record(fixture_coverage, "coverage"))
+    partial = ctx.out / "surf" / ".tmp-999999" / "0/0/0/0.wst"
+    partial.parent.mkdir(parents=True)
+    partial.write_bytes(b"partial")
     surface.run(ctx)
     return ctx
-
-
-@pytest.fixture(scope="module")
-def baked(tmp_path_factory):
-    """The fixture bake with four workers."""
-    return bake(tmp_path_factory.mktemp("four"), 4)
 
 
 @pytest.fixture(scope="module")
@@ -60,6 +59,7 @@ def layer_files(ctx, record) -> dict[str, bytes]:
 
 def test_the_version_recomputes_from_the_files(baked, record):
     assert ver8(layer_files(baked, record)) == record["ver"]
+    # The layer holds only the version: the bake cleared what an interrupted run left there.
     assert [p.name for p in (baked.out / "surf").iterdir()] == [record["ver"]]
 
 
@@ -183,16 +183,6 @@ def test_bounds_bin_takes_exactly_the_available_nodes():
         surface.bounds_bin(avail_of([1]), 1, {1: (0, 1)})
     with pytest.raises(ValueError, match="i16"):
         surface.bounds_bin(avail_of([1]), 0, {1: (0, 40000)})
-
-
-def test_a_run_clears_what_an_interrupted_run_left_in_the_layer(baked, tmp_path):
-    ctx = fixture_context(tmp_path, 4)
-    write_record(ctx, "coverage", read_record(baked, "coverage"))
-    partial = ctx.out / "surf" / ".tmp-999999" / "0/0/0/0.wst"
-    partial.parent.mkdir(parents=True)
-    partial.write_bytes(b"partial")
-    surface.run(ctx)
-    assert [p.name for p in (ctx.out / "surf").iterdir()] == [read_record(ctx, "surface")["ver"]]
 
 
 # The fixture's sidecars
