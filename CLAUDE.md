@@ -22,8 +22,9 @@ bundled release, `app/src/generated/release.json`, whose data is on R2; the dev 
 `app/prototype.html?story=tambora|magellan` boots the same walk (`app/src/walk/boot.ts`) under a
 tuning panel. Milestone 3, open-world exploration, is live as it grows (`docs/PRD.md`): the
 lobby's last plaque, All of History, dives into Explore wherever the release names the event index,
-with the free clock over all of history, the now window's events as marks, the climate at the
-clock's date and its own sound; `app/prototype.html` without `?story=` starts in it. The bundled
+with the free clock over all of history, the now window's events as marks whose plates come on
+hover and pin on a click, the opening's line pinned at the landing, a live Meanwhile, the climate
+at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in it. The bundled
 release names no event index until the event files are published, so until then the live lobby
 shows the stories' plaques alone.
 
@@ -60,8 +61,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `npm ci`, then `npm run dev`: the app on Vite's dev server, reading production data from
   `wander-data.traviscole.xyz`. On a page served from loopback, `?data=fixture|region|global` or
   `?data=<origin>` reads a local data server's release instead (`app/src/page/dataOrigin.ts`),
-  and `?memory=1` installs `window.__wanderMemory()`, the app's account of the CPU memory it keeps,
-  by owner (`app/src/perf/memoryHook.ts`), which E3's leak check records beside Chromium's dump.
+  `?memory=1` installs `window.__wanderMemory()`, the app's account of the CPU memory it keeps,
+  by owner (`app/src/perf/memoryHook.ts`), which E3's leak check records beside Chromium's dump,
+  and `?opening=Q…` dives into Explore on that opening (`app/src/explore/openings.ts`).
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
 - `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
   uv) into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for
