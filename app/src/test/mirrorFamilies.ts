@@ -1,6 +1,6 @@
 // The vertex mirror's sweep over the fixture families (streaming.md 5.6, 7.3), and the negative
 // controls it runs on each scenario: single seam bit flips that must make a shared point differ.
-import { beforeAll, describe, expect, test } from 'vitest';
+import { beforeAll, expect } from 'vitest';
 import { tileKey } from '../surface/cube';
 import { flagsNeedUp } from '../globe/instances';
 import { fixtureFamilies, type Tier } from '../globe/meshScenarios';
@@ -104,56 +104,63 @@ export async function negativeControls(
   return controls;
 }
 
+/** The checks of one tier's sweep, each a test body. */
+export interface FamilySweep {
+  sharedPoints: () => void;
+  chords: () => void;
+  skirts: () => void;
+  flips: () => void;
+}
+
 /**
  * The vertex mirror on every scenario of every fixture family on one tier: shared points bit for
- * bit, T-junctions on their chords, skirts, and one flipped seam bit showing. Each tier has a test
- * file of its own, so the two sweeps run side by side.
+ * bit, T-junctions on their chords, skirts, and one flipped seam bit showing. It registers the
+ * sweep as a beforeAll of the calling describe and returns the checks on its results. Each tier has
+ * a test file of its own, so the two sweeps run side by side, and names its tests there, where
+ * `vitest list` and editors find them without running the file.
  */
-export function describeFixtureFamilies(tier: Tier): void {
-  describe(`the fixture families (${tier})`, () => {
-    const shared: string[] = [];
-    const chords: ChordOffset[] = [];
-    const controls: Control[] = [];
-    const skirts = { worst: 0, at: '', tjunctions: 0, deep: 0 };
-    beforeAll(async () => {
-      for (const { name: family, scenarios } of FAMILIES) {
-        for (const scenario of scenarios) {
-          const mirrored = await mirrorScenario(scenario, GRID_SEGMENTS[tier], { boundary: true });
-          const groups = sharedGroups(mirrored);
-          const named = (at: string) => `${scenario.name}: ${at}`;
-          shared.push(...sharedMismatches(mirrored, groups).map(named));
-          chords.push(...chordOffsets(mirrored, groups).map((c) => ({ ...c, at: named(c.at) })));
-          const skirt = skirtCheck(mirrored);
-          skirts.tjunctions += skirt.tjunctions;
-          skirts.deep += skirt.deep;
-          if (!(skirt.worst <= skirts.worst))
-            Object.assign(skirts, { worst: skirt.worst, at: named(skirt.at) });
-          controls.push(...(await negativeControls(family, mirrored, groups)));
-        }
+export function fixtureFamilySweep(tier: Tier): FamilySweep {
+  const shared: string[] = [];
+  const chords: ChordOffset[] = [];
+  const controls: Control[] = [];
+  const skirts = { worst: 0, at: '', tjunctions: 0, deep: 0 };
+  beforeAll(async () => {
+    for (const { name: family, scenarios } of FAMILIES) {
+      for (const scenario of scenarios) {
+        const mirrored = await mirrorScenario(scenario, GRID_SEGMENTS[tier], { boundary: true });
+        const groups = sharedGroups(mirrored);
+        const named = (at: string) => `${scenario.name}: ${at}`;
+        shared.push(...sharedMismatches(mirrored, groups).map(named));
+        chords.push(...chordOffsets(mirrored, groups).map((c) => ({ ...c, at: named(c.at) })));
+        const skirt = skirtCheck(mirrored);
+        skirts.tjunctions += skirt.tjunctions;
+        skirts.deep += skirt.deep;
+        if (!(skirt.worst <= skirts.worst))
+          Object.assign(skirts, { worst: skirt.worst, at: named(skirt.at) });
+        controls.push(...(await negativeControls(family, mirrored, groups)));
       }
-    });
+    }
+  });
 
-    test('every instance holding a shared point gets its code, shore, land, h, direction and position bit for bit', () => {
+  return {
+    sharedPoints: () => {
       expect(shared).toEqual([]);
-    });
-
-    test('every T-junction lies within 2^-24 R per component of the midpoint of the chord it splits', () => {
-      // It is fround(P0 + P1)·0.5 of the coarse vertices: the sum, under 4, rounds by at most half
-      // of its 2^-22 step, and halving is exact.
+    },
+    chords: () => {
+      // It is fround(P0 + P1)·0.5 of the coarse vertices: the sum, under 4, rounds by at most
+      // half of its 2^-22 step, and halving is exact.
       expect(chords.length).toBeGreaterThan(0);
       expect(chords.filter(({ offset }) => !(offset <= 2 ** -24))).toEqual([]);
-    });
-
-    test('skirt bottoms are their tops lowered radially, at T-junctions and deep sources too', () => {
+    },
+    skirts: () => {
       expect(skirts.tjunctions).toBeGreaterThan(0);
       expect(skirts.deep).toBeGreaterThan(0);
       expect(skirts.worst, skirts.at).toBeLessThanOrEqual(2 ** -23);
-    });
-
-    test('flipping one cS bit, one cN bit or one corner dN makes a shared point differ', () => {
+    },
+    flips: () => {
       // A flip can change the rule and not the value: where the field is linear, as on the L1
-      // tiles the 0.5° grid fills at 0°N 0°E, every mip's mean around a point is the same code. So
-      // each family shows every kind it can flip in some scenario, not in each one.
+      // tiles the 0.5° grid fills at 0°N 0°E, every mip's mean around a point is the same code.
+      // So each family shows every kind it can flip in some scenario, not in each one.
       const flipped = new Set(controls.map((c) => `${c.family} ${c.kind}`));
       const shown = new Set(
         controls.filter((c) => c.mismatches > 0).map((c) => `${c.family} ${c.kind}`),
@@ -164,6 +171,6 @@ export function describeFixtureFamilies(tier: Tier): void {
       expect(new Set(controls.filter((c) => c.mismatches > 0).map((c) => c.kind))).toEqual(
         new Set(['cS', 'cN', 'dN']),
       );
-    });
-  });
+    },
+  };
 }
