@@ -150,3 +150,9 @@
     transition: none;
   }
 }
+
+/* Explore's Meanwhile names events from the whole index, so it too is set in the label family. */
+.wu-explore .wu-mw-label,
+.wu-explore .wu-mw-date {
+  font-family: var(--label);
+}

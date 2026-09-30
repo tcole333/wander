@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
+import type { MeanwhileEvent } from '../events/meanwhile';
 import type { EventReply } from '../events/runtime';
 import type { MarkLayer, MarkSpec } from '../marks/marks';
 import { MemoryAccount } from '../perf/memory';
@@ -22,6 +23,8 @@ const drawn = vi.hoisted(() => ({
   broken: null as 'ruler' | 'flight' | 'worker' | null,
   /** The event clients started, standing in for the worker. */
   clients: [] as FakeClient[],
+  /** Meanwhile, as Explore asks it and has it choose an entry. */
+  meanwhile: null as null | { asked: number; choose: (event: MeanwhileEvent) => void },
 }));
 interface FakeLayer {
   className: string;
@@ -90,6 +93,18 @@ vi.mock('../events/client', () => ({
       drawn.clients.push(client);
       return client;
     },
+  },
+}));
+vi.mock('./exploreMeanwhile', () => ({
+  ExploreMeanwhile: class {
+    element = { meanwhile: true };
+    constructor(_events: unknown, choose: (event: MeanwhileEvent) => void) {
+      drawn.meanwhile = { asked: 0, choose };
+    }
+    ask() {
+      drawn.meanwhile!.asked++;
+    }
+    update() {}
   },
 }));
 vi.mock('../story/ui/rulerCraft', () => ({
@@ -171,7 +186,14 @@ function frameOver(lon: number, lat: number): FrameContext {
 }
 
 function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = null) {
-  Object.assign(drawn, { rulers: 0, disposed: 0, layers: [], broken: null, clients: [] });
+  Object.assign(drawn, {
+    rulers: 0,
+    disposed: 0,
+    layers: [],
+    broken: null,
+    clients: [],
+    meanwhile: null,
+  });
   const clock = new WorldClock();
   const control = new ViewControl({ lon: 75, lat: 15, viewKm: WORLD_KM, tilt: 0, heading: 0 });
   control.maxKm = WORLD_KM;
@@ -361,6 +383,43 @@ describe('Explore', () => {
       expect(client!.disposed).toBe(true);
       expect(marks.specs).toEqual([]);
       expect(window.__exploreEvents).toBeUndefined();
+    });
+
+    it('asks Meanwhile once the dive has landed, and flies to an entry chosen, 1,500 km wide', () => {
+      const { events } = source();
+      const { control, mode, tick } = setup('fly', events);
+      const frame = frameOver(4.4, 35);
+      const landed = vi.fn();
+      mode.landed(landed);
+      tick();
+      mode.afterPlace(frame, 16);
+      expect(drawn.meanwhile!.asked).toBe(0);
+      for (let i = 0; i < 600 && !landed.mock.calls.length; i++) tick();
+      mode.afterPlace(frame, 10_000);
+      expect(drawn.meanwhile!.asked).toBe(1);
+      const ligny = { qid: 207318, at: [4.62, 50.52], t0: 662715, t1: 662715 } as MeanwhileEvent;
+      drawn.meanwhile!.choose(ligny);
+      expect(mode.audio()).toMatchObject({ flying: true });
+      const flying = () => {
+        const heard = mode.audio();
+        return heard !== null && 'flying' in heard && heard.flying;
+      };
+      for (let i = 0; i < 600 && flying(); i++) tick();
+      expect(control.current).toMatchObject({ lon: 4.62, lat: 50.52, viewKm: 1500 });
+      // The dive landed once; a flight to an entry is not another dive's landing.
+      expect(landed).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives up a flight to a Meanwhile entry the visitor takes the view from', () => {
+      const { events } = source();
+      const { control, mode, tick } = setup('jump', events);
+      drawn.meanwhile!.choose({ qid: 1, at: [100, 10], t0: 0, t1: 0 } as MeanwhileEvent);
+      tick();
+      control.onInput();
+      const view = { ...control.current };
+      tick();
+      expect(control.current).toEqual(view);
+      expect(mode.audio()).toMatchObject({ flying: false });
     });
 
     it('fails the dive, leaving nothing behind, when the event worker cannot start', () => {

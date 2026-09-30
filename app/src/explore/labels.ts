@@ -243,14 +243,17 @@ export class ExploreLabels {
 
   /** Pins the event of the mark with this id, making it focal. */
   pin(id: string): void {
-    if (this.#left) return;
     const mark = this.#events.event(id);
     if (mark === undefined) return;
-    const qid = markQid(id);
     // A mark the lock draws is the focal opening's already.
-    if (mark && this.#events.focal?.qid !== qid) {
-      this.#events.focus({ qid, span: { t0: mark.t0, t1: mark.t1 } });
-    }
+    if (mark === null) this.#pinQid(markQid(id));
+    else this.pinEvent(mark.qid, { t0: mark.t0, t1: mark.t1 });
+  }
+
+  /** Pins the event with Q number `qid`, over `span`, making it focal: a Meanwhile entry's. */
+  pinEvent(qid: number, span: { t0: number; t1: number }): void {
+    if (this.#left) return;
+    if (this.#events.focal?.qid !== qid) this.#events.focus({ qid, span });
     this.#pinQid(qid);
   }
 
@@ -295,6 +298,7 @@ export class ExploreLabels {
   }
 
   #pinQid(qid: number): void {
+    if (this.#left) return;
     this.#pinned = qid;
     this.#unread = true;
   }
