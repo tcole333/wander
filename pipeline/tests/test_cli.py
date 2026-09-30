@@ -282,6 +282,20 @@ def test_rebuild_builds_even_when_the_store_holds_the_inputs(tmp_path):
     assert ran == ["coverage"]
 
 
+def test_a_store_that_cannot_be_written_still_restores(tmp_path, monkeypatch):
+    _, built = build_fixture(tmp_path)
+    expected = files_under(tmp_path / "build")
+    (built.out / "surf" / "0.wst").write_bytes(b"changed")
+
+    def denied(*args, **kwargs):
+        raise PermissionError(1, "Operation not permitted")
+
+    monkeypatch.setattr(os, "utime", denied)
+    ran, _ = build_fixture(tmp_path)
+    assert ran == []
+    assert files_under(tmp_path / "build") == expected
+
+
 def test_a_rebuild_replaces_the_stored_build_of_its_inputs(tmp_path):
     _, ctx = build_fixture(tmp_path)
     entry = store_root() / json.loads((ctx.stages_dir / "stamp.json").read_text())["inputs"]
