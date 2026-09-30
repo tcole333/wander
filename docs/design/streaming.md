@@ -584,12 +584,14 @@ u8 rg[6][size][size][2]
   hierarchy's classes of those, the operations (not the `why` or `source`) of the corrections
   active in it, the rules, the land and lakes, and the step code; `build/cache/borders/` keeps each
   baked step under its key, so a rebuild bakes only the steps whose key changed.
-- **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 271 MB for
+- **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 270 MB for
   all 521 [M global bake, 30 September]. A step takes about 22 CPU-seconds to select and bake, 3.1
   CPU-hours for the first bake's 505: 4.3 s a step with 5 workers on the M5 when nothing else runs
   (about 36 minutes in all), and it took 96 minutes beside other builds. The history pass's
   corrections changed the keys of 404 steps, which took 39 minutes with 6 workers beside other
-  work; a rerun that changes no step takes 7 s from the cache [M].
+  work, and the pocket fill and the antimeridian changed the code, so every step's key: all 524
+  took 42 minutes with 6 workers beside the end-to-end tests. A rerun that changes no step takes
+  7 s from the cache [M].
 
 **Previews,** in chunks of at most 16 steps, each starting at an even step index, so the two steps a
 ring cell pairs (below) never span two chunks:
@@ -2313,15 +2315,15 @@ and the release's `media` section lists every key the locks name (3.8).
       the steps holding 1000, 1500, 1800, 1815 and 1914 hold task 0's 126, 130, 121, 139 and 74;
     - the overlap pairs no `overlap` correction acknowledges are listed with their steps (3.3).
 
-    On 30 September, after the history pass, the 521 steps and 33 chunks decoded and checked in 9 s.
-    The previews agreed on 368,388 of 368,582 texels, every step drew its rows' leaves, and no pair
-    awaits acknowledgement. Four borders run beside a lake shore for 53-77 km and fail the check,
-    which none of the history pass's corrections reaches: Lake Ladoga's west shore in 1936-44, where
-    Cliopatria's Nazi Germany row holds a chain of small pieces beside it; Lake Michigan's east
-    shore in 1822-33, where the lower peninsula is a stateless pocket the fill gives its neighbours,
-    and Green Bay's in 1834-36; and Lake Sevan in 1734, which the fill splits lengthwise between
-    Georgia and the Ottomans, the line passing its narrows [M]. The lake-shore rule (3.3) had
-    removed the rest: before it, Lake Urmia's west shore carried a border for 126 km.
+    On 30 September, after the history pass and the still renders' fixes, the 521 steps and 33
+    chunks decoded and checked in 7 s. The previews agreed on 366,374 of 366,571 texels, every step
+    drew its rows' leaves, and no pair awaits acknowledgement. Two borders run beside a lake shore
+    for 53 km, just past the line, and fail the check: Green Bay's in 1834, where Natural Earth's
+    Lake Michigan overlaps the Door Peninsula, so the border crossing the bay runs along a drawn
+    shore across the peninsula; and Lake Sevan's north shore in 1734, where Georgia meets the lake
+    at its narrow end [M]. The rest are gone: the lake-shore rule (3.3) removed Lake Urmia's 126 km,
+    the pocket fill Lake Michigan's east shore in 1822-33 and Green Bay's in 1836, and the drop of
+    Nazi Germany's scraps Ladoga's west shore in 1936-44.
 
   Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
   which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
@@ -2740,7 +2742,7 @@ Review items not taken as written, one line each:
   warning stays an author note for the 1815 field until Tambora moves onto the steps.
 - **Border steps on a grid of years, or folded (#80):** not taken. A grid shows states that had
   already ended in 29% of first-millennium years, and a fold hides 29 states, while a step at every
-  change year costs only storage, 271 MB for 521 steps [M].
+  change year costs only storage, 270 MB for 521 steps [M].
 - **Sparse border tiles (#80, Design 2):** not taken at 1024 texels, where two whole-field slots fit
   the GPU budget with one sampler and no indirection. They return if the fields go to 2048 texels,
   where two slots would reach the 320 MiB line.
