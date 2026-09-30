@@ -427,7 +427,11 @@ export class ExploreLabels {
       const mark = placed.get(id);
       if (!mark || named.has(id)) continue;
       named.add(id);
-      const text = `${eventName(label.text)}, ${eventDate(label.t0, label.t1, label.prec)}`;
+      const opening = this.#openings.get(label.qid);
+      const { name, date } = opening
+        ? openingText(opening)
+        : { name: eventName(label.text), date: eventDate(label.t0, label.t1, label.prec) };
+      const text = `${name}, ${date}`;
       entries.push({ id, text, x: mark.x, y: mark.y });
     }
     const focal = this.#events.focal;
@@ -499,14 +503,19 @@ export class ExploreLabels {
     this.#events.hover(hovered);
   }
 
-  /** A plate's words for the mark with this id, as far as they are known. */
+  /**
+   * A plate's words for the mark with this id, as far as they are known: an opening's name and
+   * date as its lock gives them, which its sources may date more finely than the index, and the
+   * event it is part of once the worker has said.
+   */
   #textOf(id: string): PlateText | null {
     const mark = this.#events.event(id);
-    const opening = this.#openings.get(markQid(id));
     if (mark === undefined) return null;
     const described = mark === null ? undefined : this.#events.description(mark.row);
-    if (described) return describedText(described);
-    return opening ? openingText(opening) : null;
+    const opening = this.#openings.get(markQid(id));
+    if (!opening) return described ? describedText(described) : null;
+    const parent = described?.parent;
+    return { ...openingText(opening), ...(parent ? { parent: eventName(parent) } : {}) };
   }
 
   /** The pinned event's mark as drawn: its solid one, else its hollow one. */
