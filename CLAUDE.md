@@ -79,8 +79,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
   its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, with
   border steps the step holding 1815, its preview chunk and the notice, each story's first image
-  and, when the release names the event files, their overview, and checks R2's headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
-  `npm run publish-data`, until the release's data is uploaded.
+  and, when the release names the event files, their overview, and checks R2's headers. CI runs
+  it as its own job, which the Pages deploy waits for; it fails, naming `npm run publish-data`,
+  until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
   The smoke tests run against that build in `app/dist/` (it does not rebuild), on the fixture's
