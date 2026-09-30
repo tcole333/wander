@@ -1,9 +1,13 @@
-// Meanwhile, at the top right: what else is happening during the current beat, or once the visitor
-// has scrubbed story time away from the beat's date, during the month scrubbed to, on vellum slips
-// in a dark cast-brass panel. Each entry has an engraved compass rose whose needle points from the
-// view's center toward it (turned with the view's heading, so it points the way to look on
-// screen), and the compass point it lies at. Choosing one flies there. A small brass knob at the
-// heading folds the slips away (fold.ts), and the panel keeps its heading.
+// Meanwhile, at the top right: what else is happening, on vellum slips in a dark cast-brass panel.
+// Each entry has an engraved compass rose whose needle points from the view's center toward it
+// (turned with the view's heading, so it points the way to look on screen), and the compass point
+// it lies at. Choosing one flies there. A small brass knob at the heading folds the slips away
+// (fold.ts), and the panel keeps its heading.
+//
+// MeanwhileList is the panel, given its entries and what choosing one does. A story's panel
+// (MeanwhilePanel) lists the current beat's entries, or once the visitor has scrubbed story time
+// away from the beat's date, the month's, and flies the walk to the one chosen; Explore's
+// (explore/exploreMeanwhile.ts) lists what the event worker picks.
 import { arcKm, type ViewState } from '../../view/viewState';
 import type { Meanwhile, MeanwhileEntry, Walk, WalkState } from '../contract';
 import { scrubbedEntries } from '../meanwhile';
@@ -12,7 +16,7 @@ import { Fold } from './fold';
 import { bearingDeg, compassPoint, curlyQuotes } from './format';
 
 /** The width a Meanwhile flight lands at, km. */
-const ARRIVE_KM = 1500;
+export const ARRIVE_KM = 1500;
 /** An entry nearer the view's center than this share of the view's width is here. */
 const HERE_SHARE = 0.05;
 /** The rose's center, in its SVG's units (40 across). */
@@ -27,18 +31,15 @@ interface Row {
   drawn: string;
 }
 
-export class MeanwhilePanel {
+export class MeanwhileList {
   readonly element = el('aside', 'wu-meanwhile wu-brass');
-  readonly #walk: Walk;
-  readonly #meanwhile: Meanwhile;
+  readonly #choose: (entry: MeanwhileEntry) => void;
   readonly #list = el('ul', 'wu-mw-list');
-  /** The entries shown, by label, to tell when they change. */
-  #shown: string | null = null;
   #rows: Row[] = [];
 
-  constructor(walk: Walk, meanwhile: Meanwhile) {
-    this.#walk = walk;
-    this.#meanwhile = meanwhile;
+  /** `choose` flies to the entry chosen. */
+  constructor(choose: (entry: MeanwhileEntry) => void) {
+    this.#choose = choose;
     const fold = new Fold({
       id: 'meanwhile',
       name: 'Meanwhile',
@@ -52,36 +53,8 @@ export class MeanwhilePanel {
     );
   }
 
-  update(state: WalkState, view: ViewState): void {
-    const entries = this.#entries(state);
-    const shown = entries.map((entry) => entry.label).join('\n');
-    if (shown !== this.#shown) {
-      this.#shown = shown;
-      this.#show(entries);
-    }
-    for (const row of this.#rows) {
-      const [lon, lat] = row.entry.at;
-      const here = arcKm(view, { ...view, lon, lat }) < view.viewKm * HERE_SHARE;
-      const bearing = bearingDeg([view.lon, view.lat], row.entry.at);
-      const drawn = here ? 'here' : (bearing - view.heading).toFixed(1);
-      if (drawn === row.drawn) continue;
-      row.drawn = drawn;
-      row.compass.classList.toggle('is-here', here);
-      row.point.textContent = here ? 'Here' : compassPoint(bearing);
-      if (!here) row.needle.setAttribute('transform', `rotate(${drawn} ${C} ${C})`);
-    }
-  }
-
-  /** The beat's own entries, or in a break-out scrubbed off the beat's date, the month's. */
-  #entries(state: WalkState): MeanwhileEntry[] {
-    const beat = state.story.beats[state.beat];
-    if (!beat) return [];
-    const scrubbed = state.mode === 'breakout' && Math.abs(state.day - beat.day) >= 1;
-    if (scrubbed) return scrubbedEntries(this.#meanwhile, state.day);
-    return this.#meanwhile.beats[beat.id] ?? [];
-  }
-
-  #show(entries: MeanwhileEntry[]): void {
+  /** Lists `entries`, fading them in; with none, the panel hides. */
+  show(entries: readonly MeanwhileEntry[]): void {
     this.element.hidden = entries.length === 0;
     this.#rows = entries.map((entry) => {
       const needle = svg('g', { class: 'wu-needle-g' });
@@ -95,12 +68,27 @@ export class MeanwhilePanel {
     this.element.classList.add('is-fresh');
   }
 
+  /** Turns each entry's needle toward it from the center of `view`. */
+  update(view: ViewState): void {
+    for (const row of this.#rows) {
+      const [lon, lat] = row.entry.at;
+      const here = arcKm(view, { ...view, lon, lat }) < view.viewKm * HERE_SHARE;
+      const bearing = bearingDeg([view.lon, view.lat], row.entry.at);
+      const drawn = here ? 'here' : (bearing - view.heading).toFixed(1);
+      if (drawn === row.drawn) continue;
+      row.drawn = drawn;
+      row.compass.classList.toggle('is-here', here);
+      row.point.textContent = here ? 'Here' : compassPoint(bearing);
+      if (!here) row.needle.setAttribute('transform', `rotate(${drawn} ${C} ${C})`);
+    }
+  }
+
   #item({ entry, needle, compass, point }: Row): HTMLLIElement {
     const item = el('li');
     const choose = el('button', 'wu-mw-entry');
     choose.type = 'button';
     choose.title = `Source: ${entry.source.title}`;
-    onPress(choose, () => this.#walk.flyTo(entry.at, ARRIVE_KM));
+    onPress(choose, () => this.#choose(entry));
     const words = el('span', 'wu-mw-words');
     words.append(
       el('span', 'wu-mw-label', curlyQuotes(entry.label)),
@@ -110,6 +98,42 @@ export class MeanwhilePanel {
     choose.append(words, compass);
     item.append(choose);
     return item;
+  }
+}
+
+/** A story's Meanwhile: the beat's entries, or the month's scrubbed to, flying the walk. */
+export class MeanwhilePanel {
+  readonly #list: MeanwhileList;
+  readonly #meanwhile: Meanwhile;
+  /** The entries shown, by label, to tell when they change. */
+  #shown: string | null = null;
+
+  constructor(walk: Walk, meanwhile: Meanwhile) {
+    this.#meanwhile = meanwhile;
+    this.#list = new MeanwhileList((entry) => walk.flyTo(entry.at, ARRIVE_KM));
+  }
+
+  get element(): HTMLElement {
+    return this.#list.element;
+  }
+
+  update(state: WalkState, view: ViewState): void {
+    const entries = this.#entries(state);
+    const shown = entries.map((entry) => entry.label).join('\n');
+    if (shown !== this.#shown) {
+      this.#shown = shown;
+      this.#list.show(entries);
+    }
+    this.#list.update(view);
+  }
+
+  /** The beat's own entries, or in a break-out scrubbed off the beat's date, the month's. */
+  #entries(state: WalkState): MeanwhileEntry[] {
+    const beat = state.story.beats[state.beat];
+    if (!beat) return [];
+    const scrubbed = state.mode === 'breakout' && Math.abs(state.day - beat.day) >= 1;
+    if (scrubbed) return scrubbedEntries(this.#meanwhile, state.day);
+    return this.#meanwhile.beats[beat.id] ?? [];
   }
 }
 
