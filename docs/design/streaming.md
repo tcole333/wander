@@ -507,8 +507,10 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   the committed lock; `explore` joins the fixture stamp's paths. So after a change to
   `events.tsv.gz`, run `openings`, then `event-files`, and commit the lock. The app bundles the lock
   (`app/src/explore/openings.ts`) and picks one opening per dive, never one of the visitor's last
-  `openingsRecent`, kept in `localStorage`; `?opening=Q…` pins one on loopback, and a pin the list
-  lacks throws. Until the overview decodes, or if it fails, the lock draws the opening's mark.
+  `openingsRecent`, kept in `localStorage` (`wander.openings.recent`; where storage refuses, the
+  pick goes unremembered); `?opening=Q…` pins one on loopback, and a pin the list lacks fails the
+  dive. Until the overview decodes, or if it fails, the lock draws the opening's mark. The dive
+  lands with the opening focal and its plate pinned, its written line and source on it, unasked.
 - **Committed config:** `pipeline/config/era-bins.yaml` (24 bins in astronomical years, edges −∞,
   −1e5, −4e4, −1e4, −5000, −3000, −2000, −1000, −500, 0, 250, 500, 750, 1000, 1200, 1400, 1500, 1600,
   1700, 1800, 1850, 1900, 1950, 2000, +∞, each finite edge its year's 1 January in the historical
@@ -1160,7 +1162,14 @@ only a failed start or a worker error ends the worker.
   focal or pinned event's part-of kin (its ancestors and descendants, as 3.9 keeps a beat's focal
   event's), and never a parent with its child. Each pick carries its description and place, and
   the client keeps the description. At world view the screen shows the near side of the globe, so
-  Meanwhile names what happens on the far side.
+  Meanwhile names what happens on the far side. Explore's panel (`app/src/explore/exploreMeanwhile.ts`)
+  is the stories' list (`MeanwhileList`) with its own entries: each pick named as its plate names
+  it, dated by `formatHistorical` and sourced to its Wikipedia article through
+  `Special:GoToLinkedPage`, set in the label family; it stands its question only once the dive has
+  landed, keeps an answer's entries until the next, and drops at once an entry whose dates the now
+  window has left. Choosing one flies there with a free flight, keeping the view's tilt and
+  heading, to 1,500 km wide, and pins it on landing; input during the flight takes the view and
+  pins nothing.
 
 ### 5.4 Uploads per frame
 
