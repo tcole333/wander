@@ -657,6 +657,18 @@ climate wash and before the ash:
 - **Soft edge:** where R's nearest border has stateless land on one side, two thirds of the
   darkening, feathered from 0.25 to 2.5 px from the line's middle, as task 0 rendered it (owner
   decisions 35 and 36).
+- **Weight far out:** at world view and 17,500 km across the outer line is hard to see under
+  Explore's lighting, so the look holds heavier weights for the owner to choose among on renders
+  (`BORDER_WEIGHTS` in `look/bordersHook.ts`, the dev page's `?borderWeight=`,
+  `scripts/bordersWeights.ts`): `wide`, a 3 px groove darkening 0.9 with dots of 3.5 px in 5, its
+  soft edges widening and darkening with it; `solid`, the hard lines between states unbroken,
+  2.5 px and 0.9, soft edges as today's; and `eased`, a weight that grows with the view's width,
+  its dots closing up, through about 3 px and 0.88 at 17,500 km to 3.5 px, 0.95 and dots of 4.5 px
+  in 5 at world view. `wide` and `solid` reach their look at 10,000 km. Every weight draws today's line at 6,000 km across and closer, easing on a log scale of
+  the view's width, and a line wider than 2 px narrows toward 2 px as a pixel spans more texels, to
+  3 px at 3 texels and 2 px at 4, where the field's reach could no longer hold it, so it fades as
+  today's does. Today's stays the default until the owner picks; the chosen weight's cost is
+  measured then.
 - **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
   where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
   reach of 8 texels no longer spans the line.
