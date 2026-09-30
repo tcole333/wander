@@ -1,8 +1,10 @@
 # The event index's classes (streaming.md 3.4): `uv run prebuild wikidata` exports each with its
 # subclasses (wdt:P31/wdt:P279*), and the events stage scores an event log2(1 + Wikipedia editions)
 # x its class's weight. An event in several classes is scored by the heaviest, and its mark draws
-# the most specific class the export nests within that one, a class every event of which the
-# export also gives the heaviest: every volcanic eruption is a natural disaster. The first eighteen
+# the most specific class nested within that one, a class every event of which the export also
+# gives the heaviest: every volcanic eruption is a natural disaster. Where Wikidata does not nest a
+# class within the one it belongs to, `within` declares it: a siege exported as a battle too draws
+# the siege, and a tropical cyclone exported as a natural disaster the cyclone. The first eighteen
 # are the classes of the old us-1850-1900 snapshot, weighted by its kind priors; the rest widen it
 # to the risings, disasters and wrecks of every era. Sporting seasons, elections and similar noise
 # stay out by never being listed. A shipwreck is Wikidata's shipwrecking (Q906512), the sinking:
@@ -22,7 +24,7 @@ classes:
   - {qid: Q45382, name: coup, weight: 0.6}
   - {qid: Q3199915, name: massacre, weight: 0.6}
   - {qid: Q178561, name: battle, weight: 0.55}
-  - {qid: Q188055, name: siege, weight: 0.55}
+  - {qid: Q188055, name: siege, weight: 0.55, within: battle}
   - {qid: Q2401485, name: expedition, weight: 0.55}
   - {qid: Q124757, name: riot, weight: 0.45}
   - {qid: Q168983, name: conflagration, weight: 0.45}
@@ -35,7 +37,7 @@ classes:
   - {qid: Q43059, name: drought, weight: 0.7}
   - {qid: Q8070, name: tsunami, weight: 0.7}
   - {qid: Q8068, name: flood, weight: 0.65}
-  - {qid: Q8092, name: tropical cyclone, weight: 0.6}
+  - {qid: Q8092, name: tropical cyclone, weight: 0.6, within: natural disaster}
   - {qid: Q177716, name: pogrom, weight: 0.6}
   - {qid: Q511866, name: mutiny, weight: 0.55}
   - {qid: Q81054, name: storm, weight: 0.5}

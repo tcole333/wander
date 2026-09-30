@@ -16,8 +16,8 @@ from prebuild.records import read_record
 from prebuild.sources import Source, SourceFile
 from prebuild.wikidata import COLUMNS
 
-BATTLE, WAR = "Q178561", "Q198"
-DISASTER, ERUPTION, EARTHQUAKE = "Q8065", "Q7692360", "Q7944"
+BATTLE, SIEGE, WAR = "Q178561", "Q188055", "Q198"
+DISASTER, ERUPTION, EARTHQUAKE, CYCLONE = "Q8065", "Q7692360", "Q7944", "Q8092"
 RIOT, MASSACRE, SHIPWRECK = "Q124757", "Q3199915", "Q906512"
 CONFLAGRATION, WILDFIRE = "Q168983", "Q169950"
 HEADER = "\t".join(("?class", *COLUMNS))
@@ -108,6 +108,22 @@ def test_a_riot_that_is_also_a_massacre_keeps_its_heaviest_class_s_glyph():
 def test_a_battle_that_is_also_a_shipwreck_keeps_its_heaviest_class_s_glyph():
     battle = sharing(heavier=BATTLE, rarer=SHIPWRECK)
     assert (battle.cls, battle.display) == ("battle", "battle")
+
+
+def test_a_siege_that_is_also_a_battle_draws_the_siege_the_export_does_not_nest_in_battles():
+    siege = sharing(heavier=BATTLE, rarer=SIEGE)  # the export gives a siege that is no battle
+    assert (siege.cls, siege.display) == ("battle", "siege")
+
+
+def test_a_tropical_cyclone_that_is_also_a_natural_disaster_draws_the_cyclone():
+    cyclone = sharing(heavier=DISASTER, rarer=CYCLONE)
+    assert (cyclone.cls, cyclone.display) == ("natural disaster", "tropical cyclone")
+
+
+def test_a_class_declared_within_another_than_the_heaviest_is_not_displayed():
+    # Every siege is a battle, but not a war: a siege exported as a war too draws the war.
+    siege = sharing(heavier=WAR, rarer=SIEGE)
+    assert (siege.cls, siege.display) == ("war", "war")
 
 
 def test_a_class_nested_within_another_than_the_heaviest_is_not_displayed():

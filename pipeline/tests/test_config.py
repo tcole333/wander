@@ -9,6 +9,7 @@ from prebuild.config import (
     curated_places,
     load_contested_events,
     load_event_boosts,
+    load_event_classes,
     load_event_dates,
     load_event_places,
     load_fixture,
@@ -137,6 +138,33 @@ def test_the_regions_have_a_radius_per_level():
 def test_a_region_off_the_globe_is_refused(tmp_path):
     with pytest.raises(ConfigError, match="not at a lon/lat"):
         load_regions(write(tmp_path, "- {name: x, lon: 200, lat: 0, radiusKm: {5: 10}}\n"))
+
+
+def test_a_class_is_declared_within_the_class_the_export_does_not_nest_it_in():
+    classes = {c.name: c for c in load_event_classes()}
+    assert classes["siege"].within == "battle"
+    assert classes["tropical cyclone"].within == "natural disaster"
+    assert classes["battle"].within is None
+
+
+CLASSES = """classes:
+  - {qid: Q1, name: a, weight: 1.0}
+  - {qid: Q2, name: b, weight: 0.5, within: a}
+"""
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "complaint"),
+    [
+        ("within: a}", "within: c}", "puts class b within c, which it does not list"),
+        ("within: a}", "within: b}", "puts class b within itself"),
+        ("weight: 1.0}", "weight: 1.0, within: b}", "puts class a within itself"),
+        ("within: a}", "inside: a}", "needs qid, name, weight and optional within"),
+    ],
+)
+def test_a_malformed_class_is_refused(tmp_path, old, new, complaint):
+    with pytest.raises(ConfigError, match=complaint):
+        load_event_classes(write(tmp_path, CLASSES.replace(old, new)))
 
 
 def test_the_curated_corrections_give_boosts_dates_and_contested_events():

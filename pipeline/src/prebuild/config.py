@@ -71,11 +71,13 @@ class Region:
 
 @dataclass(frozen=True)
 class EventClass:
-    """A class of the event index (event-classes.yaml): exported with its subclasses."""
+    """A class of the event index (event-classes.yaml): exported with its subclasses, and nested
+    within the class it names `within`, where the export does not nest it."""
 
     qid: str
     name: str
     weight: float
+    within: str | None = None  # the name of the class every event of this one belongs to
 
 
 @dataclass(frozen=True)
@@ -166,21 +168,48 @@ def load_regions(path: Path) -> list[Region]:
 
 def load_event_classes(path: Path = EVENT_CLASSES) -> list[EventClass]:
     doc = _mapping(_load(path), path.name, {"classes"})
+    required = {"qid", "name", "weight"}
     classes = []
     for row in _list(doc["classes"], "classes"):
-        fields = _mapping(row, f"{path.name} class", {"qid", "name", "weight"})
+        fields = _mapping(row, f"{path.name} class")
+        if not required <= fields.keys() <= required | {"within"}:
+            raise ConfigError(f"{path.name} class needs qid, name, weight and optional within")
         name = _text(fields["name"], f"{path.name} class")
+        within = fields.get("within")
         classes.append(
             EventClass(
                 qid=_qid(fields["qid"], f"class {name}"),
                 name=name,
                 weight=_positive_float(fields["weight"], f"class {name} weight"),
+                within=None if within is None else _text(within, f"class {name} within"),
             )
         )
     for key in ("qid", "name"):
         if len({getattr(c, key) for c in classes}) != len(classes):
             raise ConfigError(f"{path.name} lists a class {key} twice")
+    by_name = {c.name: c for c in classes}
+    for c in classes:
+        for outer in enclosing(c, by_name, path.name):
+            if outer == c.name:
+                raise ConfigError(f"{path.name} puts class {c.name} within itself")
     return classes
+
+
+def enclosing(
+    cls: EventClass, by_name: Mapping[str, EventClass], where: str = EVENT_CLASSES.name
+) -> list[str]:
+    """The names of the classes `cls` is declared within, nearest first: the class it names
+    `within`, the class that one names, and so on, stopping at a repeat."""
+    names: list[str] = []
+    outer = cls.within
+    while outer is not None and outer not in names:
+        if outer not in by_name:
+            raise ConfigError(
+                f"{where} puts class {cls.name} within {outer}, which it does not list"
+            )
+        names.append(outer)
+        outer = by_name[outer].within
+    return names
 
 
 def load_event_boosts(path: Path = EVENT_CURATED, *, legacy: bool = False) -> dict[str, float]:
