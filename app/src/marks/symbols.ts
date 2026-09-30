@@ -2,8 +2,8 @@
 // layer, after Otto and Marie Neurath and Gerd Arntz. Each glyph is a solid silhouette with no
 // outline, drawn as SVG path data on a 64-unit grid, y down and north up, which the marks' glyph
 // atlas turns into a distance field and scripts/glyphSheet.ts prints. The drawing rules keep them
-// legible on the globe's smallest marks, 12 px across, whose seals hold the glyph at about 7 px, a
-// unit to a ninth of a pixel:
+// legible on the globe's smallest marks, 12 px across, whose cast tokens hold the glyph at about
+// 9 px (7 px on infrastructure's smaller gilt seal), a unit to a seventh of a pixel:
 // - every stroke and gap a glyph needs to be read is at least 6 units wide; finer details, such
 //   as a charter's lines or the points of the sun's rays, may fade at the smallest sizes;
 // - the glyphs of one family part by their silhouettes, since inner detail fades first;

@@ -1,7 +1,8 @@
 // The event marks' specimen sheet: every glyph of src/marks/symbols.ts by pace layer, at the
-// marks' sizes on the globe (12, 16 and 20 px) and at 7 px, the glyph a 12 px mark's seal holds,
-// on bronze and on the lacquer of the sea, and at 128 px on its 64-unit grid, with the classes of
-// pipeline/config/event-classes.yaml that take it.
+// marks' sizes on the globe (12, 16 and 20 px) and at the size the smallest mark's cast token
+// holds it (variant 0, the marks' default), on bronze and on the lacquer of the sea, and at 128 px
+// on its 64-unit grid, with the classes of pipeline/config/event-classes.yaml that take it; then
+// every glyph on its family's cast token at the marks' sizes, drawn flat.
 // Writes the SVG, then a PNG of it through headless Chromium, and prints each glyph's ink. From app/:
 //   node scripts/glyphSheet.ts --out ../build/explore/glyphs.svg [--png <path>] [--scale 1]
 // --png defaults to the SVG's path with .png; --scale is the PNG's device pixel ratio (1 shows the
@@ -11,7 +12,8 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from '@playwright/test';
 import { EVENT_CLASS_SYMBOLS, SOUTHERN_GLYPHS } from '../src/marks/eventSymbols.ts';
-import { PACES, type Pace } from '../src/marks/families.ts';
+import { tunables } from '../src/config/tunables.ts';
+import { FAMILIES, PACES, type Pace } from '../src/marks/families.ts';
 import { GLYPH_UNITS } from '../src/marks/glyphs.ts';
 import { EVENT_GLYPHS, type GlyphId } from '../src/marks/symbols.ts';
 
@@ -28,8 +30,11 @@ if (!(scale >= 1 && scale <= 4)) throw new Error('--scale takes a device pixel r
 const out = resolve(values.out);
 const png = resolve(values.png ?? out.replace(/\.svg$/, '.png'));
 
-/** The marks' sizes on the globe, after the glyph a 12 px mark's seal holds (about 0.6 of it). */
-const SIZES = [7, 12, 16, 20] as const;
+/** The marks' sizes on the globe, smallest first. */
+const MARK_SIZES = tunables.markPx.map((row) => row.px).sort((a, b) => a - b);
+const SMALLEST = MARK_SIZES[0]!;
+/** The width a family's cast token holds its glyph at on the smallest mark. */
+const tokenGlyph = (pace: Pace) => FAMILIES[pace].variants[0].glyph.scale * SMALLEST;
 const BIG = 128;
 const PAD = 32;
 const CARD = { width: 392, height: 184, gap: 16 };
@@ -52,6 +57,12 @@ for (const [north, south] of Object.entries(SOUTHERN_GLYPHS) as [GlyphId, GlyphI
   family.set(south, family.get(north)!);
 }
 const ids = Object.keys(EVENT_GLYPHS) as GlyphId[];
+
+/** The sizes a glyph is shown at: on its family's smallest token, then the marks' sizes. */
+function sizes(id: GlyphId): number[] {
+  const pace = family.get(id);
+  return [...(pace ? [tokenGlyph(pace)] : []), ...MARK_SIZES];
+}
 
 function escape(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -108,7 +119,7 @@ function card(id: GlyphId, x: number, y: number): string {
       `<rect x="${x + 168}" y="${top}" width="${CARD.width - 180}" height="36" rx="3" fill="${ground}"/>`,
     );
     let left = x + 184;
-    for (const size of SIZES) {
+    for (const size of sizes(id)) {
       parts.push(glyph(id, left, top + Math.round((36 - size) / 2), size, fill));
       left += size + 40;
     }
@@ -124,7 +135,7 @@ const body: string[] = [
   text(
     PAD,
     y + 46,
-    'One family per pace layer, drawn on a 64-unit grid. Marks are 12, 16 and 20 px across; a 12 px seal holds its glyph at 7 px.',
+    `One family per pace layer, drawn on a 64-unit grid. Marks are ${MARK_SIZES.join(', ')} px across; a ${SMALLEST} px cast token holds its glyph at ${PACES.map((pace) => tokenGlyph(pace).toFixed(1)).join(', ')} px (${PACES.join(', ')}).`,
     13,
     FAINT,
   ),
@@ -149,17 +160,55 @@ for (const [ground, fill] of [
   ['url(#bronze)', INK],
   ['#0f1512', BRASS],
 ] as const) {
-  for (const size of SIZES) {
-    const step = size + 14;
+  for (const [row, size] of ['token', ...MARK_SIZES].entries()) {
+    const at = (id: GlyphId) => (row === 0 ? tokenGlyph(family.get(id)!) : Number(size));
+    const step = Math.max(...ids.map(at)) + 14;
+    const tallest = Math.max(...ids.map(at));
     body.push(
-      `<rect x="${PAD}" y="${y}" width="${ids.length * step + 60}" height="${size + 16}" rx="3" fill="${ground}"/>`,
-      text(PAD + 8, y + size / 2 + 12, `${size}`, 11, fill),
-      ...ids.map((id, i) => glyph(id, PAD + 40 + i * step, y + 8, size, fill)),
+      `<rect x="${PAD}" y="${y}" width="${ids.length * step + 60}" height="${tallest + 16}" rx="3" fill="${ground}"/>`,
+      text(PAD + 8, y + tallest / 2 + 12, `${size}`, 11, fill),
+      ...ids.map((id, i) =>
+        glyph(
+          id,
+          PAD + 52 + i * step + (tallest - at(id)) / 2,
+          y + 8 + (tallest - at(id)) / 2,
+          at(id),
+          fill,
+        ),
+      ),
     );
-    y += size + 16 + 8;
+    y += tallest + 16 + 8;
   }
 }
-const height = y + PAD;
+// Every glyph on its family's cast token, the marks' default, flat: its disc and its glyph in
+// their colors, at each mark size, on lit bronze.
+body.push(text(PAD, y + 16, 'ON THE CAST TOKEN', 14, TEXT, 'letter-spacing="3"'));
+y += 28;
+for (const pace of PACES) {
+  const { disc, glyph: face } = FAMILIES[pace].variants[0];
+  const members = ids.filter((id) => family.get(id) === pace);
+  const largest = MARK_SIZES.at(-1)!;
+  const step = largest + 12;
+  const height = MARK_SIZES.length * step + 12;
+  body.push(
+    `<rect x="${PAD}" y="${y}" width="${members.length * step * 1.4 + 120}" height="${height}" rx="3" fill="url(#bronze)"/>`,
+    text(PAD + 8, y + 18, pace, 11, INK, 'font-style="italic"'),
+  );
+  MARK_SIZES.forEach((size, row) => {
+    const cy = y + 6 + row * step + step / 2;
+    body.push(text(PAD + 96, cy + 4, `${size}`, 11, INK));
+    members.forEach((id, i) => {
+      const cx = PAD + 130 + i * step * 1.4;
+      const g = face.scale * size;
+      body.push(
+        `<circle cx="${cx}" cy="${cy}" r="${((disc?.radius ?? 1) * size) / 2}" fill="${disc?.color ?? 'none'}" stroke="${INK}" stroke-opacity="0.35" stroke-width="0.5"/>`,
+        glyph(id, cx - g / 2, cy - g / 2, g, face.color),
+      );
+    });
+  });
+  y += height + 8;
+}
+const height = Math.ceil(y + PAD);
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${height}" viewBox="0 0 ${WIDTH} ${height}">
 <defs><linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1">
 <stop offset="0" stop-color="#c9a15c"/><stop offset="0.55" stop-color="#b08a4a"/><stop offset="1" stop-color="#8a6a36"/>
