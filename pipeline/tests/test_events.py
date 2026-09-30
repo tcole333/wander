@@ -212,6 +212,21 @@ def test_a_curated_place_stands_in_for_an_event_s_coordinates_and_its_location_s
     assert (kept["Q2"].lon, kept["Q2"].lat, kept["Q2"].inherited) == (3.0, 4.0, False)
 
 
+def test_a_curated_place_for_an_event_the_export_leaves_unlocated_is_refused():
+    statements = events.read_export(
+        [HEADER, row("Q2", "P585", "1755-11-01T00:00:00Z", 11, coord="", place="")]
+    )
+    with pytest.raises(events.EventsError, match=r"Q2 a place.*countryCentroid or an at"):
+        events.index(statements, load_event_classes(), {}, places={"Q2": (3.0, 4.0)})
+
+
+def test_a_curated_place_for_an_event_the_export_lacks_is_refused():
+    statements = events.read_export([HEADER, row("Q2", "P585", "1755-11-01T00:00:00Z", 11)])
+    events.check_places(statements, {"Q2": (3.0, 4.0)}, "export")
+    with pytest.raises(events.EventsError, match="places Q3, which export lacks"):
+        events.check_places(statements, {"Q2": (3.0, 4.0), "Q3": (1.0, 2.0)}, "export")
+
+
 def test_of_several_dates_the_most_precise_wins_then_the_earliest():
     kept = indexed(
         row("Q1", "P585", "1816-06-01T00:00:00Z", 10),
@@ -348,6 +363,7 @@ def test_the_stage_writes_the_table_in_score_order_with_its_record(monkeypatch, 
     paths = {"events.tsv.gz": export, "export.json": meta}
     monkeypatch.setattr(events, "verified_path", lambda ctx, source_id, name: paths[name])
     monkeypatch.setattr(events, "load_event_boosts", lambda **_: {})  # ignore Waterloo's boost
+    monkeypatch.setattr(events, "load_event_places", dict)  # Lisbon's is not in this export
     ctx = make_context(Profile.GLOBAL, 1, tmp_path)
     events.run(ctx)
     table = gzip.decompress((ctx.out / events.KEY).read_bytes()).decode().splitlines()
