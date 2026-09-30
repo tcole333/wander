@@ -1,0 +1,18 @@
+# The borders' build rules (streaming.md 3.3). Areas are in km² and widths in km, measured on
+# equal-area projections.
+
+# A connected piece of an outer unit's land under this draws its borders with other outer units in
+# the inner plane, so small states come forward only as the view closes in (owner decision 36).
+minorKm2: 50000
+# A composite's land beyond its components' is drawn when at least this large.
+leftoverKm2: 100
+# Stateless land narrower than twice this goes to its neighbours: slivers on coasts, and enclosed
+# pieces that narrow throughout.
+sliverKm: 14
+# An enclosed stateless piece that touches a lake or lies in a hole of the polities goes to its
+# neighbours under this, so no border rings a lake; a larger one stays stateless.
+pocketKm2: 100000
+# Two drawn polities overlapping by more than this go to the review queue.
+reviewKm2: 2000
+# Two overlapping by more than this share of the larger need an `overlap` correction.
+duplicateShare: 0.5
