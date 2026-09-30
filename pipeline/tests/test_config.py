@@ -175,6 +175,8 @@ def test_parent_places_keep_both_sourced_fallbacks(tmp_path):
 
 
 def test_a_located_event_s_curated_place_gives_its_source(tmp_path):
+    lisbon = curated_places(load_event_places())["Q191055"]
+    assert lisbon == pytest.approx((-9.139016, 38.708042))
     path = write(
         tmp_path,
         "places: [{qid: Q1, why: w, place: [1, 2], source: {title: T, url: 'https://x.org'}}]",
