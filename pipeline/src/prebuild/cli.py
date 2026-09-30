@@ -12,6 +12,7 @@ from prebuild import (
     events,
     excerpts,
     fetch,
+    fixture_store,
     fx,
     meanwhile,
     media,
@@ -90,8 +91,12 @@ def plan(
         parser.error("--story goes with the media and meanwhile stages")
     if args.offline and "media" not in named:
         parser.error("--offline goes with the media stage")
+    if args.rebuild and (profile is not Profile.FIXTURE or named):
+        parser.error("--rebuild goes with a full fixture build: --profile fixture, no stages named")
     names = [name for name in stages if name in named] if named else default_stages(profile, stages)
-    ctx = make_context(profile, args.jobs, repo, story=args.story, offline=args.offline)
+    ctx = make_context(
+        profile, args.jobs, repo, story=args.story, offline=args.offline, rebuild=args.rebuild
+    )
     return ctx, names
 
 
@@ -100,12 +105,23 @@ def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGE
     writes its own sidecars (tiles.json, points.json) whenever it runs; only a full fixture build
     then writes the cube samples and the synthetic tiles and, last, the stamp, so a failed or
     partial build never looks fresh. The stamp hashes the inputs as they stood before the stages
-    ran, so a file saved during the build leaves the fixture stale."""
+    ran, so a file saved during the build leaves the fixture stale. A full fixture build first
+    looks for its inputs in the fixture store and restores that build instead, unless --rebuild;
+    one it makes goes into the store when no input changed while it ran."""
     fixture = ctx.profile is Profile.FIXTURE
     full_fixture = fixture and list(names) == default_stages(ctx.profile, stages)
     if fixture:
         clear_stamp(ctx)
     inputs = tree_sha(FIXTURE_PATHS, ctx.repo) if full_fixture else None
+    store = fixture_store.store_root() if full_fixture else None
+    if inputs is not None and store is not None and not ctx.rebuild:
+        entry = store / inputs
+        try:
+            if fixture_store.restore(ctx, entry):
+                print(f"prebuild --profile {ctx.profile}: restored {entry}", flush=True)
+                return
+        except OSError as error:
+            print(f"prebuild: could not restore {entry}, building: {error}", file=sys.stderr)
     if not names and not full_fixture:
         print(f"prebuild --profile {ctx.profile}: no stages to run", flush=True)
     for name in names:
@@ -114,6 +130,8 @@ def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGE
     if inputs is not None:
         write_expectations(ctx, inputs)
         print(f"prebuild --profile {ctx.profile}: wrote the test sidecars and stamp", flush=True)
+        if store is not None and tree_sha(FIXTURE_PATHS, ctx.repo) == inputs:
+            fixture_store.save(ctx, store / inputs)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -153,6 +171,11 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         "--offline",
         action="store_true",
         help="media reads the committed sources in pipeline/tests/data/media/, not Commons",
+    )
+    parser.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="build the fixture even when the fixture store holds a build of these inputs",
     )
     parser.add_argument("stages", nargs="*", metavar="stage", help="stages to run (see below)")
     return parser
