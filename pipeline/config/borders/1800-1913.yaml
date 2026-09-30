@@ -482,6 +482,21 @@ corrections:
       title: Mexican Revolution
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Mexican_Revolution
+  # The Door Peninsula, ceded by the Menominee.
+  - years: [1834, 1835]
+    add:
+      polity: United States of America
+      shape: door-peninsula-1832.geojson
+    why: >-
+      The Menominee ceded their claim to the Door Peninsula, east of Green Bay, to the United States
+      in the Treaty of Washington of February 1831, which the Senate ratified in June 1832.
+      Cliopatria's United States of 1834-35 holds the land along the bay's east shore but stops at
+      the peninsula's base, so the peninsula went to the nearest land, the stateless land across the
+      bay, and a border ran along its shore.
+    source:
+      title: Treaty of Washington (1831)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Washington_(1831)
   # Names out of date in 1914, renamed over the years they are wrong.
   - years: [1862, 1929]
     rename:
