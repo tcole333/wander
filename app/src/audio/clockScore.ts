@@ -1,13 +1,13 @@
 // Explore's sound (issue #79), in the walk's voices (walkAudio.ts) with no story to follow: the
 // museum's room tone, coming in once the dive has landed, as a story's bed does, since the whir
-// carries the dive; the whir through every free flight (view/freeFlight.ts) at the camera's pace;
+// carries the dive, and reusing the lobby's room tone when a museum bed plays it; the whir through every free flight (view/freeFlight.ts) at the camera's pace;
 // and a detent for each mark the free ruler's playhead passes among those the ruler engraves at
 // that moment: its days and months as a story's ruler does, or, coarser, each year it labels,
 // every year or every labelled step of decades, centuries or millennia, walking from one labelled
 // year to the next rather than day by day. The free ruler engraves history's calendar, Julian
 // before the reform (story/dates.ts), and its detents fall where its marks do.
 import { HISTORICAL, type Precision } from '../story/dates';
-import { museumBed, type Bed } from './bed';
+import { landBed, MUSEUM, museumBed, type Bed, type RoomBed } from './bed';
 import type { SoundEngine } from './engine';
 import { marksPassed } from './marks';
 import { Detents, FlightWhir } from './voices';
@@ -48,10 +48,13 @@ export class ClockScore {
   readonly #whir: FlightWhir;
   /** The museum's room tone, from the dive's landing. */
   #bed: Bed | null = null;
+  /** The room left by a walk or an earlier Explore, reused or crossfaded at the landing. */
+  #room: RoomBed | null;
   #day: number;
 
-  constructor(engine: SoundEngine, day: number) {
+  constructor(engine: SoundEngine, day: number, room: RoomBed | null = null) {
     this.#engine = engine;
+    this.#room = room;
     this.#detents = new Detents(engine);
     this.#whir = new FlightWhir(engine);
     this.#day = day;
@@ -76,22 +79,27 @@ export class ClockScore {
       this.#day = to;
     }
     this.#whir.frame(flying, pace, at);
-    if (!this.#bed && !flying) this.#bed = museumBed(engine, to, at);
+    if (this.#bed || flying) return;
+    this.#bed = landBed(this.#room, MUSEUM, () => museumBed(engine, to, at), at);
+    this.#room = null;
   }
 
-  /** The return: the whir stops, and the room tone plays on through the lobby's flight. */
-  toRoom(at: number): Bed | null {
+  /** The return: the whir stops, and the room tone plays on in the lobby for the next dive. */
+  toRoom(at: number): RoomBed | null {
     this.#whir.stop(at);
-    const bed = this.#bed;
+    const room = this.#bed ? { bed: this.#bed, voice: MUSEUM } : this.#room;
+    room?.bed.toRoom(at);
     this.#bed = null;
-    bed?.toRoom(at);
-    return bed;
+    this.#room = null;
+    return room;
   }
 
   /** Fades everything Explore has playing. */
   stop(at: number): void {
     this.#whir.stop(at);
     this.#bed?.stop(at);
+    this.#room?.bed.stop(at);
     this.#bed = null;
+    this.#room = null;
   }
 }

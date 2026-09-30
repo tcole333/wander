@@ -9,7 +9,8 @@ import { ViewControl } from '../view/viewControl';
 import { drawnView, type ViewState } from '../view/viewState';
 import type { ModeAudio } from '../walk/mode';
 import { SoundEngine } from './engine';
-import { createWalkAudio, type WalkAudio } from './walkAudio';
+import { primeAtLeast } from './synth';
+import { createWalkAudio } from './walkAudio';
 
 /** The page's live engine: a real one, on an audio clock without audio. */
 const live = vi.hoisted(() => ({ engine: undefined as SoundEngine | undefined }));
@@ -23,7 +24,14 @@ const story = parseStory(
   readFileSync(new URL('../../../stories/tambora/story.md', import.meta.url), 'utf8'),
 );
 const DT = 1 / 60;
+const RATE = 48000;
 const LOBBY: ViewState = { lon: 75, lat: 15, viewKm: 30000, tilt: 0, heading: 0 };
+/** The museum's room tone, as bed.ts makes it: its air in each ear and the ventilation's hush. */
+const ROOM_TONE = ['brown 10.1', 'pink 7.3', 'pink 8.9'];
+/** Tambora's bed: the room tone and the mountain's two rumbling loops. */
+const TAMBORA = [...ROOM_TONE, 'brown 11.3', 'brown 12.7'].toSorted();
+/** The lengths of the beds' noise buffers, in samples. */
+const BED_LENGTHS = new Set([7.3, 8.9, 10.1, 11.3, 12.7].map((s) => primeAtLeast(s * RATE)));
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -44,7 +52,7 @@ afterEach(() => {
 
 /** The page's sound on a real engine, run frame by frame as the boot runs it. */
 function page() {
-  const clock = audioClock();
+  const clock = audioClock(RATE);
   const engine = new SoundEngine(clock.ctx);
   live.engine = engine;
   const audio = createWalkAudio();
@@ -61,74 +69,103 @@ function page() {
       audio.update(heard, view, DT, back);
     }
   };
+  const lobby = () => ({ heard: null, view: LOBBY });
+  /** The noise the engine holds, by color and length in seconds. */
   const cached = () => {
     const account = new MemoryAccount();
     engine.inspectMemory(account);
-    const noise = Object.entries(account.owners).filter(([owner]) =>
-      owner.startsWith('audio.noise'),
-    );
-    return {
-      bytes: noise.reduce((sum, [, totals]) => sum + totals.audioSamples, 0),
-      buffers: (account.details.audio as { cachedNoiseBuffers: number }).cachedNoiseBuffers,
-    };
+    return Object.keys(account.owners)
+      .filter((owner) => owner.startsWith('audio.noise.'))
+      .map((owner) => {
+        const [color, length] = owner.slice('audio.noise.'.length).split(' ');
+        return `${color} ${(Number(length) / RATE).toFixed(1)}`;
+      })
+      .toSorted();
   };
+  /** How many beds' noise buffers the engine has made. */
+  const bedBuffers = () => clock.buffers.filter((buffer) => BED_LENGTHS.has(buffer.length)).length;
   /** The return: the lobby's flight, whirring, then its landing and a few seconds in the lobby. */
-  const back = (audio: WalkAudio) => {
+  const back = () => {
     audio.leave();
-    run(2, () => ({ heard: null, view: LOBBY }), true);
+    run(2, lobby, true);
     audio.finish();
-    run(4, () => ({ heard: null, view: LOBBY }));
+    run(4, lobby);
   };
-  return { audio, run, cached, back };
-}
-
-describe('the lobby after a walk', () => {
-  it('holds no cached noise once the return has landed', () => {
-    const { audio, run, cached, back } = page();
+  /** A walk from the lobby: the dive, its landing, and `beats` more beats. */
+  const walk = (beats: number) => {
     const control = new ViewControl(LOBBY);
     control.minKmAt = () => 1;
-    const walk = createWalk(story, control, { ready: () => true, arrive: 'fly' });
+    const director = createWalk(story, control, { ready: () => true, arrive: 'fly' });
     audio.start(true);
     const walking = () => {
-      walk.update(0, DT);
+      director.update(0, DT);
       control.step(0, DT);
       return {
-        heard: { state: walk.state(), unit: 'day' as const },
+        heard: { state: director.state(), unit: 'day' as const },
         view: drawnView(control.current),
       };
     };
     run(8, walking);
-    walk.goTo(2);
-    run(8, walking);
-    // The walk's noise, bed and cues included, is cached while it plays.
-    expect(cached().bytes).toBeGreaterThan(8 * 2 ** 20);
-    back(audio);
-    expect(cached()).toEqual({ bytes: 0, buffers: 0 });
-    walk.dispose();
+    for (let beat = 1; beat <= beats; beat += 1) {
+      director.goTo(beat);
+      run(8, walking);
+    }
+    const walked = cached();
+    back();
+    director.dispose();
+    return walked;
+  };
+  /** Explore from the lobby: the dive, its landing and a scrub back through the years. */
+  const explore = () => {
+    audio.start(true);
+    let day = dayFromHistorical({ year: 1815, month: 6, day: 18 });
+    run(1, () => ({
+      heard: { clock: { day, unit: 'year', yearStep: 10 }, flying: true },
+      view: LOBBY,
+    }));
+    run(3, () => {
+      day -= 40;
+      return { heard: { clock: { day, unit: 'year', yearStep: 10 }, flying: false }, view: LOBBY };
+    });
+    back();
+  };
+  return { audio, run, lobby, cached, bedBuffers, walk, explore };
+}
+
+describe('the lobby after a walk', () => {
+  it("keeps only its room tone's noise once the return has landed, and none once it stops", () => {
+    const { audio, run, lobby, cached, walk } = page();
+    const walked = walk(2);
+    expect(walked).toEqual(expect.arrayContaining(TAMBORA));
+    expect(walked.length).toBeGreaterThan(TAMBORA.length + 4);
+    // The cues' and the mechanism's noise are gone; the bed playing room tone keeps its own.
+    expect(cached()).toEqual(TAMBORA);
+    audio.dispose();
+    run(3, lobby);
+    expect(cached()).toEqual([]);
+  });
+
+  it("carries the room tone into the next walk's landing, building no bed of its own", () => {
+    const { audio, cached, bedBuffers, walk } = page();
+    walk(2);
+    const built = bedBuffers();
+    walk(1);
+    expect(bedBuffers()).toBe(built);
+    expect(cached()).toEqual(TAMBORA);
     audio.dispose();
   });
 
-  it('holds none after Explore either, whose next dive caches its own again', () => {
-    const { audio, run, cached, back } = page();
-    const waterloo = dayFromHistorical({ year: 1815, month: 6, day: 18 });
-    for (let trip = 0; trip < 2; trip += 1) {
-      audio.start(true);
-      let day = waterloo;
-      run(1, () => ({
-        heard: { clock: { day, unit: 'year', yearStep: 10 }, flying: true },
-        view: LOBBY,
-      }));
-      run(3, () => {
-        day -= 40;
-        return {
-          heard: { clock: { day, unit: 'year', yearStep: 10 }, flying: false },
-          view: LOBBY,
-        };
-      });
-      expect(cached().buffers).toBeGreaterThan(0);
-      back(audio);
-      expect(cached()).toEqual({ bytes: 0, buffers: 0 });
-    }
+  it("gives Explore the museum's room tone from the walk's noise, and the lobby keeps only that", () => {
+    const { audio, cached, bedBuffers, walk, explore } = page();
+    walk(1);
+    const built = bedBuffers();
+    explore();
+    expect(bedBuffers()).toBe(built);
+    expect(cached()).toEqual(ROOM_TONE);
+    // Another trip reuses that room tone.
+    explore();
+    expect(bedBuffers()).toBe(built);
+    expect(cached()).toEqual(ROOM_TONE);
     audio.dispose();
   });
 });

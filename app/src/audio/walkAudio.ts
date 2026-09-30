@@ -10,9 +10,9 @@
 // the walk with it). createWalkAudio belongs to the page, and plays Explore's sound too
 // (clockScore.ts): the lobby's plaque unlocks the context in its click; a dev walk arms
 // first-gesture unlocks. The knob and M share one remembered setting even before a story starts.
-// Returning fades cues and rumble to the room through the lobby's flight; once it lands, the room
-// tone fades out and the engine forgets the noise it cached, so the lobby holds none, and the next
-// dive's bed comes in at its landing as the first did. A hidden tab fades out over hideRamp and
+// Returning fades cues and rumble to the room, whose tone plays on in the lobby; once the return
+// lands, the engine forgets the noise no sound still plays. The next landing reuses that bed for
+// the same voice or crossfades to the new one's. A hidden tab fades out over hideRamp and
 // suspends, then resumes and fades in over showFade (streaming.md 5.9).
 import { tunables } from '../config/tunables';
 import { flightPath } from '../story/flight';
@@ -21,7 +21,7 @@ import type { SoundSwitch, WalkState } from '../story/contract';
 import { isFormField } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { ModeAudio } from '../walk/mode';
-import { magellanBed, museumBed, tamboraBed, type Bed } from './bed';
+import { landBed, magellanBed, MUSEUM, museumBed, tamboraBed, type Bed, type RoomBed } from './bed';
 import { ClockScore } from './clockScore';
 import { isCueName, startCue, type CueHandle, type CueName } from './cues';
 import { unlockedSound, unlockSound, type SoundEngine } from './engine';
@@ -84,6 +84,9 @@ export class WalkScore {
    * one that flies in from the lobby, whose whir carries the dive. Undefined until then.
    */
   #bed: Bed | null | undefined;
+  /** The room left by an earlier walk or Explore, reused once this walk lands. */
+  #room: RoomBed | null;
+  #voice = MUSEUM;
   #beat: number;
   #day: number;
   /**
@@ -101,8 +104,9 @@ export class WalkScore {
   #bedAt = -Infinity;
   #clunkAt = -Infinity;
 
-  constructor(engine: SoundEngine, from: WalkState, at: number) {
+  constructor(engine: SoundEngine, from: WalkState, at: number, room: RoomBed | null = null) {
     this.#engine = engine;
+    this.#room = room;
     this.#detents = new Detents(engine);
     this.#whir = new FlightWhir(engine);
     this.#beat = from.beat;
@@ -167,26 +171,31 @@ export class WalkScore {
   }
 
   #startBed(state: WalkState, at: number): void {
-    const bed = Object.hasOwn(BEDS, state.story.id) ? BEDS[state.story.id] : undefined;
-    this.#bed = (bed ?? museumBed)(this.#engine, state.day, at);
+    const voice = Object.hasOwn(BEDS, state.story.id) ? state.story.id : MUSEUM;
+    const make = () => (BEDS[voice] ?? museumBed)(this.#engine, state.day, at);
+    this.#voice = voice;
+    this.#bed = landBed(this.#room, voice, make, at);
+    this.#room = null;
     this.#bed.setDay(state.day, at);
     [this.#bedDay, this.#bedAt] = [state.day, at];
   }
 
-  /** Fades the story back to the room, whose tone plays on through the lobby's flight. */
-  toRoom(at: number): Bed | null {
+  /** Fades the story back to the room, handing its bed to the next walk or Explore. */
+  toRoom(at: number): RoomBed | null {
     for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
     this.#cues = [];
     this.#whir.stop(at);
-    const bed = this.#bed ?? null;
-    bed?.toRoom(at);
+    const room = this.#bed ? { bed: this.#bed, voice: this.#voice } : this.#room;
+    room?.bed.toRoom(at);
     this.#bed = null;
-    return bed;
+    this.#room = null;
+    return room;
   }
 
   /** Fades everything the walk has playing. */
   stop(at: number): void {
     this.#bed?.stop(at);
+    this.#room?.bed.stop(at);
     for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
     this.#whir.stop(at);
   }
@@ -205,8 +214,8 @@ export interface WalkAudio extends SoundSwitch {
   /** Fades the bed and cues to the room and disarms gesture unlocks in the lobby. */
   leave(): void;
   /**
-   * The return has landed in the lobby: the room tone fades out and the engine forgets the noise
-   * it cached, so the lobby holds none.
+   * The return has landed in the lobby: the engine forgets the noise no sound still plays, keeping
+   * the room tone's.
    */
   finish(): void;
   /**
@@ -222,8 +231,8 @@ export function createWalkAudio(): WalkAudio {
   let engine = unlockedSound() ?? null;
   engine?.setMuted(muted);
   let score: WalkScore | ClockScore | null = null;
-  /** The bed the last score left playing room tone through the lobby's flight. */
-  let room: Bed | null = null;
+  /** The bed the last score left playing room tone in the lobby, for the next one to take. */
+  let room: RoomBed | null = null;
   let returnWhir: Whir | null = null;
   let active = false;
   /**
@@ -296,10 +305,9 @@ export function createWalkAudio(): WalkAudio {
     { signal },
   );
 
-  /** Starts `next` in place of any score, or room tone, still playing. */
+  /** Starts `next`, which has taken the room, in place of any score still playing. */
   const begin = <S extends WalkScore | ClockScore>(next: S, at: number): S => {
     score?.stop(at);
-    room?.stop(at);
     room = null;
     unlockedFrom = null;
     score = next;
@@ -321,13 +329,16 @@ export function createWalkAudio(): WalkAudio {
       const walk =
         score instanceof WalkScore
           ? score
-          : begin(new WalkScore(sound, 'state' in from ? from.state : heard.state, at), at);
+          : begin(new WalkScore(sound, 'state' in from ? from.state : heard.state, at, room), at);
       walk.frame({ state: heard.state, unit: heard.unit, pace, at, dt });
     } else {
       const clock =
         score instanceof ClockScore
           ? score
-          : begin(new ClockScore(sound, 'clock' in from ? from.clock.day : heard.clock.day), at);
+          : begin(
+              new ClockScore(sound, 'clock' in from ? from.clock.day : heard.clock.day, room),
+              at,
+            );
       clock.frame({ ...heard, pace, at, dt });
     }
   };
@@ -346,22 +357,14 @@ export function createWalkAudio(): WalkAudio {
     },
     leave() {
       active = false;
-      if (engine && score) {
-        const at = engine.soon();
-        room?.stop(at);
-        room = score.toRoom(at);
-      }
+      if (engine && score) room = score.toRoom(engine.soon());
       score = null;
       last = null;
       lastView = null;
       unlockedFrom = null;
     },
     finish() {
-      if (engine) {
-        room?.stop(engine.soon());
-        engine.releaseNoise();
-      }
-      room = null;
+      engine?.releaseNoise();
     },
     update(heard, view, dtS, returning = false) {
       if (engine && engine.ctx.state === 'running') {
@@ -385,7 +388,7 @@ export function createWalkAudio(): WalkAudio {
       if (engine) {
         const at = engine.soon();
         score?.stop(at);
-        room?.stop(at);
+        room?.bed.stop(at);
         returnWhir?.stop(at);
       }
       score = null;
