@@ -1,53 +1,33 @@
-// The globe's climate in the walk (streaming.md 3.5): ModE-RA's monthly temperature anomalies
-// under the story day, on the beats whose layers show climate monthly. The years those beats reach
-// load once asked (the boot asks the first time the view settles with the tiles in view loaded),
-// from the beat before each (a flight sweeps story time from its date) to the end of the beat's
-// window: each year's mean file is fetched from the data host, inflated and read
-// (data/climate.ts). A year a scrub reaches beyond them loads when first asked for, and past the
-// data's years the layer eases out. Each frame the two months around the story day blend into the
-// look's field (look/climateHook.ts), uploaded when the blend changes, and the look's strength
-// eases in and out over half a second as beats change, once a field has loaded. Annual means wait
-// for the ruler's wide spans (monthly only here). Without a modera section in the release, or once
-// a file fails, it logs once and draws no climate: the walk never breaks over climate.
-import { DataUtils } from 'three';
+// The globe's climate in a story (streaming.md 3.5): ModE-RA's monthly temperature anomalies under
+// the story day, on the beats whose layers show climate monthly. The years those beats reach load
+// once asked (the boot asks the first time the view settles with the tiles in view loaded), from
+// the beat before each (a flight sweeps story time from its date) to the end of the beat's window:
+// each year's mean file is fetched from the data host, inflated and read (climate/years.ts). A year
+// a scrub reaches beyond them loads when first asked for, and past the data's years the layer eases
+// out. Each frame the two months around the story day blend into the look's field
+// (climate/field.ts), which uploads it when the blend differs from what it holds, Explore's
+// included, and the look's strength eases in and out over half a second as beats change, once a
+// field has loaded. Annual means wait for the ruler's wide spans (monthly only here). Without a
+// modera section in the release, or once a file fails, it logs once and draws no climate: the walk
+// never breaks over climate.
+import { monthsAround, type ClimateFile, type Month } from '../../data/climate';
+import type { ClimateField } from '../../climate/field';
 import {
-  climateKey,
-  CLIMATE_YEAR_BYTES,
-  ClimateError,
-  blendMonths,
-  monthsAround,
-  parseClimate,
-  type ClimateFile,
-  type Month,
-  type MonthBlend,
-} from '../../data/climate';
-import type { ModeraRelease } from '../../data/release';
-import { fetchData } from '../../data/surfaceLayer';
-import { CLIMATE_GRID, type ClimateUniforms } from '../../look/climateHook';
-import { inflate } from '../../surface/wst';
+  checkClimateYear,
+  climateUrl,
+  coversBlend,
+  loadClimateYear,
+  type ClimateSource,
+  type LoadClimateYear,
+} from '../../climate/years';
 import type { WalkState } from '../contract';
 import { civilFromDay } from '../dates';
 import type { Story, StoryBeat } from '../story';
 import { smoothstep } from './timeline';
 import type { MemoryAccount } from '../../perf/memory';
 
-/** Where the climate files are: the release's data host and its modera section, if it has one. */
-export interface ClimateSource {
-  dataHost: string;
-  modera?: ModeraRelease;
-}
-
-/** Fetches and reads one year's mean file. */
-export type LoadClimateYear = (url: string) => Promise<ClimateFile>;
-
 /** Seconds the climate takes to ease in or out. */
 const EASE_S = 0.5;
-
-const HALF_ONE = DataUtils.toHalfFloat(1);
-
-export async function loadClimateYear(url: string): Promise<ClimateFile> {
-  return parseClimate(await inflate(await fetchData(url), CLIMATE_YEAR_BYTES));
-}
 
 /** Whether the beat's layers show climate as monthly frames. */
 export function showsMonthly(beat: StoryBeat | undefined): boolean {
@@ -67,16 +47,15 @@ export function climateYears(story: Story): number[] {
   return [...years].sort((a, b) => a - b);
 }
 
-export class WalkClimate {
-  readonly #uniforms: ClimateUniforms | undefined;
+export class StoryClimate {
+  readonly #field: ClimateField | undefined;
   readonly #source: ClimateSource;
   readonly #load: LoadClimateYear;
   /** The years the story's climate beats reach, which load() fetches. */
   readonly #reach: number[];
   readonly #years = new Map<number, ClimateFile | null>();
-  readonly #field = new Float32Array(CLIMATE_GRID.nlat * CLIMATE_GRID.nlon);
-  /** The blend drawn, and the month of the story day it was last drawn for. */
-  #blend: MonthBlend | null = null;
+  /** Whether a blend has been drawn, and the month of the story day it was last drawn for. */
+  #loaded = false;
   #month: Month | null = null;
   /** 0 to 1, before its easing curve. */
   #shown = 0;
@@ -85,28 +64,25 @@ export class WalkClimate {
   constructor(
     story: Story,
     source: ClimateSource,
-    uniforms: ClimateUniforms | undefined,
+    field: ClimateField | undefined,
     load: LoadClimateYear = loadClimateYear,
   ) {
-    this.#uniforms = uniforms;
+    this.#field = field;
     this.#source = source;
     this.#load = load;
     this.#reach = climateYears(story);
-    this.#off = uniforms === undefined || this.#reach.length === 0;
+    this.#off = field === undefined || this.#reach.length === 0;
     if (this.#off) return;
     const { modera } = source;
     if (!modera) {
       this.#stop('the release has no modera section');
       return;
     }
-    const { lat, lon0, dlon } = modera;
-    const [north = 90, south = -90] = [lat[0], lat[lat.length - 1]];
-    uniforms?.lookClimateGrid.value.set(lon0, dlon, north, (north - south) / (lat.length - 1));
+    field?.useGrid(modera);
   }
 
-  /** Starts loading the years the story's climate beats reach. */
   inspectMemory(account: MemoryAccount): void {
-    account.array('climate.blendScratch', this.#field);
+    this.#field?.inspectMemory(account);
     for (const [year, file] of this.#years) {
       if (!file) continue;
       for (const array of [file.codes, file.scale, file.offset])
@@ -121,7 +97,7 @@ export class WalkClimate {
 
   /** How strongly climate data is drawn now, 0 to 1: 0 until a field has loaded. */
   get drawn(): number {
-    return this.#blend ? smoothstep(0, 1, this.#shown) : 0;
+    return this.#loaded ? smoothstep(0, 1, this.#shown) : 0;
   }
 
   /** The month drawn, while any climate is. */
@@ -131,57 +107,25 @@ export class WalkClimate {
 
   /** Every frame: the blend for the story day on a climate beat, and the eased strength. */
   update(state: WalkState, dtS: number, strength: number): void {
-    const uniforms = this.#uniforms;
-    if (this.#off || !uniforms) return;
-    const wanted = showsMonthly(state.story.beats[state.beat]) && this.#covers(state.day);
-    if (wanted && this.#blendFor(state.day, uniforms)) {
-      const { year, month } = civilFromDay(state.day);
-      this.#month = { year, month };
+    const field = this.#field;
+    if (this.#off || !field) return;
+    const blend = monthsAround(state.day);
+    const wanted =
+      showsMonthly(state.story.beats[state.beat]) && coversBlend(this.#source.modera, blend);
+    if (wanted) {
+      const from = this.#request(blend.from.year);
+      const to = this.#request(blend.to.year);
+      if (from && to) {
+        field.draw(from, to, blend);
+        this.#loaded = true;
+        const { year, month } = civilFromDay(state.day);
+        this.#month = { year, month };
+      }
     }
-    const target = wanted && this.#blend ? 1 : 0;
+    const target = wanted && this.#loaded ? 1 : 0;
     const step = dtS / EASE_S;
     this.#shown += Math.max(-step, Math.min(step, target - this.#shown));
-    uniforms.lookClimateStrength.value = this.drawn * strength;
-  }
-
-  /**
-   * Blends the months around `day` into the field once both years have loaded, uploading it when
-   * the blend changes; true when the field is `day`'s.
-   */
-  #blendFor(day: number, uniforms: ClimateUniforms): boolean {
-    const blend = monthsAround(day);
-    const from = this.#request(blend.from.year);
-    const to = this.#request(blend.to.year);
-    if (!from || !to) return false;
-    const last = this.#blend;
-    const same = (a: Month, b: Month) => a.year === b.year && a.month === b.month;
-    if (
-      last &&
-      same(last.from, blend.from) &&
-      same(last.to, blend.to) &&
-      Math.abs(last.w - blend.w) < 1e-4
-    ) {
-      return true;
-    }
-    blendMonths(from, blend.from.month, to, blend.to.month, blend.w, this.#field);
-    const texture = uniforms.lookClimateField.value;
-    const data = texture.image.data as Uint16Array;
-    for (let i = 0; i < this.#field.length; i += 1) {
-      const k = this.#field[i] ?? NaN;
-      const present = !Number.isNaN(k);
-      data[2 * i] = present ? DataUtils.toHalfFloat(k) : 0;
-      data[2 * i + 1] = present ? HALF_ONE : 0;
-    }
-    texture.needsUpdate = true;
-    this.#blend = blend;
-    return true;
-  }
-
-  /** Whether the data's years hold both months around `day`. */
-  #covers(day: number): boolean {
-    const [first = 0, last = -1] = this.#source.modera?.years ?? [];
-    const { from, to } = monthsAround(day);
-    return from.year >= first && to.year <= last;
+    field.strength = this.drawn * strength;
   }
 
   /** A year's file once loaded; the first ask starts its load. */
@@ -192,23 +136,17 @@ export class WalkClimate {
     if (year < first || year > last) return null;
     if (this.#years.has(year)) return this.#years.get(year) ?? null;
     this.#years.set(year, null);
-    const url = `${this.#source.dataHost}/${climateKey(modera, year)}`;
+    const url = climateUrl(this.#source, modera, year);
     this.#load(url)
-      .then((file) => {
-        const { nlat, nlon } = CLIMATE_GRID;
-        if (file.nlat !== nlat || file.nlon !== nlon || file.frames !== 12) {
-          throw new ClimateError(`${url} holds ${file.frames} frames of ${file.nlat}x${file.nlon}`);
-        }
-        this.#years.set(year, file);
-      })
+      .then((file) => this.#years.set(year, checkClimateYear(file, url)))
       .catch((error: unknown) => this.#stop(String(error)));
     return null;
   }
 
-  /** Clears the lobby while retaining the loaded years and blend for the next walk. */
+  /** Clears the lobby while retaining the loaded years for the next walk. */
   hide(): void {
     this.#shown = 0;
-    if (this.#uniforms) this.#uniforms.lookClimateStrength.value = 0;
+    if (this.#field) this.#field.strength = 0;
   }
 
   /** Draws no more climate. */
@@ -220,7 +158,7 @@ export class WalkClimate {
   #stop(why: string): void {
     if (!this.#off && why) console.warn(`The globe shows no climate: ${why}`);
     this.#off = true;
-    this.#blend = null;
-    if (this.#uniforms) this.#uniforms.lookClimateStrength.value = 0;
+    this.#loaded = false;
+    if (this.#field) this.#field.strength = 0;
   }
 }
