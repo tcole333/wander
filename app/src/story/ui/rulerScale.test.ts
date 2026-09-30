@@ -136,7 +136,7 @@ describe('the crafted ruler', () => {
       const sized = arcFor(width);
       const angle = (day: number) =>
         ((2 * (day - HISTORY.start)) / (HISTORY.end - HISTORY.start) - 1) * sized.reach;
-      const labels = engraveScale(sized, HISTORY, angle, HISTORICAL).labels;
+      const labels = engraveScale(sized, HISTORY, angle, HISTORICAL, HISTORY).labels;
       expect(labels[0]?.text).toBe('10000 BCE');
       expect(labels.at(-1)?.text).toBe('2000 CE');
     }
@@ -249,6 +249,70 @@ describe('the crafted ruler', () => {
     expect(years).toEqual({ start: dayFromIso('1815-01-01'), end: dayFromIso('1818-01-01') });
     expect(tierAngle(arc, years, years.start)).toBeCloseTo(-arc.reach * TIER_REACH);
     expect(tierAngle(arc, years, years.end)).toBeCloseTo(arc.reach * TIER_REACH);
+  });
+});
+
+describe("the free ruler's ends", () => {
+  /** Explore's band over `years` ending on `end`, as history dates it, `width` px wide. */
+  function band(end: { year: number; month: number; day: number }, years: number, width = 1440) {
+    const sized = arcFor(width);
+    const last = dayFromHistorical(end);
+    const span = { start: last - years * 365.2425, end: last };
+    const angle = (day: number) =>
+      ((2 * (day - span.start)) / (span.end - span.start) - 1) * sized.reach;
+    const labels = engraveScale(sized, span, angle, HISTORICAL, HISTORY).labels.filter(
+      (label) => label.row === LOWER_ROW,
+    );
+    return { arc: sized, labels };
+  }
+
+  /** How much bare rule lies between two labels, px, from their faces' lengths. */
+  function bare(r: number, a: Label, b: Label): number {
+    const [left, right] = [a, b].toSorted((x, y) => x.angle - y.angle) as [Label, Label];
+    return (right.angle - left.angle) * r - (length(left) + length(right)) / 2;
+  }
+
+  it("leaves off Waterloo's 200-year ruler its end, 1915, beside 1900", () => {
+    const texts = band({ year: 1915, month: 6, day: 18 }, 200).labels.map((label) => label.text);
+    expect(texts).toEqual([
+      '1720',
+      '1740',
+      '1760',
+      '1780',
+      '1800',
+      '1820',
+      '1840',
+      '1860',
+      '1880',
+      '1900',
+    ]);
+  });
+
+  it('keeps each end it names its own length of bare rule from every year labelled', () => {
+    for (const width of [1024, 1440, 1920]) {
+      for (const years of [30, 100, 200, 400, 1000, 3000]) {
+        for (let k = 0; k < 120; k += 1) {
+          // Ends that sweep back through history, never past its own ends.
+          const year = 1990 - Math.round(k * years * 0.173);
+          if (year - years < -9998) break;
+          const { arc: sized, labels } = band({ year, month: 7, day: 1 }, years, width);
+          for (const edge of labels.filter((label) => label.key.startsWith('e'))) {
+            for (const label of labels.filter((other) => other !== edge)) {
+              expect(
+                bare(sized.r, edge, label),
+                `${width}px, ${years} years to ${year}: ${edge.text} | ${label.text}`,
+              ).toBeGreaterThanOrEqual(length(edge));
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('names an end that a long stretch of rule would otherwise leave unnamed', () => {
+    const { labels } = band({ year: 1944, month: 7, day: 1 }, 400);
+    const end = labels.at(-1);
+    expect([end?.text, end?.key.startsWith('e')]).toEqual(['1944', true]);
   });
 });
 
