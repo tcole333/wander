@@ -2,7 +2,7 @@
 // on the fixture's data server, whose release names its event index, so All of History's plaque
 // stands last. Where the plaques outrun a short window, their shelf scrolls within itself with
 // More below it: the wheel over the shelf and More each bring the last plaque fully into view,
-// and Tab reaches every plaque, each fully in view as it takes focus. Where they fit, as at
+// after which More hides, and Tab reaches every plaque, each fully in view as it takes focus. Where they fit, as at
 // 1440x800, whether the page opens there or the window grows to it, every plaque stands in view
 // and More stays hidden. Nothing logs an error or raises an error event on the window, as a
 // ResizeObserver loop would without throwing.
@@ -76,11 +76,12 @@ test.describe('on a short window', () => {
     await page.mouse.wheel(0, -1000);
     await expect(first).toBeInViewport({ ratio: 1 });
 
-    // Each press brings the next cut-off plaque up, until the last stands in view.
+    // Each press brings the next cut-off plaque up, until the last stands in view and More goes.
     await expect(async () => {
       await more.click({ timeout: 10_000 });
       await expect(last).toBeInViewport({ ratio: 1, timeout: 10_000 });
     }).toPass({ timeout: TIMEOUT });
+    await expect(more).toHaveCSS('opacity', '0');
 
     // Focus may start anywhere on the page, so Tab goes round until every plaque has held it.
     const reached: string[] = [];
