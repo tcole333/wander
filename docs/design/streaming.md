@@ -1126,6 +1126,23 @@ only a failed start or a worker error ends the worker.
   index holds later events, the Arab Spring and the Syrian Civil War among them, that would
   otherwise be marked, stay focal or reach Meanwhile. The event client keeps every query and
   Meanwhile question within history too.
+- **Labels:** once the dive has landed, a mark the pointer rests on for `hoverQueue` brings a
+  vellum plate beside it (`app/src/explore/labels.ts`): the event's name as the index labels it, a
+  trailing parenthesis cut, its date as history writes it (`formatHistorical`), and for a child
+  the event it is part of, from the worker's description; a hovered hollow parent also draws its
+  extent's ring. `marks.hit` picks among the placed discs, and over land along the segment from a
+  mark's sea-level place to where the clearance field's ceiling would lift it, since the relief
+  draws it somewhere between. A click (a press moving less than 4 px) pins the plate, adds its
+  source and makes the event focal: the English Wikipedia article through Wikidata's
+  `Special:GoToLinkedPage`, as the index holds no title, or for an opening its written line and
+  the source that line rests on. A click on bare metal, Escape, or the now window leaving the event
+  unpins it, and Escape with nothing pinned returns to the lobby. One listbox, hidden from sight,
+  holds the worker's labels for the events marked in view behind one tab stop: its active option
+  shows its plate as a hover does, the arrow keys move to the nearest mark that way on screen
+  without panning the view, Enter pins, and a live region reads each pinned plate. At most two
+  plates stand, the pinned and the hovered, each on the first side of right, left, above and below
+  that stays in view and clear of the other, the ruler, Meanwhile, the legend and the focal ember,
+  keeping its side while it serves within 8 px (`platePlacement.ts`).
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,
@@ -2277,7 +2294,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `gateAt`, `holdMax` | 0.7 of the flight, 1.5 s | readiness gate and hold | E3, E4 |
 | `retargetBlend` | 300 ms | mid-flight retarget | eye |
 | `rmDissolve`, `rmHoldMax` | 400 ms, 2.5 s | reduced-motion shutter | eye |
-| `hoverQueue` | 150 ms | plaque hover before queueing | eye |
+| `hoverQueue` | 150 ms | plaque hover before queueing; a mark's hover before its plate in Explore | eye |
 | `titleFontWait` | 1 s | title plate font fallback | eye |
 | `inFlight` | 12 total; next + background ≤ 4; background ≥ 1 | fetch concurrency | E3, E4 |
 | `queueDrop`, `finishIfReceived` | 300 ms, 70% | cancellation | E3 |
