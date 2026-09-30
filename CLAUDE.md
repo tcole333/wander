@@ -104,6 +104,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   the Vite dev server and a data server up: every beat, flights, scrubs and a break-out, and the
   lobby's opening, dive and Credits panel (with a video), on this Mac's GPU at 1440x900, with any
   console errors. Each file's header gives its flags.
+- `node scripts/bordersShots.ts --url <dev server> --data <global data server>`: the border steps'
+  still renders (#80) on this Mac's GPU, the dev page drawing the world clock's step with
+  `?stepBorders`, and their contact sheets, into `build/borders/renders/`; `--view` adds a view.
 - `node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results`: E3,
   milestone 1's acceptance, against the live site in headless Chromium on Metal: cold loads at
   25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
