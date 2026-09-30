@@ -237,3 +237,85 @@ corrections:
       title: Suriname
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Suriname
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, each cited (owner decision 38).
+  - years: [1917, 1917]
+    pocket:
+      at: [99.72, 27.96]
+      to: Kuomintang
+    why: >-
+      Yunnan and Guangxi, under the Yunnan and Old Guangxi cliques, were provinces of the Republic
+      of China and the strongest backers of Sun Yat-sen's Guangzhou government, whose marshals their
+      leaders Tang Jiyao and Lu Rongting were. Cliopatria's China of 1917-1929 is named Kuomintang
+      and covers the provinces around them; the hole also takes in eastern Kham, the Republic's
+      Sichuan border district, which Cliopatria draws as Tibet from 1918.
+    source:
+      title: Constitutional Protection Movement
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Constitutional_Protection_Movement
+  - years: [1918, 1925]
+    pocket:
+      at: [101.42, 25.23]
+      to: Kuomintang
+    why: >-
+      Yunnan, and Guangxi in most of these years, were provinces of the Republic under their
+      cliques: Tang Jiyao's Yunnan kept its own army but reunified with the national government, and
+      Tang sat on the Guangzhou government's ruling committee. Cliopatria's China of these years is
+      named Kuomintang.
+    source:
+      title: Yunnan clique
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yunnan_clique
+  - years: [1926, 1926]
+    pocket:
+      at: [104.9, 25.43]
+      to: Kuomintang
+    why: >-
+      Yunnan, Guizhou and Guangxi were provinces of the Republic; Guangxi's New Guangxi clique,
+      whose Li Zongren joined the Kuomintang in 1923, led the Seventh Army of the Northern
+      Expedition. Cliopatria's Kuomintang covers the three from 1927.
+    source:
+      title: New Guangxi clique
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/New_Guangxi_clique
+  - years: [1967, 1972]
+    give:
+      polity: United States of America
+      to: Republic of Vietnam
+      shape_from: {polity: Republic of Vietnam, year: 1966}
+    why: >-
+      The Republic of Vietnam existed from 1955 to 1975, recognized by 95 countries as of January
+      1975. Cliopatria draws South Vietnam as the United States from 1967 and its own Republic of
+      Vietnam only in 1956-1966 and 1973-1975; the land returns to it in its 1966 shape.
+    source:
+      title: South Vietnam
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/South_Vietnam
+  - years: [1967, 1972]
+    pocket:
+      at: [107.44, 15.34]
+      to: Kingdom of Laos
+      shape_from: {polity: Kingdom of Laos, year: 1966}
+    why: &tri-border >-
+      The strip along the Annamite range to the tripoint of Laos, Vietnam and Cambodia, where the Ho
+      Chi Minh Trail crossed, lay within the three states along their colonial boundaries;
+      Cliopatria's shapes of 1967-1972 do not meet there. Each part takes its state's Cliopatria
+      shape of 1966.
+    source: &laos-vietnam
+      title: Laos–Vietnam border
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Laos%E2%80%93Vietnam_border
+  - years: [1967, 1972]
+    pocket:
+      at: [107.19, 14.07]
+      to: Kingdom of Cambodia
+      shape_from: {polity: Kingdom of Cambodia, year: 1966}
+    why: *tri-border
+    source: *laos-vietnam
+  - years: [1967, 1972]
+    pocket:
+      at: [107.48, 15.73]
+      to: Republic of Vietnam
+      shape_from: {polity: Republic of Vietnam, year: 1966}
+    why: *tri-border
+    source: *laos-vietnam
