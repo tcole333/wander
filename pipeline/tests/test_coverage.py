@@ -353,6 +353,11 @@ def test_the_record_keeps_what_the_stage_read(fixture_record):
 def test_a_file_saved_during_the_run_leaves_the_record_stale(tmp_path, monkeypatch):
     for part in ("pipeline/config", "pipeline/tests/data"):
         shutil.copytree(REPO_ROOT / part, tmp_path / part)
+    # The six L0 tiles, which the staleness needs no more of.
+    (config_dir(tmp_path) / "fixture.yaml").write_text(
+        "excerpts: {global-30m: 1800}\n"
+        "groups: {global: {rasters: {0: global-30m}, tiles: [all-L0]}}\n"
+    )
     ctx = make_context(Profile.FIXTURE, 1, tmp_path)
     available_tiles = coverage.available_tiles
 
