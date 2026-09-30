@@ -186,6 +186,24 @@ describe('Explore’s labels', () => {
     expect(events.hovered).toBeNull();
   });
 
+  it('keep the listbox out of the tab order and deaf to keys until the dive has landed', () => {
+    const { events, labels, list, key } = setup();
+    labels.update(0);
+    expect(list.tabIndex).toBe(-1);
+    list.dispatchEvent(new Event('focus'));
+    labels.update(16);
+    const enter = key(list, 'Enter');
+    labels.update(32);
+    expect([events.hovered, labels.pinned, events.focused, enter.defaultPrevented]).toEqual([
+      null,
+      null,
+      [],
+      false,
+    ]);
+    labels.land(null);
+    expect(list.tabIndex).toBe(0);
+  });
+
   it('pin a clicked mark’s event, making it focal, its plate linking its source', () => {
     const { events, labels, root, click } = setup();
     labels.land(null);

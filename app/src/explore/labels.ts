@@ -7,10 +7,10 @@
 // it, and Escape, with nothing pinned, is the lobby's again. The dive lands with its opening
 // pinned, its written line on its plate.
 //
-// The keyboard reaches the same marks through one tab stop: a listbox, hidden from sight, whose
-// options are the worker's labels for the events marked in view. Its active option shows its
-// plate as a hover does; the arrow keys move to the nearest mark that way on screen (and do not
-// pan the view), and Enter pins it. A live region reads each pinned plate.
+// The keyboard reaches the same marks, once the dive has landed, through one tab stop: a listbox,
+// hidden from sight, whose options are the worker's labels for the events marked in view. Its
+// active option shows its plate as a hover does; the arrow keys move to the nearest mark that way
+// on screen (and do not pan the view), and Enter pins it. A live region reads each pinned plate.
 //
 // At most two plates stand, the pinned one and the hovered one, each on the first side of its mark
 // that stays in view and clear of the other plate, the panels (the ruler, Meanwhile and the
@@ -218,7 +218,8 @@ export class ExploreLabels {
     this.#view = view;
     this.#list.setAttribute('role', 'listbox');
     this.#list.setAttribute('aria-label', EVENTS_LIST);
-    this.#list.tabIndex = 0;
+    // Out of the tab order until the dive lands, so no key pins an event while the dive flies.
+    this.#list.tabIndex = -1;
     this.#live.setAttribute('aria-live', 'polite');
     this.element.append(this.#list, this.#live, this.#hoverPlate.element, this.#pinPlate.element);
     this.#listen();
@@ -240,6 +241,7 @@ export class ExploreLabels {
    */
   land(opening: Pick<Opening, 'qid'> | null): void {
     this.#landed = true;
+    this.#list.tabIndex = 0;
     if (opening) this.#pinQid(qidNumber(opening.qid));
   }
 
@@ -369,7 +371,7 @@ export class ExploreLabels {
 
   /** The listbox's keys: arrows move to the nearest mark that way, Home and End, Enter pins. */
   #key(event: KeyboardEvent): void {
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (!this.#landed || event.metaKey || event.ctrlKey || event.altKey) return;
     const options = this.#options;
     const active = options.find((option) => option.id === this.#active);
     let next: string | null | undefined;
@@ -494,7 +496,7 @@ export class ExploreLabels {
         ? this.#events.hit(this.#pointer.x, this.#pointer.y)
         : null;
     this.#canvas.classList.toggle('is-over-mark', pointed !== null);
-    const keyed = this.#listFocused ? this.#active : null;
+    const keyed = this.#landed && this.#listFocused ? this.#active : null;
     const target = keyed ?? pointed;
     if (target !== this.#candidate) {
       this.#candidate = target;
