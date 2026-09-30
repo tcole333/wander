@@ -55,20 +55,22 @@ describe('the historical calendar', () => {
   });
 
   it('counts Julian days without a gap across the era seam, a leap day every four years', () => {
+    // Its 146,100 days are checked in plain code and asserted once: an expect for each day took
+    // up to 4.5 s on a loaded machine, against Vitest's 5 s timeout.
     const start = dayFromJulian({ year: -200, month: 1, day: 1 });
     let previous = julianFromDay(start);
-    let leapDays = 0;
+    const leapYears: number[] = [];
+    const wrong: number[] = [];
     for (let day = start + 1; day < start + 100 * 1461; day += 1) {
       const date = julianFromDay(day);
-      if (date.month === 2 && date.day === 29) {
-        expect(((date.year % 4) + 4) % 4).toBe(0);
-        leapDays += 1;
-      }
-      if (date.day !== 1) expect(date.day).toBe(previous.day + 1);
-      expect(dayFromJulian(date)).toBe(day);
+      if (date.month === 2 && date.day === 29) leapYears.push(date.year);
+      const next = date.day === 1 || date.day === previous.day + 1;
+      if (!next || dayFromJulian(date) !== day) wrong.push(day);
       previous = date;
     }
-    expect(leapDays).toBe(100);
+    expect(wrong).toEqual([]);
+    expect(leapYears).toHaveLength(100);
+    expect(leapYears.filter((year) => ((year % 4) + 4) % 4 !== 0)).toEqual([]);
   });
 
   it('leaves the stories’ Gregorian dates as they are written', () => {
