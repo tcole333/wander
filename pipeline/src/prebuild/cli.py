@@ -107,7 +107,8 @@ def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGE
     partial build never looks fresh. The stamp hashes the inputs as they stood before the stages
     ran, so a file saved during the build leaves the fixture stale. A full fixture build first
     looks for its inputs in the fixture store and restores that build instead, unless --rebuild;
-    one it makes goes into the store when no input changed while it ran."""
+    one it makes goes into the store when no input changed while it ran, in place of the stored
+    one after --rebuild."""
     fixture = ctx.profile is Profile.FIXTURE
     full_fixture = fixture and list(names) == default_stages(ctx.profile, stages)
     if fixture:
@@ -131,7 +132,7 @@ def run(ctx: Context, names: Sequence[str], stages: Mapping[str, Runner] = STAGE
         write_expectations(ctx, inputs)
         print(f"prebuild --profile {ctx.profile}: wrote the test sidecars and stamp", flush=True)
         if store is not None and tree_sha(FIXTURE_PATHS, ctx.repo) == inputs:
-            fixture_store.save(ctx, store / inputs)
+            fixture_store.save(ctx, store / inputs, replace=ctx.rebuild)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -175,7 +176,7 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
     parser.add_argument(
         "--rebuild",
         action="store_true",
-        help="build the fixture even when the fixture store holds a build of these inputs",
+        help="build the fixture, and store it, even when the store holds a build of these inputs",
     )
     parser.add_argument("stages", nargs="*", metavar="stage", help="stages to run (see below)")
     return parser

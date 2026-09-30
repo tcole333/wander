@@ -46,14 +46,19 @@ def restore(ctx: Context, entry: Path) -> bool:
     return True
 
 
-def save(ctx: Context, entry: Path) -> None:
+def save(ctx: Context, entry: Path, replace: bool = False) -> None:
     """Keep the fixture just built as `entry`, whole or not at all, then drop the least recently
-    used builds past KEEP. A store that cannot be written is left as it is."""
+    used builds past KEEP. A build already stored there stays, since it holds the same inputs,
+    unless `replace` (--rebuild), which swaps the new build in for it. A store that cannot be
+    written is left as it is."""
     staging = entry.parent / f".tmp-{uuid.uuid4().hex}"
+    replaced = entry.parent / f".old-{uuid.uuid4().hex}"
     try:
         staging.mkdir(parents=True)
         clone(ctx.out, staging / "out")
         clone(ctx.stages_dir, staging / "stages")
+        if replace and entry.is_dir():
+            entry.rename(replaced)
         try:
             staging.rename(entry)
         except OSError:
@@ -63,6 +68,7 @@ def save(ctx: Context, entry: Path) -> None:
         print(f"prebuild: kept no copy of the fixture in {entry.parent}: {error}", file=sys.stderr)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
+        shutil.rmtree(replaced, ignore_errors=True)
     prune(entry.parent)
 
 
