@@ -36,8 +36,10 @@ The globe is an equiangular cube-sphere quadtree of 256-texel tiles with 4-texel
 everywhere, L5-L6 over land and shelf, L7 only in listed story regions (~15.5K tiles). A tile holds
 GEBCO height codes plus shoreline and rivers-and-lakes distance fields, and the shader computes the
 brass look. Tiles sit in fixed GPU array pools drawn by one instanced draw; seam rules keep edges
-closed and every node draws its deepest resident ancestor, so there are no holes. Thematic layers and
-border snapshots are prebaked id + distance tiles in one overlay pool, toggled by uniforms. Events
+closed and every node draws its deepest resident ancestor, so there are no holes. Thematic layers are
+prebaked id + distance tiles in one overlay pool, toggled by uniforms. Borders are one global
+two-plane distance field for each change year of Cliopatria's polities, streamed whole into GPU
+slots, with signed previews while scrubbing. Events
 cover all eras as paged columnar JSON held by one worker. ModE-RA ships per year on its native grid.
 Stories compile in CI into bundled JSON; data is immutable whole files on R2, pinned by a bundled
 `release.json`. Milestone 1 is a Tambora slice deployed end to end (section 8).
@@ -55,7 +57,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders and range names follow Mountains. Ocean and sea names follow Labels: a curated list of modern English names bundled with the app (`app/src/look/seaNames.json`: text, place, em size in degrees, tracking, angle, and the view widths it shows within), lettered at boot into one canvas atlas (oceans in the display face's tracked capitals, seas in the reading face's italic) and inlaid by the surface look in the lacquer at sea level, as the graticule is. Each name fades in and out with its em on screen (7-48 px) and toward the limb, so a sea shows several names across zoom levels, each with its own size and place; of the names in the view, the 16 strongest are inlaid, so none beyond its edges holds back one on screen. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. Inlaid in the look, the sea names never bend with relief and take the lamp, ash and climate as the lacquer does; they are lettered into one R8 atlas 2048 texels wide and as tall as the list needs (1638 for milestone 1's 50 placements of 42 names: ~4.3 MiB on the GPU with mips, plus the 3.2 MiB of texels three keeps; the lettering canvas is released), with nothing to fetch and no labels stage. |
-| **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders · 1878"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. Milestone 1 draws only 1815, from one global field of distances loaded in the lobby (3.3). | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
+| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 505 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. A plate names the step drawn ("Borders · 1815"). Milestone 1's walk draws its 1815 field from historical-basemaps (3.3) until Tambora moves onto the steps. | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
 | **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore stands: wherever the release names its event index (3.4), and where a page starts in Explore, as the dev shell does. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The tiles run three past each edge of the viewport, since a mark on relief seen tilted stands above the sea-level foot its tile is found from. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and three texels a mark, uploaded only when the view or a fade changed. The look finds a fragment's tile from its inlay direction, so relief never moves it out of its mark's tile, and cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own, by default the cast token: a raised bronze boss for nature, a dark seal with a niello glyph for governance and a small gilt seal with its glyph sunk for infrastructure, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`TOKEN_INK`, 0.8 of its radius, clear of the rim its bevel casts); `?markVariant` and the dev panel draw the other candidates. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. A hovered expanded parent's extent is a dashed line engraved about 2 px wide at full weight: the graticule's brass over the sea and niello over land, between walls that slope into it and take the lamp. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. The cast token is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it while Explore is open: bundled inline in the entry, started at each dive and terminated when Explore ends (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. Inlined, it fetches nothing from Pages after boot. Ended with Explore, it holds nothing during a walk, whose memory already stands at its CPU line (6). |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: one monthly field the CPU blends, and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
@@ -199,11 +201,13 @@ reads a year- or month-dated event by the year or month its source wrote, over t
 stories' calendar with the historical one. Explore's history starts on 1 January 10,000 BCE in the
 Julian.
 
-**Border years:** historical-basemaps names BC years historically. The build converts `world_bcN` to
-astronomical year 1 − N (`world_bc1` → 0, `world_bc123000` → −122999), and `release.json` holds only
-astronomical years. A snapshot's date is 1 July of its year; the snapshot with the smallest
-|cursor day − snapshot day| wins, and ties go to the earlier one. The plaque prints historical years
-("1 BC"). Layer keys use the source stem: `borders-1815`, `borders-bc123000`.
+**Border years:** Cliopatria writes years before 1 CE as negative years BCE, so its −n is
+astronomical 1 − n. Its 0 appears only as the last year of six rows, each followed by rows starting
+at 1 [M Cliopatria v0.2.0], so it is read as 1 BCE, astronomical 0. `release.json` holds only
+astronomical years. A border step holds from its year's 1 January in the historical calendar,
+`dayFromHistorical({year, month: 1, day: 1})` (Julian before 15 October 1582), the day an era
+edge of the event index starts on (3.4), until the next step begins; before the first step,
+3400 BCE, none holds. Plates print the year as `formatHistorical` does ("Borders · 44 BCE").
 
 **Sentinels:** in u16 id and slot fields, `0xFFFF` means empty. `0xFFFE` means "has a file" in
 `index.bin` and "constant tile, id in G" in the indirection texture. Feature id 0 means none, so real
@@ -348,15 +352,14 @@ edge, 281,516 at a face corner and 284,222 at L0.
 
 ### 3.2 Overlay tile `ov/<layer>/<ver8>/<L>/<face>/<x>/<y>.wot`
 
-The layers are `ecoregions`, `petroleum`, `mountains` and `borders-<stem>` (one per snapshot).
+The layers are `ecoregions`, `petroleum` and `mountains`. Borders are whole fields instead (3.3).
 
 ```
 'WOT1' u8 version | u8 face | u8 level | u8 flags | u16 x | u16 y | u16 layerId
 four 132×132 planes (2-texel border of real neighbor data), each (v − pred) mod 256:
   idLo, idHi   feature id, u16, 0 = none, exact
   dist         min(255, 16·d), d = texels to the nearest boundary between different ids
-  aux          borders: the source's boundary-precision class of the nearest boundary;
-               mountains: spine distance, min(255, 16·d); otherwise 0
+  aux          mountains: spine distance, min(255, 16·d); otherwise 0
 ```
 
 - **`ov/<layer>/<ver8>/index.bin`** (gzip): one u16 per node L0..maxLevel by node index (3.0): `0xFFFE`
@@ -365,8 +368,7 @@ four 132×132 planes (2-texel border of real neighbor data), each (v − pred) m
   ```
   'WOI1' u8 version | u8 maxLevel | u16 pad | u16 entry[2(4^(maxLevel+1) − 1)]
   ```
-- **`meta.json`:** `id → {name, attrs, color, labelPoint}`, the offline 4-coloring for border
-  snapshots, the source and the license.
+- **`meta.json`:** `id → {name, attrs, color, labelPoint}`, the source and the license.
 - **GPU:** a 132² RGBA8 array plus a 66² mip. Ids are read with `texelFetch`; distance is read with
   filtered `texture()`. The mountain hatch is procedural from the fill id, and its outline comes from
   `dist`.
@@ -377,19 +379,217 @@ four 132×132 planes (2-texel border of real neighbor data), each (v − pred) m
 - **Tint:** fills stop one texel short of a boundary, so the id stair-steps sit under an untinted
   margin. Along coasts, fills are clipped by the surface's shore channel.
 
-### 3.3 Border previews `ov/borders-previews/<ver8>/previews.bin`
+### 3.3 Border steps `fd/borders/s/<sha16>.bin` and previews `fd/borders/p/<sha16>.bin`
+
+The `borders` stage (`pipeline/src/prebuild/borders.py`, with the selection in `cliopatria.py`)
+bakes Cliopatria v0.2.0's polities (CC BY 4.0, pinned in `sources.toml`; owner decision 33) into one
+field per step.
+
+**Steps.** A step begins in every change year: a POLITY row's first year, or the year after its
+last, once corrections apply. From 3400 BCE, Cliopatria's first year, to 2000 there are 505, a
+median of 5 years apart [M Cliopatria v0.2.0]; a step whose field equals the one before is dropped.
+A step holds from its year's 1 January in the historical calendar until the next step begins (3.0).
+The stage record lists the step each story's border beats draw, and a beat before the first step
+fails the build.
+
+**Selection** (`cliopatria.py`): a step's leaves are the POLITY rows valid in its year whose names are
+not in parentheses, the composites' form. Ids number the sorted names across all years, so a polity
+keeps its id in every step. RELATION rows count only through `hierarchy.yaml`. `polities.json`
+gives each polity its id, Wikidata id, years and outer unit through them, keyed by name, since 115
+Wikidata ids are shared among names [M].
+
+**Hierarchy.** Cliopatria's is thin: 43 composites, and in the median step 12% of leaves have a
+parent; leaves become outer units almost one for one (130 → 125 in 1500, 74 → 68 in 1914), and what
+merges is mostly the colonial blocs [M]. `pipeline/config/borders/hierarchy.yaml` classes each
+composite and each vassalage relation, every entry with a `why` and a `source`:
+- An `empire`'s members share one outer border, and the lines between them are inner. A
+  `grouping`'s members stay apart: nine composites group rivals, such as Warring States China.
+- Membership comes from a valid composite's `Components`, then from `MemberOf`, which settles 26 of
+  the 27 member-years whose `MemberOf` names a composite not valid that year [M].
+- Each vassalage relation (six, such as Bohemia's to the Holy Roman Empire) is marked a membership
+  or not. Alliance, allegiance and personal-union rows stay out, since they are not territory.
+- **Dependent states** sit inside their paramount's outer border with their own inner line, by
+  treaty only: protectorates, princely states and subsidiary allies, each cited and dated; tribute
+  relations stay out (owner decision 34). Where Cliopatria lacks one's shape, a cited correction
+  adds it.
+- A leaf's outer unit is the root among the empires above it that year; a leaf that reaches two
+  roots fails the build. A composite's own land beyond its components, when at least `leftoverKm2`
+  (100 km²), takes the composite's root; a grouping's leftover land is a polity of its own.
+
+**Planes.** R holds the borders between outer units and every edge against stateless land. G holds
+the borders inside one outer unit, and a border between two outer units whose smaller side is under
+`minorKm2` (50,000 km²), measured per piece, a connected part of a unit's land, so that small
+states and the small detached pieces of large ones come forward only as the view closes in (owner
+decision 36). One raster of leaves makes both planes, through a mask of the id pairs each plane
+keeps in `signed_subpixels`. `minorKm2`, `leftoverKm2`, `sliverKm` and `pocketKm2` live in
+`pipeline/config/borders/rules.yaml`.
+
+**Stateless land** is Natural Earth land less its lakes and every polity, under one id, and draws
+no border of its own (owner decision 35):
+- **Lakes stay empty,** so the fill below splits each among its neighbours and a border crosses a
+  lake rather than ringing it.
+- **Coast slivers** go to the nearest polity: the parts of a sea-touching stateless piece narrower
+  than 2·`sliverKm` (28 km, measured on an equal-area projection about the piece).
+- **Pockets** go to their neighbours: a stateless piece that touches no sea goes when it touches a
+  lake or lies in a hole of the polities and is under `pocketKm2` (100,000 km²; the old Aral bed and
+  Victoria's shore are about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout.
+  A hole that touches a lake is filled only under that cap too (owner decision 36), since 1500 has
+  a 260,000 km² stateless hole in the Urals beside a small lake.
+- **Other enclosed pieces stay stateless,** since they may be real stateless enclaves. The pockets
+  given and the pieces kept are listed per step, and a `pocket` correction overrides the rule.
+- The sea, the lakes and every subpixel nothing holds then take the nearest id, stateless land's
+  included, so no border follows a coast.
+
+**Overlaps.** Rows rasterize largest first, so the smaller of two overlapping rows wins. That is
+right for an enclave, such as Luxembourg in 1914, and wrong for a near-duplicate: 'Napoleonic
+Batavia Republic' covers 98% of the Cape in 1815. 322 steps have overlaps over 2,000 km², and 41 row
+pairs, across 92 steps, overlap by more than half the larger row, such as Algeria inside the French
+Fifth Republic from 1963 [M]. Each of those pairs needs an `overlap` correction naming the winner
+with a `why`: "smaller wins, checked" is one, and an entry that overrides it cites a source. The bake
+records the pairs without an entry, `npm run verify:bake` reports them and `npm run publish-data`
+refuses them, so the bake never waits for the history pass. Smaller overlaps go to the review queue
+(7.2), with the 414 names that vanish and return, 143 of them after 1500 [M].
+
+**Corrections** live in `pipeline/config/borders/<era>.yaml`, one file each for `bce`,
+`0001-0999`, `1000-1499`, `1500-1799`, `1800-1913` and `1914-2000`, each correction in the file of the
+era where it starts. A file holds `modified` and `corrections`, and each correction has
+`years: [from, to]`, a `why`, a `source: {title, publisher, url[, locator]}` and one operation; a
+key none of these names fails the build:
+- `give` moves all of a polity, the part holding `at`, or the part inside `shape_from: {polity,
+  year}` to another, optionally as a member (`member_of`);
+- `carry` holds a polity's shape from one year over later ones; `add` draws a cited shape;
+  `member` adds a membership; `rename`; `pocket`; and `overlap`.
+
+A correction must change every step in its range, or the build fails, naming the unchanged steps.
+The history pass covers the hierarchy entries, the 41 pairs and these cases: Mexico, missing for
+1913-19, carries its 1912 row; Kuwait, Omani in Cliopatria's 1914, carries its 1820-72 shape to 1990,
+a British member from 1899 to 1961; Hyderabad and Mysore become British members with cited shapes,
+Hyderabad's after the 1800 cession and Mysore's after the 1799 partition (Cliopatria's 1799 Mysore
+is Tipu's larger kingdom), while other princely states stay a listed gap; Java stays British through
+1816, since Cliopatria's British rows end in 1813 and the Dutch returned only in August 1816; the
+out-of-date 1914 names are renamed; and in 1815 Bima, Sanggar, Tambora, Pekat, Dompu and western
+Sumbawa's sultanate are Dutch members (owner decision 37). The 1815 field's corrections are not
+carried over: Cliopatria already has Brussels Dutch and Hong Kong Qing [M].
+
+**Field:**
 
 ```
-'WBP1' u8 version | u8 pad | u16 count (54) | u16 w (512) | u16 h (256) | i32 years[54] (astronomical)
-u8 dist[54][256][512]   equirect (3.0); min(255, 16·d) in preview texels to the nearest border
+'WBF2' u8 version | u8 faces (6) | u16 size (1024) | u16 apron (4) | i16 year | u8 channels (2) | u8 pad[3]
+u8 rg[6][size][size][2]
+  R: min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels to the nearest R border, + on the higher outer id
+  G: bit 7 soft, where the nearest R border has stateless land on one side;
+     bits 0-6 rha(64 + 8·clamp(d, −8, 7.875)), d in texels to the nearest G border, + on the higher
+     leaf id; 127 where none is in reach
 ```
 
-On the GPU this is one R8 array of 54 layers, 6.75 MiB [D].
+- **Geometry:** each face is 1,016 texels across (about 9.8 km a texel) plus a 4-texel apron past
+  each edge, computed from the same polygons, so lines run on across face edges; texel (i, j) is
+  centered at s = −1 + (2(i − 4) + 1)/1016, t likewise, row 0 the smallest t. Leaves rasterize at
+  4×4 subpixels per texel in face-global subpixels, as the shore field does (3.1). D = E − 0.5, E
+  the distance to the nearest subpixel center across a border the plane keeps, signed + on the side
+  of the higher id, and a texel's d is the mean of its 2×2 central subpixels over 4. A texel is soft
+  when at least 3 of those 4 subpixels are. Where the nearest border changes, in a polity's middle,
+  the sign flips without passing a border; there a texel takes the mean size of its subpixels, and
+  the look treats four texels that span such a jump (more than 2 texels apart across zero) as far
+  from any border.
+- **Size:** 12 MiB inflated; a step stores 0.47-1.18 MB, about 0.37 GB for all 505 [M]. The bake
+  skips a step whose inputs are unchanged, and the global build takes about an hour with `--jobs`
+  [E: the look renders baked a step in 6.5 s with 3 workers].
 
-**Milestone 1: one field per snapshot, `fd/borders/<ver8>/<stem>.bin`.** Milestone 1 draws one
-snapshot, 1815, the nearest to every Tambora date, so it draws it from one global field instead of
-the overlay tiles and previews above, which come with explore mode and the other snapshots. The
-`borders` stage (`pipeline/src/prebuild/borders.py`) writes, per snapshot pinned in `sources.toml`:
+**Previews,** in chunks of at most 16 steps, each starting at an even step index, so the two steps a
+ring cell pairs (below) never span two chunks:
+
+```
+'WBP2' u8 version | u8 pad | u16 count (≤ 16) | u16 w (512) | u16 h (256) | i32 years[count]
+u8 layer[count][256][512]   equirect (3.0); the first raw, each later one (v − previous) mod 256
+  v = (q << 1) | soft, q = rha(64 + 8·clamp(d, −8, 7.875)),
+  d in preview texels (78 km at the equator) to the nearest R border, + on the higher outer id
+```
+
+The 32 chunks take 93-107 KB each, 3.2 MB in all [M].
+
+**Keys** go through `write_object` (`layers.py`), named by content: `fd/borders/s/<sha16>.bin` for a
+step, `fd/borders/p/<sha16>.bin` for a chunk, `fd/borders/m/<sha16>.json` for the polities and
+`lic/<sha16>.txt` for the notice, about 540 files, each with an extension, since an object's headers
+follow it (4.2). A correction uploads only the steps it changes and the chunks their previews fall
+in; one that adds or removes a step moves every later chunk (≤ 3.2 MB).
+
+**Look** (`app/src/look/bordersHook.ts`), on land and lakes, ending at the drawn coast, after the
+climate wash and before the ash:
+- `lookBorderDist` reads R, G and the previews with four `texelFetch` taps each and interpolates by
+  hand, since a packed bit cannot be filtered; softness is the taps' bits interpolated, and preview
+  taps wrap inside their cell.
+- **Outer line:** milestone 1's dotted groove of constant on-screen width and pitch, a dot of about
+  2 px every 5 px, 2 px wide, darkening the metal by 0.75 and leaving it a touch rougher. The dots
+  tell frontiers from the solid river lines, as engraved maps of the period do; a solid groove read
+  as one more river at the beats' distances.
+- **Inner line:** 0.55 darkening, 2 px dots every 4 px, 1.5 px wide, fading in as the view narrows
+  from 6,000 to 2,500 km across (`borderInnerKm`): fainter and finer than the outer line, the
+  empire far and its members near (owner decisions 34 and 36).
+- **Soft edge:** where R's nearest border has stateless land on one side, two thirds of the
+  darkening, feathered from 1 to 2.5 px (owner decision 35).
+- **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
+  where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
+  reach of 8 texels no longer spans the line.
+- **Dissolves** blend the drawn lines, not the distances. The program is compiled at strength 0 in
+  the lobby's precompile.
+
+**GPU:** one RG8 array of 1024² layers, allocated with the look. The full tier holds slots A and B,
+six layers each (24 MiB), and a two-layer preview ring (4 MiB); lite holds one slot and the ring
+(16 MiB). Each ring layer holds 2×4 cells of 512×256, and a cell holds the previews of two
+consecutive steps, the even one in R and the odd in G, since an upload writes every channel: 16
+cells, 32 previews, 256 KiB an upload. The array takes the border field's sampler (5.8).
+
+**Runtime** (`app/src/borders/`):
+- `steps.ts` is pure: `stepAt(day)` returns the last step whose first day is at or before `day`, and
+  none before 3400 BCE; `chunkOf` and `cellOf` locate a step's preview; and it finds the steps either
+  side of one.
+- `clockBorders.ts` follows `worldClock`. A step in slot A draws. A step in slot B: A dissolves into
+  B over `borderFade`, then the slots swap. A step in neither, in Explore: its preview draws, and
+  previews dissolve into each other over `borderScrubFade`; once the clock has rested for
+  `borderRest`, the step streams in and the preview dissolves into it. A clock crossing more than
+  one step a frame fades borders out until it slows. Before 3400 BCE nothing draws. Rocking back
+  and forth across one boundary swaps the slots without refetching; a third slot (+12 MiB) comes
+  only if the rocking test lags.
+- **Fetches:** only a beat that lists borders, Explore with borders on, and the lobby's preload of
+  the walk's first border step fetch borders; the lobby's own clock fetches none. `fetchData` takes
+  an `AbortSignal`, with no request classes (owner decision 30). A step is fetched once the clock has
+  rested in it for `borderRest`, or as a beat's readiness item (5.7), and a new target aborts it. On
+  the full tier, once a step draws, the next step in the scrub direction fills the free slot.
+  Explore fetches all 32 chunks after its dive, the clock's own first, and keeps them compressed
+  until `end()`, so scrubbing needs neither the network nor the HTTP cache; a cell decodes by
+  streaming its chunk through one 256 KiB running sum. Walks never draw previews.
+- **Uploads:** `inflateBands` yields 256 KiB bands from `DecompressionStream`, since the surface
+  decoder allocates its whole output, so a step's peak is its compressed file and two bands. The
+  bands join the streamer's `UploadQueue` behind its tiles, within `uploadAnimated` and
+  `uploadIdle`: a field takes at least 24 frames on full and 48 on lite.
+- **Memory:** `borders.slots`, `borders.previews` and `borders.cpu` report what they hold, and
+  Explore's `end()` empties the slots and the ring and drops the chunks.
+
+**Stories and Explore.** The director writes the clock, and a beat draws borders only when its
+layers list them. Tambora's border beats of 1815-04-01, 1816-07-01 and 1816-06-06 draw the 1815
+step, with Java British, since no step begins in 1816 [M Cliopatria v0.2.0]; its Yunnan beat of
+1817-08-28 draws 1817's, which returns Java to the Dutch outside its view. Magellan's beats list
+none. Explore (behind `?explore`) draws borders from
+its dive, which fetches the opening's step and the chunks. Polity names come with the labels stage
+(owner decision 26), and Cliopatria gives no capitals.
+
+**Year plate:** a small riveted plate of Meanwhile's cast brass at the top of the page, between the
+mark and the sound knob, names the step drawn by its first year ("Borders · 1815", "Borders ·
+44 BCE") and fades with the borders; it never crowds the card, Meanwhile, the climate legend or the
+ruler. While previews draw it withdraws, and the ruler carries the year, since the preview drawn is
+always the one that holds at the ruler's date.
+
+**License:** the notice `lic/<sha16>.txt` gives Cliopatria's attribution from `sources.toml`, the
+CC BY 4.0 URL, and every correction with its source; the Credits panel links it.
+
+**Milestone 1's 1815 field, `fd/borders/<ver8>/1815.bin`.** The live Tambora walk draws its borders
+from one historical-basemaps snapshot, 1815, the nearest to every Tambora date, until Tambora moves
+onto the steps, which retires this field, its release section, its corrections and its license
+gate. Until then the release holds both sections (3.8), and the look holds one border array in one
+sampler: this field's where Explore is not enabled, so visitors' program is unchanged, and the
+steps' where it is, where the walks draw their beats' steps too. The `borders` stage writes, per
+snapshot pinned in `sources.toml`:
 
 ```
 'WBF1' u8 version | u8 faces (6) | u16 size (2048) | u16 apron (4) | i16 year | u32 pad
@@ -402,34 +602,16 @@ u8 d[6][size][size]   min(255, rha(128 + 16·clamp(d, −8, 8))), d in texels, +
   beat would show a border that did not exist: for 1815, the Belgic provinces join the United
   Kingdom of the Netherlands (the Congress of Vienna's Final Act, Article 65) and Hong Kong stays
   with the Qing (ceded only by the Treaty of Nanking, 1842).
-- **Field:** each face is 2,040 texels across (about 4.9 km at a face center) plus a 4-texel apron
-  past each edge, computed from the same polygons, so lines run on across face edges; texel (i, j)
-  is centered at s = −1 + (2(i − 4) + 1)/2040, t likewise, row 0 the smallest t. Polities rasterize
-  largest first at 4×4 subpixels per texel in face-global subpixels, as the shore field does (3.1);
-  every subpixel no polity holds, the sea and the slivers between the source's coarse coast and
-  Natural Earth's, takes the nearest polity, so no border follows a coast. D = E − 0.5, E the
-  distance to the nearest subpixel center of another polity, signed + on the side of the higher id,
-  and a texel's d the mean of its 2×2 central subpixels over 4. Where the nearest border changes,
-  in a polity's middle, the sign flips without passing a border; there a texel takes the mean size
-  of its subpixels, and the look treats four texels that span such a jump (more than 2 texels apart
-  across zero) as far from any border. The 1815 field stores 1.27 MB (25 MiB inflated) and builds in
-  31 s on the M5.
+- **Field:** 2,040 texels a face (about 4.9 km at a face center) plus the apron, with the steps'
+  geometry and distances (above), polities in place of outer units, and no soft bit. Polities
+  rasterize largest first, and every subpixel no polity holds, the sea and the slivers between the
+  source's coarse coast and Natural Earth's, takes the nearest polity, so no border follows a coast.
+  The 1815 field stores 1.27 MB (25 MiB inflated) and builds in 31 s on the M5.
 - **Runtime:** one R8 array texture, 2048² × 6 (24 MiB), allocated with the look and filled after
   the room opens: the file is fetched and inflated, yielding to the page every 4 MiB, and then each
   face goes to the GPU on its own frame through three's layer updates (`texSubImage3D`), so no frame
-  hitches. The look reads it at the face coordinates it already has, bilinear from four texel
-  fetches, and draws a dotted groove of constant on-screen width and pitch on land and lakes,
-  ending at the drawn coast, darkened like the coast's line and a touch rougher
-  (`app/src/look/bordersHook.ts`), after the climate wash and before the ash. Its dots, a dot of
-  about 2 px every 5 px along the border, tell frontiers from the solid river lines, as engraved
-  maps of the period do; a solid groove read as one more river at the beats' distances. It eases
-  over `borderFade` with the beat's `borders` layer once every face is in, and fades out as the
-  view closes in from 400 to 220 km across, where a texel spans tens of pixels, and as it widens
-  past 4 to 5 texels a pixel, where the field's reach of 8 texels no longer spans the line. Its
-  program is compiled at strength 0 in the lobby's precompile.
-- **Year plate:** whenever borders are drawn, a small riveted plate of Meanwhile's cast brass at the
-  top of the page, between the mark and the sound knob, names the snapshot ("Borders · 1815") and
-  fades with them; it never crowds the card, Meanwhile, the climate legend or the ruler.
+  hitches. The look draws the outer line from it, easing over `borderFade` with the beat's `borders`
+  layer once every face is in, under the year plate.
 - **License:** the notice `lic/<sha16>.txt` (the GPL-3.0's canonical URL, the source file at its
   commit, a notice dated by the corrections file listing what changed, and the build scripts at the
   tag `borders-<ver8>`) and the corrected source `lic/<sha16>.geojson` go beside the field (owner
