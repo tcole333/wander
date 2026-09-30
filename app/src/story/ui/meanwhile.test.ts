@@ -1,12 +1,20 @@
 // Meanwhile's list, with no walk behind it, as Explore has it; and its fold: folded, the panel
 // keeps its heading, and its slips fold away.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { byClass, fake, stubDocument, type FakeElement } from '../../test/fakeDom';
+import {
+  byClass,
+  fake,
+  stubDocument,
+  type FakeDocument,
+  type FakeElement,
+} from '../../test/fakeDom';
 import type { MeanwhileEntry, Walk } from '../contract';
 import { MeanwhileList, MeanwhilePanel } from './meanwhile';
 
+let document: FakeDocument;
+
 beforeEach(() => {
-  stubDocument();
+  document = stubDocument();
   vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => {} });
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -103,5 +111,57 @@ describe('Meanwhile’s list', () => {
     list.show(entries);
     list.show([]);
     expect(fake(list.element).hidden).toBe(true);
+  });
+
+  describe('keeps a keyboard visitor’s place as its entries change', () => {
+    const [ligny, vienna] = entries as [MeanwhileEntry, MeanwhileEntry];
+    const waterloo: MeanwhileEntry = {
+      ...ligny,
+      label: 'Battle of Waterloo',
+      day: 3,
+      dateLabel: '18 June 1815',
+    };
+    const focused = () => document.activeElement?.textContent;
+
+    it('on their entry, where the new list still has it', () => {
+      const list = new MeanwhileList(() => {});
+      const element = fake(list.element);
+      list.show([ligny, vienna]);
+      rows(element)[1]!.focus();
+      list.show([waterloo, ligny, vienna]);
+      expect(document.activeElement).toBe(rows(element)[2]);
+      expect(focused()).toBe('Congress of Vienna1814–1815');
+    });
+
+    it('on the entry now standing where theirs stood, once theirs has gone', () => {
+      const list = new MeanwhileList(() => {});
+      const element = fake(list.element);
+      list.show([ligny, vienna, waterloo]);
+      rows(element)[1]!.focus();
+      list.show([ligny, waterloo]);
+      expect(focused()).toBe('Battle of Waterloo18 June 1815');
+      list.show([ligny]);
+      expect(focused()).toBe('Battle of Ligny16 June 1815');
+    });
+
+    it('at its heir, once nothing is listed and the panel hides', () => {
+      const heir = document.createElement('div');
+      const list = new MeanwhileList(() => {}, {
+        heir: () => heir as unknown as HTMLElement,
+      });
+      list.show([ligny]);
+      rows(fake(list.element))[0]!.focus();
+      list.show([]);
+      expect(document.activeElement).toBe(heir);
+    });
+
+    it('and leaves a focus held elsewhere alone', () => {
+      const elsewhere = document.createElement('button');
+      const list = new MeanwhileList(() => {});
+      list.show([ligny, vienna]);
+      elsewhere.focus();
+      list.show([vienna]);
+      expect(document.activeElement).toBe(elsewhere);
+    });
   });
 });

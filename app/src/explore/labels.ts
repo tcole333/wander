@@ -239,6 +239,11 @@ export class ExploreLabels {
     this.#listen();
   }
 
+  /** The events' listbox, the keyboard's way to the marks. */
+  get listbox(): HTMLElement {
+    return this.#list;
+  }
+
   /** The event pinned, by its Q number, or null. */
   get pinned(): number | null {
     return this.#pinned;
