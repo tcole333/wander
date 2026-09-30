@@ -83,6 +83,12 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
   `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
+- `npm run check [-- --base <rev>]`: the inner loop while working, scoped to what the branch
+  changes since it left origin/main (or since `<rev>`): Prettier and ESLint on the changed app
+  files, the incremental typecheck, `vitest --changed` (the whole suite when an input tests read
+  from disk changes), ruff on the changed Python files and pytest on the changed pipeline modules'
+  own tests. It restores a stale fixture first. While fixing an e2e failure,
+  `npm run e2e[:gpu] -- --last-failed` reruns only the specs that failed.
 - `npm run fixture`, then `npm run e2e`: Playwright on SwiftShader, as in CI. It builds
   `app/dist/` with `vite build` first, then takes the machine-wide e2e lock and a heavy-work slot
   (`app/scripts/slot.sh`) and starts its own servers on :6273-6275, ports no manual command
