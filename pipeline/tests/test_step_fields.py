@@ -21,10 +21,11 @@ def part(name, outer, shape, minor=False):
     return clio.Part(name, outer, minor, shapely.multipolygons([shape]))
 
 
-def selection(parts, stateless=None):
+def selection(parts, stateless=None, pockets=None):
     empty = shapely.MultiPolygon()
     state = empty if stateless is None else shapely.multipolygons([stateless])
-    return clio.Selection(1815, tuple(parts), state, frozenset(), (), {})
+    given = empty if pockets is None else shapely.multipolygons([pockets])
+    return clio.Selection(1815, tuple(parts), state, frozenset(), (), {}, given)
 
 
 # On face 0, from west to east along the equator: stateless land (30° W to 20° W), West (to the
@@ -115,6 +116,24 @@ def test_a_strip_of_the_far_shore_is_filled_so_the_border_crosses_the_lake():
     assert crossing(4) > column(-4)  # across the lake
 
 
+def test_a_pocket_takes_its_polity_though_stateless_land_lies_nearer_across_a_lake():
+    # West's pocket, 16° to 6° W, runs to a lake whose far shore is stateless: the pocket's east is
+    # nearer that shore than West's land, so the nearest id would split it at 10° W, but it goes
+    # to West, and the border runs by the lake, within the texel of its west shore.
+    lake = box(-6, -8, -4, 8)
+    land = shapely.difference(box(-30, -10, 0, 10), lake)
+    pocket = box(-16, -10, -6, 10)
+    chosen = selection(
+        [part("West", "West", box(-30, -10, -16, 10))],
+        stateless=box(-4, -10, 0, 10),
+        pockets=pocket,
+    )
+    _, r, _, _ = planes(chosen, land=land)
+    row = r[EQUATOR]
+    [crossing] = np.flatnonzero(np.diff(row > 0))
+    assert column(-7) < crossing < column(-4)
+
+
 def test_the_border_of_a_minor_piece_draws_in_g():
     ids = {"": 1, "Isle": 2, "Realm": 3}
     chosen = selection(
@@ -162,6 +181,20 @@ def test_a_preview_holds_the_outer_borders_and_their_softness():
     edge = preview_column(-20)
     assert abs(row[edge]) < 1 and soft[PREVIEW_EQUATOR, edge]
     assert not soft[PREVIEW_EQUATOR, preview_column(-0.3)]
+
+
+def test_a_previews_pocket_takes_its_polity_too():
+    lake = box(-6, -8, -4, 8)
+    land = shapely.difference(box(-30, -10, 0, 10), lake)
+    chosen = selection(
+        [part("West", "West", box(-30, -10, -16, 10))],
+        stateless=box(-4, -10, 0, 10),
+        pockets=box(-16, -10, -6, 10),
+    )
+    d, _ = preview(chosen, land)
+    row = d[PREVIEW_EQUATOR, preview_column(-30) : preview_column(0)]
+    [crossing] = np.flatnonzero(np.diff(row > 0))
+    assert preview_column(-7) <= preview_column(-30) + crossing <= preview_column(-4)
 
 
 def test_a_preview_wraps_at_the_antimeridian():

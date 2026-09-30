@@ -322,6 +322,38 @@ def test_a_pocket_correction_overrides_the_rule(terrain):
     assert chosen.applied == {0}
 
 
+def test_a_pocket_that_touches_a_polity_is_filled_from_the_polities(terrain):
+    # A ring around the lake is a pocket beside Realm; an island in a second lake, in stateless
+    # land, touches no polity and is left to the fill.
+    lakes = shapely.union(LAKE, box(14, -1, 16, 1))
+    land = shapely.difference(LAND, box(14.3, -0.3, 15.7, 0.3))
+    islands = clio.Terrain.of(shapely.union(land, box(14.8, -0.2, 15.2, 0.2)), lakes)
+    rows = [row("Realm", shapely.difference(box(-20, -10, 10, 10), box(-1.5, -1.5, 1.5, 1.5)))]
+    chosen = select(rows, islands)
+    assert shapely.intersects(chosen.pockets, shapely.Point(1.25, 0))
+    assert not shapely.intersects(chosen.pockets, shapely.Point(15, 0))
+    assert not stateless_at(chosen, 15, 0)
+
+
+def test_a_pocket_correction_keeps_or_gives_a_coastal_piece_whole(terrain):
+    # Realm holds all but a block 2° square on the north coast, about 49,000 km².
+    bay = box(-2, 8, 0, 10)
+    rows = [row("Realm", shapely.difference(LAND, bay))]
+    give = correction(clio.Pocket((-1, 9), stateless=False))
+    chosen = select(rows, terrain, corrections=[give])
+    assert not stateless_at(chosen, -1, 9)
+    assert shapely.intersects(chosen.pockets, shapely.Point(-1, 9))
+    assert chosen.applied == {0}
+    assert stateless_at(select(rows, terrain), -1, 9)
+
+
+def test_a_pocket_correction_past_the_cap_fails_the_step(terrain):
+    rows = [row("Realm", box(-20, -10, 0, 10))]
+    give = correction(clio.Pocket((10, 0), stateless=False))
+    with pytest.raises(clio.SelectionError, match="past pocketKm2"):
+        select(rows, terrain, corrections=[give])
+
+
 # Overlaps --------------------------------------------------------------------------------------
 
 

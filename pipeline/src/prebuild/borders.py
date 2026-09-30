@@ -405,7 +405,7 @@ def describe(op: clio.Operation) -> str:
             return f"{polity} is named {to}"
         case clio.Pocket(at, stateless):
             fate = "stays stateless" if stateless else "goes to its neighbours"
-            return f"the enclosed stateless land at {at[0]}, {at[1]} {fate}"
+            return f"the stateless land at {at[0]}, {at[1]} {fate}"
         case clio.Overlap((a, b), winner):
             return f"where {a} and {b} overlap, {winner} keeps the land"
     raise BordersError(f"no description of {op!r}")
