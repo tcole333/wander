@@ -1,0 +1,155 @@
+# How Cliopatria's composites and vassalage relations nest (streaming.md 3.3).
+#
+# A composite, a POLITY row whose name is in parentheses, is an `empire`, whose members share one
+# outer border and draw the lines between them as inner lines, or a `grouping`, whose members stay
+# apart. A vassalage relation is `member: true` when the vassal sits inside its paramount's outer
+# border with its own inner line, by treaty only: a protectorate, princely state or subsidiary ally.
+# Tribute relations stay out (owner decision 34). Alliance, allegiance and personal-union rows are
+# not territory and are never listed. Every entry has a `why` and a `source`: {title, publisher,
+# url[, locator]}.
+#
+# These entries class the composites valid in 1500, 1800, 1815 or 1914 and the vassalage relation
+# valid in 1500, as task 0's renders did; the history pass classes the rest. Until it does, a
+# composite this file does not list keeps its members apart, a relation it does not list makes no
+# member, and the borders stage lists both as unclassified.
+modified: 2026-09-29
+composites:
+  (Bourbon Kingdom of France):
+    kind: empire
+    why: One component in 1815, the restored kingdom itself; the class changes nothing.
+    source:
+      title: Bourbon Restoration in France
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bourbon_Restoration_in_France
+  (Kingdom of France):
+    kind: empire
+    why: >-
+      Its other components (the counties of Nevers, Foix and Auvergne and the Bourbon lands) were
+      fiefs held of the French crown inside the kingdom, so the kingdom's frontier is the outer
+      line and theirs are inner.
+    source:
+      title: Kingdom of France
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_France
+  (Habsburg Monarchy):
+    kind: empire
+    why: >-
+      One dynasty's hereditary lands: in 1500 Maximilian I's Austrian lands and the Burgundian
+      Netherlands of his son Philip, which do not touch, so the class draws no line; in 1800 one
+      component.
+    source:
+      title: Habsburg monarchy
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Habsburg_monarchy
+  (Holy Roman Empire):
+    kind: empire
+    why: >-
+      Its one component is the Empire's minor states, drawn as one polity, so the class changes
+      nothing here; the electorates and great houses are rows of their own with no membership, a
+      gap for the history pass.
+    source:
+      title: Holy Roman Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Holy_Roman_Empire
+  (Kalmar Union):
+    kind: empire
+    why: >-
+      One component, the union itself, which Cliopatria draws as one polity; the class changes
+      nothing.
+    source:
+      title: Kalmar Union
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kalmar_Union
+  (Kingdom of England):
+    kind: empire
+    why: One component, the kingdom itself; the class changes nothing.
+    source:
+      title: Kingdom of England
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_England
+  (Kingdom of Bohemia):
+    kind: empire
+    why: >-
+      One component, the kingdom with its crown lands as one polity; the class changes nothing.
+    source:
+      title: Kingdom of Bohemia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bohemia
+  (Delhi Sultanate):
+    kind: empire
+    why: One component, the Lodi dynasty's sultanate; the class changes nothing.
+    source:
+      title: Delhi Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Delhi_Sultanate
+  (Portuguese Empire):
+    kind: empire
+    why: >-
+      Brazil and the African and Asian posts were the Portuguese crown's, ruled from Lisbon, so the
+      kingdom and its colonies share one outer border.
+    source:
+      title: Portuguese Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Portuguese_Empire
+  (French Consulate):
+    kind: empire
+    why: >-
+      France's remaining overseas posts (Cliopatria's French India) were French possessions under
+      the Consulate.
+    source:
+      title: French Consulate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Consulate
+  (British Empire):
+    kind: empire
+    why: >-
+      Great Britain and the lands under British sovereignty: the East India Company's territories,
+      Ceylon and the Cape (taken in 1796 and 1795), the colonies, and in 1914 the Raj and British
+      Africa.
+    source:
+      title: British Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/British_Empire
+  (Spanish Empire):
+    kind: empire
+    why: >-
+      The American viceroyalties and the Philippines were the Spanish crown's in 1800; in 1914 one
+      component.
+    source:
+      title: Spanish Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Spanish_Empire
+  (Batavian Republic):
+    kind: empire
+    why: >-
+      The Dutch East India Company's possessions passed to the Batavian Republic on 1 January 1800,
+      as the Dutch East Indies.
+    source:
+      title: Batavian Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Batavian_Republic
+  (French Third Republic):
+    kind: empire
+    why: >-
+      French Africa and French Indochina were colonies and protectorates governed from Paris.
+    source:
+      title: French Third Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Third_Republic
+  (Netherlands):
+    kind: empire
+    why: The Dutch East Indies were a Dutch colony, governed from The Hague.
+    source:
+      title: Dutch East Indies
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+relations:
+  (Vassalage of Jaffna kingdom to Vijayanagara Empire):
+    member: false
+    why: >-
+      A tributary kingdom, which Cliopatria records as Vijayanagara's vassal through 1501. Tribute
+      relations stay out (owner decision 34), so it keeps its own outer border.
+    source:
+      title: Jaffna kingdom
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Jaffna_kingdom
