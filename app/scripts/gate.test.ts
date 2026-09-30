@@ -39,12 +39,14 @@ describe('the gate’s scope', () => {
     });
   });
 
-  test.each(['pipeline/tests/data/media/quadrants.jpg', 'stories/tambora/story.md', 'shared/x'])(
-    'runs everything, e2e included, for %s, which both sides read',
-    (path) => {
-      expect(planGate([path])).toEqual({ steps: FULL, e2eUnlessFixtureSame: false });
-    },
-  );
+  test.each([
+    'pipeline/tests/data/media/quadrants.jpg',
+    'stories/tambora/story.md',
+    'shared/x',
+    'app/scripts/slot.sh',
+  ])('runs everything, e2e included, for %s, which both sides read', (path) => {
+    expect(planGate([path])).toEqual({ steps: FULL, e2eUnlessFixtureSame: false });
+  });
 
   test('runs everything for a path no rule names', () => {
     expect(planGate(['.github/workflows/ci.yml'])).toEqual({
