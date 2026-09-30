@@ -651,7 +651,8 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
   than covering it, so its wear, rivers and coast still show, and loses some of its polish (rougher,
   less metallic); warm land takes a rosy copper blush; the sea's lacquer takes a third of either.
   It saturates at `climateRangeK`. Where the climate is drawn, the illustrative veil gives way to
-  it, keyed on the data being drawn rather than on the beat's layers.
+  it, keyed on the data being drawn rather than on the beat's layers. Explore's marks keep their
+  families' materials over it: the wash lies on the casting around a mark, not on the mark.
 - **Legend:** a small plate of Meanwhile's cast brass, in Meanwhile's column over the ruler's right
   end, while climate is drawn: the month ("July 1816"), an enamel strip in the look's colors as the
   key lamp shows them, "Colder" and "Warmer" at its ends, ticks at 0, ±½ and ±1 of the range (−4 to
