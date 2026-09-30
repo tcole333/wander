@@ -512,9 +512,7 @@ async function assemble(
     museum.render(camera);
     mode?.ui(drawn, now);
     chrome?.update();
-    const heard = mode?.audio() ?? null;
-    const walked = heard && 'state' in heard ? heard : null;
-    sound?.update(walked?.state ?? null, walked?.unit ?? 'day', drawn, dt, lobby?.returning);
+    sound?.update(mode?.audio() ?? null, drawn, dt, lobby?.returning);
 
     const s = streamer.stats();
     // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.

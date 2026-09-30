@@ -5,11 +5,12 @@
 // Where the release has its event index and the look cuts marks, the events of the now window
 // mark the globe (exploreEvents.ts), the opening focal among them; the layer's data-explore-marks
 // counts the events marked in view. The globe shows the climate at the clock's date wherever
-// ModE-RA has it and the ruler is close enough (exploreClimate.ts). Leaving stops input on the
-// ruler, stops asking for events, eases their marks and the climate out and fades the sound to the
-// room; ending releases the clock, ruler, event worker and climate years and takes the marks off,
-// so the world clock has one owner at a time. window.__worldTime and window.__exploreEvents serve
-// scripts while Explore runs.
+// ModE-RA has it and the ruler is close enough (exploreClimate.ts). Its sound (audio/clockScore.ts)
+// hears the clock's day, what the ruler engraves around it, and whether a free flight has the
+// camera. Leaving stops input on the ruler, stops asking for events, eases their marks and the
+// climate out and fades the sound to the room; ending releases the clock, ruler, event worker and
+// climate years and takes the marks off, so the world clock has one owner at a time.
+// window.__worldTime and window.__exploreEvents serve scripts while Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
@@ -222,7 +223,13 @@ export function startExplore({
       counted = count;
       layer.dataset.exploreMarks = String(count);
     },
-    audio: () => null,
+    audio: () =>
+      left
+        ? null
+        : {
+            clock: { day: clock.state().day, unit: ruler.unit, yearStep: ruler.yearStep },
+            flying: flight !== null,
+          },
     leave() {
       left = true;
       flight = null;

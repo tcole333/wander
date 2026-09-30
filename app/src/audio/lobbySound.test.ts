@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryAccount } from '../perf/memory';
+import { dayFromHistorical } from '../story/dates';
 import { createWalk } from '../story/director';
 import { parseStory } from '../story/story';
 import { audioClock } from '../test/audio';
 import { ViewControl } from '../view/viewControl';
 import { drawnView, type ViewState } from '../view/viewState';
-import type { Precision } from '../story/dates';
-import type { WalkState } from '../story/contract';
+import type { ModeAudio } from '../walk/mode';
 import { SoundEngine } from './engine';
 import { createWalkAudio, type WalkAudio } from './walkAudio';
 
@@ -51,14 +51,14 @@ function page() {
   let now = 0;
   const run = (
     seconds: number,
-    frame: () => { heard: { state: WalkState; unit: Precision } | null; view: ViewState },
+    frame: () => { heard: ModeAudio; view: ViewState },
     back = false,
   ) => {
     for (let t = 0; t < seconds; t += DT) {
       now += DT;
       clock.advance(now);
       const { heard, view } = frame();
-      audio.update(heard?.state ?? null, heard?.unit ?? 'day', view, DT, back);
+      audio.update(heard, view, DT, back);
     }
   };
   const cached = () => {
@@ -105,6 +105,30 @@ describe('the lobby after a walk', () => {
     back(audio);
     expect(cached()).toEqual({ bytes: 0, buffers: 0 });
     walk.dispose();
+    audio.dispose();
+  });
+
+  it('holds none after Explore either, whose next dive caches its own again', () => {
+    const { audio, run, cached, back } = page();
+    const waterloo = dayFromHistorical({ year: 1815, month: 6, day: 18 });
+    for (let trip = 0; trip < 2; trip += 1) {
+      audio.start(true);
+      let day = waterloo;
+      run(1, () => ({
+        heard: { clock: { day, unit: 'year', yearStep: 10 }, flying: true },
+        view: LOBBY,
+      }));
+      run(3, () => {
+        day -= 40;
+        return {
+          heard: { clock: { day, unit: 'year', yearStep: 10 }, flying: false },
+          view: LOBBY,
+        };
+      });
+      expect(cached().buffers).toBeGreaterThan(0);
+      back(audio);
+      expect(cached()).toEqual({ bytes: 0, buffers: 0 });
+    }
     audio.dispose();
   });
 });

@@ -7,19 +7,22 @@
 // a Meanwhile entry has the camera, far from the beat's place, its cues fall back.
 //
 // WalkScore plays all of it on any engine, live or offline (the Sound Cabinet renders a stretch of
-// the walk with it). createWalkAudio belongs to the page: the lobby's plaque unlocks the context
-// in its click; a dev walk arms first-gesture unlocks. The knob and M share one remembered setting
-// even before a story starts. Returning fades cues and rumble to the room through the lobby's
-// flight; once it lands, the room tone fades out and the engine forgets the noise it cached, so the
-// lobby holds none, and the next dive's bed comes in at its landing as the first did. A hidden tab
-// fades out over hideRamp and suspends, then resumes and fades in over showFade (streaming.md 5.9).
+// the walk with it). createWalkAudio belongs to the page, and plays Explore's sound too
+// (clockScore.ts): the lobby's plaque unlocks the context in its click; a dev walk arms
+// first-gesture unlocks. The knob and M share one remembered setting even before a story starts.
+// Returning fades cues and rumble to the room through the lobby's flight; once it lands, the room
+// tone fades out and the engine forgets the noise it cached, so the lobby holds none, and the next
+// dive's bed comes in at its landing as the first did. A hidden tab fades out over hideRamp and
+// suspends, then resumes and fades in over showFade (streaming.md 5.9).
 import { tunables } from '../config/tunables';
 import { flightPath } from '../story/flight';
 import type { Precision } from '../story/dates';
 import type { SoundSwitch, WalkState } from '../story/contract';
 import { isFormField } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
+import type { ModeAudio } from '../walk/mode';
 import { magellanBed, museumBed, tamboraBed, type Bed } from './bed';
+import { ClockScore } from './clockScore';
 import { isCueName, startCue, type CueHandle, type CueName } from './cues';
 import { unlockedSound, unlockSound, type SoundEngine } from './engine';
 import { marksPassed } from './marks';
@@ -194,7 +197,7 @@ function landed(state: WalkState): boolean {
   return state.flight === null && !state.flying && state.mode !== 'breakout';
 }
 
-/** The walk's sound in the page, and its mute switch. */
+/** The page's sound, a story's walk or Explore's, and its mute switch. */
 export interface WalkAudio extends SoundSwitch {
   inspectMemory?(account: import('../perf/memory').MemoryAccount): void;
   /** Arms gesture unlocks; the plaque calls this inside its click with inGesture true. */
@@ -206,14 +209,11 @@ export interface WalkAudio extends SoundSwitch {
    * it cached, so the lobby holds none.
    */
   finish(): void;
-  /** Every frame; null state is the lobby, with a whir during its return flight. */
-  update(
-    state: WalkState | null,
-    unit: Precision,
-    view: ViewState,
-    dtS: number,
-    returning?: boolean,
-  ): void;
+  /**
+   * Every frame, with what the mode's sound follows; null is the lobby, with a whir during its
+   * return flight.
+   */
+  update(heard: ModeAudio, view: ViewState, dtS: number, returning?: boolean): void;
   dispose(): void;
 }
 
@@ -221,15 +221,18 @@ export function createWalkAudio(): WalkAudio {
   let muted = readMuted();
   let engine = unlockedSound() ?? null;
   engine?.setMuted(muted);
-  let score: WalkScore | null = null;
-  /** The bed the last walk left playing room tone through the lobby's flight. */
+  let score: WalkScore | ClockScore | null = null;
+  /** The bed the last score left playing room tone through the lobby's flight. */
   let room: Bed | null = null;
   let returnWhir: Whir | null = null;
   let active = false;
-  /** The walk as the last frame left it, and as it stood before the gesture that unlocked sound. */
-  let last: WalkState | null = null;
+  /**
+   * What the mode's sound followed as the last frame left it, and as it stood before the gesture
+   * that unlocked sound.
+   */
+  let last: ModeAudio = null;
   let lastView: ViewState | null = null;
-  let unlockedFrom: WalkState | null = null;
+  let unlockedFrom: ModeAudio = null;
   let suspending: ReturnType<typeof setTimeout> | undefined;
   let warned = false;
   const listeners = new AbortController();
@@ -293,8 +296,46 @@ export function createWalkAudio(): WalkAudio {
     { signal },
   );
 
+  /** Starts `next` in place of any score, or room tone, still playing. */
+  const begin = <S extends WalkScore | ClockScore>(next: S, at: number): S => {
+    score?.stop(at);
+    room?.stop(at);
+    room = null;
+    unlockedFrom = null;
+    score = next;
+    return next;
+  };
+  /**
+   * A frame of the mode's sound. A new score starts from what the sound followed before it could
+   * play (the frame before the gesture that unlocked it), where that was of the same kind.
+   */
+  const play = (
+    sound: SoundEngine,
+    heard: NonNullable<ModeAudio>,
+    pace: number,
+    at: number,
+    dt: number,
+  ) => {
+    const from = unlockedFrom ?? last ?? heard;
+    if ('state' in heard) {
+      const walk =
+        score instanceof WalkScore
+          ? score
+          : begin(new WalkScore(sound, 'state' in from ? from.state : heard.state, at), at);
+      walk.frame({ state: heard.state, unit: heard.unit, pace, at, dt });
+    } else {
+      const clock =
+        score instanceof ClockScore
+          ? score
+          : begin(new ClockScore(sound, 'clock' in from ? from.clock.day : heard.clock.day), at);
+      clock.frame({ ...heard, pace, at, dt });
+    }
+  };
+
   return {
-    inspectMemory: (account) => score?.inspectMemory(account),
+    inspectMemory: (account) => {
+      if (score instanceof WalkScore) score.inspectMemory(account);
+    },
     get muted() {
       return muted;
     },
@@ -322,19 +363,11 @@ export function createWalkAudio(): WalkAudio {
       }
       room = null;
     },
-    update(state, unit, view, dtS, returning = false) {
+    update(heard, view, dtS, returning = false) {
       if (engine && engine.ctx.state === 'running') {
         const at = engine.soon();
         const pace = lastView ? paceOf(lastView, view, dtS) : 0;
-        if (state && active) {
-          if (!score) {
-            room?.stop(at);
-            room = null;
-            score = new WalkScore(engine, unlockedFrom ?? last ?? state, at);
-            unlockedFrom = null;
-          }
-          score.frame({ state, unit, pace, at, dt: dtS });
-        }
+        if (heard && active) play(engine, heard, pace, at, dtS);
         if (returning) {
           returnWhir ??= whir(engine, at);
           returnWhir.setPace(pace, at);
@@ -343,7 +376,7 @@ export function createWalkAudio(): WalkAudio {
           returnWhir = null;
         }
       }
-      last = state;
+      last = heard;
       lastView = { ...view };
     },
     dispose() {
