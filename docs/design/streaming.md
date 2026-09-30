@@ -446,17 +446,20 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   the 3400 BCE step from 100 s to 17 s [M]. Antarctica, which reaches a pole, keeps its slivers: no
   projection about its centroid holds it, and no polity lies near it.
 - **Pockets** go to their neighbours: a stateless piece that touches no sea goes when it touches a
-  lake or lies in a hole of the polities and is under `pocketKm2` (100,000 km²; the old Aral bed and
-  Victoria's shore are about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout.
-  A hole that touches a lake is filled only under that cap too (owner decision 36), since 1500 has
-  a 260,000 km² stateless hole in the Urals beside a small lake. A pocket that touches a polity is
+  lake and is under `pocketKm2` (100,000 km²; the old Aral bed and Victoria's shore are about
+  68,000 km² each), or when it is narrower than 2·`sliverKm` throughout. A hole that touches a lake
+  is filled only under that cap (owner decision 36), since 1500 has a 260,000 km² stateless hole in
+  the Urals beside a small lake. A pocket that touches a polity is
   filled from the polities alone, before the fill below: across a lake stateless land can lie
   nearer than the polity beside it, and lower Michigan, a pocket of the United States in 1822-33,
   split along Lake Michigan's east shore before this. One that touches none, an island in a lake
   among stateless shores, is left to the fill.
-- **Other enclosed pieces stay stateless,** since they may be real stateless enclaves. The pockets
-  given and the pieces kept are listed per step, and a `pocket` correction overrides the rule, for a
-  coastal piece too.
+- **Other enclosed pieces stay stateless,** however small, since they may be real stateless
+  enclaves: every enclosed piece lies in a hole of the polities, so a rule that filled holes filled
+  them all, 244 times across the steps a piece of 10,000 km² or more, such as inland Sumatra in
+  1862 and the New Guinea highlands in 1943 [M global bake, 30 September]. The pockets given and
+  the pieces kept are listed per step, and a `pocket` correction overrides the rule, for a coastal
+  piece too.
 - **The antimeridian:** Cliopatria's shapes stop at 180°, so land just across it that no polity
   holds, in pieces within 20° of it, goes to the one polity whose shape runs along the other side
   where the piece meets the meridian. Otherwise Chukotka east of 180° is stateless whenever
@@ -517,24 +520,27 @@ The era files hold 104 corrections, each cited. Besides the 23 pairs:
   Bulgaria (1945-46), which Cliopatria draws as Soviet, carry their own rows, and Persia and the
   Indies get back the names Cliopatria swaps in 1895-97. The Mughal emperor's Delhi, which
   Cliopatria keeps into 1858, is British from 1858, the British having retaken it in September
-  1857.
+  1857. The Door Peninsula, east of Green Bay, is the United States' in 1834-35: the Menominee ceded
+  it in 1831 (ratified in 1832), but Cliopatria's United States of those years stops at its base,
+  so the peninsula went to the stateless land across the bay and a border ran along its shore.
 - **The Indies:** the Dutch East Indies are British from 1812 to 1816: the British took Java in
   September 1811 and returned the Indies in 1816, and in 1812-13 Cliopatria's smaller Dutch row
   outdraws its British one. Sumbawa's six states of 1815 are drawn from Chambert-Loir's map as
   reproduced by de Jong Boers (1995), each cited to Hägerdal's *Held's History of Sumbawa*: Tambora
   and Pekat for 1815 only, since the eruption destroyed them and their land lay empty until 1866,
   and Sanggar, Dompu, western Sumbawa's sultanate and Bima's land on the island for 1815 and 1816.
-  All six are drawn as British members in those years, with the rest of the Indies, where owner
-  decision 37 names them Dutch members: they were bound to the Dutch by contract, but the Indies
-  are British here, Raffles's government sent Lieutenant Owen Phillips to Sumbawa after the
-  eruption, and the Dutch extended the contracts in 1817 (de Jong Boers, pp. 41, 46). No source
-  binds them to Britain by treaty, so which paramount they draw under is the owner's call.
+  All six are Dutch members in those years (owner decision 37), members of the Netherlands while
+  the rest of the Indies is British: they were bound to the Dutch by contract, which the Dutch
+  extended in 1817 (de Jong Boers, pp. 41, 46). Each of their pieces is under `minorKm2`, so their
+  lines with British land, the Indies' scraps on Sumbawa among it, are inner lines, as between two
+  members of one empire: as Dutch members they draw the same lines as British members would.
 - **Dependents by treaty:** the Carnatic (1793-1802), Awadh (1776-1802), Hyderabad (1799-1947),
   Mysore (1800-1947), Yogyakarta and Surakarta (Dutch from 1800, British from 1812 to 1816, Dutch
   again to 1829), the Batavian Cape (1804-06), Monaco under Sardinia (1816-60), Bukhara and Khiva
-  (1874-1917), Afghanistan (1880-1919), Kuwait (1900-61) and Bhutan (1911-47) are members. So is the
-  Mughal emperor (1804-57), whom the Company took under its protection in 1803 as its pensioner,
-  though by no treaty; whether that meets decision 34 is the owner's call. Hyderabad keeps its
+  (1874-1917), Afghanistan (1880-1919), Kuwait (1900-61) and Bhutan (1911-47) are members. The
+  Mughal emperor, whom the Company took under its protection in 1803 as its pensioner by no treaty,
+  is not: his Delhi keeps its own outer border until 1858, and whether that protection counts under
+  decision 34 is a question for the owner. Hyderabad keeps its
   1798 shape until the Ceded Districts pass to the Company in 1800 and then takes Cliopatria's own
   1947 shape; Mysore's is traced from the Imperial Gazetteer's 1909 map; Bukhara and Khiva take
   their 1918 rows' shapes. Kedah and Chiang Mai, tributaries of Siam, stay out, and other princely
