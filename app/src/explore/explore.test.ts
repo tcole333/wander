@@ -19,6 +19,8 @@ import { openings } from './openings';
 const drawn = vi.hoisted(() => ({
   rulers: 0,
   disposed: 0,
+  /** The time keys bound and not yet let go. */
+  keys: 0,
   layers: [] as FakeLayer[],
   /** The part that throws as it is built, if any. */
   broken: null as 'ruler' | 'flight' | 'worker' | null,
@@ -135,9 +137,16 @@ vi.mock('./labels', () => ({
     dispose() {}
   },
 }));
+vi.mock('./timeKeys', () => ({
+  bindTimeKeys(_time: unknown, _ruler: unknown, control: { arrowKeys: boolean }) {
+    control.arrowKeys = false;
+    drawn.keys++;
+    return { globe: { globe: true }, caption: { caption: true }, dispose: () => drawn.keys-- };
+  },
+}));
 vi.mock('./timeRuler', () => ({
   TimeRuler: class {
-    element = { ruler: true };
+    element = { ruler: true, after() {} };
     panels = [{ ruler: true }];
     pin: number | null = null;
     // What the tape labels at the opening's span: years, every 20.
@@ -239,6 +248,7 @@ function setup(
   Object.assign(drawn, {
     rulers: 0,
     disposed: 0,
+    keys: 0,
     layers: [],
     broken: null,
     clients: [],
@@ -301,8 +311,11 @@ describe('Explore', () => {
     const { control, mode, tick } = setup();
     const landed = vi.fn();
     mode.landed(landed);
+    // The keys for time wait for the landing, so no key moves time while the dive flies.
+    expect(drawn.keys).toBe(0);
     for (let frame = 0; frame < 600 && !landed.mock.calls.length; frame++) tick();
     expect(landed).toHaveBeenCalledTimes(1);
+    expect(drawn.keys).toBe(1);
     expect(control.current.lon).toBeCloseTo(WATERLOO.at[0], 6);
     // Waterloo's 50.7°N is held to 35°N, so the event stands on the lit face.
     expect(control.current.lat).toBeCloseTo(35, 6);
@@ -323,10 +336,12 @@ describe('Explore', () => {
     expect(control.current).toEqual(view);
   });
 
-  it('starts where the view stands on the dev page, at 200 years, keeping the arrow keys', () => {
+  it('starts where the view stands on the dev page, at 200 years, its keys bound', () => {
     const { clock, control, mode, tick } = setup('jump');
     expect(clock.state().spanDays).toBe(200 * 365.2425);
-    expect(control.arrowKeys).toBe(true);
+    // The arrow keys move time; the globe takes them from its own stop.
+    expect(control.arrowKeys).toBe(false);
+    expect(drawn.keys).toBe(1);
     const landed = vi.fn();
     mode.landed(landed);
     const view = { ...control.current };
@@ -369,6 +384,15 @@ describe('Explore', () => {
     expect(mode.audio()).toBeNull();
   });
 
+  it('lets its time keys go as it leaves', () => {
+    const { mode } = setup('jump');
+    expect(drawn.keys).toBe(1);
+    mode.leave();
+    expect(drawn.keys).toBe(0);
+    mode.end();
+    expect(drawn.keys).toBe(0);
+  });
+
   it('leaves, then releases its ruler, layer and script hook', () => {
     const { mode, leaveSound, tick } = setup();
     const landed = vi.fn();
@@ -389,7 +413,7 @@ describe('Explore', () => {
     const steps = stepsRuntime();
     const { control, mode, tick } = setup('fly', null, steps.runtime);
     const layer = drawn.layers[0]!;
-    expect(layer.children).toEqual([{ ruler: true }]);
+    expect(layer.children).toEqual([expect.objectContaining({ ruler: true })]);
     expect(window.__borders).toBeDefined();
     tick();
     expect(steps.loadPreviews).not.toHaveBeenCalled();

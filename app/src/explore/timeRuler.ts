@@ -252,8 +252,8 @@ export class TimeRuler {
       ...this.#reels,
       this.#finish,
       this.#hit,
-      this.#counter,
       this.#plaque,
+      this.#counter,
       this.#riderTag,
       this.#status,
     );

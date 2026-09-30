@@ -48,6 +48,7 @@ import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { ExploreLabels } from './labels';
 import { ExploreMeanwhile } from './exploreMeanwhile';
 import { openingForDive, openings, type Opening } from './openings';
+import { bindTimeKeys, type TimeKeys } from './timeKeys';
 import { TimeRuler } from './timeRuler';
 
 /** The dive's view keeps the event's latitude within this, degrees, so no pole faces the lamp. */
@@ -253,6 +254,14 @@ export function startExplore({
   const landings = new Set<() => void>();
   // Started where the view stands (the dev page), Explore has landed already.
   let dived = flight === null;
+  /** The time keys and the Globe stop, from the landing on. */
+  let keys: TimeKeys | null = null;
+  const bindKeys = () => {
+    keys = bindTimeKeys(time, ruler, control);
+    // After the Date and Years shown sliders, before the events, in the tab order.
+    ruler.element.after(keys.globe);
+    layer.append(keys.caption);
+  };
   /** What a Meanwhile flight's landing does: pins its entry. */
   let arriving: (() => void) | null = null;
   /** The flight has landed: the dive, its opening pinned, or a flight to a Meanwhile entry. */
@@ -266,6 +275,7 @@ export function startExplore({
     }
     dived = true;
     borders?.landed();
+    bindKeys();
     labels?.land(opening);
     for (const landed of [...landings]) landed();
   };
@@ -277,8 +287,12 @@ export function startExplore({
     flight = new FreeFlight(control.current, { lon, lat, viewKm: ARRIVE_KM, tilt, heading });
     arriving = () => labels?.pinEvent(event.qid, { t0: event.t0, t1: event.t1 });
   };
-  if (dived) labels?.land(null);
-  control.arrowKeys = true;
+  if (dived) {
+    bindKeys();
+    labels?.land(null);
+  }
+  // The arrow keys move time; the globe takes them only from its own stop (timeKeys.ts).
+  control.arrowKeys = false;
   // Input during the dive takes the view from the flight, and the dive counts as landed; input
   // during a flight to a Meanwhile entry takes the view, and nothing is pinned.
   control.onInput = () => {
@@ -379,6 +393,8 @@ export function startExplore({
       arriving = null;
       landings.clear();
       layer.inert = true;
+      keys?.dispose();
+      keys = null;
       labels?.leave();
       events?.leave();
       borders?.leave();
@@ -388,6 +404,8 @@ export function startExplore({
       flight = null;
       arriving = null;
       landings.clear();
+      keys?.dispose();
+      keys = null;
       labels?.dispose();
       events?.dispose();
       borders?.end();
