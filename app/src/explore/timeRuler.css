@@ -539,3 +539,16 @@
     animation: none;
   }
 }
+
+/* The Globe's stop in the tab order (timeKeys.ts): unseen, its name shown on a plate while it has
+   the focus. */
+.wu .xt-globe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
