@@ -159,6 +159,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   stops, naming it, until the lock matches the global table, and the release stops, naming
   `event-files`, until that record holds the committed lock: after any change to the table, run
   `openings`, then `event-files`, and commit the lock.
+- `uv run python -m prebuild.cliopatria [--profile global|fixture] [--jobs N]`: selects every
+  border step from Cliopatria, under `pipeline/config/borders/`, without baking, and writes the
+  review queue `build/stages/<profile>/borders-review.json` for the history pass
+  (`docs/design/streaming.md` 3.3, 7.2); it exits 1 when a step fails or a correction leaves a
+  step unchanged.
 - `npm run verify:bake -- [region|global]`: decodes every tile of `build/region/` (the default)
   or `build/out/`, reading `build/stages/<profile>/`, and checks its seams, headers, `bounds.bin`,
   availability and known places (`docs/design/streaming.md` 7.3). Local only, since building the
