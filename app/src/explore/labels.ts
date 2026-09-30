@@ -522,10 +522,15 @@ export class ExploreLabels {
     });
     this.#sortOptions();
     if (!this.#listFocused) return;
-    // The active mark went: the option nearest where it stood takes its place.
+    // The active mark went: its event's other mark takes its place, as a war pinned while split
+    // turns solid, else the option nearest where it stood.
     const stays = this.#options.some((option) => option.id === this.#active);
     let next = stays ? this.#active : null;
-    if (!stays && was) {
+    if (next === null && was) {
+      const qid = markQid(was.id);
+      next = this.#options.find((option) => markQid(option.id) === qid)?.id ?? null;
+    }
+    if (next === null && was) {
       let best = Infinity;
       for (const option of this.#options) {
         const d = Math.hypot(option.x - was.x, option.y - was.y);

@@ -535,6 +535,26 @@ describe('Explore’s labels', () => {
     expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q207318');
   });
 
+  it('keep the keyboard on an event as its mark turns from hollow to solid', () => {
+    // A war whose place its battle lends it, drawn hollow while split, the battle listed first.
+    const shown: OnScreen[] = [
+      { id: 'Q209312', x: 800, y: 380, label: 'Eighth Russo-Turkish War' },
+      { id: 'Q743046/outline', x: 800, y: 380, label: 'Russo-Turkish Wars' },
+    ];
+    const { labels, list, key } = setup(shown);
+    labels.land(null);
+    labels.update(0);
+    list.dispatchEvent(new Event('focus'));
+    key(list, 'End');
+    expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q743046-outline');
+    key(list, 'Enter');
+    expect(labels.pinned).toBe(743046);
+    // Pinned, the war stands solid in its hollow mark's place: the keyboard stays with it.
+    shown[1] = { id: 'Q743046', x: 800, y: 380, label: 'Russo-Turkish Wars' };
+    labels.update(16);
+    expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q743046');
+  });
+
   it('stop picking once Explore leaves, the plates going', () => {
     const { events, labels, root, click, pointer } = setup();
     labels.land(null);
