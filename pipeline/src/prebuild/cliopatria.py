@@ -30,6 +30,9 @@ year here is astronomical.
   than 2·`sliverKm` throughout: the bake fills a pocket that touches a polity from the polities
   alone, since across a lake stateless land can lie nearer. Other pieces stay stateless; a `pocket`
   correction overrides the rule, for a coastal piece too.
+- **The antimeridian:** Cliopatria's shapes stop at ±180°, so land just across it that no polity
+  holds goes to the polity whose shape runs along the other side at the same latitudes: otherwise
+  Chukotka east of the meridian is stateless from 1778 and a border runs down it.
 - **Size tier:** each outer unit's drawn land splits into connected pieces, and a piece under
   `minorKm2` is minor: its borders with other outer units draw in the inner plane (owner decision
   36).
@@ -66,6 +69,7 @@ from typing import Any
 import numpy as np
 import pyogrio.raw
 import shapely
+import shapely.affinity
 import yaml
 
 from prebuild.config import ConfigError, load_water
@@ -115,6 +119,8 @@ PIECE_GAP_DEG = 0.01  # parts of one outer unit this close are one piece
 OPENING_TOLERANCE_KM = 2.0  # the stateless openings simplify coasts this far
 POLE_LAT = 89.9  # a stateless piece reaching this far north or south is never opened
 LARGE_POCKET_KM2 = 1000  # the review queue lists pockets this large one by one, and counts the rest
+SEAM_DEG = 1e-6  # a shape this close to ±180° runs along the antimeridian
+SEAM_REACH_DEG = 20.0  # land across the antimeridian goes to the polity there when within this
 REVIEW = "borders-review.json"
 
 
@@ -769,6 +775,7 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     leftovers = _leftovers(polities, config.rules)
     leaves |= {name: shape for name, (shape, _) in leftovers.items()}
     joins = _draw_corrections(active, leaves, source, applied)
+    _across_seam(leaves, terrain)
     outer, membership = _outer_units(year, rows, polities, leaves, joins, config, active, applied)
     drawn, overlaps, unacknowledged = _overlaps(year, leaves, config, active, applied)
     held = shapely.union_all(list(leaves.values())) if leaves else shapely.Polygon()
@@ -885,6 +892,45 @@ def _draw_corrections(
                 joins[op.to].add(op.member_of)
             applied.add(k)
     return joins
+
+
+def _across_seam(leaves: dict[str, shapely.Geometry], terrain: Terrain) -> None:
+    """Gives the land just across the antimeridian that no polity holds, a piece at a time, to the
+    one polity whose shape runs along the other side of the meridian where the piece meets it,
+    when the piece lies within SEAM_REACH_DEG of the meridian. Cliopatria's shapes stop at ±180°:
+    without this, Chukotka east of the meridian is stateless whenever Russia's shape reaches it,
+    and a border runs down the meridian."""
+    for side in (1.0, -1.0):
+        # This side's meridian, where the polities' shapes stop, and the land across the other.
+        seams = {}
+        along = _meridian_strip(180.0 * side, -side * SEAM_DEG)
+        for name, shape in leaves.items():
+            west, _, east, _ = shapely.bounds(shape)
+            if (east if side > 0 else -west) < 180.0 - SEAM_DEG:
+                continue
+            seam = shapely.intersection(shape, along)
+            if not shapely.is_empty(seam):
+                seams[name] = shapely.affinity.translate(seam, xoff=-360.0 * side)
+        if not seams:
+            continue
+        reach = _meridian_strip(-180.0 * side, side * SEAM_REACH_DEG)
+        free = shapely.intersection(terrain.dry, reach)
+        near = [shape for shape in leaves.values() if shapely.intersects(shape, reach)]
+        if near:
+            free = shapely.difference(free, shapely.union_all(near))
+        for piece in parts_of_dimension(free, 2):
+            west, _, east, _ = shapely.bounds(piece)
+            inner, outer = (west, east) if side > 0 else (-east, -west)
+            if inner > -180.0 + SEAM_DEG or outer >= -180.0 + SEAM_REACH_DEG - SEAM_DEG:
+                continue  # off the meridian, or running on past the reach
+            owners = [n for n, seam in seams.items() if shapely.dwithin(seam, piece, SEAM_DEG)]
+            if len(owners) == 1:
+                leaves[owners[0]] = polygons(shapely.union(leaves[owners[0]], piece))
+
+
+def _meridian_strip(meridian: float, width: float) -> shapely.Geometry:
+    """The strip from `meridian` `width` degrees east (or west, when negative), pole to pole."""
+    return shapely.box(min(meridian, meridian + width), -90, max(meridian, meridian + width), 90)
 
 
 def _outer_units(

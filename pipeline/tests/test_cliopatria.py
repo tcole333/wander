@@ -354,6 +354,27 @@ def test_a_pocket_correction_past_the_cap_fails_the_step(terrain):
         select(rows, terrain, corrections=[give])
 
 
+# The antimeridian ------------------------------------------------------------------------------
+
+
+def test_land_across_the_antimeridian_goes_to_the_polity_along_it():
+    # A peninsula from 170° E to 170° W, which the source draws only to 180°.
+    seam = clio.Terrain.of(
+        shapely.union(box(170, 60, 180, 70), box(-180, 60, -170, 70)), shapely.Polygon()
+    )
+    chosen = select([row("Russia", box(170, 60, 180, 70))], seam)
+    assert not stateless_at(chosen, -175, 65)
+    assert area_of(chosen, "Russia") == pytest.approx(2 * clio.km2(box(170, 60, 180, 70)), rel=0.01)
+
+
+def test_land_across_the_antimeridian_stays_stateless_where_no_polity_runs_along_it():
+    seam = clio.Terrain.of(
+        shapely.union(box(170, 60, 180, 70), box(-180, 60, -170, 70)), shapely.Polygon()
+    )
+    chosen = select([row("Russia", box(170, 60, 175, 70))], seam)
+    assert stateless_at(chosen, -175, 65)
+
+
 # Overlaps --------------------------------------------------------------------------------------
 
 
