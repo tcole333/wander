@@ -21,6 +21,10 @@
 // without the event index, so Explore's own event marks stay off; the panel gains a Marks folder,
 // and ?markVariant=0-3, ?marks=0 and the other marks params apply. The marks compile only where
 // Explore stands, so ?markDemo with ?story stops the page, naming the conflict.
+//
+// ?stepBorders in Explore draws the border step the world clock stands in, from its slot alone,
+// as Explore will once its borders are on (#80); window.__borders serves scripts/bordersShots.ts.
+import { clockBordersOf, type StepShown } from '../../borders/clockBorders';
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';
@@ -30,7 +34,7 @@ import { stories, storyNamed } from '../../story/catalog';
 import type { LonLat } from '../../story/story';
 import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
-import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
+import { bootWalk, WORLD, type StoryParts, type WalkPage, type WalkStats } from '../../walk/boot';
 import { startMarkDemo } from './markDemo';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 
@@ -93,6 +97,12 @@ declare global {
       /** True once the flight to the beat is over and the streamer has been idle for a while. */
       landed(): boolean;
       flights(): readonly FlightRecord[];
+    };
+    __borders?: {
+      /** Draws the clock's step, or draws none. */
+      show(on: boolean): void;
+      /** The step drawn, while one is. */
+      shown(): StepShown | null;
     };
   }
 }
@@ -181,6 +191,7 @@ async function main(): Promise<void> {
     settings,
   };
   if (source) serveWalk(() => page.story?.walk ?? null, ready);
+  else if (query.has('stepBorders')) serveBorders(page);
 
   const hud = document.getElementById('hud');
   if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);
@@ -209,6 +220,27 @@ function serveWalk(current: () => DirectedWalk | null, ready: () => boolean): vo
     landed: () => current()?.state().flight === null && ready(),
     flights: () => current()?.flights() ?? [],
   };
+}
+
+/**
+ * window.__borders, for scripts: drives the look's border steps every frame, as a mode does, at
+ * full strength, from slots alone.
+ */
+function serveBorders(page: WalkPage): void {
+  const borders = clockBordersOf(page.look.material);
+  if (!borders) throw new Error('?stepBorders needs the look to hold the border steps (Explore)');
+  let on = false;
+  const frame = () => {
+    borders.update({
+      wanted: on,
+      previews: false,
+      viewKm: page.control.current.viewKm,
+      strength: 1,
+    });
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  window.__borders = { show: (drawn) => (on = drawn), shown: () => borders.shown };
 }
 
 /** The scene's params without lat and lon, which the view drives. */
