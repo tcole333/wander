@@ -84,6 +84,7 @@ export function audioClock(sampleRate = 48000) {
     'OscillatorNode',
     'ConstantSourceNode',
     'AudioBufferSourceNode',
+    'WaveShaperNode',
   ]) {
     vi.stubGlobal(name, Node);
   }

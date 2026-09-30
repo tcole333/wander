@@ -392,6 +392,8 @@ async function assemble(
     mode = null;
     story = null;
     onStory(null);
+    // The lobby holds no sound: the room tone fades out and the mode's cached noise is released.
+    sound?.finish();
     measureLens();
   };
   const lobby =
