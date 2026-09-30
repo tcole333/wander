@@ -22,7 +22,7 @@ import { magellanBed, museumBed, tamboraBed, type Bed } from './bed';
 import { isCueName, startCue, type CueHandle, type CueName } from './cues';
 import { unlockedSound, unlockSound, type SoundEngine } from './engine';
 import { marksPassed } from './marks';
-import { clunk, Detents, whir, type Whir } from './voices';
+import { clunk, Detents, FlightWhir, whir, type Whir } from './voices';
 
 /** Each story's bed, by story id. */
 const BEDS: Record<string, (engine: SoundEngine, day: number, at: number) => Bed> = {
@@ -44,8 +44,6 @@ const CLUNK_GAP = 0.15;
  * second.
  */
 const FULL_PACE = 1.5;
-/** The least change in pace worth passing to the whir. */
-const PACE_STEP = 0.02;
 /** The bed's day is passed at most this often, s. */
 const BED_EVERY_S = 0.1;
 /** How far a beat's cues fall back while a Meanwhile entry has the camera, dB. */
@@ -103,8 +101,7 @@ export class WalkScore {
   /** The beat whose cues play, once landed on, and the cues by name. */
   #cueBeat: number | null = null;
   #cues: [CueName, CueHandle][] = [];
-  #whir: Whir | null = null;
-  #pace = 0;
+  readonly #whir: FlightWhir;
   #bedDay: number;
   #bedAt = -Infinity;
   #clunkAt = -Infinity;
@@ -113,6 +110,7 @@ export class WalkScore {
     this.#engine = engine;
     this.#room = room;
     this.#detents = new Detents(engine);
+    this.#whir = new FlightWhir(engine);
     this.#beat = from.beat;
     this.#day = from.day;
     this.#bedDay = from.day;
@@ -165,17 +163,7 @@ export class WalkScore {
       this.#day = to;
     }
 
-    if (state.flying) {
-      this.#whir ??= whir(engine, at);
-      if (Math.abs(pace - this.#pace) >= PACE_STEP) {
-        this.#whir.setPace(pace, at);
-        this.#pace = pace;
-      }
-    } else if (this.#whir) {
-      this.#whir.stop(at);
-      this.#whir = null;
-      this.#pace = 0;
-    }
+    this.#whir.frame(state.flying, pace, at);
 
     if (this.#bed === undefined && state.flight === null) this.#startBed(state, at);
     else if (this.#bed && to !== this.#bedDay && at - this.#bedAt >= BED_EVERY_S) {
@@ -198,8 +186,7 @@ export class WalkScore {
   toRoom(at: number): RoomBed | null {
     for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
     this.#cues = [];
-    this.#whir?.stop(at);
-    this.#whir = null;
+    this.#whir.stop(at);
     const room = this.#bed ? { bed: this.#bed, voice: this.#voice } : this.#room;
     room?.bed.toRoom(at);
     this.#bed = null;
@@ -212,7 +199,7 @@ export class WalkScore {
     this.#bed?.stop(at);
     this.#room?.bed.stop(at);
     for (const [, cue] of this.#cues) cue.stop(at, tunables.bedCrossfade / 1000);
-    this.#whir?.stop(at);
+    this.#whir.stop(at);
   }
 }
 
