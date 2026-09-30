@@ -1,4 +1,106 @@
-# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here
-# from 1500 to 1799 (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43.
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
+# 1500 to 1799 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
+# covers the years whose 1 January falls in its dates.
 modified: 2026-09-29
-corrections: []
+corrections:
+  - years: [1572, 1587]
+    overlap:
+      polities: [Kingdom of Pajana, Sultanate of Malacca]
+      winner: Kingdom of Pajana
+    why: >-
+      Smaller wins, checked: the land they share is central Java, Pajang's (1568–1586). Malacca fell
+      to the Portuguese in 1511 and never ruled Java; its row's Javanese part is left for review.
+    source:
+      title: Pajang Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Pajang_Sultanate
+  - years: [1588, 1639]
+    overlap:
+      polities: [Mataram Sultanate, Sultanate of Malacca]
+      winner: Mataram Sultanate
+    why: >-
+      The land they share is central Java, where Mataram rose in 1586 in Pajang's place and which
+      Sultan Agung held with the rest of central and eastern Java; Malacca had fallen to the
+      Portuguese in 1511.
+    source:
+      title: Mataram Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Mataram_Sultanate
+  - years: [1702, 1717]
+    overlap:
+      polities: [Brandenburg-Prussia, Kingdom of Prussia]
+      winner: Kingdom of Prussia
+    why: >-
+      Both rows are the Hohenzollern state; from Frederick I's coronation on 18 January 1701 its
+      lands were known as the Kingdom of Prussia, so that row keeps them.
+    source:
+      title: Kingdom of Prussia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Prussia
+  - years: [1708, 1712]
+    give:
+      polity: English Colonial Empire
+      to: British Colonial Empire
+    why: >-
+      The Acts of Union took effect on 1 May 1707, uniting England and Scotland as Great Britain, so
+      from 1708 England's colonies are British; Cliopatria keeps an English row to 1712.
+    source:
+      title: Acts of Union 1707
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Acts_of_Union_1707
+  - years: [1757, 1768]
+    overlap:
+      polities: [Corsican Republic, Republic of Genoa]
+      winner: Corsican Republic
+    why: >-
+      Smaller wins, checked: Paoli's Corsican Republic (1755–1769) held the island against Genoa,
+      which ceded its claims to France in 1768.
+    source:
+      title: Corsican Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Corsican_Republic
+  - years: [1793, 1802]
+    member:
+      polity: Carnatic Sultanate
+      of: British Empire
+    why: >-
+      A dependent by treaty: by the treaties of 1763 to 1792 the English managed the Carnatic for the
+      Nawab, and after 1799 they assumed its government. From 1793, after the treaty of 1792.
+    source:
+      title: Dictionary of Indian Biography, 'Carnatic, Muhammad Ali Khan Walajah, Nawab of the'
+      publisher: Wikisource (C. E. Buckland, 1906)
+      url: https://en.wikisource.org/wiki/Dictionary_of_Indian_Biography/Carnatic,_Muhammad_Ali_Khan_Walajah,_Nawab_of_the
+  - years: [1799, 1800]
+    carry:
+      polity: Hyderabad State
+      from: 1798
+    why: >-
+      Cliopatria ends Hyderabad in 1798, but the Nizam kept his state as the Company's first
+      subsidiary ally; its 1798 shape holds until the Ceded Districts pass to the Company in 1800.
+    source:
+      title: Hyderabad State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hyderabad_State
+  - years: [1799, 1800]
+    member:
+      polity: Hyderabad State
+      of: British Empire
+    why: >-
+      A dependent by treaty: in 1798 the Nizam signed an agreement that put Hyderabad under British
+      protection, the first Indian prince to do so.
+    source:
+      title: Hyderabad State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hyderabad_State
+  - years: [1799, 1802]
+    member:
+      polity: Nawab of Awadh
+      of: British Empire
+    why: >-
+      A dependent by treaty: the treaty of 21 February 1798 with Saadat Ali Khan II raised the
+      subsidy Awadh paid for Company troops, and in 1801 he ceded half his state. Cliopatria's
+      Awadh ends in 1802; its later, smaller shape is left for review.
+    source:
+      title: Oudh State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Awadh_State
