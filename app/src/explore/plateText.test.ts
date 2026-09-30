@@ -82,6 +82,9 @@ describe('an event’s plate', () => {
       source: waterloo.source,
     });
     expect(text.line).toMatch(/Waterloo/);
+    // A line's straight quotes read as typographer's.
+    const fire = openings.find((opening) => opening.qid === 'Q164679')!;
+    expect(pinnedText(openingText(fire), 164679, fire).line).toContain('Old St Paul’s');
     expect(pinnedText({ name: 'Battle of Ligny', date: '16 June 1815' }, 207318)).toEqual({
       name: 'Battle of Ligny',
       date: '16 June 1815',
