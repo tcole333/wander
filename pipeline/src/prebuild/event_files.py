@@ -4,7 +4,7 @@ Neither the TSV nor the story locks are rewritten. The worker's exact array byte
 Explore's openings (`explore/openings.lock.json`, the openings stage's) join the overview on top
 of its quota, so the first view never waits on a rest file; the record's `inputs` hash the lock.
 An event's score is weighed by its heaviest class, and its `cls` is the class its mark draws: the
-most specific the export nests within that one (the table's `display`).
+most specific nested within that one (the table's `display`).
 """
 
 import bisect

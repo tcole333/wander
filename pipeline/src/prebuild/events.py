@@ -11,12 +11,15 @@ Wikipedia edition. Per event it takes:
 - the class: the heaviest of those it was exported under (`pipeline/config/event-classes.yaml`),
   which weighs its score;
 - the class it is displayed as, whose glyph its mark draws: of the classes it was exported under,
-  the most specific that the export nests within its heaviest. The export takes each class with
-  its subclasses, so it gives a class every event of each of its subclasses: a class is nested
-  within another when every event exported under it is also exported under the other. The 1815
-  eruption of Tambora, exported as a volcanic eruption and a natural disaster, is scored as the
-  heavier natural disaster and displayed as a volcanic eruption, since the export gives every
-  volcanic eruption as a natural disaster too. Two classes that merely share events are not
+  the most specific nested within its heaviest. The export takes each class with its subclasses,
+  so it gives a class every event of each of its subclasses: a class is nested within another
+  when every event exported under it is also exported under the other. The 1815 eruption of
+  Tambora, exported as a volcanic eruption and a natural disaster, is scored as the heavier
+  natural disaster and displayed as a volcanic eruption, since the export gives every volcanic
+  eruption as a natural disaster too. Where Wikidata does not nest a class within the one it
+  belongs to, event-classes.yaml declares it `within` that one, and each event counts under it as
+  though the export had: a siege exported as a battle too draws the siege, and a tropical cyclone
+  exported as a natural disaster the cyclone. Two classes that merely share events are not
   nested, whichever is rarer: the export's riots and massacres share 34 events and neither holds
   the other, so a riot that is also a massacre keeps its heaviest class's glyph and pace layer.
   Among classes the export cannot tell apart, or nested within the heaviest but not within one
@@ -76,6 +79,7 @@ from prebuild.config import (
     CuratedDays,
     EventClass,
     curated_places,
+    enclosing,
     load_event_boosts,
     load_event_classes,
     load_event_dates,
@@ -341,13 +345,17 @@ def index(
             "unlocated: give an unlocated parent a countryCentroid or an at"
         )
     # The events the export gives each class, and each ordered pair of classes together: a class
-    # is nested within another when the export gives the other every one of its events.
+    # is nested within another when the export gives the other every one of its events. An event
+    # counts under the classes event-classes.yaml declares its classes within, too, where the
+    # export does not nest them: every siege is a battle.
+    by_name = {c.name: c for c in classes}
+    declared = {c.qid: {by_name[n].qid for n in enclosing(c, by_name)} for c in classes}
     held: Counter[str] = Counter()
     both: Counter[tuple[str, str]] = Counter()
     for group in grouped.values():
-        exported = {s.cls for s in group}
-        held.update(exported)
-        both.update((a, b) for a in exported for b in exported if a != b)
+        counted = set().union(*({s.cls, *declared[s.cls]} for s in group))
+        held.update(counted)
+        both.update((a, b) for a in counted for b in counted if a != b)
     events = []
     for qid, group in grouped.items():
         label = next((s.label for s in group if s.label), "")
@@ -410,10 +418,10 @@ def _displayed(
     listed: Mapping[str, int],
 ) -> str:
     """The class an event is displayed as: of the classes it was `exported` under, the most specific
-    that the export nests within its `heaviest`, then the heavier, then the first listed."""
+    nested within its `heaviest`, then the heavier, then the first listed."""
 
     def within(a: str, b: str) -> bool:
-        """Whether the export gives class b every event it gives class a."""
+        """Whether every event class a counts is counted under class b."""
         return a == b or both[(b, a)] == held[a]
 
     nested = [c for c in exported if within(c, heaviest)]
