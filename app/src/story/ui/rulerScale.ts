@@ -194,12 +194,14 @@ function yearStep(arc: Arc, span: Span, calendar: Calendar): number {
  * Days and months retain the walk's two rows. Years and coarser spans use whole calendar
  * years, stepping by 1/2/5 multiples of years, decades, centuries or millennia as needed. Days,
  * months and years are `calendar`'s: in the historical one, 4 October 1582 is followed by the 15th.
+ * `extent` is the whole stretch the ruler can show, whose own ends are named wherever they fit.
  */
 export function engraveScale(
   arc: Arc,
   span: Span,
   angle: (day: number) => number,
   calendar: Calendar = GREGORIAN,
+  extent?: Span,
 ): Scale {
   const scale: Scale = { full: '', major: '', minor: '', labels: [] };
   const pxPerDay = (2 * arc.reach * arc.r) / (span.end - span.start);
@@ -328,8 +330,10 @@ export function engraveScale(
       }
     }
     if (step > 1) {
-      // Round calendar ticks take precedence. An unround edge is named only when no nearby
-      // tick already names that part of the view; the exclusive end never names a new year.
+      // Round calendar ticks take precedence. An unround edge is named only where it keeps its
+      // own length of bare rule from every tick label, so it reads as the rule's end rather than
+      // crowding the round year beside it, though the extent's own ends (history's) need only
+      // fit; the exclusive end never names a new year.
       for (const [day, anchor] of [
         [span.start, 'start'],
         [span.end, 'end'],
@@ -345,10 +349,13 @@ export function engraveScale(
           anchor,
         };
         const [left, right] = yearLabelEdges(arc, edge);
+        const bound =
+          extent !== undefined && (anchor === 'start' ? day <= extent.start : day >= extent.end);
+        const clear = bound ? 4 : right - left;
         if (
           scale.labels.some((label) => {
             const [a, b] = yearLabelEdges(arc, label);
-            return left < b + 4 && right + 4 > a;
+            return left < b + clear && right + clear > a;
           })
         )
           continue;
@@ -447,7 +454,13 @@ export function engraveTier(
 export function engraveHistoryTier(arc: Arc, history: Span): ReturnType<typeof engraveTier> {
   const tier = { years: '', months: '', labels: [] as Label[] };
   const tierArc = { ...arc, reach: arc.reach * TIER_REACH };
-  const scale = engraveScale(tierArc, history, (day) => tierAngle(arc, history, day), HISTORICAL);
+  const scale = engraveScale(
+    tierArc,
+    history,
+    (day) => tierAngle(arc, history, day),
+    HISTORICAL,
+    history,
+  );
   for (const label of scale.labels) {
     tier.years += radial(arc, label.tickAngle ?? label.angle, TIER_RULE, TIER_RULE - 8);
     tier.labels.push({ ...label, row: TIER_ROW, cls: 'rc-tier-year' });

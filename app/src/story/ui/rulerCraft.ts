@@ -809,7 +809,13 @@ export class CraftRuler {
     const unit = engravedUnit(arc, span, this.#calendar);
     this.#unit = unit === 'day' || unit === 'month' ? unit : 'year';
     this.#yearStep = labelledYearStep(arc, span, this.#calendar);
-    const scale = engraveScale(arc, span, (day) => this.#angle(day), this.#calendar);
+    const scale = engraveScale(
+      arc,
+      span,
+      (day) => this.#angle(day),
+      this.#calendar,
+      this.#explore?.extent,
+    );
     for (const kind of TICK_KINDS) {
       for (const path of this.#ticks.get(kind) ?? []) path.setAttribute('d', scale[kind]);
     }
