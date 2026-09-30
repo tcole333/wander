@@ -370,6 +370,16 @@ describe("the free ruler's ends", () => {
     const end = labels.at(-1);
     expect([end?.text, end?.key.startsWith('e')]).toEqual(['1944', true]);
   });
+
+  it('keeps the name of a round year that clears the end by its length: 1 CE on all of history', () => {
+    const sized = arcFor(1440);
+    const angle = (day: number) =>
+      ((2 * (day - HISTORY.start)) / (HISTORY.end - HISTORY.start) - 1) * sized.reach;
+    const labels = engraveScale(sized, HISTORY, angle, HISTORICAL, HISTORY).labels.filter(
+      (label) => label.row === LOWER_ROW,
+    );
+    expect(labels.slice(-2).map((label) => label.text)).toEqual(['1 CE', '2000 CE']);
+  });
 });
 
 describe('the calendars the ruler engraves', () => {
