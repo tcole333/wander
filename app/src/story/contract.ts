@@ -10,7 +10,7 @@ import type { WorldClock } from '../time/worldClock';
 import type { RouteData } from '../data/route';
 import type { Precision } from './dates';
 import type { BordersSource } from './effects/borders';
-import type { ClimateSource } from './effects/climate';
+import type { ClimateSource } from '../climate/years';
 import type { RouteSource } from './effects/route';
 import type { LonLat, Story } from './story';
 

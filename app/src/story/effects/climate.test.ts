@@ -1,4 +1,4 @@
-// The walk's climate: with a modera section it fetches its years once asked, not as the page boots,
+// A story's climate: with a modera section it fetches its years once asked, not as the page boots,
 // draws the story day's month on the monthly climate beats and eases out off them or past the
 // data's years; without one it fetches nothing, draws nothing and says why once, so the walk goes
 // on.
@@ -11,7 +11,8 @@ import { syntheticYear } from '../../test/climate';
 import type { WalkState } from '../contract';
 import { dayFromIso } from '../dates';
 import { parseStory } from '../story';
-import { WalkClimate } from './climate';
+import { climateFieldOf } from '../../climate/field';
+import { StoryClimate } from './climate';
 
 const story = parseStory(
   readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
@@ -40,7 +41,7 @@ function pausedOn(id: string, iso?: string): WalkState {
 }
 
 /** A second of frames at 30 per second. */
-function aSecondOn(climate: WalkClimate, state: WalkState): void {
+function aSecondOn(climate: StoryClimate, state: WalkState): void {
   for (let frame = 0; frame < 30; frame += 1) climate.update(state, 1 / 30, 1);
 }
 
@@ -48,7 +49,7 @@ function aSecondOn(climate: WalkClimate, state: WalkState): void {
 async function shownOnEurope() {
   const uniforms = createClimateUniforms();
   const source = { dataHost: 'https://data.test', modera: MODERA };
-  const climate = new WalkClimate(story, source, uniforms, loadSynthetic);
+  const climate = new StoryClimate(story, source, climateFieldOf(uniforms), loadSynthetic);
   climate.load();
   await new Promise((resolve) => setTimeout(resolve, 0));
   aSecondOn(climate, pausedOn('europe-1816'));
@@ -59,14 +60,14 @@ describe('the walk climate', () => {
   it('fetches nothing until asked', () => {
     const load = vi.fn(loadSynthetic);
     const source = { dataHost: 'https://data.test', modera: MODERA };
-    new WalkClimate(story, source, createClimateUniforms(), load);
+    new StoryClimate(story, source, climateFieldOf(createClimateUniforms()), load);
     expect(load).not.toHaveBeenCalled();
   });
 
   it('fetches the years its climate beats reach once asked', () => {
     const load = vi.fn(loadSynthetic);
     const source = { dataHost: 'https://data.test', modera: MODERA };
-    new WalkClimate(story, source, createClimateUniforms(), load).load();
+    new StoryClimate(story, source, climateFieldOf(createClimateUniforms()), load).load();
     expect(load.mock.calls.map(([url]) => /(\d{4})\.bin$/.exec(url)?.[1])).toEqual([
       '1815',
       '1816',
@@ -109,7 +110,12 @@ describe('the walk climate', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const load = vi.fn();
     const uniforms = createClimateUniforms();
-    const climate = new WalkClimate(story, { dataHost: 'https://data.test' }, uniforms, load);
+    const climate = new StoryClimate(
+      story,
+      { dataHost: 'https://data.test' },
+      climateFieldOf(uniforms),
+      load,
+    );
     for (let frame = 0; frame < 60; frame += 1) climate.update(pausedOn('europe-1816'), 1 / 30, 1);
 
     expect(load).not.toHaveBeenCalled();

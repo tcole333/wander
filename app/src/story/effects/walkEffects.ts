@@ -13,6 +13,7 @@ import { Group, Vector3 } from 'three';
 import { ashUniformsOf } from '../../look/ashHook';
 import { borderUniformsOf } from '../../look/bordersHook';
 import { climateUniformsOf } from '../../look/climateHook';
+import { climateFieldOf } from '../../climate/field';
 import { routeUniformsOf } from '../../look/routeHook';
 import type { Params } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
@@ -20,7 +21,7 @@ import { dayFromIso } from '../dates';
 import type { LonLat, Story, StoryBeat } from '../story';
 import { WalkBorders } from './borders';
 import { Callouts } from './callouts';
-import { WalkClimate } from './climate';
+import { StoryClimate } from './climate';
 import { Ember } from './ember';
 import { dirOf, EARTH_KM, EARTH_M, tangents } from './geo';
 import { Plume, VENT_M } from './plume';
@@ -91,7 +92,7 @@ export const createWalkEffects: CreateWalkEffects = (
   group.add(ember.group, veil.mesh);
   const callouts = new Callouts(labelRoot);
   const ash = ashUniformsOf(look.material);
-  const climate = new WalkClimate(story, source, climateUniformsOf(look.material));
+  const climate = new StoryClimate(story, source, climateFieldOf(climateUniformsOf(look.material)));
   const borders = new WalkBorders(story, source, borderUniformsOf(look.material));
   const routes = new WalkRoutes(
     story,
