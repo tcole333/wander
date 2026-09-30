@@ -90,3 +90,127 @@ corrections:
       title: Surakarta Sunanate
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Surakarta_Sunanate
+  # Sumbawa's six states in 1815 (owner decision 37), their shapes traced from Chambert-Loir's map
+  # as each shape file records.
+  - years: [1815, 1815]
+    add:
+      polity: Kingdom of Tambora
+      shape: sumbawa-1815-tambora.geojson
+      wikidata: Q20426555
+    why: >-
+      One of Sumbawa's six states in 1815, on the north-west of the Sanggar peninsula round the
+      volcano; the eruption left its land empty until it was annexed to Sanggar in 1866. Shape from
+      Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 5, In the Wake of the Tambora Disaster"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C5/type/BOOK_PART
+      locator: p. 141
+  - years: [1815, 1815]
+    add:
+      polity: Kingdom of Pekat
+      shape: sumbawa-1815-pekat.geojson
+      wikidata: Q20426554
+    why: >-
+      One of Sumbawa's six states in 1815, on the south of the Sanggar peninsula; after the eruption
+      its land was annexed to Dompu in 1866. Shape from Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 5, In the Wake of the Tambora Disaster"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C5/type/BOOK_PART
+      locator: p. 141
+  - years: [1815, 1816]
+    add:
+      polity: Kingdom of Sanggar
+      shape: sumbawa-1815-sanggar.geojson
+      wikidata: Q20427303
+    why: >-
+      One of Sumbawa's six states in 1815, on the north-east of the Sanggar peninsula; it outlived
+      the eruption as a petty kingdom until it was annexed to Bima in 1928. Shape from
+      Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 5, In the Wake of the Tambora Disaster"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C5/type/BOOK_PART
+      locator: p. 141
+  - years: [1815, 1816]
+    add:
+      polity: Sultanate of Dompu
+      shape: sumbawa-1815-dompu.geojson
+    why: >-
+      One of Sumbawa's six states, between Bima and the Sanggar peninsula, bound to the VOC by
+      contract since 1669. Shape from Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 3, The Sumbawan Kingdoms under VOC Suzerainty (1)"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C3/type/BOOK_PART
+      locator: p. 77
+  - years: [1815, 1816]
+    add:
+      polity: Sultanate of Sumbawa
+      shape: sumbawa-1815-sumbawa.geojson
+      wikidata: Q20427322
+    why: >-
+      The western half of the island, bordering Dompu on the isthmus south of Saleh Bay. Shape from
+      Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 4, The Sumbawan Kingdoms under VOC Suzerainty (2)"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C4/type/BOOK_PART
+      locator: p. 115
+  - years: [1815, 1816]
+    add:
+      polity: Sultanate of Bima
+      shape: sumbawa-1815-bima.geojson
+    why: >-
+      Bima's land on Sumbawa east of Dompu, joined to Cliopatria's Bima row, which holds its lands
+      across the strait. Shape from Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 3, The Sumbawan Kingdoms under VOC Suzerainty (1)"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C3/type/BOOK_PART
+      locator: p. 77
+  - years: [1815, 1815]
+    member:
+      polity: Kingdom of Tambora
+      of: British Colonial Empire
+    why: &sumbawa-members >-
+      The Sumbawan states, bound by contract to the Dutch, were under the British with the rest of
+      the Dutch posts in 1815-1816: Bima had a Resident, and Raffles's government sent Lieutenant
+      Owen Phillips to inspect the eruption's damage and help the islanders. The rulers renewed
+      their contracts with the Dutch governor at Makassar in 1817.
+    source: &dejongboers
+      title: "Mount Tambora in 1815: A Volcanic Eruption in Indonesia and its Aftermath (Bernice de Jong Boers)"
+      publisher: Indonesia 60 (1995), Cornell University Southeast Asia Program
+      url: https://ecommons.cornell.edu/entities/publication/e0fab329-c363-471f-8923-6aba7eccf14b
+      locator: pp. 41, 46
+  - years: [1815, 1815]
+    member:
+      polity: Kingdom of Pekat
+      of: British Colonial Empire
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Kingdom of Sanggar
+      of: British Colonial Empire
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Sultanate of Dompu
+      of: British Colonial Empire
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Sultanate of Sumbawa
+      of: British Colonial Empire
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Sultanate of Bima
+      of: British Colonial Empire
+    why: *sumbawa-members
+    source: *dejongboers
