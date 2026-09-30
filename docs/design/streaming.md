@@ -393,9 +393,11 @@ The stage record lists the step each story's border beats draw, and a beat befor
 fails the build.
 
 **Selection** (`cliopatria.py`): a step's leaves are the POLITY rows valid in its year whose names are
-not in parentheses, the composites' form. Ids number the sorted names across all years, so a polity
-keeps its id in every step. RELATION rows count only through `hierarchy.yaml`. `polities.json`
-gives each polity its id, Wikidata id, years and outer unit through them, keyed by name, since 115
+not in parentheses, the composites' form. Ids number the sorted names across all years from 2,
+stateless land taking 1, so a polity keeps its id in every step. RELATION rows count only through
+`hierarchy.yaml`. The selection hands the bake each polity's land with its overlaps settled, its
+outer unit, and whether it lies in a minor piece. `polities.json` gives each polity its id, its
+Wikidata ids and each run of steps it is drawn in under one outer unit, keyed by name, since 115
 Wikidata ids are shared among names [M].
 
 **Hierarchy.** Cliopatria's is thin: 43 composites, and in the median step 12% of leaves have a
@@ -412,24 +414,35 @@ composite and each vassalage relation, every entry with a `why` and a `source`:
   treaty only: protectorates, princely states and subsidiary allies, each cited and dated; tribute
   relations stay out (owner decision 34). Where Cliopatria lacks one's shape, a cited correction
   adds it.
+- A composite the file does not class keeps its members apart, as a grouping's, and a vassalage
+  relation it does not class makes no member. The stage record lists both as unclassified, and
+  `npm run publish-data` refuses them, so the bake never waits for the history pass.
 - A leaf's outer unit is the root among the empires above it that year; a leaf that reaches two
-  roots fails the build. A composite's own land beyond its components, when at least `leftoverKm2`
-  (100 km²), takes the composite's root; a grouping's leftover land is a polity of its own.
+  roots fails the build. A composite's own land, the part of its shape no polity row holds, when at
+  least `leftoverKm2` (100 km²), is drawn under the composite's name in the composite's root, so a
+  grouping's leftover land is a polity of its own. Beyond its members alone it would take other
+  polities' land: a composite's `Components` can lag its rows (the Delhi Sultanate's still lists
+  the Tughlaqs under the Sayyids), and its shape can reach land another polity holds (the
+  Portuguese Empire's covers New Netherland in 1622-26) [M].
 
 **Planes.** R holds the borders between outer units and every edge against stateless land. G holds
 the borders inside one outer unit, and a border between two outer units whose smaller side is under
-`minorKm2` (50,000 km²), measured per piece, a connected part of a unit's land, so that small
-states and the small detached pieces of large ones come forward only as the view closes in (owner
-decision 36). One raster of leaves makes both planes, through a mask of the id pairs each plane
-keeps in `signed_subpixels`. `minorKm2`, `leftoverKm2`, `sliverKm` and `pocketKm2` live in
-`pipeline/config/borders/rules.yaml`.
+`minorKm2` (50,000 km²), measured per piece, a connected part of a unit's land (parts within 0.01° of
+each other count as one), so that small states and the small detached pieces of large ones come
+forward only as the view closes in (owner decision 36). One raster of the selection's land makes
+both planes, through a mask of the id pairs each plane keeps in `signed_subpixels`. `minorKm2`,
+`leftoverKm2`, `sliverKm`, `pocketKm2` and the overlap thresholds `reviewKm2` and `duplicateShare`
+live in `pipeline/config/borders/rules.yaml`.
 
-**Stateless land** is Natural Earth land less its lakes and every polity, under one id, and draws
-no border of its own (owner decision 35):
+**Stateless land** is Natural Earth land with the minor islands, less the lakes the globe draws (3.1)
+and every polity, under one id, and draws no border of its own (owner decision 35):
 - **Lakes stay empty,** so the fill below splits each among its neighbours and a border crosses a
   lake rather than ringing it.
 - **Coast slivers** go to the nearest polity: the parts of a sea-touching stateless piece narrower
-  than 2·`sliverKm` (28 km, measured on an equal-area projection about the piece).
+  than 2·`sliverKm` (28 km, measured on an equal-area projection about the piece). The opening runs
+  on the piece's coast simplified to 2 km and cuts its result from the piece as drawn, which takes
+  the 3400 BCE step from 100 s to 17 s [M]. Antarctica, which reaches a pole, keeps its slivers: no
+  projection about its centroid holds it, and no polity lies near it.
 - **Pockets** go to their neighbours: a stateless piece that touches no sea goes when it touches a
   lake or lies in a hole of the polities and is under `pocketKm2` (100,000 km²; the old Aral bed and
   Victoria's shore are about 68,000 km² each), or when it is narrower than 2·`sliverKm` throughout.
@@ -440,25 +453,32 @@ no border of its own (owner decision 35):
 - The sea, the lakes and every subpixel nothing holds then take the nearest id, stateless land's
   included, so no border follows a coast.
 
-**Overlaps.** Rows rasterize largest first, so the smaller of two overlapping rows wins. That is
+**Overlaps.** Of two overlapping polities the smaller keeps the land they share. That is
 right for an enclave, such as Luxembourg in 1914, and wrong for a near-duplicate: 'Napoleonic
 Batavia Republic' covers 98% of the Cape in 1815. 322 steps have overlaps over 2,000 km², and 41 row
 pairs, across 92 steps, overlap by more than half the larger row, such as Algeria inside the French
-Fifth Republic from 1963 [M]. Each of those pairs needs an `overlap` correction naming the winner
-with a `why`: "smaller wins, checked" is one, and an entry that overrides it cites a source. The bake
+Fifth Republic from 1963 [M]; they are 23 pairs of polities, which the review queue lists with the
+steps each needs acknowledging in. Each of those pairs needs an `overlap` correction naming the winner
+with a `why`: "smaller wins, checked" is one, and an entry that overrides it cites a source. Each step
 records the pairs without an entry, `npm run verify:bake` reports them and `npm run publish-data`
 refuses them, so the bake never waits for the history pass. Smaller overlaps go to the review queue
-(7.2), with the 414 names that vanish and return, 143 of them after 1500 [M].
+(7.2), with the 414 times a polity's rows stop and later resume, 143 of them after 1500 [M].
 
 **Corrections** live in `pipeline/config/borders/<era>.yaml`, one file each for `bce`,
 `0001-0999`, `1000-1499`, `1500-1799`, `1800-1913` and `1914-2000`, each correction in the file of the
 era where it starts. A file holds `modified` and `corrections`, and each correction has
-`years: [from, to]`, a `why`, a `source: {title, publisher, url[, locator]}` and one operation; a
-key none of these names fails the build:
-- `give` moves all of a polity, the part holding `at`, or the part inside `shape_from: {polity,
-  year}` to another, optionally as a member (`member_of`);
-- `carry` holds a polity's shape from one year over later ones; `add` draws a cited shape;
-  `member` adds a membership; `rename`; `pocket`; and `overlap`.
+`years: [from, to]`, astronomical, a `why`, a `source: {title, publisher, url[, locator]}`, which
+only an `overlap` naming the smaller may leave out, and one operation; a key none of these names
+fails the build:
+- `give: {polity, to, at | shape_from: {polity, year}, member_of}` moves all of a polity, the part
+  holding `at`, or the part inside another polity's shape in another year, to a polity drawn
+  already or a new one, optionally as a member;
+- `carry: {polity, from}` draws a polity with its shape in another year where Cliopatria has no row
+  of it; `add: {polity, shape, wikidata, member_of}` draws a cited shape, a GeoJSON file beside the
+  era files; `member: {polity, of}` adds a membership; `rename: {polity, to}` renames a polity and
+  what names it;
+- `pocket: {at, stateless}` keeps the enclosed stateless piece holding `at` stateless or gives it to
+  its neighbours; `overlap: {polities, winner}` names which of two keeps the land they share.
 
 A correction must change every step in its range, or the build fails, naming the unchanged steps.
 The history pass covers the hierarchy entries, the 41 pairs and these cases: Mexico, missing for
@@ -1131,7 +1151,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
      upload, because keys are content-versioned and a mismatch means a broken build or upload
    - stops before any upload when the borders record lists an overlap pair that no `overlap`
-     correction acknowledges (3.3)
+     correction acknowledges, or a composite or relation `hierarchy.yaml` does not class (3.3)
    - stops before any upload when it would send the 1815 field's GPL notice and origin lacks the
      `borders-<ver8>` tag the notice links the build scripts at (3.3)
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
@@ -1902,7 +1922,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, which `publish-data` refuses (3.3); `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The review queue goes beside the record, in `borders-review.json`: the smaller overlaps, the names that vanish and return, and each step's pockets given and enclosures kept |
+| borders | `{steps, beats, unacknowledged, unclassified, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names and `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, which `publish-data` refuses (3.3); `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The review queue goes beside the record, in `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leftovers, pockets given and enclosures kept. `uv run python -m prebuild.cliopatria` writes it alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
