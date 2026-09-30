@@ -12,9 +12,9 @@ export default defineConfig({
   },
   // shared/ sits outside app/, so the dev server must be allowed to read the repo root.
   server: { fs: { allow: [repoRoot] } },
-  // The dev server scans every page it serves, the app's, the dev pages and the test pages
-  // (e2e/*.html), and bundles what they import at startup: a cold server that met a new import
-  // mid-test would re-optimize and reload that page, and every CI e2e shard starts a cold one.
+  // At startup the dev server scans the app's pages, the dev pages and the test pages (e2e/*.html)
+  // and bundles what they import: a cold server that met a new import mid-test would re-optimize
+  // and reload that page, and every CI e2e shard starts a cold one.
   optimizeDeps: { entries: ['*.html', 'e2e/*.html'] },
   build: {
     // The app ships as one entry bundle with no lazy chunks (streaming design, section 2), so
