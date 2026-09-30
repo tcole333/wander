@@ -3,7 +3,8 @@
 // cast brass naming the snapshot's year in engraved gilt capitals ("Borders · 1815"), as the
 // globe's borders always carry their year. Like the climate legend, it settles into view once the
 // borders are drawn at half strength or more and fades as they ease out, never lingering
-// half-seen while the view holds inside the borders' zoom fade.
+// half-seen while the view holds inside the borders' zoom fade. Explore's border steps name theirs
+// as the historical calendar writes a year ("Borders · 44 BCE", borders/steps.ts).
 import type { BordersShown } from '../contract';
 import { yearLabel } from '../dates';
 import { el } from './dom';
@@ -16,10 +17,13 @@ export function bordersLabel(year: number): string {
 export class BordersPlate {
   readonly element = el('aside', 'wu-borders wu-brass wu-lit');
   readonly #label = el('span', 'wu-borders-label');
+  readonly #words: (year: number) => string;
   #shown = false;
   #year: number | null = null;
 
-  constructor() {
+  /** `words` gives the plate's words for an astronomical year. */
+  constructor(words: (year: number) => string = bordersLabel) {
+    this.#words = words;
     this.element.setAttribute('aria-hidden', 'true');
     this.element.append(this.#label);
   }
@@ -34,6 +38,6 @@ export class BordersPlate {
     }
     if (!borders || borders.year === this.#year) return;
     this.#year = borders.year;
-    this.#label.textContent = bordersLabel(borders.year);
+    this.#label.textContent = this.#words(borders.year);
   }
 }
