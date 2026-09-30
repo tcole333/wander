@@ -6,7 +6,14 @@
 // as well on an OfflineAudioContext, to render sounds to files.
 import { tunables } from '../config/tunables';
 import { gainOf, mix as defaultMix, type Mix } from './mix';
-import { noiseSamples, primeAtLeast, toBuffer, type NoiseColor, type Sources } from './synth';
+import {
+  noiseSamples,
+  noiseSteps,
+  primeAtLeast,
+  toBuffer,
+  type NoiseColor,
+  type Sources,
+} from './synth';
 
 interface CachedNoise {
   buffer: AudioBuffer;
@@ -28,6 +35,8 @@ const LOOKAHEAD = 0.6;
 const PUMP_EVERY = 0.2;
 /** Master level and mute changes glide over this time constant, seconds. */
 const GLIDE = 0.05;
+/** How long one slice of a prepared noise build runs on the main thread, ms. */
+const PREPARE_SLICE_MS = 3;
 
 export class SoundEngine {
   inspectMemory(account: import('../perf/memory').MemoryAccount): void {
@@ -48,6 +57,9 @@ export class SoundEngine {
   readonly #pumps = new Set<Pump>();
   #timer: ReturnType<typeof setInterval> | undefined;
   readonly #noise = new Map<string, CachedNoise>();
+  /** Noise builds under way (prepareNoise), by cache key. */
+  readonly #building = new Map<string, Generator<void, Float32Array>>();
+  #slicing: ReturnType<typeof setTimeout> | undefined;
 
   constructor(ctx: BaseAudioContext, mix: Mix = defaultMix, muted = false) {
     this.ctx = ctx;
@@ -147,15 +159,8 @@ export class SoundEngine {
   noise(color: NoiseColor, seconds: number, owner?: Sources): AudioBuffer {
     const length = primeAtLeast(seconds * this.ctx.sampleRate);
     const key = `${color} ${length}`;
-    let entry = this.#noise.get(key);
-    if (!entry) {
-      entry = {
-        buffer: toBuffer(this.ctx, noiseSamples(color, length)),
-        retained: false,
-        owners: new Set(),
-      };
-      this.#noise.set(key, entry);
-    }
+    const entry =
+      this.#noise.get(key) ?? this.#store(key, this.#finish(key) ?? noiseSamples(color, length));
     if (!owner) entry.retained = true;
     else if (!entry.owners.has(owner)) {
       entry.owners.add(owner);
@@ -169,15 +174,69 @@ export class SoundEngine {
   }
 
   /**
+   * Builds the noise `noise(color, seconds)` will ask for in slices of a few milliseconds between
+   * frames, so a sound that starts later (a bed at a dive's landing) finds it cached instead of
+   * building it in that frame; a request before the build is done finishes it at once. It stays
+   * cached until a sound takes it, or the lobby releases it. An offline render prepares nothing.
+   */
+  prepareNoise(color: NoiseColor, seconds: number): void {
+    if (this.offline) return;
+    const length = primeAtLeast(seconds * this.ctx.sampleRate);
+    const key = `${color} ${length}`;
+    if (this.#noise.has(key) || this.#building.has(key)) return;
+    this.#building.set(key, noiseSteps(color, length));
+    if (this.#slicing === undefined) this.#slicing = setTimeout(this.#slice, 0);
+  }
+
+  /**
    * Forgets the cached noise, as the lobby does once a return lands: noise no sound owns leaves
    * the cache now, and noise a bed still owns leaves once its sources end. A source playing a
-   * buffer keeps it until it ends, and the next request makes that noise afresh.
+   * buffer keeps it until it ends, and the next request makes that noise afresh. Builds under way
+   * stop.
    */
   releaseNoise(): void {
+    this.#building.clear();
     for (const [key, entry] of this.#noise) {
       entry.retained = false;
       if (entry.owners.size === 0) this.#noise.delete(key);
     }
+  }
+
+  /** One slice of the prepared builds, then the next, until they are done. */
+  readonly #slice = () => {
+    this.#slicing = undefined;
+    const end = performance.now() + PREPARE_SLICE_MS;
+    for (const [key, steps] of this.#building) {
+      let step = steps.next();
+      while (!step.done && performance.now() < end) step = steps.next();
+      if (step.done) {
+        this.#building.delete(key);
+        this.#store(key, step.value);
+      }
+      if (performance.now() >= end) break;
+    }
+    if (this.#building.size > 0) this.#slicing = setTimeout(this.#slice, 0);
+  };
+
+  /** The samples of a prepared build of `key`, finished now, if one is under way. */
+  #finish(key: string): Float32Array | undefined {
+    const steps = this.#building.get(key);
+    if (!steps) return undefined;
+    this.#building.delete(key);
+    for (;;) {
+      const step = steps.next();
+      if (step.done) return step.value;
+    }
+  }
+
+  #store(key: string, samples: Float32Array): CachedNoise {
+    const entry = {
+      buffer: toBuffer(this.ctx, samples),
+      retained: false,
+      owners: new Set<Sources>(),
+    };
+    this.#noise.set(key, entry);
+    return entry;
   }
 
   #glideMaster(): void {
