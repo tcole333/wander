@@ -2,9 +2,10 @@
 `$WANDER_CACHE/fixture/<inputs>/` (`~/.cache/wander` by default), keyed by the stamp's tree hash
 of FIXTURE_PATHS, so a checkout whose inputs another has built restores that build in under a
 second instead of building it again. A restore replaces build/fixture/ and build/stages/fixture/
-outright, stamp last. CI keeps no store, and where the store cannot be written (Codex's sandbox)
-the build simply runs."""
+outright, stamp last. CI keeps no store. Where the store can be read but not written (Codex's
+sandbox), a stored build is still restored, and a build made there is not kept."""
 
+import contextlib
 import ctypes
 import os
 import shutil
@@ -42,7 +43,9 @@ def restore(ctx: Context, entry: Path) -> bool:
     (staging / STAMP).unlink()
     staging.rename(ctx.stages_dir)
     shutil.copyfile(entry / "stages" / STAMP, ctx.stages_dir / STAMP)
-    os.utime(entry)
+    # Marks the build as used for prune(); a store this process cannot write keeps its old mark.
+    with contextlib.suppress(OSError):
+        os.utime(entry)
     return True
 
 
