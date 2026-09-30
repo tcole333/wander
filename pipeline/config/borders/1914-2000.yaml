@@ -91,6 +91,21 @@ corrections:
       The monarchy was restored in November 1935, and George II returned on 23 November; the name of
       Cliopatria's rows from 1945.
     source: *greece
+  - years: [1936, 1944]
+    drop:
+      polity: Nazi Germany
+      shape: nazi-germany-scraps.geojson
+    why: >-
+      Cliopatria's Nazi Germany rows carry 185 scraps far from the Reich: strips along the shores of
+      Ladoga, Onega and Peipus, the IJsselmeer, Mälaren and the Sea of Galilee, in the Mesopotamian
+      marshes and on Greek and Norwegian coasts. Its row of 1936, when Germany held no land beyond
+      its borders, already has them, and every later row repeats them unchanged, so they are no
+      conquests. The shape holds that row's pieces under 5,000 km² lying more than 1° from its
+      larger ones, and each row's pieces inside it are taken away.
+    source:
+      title: Territorial evolution of Germany
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Territorial_evolution_of_Germany
   # Eastern Europe after the war: Cliopatria's Soviet row covers states that stood on their own.
   - years: [1945, 1946]
     carry:
