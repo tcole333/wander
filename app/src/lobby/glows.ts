@@ -1,11 +1,12 @@
 // The lobby's ambient glows (PRD, "First visit: the lobby": faint ambient events glowing on the
 // globe): the best-scored events of every era in the event index, spread over the globe, which the
-// prebuild's meanwhile stage puts in the story's lock (streaming.md 3.9). Each is a pinprick of
-// lamp-lit brass with a slow, shallow breath of its own: small, so neighbors stay apart, and faint,
-// so the chosen story's ember stands out. One Points object in three's built-in points
-// material, additive and lit by nothing, so it compiles with the rest of the scene before the
-// lobby opens. The points are sized in pixels and fade out toward the horizon rather than being
-// depth-tested, since the exaggerated relief would bury the ones in the mountains.
+// prebuild's meanwhile stage puts in the story's lock (streaming.md 3.9). Each is a haze of pale
+// brass with no core and a slow, shallow breath of its own: small, so neighbors stay apart, and
+// faint, its peak well below the bloom's threshold, so the chosen story's ember stands out. One
+// Points object in three's built-in points material, additive and lit by nothing, so it compiles
+// with the rest of the scene before the lobby opens. The points are sized in pixels and fade out
+// toward the horizon rather than being depth-tested, since the exaggerated relief would bury the
+// ones in the mountains.
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -21,11 +22,11 @@ import { dirOf } from '../story/effects/geo';
 import type { LonLat } from '../story/story';
 
 /** A point's size in CSS pixels, and how far out from the globe's center it floats, in radii. */
-const SIZE_PX = 12;
+const SIZE_PX = 10;
 const LIFT = 1.006;
 /** A point's brightness swings between these over its own period, in seconds. */
-const DIM = 0.4;
-const BRIGHT = 0.7;
+const DIM = 0.3;
+const BRIGHT = 0.45;
 const PERIOD_S: [number, number] = [3.5, 8];
 /** How far a place must turn toward the camera past the horizon to glow fully (as a cosine). */
 const HORIZON_FADE = 0.15;
@@ -56,10 +57,12 @@ export class Glows {
     const material = new PointsMaterial({
       size: SIZE_PX,
       sizeAttenuation: false,
+      // One color throughout, falling off smoothly, with no white head.
       map: glowTexture([
-        [0, 'rgba(255,214,150,1)'],
-        [0.2, 'rgba(224,160,82,0.8)'],
-        [0.5, 'rgba(192,150,82,0.25)'],
+        [0, 'rgba(226,190,128,1)'],
+        [0.25, 'rgba(214,176,112,0.62)'],
+        [0.55, 'rgba(200,160,96,0.2)'],
+        [0.8, 'rgba(192,150,82,0.04)'],
         [1, 'rgba(192,150,82,0)'],
       ]),
       vertexColors: true,
