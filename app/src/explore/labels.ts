@@ -9,13 +9,16 @@
 //
 // The keyboard reaches the same marks, once the dive has landed, through one tab stop: a listbox,
 // hidden from sight, whose options are the worker's labels for the events marked in view. Its
-// active option shows its plate as a hover does; the arrow keys move to the nearest mark that way
-// on screen (and do not pan the view), and Enter pins it. A live region reads each pinned plate.
+// active option shows its plate as a hover does, or rings the pinned plate when it is the pinned
+// event's; the arrow keys move to the nearest mark that way on screen (and do not pan the view),
+// and Enter pins it. While the listbox has the focus a small plate at the top names it, so the
+// focus is seen even with no mark in view. A live region reads each pinned plate.
 //
 // At most two plates stand, the pinned one and the hovered one, each on the first side of its mark
 // that stays in view and clear of the other plate, the panels (the ruler, Meanwhile and the
-// legend) and the focal ember (platePlacement.ts). Plates, options and the live region are set in
-// the label family (story/ui/fonts.ts), loaded whole before the room opens.
+// legend), the listbox's name while it shows and the focal ember (platePlacement.ts). Plates,
+// options and the live region are set in the label family (story/ui/fonts.ts), loaded whole
+// before the room opens.
 import './labels.css';
 import { tunables } from '../config/tunables';
 import type { EventDescription } from '../events/describe';
@@ -185,6 +188,8 @@ export class ExploreLabels {
   readonly #view: () => { width: number; height: number };
   readonly #listeners = new AbortController();
   readonly #list = el('div', 'xl-list');
+  /** The listbox's name, shown while it has the focus. */
+  readonly #caption = el('div', 'xl-focus', EVENTS_LIST);
   readonly #live = el('div', 'xl-live');
   readonly #pinPlate = new Plate(true);
   readonly #hoverPlate = new Plate(false);
@@ -206,6 +211,7 @@ export class ExploreLabels {
   #active: string | null = null;
   #listFocused = false;
   #panelBoxes: Box[] = [];
+  #captionBox: Box | null = null;
   #measuredMs = -Infinity;
   #landed = false;
   #left = false;
@@ -221,7 +227,15 @@ export class ExploreLabels {
     // Out of the tab order until the dive lands, so no key pins an event while the dive flies.
     this.#list.tabIndex = -1;
     this.#live.setAttribute('aria-live', 'polite');
-    this.element.append(this.#list, this.#live, this.#hoverPlate.element, this.#pinPlate.element);
+    // The listbox's own name gives it to screen readers.
+    this.#caption.setAttribute('aria-hidden', 'true');
+    this.element.append(
+      this.#list,
+      this.#live,
+      this.#caption,
+      this.#hoverPlate.element,
+      this.#pinPlate.element,
+    );
     this.#listen();
   }
 
@@ -292,6 +306,7 @@ export class ExploreLabels {
     this.#events.hover(null);
     this.#hovered = null;
     this.#canvas.classList.remove('is-over-mark');
+    this.#caption.classList.remove('is-shown');
     this.#pinPlate.hide();
     this.#hoverPlate.hide();
   }
@@ -354,6 +369,7 @@ export class ExploreLabels {
       'focus',
       () => {
         this.#listFocused = true;
+        this.#caption.classList.add('is-shown');
         this.#activate(this.#firstActive());
       },
       { signal },
@@ -362,6 +378,7 @@ export class ExploreLabels {
       'blur',
       () => {
         this.#listFocused = false;
+        this.#caption.classList.remove('is-shown');
         this.#activate(null);
       },
       { signal },
@@ -548,6 +565,7 @@ export class ExploreLabels {
     });
     const avoid = (own: PlacedMark, other: Box | null): Box[] => [
       ...this.#panelBoxes,
+      ...(this.#listFocused && this.#captionBox ? [this.#captionBox] : []),
       ...(focalMark && focalMark !== own ? [ember(focalMark)] : []),
       ...(other ? [other] : []),
     ];
@@ -571,6 +589,12 @@ export class ExploreLabels {
         this.#live.textContent = spoken(text);
       }
     } else this.#pinPlate.hide();
+    // The keyboard's option is the pinned event's: its plate takes the focus's ring.
+    const active = this.#listFocused ? this.#active : null;
+    this.#pinPlate.element.classList.toggle(
+      'is-active',
+      this.#pinPlate.shown && active !== null && markQid(active) === qid,
+    );
 
     const hovered = this.#hovered;
     const hoveredMark = hovered === null ? undefined : placed.get(hovered);
@@ -592,13 +616,11 @@ export class ExploreLabels {
     } else this.#hoverPlate.hide();
   }
 
-  /** The panels' boxes as they stand now. */
+  /** The panels' boxes, and the listbox's name's, as they stand now. */
   #measure(nowMs: number): void {
     this.#measuredMs = nowMs;
-    this.#panelBoxes = this.#panels().map((panel) => {
-      const { left = 0, top = 0, right = 0, bottom = 0 } = panel.getBoundingClientRect();
-      return { left, top, right, bottom };
-    });
+    this.#panelBoxes = this.#panels().map(boxOf);
+    this.#captionBox = boxOf(this.#caption);
   }
 }
 
@@ -606,6 +628,11 @@ export class ExploreLabels {
 function finer(a: Precision, b: Precision): boolean {
   const rank = { year: 0, month: 1, day: 2 } as const;
   return rank[a] > rank[b];
+}
+
+function boxOf(element: Element): Box {
+  const { left = 0, top = 0, right = 0, bottom = 0 } = element.getBoundingClientRect();
+  return { left, top, right, bottom };
 }
 
 function windowSize(): { width: number; height: number } {

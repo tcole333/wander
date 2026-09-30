@@ -357,6 +357,61 @@ describe('Explore’s labels', () => {
     expect([list.getAttribute('aria-activedescendant'), events.hovered]).toEqual([null, null]);
   });
 
+  it('ring the pinned plate when the keyboard stands on its mark, and name the listbox', () => {
+    const { labels, root, list, click, key } = setup();
+    labels.land(null);
+    click(700, 400);
+    labels.update(0);
+    const caption = byClass(root, 'xl-focus');
+    expect(shown(caption)).toBe(false);
+    list.dispatchEvent(new Event('focus'));
+    labels.update(16);
+    // The listbox starts on the pinned mark, whose plate alone stands.
+    expect(list.getAttribute('aria-activedescendant')).toBe('xl-Q48314');
+    const [pinned, hovered] = [plate$(root, true), plate$(root, false)];
+    expect([shown(pinned), pinned.classList.contains('is-active'), shown(hovered)]).toEqual([
+      true,
+      true,
+      false,
+    ]);
+    expect([shown(caption), caption.getAttribute('aria-hidden')]).toEqual([true, 'true']);
+    key(list, 'ArrowRight');
+    labels.update(32);
+    expect(pinned.classList.contains('is-active')).toBe(false);
+    expect([shown(hovered), hovered.classList.contains('is-active')]).toEqual([true, true]);
+    list.dispatchEvent(new Event('blur'));
+    labels.update(48);
+    expect([pinned.classList.contains('is-active'), shown(caption)]).toEqual([false, false]);
+  });
+
+  it('name the listbox while it has the focus, though no mark is in view', () => {
+    const { labels, root, list } = setup([]);
+    labels.land(null);
+    list.dispatchEvent(new Event('focus'));
+    labels.update(0);
+    expect(list.getAttribute('aria-activedescendant')).toBeNull();
+    expect(shown(byClass(root, 'xl-focus'))).toBe(true);
+  });
+
+  it('keep plates clear of the listbox’s name while it shows', () => {
+    const { labels, root, list, pointer } = setup([
+      { id: 'Q48314', x: 700, y: 40, label: 'Battle of Waterloo' },
+    ]);
+    // Where the browser lays the name out, at the top of the view.
+    Object.assign(byClass(root, 'xl-focus'), {
+      getBoundingClientRect: () => ({ left: 680, right: 800, top: 28, bottom: 50 }),
+    });
+    labels.land(null);
+    pointer('pointermove', 700, 40);
+    labels.update(0);
+    labels.update(tunables.hoverQueue);
+    expect(plate$(root, false).getAttribute('data-side')).toBe('right');
+    list.dispatchEvent(new Event('focus'));
+    labels.update(tunables.hoverQueue + 16);
+    // The keyboard stands on the mark: its plate leaves the side the name covers.
+    expect(plate$(root, false).getAttribute('data-side')).not.toBe('right');
+  });
+
   it('stop picking once Explore leaves, the plates going', () => {
     const { events, labels, root, click, pointer } = setup();
     labels.land(null);

@@ -1139,12 +1139,15 @@ only a failed start or a worker error ends the worker.
   `Special:GoToLinkedPage`, as the index holds no title, or for an opening its written line and
   the source that line rests on. A click on bare metal, Escape, or the now window leaving the event
   unpins it, and Escape with nothing pinned returns to the lobby. One listbox, hidden from sight,
-  holds the worker's labels for the events marked in view behind one tab stop: its active option
-  shows its plate as a hover does, the arrow keys move to the nearest mark that way on screen
-  without panning the view, Enter pins, and a live region reads each pinned plate. At most two
-  plates stand, the pinned and the hovered, each on the first side of right, left, above and below
-  that stays in view and clear of the other, the ruler, Meanwhile, the legend and the focal ember,
-  keeping its side while it serves within 8 px (`platePlacement.ts`).
+  holds the worker's labels for the events marked in view behind one tab stop, reached once the
+  dive has landed: its active option shows its plate as a hover does, or rings the pinned plate
+  when it is the pinned event's, and while it has the focus a small tag at the top of the view
+  names it, so the focus shows though no mark is in view; the arrow keys move to the nearest mark
+  that way on screen without panning the view, Enter pins, and a live region reads each pinned
+  plate. At most two plates stand, the pinned and the hovered, each on the first side of right,
+  left, above and below that stays in view and clear of the other, the ruler, Meanwhile, the
+  legend, the listbox's tag while it shows and the focal ember, keeping its side while it serves
+  within 8 px (`platePlacement.ts`).
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,
