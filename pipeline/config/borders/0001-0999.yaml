@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from 1
 # to 999 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction covers
 # the years whose 1 January falls in its dates.
-modified: 2026-09-29
+modified: 2026-09-30
 corrections:
   - years: [407, 409]
     overlap:
@@ -19,21 +19,22 @@ corrections:
       polities: [Kidarites, White Huns]
       winner: Kidarites
     why: >-
-      The Kidarites ruled Bactria and the lands north of the Oxus until the Hephthalites (the White
-      Huns) took their Transoxianan lands around 466, so the land Cliopatria gives both from 410 is
-      the Kidarites'.
+      The Hephthalites (the White Huns) became a power in Bactria only around 450, or sometime
+      before, and probably took the Kidarites' Transoxianan lands around 466, so the land Cliopatria
+      gives both from 410 is the Kidarites'.
     source:
       title: Hephthalites
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Hephthalites
-      locator: Conquest of Bactria
   - years: [577, 601]
     overlap:
       polities: [Himyarite Kingdom, Kingdom of Axum]
       winner: Himyarite Kingdom
     why: >-
-      Smaller wins, checked: the Persians ended Aksumite rule in Yemen in 570 and set Himyarite
-      kings over it as their vassals, so Yemen is Himyar's, not Axum's.
+      Smaller wins, checked: a Sasanian force under Vahrez ended Aksumite rule in Yemen in 570, so
+      Yemen is not Axum's. After Sayf ibn Dhi Yazan was killed in 575 or 578, Vahrez governed it
+      with a large Iranian garrison under Sayf's son Ma'dikarib as king; the Himyarite row keeps
+      the land, and that Persian rule is left for review.
     source:
       title: Sasanian Yemen
       publisher: Wikipedia

@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1000 to 1499 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-29
+modified: 2026-09-30
 corrections:
   - years: [1028, 1028]
     overlap:
@@ -85,8 +85,10 @@ corrections:
       polities: [Ceylon, Kingdom of Polonnaruwa]
       winner: Ceylon
     why: >-
-      Smaller wins, checked: Ceylon here is the Kingdom of Dambadeniya, which succeeded Polonnaruwa
-      (1055–1232) as the Sinhalese kingdom.
+      Smaller wins, checked: from 1220 the Sinhalese kings ruled from Dambadeniya, Vijayabahu III
+      having faced the invader Kalinga Magha, so the land Cliopatria's Polonnaruwa row shares with
+      its Ceylon row, which holds the Dambadeniya row, is not the old kingdom's. Who held Polonnaruwa
+      itself in these years is left for review.
     source:
       title: Kingdom of Dambadeniya
       publisher: Wikipedia
