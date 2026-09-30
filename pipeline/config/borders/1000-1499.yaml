@@ -117,3 +117,67 @@ corrections:
       title: Dead Kultuk
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Dead_Kultuk
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, each cited (owner decision 38).
+  - years: [1094, 1168]
+    pocket:
+      at: [18.44, 43.99]
+      to: Banate of Bosnia
+    why: >-
+      Bosnia proper (Vrhbosna, Usora, Soli) was a land with its own dukes: under Duklja, whose king
+      Constantine Bodin set his cousin Stephen over it, and under Hungary once Béla II took the
+      title King of Rama in 1135 and made his son Ladislaus Duke of Bosnia, and under Ban Borić from
+      about 1154. Cliopatria ends Duklja's shape here in 1093 and begins its Banate of Bosnia, the
+      name drawn here, in 1188. The years around 1101-1135 are thinly documented.
+    source:
+      title: Bosnia (early medieval polity)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bosnia_(early_medieval_polity)
+  - years: [1126, 1138]
+    pocket:
+      at: [96.1, 42.24]
+      to: Qocho Kingdom
+    why: >-
+      The Hami oasis (Yizhou) and the desert east of it toward the Beishan: Qocho seized Yizhou in
+      876 and held it after the Guiyi occupation ended in 911, as a Qara Khitai vassal from 1128.
+      Cliopatria draws it Kara-Khitan from 1139.
+    source:
+      title: Qocho
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qocho
+  - years: [1210, 1215]
+    pocket:
+      at: [78.99, 26.22]
+      to: Mamluk Dynasty
+    why: >-
+      The Chambal and Yamuna country from Bhind to Etawah: after Chandawar (1194) the Ghurids set up
+      military stations across the region, and on 1 January 1210 Aibak, who died that November, held
+      it for the Mamluk line of Delhi. Cliopatria draws it Ghurid to 1209 and the Delhi Sultanate's
+      from 1216.
+    source:
+      title: Qutb ud-Din Aibak
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qutb_ud-Din_Aibak
+  - years: [1236, 1240]
+    pocket:
+      at: [102.55, 34.16]
+      to: Tibetans
+    why: >-
+      Eastern Amdo (Xiahe, Hezuo, Luqu, Maqu, Zoige) kept its independent polities of hereditary
+      rulers after the Tibetan Empire's fall until the Mongols conquered it by 1240; Cliopatria
+      draws it Mongol from 1241.
+    source:
+      title: Amdo
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Amdo
+  - years: [1250, 1254]
+    pocket:
+      at: [21.85, 44.28]
+      to: Second Bulgarian Empire
+    why: >-
+      Braničevo, Kučevo and the Timok were Bulgarian until Béla IV forced Tsar Michael II Asen to
+      cede Belgrade and Barancs in 1255; Cliopatria draws them Bulgarian to 1249.
+    source:
+      title: Bulgarian–Hungarian wars
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bulgarian%E2%80%93Hungarian_wars
