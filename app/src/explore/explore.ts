@@ -68,7 +68,11 @@ export interface ExploreEventsHook {
   placed(): PlacedMark[];
   /** The event a mark stands for: null for the lock's focal mark, undefined for no such mark. */
   event(id: string): EventMark | null | undefined;
-  /** Nothing is on its way from the event worker, or it has failed, and no mark is fading. */
+  /**
+   * Nothing is on its way from the event worker, Meanwhile's answer included, or it has failed,
+   * and no mark is fading: the marks and Meanwhile's list stand as they will until something
+   * changes.
+   */
   settled(): boolean;
 }
 

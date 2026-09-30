@@ -274,6 +274,29 @@ describe('Meanwhile', () => {
     }
   });
 
+  test('is idle only once its standing question has been asked and answered', () => {
+    const worker = new FakeWorker();
+    const client = new EventClient(worker, releaseOf([pageOf([])]), host);
+    client.meanwhile(standing);
+    expect(client.idle()).toBe(false);
+    client.drain(0);
+    // Resting before it is asked, then asked.
+    expect(client.idle()).toBe(false);
+    client.drain(tunables.meanwhileRest);
+    expect(client.idle()).toBe(false);
+    worker.reply({ type: 'meanwhile', generation: 1, events: [] });
+    // Answered, but the answer waits for drain().
+    expect(client.idle()).toBe(false);
+    client.drain(tunables.meanwhileRest + 16);
+    expect(client.idle()).toBe(true);
+    // The same question stands answered; another is on its way.
+    client.meanwhile(standing);
+    expect(client.idle()).toBe(true);
+    client.meanwhile({ ...standing, t0: 101 });
+    expect(client.idle()).toBe(false);
+    client.dispose();
+  });
+
   test('a camera that moves about the same center asks a new question', () => {
     const worker = new FakeWorker();
     const client = new EventClient(worker, releaseOf([pageOf([])]), host);
