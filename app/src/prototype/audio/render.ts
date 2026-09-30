@@ -1,7 +1,7 @@
 // Every sound rendered offline for listening away from the page (scripts/renderSounds.ts): each
 // voice several times over, a scrub by months and one by days, a flight, the Tambora bed at three
-// moments (and room tone alone), Magellan's ocean, each cue, and a stretch of the walk, as 48 kHz
-// 16-bit stereo WAV with its peak and RMS.
+// moments (and room tone alone), Magellan's ocean, each cue, a stretch of the walk, and a stretch
+// of Explore scrubbed through history, as 48 kHz 16-bit stereo WAV with its peak and RMS.
 import storyText from '../../../../stories/tambora/story.md?raw';
 import { magellanBed, tamboraBed } from '../../audio/bed';
 import { CUE_NAMES, startCue, type CueName } from '../../audio/cues';
@@ -10,7 +10,7 @@ import type { Mix } from '../../audio/mix';
 import { clunk, detent, type DetentWeight } from '../../audio/voices';
 import { dayFromIso } from '../../story/dates';
 import { parseStory } from '../../story/story';
-import { flight, scrub, walkStretch } from './demos';
+import { exploreStretch, flight, scrub, walkStretch } from './demos';
 
 const RATE = 48000;
 
@@ -95,6 +95,13 @@ export const TAKES: Record<string, Take> = {
     seconds: 20,
     play(engine, seconds) {
       walkStretch(engine, parseStory(storyText), seconds, 0.05);
+    },
+  },
+  // Explore's dive onto Waterloo, then its ruler dragged through history.
+  'explore-scrub': {
+    seconds: 30,
+    play(engine, seconds) {
+      exploreStretch(engine, seconds, 0.05);
     },
   },
 };
