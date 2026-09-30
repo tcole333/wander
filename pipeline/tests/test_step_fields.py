@@ -21,11 +21,12 @@ def part(name, outer, shape, minor=False):
     return clio.Part(name, outer, minor, shapely.multipolygons([shape]))
 
 
-def selection(parts, stateless=None, pockets=None):
+def selection(parts, stateless=None, pockets=None, holes=()):
     empty = shapely.MultiPolygon()
     state = empty if stateless is None else shapely.multipolygons([stateless])
     given = empty if pockets is None else shapely.multipolygons([pockets])
-    return clio.Selection(1815, tuple(parts), state, frozenset(), (), {}, given)
+    inside = tuple((unit, shapely.multipolygons([hole])) for unit, hole in holes)
+    return clio.Selection(1815, tuple(parts), state, frozenset(), (), {}, given, inside)
 
 
 # On face 0, from west to east along the equator: stateless land (30° W to 20° W), West (to the
@@ -134,6 +135,35 @@ def test_a_pocket_takes_its_polity_though_stateless_land_lies_nearer_across_a_la
     assert column(-7) < crossing < column(-4)
 
 
+# West's hole, 16° to 6° W, runs to a lake whose far shore is East's: the hole's east is nearer
+# East's land than West's, so the nearest polity would split it at 10° W, but it is all West's.
+HOLE_LAKE = box(-6, -8, -4, 8)
+HOLE_LAND = shapely.difference(box(-30, -10, 0, 10), HOLE_LAKE)
+HOLE = selection(
+    [part("West", "West", box(-30, -10, -16, 10)), part("East", "East", box(-4, -10, 0, 10))],
+    holes=[("West", box(-16, -10, -6, 10))],
+)
+
+
+def test_a_hole_inside_one_state_is_its_land_though_another_state_lies_nearer_across_a_lake():
+    _, r, _, _ = planes(HOLE, IDS | {"East": 6}, HOLE_LAND)
+    [crossing] = np.flatnonzero(np.diff(r[EQUATOR] > 0))
+    assert column(-7) < crossing < column(-4)  # through the lake, not at 10° W
+
+
+def test_a_hole_among_an_empires_members_goes_to_the_member_nearest_each_part():
+    chosen = selection(
+        [
+            part("Duchy", "(Empire)", box(0, -10, 5, 10)),
+            part("County", "(Empire)", box(15, -10, 20, 10)),
+        ],
+        holes=[("(Empire)", box(5, -10, 15, 10))],
+    )
+    _, r, g, _ = planes(chosen, land=box(0, -10, 20, 10))
+    assert abs(g[EQUATOR, int(column(10))]) < 1
+    assert np.all(r[EQUATOR] > 7.9)  # the face holds no outer border at all
+
+
 def test_the_border_of_a_minor_piece_draws_in_g():
     ids = {"": 1, "Isle": 2, "Realm": 3}
     chosen = selection(
@@ -192,6 +222,13 @@ def test_a_previews_pocket_takes_its_polity_too():
         pockets=box(-16, -10, -6, 10),
     )
     d, _ = preview(chosen, land)
+    row = d[PREVIEW_EQUATOR, preview_column(-30) : preview_column(0)]
+    [crossing] = np.flatnonzero(np.diff(row > 0))
+    assert preview_column(-7) <= preview_column(-30) + crossing <= preview_column(-4)
+
+
+def test_a_previews_hole_inside_one_state_is_its_land_too():
+    d, _ = preview(HOLE, HOLE_LAND)
     row = d[PREVIEW_EQUATOR, preview_column(-30) : preview_column(0)]
     [crossing] = np.flatnonzero(np.diff(row > 0))
     assert preview_column(-7) <= preview_column(-30) + crossing <= preview_column(-4)

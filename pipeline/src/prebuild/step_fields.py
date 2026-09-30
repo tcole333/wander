@@ -4,9 +4,10 @@ inputs are unchanged.
 
 **Field.** One raster of the step's land at 4x4 subpixels per texel (border_fields.py) makes both
 planes. The selection's parts and its stateless land take raster ids; the sea and the lakes are
-emptied, so the fill gives them the nearest id and no border follows a coast or rings a lake. The
-pockets the selection gives that touch a polity take the nearest polity's id first, never stateless
-land's, which can lie nearer across a lake.
+emptied, so the fill gives them the nearest id and no border follows a coast or rings a lake. First
+a hole inside one state takes the nearest id of that state's land, never another's, which can lie
+nearer across a lake, and the other pockets the selection gives that touch a polity take the nearest
+polity's id, never stateless land's, which can too.
 Land within `sliverKm` of a lake that lies within `sliverKm` of another id is emptied too, so a
 polity whose shape reaches over a lake and onto a thin strip of the far shore does not draw its
 border along that shore: the fill carries it across the lake. Each plane keeps the borders between
@@ -59,7 +60,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 import shapely
-from scipy.ndimage import distance_transform_edt, maximum_filter, minimum_filter
+from scipy.ndimage import distance_transform_edt, find_objects, maximum_filter, minimum_filter
 
 from prebuild import cliopatria as clio
 from prebuild.border_fields import (
@@ -128,7 +129,8 @@ class StepRaster:
     """A step's land as raster ids: stateless land 1, the selection's parts from 2."""
 
     shapes: tuple[Polity, ...]  # largest first, so a smaller shape wins a shared edge
-    pockets: shapely.Geometry  # the pockets given that touch a polity, filled from the polities
+    pockets: shapely.Geometry  # the other pockets touching a polity, filled from the polities
+    holes: tuple[tuple[int, shapely.Geometry], ...]  # the holes inside one state, by its outer id
     polity: npt.NDArray[np.int32]  # by raster id, the polity's id: the order of G's sides
     outer: npt.NDArray[np.int32]  # by raster id, its outer unit's id: the order of R's sides
     minor: Bools  # by raster id, whether it lies in a minor piece
@@ -161,7 +163,8 @@ def step_raster(selection: clio.Selection, ids: Mapping[str, int]) -> StepRaster
         shapes.append((k, part.geometry))
     drawn = [Polity(k, shape, float(shapely.area(shape))) for k, shape in shapes]
     drawn.sort(key=lambda p: (-p.area, p.id))
-    return StepRaster(tuple(drawn), selection.pockets, polity, outer, minor)
+    holes = tuple((ids[unit], shape) for unit, shape in selection.holes)
+    return StepRaster(tuple(drawn), selection.pockets, holes, polity, outer, minor)
 
 
 def masked_signed(
@@ -218,6 +221,52 @@ def inner_bytes(d_texels: npt.ArrayLike) -> Bytes:
     return round_half_away(INNER_ZERO + INNER_STEP * d).astype(np.uint8)
 
 
+def fill_given(
+    ids: IdArray, raster: StepRaster, dry: Bools, draw: Callable[[Sequence[Polity]], IdArray]
+) -> None:
+    """Fills, in place, the land the selection gives away that touches a polity: the holes inside
+    one state from that state's land, then the other pockets from the polities. `draw` rasterizes
+    shapes on the grid of `ids`."""
+    pockets = np.zeros(ids.shape, dtype=bool)
+    if raster.holes:
+        holes = draw([Polity(k + 1, shape, 0.0) for k, (_, shape) in enumerate(raster.holes)])
+        holes[~dry] = 0
+        pockets = fill_holes(ids, holes, [unit for unit, _ in raster.holes], raster.outer)
+    if not shapely.is_empty(raster.pockets):
+        pockets |= (draw([Polity(1, raster.pockets, 0.0)]) > 0) & dry
+    fill_pockets(ids, pockets)
+
+
+def fill_holes(
+    ids: IdArray, holes: IdArray, units: Sequence[int], outer: npt.NDArray[np.int32]
+) -> Bools:
+    """Gives, in place, each subpixel of a hole, k + 1 in `holes`, the id of the nearest subpixel
+    whose outer unit (`outer`, by raster id) is units[k]: a hole inside one state is that state's
+    land though another's lies nearer across a lake, and among an empire's members each takes the
+    part nearest it. The search runs within twice the hole's extent around it, which holds the land
+    along its edge. Returns the holes' subpixels whose state holds no land there, as at the edge of
+    a face's raster, for the pockets' fill."""
+    left = np.zeros(ids.shape, dtype=bool)
+    for k, box in enumerate(find_objects(holes)):
+        if box is None:
+            continue
+        rows, cols = box
+        reach = 2 * max(rows.stop - rows.start, cols.stop - cols.start) + 2
+        window = (
+            slice(max(0, rows.start - reach), rows.stop + reach),
+            slice(max(0, cols.start - reach), cols.stop + reach),
+        )
+        hole = holes[window] == k + 1
+        part = ids[window]
+        held = outer[part] == units[k]
+        if not held.any():
+            left[window] |= hole
+            continue
+        near = distance_transform_edt(~held, return_distances=False, return_indices=True)
+        part[hole] = part[near[0][hole], near[1][hole]]
+    return left
+
+
 def fill_pockets(ids: IdArray, pockets: Bools) -> None:
     """Gives, in place, each subpixel of `pockets` the id of the nearest polity's subpixel, never
     stateless land's: a pocket goes to its neighbours, and across a lake stateless land can lie
@@ -262,9 +311,7 @@ def face_planes(
     keep_r, keep_g = raster.keep()
     ids = rasterize(face, raster.shapes, texels - 2 * APRON)
     ids[~dry] = 0
-    if not shapely.is_empty(raster.pockets):
-        pockets = rasterize(face, [Polity(1, raster.pockets, 0.0)], texels - 2 * APRON) > 0
-        fill_pockets(ids, pockets & dry)
+    fill_given(ids, raster, dry, lambda shapes: rasterize(face, shapes, texels - 2 * APRON))
     empty_lakeside(ids, lakeside, reach)
     ids = extend(ids)
     m = SUBPIXELS * MARGIN_TEXELS
@@ -344,9 +391,7 @@ def preview_layer(raster: StepRaster, dry: Bools, lakeside: Bools, reach: int) -
     width, height = PREVIEW_WIDTH * SUBPIXELS, PREVIEW_HEIGHT * SUBPIXELS
     ids = equirect_ids(raster.shapes, width, height)
     ids[~dry] = 0
-    if not shapely.is_empty(raster.pockets):
-        pockets = equirect_ids([Polity(1, raster.pockets, 0.0)], width, height) > 0
-        fill_pockets(ids, pockets & dry)
+    fill_given(ids, raster, dry, lambda shapes: equirect_ids(shapes, width, height))
     empty_lakeside(ids, lakeside, reach)
     pad = PREVIEW_MARGIN * SUBPIXELS
     ids = extend(np.concatenate([ids[:, -pad:], ids, ids[:, :pad]], axis=1))
