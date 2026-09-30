@@ -317,6 +317,15 @@ class Member:
 
 
 @dataclass(frozen=True)
+class Drop:
+    """Takes away a polity's pieces that lie wholly inside a cited shape, as scraps its rows carry:
+    another polity holding the land keeps it, and the rest is left to the stateless rules."""
+
+    polity: str
+    shape: shapely.Geometry
+
+
+@dataclass(frozen=True)
 class Rename:
     polity: str
     to: str
@@ -338,12 +347,13 @@ class Overlap:
     winner: str
 
 
-type Operation = Give | Carry | Add | Member | Rename | Pocket | Overlap
+type Operation = Give | Carry | Add | Drop | Member | Rename | Pocket | Overlap
 
 OPERATIONS: dict[str, type] = {
     "give": Give,
     "carry": Carry,
     "add": Add,
+    "drop": Drop,
     "member": Member,
     "rename": Rename,
     "pocket": Pocket,
@@ -505,6 +515,12 @@ def _operation(kind: str, value: Any, where: str, folder: Path) -> Operation:
             shape=_shape(folder / _name(value["shape"], where), where),
             wikidata=str(value.get("wikidata", "")),
             member_of=_name(value["member_of"], where) if "member_of" in value else None,
+        )
+    if kind == "drop":
+        _keys(value, {"polity", "shape"}, set(), where)
+        return Drop(
+            polity=_name(value["polity"], where),
+            shape=_shape(folder / _name(value["shape"], where), where),
         )
     if kind == "member":
         _keys(value, {"polity", "of"}, set(), where)
@@ -815,8 +831,8 @@ def _draw_corrections(
     source: Cliopatria,
     applied: set[int],
 ) -> dict[str, set[str]]:
-    """Applies the carries, adds and gives to `leaves`, in file order; what they make members of
-    what."""
+    """Applies the carries, adds, drops and gives to `leaves`, in file order; what they make
+    members of what."""
     joins: dict[str, set[str]] = defaultdict(set)
     for k, c in active:
         op = c.op
@@ -837,6 +853,19 @@ def _draw_corrections(
                 applied.add(k)
             if op.member_of:
                 joins[op.polity].add(op.member_of)
+        elif isinstance(op, Drop):
+            land = leaves.get(op.polity)
+            if land is None:
+                continue
+            pieces = shapely.get_parts(land)
+            inside = shapely.within(pieces, op.shape)
+            if not inside.any():
+                continue
+            if inside.all():
+                del leaves[op.polity]
+            else:
+                leaves[op.polity] = shapely.multipolygons(list(pieces[~inside]))
+            applied.add(k)
         elif isinstance(op, Give):
             moved = _given(op, leaves, source)
             if moved is None:
