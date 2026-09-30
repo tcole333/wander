@@ -57,7 +57,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders and range names follow Mountains. Ocean and sea names follow Labels: a curated list of modern English names bundled with the app (`app/src/look/seaNames.json`: text, place, em size in degrees, tracking, angle, and the view widths it shows within), lettered at boot into one canvas atlas (oceans in the display face's tracked capitals, seas in the reading face's italic) and inlaid by the surface look in the lacquer at sea level, as the graticule is. Each name fades in and out with its em on screen (7-48 px) and toward the limb, so a sea shows several names across zoom levels, each with its own size and place; of the names in the view, the 16 strongest are inlaid, so none beyond its edges holds back one on screen. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. Inlaid in the look, the sea names never bend with relief and take the lamp, ash and climate as the lacquer does; they are lettered into one R8 atlas 2048 texels wide and as tall as the list needs (1638 for milestone 1's 50 placements of 42 names: ~4.3 MiB on the GPU with mips, plus the 3.2 MiB of texels three keeps; the lettering canvas is released), with nothing to fetch and no labels stage. |
-| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 505 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. A plate names the step drawn ("Borders · 1815"). Milestone 1's walk draws its 1815 field from historical-basemaps (3.3) until Tambora moves onto the steps. | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
+| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 523 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. A plate names the step drawn ("Borders · 1815"). Milestone 1's walk draws its 1815 field from historical-basemaps (3.3) until Tambora moves onto the steps. | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
 | **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore stands: wherever the release names its event index (3.4), and where a page starts in Explore, as the dev shell does. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The tiles run three past each edge of the viewport, since a mark on relief seen tilted stands above the sea-level foot its tile is found from. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and three texels a mark, uploaded only when the view or a fade changed. The look finds a fragment's tile from its inlay direction, so relief never moves it out of its mark's tile, and cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own, by default the cast token: a raised bronze boss for nature, a dark seal with a niello glyph for governance and a small gilt seal with its glyph sunk for infrastructure, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`TOKEN_INK`, 0.8 of its radius, clear of the rim its bevel casts); `?markVariant` and the dev panel draw the other candidates. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. A hovered expanded parent's extent is a dashed line engraved about 2 px wide at full weight: the graticule's brass over the sea and niello over land, between walls that slope into it and take the lamp. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. The cast token is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it while Explore is open: bundled inline in the entry, started at each dive and terminated when Explore ends (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. Inlined, it fetches nothing from Pages after boot. Ended with Explore, it holds nothing during a walk, whose memory already stands at its CPU line (6). |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: one monthly field the CPU blends, and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
@@ -386,9 +386,10 @@ bakes Cliopatria v0.2.0's polities (CC BY 4.0, pinned in `sources.toml`; owner d
 field per step.
 
 **Steps.** A step begins in every change year: a POLITY row's first year, or the year after its
-last, once corrections apply. From 3400 BCE, Cliopatria's first year, to 2000 there are 505, a
-median of 5 years apart [M Cliopatria v0.2.0]; a step whose field equals the one before is dropped.
-A step holds from its year's 1 January in the historical calendar until the next step begins (3.0).
+last, once corrections apply. From 3400 BCE, Cliopatria's first year, to 2000 its rows give 505, a
+median of 5 years apart [M Cliopatria v0.2.0], and 523 with the corrections' years [M]; a step
+whose field equals the one before is dropped. A step holds from its year's 1 January in the
+historical calendar until the next step begins (3.0).
 The stage record lists the step each story's border beats draw, and a beat before the first step
 fails the build.
 
@@ -463,11 +464,14 @@ and every polity, under one id, and draws no border of its own (owner decision 3
 right for an enclave, such as Luxembourg in 1914, and wrong for a near-duplicate: 'Napoleonic
 Batavia Republic' covers 98% of the Cape in 1815. 322 steps have overlaps over 2,000 km², and 41 row
 pairs, across 92 steps, overlap by more than half the larger row, such as Algeria inside the French
-Fifth Republic from 1963 [M]; they are 23 pairs of polities, which the review queue lists with the
-steps each needs acknowledging in. Each of those pairs needs an `overlap` correction naming the winner
-with a `why`: "smaller wins, checked" is one, and an entry that overrides it cites a source. Each step
-records the pairs without an entry, `npm run verify:bake` reports them and `npm run publish-data`
-refuses them, so the bake never waits for the history pass. Smaller overlaps go to the review queue
+Fifth Republic from 1963 [M]; they are 23 pairs of polities. Each such pair needs an `overlap`
+correction naming the winner with a `why`: "smaller wins, checked" is one, and an entry that
+overrides it cites a source. Each step records the pairs without an entry, `npm run verify:bake`
+reports them and `npm run publish-data` refuses them, so the bake never waits for the history pass.
+The era files settle all 23: most as smaller wins, some in parts where the rightful holder changes
+(Norway under Cnut from 1029 to 1035, the Cape until the Batavian handover of March 1803, Iceland
+until the union of December 1918), and two by a `give` instead (England's colonies are Britain's
+from 1708, the Batavian Cape British again from 1807). Smaller overlaps go to the review queue
 (7.2), with the 414 times a polity's rows stop and later resume, 143 of them after 1500 [M].
 
 **Corrections** live in `pipeline/config/borders/<era>.yaml`, one file each for `bce`,
@@ -486,16 +490,40 @@ fails the build:
 - `pocket: {at, stateless}` keeps the enclosed stateless piece holding `at` stateless or gives it to
   its neighbours; `overlap: {polities, winner}` names which of two keeps the land they share.
 
+A step shows the world as it stood on 1 January of its year, so a correction covers the years whose
+1 January falls within its dates: the British took Java in September 1811, so their correction
+begins in 1812.
+
 A correction must change every step in its range, or the build fails, naming the unchanged steps.
-The history pass covers the hierarchy entries, the 41 pairs and these cases: Mexico, missing for
-1913-19, carries its 1912 row; Kuwait, Omani in Cliopatria's 1914, carries its 1820-72 shape to 1990,
-a British member from 1899 to 1961; Hyderabad and Mysore become British members with cited shapes,
-Hyderabad's after the 1800 cession and Mysore's after the 1799 partition (Cliopatria's 1799 Mysore
-is Tipu's larger kingdom), while other princely states stay a listed gap; Java stays British through
-1816, since Cliopatria's British rows end in 1813 and the Dutch returned only in August 1816; the
-out-of-date 1914 names are renamed; and in 1815 Bima, Sanggar, Tambora, Pekat, Dompu and western
-Sumbawa's sultanate are Dutch members (owner decision 37). The 1815 field's corrections are not
-carried over: Cliopatria already has Brussels Dutch and Hong Kong Qing [M].
+The era files hold 96 corrections, each cited. Besides the 23 pairs:
+- **Gaps and swaps:** Mexico carries its 1912 row through 1913-19. Kuwait, drawn as Ottoman, Omani
+  and British in Cliopatria, carries its 1820-72 shape from 1873 to 1960 and the State of Kuwait's
+  into 1990. Poland (1946-52), Czechoslovakia (1946, 1969-90), Hungary (1946), Romania and Bulgaria
+  (1945-46), which Cliopatria draws as Soviet, carry their own rows, and Persia and the Indies get
+  back the names Cliopatria swaps in 1895-97.
+- **The Indies:** the Dutch East Indies are British from 1812 to 1816: the British took Java in
+  September 1811 and returned the Indies in 1816, and in 1812-13 Cliopatria's smaller Dutch row
+  outdraws its British one. Sumbawa's six states of 1815 are drawn from Chambert-Loir's map as
+  reproduced by de Jong Boers (1995), each cited to Hägerdal's *Held's History of Sumbawa*: Tambora
+  and Pekat for 1815 only, since the eruption destroyed them and their land lay empty until 1866,
+  and Sanggar, Dompu, western Sumbawa's sultanate and Bima's land on the island for 1815 and 1816.
+  All six are British members in those years, since the Sumbawan contracts passed to the British
+  with the Dutch posts and Raffles's government kept a Resident at Bima.
+- **Dependents by treaty:** the Carnatic (1793-1802), Awadh (1799-1802), Hyderabad (1799-1947),
+  Mysore (1800-1947), the Mughal emperor (1804-57), Yogyakarta and Surakarta (Dutch, British from
+  1812 to 1816, Dutch again to 1827), the Batavian Cape (1804-06), Monaco under Sardinia (1816-60),
+  Bukhara and Khiva (1874-1917), Afghanistan (1880-1919), Kuwait (1900-61) and Bhutan (1911-47) are
+  members. Hyderabad keeps its 1798 shape until the Ceded Districts pass to the Company in 1800 and
+  then takes Cliopatria's own 1947 shape; Mysore's is traced from the Imperial Gazetteer's 1909 map;
+  Bukhara and Khiva take their 1918 rows' shapes. Kedah and Chiang Mai, tributaries of Siam, stay
+  out, and other princely states stay a listed gap.
+- **Names:** the out-of-date names Cliopatria carries into 1914 are renamed over the years they are
+  wrong: Denmark-Norway after 1814, the Kingdom of Great Britain after 1800, Serbs, the United
+  Principalities, the Principality of Bulgaria, the First Hellenic Republic, the Empire of Haiti,
+  the Kingdom of Monaco and the Argentine Confederation.
+
+The 1815 field's corrections are not carried over: Cliopatria already has Brussels Dutch and Hong
+Kong Qing [M].
 
 **Field:**
 
