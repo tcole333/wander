@@ -30,6 +30,11 @@ export class ExploreClimate {
     layer.prepend(this.#legend.element);
   }
 
+  /** The legend, which Explore's plates keep clear of. */
+  get legend(): HTMLElement {
+    return this.#legend.element;
+  }
+
   /** Every frame, before the look updates: the clock's date, drawn under the mode's fade. */
   update(dtS: number, fade: number): void {
     this.#fade = fade;

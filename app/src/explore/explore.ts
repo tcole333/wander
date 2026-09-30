@@ -4,13 +4,15 @@
 // globe and scrubs through all of history. The arrow keys keep panning the view, as in the lobby.
 // Where the release has its event index and the look cuts marks, the events of the now window
 // mark the globe (exploreEvents.ts), the opening focal among them; the layer's data-explore-marks
-// counts the events marked in view. The globe shows the climate at the clock's date wherever
+// counts the events marked in view. Once the dive has landed, a mark pointed at brings its plate,
+// a click pins it, and the keyboard reaches the marks through one listbox (labels.ts). The globe shows the climate at the clock's date wherever
 // ModE-RA has it and the ruler is close enough (exploreClimate.ts). Its sound (audio/clockScore.ts)
 // hears the clock's day, what the ruler engraves around it, and whether a free flight has the
 // camera. Leaving stops input on the ruler, stops asking for events, eases their marks and the
 // climate out and fades the sound to the room; ending releases the clock, ruler, event worker and
 // climate years and takes the marks off, so the world clock has one owner at a time.
-// window.__worldTime and window.__exploreEvents serve scripts while Explore runs.
+// window.__worldTime, window.__exploreEvents and window.__exploreLabels serve scripts while
+// Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
@@ -34,6 +36,7 @@ import type { ViewState } from '../view/viewState';
 import type { Mode } from '../walk/mode';
 import { ExploreClimate } from './exploreClimate';
 import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
+import { ExploreLabels } from './labels';
 import { openings, type Opening } from './openings';
 
 /**
@@ -73,10 +76,21 @@ export interface ExploreEventsHook {
   settled(): boolean;
 }
 
+/** Explore's labels, for scripts. */
+export interface ExploreLabelsHook {
+  /** Pins the event of the mark with this id, as a click does, or unpins with null. */
+  pin(id: string | null): void;
+  /** The pinned event's Q number (`Q…`), or null. */
+  pinned(): string | null;
+  /** The mark hovered, by the pointer or the keyboard, or null. */
+  hovered(): string | null;
+}
+
 declare global {
   interface Window {
     __worldTime?: WorldTimeHook;
     __exploreEvents?: ExploreEventsHook;
+    __exploreLabels?: ExploreLabelsHook;
   }
 }
 
@@ -91,6 +105,8 @@ export interface EventsSource {
 export interface ExploreParts {
   /** The page's host, which Explore's layer goes into. */
   root: HTMLElement;
+  /** The globe's canvas, whose marks the labels pick; without it (the unit tests), none are. */
+  canvas?: HTMLElement;
   control: ViewControl;
   sound: WalkAudio;
   /** Flown to from the lobby's view, or started where the view already stands (the dev page). */
@@ -121,6 +137,7 @@ export function worldViewOn([lon, lat]: LonLat, viewKm: number): ViewState {
 
 export function startExplore({
   root,
+  canvas,
   control,
   sound,
   arrive,
@@ -155,7 +172,17 @@ export function startExplore({
   }
   const events =
     source && client ? new ExploreEvents({ client, marks: source.marks, focal, arrive }) : null;
+  const labels =
+    events && canvas
+      ? new ExploreLabels({
+          events,
+          canvas,
+          openings,
+          panels: () => [ruler.element, ...(climate ? [climate.legend] : [])],
+        })
+      : null;
   layer.append(ruler.element);
+  if (labels) layer.prepend(labels.element);
   root.append(layer);
   let counted = -1;
   // The globe's layers fade in over the dive and out over the return, as a story's effects do.
@@ -166,8 +193,11 @@ export function startExplore({
   const landings = new Set<() => void>();
   const land = () => {
     flight = null;
+    labels?.land(null);
     for (const landed of [...landings]) landed();
   };
+  // Started where the view stands (the dev page), Explore has landed already.
+  if (!flight) labels?.land(null);
   control.arrowKeys = true;
   // Input during the dive takes the view from the flight, and the dive counts as landed.
   control.onInput = () => {
@@ -197,6 +227,12 @@ export function startExplore({
     settled: () => events.settled(),
   };
   if (eventsHook) window.__exploreEvents = eventsHook;
+  const labelsHook: ExploreLabelsHook | null = labels && {
+    pin: (id) => (id === null ? labels.unpin() : labels.pin(id)),
+    pinned: () => (labels.pinned === null ? null : markIdOf(labels.pinned)),
+    hovered: () => labels.hovered,
+  };
+  if (labelsHook) window.__exploreLabels = labelsHook;
 
   return {
     landed(cb) {
@@ -215,8 +251,9 @@ export function startExplore({
       climate?.update(frameS, fade);
       events?.update(frame, clock.state(), nowMs);
     },
-    ui() {
+    ui(_drawn, nowMs) {
       climate?.ui();
+      labels?.update(nowMs);
       if (!events) return;
       const count = events.markedInView();
       if (count === counted) return;
@@ -235,18 +272,21 @@ export function startExplore({
       flight = null;
       landings.clear();
       layer.inert = true;
+      labels?.leave();
       events?.leave();
       sound.leave();
     },
     end() {
       flight = null;
       landings.clear();
+      labels?.dispose();
       events?.dispose();
       ruler.dispose();
       climate?.end();
       layer.remove();
       if (window.__worldTime === hook) delete window.__worldTime;
       if (eventsHook && window.__exploreEvents === eventsHook) delete window.__exploreEvents;
+      if (labelsHook && window.__exploreLabels === labelsHook) delete window.__exploreLabels;
     },
     inspectMemory(account) {
       events?.inspectMemory(account);

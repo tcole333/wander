@@ -351,6 +351,7 @@ async function assemble(
       if (!explore) throw new Error('the page has no Explore to begin');
       next = startExplore({
         root: host,
+        canvas: renderer.domElement,
         control,
         sound,
         arrive,
