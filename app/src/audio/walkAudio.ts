@@ -2,9 +2,10 @@
 // change; the whir while the camera flies, to a beat or to a Meanwhile entry, its pace following
 // the camera's; a detent for each day, month and year the ruler's playhead passes, of the marks
 // the ruler engraves at that moment (marks.ts); the story's bed following story time, from when
-// no flight to a beat is under way (the landing, when the walk flies in from the lobby); and each
-// beat's cues from landing on it until the walk leaves it, when they fade over bedCrossfade. While
-// a Meanwhile entry has the camera, far from the beat's place, its cues fall back.
+// no flight to a beat is under way (the landing, when the walk flies in from the lobby, its noise
+// built between the dive's frames rather than in the landing's); and each beat's cues from landing
+// on it until the walk leaves it, when they fade over bedCrossfade. While a Meanwhile entry has
+// the camera, far from the beat's place, its cues fall back.
 //
 // WalkScore plays all of it on any engine, live or offline (the Sound Cabinet renders a stretch of
 // the walk with it). createWalkAudio belongs to the page, and plays Explore's sound too
@@ -21,7 +22,17 @@ import type { SoundSwitch, WalkState } from '../story/contract';
 import { isFormField } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { ModeAudio } from '../walk/mode';
-import { landBed, magellanBed, MUSEUM, museumBed, tamboraBed, type Bed, type RoomBed } from './bed';
+import {
+  landBed,
+  magellanBed,
+  MUSEUM,
+  museumBed,
+  prepareBed,
+  tamboraBed,
+  type Bed,
+  type BedVoice,
+  type RoomBed,
+} from './bed';
 import { ClockScore } from './clockScore';
 import { isCueName, startCue, type CueHandle, type CueName } from './cues';
 import { unlockedSound, unlockSound, type SoundEngine } from './engine';
@@ -29,10 +40,15 @@ import { marksPassed } from './marks';
 import { clunk, Detents, FlightWhir, whir, type Whir } from './voices';
 
 /** Each story's bed, by story id. */
-const BEDS: Record<string, (engine: SoundEngine, day: number, at: number) => Bed> = {
+const BEDS: Record<Exclude<BedVoice, typeof MUSEUM>, typeof museumBed> = {
   tambora: tamboraBed,
   magellan: magellanBed,
 };
+
+/** The voice of a story's bed: its own, or the museum's room tone for a story without one. */
+function bedVoice(story: WalkState['story']): BedVoice {
+  return Object.hasOwn(BEDS, story.id) ? (story.id as keyof typeof BEDS) : MUSEUM;
+}
 
 /** The least time between two clunks, s: rapid steps sound once, not in a stammer. */
 const CLUNK_GAP = 0.15;
@@ -114,6 +130,8 @@ export class WalkScore {
     this.#bedDay = from.day;
     this.#onBeat = landed(from);
     if (from.flight === null) this.#startBed(from, at);
+    // The bed comes in at the landing: its noise builds between the dive's frames, not in that one.
+    else prepareBed(engine, bedVoice(from.story));
   }
 
   frame({ state, unit, pace, at, dt }: WalkFrame): void {
@@ -171,8 +189,8 @@ export class WalkScore {
   }
 
   #startBed(state: WalkState, at: number): void {
-    const voice = Object.hasOwn(BEDS, state.story.id) ? state.story.id : MUSEUM;
-    const make = () => (BEDS[voice] ?? museumBed)(this.#engine, state.day, at);
+    const voice = bedVoice(state.story);
+    const make = () => (voice === MUSEUM ? museumBed : BEDS[voice])(this.#engine, state.day, at);
     this.#voice = voice;
     this.#bed = landBed(this.#room, voice, make, at);
     this.#room = null;

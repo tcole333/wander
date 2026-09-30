@@ -14,6 +14,7 @@ const heard = vi.hoisted(() => ({
   stopped: [] as string[],
   rooms: 0,
   days: [] as number[],
+  prepared: [] as string[],
 }));
 
 vi.mock('./cues', async (original) => ({
@@ -39,6 +40,7 @@ vi.mock('./voices', () => ({
 }));
 vi.mock('./bed', async (original) => ({
   ...(await original<typeof import('./bed')>()),
+  prepareBed: (_engine: unknown, voice: string) => heard.prepared.push(voice),
   museumBed() {
     heard.started.push('museum');
     return { setDay() {}, toRoom: () => heard.rooms++, stop: () => heard.stopped.push('museum') };
@@ -95,6 +97,7 @@ describe("the walk's score", () => {
     heard.stopped = [];
     heard.days = [];
     heard.rooms = 0;
+    heard.prepared = [];
   });
 
   it("starts a beat's cues on landing there, not on breaking out of the flight", () => {
@@ -112,10 +115,13 @@ describe("the walk's score", () => {
   it('brings the bed at once on a walk that stands on its first beat', () => {
     setup();
     expect(heard.started).toEqual(['bed']);
+    expect(heard.prepared).toEqual([]);
   });
 
   it("brings the bed and the beat's cues at the landing of a walk flying in from the lobby", () => {
     const { run } = setup('fly');
+    // The bed's noise starts building as the dive begins.
+    expect(heard.prepared).toEqual(['tambora']);
     run(0.5);
     expect(heard.started).toEqual([]);
     run(8);

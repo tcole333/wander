@@ -86,7 +86,7 @@ function rumbleGain(mix: Mix, level: number): number {
 }
 
 /** The voices a bed plays in. */
-type BedVoice = 'museum' | 'tambora' | 'magellan';
+export type BedVoice = typeof MUSEUM | 'tambora' | 'magellan';
 
 /** The room's noise: its air in each ear and the ventilation's hush, as makeBed asks for them. */
 const ROOM_NOISE: [NoiseColor, number][] = [
