@@ -25,7 +25,8 @@ import {
   tierAngle,
   type Label,
 } from './rulerScale';
-import { HISTORY } from '../../time/exploreTime';
+import { ExploreTime, HISTORY } from '../../time/exploreTime';
+import { WorldClock } from '../../time/worldClock';
 
 const story = parseStory(
   readFileSync(new URL('../../../../stories/tambora/story.md', import.meta.url), 'utf8'),
@@ -139,6 +140,11 @@ describe('the crafted ruler', () => {
       const labels = engraveScale(sized, HISTORY, angle, HISTORICAL, HISTORY).labels;
       expect(labels[0]?.text).toBe('10000 BCE');
       expect(labels.at(-1)?.text).toBe('2000 CE');
+      const tier = engraveHistoryTier(sized, new ExploreTime(new WorldClock()).extent).labels;
+      expect([tier[0]?.text, tier.at(-1)?.text], `the tier at ${width}px`).toEqual([
+        '10000 BCE',
+        '2000 CE',
+      ]);
     }
     for (const edge of [HISTORY.start, HISTORY.end]) {
       const span = {
@@ -272,6 +278,23 @@ describe("the free ruler's ends", () => {
     return (right.angle - left.angle) * r - (length(left) + length(right)) / 2;
   }
 
+  /**
+   * Each end's label where the rule's end turns it inward off its tick, an edge's or a round
+   * year's, with the next label in.
+   */
+  function ends(r: number, labels: Label[]): [Label, Label][] {
+    const sorted = labels.toSorted((a, b) => a.angle - b.angle);
+    const pairs = [
+      [sorted[0], sorted[1]],
+      [sorted.at(-1), sorted.at(-2)],
+    ];
+    return pairs.flatMap(([end, next]) =>
+      end && next && Math.abs(end.angle - (end.tickAngle ?? end.angle)) * r > 0.5
+        ? [[end, next] as [Label, Label]]
+        : [],
+    );
+  }
+
   it("leaves off Waterloo's 200-year ruler its end, 1915, beside 1900", () => {
     const texts = band({ year: 1915, month: 6, day: 18 }, 200).labels.map((label) => label.text);
     expect(texts).toEqual([
@@ -288,21 +311,54 @@ describe("the free ruler's ends", () => {
     ]);
   });
 
-  it('keeps each end it names its own length of bare rule from every year labelled', () => {
-    for (const width of [1024, 1440, 1920]) {
+  it('keeps each end label its own length of bare rule from the year beside it', () => {
+    for (const width of [1024, 1280, 1440, 1920]) {
       for (const years of [30, 100, 200, 400, 1000, 3000]) {
         for (let k = 0; k < 120; k += 1) {
           // Ends that sweep back through history, never past its own ends.
           const year = 1990 - Math.round(k * years * 0.173);
           if (year - years < -9998) break;
           const { arc: sized, labels } = band({ year, month: 7, day: 1 }, years, width);
-          for (const edge of labels.filter((label) => label.key.startsWith('e'))) {
-            for (const label of labels.filter((other) => other !== edge)) {
-              expect(
-                bare(sized.r, edge, label),
-                `${width}px, ${years} years to ${year}: ${edge.text} | ${label.text}`,
-              ).toBeGreaterThanOrEqual(length(edge));
-            }
+          for (const [end, next] of ends(sized.r, labels)) {
+            expect(
+              bare(sized.r, end, next),
+              `${width}px, ${years} years to ${year}: ${end.text} | ${next.text}`,
+            ).toBeGreaterThanOrEqual(length(end));
+          }
+        }
+      }
+    }
+  });
+
+  it("names history's ends, clear of the years beside them, wherever the view stops at one", () => {
+    for (const width of [1024, 1280, 1440, 1920]) {
+      const sized = arcFor(width);
+      for (let k = 0; k <= 80; k += 1) {
+        // Zoomed to every width of view from 20 years to all of history, then taken to its
+        // start by the tier and to its end by the playhead, where the extent stops the view.
+        const explore = new ExploreTime(new WorldClock());
+        const full = explore.extent.end - explore.extent.start;
+        explore.zoom((20 * 365.2425 * (12001 / 20) ** (k / 80)) / full, 0.5);
+        for (const [go, day, text] of [
+          ['seek', HISTORY.start, /^10000 BCE$/],
+          ['scrub', HISTORY.end, /^2000( CE)?$/],
+        ] as const) {
+          explore[go](day);
+          const span = explore.span;
+          if (labelledYearStep(sized, span, HISTORICAL) === 1) continue;
+          const angle = (at: number) =>
+            ((2 * (at - span.start)) / (span.end - span.start) - 1) * sized.reach;
+          const labels = engraveScale(sized, span, angle, HISTORICAL, explore.extent)
+            .labels.filter((label) => label.row === LOWER_ROW)
+            .toSorted((a, b) => a.angle - b.angle);
+          const years = Math.round((span.end - span.start) / 365.2425);
+          const where = `${width}px, ${years} years at ${go === 'seek' ? 'the start' : 'the end'}`;
+          expect((go === 'seek' ? labels[0] : labels.at(-1))?.text, where).toMatch(text);
+          for (const [end, next] of ends(sized.r, labels)) {
+            expect(
+              bare(sized.r, end, next),
+              `${where}: ${end.text} | ${next.text}`,
+            ).toBeGreaterThanOrEqual(length(end));
           }
         }
       }

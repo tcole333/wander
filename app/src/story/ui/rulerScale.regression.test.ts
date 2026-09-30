@@ -4,10 +4,12 @@ import { civilFromDay, dayFromHistorical, dayFromIso, HISTORICAL } from '../date
 import { parseStory } from '../story';
 import {
   arcFor,
+  BAND,
   engraveHistoryTier,
   engraveScale,
   engraveTier,
   LOWER_ROW,
+  radial,
   storyYears,
 } from './rulerScale';
 import { ExploreTime, HISTORY } from '../../time/exploreTime';
@@ -87,13 +89,14 @@ describe('review: free ruler calendar', () => {
     expect(band(span).at(-1)?.text).toBe('800 CE');
   });
 
-  it('keeps both 10000 BCE and 9000 BCE at 1920 px without overlap', () => {
+  it('names 10000 BCE at 1920 px and leaves 9000 BCE, beside it, its tick but not its name', () => {
     const span = new ExploreTime(new WorldClock()).extent;
-    const labels = band(span, 1920);
-    expect(labels.map((label) => label.text)).toEqual(
-      expect.arrayContaining(['10000 BCE', '9000 BCE']),
-    );
     const arc = arcFor(1920);
+    const angle = (day: number) =>
+      ((2 * (day - span.start)) / (span.end - span.start) - 1) * arc.reach;
+    const scale = engraveScale(arc, span, angle, HISTORICAL, span);
+    const labels = scale.labels.filter((label) => label.row === LOWER_ROW);
+    expect(labels.slice(0, 2).map((label) => label.text)).toEqual(['10000 BCE', '8000 BCE']);
     let right = -arc.reach * arc.r;
     for (const label of labels) {
       const center = label.angle * arc.r;
@@ -102,10 +105,9 @@ describe('review: free ruler calendar', () => {
       right = center + half;
     }
     expect(right).toBeLessThanOrEqual(arc.reach * arc.r);
-    const round = labels.find((label) => label.text === '9000 BCE')!;
-    expect(round.tickAngle).toBeCloseTo(
-      ((2 * (historical('-8999-01-01') - span.start)) / (span.end - span.start) - 1) * arc.reach,
-    );
+    const tick = angle(historical('-8999-01-01'));
+    expect(scale.unnamed.some((unnamed) => Math.abs(unnamed - tick) < 1e-9)).toBe(true);
+    expect(scale.full).toContain(radial(arc, tick, -BAND + 1, BAND - 1));
   });
 
   it('never labels the exclusive year 2001 on the history tier', () => {
