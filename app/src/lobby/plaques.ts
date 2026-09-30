@@ -34,7 +34,12 @@ export class Plaques {
   readonly #column = el('nav', 'lobby-column');
   readonly #shelf = el('div', 'lobby-shelf');
   readonly #credits = creditsLink('lobby-credits');
+  /**
+   * The plaques' sizes, which fonts may change. The shelf's own size follows the band `#edges`
+   * keeps, so observing it would resize it inside its own notification.
+   */
   readonly #resized = new ResizeObserver(() => this.#edges());
+  readonly #listeners = new AbortController();
   #chosen: HTMLButtonElement | undefined;
 
   /**
@@ -49,8 +54,9 @@ export class Plaques {
     more.append(el('span', 'lobby-more-chevron'));
     more.addEventListener('click', () => this.#bringUp());
     this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule, this.#shelf, more);
-    this.#shelf.addEventListener('scroll', () => this.#edges(), { passive: true });
-    this.#resized.observe(this.#shelf);
+    const { signal } = this.#listeners;
+    this.#shelf.addEventListener('scroll', () => this.#edges(), { passive: true, signal });
+    addEventListener('resize', () => this.#edges(), { signal });
     const add = (face: PlaqueFace, choice: Choice) => {
       const button = plaque(face, () => {
         this.#chosen = button;
@@ -104,6 +110,7 @@ export class Plaques {
 
   dispose(): void {
     this.#resized.disconnect();
+    this.#listeners.abort();
     this.element.remove();
   }
 
@@ -113,9 +120,9 @@ export class Plaques {
    */
   #edges(): void {
     const shelf = this.#shelf;
-    const { scrollTop, scrollHeight, clientHeight } = shelf;
     const room = innerHeight - shelf.getBoundingClientRect().top;
-    this.#column.classList.toggle('is-overflowing', scrollHeight > room + 1);
+    this.#column.classList.toggle('is-overflowing', shelf.scrollHeight > room + 1);
+    const { scrollTop, scrollHeight, clientHeight } = shelf;
     this.#column.classList.toggle('is-more-above', scrollTop > 1);
     this.#column.classList.toggle('is-more-below', scrollHeight - clientHeight - scrollTop > 1);
   }
