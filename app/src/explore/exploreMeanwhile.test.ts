@@ -7,6 +7,7 @@ import { FrameContext } from '../scene/frameContext';
 import { dayFromHistorical } from '../story/dates';
 import { byClass, fake, stubDocument, type FakeDocument, type FakeElement } from '../test/fakeDom';
 import { lonLatToDir, toThree } from '../surface/cube';
+import { HISTORY } from '../time/exploreTime';
 import type { FocalEvent } from './exploreEvents';
 import { entryOf, ExploreMeanwhile, type MeanwhileEvents } from './exploreMeanwhile';
 
@@ -71,6 +72,17 @@ describe('Explore’s Meanwhile', () => {
       focalQids: [48314],
     });
     expect(events.asked[0]!.view.width).toBe(1440);
+  });
+
+  it('asks nothing after 2000 with the ruler at history’s end', () => {
+    const events = fakeEvents();
+    const meanwhile = new ExploreMeanwhile(events, () => {});
+    meanwhile.ask(
+      frameOver(4.4, 50.7),
+      { day: HISTORY.end, spanDays: 400 * 365.2425 },
+      [4.4, 50.7],
+    );
+    expect(events.asked[0]!.t1).toBe(HISTORY.end);
   });
 
   it('lists the worker’s picks as history writes them, sourced, hidden before the first', () => {
