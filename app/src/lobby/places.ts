@@ -3,7 +3,7 @@ import type { LonLat } from '../story/story';
 
 /**
  * Alternate the locks' ranked picks, keeping the meanwhile stage's 450 km spacing and 120-point
- * ceiling across the whole lobby. Shared events and nearby picks earn only one pinprick.
+ * ceiling across the whole lobby. Shared events and nearby picks earn only one glow.
  */
 export function lobbyPlaces(locks: readonly (readonly LonLat[])[]): LonLat[] {
   const places: LonLat[] = [];
