@@ -25,8 +25,10 @@ lobby's last plaque, All of History, dives into Explore wherever the release nam
 index, with the free clock over all of history, the now window's events as marks whose plates
 come on hover and pin on a click, the opening's line pinned at the landing, a live Meanwhile, the
 climate at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in
-it. The bundled release names no event index until the event files are published, so until then
-the live lobby shows the stories' plaques alone.
+it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 523 steps (#80), draw in
+Explore and on the walks' border beats wherever the release names the border steps; the bundled
+release names none until `npm run publish-data -- --border-steps`, so until then the walks draw the
+1815 field and Explore no borders.
 
 ## Layout
 
@@ -79,9 +81,9 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, each
-  story's first image and, when the release names the event files, their overview, and checks R2's
-  headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
+  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, with
+  border steps the step holding 1815, its preview chunk and the notice, each story's first image
+  and, when the release names the event files, their overview, and checks R2's headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
   `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run check [-- --base <rev>]`: the inner loop while working, scoped to what the branch
@@ -139,10 +141,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
   fixture profile also skips `fetch`. It keeps `meanwhile` and `openings` disabled so it cannot
-  rewrite their locks. `uv run prebuild borders` bakes the border steps from Cliopatria, one
-  for each of 528 change years, 523 once those equal to the step before are dropped (about 45
-  minutes with 6 workers, or 41 with 8, when every step's key changes; a rerun bakes only the steps whose inputs
-  changed, taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the
+  rewrite their locks. `uv run prebuild borders` bakes the border steps from Cliopatria, one for
+  each of 528 change years, 523 once those equal to the step before are dropped (about 45 minutes
+  with 6 workers, or 41 with 8, when every step's key changes; a rerun bakes only the steps whose
+  inputs changed, taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the
   fixture bakes its two steps and no 1815 field, whose GPL source is never committed.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
   2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile, and
@@ -187,9 +189,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   writes `app/src/generated/release.json` (commit it) and `rel/<id>.json`
   (`docs/design/streaming.md` 4.3). `--dry-run` lists R2 and reports what it would upload. Local
   only; the fixture is never published. The border steps stay out of the release until
-  `--border-steps` publishes them, with Tambora's move onto them (#80's task 9); with it, the run
-  stops, before reading R2, while the steps owe the history pass an overlap acknowledgement or a
-  hierarchy class. When the 1815 field's `ver` is new, tag the commit that
+  `--border-steps` publishes them (about 270 MB): with them Explore draws the borders through time
+  and the story walks their beats' steps, and without them the walks draw the 1815 field. With it,
+  the run stops, before reading R2, while the steps owe the history pass an overlap
+  acknowledgement or a hierarchy class. When the 1815 field's `ver` is new, tag the commit that
   built it `borders-<ver>` and push the tag first: its GPL notice links the build scripts there,
   and the run stops, naming the commands, until origin holds it.
 - `uv run prebuild wikidata` exports the event index's classes
