@@ -6,6 +6,8 @@
 //     [--data http://127.0.0.1:8795] [--e1b <E1b.png>] [--scene <name>] [--no-gpu]
 //   node scripts/exploreShots.ts --events --url http://127.0.0.1:5173 --out ../build/explore/r2
 //     [--data http://127.0.0.1:8795] [--variants 0,1,2,3] [--scene <name>] [--no-video]
+//   node scripts/exploreShots.ts --labels --url http://127.0.0.1:5173 --out ../build/explore/labels
+//     [--data http://127.0.0.1:8795]
 //
 // --demo: the dev page's ?markDemo (the lobby's glows as marks in the event glyphs), every
 // mark variant at world view, 3,000 km over Europe, 3,000 km over the demo's specimen tray in the
@@ -28,6 +30,14 @@
 // side by side, and a video of the ruler scrubbing from 3000 BCE to 2000 at world view with a sheet
 // of its frames (--no-video skips it); explore.json lists every render's marks with their events'
 // names, and any console errors.
+//
+// --labels: Explore's labels and Meanwhile. From the production page's lobby, a dive onto each of
+// three openings (?opening=), across eras and pace layers, landing with its line pinned on its
+// plate and Meanwhile's first answer, and from the first with an entry, a flight to that entry,
+// pinned on landing. On the dev page, Europe in 1810 at 3,000 km with the Peninsular War's hollow
+// glyph hovered, its extent's ring drawn, and a battle beside it hovered; and Lepanto in 1571 at
+// 800 km, clicked and so pinned, with a mark beside it hovered. A contact sheet of them all;
+// explore.json lists each render's plates and Meanwhile's entries, and any console errors.
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -35,7 +45,11 @@ import { parseArgs } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import type { Release } from '../src/data/release.ts';
-import type { ExploreEventsHook, WorldTimeHook } from '../src/explore/explore.ts';
+import type {
+  ExploreEventsHook,
+  ExploreLabelsHook,
+  WorldTimeHook,
+} from '../src/explore/explore.ts';
 import { MARK_VARIANTS } from '../src/marks/families.ts';
 import type { MarkSpec, PlacedMark } from '../src/marks/marks.ts';
 import type { MarkDemoApi } from '../src/prototype/app/markDemo.ts';
@@ -53,6 +67,7 @@ interface ShotPage extends Window {
   __markDemo?: MarkDemoApi;
   __worldTime?: WorldTimeHook;
   __exploreEvents?: ExploreEventsHook;
+  __exploreLabels?: ExploreLabelsHook;
 }
 
 /** The demo's scenes: a view, and the place whose mark is focal there. */
@@ -174,6 +189,15 @@ const SCRUB = {
   frames: [-2999, -1499, -499, 1, 800, 1300, 1600, 1800, 1914, 1990],
 };
 
+/** The openings the labels' renders dive onto: an ancient battle, a city's fire and an eruption. */
+const LABEL_OPENINGS = [
+  { qid: 'Q31900', name: 'marathon' },
+  { qid: 'Q164679', name: 'great-fire-of-london' },
+  { qid: 'Q8094772', name: 'krakatoa' },
+];
+/** Lepanto, which the pinned render clicks. */
+const LEPANTO = 'Q165425';
+
 /** E1b's cast-brass ship, cropped from the 1586 x 992 render. */
 const E1B_DEFAULT = new URL(
   '../../docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png',
@@ -188,6 +212,7 @@ const { values } = parseArgs({
     data: { type: 'string', default: 'http://127.0.0.1:8795' },
     demo: { type: 'boolean', default: false },
     events: { type: 'boolean', default: false },
+    labels: { type: 'boolean', default: false },
     variants: { type: 'string', default: '0,1,2,3' },
     'no-video': { type: 'boolean', default: false },
     timeout: { type: 'string', default: '120' },
@@ -196,10 +221,12 @@ const { values } = parseArgs({
     'no-gpu': { type: 'boolean', default: false },
   },
 });
-if (values.demo === values.events) throw new Error('pass one of --demo and --events');
+if ([values.demo, values.events, values.labels].filter(Boolean).length !== 1) {
+  throw new Error('pass one of --demo, --events and --labels');
+}
 const scenes = SCENES.filter((scene) => !values.scene || scene.name === values.scene);
 const eventScenes = EVENT_SCENES.filter((scene) => !values.scene || scene.name === values.scene);
-if ((values.demo ? scenes : eventScenes).length === 0)
+if (!values.labels && (values.demo ? scenes : eventScenes).length === 0)
   throw new Error(`no scene '${values.scene}'`);
 if (!values.out) throw new Error('--out <dir> is required');
 const origin = new URL(values.url);
@@ -228,8 +255,10 @@ try {
     if (!values['no-gpu']) report.gpu = await gpuTimes(page);
     await sheets(browser, shots);
     console.log(`${shots.length} renders and their sheets in ${out}`);
-  } else {
+  } else if (values.events) {
     await eventRenders(browser, report);
+  } else {
+    await labelRenders(browser, report);
   }
   assert.deepEqual(errors, [], 'browser console');
 } finally {
@@ -869,4 +898,213 @@ async function eventSheets(browser: Browser, shots: EventShot[]): Promise<void> 
   });
   await shootSheet(page, rows.join(''), join(out, 'sheet-all.png'));
   await page.close();
+}
+
+/** A render of labels: its plates' words, sides and places, and Meanwhile's entries. */
+interface LabelShot {
+  name: string;
+  caption: string;
+  path: string;
+  plates: { pinned: boolean; side: string | null; text: string; box: number[] }[];
+  meanwhile: string[];
+}
+
+/** What a render shows of the labels and Meanwhile. */
+async function labelsShown(page: Page): Promise<Omit<LabelShot, 'name' | 'caption' | 'path'>> {
+  return page.evaluate(() => ({
+    plates: [...document.querySelectorAll<HTMLElement>('.xl-plate.is-shown')].map((plate) => {
+      const box = plate.getBoundingClientRect();
+      return {
+        pinned: plate.classList.contains('is-pinned'),
+        side: plate.getAttribute('data-side'),
+        text: [...plate.children].map((line) => line.textContent).join(' | '),
+        box: [box.left, box.top, box.width, box.height].map(Math.round),
+      };
+    }),
+    meanwhile: [...document.querySelectorAll('.wu-meanwhile:not([hidden]) .wu-mw-entry')].map(
+      (entry) => entry.textContent ?? '',
+    ),
+  }));
+}
+
+/** Opens the production page's lobby on this machine, Explore's dive pinned on `qid`. */
+async function openLobby(context: BrowserContext, qid: string): Promise<Page> {
+  const page = await context.newPage();
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.route('**/*', (route) => {
+    const url = new URL(route.request().url());
+    return [origin.origin, dataOrigin.origin].includes(url.origin)
+      ? route.continue()
+      : route.abort();
+  });
+  await page.addInitScript(() => performance.setResourceTimingBufferSize(100_000));
+  const url = new URL('/', origin);
+  url.search = `data=${encodeURIComponent(dataOrigin.origin)}&opening=${qid}`;
+  await page.goto(url.href);
+  await page.locator('#room').waitFor({ state: 'hidden', timeout });
+  await page.keyboard.press('Shift');
+  await page.waitForFunction(() => document.body.dataset.lobby === 'idle', null, { timeout });
+  return page;
+}
+
+/**
+ * Waits on the production page, which has no readiness hook, for the event worker and the marks'
+ * fades to rest and for the data host to have sent nothing new for a second and a half.
+ */
+async function settleLive(page: Page): Promise<void> {
+  await frames(page, 3);
+  await page.waitForFunction(() => (window as ShotPage).__exploreEvents?.settled() === true, null, {
+    timeout,
+  });
+  let fetched = -1;
+  for (let still = 0; still < 3;) {
+    await page.waitForTimeout(500);
+    const count = await page.evaluate(
+      (host) =>
+        performance.getEntriesByType('resource').filter((entry) => entry.name.startsWith(host))
+          .length,
+      dataOrigin.origin,
+    );
+    still = count === fetched ? still + 1 : 0;
+    fetched = count;
+  }
+  // The plates' and Meanwhile's fades.
+  await page.waitForTimeout(900);
+}
+
+/** Points at the mark with this id and waits for its plate. */
+async function hoverMark(page: Page, id: string): Promise<void> {
+  const mark = await page.evaluate(
+    (id) => (window as ShotPage).__exploreEvents!.placed().find((m) => m.id === id),
+    id,
+  );
+  if (!mark) throw new Error(`no mark ${id} in view`);
+  await page.mouse.move(mark.x, mark.y);
+  await page.waitForFunction((id) => (window as ShotPage).__exploreLabels?.hovered() === id, id, {
+    timeout,
+  });
+  await page.waitForTimeout(500);
+}
+
+/** The drawn mark nearest the mark with this id, other than it and its event's. */
+async function markBeside(page: Page, id: string): Promise<string> {
+  const beside = await page.evaluate((id) => {
+    const placed = (window as ShotPage).__exploreEvents!.placed();
+    const own = placed.find((m) => m.id === id);
+    if (!own) return null;
+    const qid = id.replace('/outline', '');
+    const others = placed.filter(
+      (m) => m.id.replace('/outline', '') !== qid && !m.id.endsWith('/outline') && m.alpha > 0.5,
+    );
+    others.sort(
+      (a, b) => Math.hypot(a.x - own.x, a.y - own.y) - Math.hypot(b.x - own.x, b.y - own.y),
+    );
+    return others[0]?.id ?? null;
+  }, id);
+  if (!beside) throw new Error(`no mark beside ${id}`);
+  return beside;
+}
+
+async function labelRenders(browser: Browser, report: Record<string, unknown>): Promise<void> {
+  const shots: LabelShot[] = [];
+  const shoot = async (page: Page, name: string, caption: string) => {
+    const path = join(out, `${name}.png`);
+    await page.screenshot({ path });
+    const shown = await labelsShown(page);
+    shots.push({ name, caption, path, ...shown });
+    console.log(`${path}: ${shown.plates.map((p) => p.text).join(' / ')}`);
+  };
+  const size = { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 };
+
+  // The dives, each in a context of its own, so no opening is remembered into the next.
+  let flown = false;
+  for (const opening of LABEL_OPENINGS) {
+    const context = await browser.newContext(size);
+    const page = await openLobby(context, opening.qid);
+    await page.locator('.lobby-plaque[data-choice="explore"]').click();
+    await page.waitForFunction(() => document.body.dataset.lobby === 'gone', null, { timeout });
+    await page.waitForFunction(
+      (qid) => (window as ShotPage).__exploreLabels?.pinned() === qid,
+      opening.qid,
+      { timeout },
+    );
+    await page
+      .locator('.wu-meanwhile .wu-mw-entry')
+      .first()
+      .waitFor({ state: 'visible', timeout: 15_000 })
+      .catch(() => console.log(`${opening.name}: Meanwhile gave no entry`));
+    await settleLive(page);
+    await shoot(page, `opening-${opening.name}`, `The dive onto ${opening.name}, landed`);
+    const entry = page.locator('.wu-meanwhile .wu-mw-entry').first();
+    if (!flown && (await entry.isVisible())) {
+      flown = true;
+      const label = await entry.locator('.wu-mw-label').textContent();
+      await entry.click();
+      await page.waitForFunction(
+        (label) =>
+          document.querySelector('.xl-plate.is-pinned.is-shown .xl-name')?.textContent === label,
+        label,
+        { timeout },
+      );
+      await settleLive(page);
+      await shoot(page, 'meanwhile-flight', `Meanwhile's ${label}, flown to and pinned`);
+    }
+    await context.close();
+  }
+
+  // Hovered and pinned plates on the dev page, whose views the scenes set.
+  const context = await browser.newContext(size);
+  const page = await openExplore(context, 0);
+  const europe = EVENT_SCENES.find((scene) => scene.name === 'europe-1810-3000km')!;
+  await stage(page, europe.view, dayFromHistorical(europe.date), europe.years, null);
+  await settleEvents(page);
+  const war = `${PENINSULAR_WAR}/outline`;
+  await hoverMark(page, war);
+  await shoot(
+    page,
+    'hover-parent-europe-1810',
+    'The Peninsular War hovered, over 1810 at 3,000 km',
+  );
+  await hoverMark(page, await markBeside(page, war));
+  await shoot(page, 'hover-europe-1810', 'A mark beside it hovered');
+
+  const lepanto = EVENT_SCENES.find((scene) => scene.name === 'lepanto-800km')!;
+  await page.mouse.move(5, 450);
+  await stage(page, lepanto.view, dayFromHistorical(lepanto.date), lepanto.years, null);
+  await settleEvents(page);
+  const at = await page.evaluate(
+    (id) => (window as ShotPage).__exploreEvents!.placed().find((m) => m.id === id),
+    LEPANTO,
+  );
+  if (!at) throw new Error('Lepanto is not marked in view');
+  await page.mouse.click(at.x, at.y);
+  await page.waitForFunction(
+    (id) => (window as ShotPage).__exploreLabels?.pinned() === id,
+    LEPANTO,
+    { timeout },
+  );
+  await settleEvents(page);
+  await hoverMark(page, await markBeside(page, LEPANTO));
+  await shoot(page, 'pinned-lepanto', 'Lepanto clicked and pinned, a mark beside it hovered');
+  await context.close();
+
+  report.labels = shots.map(({ path, ...shot }) => ({ path, ...shot }));
+  const sheet = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+  const cells = shots.map(
+    (shot) =>
+      `<figure><img class="full" src="${png(shot.path)}"><figcaption>${shot.caption}. ${shot.plates
+        .map((p) => `${p.pinned ? 'Pinned' : 'Hovered'}, ${p.side}: ${p.text}`)
+        .join(
+          '; ',
+        )}${shot.meanwhile.length ? `. Meanwhile: ${shot.meanwhile.join('; ')}` : ''}</figcaption></figure>`,
+  );
+  await shootSheet(
+    sheet,
+    `<h1>Explore's labels and Meanwhile</h1><div class="grid2">${cells.join('')}</div>`,
+    join(out, 'sheet-labels.png'),
+  );
+  await sheet.close();
 }
