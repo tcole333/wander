@@ -16,7 +16,7 @@ import { fadeOpacity, type EventMark, type EventResult, type Fading } from '../e
 import type { EventReply } from '../events/runtime';
 import { eventViewOf, type EventView, type ViewFrame } from '../events/view';
 import { GLOW_FADE_S } from '../lobby/lobby';
-import { eventSymbol } from '../marks/eventSymbols';
+import { eventSymbol, mirroredAt } from '../marks/eventSymbols';
 import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
 import type { MemoryAccount } from '../perf/memory';
 import { dayFromHistorical, historicalCivil, type Precision } from '../story/dates';
@@ -330,6 +330,7 @@ export class ExploreEvents {
         id,
         at: mark.at,
         glyph: symbol.glyph,
+        mirror: mirroredAt(symbol.glyph, mark.at[1]),
         pace: symbol.pace,
         opacity,
         focal: isFocal,
@@ -354,6 +355,7 @@ export class ExploreEvents {
           id,
           at: lock.at,
           glyph: symbol.glyph,
+          mirror: mirroredAt(symbol.glyph, lock.at[1]),
           pace: symbol.pace,
           opacity: 1,
           focal: true,
