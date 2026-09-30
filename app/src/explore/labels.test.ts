@@ -164,6 +164,20 @@ describe('Explore’s labels', () => {
     expect([shown(plate), events.hovered]).toEqual([false, null]);
   });
 
+  it('bring no plate while a press drags the globe, with any button', () => {
+    const { events, labels, canvas, pointer } = setup();
+    labels.land(null);
+    pointer('pointerdown', 702, 401, 2);
+    labels.update(0);
+    labels.update(tunables.hoverQueue * 2);
+    expect([events.hovered, canvas.classList.contains('is-over-mark')]).toEqual([null, false]);
+    pointer('pointerup', 702, 401, 2);
+    labels.update(tunables.hoverQueue * 3);
+    expect(canvas.classList.contains('is-over-mark')).toBe(true);
+    labels.update(tunables.hoverQueue * 4);
+    expect(events.hovered).toBe('Q48314');
+  });
+
   it('bring nothing before the dive has landed', () => {
     const { events, labels, pointer } = setup();
     pointer('pointermove', 700, 400);
