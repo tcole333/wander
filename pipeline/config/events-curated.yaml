@@ -10,7 +10,19 @@
 # supplies unlocated parents with a sourced P17 `countryCentroid: [lon, lat]` or a last-resort
 # `at: [lon, lat]`, each with qid and why. Children take precedence over both. The current export
 # does not carry P17, so no country position is guessed from the event's label.
-places: []
+places:
+  - qid: Q191055
+    place: [-9.139016, 38.708042]
+    why: >-
+      The 1755 earthquake is Lisbon's: with the fires and the tsunami that follow it, it almost
+      completely destroys the city, as its article recounts. Wikidata's coordinates, 36°N 11°W,
+      are the epicentre its article's infobox estimates in the Atlantic, some 200 km west-southwest
+      of Cape St. Vincent, a place whose exact position the article calls a subject of
+      considerable debate. Its mark stands at Lisbon, its location (P276) in Wikidata, at the
+      coordinates the export gives it.
+    source:
+      title: 1755 Lisbon earthquake (Wikipedia)
+      url: "https://en.wikipedia.org/wiki/1755_Lisbon_earthquake"
 boosts:
   - qid: Q48314
     boost: 0.029792238337906744

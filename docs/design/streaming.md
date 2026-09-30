@@ -563,7 +563,9 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   - **Places:** direct coordinates first, then inherited ones (flagged), to prefer the event's
     own evidence, unless a curated `place` under `places` in `events-curated.yaml`, with qid, why
     and source, puts the event where a better source does: the events stage takes it for the
-    table, so Meanwhile, the glows and the `.wev` agree, and the row is flagged curated. Unlocated
+    table, so Meanwhile, the glows and the `.wev` agree, and the row is flagged curated: the 1755
+    Lisbon earthquake stands at Lisbon, the city it destroyed, rather than at Wikidata's estimate
+    of its epicentre, about 200 km out in the Atlantic, whose position is debated. Unlocated
     parents take a spherical centroid of located children, walking through unlocated
     descendants; this respects the dateline. Antipodal children use the first point in
     longitude/latitude order for a deterministic fallback. Next is a sourced P17
