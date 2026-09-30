@@ -434,5 +434,9 @@ describe('MarkLayer', () => {
     expect(ceilings).toContain(8);
     // Past its lifted place, nothing.
     expect(marks.hit(top.x, top.y - 20)).toBeNull();
+    // A pointer beyond the reach of any relief asks no ceiling.
+    const asked = ceilings.length;
+    expect(marks.hit(sea.x + 300, sea.y)).toBeNull();
+    expect(ceilings).toHaveLength(asked);
   });
 });
