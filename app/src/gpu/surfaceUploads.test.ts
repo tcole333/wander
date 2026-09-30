@@ -44,11 +44,9 @@ test('writes the heights, then shore and water, then the edges, into the one slo
     'shoreWater 2 @42',
     'edges 0 @42',
   ]);
-  expect(log.map(({ texels }) => texels)).toEqual([
-    ...tile.heightMips,
-    ...tile.channelMips,
-    tile.edges,
-  ]);
+  // The decoder's own arrays, passed through: each write's index among them, by identity.
+  const parts: PoolArray[] = [...tile.heightMips, ...tile.channelMips, tile.edges];
+  expect(log.map(({ texels }) => parts.indexOf(texels))).toEqual([0, 1, 2, 3, 4, 5, 6]);
 });
 
 test('sizes each part by the bytes it writes', () => {
