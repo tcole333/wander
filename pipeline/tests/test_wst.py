@@ -377,6 +377,23 @@ KEY = SYNTHETIC["extremes"].tile
         (poke(RAW, 24, "<h", SYNTHETIC["extremes"].code_max + 1), "header codes"),
         (poke(RAW, 5, "<B", 6), "no tile"),
     ],
+    # Short ids: the payloads themselves made 13 MB of node ids.
+    ids=[
+        "short",
+        "long",
+        "header-only",
+        "magic",
+        "version",
+        "q-deep",
+        "q-zero",
+        "q-negative",
+        "q-infinite",
+        "code-mid-high",
+        "code-mid-low",
+        "code-min-low",
+        "code-max-high",
+        "level",
+    ],
 )
 def test_the_decoder_refuses_a_malformed_payload(raw, message):
     with pytest.raises(WstError, match=message):
