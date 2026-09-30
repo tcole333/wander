@@ -1,0 +1,41 @@
+#!/bin/sh
+# Refuses to push a commit whose tree npm run gate has not passed in any worktree of this
+# repository (build/gate/<tree sha>), unless it changes only docs since it left origin/main.
+# Turn it on once for every worktree with `git config core.hooksPath .githooks`; `git push
+# --no-verify` skips it. app/scripts/changes.ts's inert() names the same docs.
+set -eu
+
+zero=0000000000000000000000000000000000000000
+
+# Whether commit $2 changes only docs since $1.
+docs_only() {
+  git diff --name-only "$1" "$2" | while IFS= read -r path; do
+    case $path in
+      docs/design/streaming.md) exit 1 ;;
+      docs/* | LICENSE) ;;
+      */*) exit 1 ;;
+      *.md) ;;
+      *) exit 1 ;;
+    esac
+  done
+}
+
+# Whether any worktree holds a gate record for tree $1.
+gated() {
+  ! git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r dir; do
+    if [ -e "$dir/build/gate/$1" ]; then exit 1; fi
+  done
+}
+
+refused=
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue
+  tree=$(git rev-parse "$local_sha^{tree}")
+  gated "$tree" && continue
+  base=$(git merge-base "$local_sha" origin/main 2>/dev/null) || base=
+  if [ -n "$base" ] && docs_only "$base" "$local_sha"; then continue; fi
+  echo "pre-push: $local_ref (tree $tree) has not passed npm run gate; run it in app/ first," >&2
+  echo "pre-push: or push with --no-verify" >&2
+  refused=1
+done
+[ -z "$refused" ]

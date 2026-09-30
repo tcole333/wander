@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "check": "node scripts/check.ts",
+    "gate": "node scripts/gate.ts",
     "lint": "eslint . && prettier --check --cache .",
     "format": "prettier --write .",
     "test": "sh scripts/slot.sh heavy vitest run",
