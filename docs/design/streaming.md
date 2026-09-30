@@ -1433,8 +1433,8 @@ only a failed start or a worker error ends the worker.
     cards, ruler and Meanwhile. Focus returns to the plaque last chosen. The lobby's DOM and
     glows, sound controller, compiled effects and loaded climate and borders are reused. The bed
     is reused for the same voice; choosing another story, or Explore, whose voice is the
-    museum's, crossfades beds at its landing. Magellan has no bed of its own yet and plays the
-    museum room tone. The story's
+    museum's, crossfades beds at its landing. Magellan's bed is its own: the room tone, with open
+    water under the hull, creaking timbers and air in the rigging. The story's
     keys stop at takeoff; the departing director, card images and callbacks, ruler listener and UI
     are released at the landing, and the surface's story layers and callouts clear.
     A dev walk (`prototype.html?story=tambora|magellan`) starts on that story's beat 1 and returns
@@ -1454,8 +1454,9 @@ only a failed start or a worker error ends the worker.
   `story/catalog.ts`: the stories' bundled text and locks joined once, with no image or route data
   in the bundle. Boot keeps a prepared effects set per story and compiles with only that story's
   lights present; only the chosen set draws on the shared globe, and the return clears it.
-  Magellan's route entries draw nothing until the route renderer arrives; its other effects,
-  cameras, images, Meanwhile and 1519–1522 ruler already follow its beats. The walk starts in
+  Magellan's route draws the fleet's dated trace and its ship (`story/effects/route.ts`,
+  `ship.ts`; the voyages below), and its other effects, cameras, images, Meanwhile and 1519–1522
+  ruler follow its beats. The walk starts in
   the click that chose the plaque, and the page's sound controller creates and resumes the
   AudioContext in that click's handler (`walk/boot.ts`), once the walk has been built successfully,
   with the remembered mute already applied. The whir carries the flight, and the bed's noise builds
@@ -2033,8 +2034,8 @@ simpler piece carried the Tambora walk:
   which Vitest runs over every story) and joins the lock itself, since this small catalog needs
   no compile step; `npm run stories` comes with the article pages. Issue #63 adds Magellan–Elcano
   after milestone 1: the shared catalog feeds both plaques and both entry points, and every
-  choice starts its own walk at beat 1. Magellan's route renderer and its own sound bed follow
-  separately; for now route entries are harmless and its bed is museum room tone. Credits lists
+  choice starts its own walk at beat 1. Magellan draws its route and ship
+  (`story/effects/route.ts`, `ship.ts`) and plays its own ocean bed (`audio/bed.ts`). Credits lists
   both stories' sources and images, and `check-release` probes the first image of each by joining
   its opening beat to its lock.
 - **Publish:** `publish-data` signs R2's S3 API with aws4fetch (4.3), and CI's `check-release`
