@@ -1,5 +1,5 @@
 {
-  "table": "1473d6e8e7da6fd2bbd974fcd7ae8f5354c5af8d4ac3fbfac2a6ba2334bef7ea",
+  "table": "58f3e6b9cbea75f303f24940867d59daea5ab0fc938545ef9d600edb7994a419",
   "openings": [
     {
       "qid": "Q203729",
@@ -79,7 +79,7 @@
         "title": "Eruption of Mount Vesuvius in 79 AD (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD"
       },
-      "class": "natural disaster"
+      "class": "volcanic eruption"
     },
     {
       "qid": "Q83224",
@@ -159,7 +159,7 @@
         "title": "1556 Shaanxi earthquake (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/1556_Shaanxi_earthquake"
       },
-      "class": "natural disaster"
+      "class": "earthquake"
     },
     {
       "qid": "Q234188",
@@ -199,15 +199,15 @@
       "date": "1755-11-01",
       "precision": "day",
       "at": [
-        -11.0,
-        36.0
+        -9.13902,
+        38.70804
       ],
       "line": "On All Saints' Day, an earthquake, a tsunami and fire destroy most of Lisbon",
       "source": {
         "title": "1755 Lisbon earthquake (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/1755_Lisbon_earthquake"
       },
-      "class": "natural disaster"
+      "class": "earthquake"
     },
     {
       "qid": "Q203233",
@@ -319,7 +319,7 @@
         "title": "1883 eruption of Krakatoa (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
       },
-      "class": "natural disaster"
+      "class": "volcanic eruption"
     },
     {
       "qid": "Q302519",
@@ -351,7 +351,7 @@
         "title": "1906 San Francisco earthquake (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/1906_San_Francisco_earthquake"
       },
-      "class": "natural disaster"
+      "class": "earthquake"
     },
     {
       "qid": "Q2577588",
@@ -388,7 +388,7 @@
     {
       "qid": "Q212618",
       "label": "1960 Valdivia earthquake",
-      "date": "1960-05-21",
+      "date": "1960-05-22",
       "precision": "day",
       "at": [
         -73.407,
@@ -399,7 +399,7 @@
         "title": "1960 Valdivia earthquake (Wikipedia)",
         "url": "https://en.wikipedia.org/wiki/1960_Valdivia_earthquake"
       },
-      "class": "natural disaster"
+      "class": "earthquake"
     }
   ]
 }
