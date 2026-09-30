@@ -1718,8 +1718,9 @@ and the release's `media` section lists every key the locks name (3.8).
   ran, and copies them into its own record. `npm run verify:bake` (7.3) requires the surface and
   coverage `inputs` to match each other and the working tree, so after a coverage rerun on changed
   code the bake stays stale until a surface run completes. The fixture build also writes
-  `build/stages/fixture/stamp.json`, a hash over the same paths plus `pipeline/tests/data`, which
-  the Vitest fixture loader checks (7.3). The fixture's events record also hashes its excerpt TSV
+  `build/stages/fixture/stamp.json`, a hash over the same paths plus every other input the fixture
+  build reads (`pipeline/tests/data`, `stories`, `explore`, `pipeline/sources.toml` and
+  `pipeline/.python-version`), which the Vitest fixture loader checks (7.3). The fixture's events record also hashes its excerpt TSV
   and sidecar in `inputs`, so it cannot be mistaken for an index of the full export.
 
 ### 7.3 Fixture, dev and CI

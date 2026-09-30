@@ -2,7 +2,7 @@ import hashlib
 
 import pytest
 
-from prebuild.hashing import layer_version, lines_sha, tree_files, tree_sha, ver8
+from prebuild.hashing import FIXTURE_PATHS, layer_version, lines_sha, tree_files, tree_sha, ver8
 
 
 def sha(data: bytes) -> str:
@@ -90,3 +90,13 @@ def test_tree_sha_changes_when_any_file_changes(tree, change):
     before = tree_sha(PATHS, tree)
     change(tree)
     assert tree_sha(PATHS, tree) != before
+
+
+@pytest.mark.parametrize("path", ["pipeline/sources.toml", "pipeline/.python-version"])
+def test_the_fixture_stamp_changes_with_the_source_pins_and_the_python_version(tree, path):
+    # The events stages check the excerpts' export against sources.toml, and uv picks the
+    # interpreter from .python-version, so a change to either can change or stop the build.
+    (tree / path).write_text("before\n")
+    before = tree_sha(FIXTURE_PATHS, tree)
+    (tree / path).write_text("after\n")
+    assert tree_sha(FIXTURE_PATHS, tree) != before

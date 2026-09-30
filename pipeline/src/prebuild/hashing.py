@@ -13,9 +13,17 @@ CODE_PATHS = (
     "pipeline/uv.lock",
     "shared/constants.json",
 )
-# The fixture build also depends on the excerpts, the stories' named route datasets and Explore's
-# openings, which event-files forces into the overview.
-FIXTURE_PATHS = (*CODE_PATHS, "pipeline/tests/data", "stories", "explore")
+# Every input the fixture build reads: the code, the excerpts, the stories' named route datasets,
+# Explore's openings, which event-files forces into the overview, the source pins, against which
+# events checks the excerpts' export, and the Python version uv runs it on.
+FIXTURE_PATHS = (
+    *CODE_PATHS,
+    "pipeline/tests/data",
+    "stories",
+    "explore",
+    "pipeline/sources.toml",
+    "pipeline/.python-version",
+)
 
 SKIPPED_NAMES = frozenset({"__pycache__", ".DS_Store"})
 
