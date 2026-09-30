@@ -14,12 +14,15 @@ named, never under the fixture profile, and writes no stage record.
   NetCDF classic (no timestamps), gzip level 9 with mtime 0, plus provenance and attribution.
 - Events: all statements of events dated in 1815-1817, plus their exported ancestors, in export
   order. The TSV terms stay untouched; its sidecar keeps the export metadata and selection rule.
+- Cliopatria: the POLITY rows valid in the fixture's two border steps, 1815 and 1830, as gzipped
+  GeoJSON in source order, with a sidecar giving the pin, the credit, the years and the rule.
 """
 
 import gzip
 import json
 import math
 import warnings
+import zipfile
 from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
@@ -30,7 +33,7 @@ import netCDF4
 import numpy as np
 import shapely
 
-from prebuild import events, modera
+from prebuild import cliopatria, events, modera
 from prebuild.codes import round_half_away
 from prebuild.config import FixtureConfig, load_fixture
 from prebuild.cube import BORDER, TILE, Tile, corner, dir_to_lonlat, st_to_dir
@@ -89,6 +92,7 @@ def run(ctx: Context) -> None:
     write_ne_excerpts(ctx, fixture, registry, folder / "ne")
     write_modera_excerpts(ctx, registry, folder / "modera")
     write_events_excerpt(ctx, registry, folder / "events")
+    write_cliopatria_excerpt(ctx, registry, folder / cliopatria.EXCERPT)
     total = sum(path.stat().st_size for path in folder.rglob("*") if path.is_file())
     if total > CAP_BYTES:
         raise ValueError(f"{folder} holds {total} bytes, past the {CAP_BYTES}-byte cap")
@@ -209,6 +213,41 @@ def write_events_excerpt(ctx: Context, registry: dict[str, Source], folder: Path
     (folder / events.TABLE).write_bytes(stored)
     (folder / events.META).write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     print(f"excerpts: events {len(lines) - 1} statements, {len(stored)} bytes", flush=True)
+
+
+def select_polities(collection: dict[str, Any], years: Iterable[int]) -> dict[str, Any]:
+    """The collection with only its POLITY rows valid in any of the (astronomical) years."""
+    wanted = list(years)
+
+    def kept(feature: dict[str, Any]) -> bool:
+        p = feature["properties"]
+        first, last = cliopatria.astronomical(p["FromYear"]), cliopatria.astronomical(p["ToYear"])
+        return p["Type"] == "POLITY" and any(first <= y <= last for y in wanted)
+
+    return {**collection, "features": [f for f in collection["features"] if kept(f)]}
+
+
+def write_cliopatria_excerpt(ctx: Context, registry: dict[str, Source], folder: Path) -> None:
+    path = verified_path(ctx, cliopatria.SOURCE, cliopatria.ZIP, registry)
+    with zipfile.ZipFile(path) as archive:
+        collection = json.loads(archive.read(cliopatria.MEMBER))
+    excerpt = select_polities(collection, cliopatria.EXCERPT_YEARS)
+    text = json.dumps(excerpt, ensure_ascii=False, separators=(",", ":"))
+    stored = gzip.compress(text.encode("utf-8"), compresslevel=9, mtime=0)
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / cliopatria.EXCERPT_FILE).write_bytes(stored)
+    meta = {
+        **attribution(registry[cliopatria.SOURCE], cliopatria.ZIP),
+        "member": cliopatria.MEMBER,
+        "years": list(cliopatria.EXCERPT_YEARS),
+        "rows": len(excerpt["features"]),
+        "selection": "The POLITY rows valid in any of these astronomical years, in source order, "
+        "with every property and geometry as the source gives them.",
+    }
+    (folder / cliopatria.EXCERPT_META).write_text(
+        json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    print(f"excerpts: cliopatria {meta['rows']} rows, {len(stored)} bytes", flush=True)
 
 
 def excerpt_window(fixture: FixtureConfig, name: str) -> Window:

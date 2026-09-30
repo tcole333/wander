@@ -21,6 +21,7 @@ from prebuild.excerpts import (
     land_tiers,
     ne_tiers,
     run,
+    select_polities,
 )
 from prebuild.gebco import Raster, bilinear, read_excerpt, read_sidecar
 from prebuild.natural_earth import ZIPS, Layer, read_excerpt_layer
@@ -219,3 +220,34 @@ def test_climate_and_events_excerpts_carry_the_pinned_sources_and_credits(
     assert meta["license_url"] == source.license_url
     assert meta["attribution"] == source.attribution
     assert meta["years"] == [1815, 1817]
+
+
+def test_the_cliopatria_excerpt_carries_the_pin_the_credit_and_its_years():
+    meta = json.loads((excerpts_dir() / "cliopatria" / "polities.json").read_text(encoding="utf-8"))
+    source = load_sources()["cliopatria"]
+    pin = pinned_file(source, "cliopatria.geojson.zip")
+    assert (meta["source"], meta["file"], meta["sha256"]) == ("cliopatria", pin.path, pin.sha256)
+    assert (meta["license"], meta["attribution"]) == ("CC-BY-4.0", source.attribution)
+    assert meta["years"] == [1815, 1830]
+
+
+def test_the_cliopatria_excerpt_keeps_the_polity_rows_valid_in_either_year():
+    def feature(name, first, last, kind="POLITY"):
+        properties = {"Name": name, "FromYear": first, "ToYear": last, "Type": kind}
+        return {"type": "Feature", "properties": properties, "geometry": None}
+
+    collection = {
+        "type": "FeatureCollection",
+        "name": "cliopatria",
+        "features": [
+            feature("Before", 1790, 1814),
+            feature("Through", 1800, 1840),
+            feature("Between", 1816, 1829),
+            feature("Later", 1830, 1850),
+            feature("(Alliance of Later with Through)", 1830, 1831, "RELATION"),
+            feature("Ancient", -100, 0),
+        ],
+    }
+    excerpt = select_polities(collection, [0, 1815, 1830])
+    assert [f["properties"]["Name"] for f in excerpt["features"]] == ["Through", "Later", "Ancient"]
+    assert excerpt["name"] == "cliopatria"
