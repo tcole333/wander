@@ -624,15 +624,16 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
   through the Gaussian latitudes, under a diverging palette that saturates at `climateRangeK`,
   independent of the data values. The field is one per look (`app/src/climate/field.ts`): it
   remembers which months of which year files it holds and rewrites and uploads only for another
-  blend, so a story drawn after Explore redraws its own month. The look's program always holds the
-  layer, so the walk's precompile builds it at strength 0, and it eases in and out over 0.5 s.
+  blend, so a story drawn after Explore redraws its own month. It knows a file by a number rather
+  than holding it, so a year its owner drops is freed. The look's program always holds the layer,
+  so the walk's precompile builds it at strength 0, and it eases in and out over 0.5 s.
   Without a `modera` section, or once a file fails, a story logs once and draws no climate, and
   Explore likewise until its next dive.
 - **In a story** (`app/src/story/effects/climate.ts`), the field shows the story day on the beats
-  whose layers carry `{climate: {mode: monthly}}`. The walk loads the years those beats reach, from the beat before
-  each (a flight sweeps story time from its date) to the end of the beat's window, and a year a
-  scrub reaches beyond them when first asked for; past the data's years the layer eases out. Its
-  months are Gregorian, as stories write their dates.
+  whose layers carry `{climate: {mode: monthly}}`. The walk loads the years those beats reach, from
+  the beat before each (a flight sweeps story time from its date) to the end of the beat's window,
+  and a year a scrub reaches beyond them when first asked for; past the data's years the layer
+  eases out. Its months are Gregorian, as stories write their dates.
 - **In Explore** (`app/src/climate/clock.ts`, `app/src/explore/exploreClimate.ts`), it shows the
   world clock's date while the ruler's visible width is at most `climateMonthlySpan` and both
   months lie within 1421-2008, and eases out otherwise. The source indexes its frames by year and
@@ -641,7 +642,7 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
   a time with the blend's own years first, dropped as the day leaves them and emptied when Explore
   ends (`explore.climate` in the memory account). At most one year is inflated and the field
   rewritten once a frame. While the years a distant day needs are on their way, the layer eases
-  out rather than show a month more than one away from the day.
+  out rather than show a month more than one away from the day, and the legend leaves at once.
 - **Annual means** come later (`annual.bin`, 10.8 MB inflated): drawn when the ruler is wider than
   `climateMonthlySpan`, crossfading over `climateSwitchFade`, with the legend reading "Annual mean"
   whenever they are.
@@ -1003,7 +1004,7 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 |---|---|---|
 | **now** | missing roots (L0-L1); the current view's desired set with ancestors, coarsest first; a toggled layer's view tiles; the current beat's core and critical items; a Resume, Back or jump target; the predicted resting view of a zoom gesture; after the ruler rests on a new snapshot, its `index.bin` and `meta.json`, then its view tiles | up to 11 while background has queued work, else 12 |
 | **next** | the hovered story's core and beat-1 critical set; the rest of the story core; N+1 critical; N+1 desired | ≤ 4, shared with background |
-| **background** | L2; the event overview, then event pages (5.3); border previews; for each thematic layer, `index.bin` and `meta.json`, then its L0 tiles; label and display fonts; climate years within `climatePrefetchYears` of the cursor while climate is on (`annual.bin` once climate is first shown); neighboring snapshots' index, meta and view tiles | ≥ 1 whenever it has work |
+| **background** | L2; the event overview, then event pages (5.3); border previews; for each thematic layer, `index.bin` and `meta.json`, then its L0 tiles; label and display fonts; `annual.bin` once climate is first shown (the monthly years are fetched outside the scheduler, two at a time, 3.5); neighboring snapshots' index, meta and view tiles | ≥ 1 whenever it has work |
 
 - **Concurrency:** `inFlight`, split as in the table.
 - **Fetch:** `fetch(url, {priority, mode: 'cors', credentials: 'omit'})`, with priority `high` for now
@@ -1177,10 +1178,10 @@ only a failed start or a worker error ends the worker.
   3. The level count relies on `getMipLevels` returning `mipmaps.length` in the pinned three version.
      The pool smoke test (7.3) writes mip 2 of one slot, samples it back with `textureLod`, checks
      the exact GL calls three makes, and asserts `gl.getError() === 0`.
-- **Allocation:** every pool, the climate ring and annual arrays, the previews, and the indirection and
-  draw-index textures are allocated at boot. Each is touched once behind the poster (a pool's
-  `warm()` step, one draw), because ANGLE may zero-fill lazily on first use [E]. None is ever
-  reallocated.
+- **Allocation:** every pool, the climate field (and, once they come, the annual arrays), the
+  previews, and the indirection and draw-index textures are allocated at boot. Each is touched once
+  behind the poster (a pool's `warm()` step, one draw), because ANGLE may zero-fill lazily on first
+  use [E]. None is ever reallocated.
 - **Sizes:** surface 160 / 256 slots (lite / full), with the edge profiles in a 257 × 12 RG16F
   array (Nearest, one level, 12,336 B a slot; 378,240 B, 369.4 KiB, per surface slot in all, 3.1).
   Overlay `overlaySlots` to start; E3 counts the peak with every layer on and resizes to the peak
