@@ -46,7 +46,7 @@ import type { CreateMuseumScene } from '../contract';
 import { releaseCanvasAfterUpload } from '../gpu/uploadOnce';
 import { instrumentOpacity, partOpacity } from './fade';
 import { buildInstrument, type FadePart } from './instrument';
-import { KEY_LAMP, LENS } from './lens';
+import { BLOOM_THRESHOLD, KEY_LAMP, LENS } from './lens';
 
 const DEG = Math.PI / 180;
 const MAX_PIXEL_RATIO = 2;
@@ -211,7 +211,7 @@ export const createMuseumScene: CreateMuseumScene = (renderer) => {
     envIntensity: 0.75,
     bloomStrength: 0.42,
     bloomRadius: 0.45,
-    bloomThreshold: 1.05,
+    bloomThreshold: BLOOM_THRESHOLD,
     vignette: LENS.vignette,
     grain: 0.02,
     ringsVisible: true,
