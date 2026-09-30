@@ -32,6 +32,7 @@ function over([lon, lat]: LonLat, altitude: number): MarkView {
     pxPerUnit: 450 / Math.tan((15 * Math.PI) / 180),
     width: 1440,
     height: 900,
+    pixelRatio: 1.5,
     toClip,
     toView: new Matrix3(),
     lamp: new Vector3(-4.2, 5.2, 9.5),
@@ -51,11 +52,18 @@ const mark = (id: string, at: LonLat, extra: Partial<MarkSpec> = {}): MarkSpec =
 
 describe('markPx', () => {
   it('is 12 px at 12,000 km wide and wider, 16 at 3,000 and 20 at 300 and closer', () => {
-    expect([30, 300, 3000, 12_000, 40_000].map(markPx)).toEqual([20, 20, 16, 12, 12]);
+    const px = [30, 300, 3000, 12_000, 40_000].map((km) => markPx(km, 2));
+    expect(px).toEqual([20, 20, 16, 12, 12]);
   });
 
   it('interpolates on the log of the width', () => {
-    expect(markPx(Math.sqrt(300 * 3000))).toBeCloseTo(18, 6);
+    expect(markPx(Math.sqrt(300 * 3000), 2)).toBeCloseTo(18, 6);
+  });
+
+  it('spans at least 16 device px, so a mark at world view is 16 CSS px at one to a CSS px', () => {
+    expect([12_000, 3000, 300].map((km) => markPx(km, 1))).toEqual([16, 16, 20]);
+    expect(markPx(12_000, 1.25)).toBeCloseTo(12.8, 6);
+    expect(markPx(12_000, 1.5)).toBe(12);
   });
 });
 
@@ -137,7 +145,7 @@ describe('MarkLayer', () => {
     expect(placed?.x).toBeCloseTo(720, 3);
     expect(placed?.y).toBeCloseTo(450, 3);
     // The camera is 3,000 km up with a 30-degree field: the view is about 2,400 km across.
-    expect(placed?.rPx).toBeCloseTo(markPx(2400) / 2, 0);
+    expect(placed?.rPx).toBeCloseTo(markPx(2400, view.pixelRatio) / 2, 0);
     expect(marks.uniforms.lookMarksOn.value).toBe(true);
   });
 

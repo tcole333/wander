@@ -100,9 +100,10 @@ export interface MarkView {
   forward: Vector3;
   /** CSS px a length spans at unit distance in front of the camera. */
   pxPerUnit: number;
-  /** The viewport in CSS px. */
+  /** The viewport in CSS px, and the device pixels a CSS px spans as the globe is drawn. */
   width: number;
   height: number;
+  pixelRatio: number;
   /** The globe frame to clip space, lens offset included. */
   toClip: Matrix4;
   /** The globe frame to view space, for normals. */
@@ -151,8 +152,16 @@ const MARK_COS_MIN = 0.9;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
 const PICK_ALPHA_MIN = 0.25;
 
-/** A mark's diameter in CSS px for a view `viewKm` wide (tunables.markPx). */
-export function markPx(viewKm: number): number {
+/**
+ * A mark's diameter in CSS px for a view `viewKm` wide (tunables.markPx), drawn at `pixelRatio`
+ * device pixels a CSS px: never fewer than tunables.markMinDevicePx device pixels.
+ */
+export function markPx(viewKm: number, pixelRatio: number): number {
+  return Math.max(markRowPx(viewKm), tunables.markMinDevicePx / Math.max(pixelRatio, 1e-3));
+}
+
+/** tunables.markPx's diameter for a view `viewKm` wide, log-interpolated between its rows. */
+function markRowPx(viewKm: number): number {
   const rows = tunables.markPx;
   const first = rows[0];
   const last = rows[rows.length - 1];
@@ -222,7 +231,7 @@ export function defaultMarkParams(): Params {
     marks: true,
     // The owner's choice on R1's renders (29 September): 0, the cast token (families.ts).
     markVariant: 0,
-    // The mark's size over tunables.markPx.
+    // The mark's size over tunables.markPx and markMinDevicePx.
     markSize: 1,
     // A disc's bevel as a share of its radius (a glyph's is a quarter of it, or a pixel), and the
     // relief's height over the family's.
@@ -478,7 +487,8 @@ export class MarkLayer {
       this.uniforms.lookMarksOn.value = false;
       return;
     }
-    const px = markPx(viewKmOf(view)) * Math.max(0.1, Number(this.params.markSize));
+    const px =
+      markPx(viewKmOf(view), view.pixelRatio) * Math.max(0.1, Number(this.params.markSize));
     const relief = Math.max(0, Number(this.params.markRelief));
     const candidates: Candidate[] = [];
     const grid = markGrid(view.width, view.height);

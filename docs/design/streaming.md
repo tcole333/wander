@@ -2213,6 +2213,7 @@ an E-number means that experiment sets it. Paired values are lite / full.
 | `nowShare` | 0.1 of the ruler's visible width, at least a day | the now window events, Meanwhile and focal drops read | eye |
 | `exploreOpenYears` | 200 years, centered on the opening event | the ruler's span as Explore opens | eye |
 | `markPx` | 12 CSS px at 12,000 km wide and wider, 16 at 3,000, 20 at 300 and closer, log-interpolated | a mark's diameter | eye |
+| `markMinDevicePx` | 16 device px | the fewest device pixels a mark spans, over `markPx`: at one device pixel a CSS px, marks at world view are 16 CSS px so their glyphs read | eye |
 | `markTileCap` | 8 per 32 CSS px tile | marks the look inlays in one screen tile | eye |
 | `markRoughMin`, `markSpecMax` | 0.35, 0.9 | a mark's roughness floor; the cap on its lit luminance, under the bloom's 1.05 | eye |
 | `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries (a sparse month's down to 500 km apart, reaching up to 90 days) | Meanwhile rule: the `meanwhile` stage's constants, and Explore's worker query (5.3) | eye |

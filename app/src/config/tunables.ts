@@ -51,6 +51,9 @@ export const tunables = {
     { km: 3000, px: 16 },
     { km: 12_000, px: 12 },
   ],
+  // The fewest device pixels a mark spans, so its glyph reads where the globe is drawn at one
+  // device pixel a CSS px: there marks at world view are 16 CSS px, not 12.
+  markMinDevicePx: 16,
   // Marks the look inlays in one 32 CSS px screen tile: focal first, then hovered, then by score.
   markTileCap: 8,
   // A mark's roughness floor, and the cap on the luminance the lamp gives it: no mark but the
