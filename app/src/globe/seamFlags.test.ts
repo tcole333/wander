@@ -350,7 +350,11 @@ describe.each(Object.entries(GRID_SEGMENTS))('random balanced covers (%s)', (tie
   const segments = G;
 
   test('every node derives each shared point’s coarsest node and source from its own bits', () => {
+    // Its points are checked in plain code and asserted once: an expect for each spent half the
+    // test's time inside expect.
     const next = random(tier === 'full' ? 1 : 2);
+    const wrong: string[] = [];
+    let checked = 0;
     for (let cover = 0; cover < 60; cover += 1) {
       const nodes = randomCover(next, 4, 6 + next(20));
       const flags = seamFlags(nodes);
@@ -376,14 +380,22 @@ describe.each(Object.entries(GRID_SEGMENTS))('random balanced covers (%s)', (tie
               truth.set(key, expected);
             }
             const derived = sharedPoint(n, bits, k, l, segments);
-            expect(
-              { coarse: derived.coarse, lv: derived.lv },
-              `${tileKey(n.tile)} at ${k},${l}`,
-            ).toEqual(expected);
+            checked += 1;
+            if (
+              !Object.is(derived.coarse, expected.coarse) ||
+              !Object.is(derived.lv, expected.lv)
+            ) {
+              wrong.push(
+                `${tileKey(n.tile)} at ${k},${l}: ${derived.coarse}/${derived.lv}` +
+                  ` vs ${expected.coarse}/${expected.lv}`,
+              );
+            }
           }
         }
       }
     }
+    expect(wrong).toEqual([]);
+    expect(checked).toBeGreaterThan(0);
   });
 });
 
