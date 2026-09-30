@@ -23,7 +23,7 @@ import {
   Vector4,
   type Material,
 } from 'three';
-import type { Tier } from '../config/tunables';
+import { tunables, type Tier } from '../config/tunables';
 import {
   BORDER_APRON,
   BORDER_FACES,
@@ -179,8 +179,11 @@ export interface OuterLook {
   follow: number;
 }
 
-/** The outer line as owner decision 36 set it, at every width of the view. */
-export const OUTER_TODAY: OuterLook = {
+/**
+ * The outer line as owner decision 36 set it: a 2 px groove darkening 0.75, dots of about 2.7 px in
+ * 5, drawn at `borderWeightKm.near` across and closer.
+ */
+export const OUTER_NEAR: OuterLook = {
   widthPx: BORDER_LOOK.widthPx,
   darken: BORDER_LOOK.darken,
   halfDotPx: OUTER_HALF_DOT_PX,
@@ -188,58 +191,28 @@ export const OUTER_TODAY: OuterLook = {
 };
 
 /**
- * What the field's reach holds of a line with the default line's margin, as (width px + 1) times
- * the texels a pixel spans: today's 2 px line starts to fade where a pixel spans 4 texels, so 12. A
- * wider line narrows to HELD_TEXELS / texPx − 1 px, no narrower than today's, as texPx grows.
+ * The outer line at world view (owner decision 40): a 3.5 px groove darkening 0.95, its dots
+ * closing up to 4.5 px in 5 and its soft edges taking on its weight, since under Explore's lighting
+ * the near line is hard to see that far out.
+ */
+export const OUTER_FAR: OuterLook = { widthPx: 3.5, darken: 0.95, halfDotPx: 2.25, follow: 1 };
+
+/**
+ * What the field's reach holds of a line with the near line's margin, as (width px + 1) times the
+ * texels a pixel spans: the 2 px line starts to fade where a pixel spans 4 texels, so 12. A wider
+ * line narrows to HELD_TEXELS / texPx − 1 px, no narrower than the near line, as texPx grows.
  */
 const HELD_TEXELS = (BORDER_LOOK.widthPx + 1) * BORDER_LOOK.fadeTexPx[0];
 
-/** View widths, km across, at and within which every weight draws OUTER_TODAY. */
-export const WEIGHT_NEAR_KM = 6000;
-
 /**
- * Heavier outer lines at world scale, for the owner to choose among on renders (the dev page's
- * ?borderWeight=): each draws OUTER_TODAY at WEIGHT_NEAR_KM across and closer and eases to its
- * `far` look as the view widens, on a log scale, reaching it at `fullKm`, smoothly or evenly.
- * - today: the line as it is at every width.
- * - wide: a wider, darker groove with longer dots, its soft edges widening and darkening with it.
- * - solid: the hard lines between states only, darker and unbroken; soft edges as today's.
- * - eased: a weight that grows with the view's width all the way out, its dots closing up, heaviest
- *   at world view.
+ * The outer line's look at a view `viewKm` across, as its uniform: (width px, darkening, half dot
+ * px, follow). OUTER_NEAR at `borderWeightKm.near` and closer, easing evenly on a log scale of the
+ * view's width to OUTER_FAR at `borderWeightKm.far`, so it still grows past 17,500 km.
  */
-export const BORDER_WEIGHTS = {
-  today: { far: OUTER_TODAY, fullKm: 10_000, smooth: true },
-  wide: {
-    far: { widthPx: 3, darken: 0.9, halfDotPx: 1.75, follow: 1 },
-    fullKm: 10_000,
-    smooth: true,
-  },
-  solid: {
-    far: { widthPx: 2.5, darken: 0.9, halfDotPx: 3, follow: 0 },
-    fullKm: 10_000,
-    smooth: true,
-  },
-  eased: {
-    far: { widthPx: 3.5, darken: 0.95, halfDotPx: 2.25, follow: 1 },
-    fullKm: 32_000,
-    smooth: false,
-  },
-} as const satisfies Record<string, { far: OuterLook; fullKm: number; smooth: boolean }>;
-
-export type BorderWeight = keyof typeof BORDER_WEIGHTS;
-
-/**
- * The outer line's look under a weight at a view `viewKm` across, as its uniform: (width px,
- * darkening, half dot px, follow). A name no weight has draws today's.
- */
-export function outerWeight(name: string, viewKm: number, out = new Vector4()): Vector4 {
-  const weight = BORDER_WEIGHTS[name as BorderWeight] ?? BORDER_WEIGHTS.today;
-  const u = Math.min(
-    1,
-    Math.max(0, Math.log(viewKm / WEIGHT_NEAR_KM) / Math.log(weight.fullKm / WEIGHT_NEAR_KM)),
-  );
-  const t = weight.smooth ? u * u * (3 - 2 * u) : u;
-  const at = (key: keyof OuterLook) => OUTER_TODAY[key] + (weight.far[key] - OUTER_TODAY[key]) * t;
+export function outerLook(viewKm: number, out = new Vector4()): Vector4 {
+  const { near, far } = tunables.borderWeightKm;
+  const t = Math.min(1, Math.max(0, Math.log(viewKm / near) / Math.log(far / near)));
+  const at = (key: keyof OuterLook) => OUTER_NEAR[key] + (OUTER_FAR[key] - OUTER_NEAR[key]) * t;
   return out.set(at('widthPx'), at('darken'), at('halfDotPx'), at('follow'));
 }
 
@@ -286,7 +259,7 @@ export interface StepUniforms {
   lookBorderStrength: { value: number };
   /** How strongly the inner lines draw, by the view's width (borderInnerKm). */
   lookBorderInner: { value: number };
-  /** The outer line's look at the view's width under the chosen weight (outerWeight). */
+  /** The outer line's look at the view's width (outerLook). */
   lookBorderOuter: { value: Vector4 };
   /**
    * RG8, 1024² a layer: a step's six faces a slot, R the outer distance and G the inner with the
@@ -316,7 +289,7 @@ export function createStepUniforms(tier: Tier): StepUniforms {
   return {
     lookBorderStrength: { value: 0 },
     lookBorderInner: { value: 0 },
-    lookBorderOuter: { value: outerWeight('today', WEIGHT_NEAR_KM) },
+    lookBorderOuter: { value: outerLook(tunables.borderWeightKm.near) },
     lookBorderField: { value: field },
     lookBorderA: { value: new Vector4(0, 0, 0, 0) },
     lookBorderB: { value: new Vector4(0, 0, 0, 0) },

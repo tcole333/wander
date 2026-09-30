@@ -251,9 +251,7 @@ async function assemble(
     ...(release.borderSteps ? { borderSteps: BORDER_TIER } : {}),
   });
   made.push(() => look.dispose());
-  const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER, () =>
-    String(look.params.borderWeight),
-  );
+  const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER);
   if (borders) made.push(() => borders.dispose());
   const clearance = new ClearanceField(layer);
   const rig = new CameraRig(clearance);
