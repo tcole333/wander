@@ -22,6 +22,7 @@ import type { EventDescription } from '../events/describe';
 import type { EventMark } from '../events/query';
 import type { PlacedMark } from '../marks/marks';
 import { EMBER_RING } from '../marks/marks.glsl';
+import type { Precision } from '../story/dates';
 import { el } from '../story/ui/dom';
 import { EVENTS_LIST, PART_OF } from './copy';
 import { markIdOf, markQid, qidNumber, type EventLabel, type FocalEvent } from './exploreEvents';
@@ -33,6 +34,7 @@ import {
   eventName,
   openingText,
   pinnedText,
+  precisionOf,
   spoken,
   type PinnedText,
   type PlateText,
@@ -428,9 +430,10 @@ export class ExploreLabels {
       if (!mark || named.has(id)) continue;
       named.add(id);
       const opening = this.#openings.get(label.qid);
-      const { name, date } = opening
-        ? openingText(opening)
-        : { name: eventName(label.text), date: eventDate(label.t0, label.t1, label.prec) };
+      const { name, date } =
+        opening && finer(opening.precision, precisionOf(label.prec))
+          ? openingText(opening)
+          : { name: eventName(label.text), date: eventDate(label.t0, label.t1, label.prec) };
       const text = `${name}, ${date}`;
       entries.push({ id, text, x: mark.x, y: mark.y });
     }
@@ -504,16 +507,20 @@ export class ExploreLabels {
   }
 
   /**
-   * A plate's words for the mark with this id, as far as they are known: an opening's name and
-   * date as its lock gives them, which its sources may date more finely than the index, and the
-   * event it is part of once the worker has said.
+   * A plate's words for the mark with this id, as far as they are known: as the worker describes
+   * the event, but for an opening its lock dates more finely than the index (Krakatoa's day, where
+   * the index knows its year), whose name and date the lock gives, with the event it is part of
+   * once the worker has said.
    */
   #textOf(id: string): PlateText | null {
     const mark = this.#events.event(id);
     if (mark === undefined) return null;
     const described = mark === null ? undefined : this.#events.description(mark.row);
     const opening = this.#openings.get(markQid(id));
-    if (!opening) return described ? describedText(described) : null;
+    if (described && (!opening || !finer(opening.precision, precisionOf(described.prec)))) {
+      return describedText(described);
+    }
+    if (!opening) return null;
     const parent = described?.parent;
     return { ...openingText(opening), ...(parent ? { parent: eventName(parent) } : {}) };
   }
@@ -590,6 +597,12 @@ export class ExploreLabels {
       return { left, top, right, bottom };
     });
   }
+}
+
+/** Whether a date known at precision `a` is known more finely than at `b`. */
+function finer(a: Precision, b: Precision): boolean {
+  const rank = { year: 0, month: 1, day: 2 } as const;
+  return rank[a] > rank[b];
 }
 
 function windowSize(): { width: number; height: number } {

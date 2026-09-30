@@ -277,7 +277,7 @@ describe('Explore’s labels', () => {
     expect(byClass(plate, 'xl-source').href).toMatch(/wikipedia\.org\/wiki\/Battle_of_Waterloo/);
   });
 
-  it('date an opening as its lock does, which its sources date more finely than the index', () => {
+  it('date an opening as its lock does where its sources date it more finely than the index', () => {
     const { events, labels, root, click } = setup([
       { id: 'Q8094772', x: 700, y: 400, label: '1883 eruption of Krakatoa' },
     ]);
@@ -288,6 +288,10 @@ describe('Explore’s labels', () => {
     click(700, 400);
     labels.update(0);
     expect(byClass(plate$(root, true), 'xl-date').textContent).toBe('27 August 1883');
+    // Once the index knows its day, or its days, as finely, the index's span stands.
+    events.description = () => ({ ...described, t0: DAY, t1: DAY + 4, prec: 11 });
+    labels.update(16);
+    expect(byClass(plate$(root, true), 'xl-date').textContent).toBe('18–22 June 1815');
   });
 
   it('list the marks in view in one listbox, the keyboard moving and pinning among them', () => {
