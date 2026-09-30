@@ -24,6 +24,11 @@ export class WalkChrome {
     root.append(this.element);
   }
 
+  /** The mark and the knob, which what stands under the layer keeps clear of. */
+  get parts(): readonly HTMLElement[] {
+    return [this.mark, this.#knob.element];
+  }
+
   show(): void {
     this.element.classList.add('is-shown');
   }

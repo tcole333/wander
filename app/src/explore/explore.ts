@@ -103,6 +103,8 @@ export interface ExploreParts {
   root: HTMLElement;
   /** The globe's canvas, whose marks the labels pick; without it (the unit tests), none are. */
   canvas?: HTMLElement;
+  /** The page's mark and sound knob, which stand over Explore's layer and its plates avoid. */
+  chrome?: readonly HTMLElement[];
   control: ViewControl;
   sound: WalkAudio;
   /** Flown to from the lobby's view, or started where the view already stands (the dev page). */
@@ -137,6 +139,7 @@ export function worldViewOn([lon, lat]: LonLat, viewKm: number): ViewState {
 export function startExplore({
   root,
   canvas,
+  chrome = [],
   control,
   sound,
   arrive,
@@ -189,6 +192,7 @@ export function startExplore({
             ruler.element,
             ...(meanwhile ? [meanwhile.element] : []),
             ...(climate ? [climate.legend] : []),
+            ...chrome,
           ],
         })
       : null;
