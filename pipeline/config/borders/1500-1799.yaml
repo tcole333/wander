@@ -107,3 +107,67 @@ corrections:
       title: Oudh State
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Awadh_State
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, or a place without a state kept stateless, each cited (owner decision 38).
+  - years: [1662, 1669]
+    pocket:
+      at: [37.98, 50.28]
+      to: Tsardom of Russia
+    why: >-
+      Sloboda Ukraine, south of Muscovy's Belgorod line (Sumy, Okhtyrka, Kharkiv, Ostrogozhsk), was
+      settled by Cossack regiments under the sovereignty of the Russian tsars, founded at
+      Ostrogozhsk in 1652, Sumy and Okhtyrka in 1658 and Kharkiv in 1659. Cliopatria's Sloboda
+      Ukraine begins in 1670.
+    source:
+      title: Sloboda Ukraine
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sloboda_Ukraine
+  - years: [1677, 1677]
+    pocket:
+      at: [-74.65, 41.7]
+      stateless: true
+    why: >-
+      The upper Delaware and the Catskill and Shawangunk country (Port Jervis, Monticello, Goshen)
+      was the Munsee's homeland, whose first European settlers came from the Hudson valley only in
+      the late seventeenth and early eighteenth centuries; England's charters claimed it, but no
+      colonial government reached it in 1677.
+    source:
+      title: Minisink
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Minisink
+  - years: [1757, 1757]
+    pocket:
+      at: [76.44, 17.85]
+      to: Hyderabad State
+    why: >-
+      The western Deccan (Aurangabad, Bidar, Naldurg, Solapur, Gulbarga) was the Nizam's in 1757:
+      Salabat Jung's defeats at Sindkhed later in 1757 and at Udgir in 1760 came after, and
+      Aurangabad, Daulatabad and Solapur were ceded to the Marathas only after Kharda in 1795.
+      Cliopatria's Hyderabad of 1757-1761 leaves it out.
+    source:
+      title: Nizam Ali Khan, Asaf Jah II
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Nizam_Ali_Khan,_Asaf_Jah_II
+  - years: [1769, 1775]
+    pocket:
+      at: [78.12, 12.57]
+      to: Kingdom of Mysore
+    why: >-
+      The Baramahal (Krishnagiri, Dharmapuri) was Hyder Ali's and Tipu's Mysore until the Treaty of
+      Seringapatam gave it to the Company in 1792; Cliopatria's Mysore leaves it out.
+    source:
+      title: Treaty of Seringapatam
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Seringapatam
+  - years: [1791, 1793]
+    pocket:
+      at: [79.98, 27.99]
+      to: Nawab of Awadh
+    why: >-
+      Shahjahanpur, Budaun, Etah and Mainpuri were Awadh's until Saadat Ali Khan ceded Rohilkhand
+      and the lower Doab to the Company in 1801. Cliopatria's Awadh leaves them out in 1791-1793 and
+      takes them in from 1794.
+    source:
+      title: Ceded and Conquered Provinces
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ceded_and_Conquered_Provinces
