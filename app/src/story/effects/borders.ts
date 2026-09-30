@@ -6,6 +6,12 @@
 // borderCloseKm, where one of the field's texels spans tens of pixels. Without a borders section in
 // the release, or once the file fails, it logs once and draws no borders: the walk never breaks
 // over them.
+//
+// Where Explore is enabled, the look holds the border steps instead, and the walk draws its beats'
+// steps (StepBorders): the director writes the world clock, the steps follow it
+// (borders/clockBorders.ts), and the walk keeps the beat's layers as the gate. Walks never draw
+// previews.
+import type { ClockBorders } from '../../borders/clockBorders';
 import { tunables } from '../../config/tunables';
 import { BORDER_FACES, inflateBorders } from '../../data/borders';
 import type { BordersRelease } from '../../data/release';
@@ -116,5 +122,50 @@ export class WalkBorders {
     this.#off = true;
     this.#strength = 0;
     if (this.#uniforms) this.#uniforms.lookBorderStrength.value = 0;
+  }
+}
+
+/** The walk's borders where the look holds the border steps: the beats' layers gate the steps. */
+export class StepBorders {
+  readonly #steps: ClockBorders;
+  readonly #drawn: boolean;
+  /** 0 to 1, before its easing curve. */
+  #shown = 0;
+
+  constructor(story: Story, steps: ClockBorders) {
+    this.#steps = steps;
+    this.#drawn = story.beats.some((beat) => beat.layers.includes('borders'));
+  }
+
+  /** The step drawn and how strongly, while it is. */
+  get shown(): BordersShown | null {
+    const shown = this.#steps.shown;
+    return shown && !shown.preview ? { year: shown.year, strength: shown.strength } : null;
+  }
+
+  /** The steps load as the clock rests in them, not in the background. */
+  background(): void {}
+
+  update(state: WalkState, dtS: number, viewKm: number, strength: number): void {
+    if (!this.#drawn) return;
+    const wanted = state.story.beats[state.beat]?.layers.includes('borders') === true;
+    const step = (1000 * dtS) / tunables.borderFade;
+    this.#shown += Math.max(-step, Math.min(step, (wanted ? 1 : 0) - this.#shown));
+    this.#steps.update({
+      wanted: this.#shown > 0,
+      previews: false,
+      viewKm,
+      strength: smoothstep(0, 1, this.#shown) * strength,
+    });
+  }
+
+  /** Clears the lobby; the steps keep their slots for the next walk. */
+  hide(): void {
+    this.#shown = 0;
+    if (this.#drawn) this.#steps.hide();
+  }
+
+  dispose(): void {
+    this.hide();
   }
 }

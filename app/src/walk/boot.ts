@@ -37,6 +37,7 @@ import type { SurfaceLayer } from '../data/surfaceLayer';
 import { ClearanceField } from '../globe/clearance';
 import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
 import { lobbyPlaces } from '../lobby/places';
+import { attachBorderSteps } from '../borders/clockBorders';
 import { createSurfaceLook } from '../look/surfaceLook';
 import { MARK_GLYPHS } from '../marks/glyphs';
 import { summarizeFrames } from '../perf/frameStats';
@@ -73,6 +74,9 @@ const FLOOR_LEVEL = 7;
 const LENS_SHIFT = 0.35;
 /** The time constant with which the lens eases from the lobby's shift to the story's, seconds. */
 const LENS_EASE_S = 0.6;
+
+/** The border steps' tier: two step slots, as the streamer's full tier (streaming.md 3.3). */
+const BORDER_TIER = 'full';
 
 /** Frames the frame rate and p95 look back over. */
 const FRAMES = 120;
@@ -242,9 +246,12 @@ async function assemble(
   const look = createSurfaceLook(
     streamer.pools,
     release.surface,
-    explore ? { marks: MARK_GLYPHS } : {},
+    explore ? { marks: MARK_GLYPHS, borderSteps: BORDER_TIER } : {},
   );
   made.push(() => look.dispose());
+  // Where Explore is enabled the look holds the border steps, which follow the world clock.
+  const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER);
+  if (borders) made.push(() => borders.dispose());
   const clearance = new ClearanceField(layer);
   const rig = new CameraRig(clearance);
   look.marks?.useClearance(clearance);
@@ -555,6 +562,7 @@ async function assemble(
     inspectMemory(account) {
       streamer.inspectMemory?.(account);
       look.inspectMemory?.(account);
+      borders?.inspectMemory(account);
       for (const { effects } of prepared.values()) effects.inspectMemory?.(account);
       sound?.inspectMemory?.(account);
       mode?.inspectMemory(account);
