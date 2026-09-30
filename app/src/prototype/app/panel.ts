@@ -2,6 +2,7 @@
 // booleans as checkboxes, '#rrggbb' strings as colors), and query overrides for any param.
 import GUI from 'three/addons/libs/lil-gui.module.min.js';
 import type { Params } from '../../contract';
+import { BORDER_WEIGHTS } from '../../look/bordersHook';
 
 /** [min, max, step] per param name; others get a range from their default. */
 const RANGES: Record<string, [number, number, number?]> = {
@@ -71,6 +72,11 @@ const RANGES: Record<string, [number, number, number?]> = {
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 
+/** String params chosen from a list. */
+const CHOICES: Record<string, readonly string[]> = {
+  borderWeight: Object.keys(BORDER_WEIGHTS),
+};
+
 /** What the page does with a param's controller. */
 export interface ParamControl {
   disable(disabled?: boolean): unknown;
@@ -102,6 +108,8 @@ export function addParams(
       controller = folder.addColor(params as Record<string, string>, name);
     } else if (typeof value === 'boolean') {
       controller = folder.add(params as Record<string, boolean>, name);
+    } else if (CHOICES[name]) {
+      controller = folder.add(params as Record<string, string>, name, CHOICES[name]);
     } else {
       controller = folder.add(params as Record<string, string>, name);
     }

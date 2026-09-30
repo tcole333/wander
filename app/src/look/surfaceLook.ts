@@ -142,6 +142,9 @@ export function defaultLookParams(): Params {
     debugView: 0,
     // The climate palette's saturation either side of the average, K.
     climateRangeK: tunables.climateRangeK,
+    // The border steps' outer line at world scale, for the owner's choice on renders (bordersHook.ts,
+    // BORDER_WEIGHTS): today's, wide, solid or eased. Views 6,000 km across and closer draw today's.
+    borderWeight: 'today',
     ...PALETTE,
   };
 }

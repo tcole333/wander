@@ -168,6 +168,81 @@ export const SOFT_LOOK = { lighten: 1 / 3, featherPx: [0.25, 2.5] } as const;
 /** The outer line's dots: about 2.7 px of every 5 (BORDER_LOOK.dotPx), as milestone 1's. */
 const OUTER_HALF_DOT_PX = 1.35;
 
+/**
+ * How a step's outer line is cut: its width, darkening and half a dot's length in px, and how far
+ * its soft edges take on the hard line's weight, 0 to 1.
+ */
+export interface OuterLook {
+  widthPx: number;
+  darken: number;
+  halfDotPx: number;
+  follow: number;
+}
+
+/** The outer line as owner decision 36 set it, at every width of the view. */
+export const OUTER_TODAY: OuterLook = {
+  widthPx: BORDER_LOOK.widthPx,
+  darken: BORDER_LOOK.darken,
+  halfDotPx: OUTER_HALF_DOT_PX,
+  follow: 0,
+};
+
+/**
+ * What the field's reach holds of a line with the default line's margin, as (width px + 1) times
+ * the texels a pixel spans: today's 2 px line starts to fade where a pixel spans 4 texels, so 12. A
+ * wider line narrows to HELD_TEXELS / texPx − 1 px, no narrower than today's, as texPx grows.
+ */
+const HELD_TEXELS = (BORDER_LOOK.widthPx + 1) * BORDER_LOOK.fadeTexPx[0];
+
+/** View widths, km across, at and within which every weight draws OUTER_TODAY. */
+export const WEIGHT_NEAR_KM = 6000;
+
+/**
+ * Heavier outer lines at world scale, for the owner to choose among on renders (the dev page's
+ * ?borderWeight=): each draws OUTER_TODAY at WEIGHT_NEAR_KM across and closer and eases to its
+ * `far` look as the view widens, on a log scale, reaching it at `fullKm`, smoothly or evenly.
+ * - today: the line as it is at every width.
+ * - wide: a wider, darker groove with longer dots, its soft edges widening and darkening with it.
+ * - solid: the hard lines between states only, darker and unbroken; soft edges as today's.
+ * - eased: a weight that grows with the view's width all the way out, its dots closing up, heaviest
+ *   at world view.
+ */
+export const BORDER_WEIGHTS = {
+  today: { far: OUTER_TODAY, fullKm: 10_000, smooth: true },
+  wide: {
+    far: { widthPx: 3, darken: 0.9, halfDotPx: 1.75, follow: 1 },
+    fullKm: 10_000,
+    smooth: true,
+  },
+  solid: {
+    far: { widthPx: 2.5, darken: 0.9, halfDotPx: 3, follow: 0 },
+    fullKm: 10_000,
+    smooth: true,
+  },
+  eased: {
+    far: { widthPx: 3.5, darken: 0.95, halfDotPx: 2.25, follow: 1 },
+    fullKm: 32_000,
+    smooth: false,
+  },
+} as const satisfies Record<string, { far: OuterLook; fullKm: number; smooth: boolean }>;
+
+export type BorderWeight = keyof typeof BORDER_WEIGHTS;
+
+/**
+ * The outer line's look under a weight at a view `viewKm` across, as its uniform: (width px,
+ * darkening, half dot px, follow). A name no weight has draws today's.
+ */
+export function outerWeight(name: string, viewKm: number, out = new Vector4()): Vector4 {
+  const weight = BORDER_WEIGHTS[name as BorderWeight] ?? BORDER_WEIGHTS.today;
+  const u = Math.min(
+    1,
+    Math.max(0, Math.log(viewKm / WEIGHT_NEAR_KM) / Math.log(weight.fullKm / WEIGHT_NEAR_KM)),
+  );
+  const t = weight.smooth ? u * u * (3 - 2 * u) : u;
+  const at = (key: keyof OuterLook) => OUTER_TODAY[key] + (weight.far[key] - OUTER_TODAY[key]) * t;
+  return out.set(at('widthPx'), at('darken'), at('halfDotPx'), at('follow'));
+}
+
 /** Step slots, each six faces; the preview ring's layers after them, 2 × 4 cells a layer. */
 export const STEP_SLOTS: Record<Tier, number> = { lite: 1, full: 2 };
 export const RING_LAYERS = 2;
@@ -211,6 +286,8 @@ export interface StepUniforms {
   lookBorderStrength: { value: number };
   /** How strongly the inner lines draw, by the view's width (borderInnerKm). */
   lookBorderInner: { value: number };
+  /** The outer line's look at the view's width under the chosen weight (outerWeight). */
+  lookBorderOuter: { value: Vector4 };
   /**
    * RG8, 1024² a layer: a step's six faces a slot, R the outer distance and G the inner with the
    * soft bit (WBF2), then the preview ring's cells, two previews a cell (WBP2).
@@ -239,6 +316,7 @@ export function createStepUniforms(tier: Tier): StepUniforms {
   return {
     lookBorderStrength: { value: 0 },
     lookBorderInner: { value: 0 },
+    lookBorderOuter: { value: outerWeight('today', WEIGHT_NEAR_KM) },
     lookBorderField: { value: field },
     lookBorderA: { value: new Vector4(0, 0, 0, 0) },
     lookBorderB: { value: new Vector4(0, 0, 0, 0) },
@@ -263,6 +341,7 @@ const STEP_INTERIOR = STEP_TEXELS - 2 * BORDER_APRON;
 export const STEPS_FRAGMENT_PARS = /* glsl */ `
 uniform float lookBorderStrength;
 uniform float lookBorderInner;
+uniform vec4 lookBorderOuter;
 uniform highp sampler2DArray lookBorderField;
 uniform vec4 lookBorderA;
 uniform vec4 lookBorderB;
@@ -379,9 +458,11 @@ float lookBorderDots(float d, float pitchPx, float halfDotPx) {
   return 1.0 - smoothstep(halfDotPx - 0.25, halfDotPx + 0.25, phase);
 }
 
-// The groove a source cuts, as the share it darkens the metal: its outer line, a soft edge a third
-// lighter and feathered, and its inner line, both faded out where a pixel spans more of the
-// source's texels than their reach allows. src.x is uniform, so its branches keep derivatives.
+// The groove a source cuts, as the share it darkens the metal: its outer line as lookBorderOuter
+// cuts it, a soft edge lighter and feathered, and its inner line, both faded out where a pixel
+// spans more of the source's texels than their reach allows. A line wider than the default narrows
+// toward it where the field's reach, 8 texels, cannot hold it with today's margin, so it fades as
+// today's does. src.x is uniform, so its branches keep derivatives.
 float lookBorderGroove(vec4 src, vec2 ll, float degPx) {
   if (src.x < 0.5) return 0.0;
   vec3 fd;
@@ -399,10 +480,25 @@ float lookBorderGroove(vec4 src, vec2 ll, float degPx) {
   float wide = 1.0 - smoothstep(${f(BORDER_LOOK.fadeTexPx[0])}, ${f(BORDER_LOOK.fadeTexPx[1])}, texPx);
   float soft = fd.z;
   float distR = abs(fd.x) / texPx;
-  float feathered = 1.0 - smoothstep(${f(SOFT_LOOK.featherPx[0])}, ${f(SOFT_LOOK.featherPx[1])}, distR);
-  float outerLine = mix(lookLine(distR, ${f(BORDER_LOOK.widthPx)}), feathered, soft);
-  float outer = outerLine * lookBorderDots(fd.x, ${f(BORDER_LOOK.dotPx)}, ${f(OUTER_HALF_DOT_PX)})
-    * ${f(BORDER_LOOK.darken)} * (1.0 - ${f(SOFT_LOOK.lighten)} * soft);
+  float follow = lookBorderOuter.w;
+  float widthPx = min(
+    lookBorderOuter.x,
+    max(${f(BORDER_LOOK.widthPx)}, ${f(HELD_TEXELS)} / texPx - 1.0)
+  );
+  // A soft edge that follows the line feathers out as far as it widens, within what the field's
+  // reach holds and no further than 3.5 px, where lookBorderFar still finds it.
+  float featherHeld = max(${f(SOFT_LOOK.featherPx[1])}, min(3.5, 6.0 / texPx));
+  float featherWide = min(${f(SOFT_LOOK.featherPx[1] / BORDER_LOOK.widthPx)} * widthPx, featherHeld);
+  float featherPx = mix(${f(SOFT_LOOK.featherPx[1])}, featherWide, follow);
+  float feathered = 1.0 - smoothstep(${f(SOFT_LOOK.featherPx[0])}, featherPx, distR);
+  float outerLine = mix(lookLine(distR, widthPx), feathered, soft);
+  float halfDot = mix(lookBorderOuter.z, mix(${f(OUTER_HALF_DOT_PX)}, lookBorderOuter.z, follow), soft);
+  float darken = mix(
+    lookBorderOuter.y,
+    mix(${f(BORDER_LOOK.darken)}, lookBorderOuter.y, follow) * ${f(1 - SOFT_LOOK.lighten)},
+    soft
+  );
+  float outer = outerLine * lookBorderDots(fd.x, ${f(BORDER_LOOK.dotPx)}, halfDot) * darken;
   float inner = lookBorderInner > 0.0
     ? lookLine(abs(fd.y) / texPx, ${f(INNER_LOOK.widthPx)})
       * lookBorderDots(fd.y, ${f(INNER_LOOK.dotPx)}, ${f(INNER_LOOK.halfDotPx)})

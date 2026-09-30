@@ -5,7 +5,8 @@
 // Query: ?data=fixture|region|global|<origin> (a local bake's server by name, or any data server's
 // origin; global when its server answers), ?view=<preset>, ?ui=0 (no panel or HUD, for
 // screenshots), and any module param by name (?kLand=10, ?exposure=1.1, ?refinePx=1). The climate's
-// alternate for the owner's choice lives here only: ?climateRangeK=6 saturates at ±6 K.
+// alternate for the owner's choice lives here only: ?climateRangeK=6 saturates at ±6 K. So do the
+// border steps' outer line weights far out: ?borderWeight=wide|solid|eased (look/bordersHook.ts).
 // window.__proto serves scripts (scripts/prototypeShots.ts).
 //
 // ?story=tambora|magellan walks the story instead of the presets, as the boot plays it. The panel hides

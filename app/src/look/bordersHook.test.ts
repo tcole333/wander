@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { BORDER_FACES, BORDER_TEXELS } from '../data/borders';
 import { MemoryAccount } from '../perf/memory';
 import {
+  BORDER_WEIGHTS,
   createBorderUniforms,
   createStepUniforms,
   fillBorderField,
+  OUTER_TODAY,
+  outerWeight,
   sourceVector,
   uploadBorderFace,
+  WEIGHT_NEAR_KM,
   type BorderSource,
 } from './bordersHook';
 
@@ -59,5 +63,34 @@ describe("the steps' sources", () => {
       depth: 8,
     });
     expect([...uniforms.lookBorderB.value.toArray()]).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe("the outer line's weights", () => {
+  const today = [OUTER_TODAY.widthPx, OUTER_TODAY.darken, OUTER_TODAY.halfDotPx, 0];
+  const look = (name: string, viewKm: number) => [...outerWeight(name, viewKm).toArray()];
+
+  it.each(Object.keys(BORDER_WEIGHTS))('%s draws today’s line at 6,000 km and closer', (name) => {
+    for (const viewKm of [300, 2500, WEIGHT_NEAR_KM]) expect(look(name, viewKm)).toEqual(today);
+  });
+
+  it.each(Object.entries(BORDER_WEIGHTS))(
+    '%s reaches its far look at world view',
+    (name, weight) => {
+      const { widthPx, darken, halfDotPx, follow } = weight.far;
+      expect(look(name, Infinity)).toEqual([widthPx, darken, halfDotPx, follow]);
+    },
+  );
+
+  it('eases the eased weight on through 17,500 km, where the others are already full', () => {
+    const [eased] = look('eased', 17_500);
+    expect(eased).toBeGreaterThan(OUTER_TODAY.widthPx);
+    expect(eased).toBeLessThan(BORDER_WEIGHTS.eased.far.widthPx);
+    expect(look('wide', 17_500)[0]).toBe(BORDER_WEIGHTS.wide.far.widthPx);
+  });
+
+  it("draws today's line for a name no weight has, and starts the steps' uniform there", () => {
+    expect(look('heavier', Infinity)).toEqual(today);
+    expect([...createStepUniforms('full').lookBorderOuter.value.toArray()]).toEqual(today);
   });
 });
