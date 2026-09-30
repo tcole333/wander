@@ -1,7 +1,7 @@
 // The climate files (streaming.md 3.5): a small WCY1 year as the modera stage writes one, read
 // back and two of its months blended as the walk blends them for a story day.
 import { describe, expect, test } from 'vitest';
-import { dayFromIso } from '../story/dates';
+import { dayFromHistorical, dayFromIso, HISTORICAL } from '../story/dates';
 import { syntheticYear } from '../test/climate';
 import { blendMonths, CLIMATE_MISSING, monthsAround, parseClimate } from './climate';
 
@@ -36,5 +36,13 @@ describe('climate files', () => {
     // June's middle is its 16th day; July's is halfway through its 16th.
     expect(w).toBeCloseTo(15 / 30.5, 6);
     expect(monthsAround(dayFromIso('1817-01-02')).from).toEqual({ year: 1816, month: 12 });
+  });
+
+  test('a day blends the months of the calendar asked for', () => {
+    // 10 March 1500 in the Julian calendar is 20 March in the Gregorian: before the middle of the
+    // Julian March, past the Gregorian's.
+    const day = dayFromHistorical({ year: 1500, month: 3, day: 10 });
+    expect(monthsAround(day, HISTORICAL).from).toEqual({ year: 1500, month: 2 });
+    expect(monthsAround(day).from).toEqual({ year: 1500, month: 3 });
   });
 });
