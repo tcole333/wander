@@ -79,7 +79,7 @@ export function openingText(opening: Opening): PlateText {
  */
 export function pinnedText(text: PlateText, qid: number, opening?: Opening): PinnedText {
   if (!opening) return { ...text, source: sourceOf(qid) };
-  const line = opening.label === opening.name ? {} : { line: opening.label };
+  const line = opening.label === opening.name ? {} : { line: curlyQuotes(opening.label) };
   return { ...text, ...line, source: opening.source };
 }
 
