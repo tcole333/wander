@@ -27,5 +27,13 @@ export default defineConfig({
     // The bundled packages' licenses, which the credits page links to.
     license: { fileName: 'licenses.txt' },
   },
-  test: { include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'] },
+  test: {
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    // One budget here and on CI. On a quiet Mac every test on the default budget finishes within
+    // 1.5 s, but other work on the Mac slows them 5-15 times: with Vitest's 5 s, 1 of 15 full
+    // runs passed at load 22-65, and with 60 s, 6 of 6 at load 32-43. A mirror sweep's hook ran
+    // past 120 s at load 75-110.
+    testTimeout: 60_000,
+    hookTimeout: 300_000,
+  },
 });
