@@ -10,7 +10,7 @@
 #
 # A class holds for every year a composite's rows cover, so each `why` speaks for all of them. A
 # component Cliopatria lists in years it did not belong is named in the `why` and left for review.
-modified: 2026-09-29
+modified: 2026-09-30
 composites:
   (Anglo-Saxon England):
     kind: grouping
@@ -215,10 +215,12 @@ composites:
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Imperial_State
   (Kalmar Union):
-    kind: empire
+    kind: grouping
     why: >-
-      Denmark, Norway and Sweden under one king, which Cliopatria draws as one polity; its other
-      component, the House of Oldenburg (1450–1458), is Christian I's share of the union's realms.
+      Denmark, Norway and Sweden under one monarch, which Cliopatria draws as one polity; legally the
+      countries remained separate sovereign states. Its other component, the House of Oldenburg
+      (1450–1458), is Christian I's Denmark and Norway while Karl Knutsson was king of Sweden
+      (1448–1457), two rival kingdoms, so the members stay apart.
     source:
       title: Kalmar Union
       publisher: Wikipedia
