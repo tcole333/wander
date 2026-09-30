@@ -135,33 +135,19 @@ describe("the walk's score", () => {
     ]);
   });
 
-  it('gives Magellan its ocean bed on a first visit and crossfades beds when stories change', () => {
-    const { walk, score, engine } = setup();
+  it('gives Magellan its ocean bed', () => {
+    const { walk, engine } = setup();
     const magellan = parseStory(
       readFileSync(new URL('../../../stories/magellan/story.md', import.meta.url), 'utf8'),
     );
     const state = { ...walk.state(), story: magellan, day: magellan.beats[0]!.day };
-    const first = new WalkScore(engine as unknown as SoundEngine, state, engine.soon());
+    const voyage = new WalkScore(engine as unknown as SoundEngine, state, engine.soon());
     expect(heard.started).toEqual(['bed', 'magellan']);
-    const fromTambora = score.toRoom(engine.soon());
-    const next = new WalkScore(engine as unknown as SoundEngine, state, engine.soon(), fromTambora);
-    expect(heard.stopped).toEqual(['bed']);
-    expect(heard.started).toEqual(['bed', 'magellan', 'magellan']);
-    // A return to Tambora restores the rumble's voice.
-    const fromMagellan = next.toRoom(engine.soon());
-    const again = new WalkScore(
-      engine as unknown as SoundEngine,
-      walk.state(),
-      engine.soon(),
-      fromMagellan,
-    );
-    expect(heard.stopped).toEqual(['bed', 'magellan']);
-    expect(heard.started.at(-1)).toBe('bed');
-    first.stop(engine.soon());
-    again.stop(engine.soon());
+    voyage.stop(engine.soon());
+    expect(heard.stopped).toEqual(['magellan']);
   });
 
-  it('fades cues to the room and reuses the same bed after another dive', () => {
+  it("fades cues to the room and leaves the bed's room tone for the lobby's flight", () => {
     const { walk, run, score, engine } = setup();
     walk.goTo(2);
     run(8);
@@ -170,23 +156,23 @@ describe("the walk's score", () => {
     expect(heard.stopped).not.toContain('bed');
     expect(heard.rooms).toBe(1);
     expect(room).not.toBeNull();
+    room?.stop();
+    expect(heard.stopped).toContain('bed');
+  });
+
+  it('brings a fresh bed at the landing of the next dive', () => {
+    const { score, engine } = setup();
+    score.toRoom(engine.soon())?.stop();
     const control = new ViewControl({ lon: 75, lat: 15, viewKm: 30000, tilt: 0, heading: 0 });
     const next = createWalk(story, control, { ready: () => true, arrive: 'fly' });
-    const again = new WalkScore(
-      engine as unknown as SoundEngine,
-      next.state(),
-      engine.soon(),
-      room,
-    );
-    const daysBeforeLanding = heard.days.length;
+    const again = new WalkScore(engine as unknown as SoundEngine, next.state(), engine.soon());
     next.update(0, DT);
     again.frame({ state: next.state(), unit: 'day', pace: 0, at: engine.soon(), dt: DT });
-    expect(heard.days).toHaveLength(daysBeforeLanding);
+    expect(heard.started.filter((name) => name === 'bed')).toHaveLength(1);
     for (let t = 0; t < 6; t += DT) next.update(0, DT);
     again.frame({ state: next.state(), unit: 'day', pace: 0, at: engine.soon(), dt: DT });
-    expect(heard.started.filter((name) => name === 'bed')).toHaveLength(1);
+    expect(heard.started.filter((name) => name === 'bed')).toHaveLength(2);
     expect(heard.days.at(-1)).toBe(next.state().day);
     again.stop(engine.soon());
-    expect(heard.stopped.filter((name) => name === 'bed')).toHaveLength(1);
   });
 });
