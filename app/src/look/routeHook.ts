@@ -3,7 +3,7 @@
 // so the cut stays crisp at island zoom. Static geometry uploads once; only the tiny time/opacity
 // table changes each frame. No segment count cap drops parts of a route.
 //
-// Where Explore is enabled, the look's marks add a table of their own (marks/marks.ts), so there
+// Where Explore stands, the look's marks add a table of their own (marks/marks.ts), so there
 // the cells head the index table instead of taking a texture, and the look reads no more samplers
 // than it does without them (docs/design/streaming.md 5.8, Fragment samplers).
 import {

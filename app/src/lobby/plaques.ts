@@ -2,7 +2,7 @@
 // the top right, and at the left a column with a heading and the stories' plaques in dark cast
 // brass: an engraved medallion (Tambora's volcano, Magellan's ship), the title, the years
 // and the blurb, a Begin line at its foot, and an ember that wakes in its socket when the plaque
-// is hovered or focused. Where Explore is enabled, its plaque stands last, an armillary sphere on
+// is hovered or focused. Where Explore stands, its plaque comes last, an armillary sphere on
 // its medallion, with its title and years and no blurb. The plaque is a button, so Tab reaches it
 // and Enter or Space chooses it. The column fades in as the opening ends and slides away once the
 // plaque is chosen.

@@ -3,7 +3,7 @@
 // surface pools. The relief is evaluated at the fragment and four taps around it, and its
 // gradient perturbs the normal, as the spike's normal map did.
 //
-// Where Explore is enabled, the look also cuts the marks into its surface (marks/marks.glsl.ts);
+// Where Explore stands, the look also cuts the marks into its surface (marks/marks.glsl.ts);
 // elsewhere its program is exactly the look's alone.
 import { glslFaceTable, SURFACE_LEVELS } from '../globe/surfaceVertex.glsl';
 import {

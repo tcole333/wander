@@ -2,7 +2,7 @@
 // is the merged surface vertex chunk and whose fragment stage computes the spike's baked look from
 // the surface pools, per fragment, with the ocean and sea names inlaid in its lacquer
 // (seaNames.ts). A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
-// own shadows. Given a glyph set, where Explore is enabled, the look also cuts marks into its
+// own shadows. Given a glyph set, where Explore stands, the look also cuts marks into its
 // surface (marks/marks.ts, look.marks); without one, its program and atlas are the look's alone.
 // The faces the sea names are lettered in, declared wherever the look is made.
 import '@fontsource/libre-baskerville/400.css';

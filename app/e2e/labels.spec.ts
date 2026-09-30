@@ -1,4 +1,4 @@
-// The label faces (story/ui/fonts.ts, streaming.md 6): once a boot with Explore enabled has loaded
+// The label faces (story/ui/fonts.ts, streaming.md 6): once a boot where Explore stands has loaded
 // them, label text in any script the event index holds draws without fetching another face, since
 // nothing is fetched from Pages after boot.
 import { expect, test } from '@playwright/test';
