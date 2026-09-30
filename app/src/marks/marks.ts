@@ -96,6 +96,18 @@ export interface PlacedMark {
   alpha: number;
 }
 
+/**
+ * Where a placed mark may stand on screen, CSS px: from its sea-level place (x0, y0) to where the
+ * terrain's ceiling would lift it (x1, y1), since the relief draws it somewhere between. The two
+ * are one point at sea, and without the terrain's ceiling.
+ */
+export interface MarkSpan {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
 /** The draw the marks are placed for, in the globe frame (radius 1). */
 export interface MarkView {
   camera: Vector3;
@@ -646,14 +658,11 @@ export class MarkLayer {
     const highest = field ? kLand * Math.max(0, field.hMax) : 0;
     for (const mark of this.#placed) {
       if (mark.alpha < PICK_ALPHA_MIN) continue;
-      let [x1, y1] = [mark.x, mark.y];
       if (field && kLand > 0) {
-        const [xh, yh] = this.#lifted(mark.dir, highest) ?? [x1, y1];
+        const [xh, yh] = this.#lifted(mark.dir, highest) ?? [mark.x, mark.y];
         if (segmentDistance(x, y, mark.x, mark.y, xh, yh) > mark.rPx) continue;
-        const dir: [number, number, number] = [mark.dir.x, mark.dir.y, mark.dir.z];
-        const ceiling = field.ceilingM(dir, Math.max(mark.r, 1e-5), kLand);
-        if (ceiling > 0) [x1, y1] = this.#lifted(mark.dir, ceiling) ?? [x1, y1];
       }
+      const [x1, y1] = this.#top(mark);
       const d = segmentDistance(x, y, mark.x, mark.y, x1, y1);
       if (d <= mark.rPx && d < bestD) {
         bestD = d;
@@ -661,6 +670,28 @@ export class MarkLayer {
       }
     }
     return best;
+  }
+
+  /**
+   * Where the mark with this id may stand on screen in the last draw, or null for one it did not
+   * place: asked for what must stand clear of a mark, as a plate does, rather than for every
+   * mark, since the terrain's ceiling costs a walk over tiles.
+   */
+  span(id: string): MarkSpan | null {
+    const mark = this.#placed.find((placed) => placed.id === id);
+    if (!mark) return null;
+    const [x1, y1] = this.#top(mark);
+    return { x0: mark.x, y0: mark.y, x1, y1 };
+  }
+
+  /** Where the terrain's ceiling would lift a placed mark on screen, CSS px. */
+  #top(mark: { x: number; y: number; dir: Vector3; r: number }): [number, number] {
+    const field = this.#clearance;
+    const kLand = this.#view.kLand;
+    if (!field || kLand <= 0) return [mark.x, mark.y];
+    const dir: [number, number, number] = [mark.dir.x, mark.dir.y, mark.dir.z];
+    const ceiling = field.ceilingM(dir, Math.max(mark.r, 1e-5), kLand);
+    return (ceiling > 0 ? this.#lifted(mark.dir, ceiling) : null) ?? [mark.x, mark.y];
   }
 
   /** Where the place at `dir`, lifted `meters` off sea level, stands on screen, CSS px. */
