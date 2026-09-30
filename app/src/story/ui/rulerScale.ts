@@ -381,11 +381,27 @@ function yearLabelEdges(arc: Arc, label: Label): [number, number] {
   return [left, left + width];
 }
 
+/** A year's figure along the rule, px, generously: the lower row's 16 px face with 0.05 em spacing. */
+const YEAR_FIGURE_PX = 16 * (0.66 + 0.05);
+
+/**
+ * A year label's extents as it draws: its face's own length, centred where spaceYears centres its
+ * conservative extents.
+ */
+function yearFaceEdges(arc: Arc, label: Label): [number, number] {
+  const [left, right] = yearLabelEdges(arc, label);
+  const half = (label.text.length * YEAR_FIGURE_PX) / 2;
+  return [(left + right) / 2 - half, (left + right) / 2 + half];
+}
+
 /**
  * The label at either end of the rule that turns inward off its tick, an edge's or a round
  * year's too near the end to centre on its tick, keeps its own length of bare rule from the next
  * label in, as an unround edge must: the round years within that length keep their ticks but
  * give up their names, so the rule's end reads as its end rather than crowding the year beside it.
+ * Lengths here are the faces' own (yearFaceEdges): the conservative extents, counted on both
+ * labels and again as the clearance, would take the name of a round year that already clears the
+ * end, as 1 CE clears 2000 CE across all of history at 1440 px.
  */
 function clearEnds(arc: Arc, scale: Scale): void {
   const sorted = scale.labels.toSorted((a, b) => a.angle - b.angle);
@@ -395,12 +411,12 @@ function clearEnds(arc: Arc, scale: Scale): void {
     [sorted.at(-1), 'end', 'start'],
   ] as const) {
     if (end?.anchor !== side) continue;
-    const [left, right] = yearLabelEdges(arc, end);
+    const [left, right] = yearFaceEdges(arc, end);
     const clear = right - left;
     for (const label of sorted) {
       // The other end's own label never gives way.
       if (label === end || !label.key.startsWith('c') || label.anchor === other) continue;
-      const [a, b] = yearLabelEdges(arc, label);
+      const [a, b] = yearFaceEdges(arc, label);
       if (side === 'start' ? a < right + clear : b > left - clear) dropped.add(label);
     }
   }
