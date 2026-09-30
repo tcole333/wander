@@ -2,7 +2,8 @@
 // from a root that also holds the release's copy and each story's first image it passes, and
 // without the event files it names the missing overview; from the build alone, which holds
 // neither copy nor images, it names the missing copy and fetches nothing else. On the bundled
-// release it reads every climate year the walk loads as it starts, and the 1815 border field.
+// release it reads every climate year the walk loads as it starts, and the 1815 border field; with
+// border steps, the step holding 1815, its preview chunk and the notice.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,7 +13,7 @@ import bundled from '../src/generated/release.json' with { type: 'json' };
 import { climateYears } from '../src/story/effects/climate';
 import { parseStory } from '../src/story/story';
 import { assertFixtureFresh, REPO_ROOT } from '../src/test/fixture';
-import { checkRelease, releaseKeys } from './checkRelease';
+import { borderStepKeys, checkRelease, releaseKeys } from './checkRelease';
 import { startDataServer, type DataServer } from './dataServer';
 
 const servers: DataServer[] = [];
@@ -43,7 +44,7 @@ async function hosted(events: boolean): Promise<Release> {
   const root = join(repo, 'build', 'fixture');
   mkdirSync(join(root, 'rel'), { recursive: true });
   mkdirSync(join(repo, 'build', 'stages'), { recursive: true });
-  const linked = events ? ['surf', 'fd', 'ev'] : ['surf', 'fd'];
+  const linked = events ? ['surf', 'fd', 'lic', 'ev'] : ['surf', 'fd', 'lic'];
   for (const dir of linked) symlinkSync(join(REPO_ROOT, 'build', 'fixture', dir), join(root, dir));
   symlinkSync(
     join(REPO_ROOT, 'build', 'stages', 'fixture'),
@@ -95,5 +96,43 @@ describe('check-release', () => {
     const field = release.borders?.files['1815']?.key;
     expect(field).toMatch(/^fd\/borders\/[0-9a-f]{8}\/1815\.bin$/);
     expect(releaseKeys(release).data).toContain(field);
+  });
+});
+
+describe('the border steps it reads', () => {
+  const steps = {
+    ver: 'ffff6666',
+    size: 1024,
+    apron: 4,
+    years: Array.from({ length: 20 }, (_, k) => 1800 + 2 * k),
+    keys: Array.from({ length: 20 }, (_, k) => `fd/borders/s/${k}.bin`),
+    bytes: Array.from({ length: 20 }, () => 1),
+    previews: { per: 16, keys: ['fd/borders/p/a.bin', 'fd/borders/p/b.bin'], bytes: [1, 1] },
+    polities: 'fd/borders/m/m.json',
+    notice: 'lic/n.txt',
+  };
+
+  test('are the step holding 1815, its preview chunk and the notice', () => {
+    expect(borderStepKeys(steps)).toEqual([
+      'fd/borders/s/7.bin',
+      'fd/borders/p/a.bin',
+      'lic/n.txt',
+    ]);
+    expect(borderStepKeys(steps, 1834)).toEqual([
+      'fd/borders/s/17.bin',
+      'fd/borders/p/b.bin',
+      'lic/n.txt',
+    ]);
+  });
+
+  test('are the notice alone before the first step', () => {
+    expect(borderStepKeys(steps, 1799)).toEqual(['lic/n.txt']);
+  });
+
+  test("join the release's keys when it has a borderSteps section", () => {
+    const release = { ...(bundled as Release), borderSteps: steps };
+    expect(releaseKeys(release).data).toEqual(
+      expect.arrayContaining(['fd/borders/s/7.bin', 'fd/borders/p/a.bin', 'lic/n.txt']),
+    );
   });
 });
