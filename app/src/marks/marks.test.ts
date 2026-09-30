@@ -394,9 +394,11 @@ describe('MarkLayer', () => {
   });
 
   it('picks a mark on land anywhere between its place and where the relief can lift it', () => {
-    // A tilted view north over a place: its relief rises toward the top of the screen.
+    // A tilted view north over a place: its relief rises toward the top of the screen, up to the
+    // field's highest bound, 20,000 m.
     const at: LonLat = [20, 10];
     const liftedM = 20_000;
+    const kLand = 1;
     const camera = new PerspectiveCamera(30, 1440 / 900, 0.001, 100);
     camera.position.copy(dirOf([20, 4]).multiplyScalar(1.1));
     camera.up.copy(dirOf([20, 4]));
@@ -407,7 +409,7 @@ describe('MarkLayer', () => {
       camera: camera.position.clone(),
       forward: camera.getWorldDirection(new Vector3()),
       toClip: new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
-      kLand: 8,
+      kLand,
     };
     const project = (dir: Vector3) => {
       const clip = new Vector4(dir.x, dir.y, dir.z, 1).applyMatrix4(onLand.toClip);
@@ -423,15 +425,16 @@ describe('MarkLayer', () => {
     expect(marks.hit(top.x, top.y)).toBeNull();
     const ceilings: number[] = [];
     marks.useClearance({
-      ceilingM: (_dir: number[], _cap: number, kLand: number) => {
-        ceilings.push(kLand);
+      ceilingM: (_dir: number[], _cap: number, k: number) => {
+        ceilings.push(k);
         return liftedM;
       },
+      hMax: liftedM / kLand,
     } as unknown as ClearanceField);
     expect(marks.hit(top.x, top.y)).toBe('peak');
     expect(marks.hit((sea.x + top.x) / 2, (sea.y + top.y) / 2)).toBe('peak');
     expect(marks.hit(sea.x, sea.y)).toBe('peak');
-    expect(ceilings).toContain(8);
+    expect(ceilings).toContain(kLand);
     // Past its lifted place, nothing.
     expect(marks.hit(top.x, top.y - 20)).toBeNull();
     // A pointer beyond the reach of any relief asks no ceiling.

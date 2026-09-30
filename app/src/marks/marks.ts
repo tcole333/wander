@@ -154,8 +154,6 @@ const FACING_MIN = 0.05;
 const MARK_COS_MIN = 0.9;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
 const PICK_ALPHA_MIN = 0.25;
-/** Above any land the terrain holds, m: no relief lifts a mark higher than this, exaggerated. */
-const HIGHEST_M = 9000;
 
 /**
  * A mark's diameter in CSS px for a view `viewKm` wide (tunables.markPx), drawn at `pixelRatio`
@@ -637,18 +635,20 @@ export class MarkLayer {
    * The mark under CSS px (x, y), or null: the nearest drawn and not too faint whose disc reaches
    * the point. Over land the disc runs from the mark's sea-level place to where the terrain's
    * ceiling there would lift it, since the mark is drawn on the relief somewhere between; only a
-   * mark within reach of the highest lift asks the ceiling, which costs a walk over tiles.
+   * mark within reach of the highest lift, the field's highest bound, asks the ceiling, which
+   * costs a walk over tiles.
    */
   hit(x: number, y: number): string | null {
     let best: string | null = null;
     let bestD = Infinity;
     const field = this.#clearance;
     const kLand = field ? this.#view.kLand : 0;
+    const highest = field ? kLand * Math.max(0, field.hMax) : 0;
     for (const mark of this.#placed) {
       if (mark.alpha < PICK_ALPHA_MIN) continue;
       let [x1, y1] = [mark.x, mark.y];
       if (field && kLand > 0) {
-        const [xh, yh] = this.#lifted(mark.dir, kLand * HIGHEST_M) ?? [x1, y1];
+        const [xh, yh] = this.#lifted(mark.dir, highest) ?? [x1, y1];
         if (segmentDistance(x, y, mark.x, mark.y, xh, yh) > mark.rPx) continue;
         const dir: [number, number, number] = [mark.dir.x, mark.dir.y, mark.dir.z];
         const ceiling = field.ceilingM(dir, Math.max(mark.r, 1e-5), kLand);
