@@ -5,15 +5,16 @@
 // unseen. With its strength at 0, the default, the look is unchanged; the walk compiles it at 0
 // before it starts.
 //
-// The look holds one border array in one sampler. Where Explore is not enabled, it is milestone
-// 1's 1815 field: one R8 array of six faces, allocated with the look, given its bytes once its file
-// has arrived and uploaded a face at a time (story/effects/borders.ts), and read at the face
-// coordinates the look already has; visitors' program is exactly milestone 1's. Where Explore is
-// enabled, it holds the border steps (borders/): an RG8 array of 1024² layers, a slot of six faces
-// per step drawn (two on the full tier, one on lite) and a two-layer ring of preview cells. It
-// draws two sources, each a slot or a preview cell, and dissolves between them by blending their
-// drawn lines: a step's outer line as the 1815 groove, lighter and feathered where stateless land
-// lies on one side, and its inner line, finer and fainter, fading in as the view narrows.
+// The look holds one border array in one sampler. Without border steps in the release it is
+// milestone 1's 1815 field: one R8 array of six faces, allocated with the look, given its bytes
+// once its file has arrived and uploaded a face at a time (story/effects/borders.ts), and read at
+// the face coordinates the look already has; visitors' program is exactly milestone 1's. Where the
+// release names them, it holds the border steps (borders/): an RG8 array of 1024² layers, a slot
+// of six faces per step drawn (two on the full tier, one on lite) and a two-layer ring of preview
+// cells. It draws two sources, each a slot or a preview cell, and dissolves between them by
+// blending their drawn lines: a step's outer line as the 1815 groove, lighter and feathered where
+// stateless land lies on one side, and its inner line, finer and fainter, fading in as the view
+// narrows.
 import {
   DataArrayTexture,
   NearestFilter,
