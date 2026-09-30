@@ -5,13 +5,14 @@
 // its mark takes that family's material. Each mark fades in and out as the worker's fades say,
 // interpolated every frame between replies. A war whose extent grows past the split on screen gives
 // way to its battles and stays as a hollow glyph, its extent a ring once hovered, its solid mark
-// and its hollow one crossfading as marks of their own; an event whose place is inherited or
-// derived, or whose date is known only to its year, draws softer and half as deep
-// (globe-language.md, principle 1). The focal event, the opening at first, keeps its ember until
-// the now window leaves its dates, when it becomes one mark among the others; until the index
-// holds it, the openings lock draws it. Leaving eases every mark out with the lobby's glows;
-// disposing ends the worker and takes the marks off the globe.
-import type { Tier } from '../config/tunables';
+// and its hollow one crossfading as marks of their own; a hollow glyph gives way to a mark already
+// standing on its spot, so parents sharing a borrowed place do not pile into one blot. An event
+// whose place is inherited or derived, or whose date is known only to its year, draws softer and
+// half as deep (globe-language.md, principle 1). The focal event, the opening at first, keeps its
+// ember until the now window leaves its dates, when it becomes one mark among the others; until
+// the index holds it, the openings lock draws it. Leaving eases every mark out with the lobby's
+// glows; disposing ends the worker and takes the marks off the globe.
+import { tunables, type Tier } from '../config/tunables';
 import type { EventClient } from '../events/client';
 import { fadeOpacity, type EventMark, type EventResult, type Fading } from '../events/query';
 import type { EventReply } from '../events/runtime';
@@ -69,6 +70,8 @@ const DEG = Math.PI / 180;
 
 /** What a hollow parent's mark id adds to its event's, so its solid mark can crossfade with it. */
 const HOLLOW_ID = '/outline';
+/** One mark's radius on screen, CSS px, until the look has placed one: the smallest scale's. */
+const MARK_RADIUS_PX = Math.min(...tunables.markPx.map((row) => row.px)) / 2;
 
 /**
  * A mark's id: its event's Q number, the same whether the index or the lock draws it, and a
@@ -325,22 +328,31 @@ export class ExploreEvents {
     }
   }
 
-  /** The marks for the last result and the focal event, their fades at `nowMs`. */
+  /**
+   * The marks for the last result and the focal event, their fades at `nowMs`. A hollow parent
+   * fades out as a mark of another event stands within one mark's radius of it on screen, the
+   * highest-scored parent standing first.
+   */
   #draw(nowMs: number): void {
     const specs: MarkSpec[] = [];
     const shown = new Map<string, EventMark | null>();
     const focal = this.#focal;
     let fading = false;
-    const add = (mark: Fading<EventMark>, hollow: boolean) => {
+    /** Marks drawn with their anchors in view, and their opacities. */
+    const standing: { mark: EventMark; opacity: number }[] = [];
+    const radius = this.#marks.placed()[0]?.rPx ?? MARK_RADIUS_PX;
+    /** Draws `mark` at its fade's opacity less `veil`'s share, and says what that came to. */
+    const add = (mark: Fading<EventMark>, hollow: boolean, veil = 0): number => {
       const isFocal = !hollow && mark.qid === focal?.qid;
-      const opacity = isFocal ? 1 : fadeOpacity(mark.fade, nowMs);
-      if (opacity !== mark.fade.to && !isFocal) fading = true;
-      if (opacity <= 0) return;
+      const own = isFocal ? 1 : fadeOpacity(mark.fade, nowMs);
+      if (own !== mark.fade.to && !isFocal) fading = true;
+      const opacity = own * (1 - veil);
+      if (opacity <= 0) return 0;
       const name = this.#classes[mark.cls];
       const symbol = name === undefined ? undefined : eventSymbol(name);
       if (!symbol) {
         this.#report(`class ${mark.cls}`, `no mark for the class '${name ?? mark.cls}'`);
-        return;
+        return 0;
       }
       const id = markIdOf(mark.qid, hollow);
       specs.push({
@@ -357,11 +369,28 @@ export class ExploreEvents {
         score: mark.score,
       });
       shown.set(id, mark);
+      if (mark.anchorVisible) standing.push({ mark, opacity });
+      return opacity;
+    };
+    /** The most opaque mark of another event standing within one mark's radius of `mark`. */
+    const veilOf = (mark: EventMark): number => {
+      if (!mark.anchorVisible) return 0;
+      let veil = 0;
+      for (const other of standing)
+        if (
+          other.mark.qid !== mark.qid &&
+          Math.hypot(other.mark.x - mark.x, other.mark.y - mark.y) <= radius
+        )
+          veil = Math.max(veil, other.opacity);
+      return veil;
     };
     const result = this.#result;
     for (const mark of result?.markers ?? []) add(mark, false);
     // The focal event stays a mark of its own when it is also a parent its children split.
-    for (const mark of result?.outlines ?? []) if (mark.qid !== focal?.qid) add(mark, true);
+    const outlines = (result?.outlines ?? [])
+      .filter((mark) => mark.qid !== focal?.qid)
+      .sort((a, b) => b.score - a.score || a.row - b.row);
+    for (const mark of outlines) add(mark, true, veilOf(mark));
     // Until the index holds the focal event, or when it fails, the lock draws it.
     const lock = focal?.lock;
     if (focal && lock && (!result || result.missingFocal.includes(focal.qid))) {
