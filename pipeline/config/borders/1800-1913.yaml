@@ -214,3 +214,86 @@ corrections:
       of: British Colonial Empire
     why: *sumbawa-members
     source: *dejongboers
+  # India: Mysore, Hyderabad and the Mughal emperor.
+  - years: [1800, 1947]
+    add:
+      polity: Kingdom of Mysore
+      shape: mysore-1799.geojson
+    why: >-
+      Cliopatria's Mysore ends with Tipu's kingdom in 1799. The Wodeyars' reduced state is drawn
+      from 1800 in its shape on the Imperial Gazetteer's 1909 map (native states coloured yellow),
+      traced and georeferenced on the plate's graticule; its bounds match the Gazetteer's own
+      figures to 0.03°.
+    source:
+      title: Madras (Southern Section) with Mysore, Coorg & Travancore, Imperial Gazetteer of India (J. G. Bartholomew, 1909)
+      publisher: Wikimedia Commons
+      url: https://commons.wikimedia.org/wiki/File:Madras_Prov_South_1909.jpg
+  - years: [1800, 1858]
+    member:
+      polity: Kingdom of Mysore
+      of: British Empire
+    why: >-
+      A princely state by treaty: after Tipu's death in 1799 the restored Wodeyars ruled under a
+      subsidiary alliance with a British Resident, until Mysore joined India in August 1947.
+    source:
+      title: Kingdom of Mysore
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Mysore
+  - years: [1859, 1947]
+    member:
+      polity: Kingdom of Mysore
+      of: British Raj
+    why: >-
+      A princely state under British paramountcy, directly administered from 1831 to 1881, until
+      Mysore joined India on 9 August 1947.
+    source:
+      title: Kingdom of Mysore
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Mysore
+  - years: [1801, 1946]
+    add:
+      polity: Hyderabad State
+      shape: hyderabad-1800.geojson
+    why: >-
+      In 1800 the Nizam ceded to the Company the districts he had gained from Mysore, to pay for its
+      subsidiary force; the dominions left to him are Cliopatria's own Hyderabad of 1947, which it
+      otherwise draws as British. Berar, the Nizam's from 1803 until assigned in 1853, is left for
+      review.
+    source:
+      title: Ceded Districts
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ceded_Districts
+  - years: [1801, 1858]
+    member:
+      polity: Hyderabad State
+      of: British Empire
+    why: >-
+      A dependent by treaty: the 1798 agreement put Hyderabad under British protection, and the
+      Nizam remained a subsidiary ally under British paramountcy.
+    source:
+      title: Hyderabad State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hyderabad_State
+  - years: [1859, 1947]
+    member:
+      polity: Hyderabad State
+      of: British Raj
+    why: >-
+      A princely state under British paramountcy, with a 23-gun salute, until Indian independence;
+      Cliopatria's own Hyderabad row begins in 1947.
+    source:
+      title: Hyderabad State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hyderabad_State
+  - years: [1804, 1857]
+    member:
+      polity: Mughal Empire
+      of: British Empire
+    why: >-
+      On 14 September 1803 British troops entered Delhi and took Shah Alam II under their
+      protection; he and his successors ruled only Delhi as the Company's pensioners until the
+      revolt of 1857.
+    source:
+      title: Shah Alam II
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Shah_Alam_II
