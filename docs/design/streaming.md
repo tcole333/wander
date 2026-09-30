@@ -1101,9 +1101,11 @@ only a failed start or a worker error ends the worker.
   or derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser)
   is soft, its edge within a fifth of its radius so a 12 px seal keeps its shape, and half as deep.
   The focal event, the opening until a pin replaces it, passes the query's budgets until the now
-  window leaves its dates, then drops to an ordinary mark; until the index holds it, the openings
-  lock draws it. The marks ease in with the dive and out with the lobby's glows as Explore leaves,
-  and `explore.events` counts the index the worker holds.
+  window leaves its dates, then drops to an ordinary mark; until the index holds it, or once the
+  worker has failed, the openings lock draws it. A failed worker (an error naming neither a file
+  nor a request) logs once and takes the index's marks off, and nothing more is asked of it. The
+  marks ease in with the dive and out with the lobby's glows as Explore leaves, and
+  `explore.events` counts the index the worker holds.
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,

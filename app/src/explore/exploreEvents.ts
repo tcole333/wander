@@ -10,8 +10,9 @@
 // whose place is inherited or derived, or whose date is known only to its year, draws softer and
 // half as deep (globe-language.md, principle 1). The focal event, the opening at first, keeps its
 // ember until the now window leaves its dates, when it becomes one mark among the others; until
-// the index holds it, the openings lock draws it. Leaving eases every mark out with the lobby's
-// glows; disposing ends the worker and takes the marks off the globe.
+// the index holds it, or once the worker has failed, the openings lock draws it. A failed worker
+// logs once and its marks go. Leaving eases every mark out with the lobby's glows; disposing ends
+// the worker and takes the marks off the globe.
 import { tunables, type Tier } from '../config/tunables';
 import type { EventClient } from '../events/client';
 import { fadeOpacity, type EventMark, type EventResult, type Fading } from '../events/query';
@@ -182,6 +183,8 @@ export class ExploreEvents {
   #lastMs: number | null = null;
   #left = false;
   #disposed = false;
+  /** The worker has failed: nothing more is asked, and only the lock's focal mark is drawn. */
+  #dead = false;
   /** The marks set, by id, with the events they stand for. */
   #shown = new Map<string, EventMark | null>();
   #specs: MarkSpec[] = [];
@@ -232,7 +235,7 @@ export class ExploreEvents {
       this.#focal = null;
       this.#changed = true;
     }
-    if (!this.#left) {
+    if (!this.#left && !this.#dead) {
       const asked: Asked = {
         window,
         view: eventViewOf(frame),
@@ -273,9 +276,9 @@ export class ExploreEvents {
     return this.#specs;
   }
 
-  /** Nothing is on its way from the worker and no mark is fading. */
+  /** Nothing is on its way from the worker, or it has failed, and no mark is fading. */
   settled(): boolean {
-    return this.#client.idle() && !this.#fading && !this.#changed;
+    return (this.#dead || this.#client.idle()) && !this.#fading && !this.#changed;
   }
 
   /** Stops asking; the marks ease out with the lobby's glows. */
@@ -312,6 +315,7 @@ export class ExploreEvents {
         if (reply.plan.error) this.#report('plan', reply.plan.error);
         return;
       case 'result': {
+        if (this.#dead) return;
         this.#result = reply.result;
         this.#resident = reply.plan.bytes;
         this.#changed = true;
@@ -322,6 +326,13 @@ export class ExploreEvents {
       }
       case 'error':
         this.#report(reply.key ?? reply.request ?? 'worker', reply.message);
+        // The worker itself failed, and the client asks it nothing more: its marks go, rather
+        // than stand for another time as the clock moves on.
+        if (reply.key === undefined && reply.request === undefined) {
+          this.#dead = true;
+          this.#result = null;
+          this.#changed = true;
+        }
         return;
       default:
         return;
@@ -391,7 +402,7 @@ export class ExploreEvents {
       .filter((mark) => mark.qid !== focal?.qid)
       .sort((a, b) => b.score - a.score || a.row - b.row);
     for (const mark of outlines) add(mark, true, veilOf(mark));
-    // Until the index holds the focal event, or when it fails, the lock draws it.
+    // Until the index holds the focal event, or when it or the worker fails, the lock draws it.
     const lock = focal?.lock;
     if (focal && lock && (!result || result.missingFocal.includes(focal.qid))) {
       const symbol = eventSymbol(lock.cls);

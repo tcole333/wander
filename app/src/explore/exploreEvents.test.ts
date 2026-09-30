@@ -43,6 +43,8 @@ class InPlaceWorker implements EventSource {
   readonly index: EventIndex;
   readonly engine: EventQueryEngine;
   asked: EventQuery[] = [];
+  /** Replies the next drain adds after its own, as a worker failing would send them. */
+  extra: EventReply[] = [];
   #pending: EventQuery | undefined;
   #stated = false;
   #generation = 0;
@@ -73,6 +75,8 @@ class InPlaceWorker implements EventSource {
       replies.push({ type: 'result', generation: ++this.#generation, result, plan });
       this.#pending = undefined;
     }
+    replies.push(...this.extra);
+    this.extra = [];
     return replies;
   }
   idle(): boolean {
@@ -365,6 +369,31 @@ describe("Explore's events", () => {
     ]);
     events.update(close, at(1050), 1000 + tunables.eventFade * 2);
     expect(hollows()).toEqual([{ id: 'Q201/outline', opacity: 1 }]);
+  });
+
+  it('takes the index’s marks off, the lock’s focal mark staying, once the worker fails', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { worker, marks } = setup([
+      { row: 0, qid: 1, lon: 10, lat: 45, t0: 990, t1: 1010, cls: BATTLE },
+    ]);
+    const focal = focalOf({ qid: 'Q9', day: 1000, at: [11, 46], precision: 'day', class: 'war' });
+    const events = new ExploreEvents({ client: worker, marks, focal });
+    events.update(WORLD, at(1000), 0);
+    events.update(WORLD, at(1000), tunables.eventFade * 2);
+    expect(marks.specs.map((s) => s.id)).toEqual(['Q1', 'Q9']);
+
+    worker.extra.push({ type: 'error', message: 'out of memory' });
+    events.update(WORLD, at(1005), 1000);
+    const asked = worker.asked.length;
+    // Its marks go at once rather than stand for other times as the clock moves on.
+    events.update(WORLD, at(1008), 1016);
+    expect(marks.specs).toMatchObject([{ id: 'Q9', focal: true }]);
+    expect(events.event('Q9')).toBeNull();
+    expect(worker.asked).toHaveLength(asked);
+    expect(events.settled()).toBe(true);
+    events.update(WORLD, at(5000), 1032);
+    expect(marks.specs).toEqual([]);
+    expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it('logs a class without a mark once and draws the rest', () => {
