@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GLYPH_UNITS } from './glyphs';
+import { GLYPH_UNITS, glyphReach } from './glyphs';
 import { EVENT_GLYPHS } from './symbols';
 
 const MARGIN = 4;
@@ -48,4 +48,14 @@ describe('glyphs', () => {
       expect(Math.max(...all)).toBeLessThanOrEqual(GLYPH_UNITS - MARGIN);
     },
   );
+});
+
+describe('glyphReach', () => {
+  it('reaches a polygon’s farthest corner and the far side of a circle’s arcs', () => {
+    expect(glyphReach('M4 4L60 4L32 60Z')).toBeCloseTo(Math.hypot(28, 28), 6);
+    expect(glyphReach('M32 22A10 10 0 0 1 32 42A10 10 0 0 1 32 22Z')).toBeCloseTo(10, 6);
+    // A ring drawn as one arc all but closed on itself, below its starting point.
+    expect(glyphReach('M32 4A7 7 0 1 1 31.99 4Z')).toBeCloseTo(28, 3);
+    expect(() => glyphReach('M4 4C8 8 12 12 16 4Z')).toThrow('glyphReach reads no C');
+  });
 });

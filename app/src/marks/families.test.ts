@@ -2,9 +2,20 @@
 // glyph alone; and the look without marks compiles none of their code.
 import { Color, Vector4 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { tunables } from '../config/tunables';
 import { lookFragment } from '../look/lookFragment.glsl';
-import { FAMILIES, familyUniforms, FAMILY_VEC4S, MARK_VARIANTS, PACES } from './families';
+import { EVENT_CLASS_SYMBOLS } from './eventSymbols';
+import {
+  FAMILIES,
+  familyUniforms,
+  FAMILY_VEC4S,
+  MARK_VARIANTS,
+  PACES,
+  TOKEN_INK,
+  type Pace,
+} from './families';
+import { GLYPH_UNITS, glyphReach } from './glyphs';
+import { markPx } from './marks';
+import { EVENT_GLYPHS } from './symbols';
 
 describe('FAMILIES', () => {
   it.each(MARK_VARIANTS.map((name, variant) => [name, variant] as const))(
@@ -20,15 +31,35 @@ describe('FAMILIES', () => {
 });
 
 describe('the cast token', () => {
-  it('holds its glyph over three quarters of its seal, inside the rim, at every size', () => {
-    const smallest = Math.min(...tunables.markPx.map((row) => row.px));
-    for (const pace of PACES) {
-      const { disc, glyph } = FAMILIES[pace].variants[0];
-      const radius = disc?.radius ?? 0;
-      // A glyph keeps to its grid's inscribed circle, 28 of its 32 units from the centre.
-      expect(glyph.scale * (28 / 32), pace).toBeLessThan(0.7 * radius);
-      expect(glyph.scale / radius, pace).toBeCloseTo(0.74);
-      expect(glyph.scale * smallest, pace).toBeGreaterThan(7);
+  /** How far each of a family's glyphs reaches from its token's center, in r. */
+  const reaches = (pace: Pace) => {
+    const { glyph } = FAMILIES[pace].variants[0];
+    const glyphs = new Set(
+      Object.values(EVENT_CLASS_SYMBOLS)
+        .filter((symbol) => symbol.pace === pace)
+        .map((symbol) => symbol.glyph),
+    );
+    return [...glyphs].map(
+      (id) => [id, (glyph.scale * glyphReach(EVENT_GLYPHS[id])) / (GLYPH_UNITS / 2)] as const,
+    );
+  };
+
+  it.each(PACES)('keeps every %s glyph on its seal’s face, as large as the face allows', (pace) => {
+    const seal = TOKEN_INK * (FAMILIES[pace].variants[0].disc?.radius ?? 0);
+    const far = reaches(pace);
+    expect(far.filter(([, reach]) => reach > seal)).toEqual([]);
+    // Scaled for its farthest-reaching glyph: a hundredth more, and that glyph would leave it.
+    const { scale } = FAMILIES[pace].variants[0].glyph;
+    const farthest = Math.max(...far.map(([, reach]) => reach));
+    expect((farthest * (scale + 0.01)) / scale).toBeGreaterThan(seal);
+  });
+
+  it.each(PACES)('holds the %s glyph over more than 7 device px on the smallest mark', (pace) => {
+    // The least the drawing rules (symbols.ts) hold a glyph to: a 6-unit stroke two thirds of a
+    // device pixel. markMinDevicePx takes it past that where the globe draws one to a CSS px.
+    const { scale } = FAMILIES[pace].variants[0].glyph;
+    for (const ratio of [1, 1.25, 1.5, 2]) {
+      expect(scale * markPx(Infinity, ratio) * ratio, `${ratio}`).toBeGreaterThan(7);
     }
   });
 });
