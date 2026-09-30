@@ -1205,9 +1205,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
 
 | Class | Contents, in order | In flight |
 |---|---|---|
-| **now** | missing roots (L0-L1); the current view's desired set with ancestors, coarsest first; a toggled layer's view tiles; the current beat's core and critical items; a Resume, Back or jump target; the predicted resting view of a zoom gesture; after the ruler rests on a new snapshot, its `index.bin` and `meta.json`, then its view tiles | up to 11 while background has queued work, else 12 |
+| **now** | missing roots (L0-L1); the current view's desired set with ancestors, coarsest first; a toggled layer's view tiles; the current beat's core and critical items; a Resume, Back or jump target; the predicted resting view of a zoom gesture; a border step once the clock has rested in it for `borderRest` (3.3) | up to 11 while background has queued work, else 12 |
 | **next** | the hovered story's core and beat-1 critical set; the rest of the story core; N+1 critical; N+1 desired | ≤ 4, shared with background |
-| **background** | L2; the event overview, then event pages (5.3); border previews; for each thematic layer, `index.bin` and `meta.json`, then its L0 tiles; label and display fonts; `annual.bin` once climate is first shown (the monthly years are fetched outside the scheduler, two at a time, 3.5); neighboring snapshots' index, meta and view tiles | ≥ 1 whenever it has work |
+| **background** | L2; the event overview, then event pages (5.3); Explore's border preview chunks, the clock's own first; for each thematic layer, `index.bin` and `meta.json`, then its L0 tiles; label and display fonts; `annual.bin` once climate is first shown (the monthly years are fetched outside the scheduler, two at a time, 3.5); on full, the next border step in the scrub direction | ≥ 1 whenever it has work |
 
 - **Concurrency:** `inFlight`, split as in the table.
 - **Fetch:** `fetch(url, {priority, mode: 'cors', credentials: 'omit'})`, with priority `high` for now
@@ -1231,7 +1231,9 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
   throws away what has arrived. A tile that still fails is wanted again after `degradeFor`, rather
   than failing for the session, and a failed request whose tile nobody wants any more gives up
   instead of retrying, so it does not hold a fetch slot the next view needs. Roots that fail bring
-  the data plate (owner decision 21).
+  the data plate (owner decision 21). Borders through time use the same `fetchData` with an
+  `AbortSignal` and no classes: a step's fetch starts once the clock rests, and a new target aborts
+  it (3.3).
 - **A 404 on an immutable key** is a release bug: log it, and do not retry. The tile's node keeps
   drawing its ancestors, as it does for a tile that does not decode, since a retry would fetch the
   same bytes.
@@ -1420,9 +1422,9 @@ only a failed start or a worker error ends the worker.
      The pool smoke test (7.3) writes mip 2 of one slot, samples it back with `textureLod`, checks
      the exact GL calls three makes, and asserts `gl.getError() === 0`.
 - **Allocation:** every pool, the climate field (and, once they come, the annual arrays), the
-  previews, and the indirection and draw-index textures are allocated at boot. Each is touched once
-  behind the poster (a pool's `warm()` step, one draw), because ANGLE may zero-fill lazily on first
-  use [E]. None is ever reallocated.
+  border array (3.3), and the indirection and draw-index textures are allocated at boot. Each is
+  touched once behind the poster (a pool's `warm()` step, one draw), because ANGLE may zero-fill
+  lazily on first use [E]. None is ever reallocated.
 - **Sizes:** surface 160 / 256 slots (lite / full), with the edge profiles in a 257 × 12 RG16F
   array (Nearest, one level, 12,336 B a slot; 378,240 B, 369.4 KiB, per surface slot in all, 3.1).
   Overlay `overlaySlots` to start; E3 counts the peak with every layer on and resizes to the peak
@@ -1586,7 +1588,7 @@ only a failed start or a worker error ends the worker.
     read as soft or molten.
 - **Per-beat plan:**
   - **Critical** = the beat's story-core items + surface tiles at desired−1 + the beat's overlay tiles
-    (with its snapshot's index and meta) + the decoded card.
+    + its border step when it lists borders + the decoded card.
   - **Desired** = the desired level.
   - **On landing at N:** the rest of the core, then N+1 critical, then N+1 desired, then background. N−1
     stays compressed in the byte cache.
@@ -1703,9 +1705,11 @@ only a failed start or a worker error ends the worker.
   sound knob stays visible, sliding from beside Credits to its place over Meanwhile in 0.8 s.
   The rings do not swing open; the camera passes through them as on any flight.
 
-- **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years, snapshot
-  index and meta) are resident and prepared, N's critical surface and overlay tiles are uploaded, and the
-  1024w card is decoded with `img.decode()` (or its preview stands in).
+- **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years) are
+  resident and prepared, N's critical surface and overlay tiles are uploaded, its border step is in
+  a slot when it lists borders, and the 1024w card is decoded with `img.decode()` (or its preview
+  stands in). The walk's `ready()` (`story/contract.ts`) checks tiles, and waits for the beat's
+  border step once Tambora moves onto the steps (3.3).
 - **Flights:** a van Wijk-Nuij path lasting `flightDuration`, with ρ = 1.42.
   - **Voyages:** between adjacent beats that show the same loaded route, the path follows the
     fleet. It lifts from the departing view to a north-up view centered on the ship, which the lens
@@ -1724,7 +1728,7 @@ only a failed start or a worker error ends the worker.
     plate) and fades in when it arrives.
   - **Retargets** blend over `retargetBlend`; rapid presses coalesce to the latest target, and the text
     card follows the target at once.
-  - **During a flight** the ruler sweeps the date and borders crossfade if the snapshot changes. N's
+  - **During a flight** the ruler sweeps the date and borders dissolve if the step changes. N's
     effects fade out at takeoff, and N+1's fade in from `gateAt` or whenever `prepare` completes. The
     whir runs through every flight, to a beat or to a Meanwhile entry, its pace following the
     camera's speed along the path (its van Wijk-Nuij length per second, which counts zooming as
@@ -1748,9 +1752,9 @@ only a failed start or a worker error ends the worker.
     Windows], so there one material compiles per frame.
 - **Fragment samplers:** the surface program may read 13 of the 16 guaranteed with Explore's
   marks, keeping three spare. It reads 12: the height and shore pools, the sea-name atlas, the
-  climate and border fields, four route textures, the environment, three's DFG table and the
-  lamp's shadow. Where Explore stands its marks read their table, and the routes' cells head
-  their index table rather than take a texture of their own, so the program still reads 12
+  climate field, the border array (3.3), four route textures, the environment, three's DFG table
+  and the lamp's shadow. Where Explore stands its marks read their table, and the routes' cells
+  head their index table rather than take a texture of their own, so the program still reads 12
   (`e2e/marks.spec.ts` holds them). Adding one needs a check against those counts.
 - **Marks:** Explore's marks are part of the surface program (section 2, Event marks), so they add
   no program to compile; `lookMarksOn` false skips them, and where the release names no event
@@ -1810,16 +1814,16 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 |---|---|---|
 | **Before the first live frame** | **2.20 MB** [M `e3/results/live-2026-09-28.json`]. The requirement stays a live frame < 3 s at cold 25 Mbps / 50 ms (owner decision 5). | The room waits for L0-L1 and the page's fonts: 0.515 MB from Pages and 1.684 MB from the data host arrive before it opens. Where the release names its event index, the fonts include Explore's label family, Source Serif 4 400 and 600 in Latin and Latin Extended (`story/ui/fonts.ts`): four woff2 files, 78 KB, the same the reading face already fetches for the page's own text, so they add no bytes. Keep the entry's ≤ 500 KB br and the worker modules' ≤ 40 KB allowances for growth; the instrument and environment are procedural. |
 | **First paint / first live frame** | **0.19 s / 1.24 s** cold at 25/50; live frame **< 3 s** required | Medians of three cold live loads [M `e3/results/live-2026-09-28.json`]. The CSS room covers pool allocation, compiles and L0-L1. At 5/150 the medians are 0.47 s / 4.51 s; that connection's requirement is whole beat landings. |
-| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], border previews ~1 MB [E], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. |
-| **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; each snapshot's index (~5 KB) and meta (5-40 KB [E]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D]. |
+| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up, with the 1.27 MB border field still arriving [M `e3/results/live-2026-09-28.json`]. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], thematic indexes, metas and L0 tiles ~0.15 MB [E], and label fonts ≤ 160 KB. Once Tambora moves onto the border steps, the lobby preloads its first step (≤ 1.2 MB) in place of the 1815 field; Explore's 3.2 MB of preview chunks arrive after its dive (3.3). |
+| **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; the border steps its beats draw (0.47-1.18 MB each [M Cliopatria v0.2.0]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D] before its two border steps. |
 | **Critical set per beat** | planning line: (median flight 1.7 s + `holdMax`) × the floor bandwidth, 2.0 MB at 5 Mbps (owner decision 5) | For the per-beat plans deferred in 8.1: model, full, median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors, as milestone 1's queue already does. |
 | **New bytes per beat** | reported above **10 MiB** | Beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each on the full tier [M `e3/results/live-2026-09-28.json`]. Round the measured maximum up to a whole MiB to flag growth in later walks. Every beat lands whole at 5/150, so this line reports refinement traffic without holding navigation. |
 | **Per story** | reported above **48 MiB** (full) / 18 MiB (lite, model) | Tambora fetches 47.8 MiB across its eight beats, rounded up to a whole MiB for the full tier's reporting line [M `e3/results/live-2026-09-28.json`]. The lite tier is unmeasured; its planning allowance remains: model tiles 7.5-11.3 MB ×1.3 for mountains, images ~1.2 MB, audio ≤ 0.32 MiB, overlays and effects 0.5-2 MB, about 18.2 MB at the upper estimates [D]. |
 | **Reading pace** | navigation stays on ancestors while refinement arrives | The measured 9.5 MiB maximum needs about 16 s at 5 Mbps before round trips, so a 15 s read need not hide all refinement [D from `e3/results/live-2026-09-28.json`]. Next-beat prefetch remains deferred (8.1); its later plan must account for that transfer time. |
-| **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **227**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **166**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
-| **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. Milestone 1's walk holds 252-258 MiB live, once it releases the sources it has uploaded and never reads again; about 25 MiB of that is cached audio noise, past `audioDecodedMax` [M `e3/results/live-2026-09-28-trims.json`, `e3/results/local-2026-09-28-cpu-after.json`]. Once a return lands, the lobby keeps only the noise of the room tone playing on in it, 9.2 MiB after a Tambora walk, so Explore opens from a lobby a walk has visited without the rest. |
-| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
-| **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year inflated and one 72 KiB climate field uploaded per frame; border previews crossfade with no fetch |
+| **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + borders 28 (two step slots and the preview ring, 3.3) + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **248**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + borders 16 (one slot and the ring) + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **175**. Milestone 1's 24 MiB 1815 field is left out: the look holds it or the steps' array, never both (3.3). Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
+| **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4 + borders, in a walk ≤ 2 while a step loads and 0 once it is uploaded, in Explore ≤ 6 loading and ≤ 4 settled, its preview chunks held compressed (3.3); event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. Milestone 1's walk holds 252-258 MiB live, once it releases the sources it has uploaded and never reads again; about 25 MiB of that is cached audio noise, past `audioDecodedMax` [M `e3/results/live-2026-09-28-trims.json`, `e3/results/local-2026-09-28-cpu-after.json`]. Once a return lands, the lobby keeps only the noise of the room tone playing on in it, 9.2 MiB after a Tambora walk, so Explore opens from a lobby a walk has visited without the rest. |
+| **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8 (borders ≤ 0.3 ms of it, mid-dissolve), instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
+| **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year inflated and one 72 KiB climate field uploaded per frame; border previews dissolve over `borderScrubFade` from Explore's resident chunks with no fetch, and a step streams in only once the clock rests (3.3) |
 
 ---
 
