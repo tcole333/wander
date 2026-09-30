@@ -1699,15 +1699,20 @@ and the release's `media` section lists every key the locks name (3.8).
   exactly as they fetch R2. It also serves `/release.json`, the build's release merged from its stage
   records as `publish-data` merges them (3.8), with the server as `dataHost`. That route is not an R2
   key; it lets lab and dev pages read a local build before any release is published.
-- **CI** (GitHub Actions, Linux, per PR; `.github/workflows/ci.yml`):
+- **CI** (GitHub Actions, Linux, per PR and per push to `main`; `.github/workflows/ci.yml`) runs
+  in parallel jobs: Pipeline (ruff, pytest), App checks (lint, Vitest, build), one E2E job per
+  Playwright shard, and the release check; a push to `main` then deploys. A newer push to a ref
+  cancels that ref's older run, on `main` too, since the newer commit contains the older one. Every
+  job logs its runner's CPU model: runner speed varies about 2x between runs, so a timing compares
+  only against the same CPU.
   1. Lint: `ruff check` and `ruff format --check` in `pipeline/`; ESLint and Prettier in `app/`.
   2. `uv run pytest` on the excerpts, plus a synthetic global `.nc` through the production GEBCO
      reader.
-  3. The fixture build above, using the real encoders. The app job installs uv after `npm ci`, runs
-     `uv sync --locked` in `pipeline/`, then `npm run fixture` before Vitest, so no test compares
-     against a hash computed on another machine; the pipeline and app jobs stay parallel. A Vitest
-     suite that needs `build/fixture` fails, naming `npm run fixture`, when the fixture is missing
-     or its stamp (7.2) is stale; none is skipped.
+  3. The fixture build above, using the real encoders. The app checks job and each E2E job install
+     uv after `npm ci`, run `uv sync --locked` in `pipeline/`, then `npm run fixture` before their
+     tests, so no test compares against a hash computed on another machine. A Vitest suite that
+     needs `build/fixture` fails, naming `npm run fixture`, when the fixture is missing or its
+     stamp (7.2) is stale; none is skipped.
   4. **Vitest:**
      - fixture decode: the Tambora summit decodes between its texel mean less qLand/2 and GEBCO's
        highest cell; the shore sign is right at known points; cube keys round-trip; `cube.ts`
@@ -1750,7 +1755,12 @@ and the release's `media` section lists every key the locks name (3.8).
   5. Compile the stories, then build the app.
   6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
      ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
-     :8791 with production headers. It checks: the one-frame render smoke test (8.1 step 0); zero
+     :8791 with production headers. CI runs it as four E2E jobs, one per shard that
+     `app/playwright.config.ts` names from the specs' CI times: `magellan` (story-selection),
+     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks) and `rest`, every spec
+     the others do not name, so a new spec lands there. `WANDER_E2E_SHARD` picks one; unset, every
+     spec runs. Each job runs one test at a time, since two SwiftShader walks starve a four-core
+     runner, and builds its own dist, recording its sha256. It checks: the one-frame render smoke test (8.1 step 0); zero
      key-check magenta at each beat once ready; no new program after the lobby; landing at desired−1 or
      finer, no hold over `holdMax`, and fetched object counts per beat within 10% of the plan (bytes
      reported); an injected 3 s stall still lands; a seam depth scan; in-place context-loss restore
@@ -1758,8 +1768,9 @@ and the release's `media` section lists every key the locks name (3.8).
      Continue plate; no request to the Pages origin after boot; each L0 URL fetched once (the preload is
      used); every label renders; reduced motion, the article page and the no-WebGL2 redirect; the
      pool smoke test (5.5); and the surface vertex readback (5.6). The pool and readback tests run
-     test-only pages on the Vite dev server (with `optimizeDeps.include: ['three']`), not the
-     production build, so nothing of them reaches the bundle.
+     test-only pages on the Vite dev server, not the production build, so nothing of them reaches
+     the bundle. The dev server scans those pages at startup (`optimizeDeps.entries`), so each E2E
+     job's cold server bundles their imports before a test loads them.
      - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
        in the decode workers, uploads it through the upload queue into the real pools, packs every
        mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
@@ -1783,8 +1794,10 @@ and the release's `media` section lists every key the locks name (3.8).
      `modera` section, the climate years the walk loads as it starts (`fd/modera/<ver>/mean/`
      1815-1817), with the app's `Origin`, checking R2's headers (4.2): one missing year turns the
      walk's climate off. It runs as its own job on every pull request and push, so a page naming
-     data that is not live cannot merge, and the Pages deploy of the tested build on `main` waits
-     for it; the deployment is then checked for `/`, `/credits` and a real 404.
+     data that is not live cannot merge, and the Pages deploy on `main` waits for it.
+  8. **Deploy** (`main` only), after every other job passes: it ships the app checks job's build,
+     and refuses it unless its sha256 equals the one each E2E job recorded for the build it
+     tested. The deployment is then checked for `/`, `/credits` and a real 404.
 - **Bake check (local):** `npm run verify:bake -- [region|global]` decodes every tile in
   `build/region/` (the default) or `build/out/`, reading `build/stages/<profile>/`, and checks,
   with the fixture's seam code:
