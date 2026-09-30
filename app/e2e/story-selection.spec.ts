@@ -27,6 +27,8 @@ const JPEG = readFileSync(
 );
 const TIMEOUT = 90_000;
 const expect = playwrightExpect.configure({ timeout: TIMEOUT });
+/** The lobby's plaques' titles, in order. */
+const LOBBY_TITLES = ['Tambora', 'Magellan–Elcano', 'All of History'];
 
 // Fewer pixels for SwiftShader; the scrollable column still reaches both plaques.
 test.use({ viewport: { width: 640, height: 400 } });
@@ -77,7 +79,8 @@ for (const entry of ['production', 'dev'] as const) {
       await page.keyboard.press('Shift');
     }
     await phase(page, 'idle');
-    await expect(page.locator('.lobby-title')).toHaveText(['Tambora', 'Magellan–Elcano']);
+    // The fixture's release names its event index, so Explore's plaque stands last.
+    await expect(page.locator('.lobby-title')).toHaveText(LOBBY_TITLES);
     await expect(tambora).toBeVisible();
     await expect(magellan).toBeVisible();
     const originalMark = await mark.elementHandle();
@@ -115,7 +118,7 @@ for (const entry of ['production', 'dev'] as const) {
     await phase(page, 'idle');
     await expect(page.locator('.wu-story')).toHaveCount(0);
     await expect(magellan).toBeFocused();
-    await expect(page.locator('.lobby-title')).toHaveText(['Tambora', 'Magellan–Elcano']);
+    await expect(page.locator('.lobby-title')).toHaveText(LOBBY_TITLES);
 
     await tambora.click();
     await phase(page, 'gone');
