@@ -25,6 +25,12 @@ const drawn = vi.hoisted(() => ({
   clients: [] as FakeClient[],
   /** Meanwhile, as Explore asks it and has it choose an entry. */
   meanwhile: null as null | { asked: number; choose: (event: MeanwhileEvent) => void },
+  /** The labels, as Explore makes them: what their plates avoid, and what they pin. */
+  labels: null as null | {
+    panels: () => readonly unknown[];
+    landed: unknown[];
+    pinned: { qid: number; span: { t0: number; t1: number } }[];
+  },
 }));
 interface FakeLayer {
   className: string;
@@ -33,6 +39,7 @@ interface FakeLayer {
   removed: boolean;
   dataset: Record<string, string>;
   append(...nodes: unknown[]): void;
+  prepend(...nodes: unknown[]): void;
   remove(): void;
 }
 /** The event client, answering each query with Waterloo's mark. */
@@ -107,6 +114,26 @@ vi.mock('./exploreMeanwhile', () => ({
     update() {}
   },
 }));
+vi.mock('./labels', () => ({
+  ExploreLabels: class {
+    element = { labels: true };
+    listbox = null;
+    pinned = null;
+    hovered = null;
+    constructor({ panels }: { panels: () => readonly unknown[] }) {
+      drawn.labels = { panels, landed: [], pinned: [] };
+    }
+    land(opening: unknown) {
+      drawn.labels!.landed.push(opening);
+    }
+    pinEvent(qid: number, span: { t0: number; t1: number }) {
+      drawn.labels!.pinned.push({ qid, span });
+    }
+    update() {}
+    leave() {}
+    dispose() {}
+  },
+}));
 vi.mock('../story/ui/rulerCraft', () => ({
   CraftRuler: class {
     element = { ruler: true };
@@ -143,6 +170,9 @@ vi.mock('../story/ui/dom', () => ({
       dataset: {},
       append(...nodes) {
         this.children.push(...nodes);
+      },
+      prepend(...nodes) {
+        this.children.unshift(...nodes);
       },
       remove() {
         this.removed = true;
@@ -185,6 +215,10 @@ function frameOver(lon: number, lat: number): FrameContext {
   return frame;
 }
 
+/** The globe's canvas, and the page's mark and sound knob. */
+const CANVAS = { canvas: true } as unknown as HTMLElement;
+const CHROME = [{ mark: true }, { knob: true }] as unknown as HTMLElement[];
+
 function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = null) {
   Object.assign(drawn, {
     rulers: 0,
@@ -193,6 +227,7 @@ function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = nul
     broken: null,
     clients: [],
     meanwhile: null,
+    labels: null,
   });
   const clock = new WorldClock();
   const control = new ViewControl({ lon: 75, lat: 15, viewKm: WORLD_KM, tilt: 0, heading: 0 });
@@ -203,7 +238,17 @@ function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = nul
   const append = vi.fn();
   const sound = { leave: leaveSound } as unknown as WalkAudio;
   const root = { append } as unknown as HTMLElement;
-  const mode = startExplore({ root, control, sound, arrive, clock, events, opening: WATERLOO });
+  const mode = startExplore({
+    root,
+    canvas: CANVAS,
+    chrome: CHROME,
+    control,
+    sound,
+    arrive,
+    clock,
+    events,
+    opening: WATERLOO,
+  });
   let now = 0;
   const tick = () => {
     now += DT * 1000;
@@ -369,6 +414,12 @@ describe('Explore', () => {
       const account = new MemoryAccount();
       mode.inspectMemory(account);
       expect(account.owners['explore.events']?.arrayBuffers).toBe(4096);
+    });
+
+    it('stands its plates clear of the ruler, Meanwhile and the page’s mark and knob', () => {
+      const { events } = source();
+      setup('fly', events);
+      expect(drawn.labels!.panels()).toEqual([{ ruler: true }, { meanwhile: true }, ...CHROME]);
     });
 
     it('stops asking as it leaves, then ends the worker and takes the marks off', () => {

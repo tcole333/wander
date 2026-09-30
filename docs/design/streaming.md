@@ -1147,8 +1147,8 @@ only a failed start or a worker error ends the worker.
   that way on screen without panning the view, Enter pins, and a live region reads each pinned
   plate. At most two plates stand, the pinned and the hovered, each on the first side of right,
   left, above and below that stays in view and clear of the other, the ruler, Meanwhile, the
-  legend, the listbox's tag while it shows and the focal ember, keeping its side while it serves
-  within 8 px (`platePlacement.ts`).
+  legend, the page's mark and sound knob, the listbox's tag while it shows and the focal ember,
+  keeping its side while it serves within 8 px (`platePlacement.ts`).
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,

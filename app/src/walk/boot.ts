@@ -352,6 +352,7 @@ async function assemble(
       next = startExplore({
         root: host,
         canvas: renderer.domElement,
+        chrome: chrome?.parts,
         control,
         sound,
         arrive,

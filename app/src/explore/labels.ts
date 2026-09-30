@@ -15,10 +15,10 @@
 // focus is seen even with no mark in view. A live region reads each pinned plate.
 //
 // At most two plates stand, the pinned one and the hovered one, each on the first side of its mark
-// that stays in view and clear of the other plate, the panels (the ruler, Meanwhile and the
-// legend), the listbox's name while it shows and the focal ember (platePlacement.ts). Plates,
-// options and the live region are set in the label family (story/ui/fonts.ts), loaded whole
-// before the room opens.
+// that stays in view and clear of the other plate, the panels (the ruler, Meanwhile, the legend
+// and the page's mark and sound knob), the listbox's name while it shows and the focal ember
+// (platePlacement.ts). Plates, options and the live region are set in the label family
+// (story/ui/fonts.ts), loaded whole before the room opens.
 import './labels.css';
 import { tunables } from '../config/tunables';
 import type { EventDescription } from '../events/describe';
@@ -68,7 +68,7 @@ export interface LabelsParts {
   canvas: HTMLElement;
   /** The openings, whose lines their pinned plates carry. */
   openings: readonly Opening[];
-  /** The panels the plates keep clear of, measured as they stand. */
+  /** The panels the plates keep clear of, and the page's chrome, measured as they stand. */
   panels: () => readonly Element[];
   /** The view's size, CSS px. */
   view?: () => { width: number; height: number };
