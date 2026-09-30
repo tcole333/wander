@@ -46,6 +46,12 @@ export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
  * a tilted mark's edge is as sharp on screen as a facing one's.
  */
 export const MARK_AA_PX = { hard: 0.75, soft: 2.5 } as const;
+/**
+ * The widest a soft edge spreads, in r, however small the mark: at 12 px, 2.5 px either side of
+ * its edge would blur a seal into a smudge, and a war, whose place is nearly always borrowed, would
+ * vanish from the views where it stands for its battles.
+ */
+export const SOFT_EDGE_MAX = 0.2;
 /** The contact shadow's blur beyond its edge's antialiasing, in r. */
 export const SHADOW_BLUR = 0.12;
 /**
@@ -77,6 +83,7 @@ export const MARKS_DECLARATIONS = /* glsl */ `
 #define LOOK_MARK_HALF_GRID ${float(GLYPH_UNITS / 2)}
 #define LOOK_MARK_GLYPH_REACH ${float(GLYPH_FIELD.reach)}
 #define LOOK_MARK_GLYPH_BOX ${float(GLYPH_FIELD.box)}
+#define LOOK_MARK_SOFT_EDGE_MAX ${float(SOFT_EDGE_MAX)}
 
 uniform bool lookMarksOn;
 uniform highp sampler2D lookMarkTable;
@@ -117,6 +124,13 @@ vec4 lookMarkTexel(int i) {
 vec2 lookMarkBevel(float d, float w) {
   float t = clamp(d / w, 0.0, 1.0);
   return vec2(t * t * (3.0 - 2.0 * t), 6.0 * t * (1.0 - t) / w);
+}
+
+// The antialiasing across an edge, in r, where a pixel spans px of r along it: a soft edge's
+// spreads further, but never past LOOK_MARK_SOFT_EDGE_MAX of r, nor below a hard one's.
+float lookMarkEdge(float px, bool soft) {
+  float hard = px * ${float(MARK_AA_PX.hard)};
+  return soft ? min(px * ${float(MARK_AA_PX.soft)}, max(hard, LOOK_MARK_SOFT_EDGE_MAX)) : hard;
 }
 
 // The glyph's distance at glyph-grid point gq (1 at the grid's edge), from the atlas cell centered
@@ -194,8 +208,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     // Relief rises first, and the fill comes after; estimates are softer and half as deep.
     float rise = smoothstep(0.0, 0.5, alpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
     float fill = smoothstep(0.4, 1.0, alpha) * lookMarkStyle.z;
-    float edgePx = soft ? ${float(MARK_AA_PX.soft)} : ${float(MARK_AA_PX.hard)};
-    float aa = pxR * edgePx;
+    float aa = lookMarkEdge(pxR, soft);
     // A disc's bevel rounds a good share of it, so its slope turns through the lamp's reflection
     // and lights the lamp's side; a glyph's is a pixel or a tenth of r, within its strokes.
     float discBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
@@ -213,7 +226,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     float rq = length(q);
     vec2 nq = rq > 1e-5 ? q / rq : vec2(1.0, 0.0);
     float pxRad = max(length(vec2(dot(nq, qx), dot(nq, qy))), 1e-4);
-    float aaRound = pxRad * edgePx;
+    float aaRound = lookMarkEdge(pxRad, soft);
     bool hasDisc = f0.w > 0.0;
     float dDisc = f0.w - rq;
     vec2 nDisc = rq > 1e-5 ? -nq : vec2(0.0);
@@ -273,7 +286,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
       float rs = length(fromShadow);
       vec2 ns = rs > 1e-5 ? fromShadow / rs : vec2(1.0, 0.0);
       float pxShadow = max(length(vec2(dot(ns, qx), dot(ns, qy))), 1e-4);
-      float blur = 2.0 * edgePx * pxShadow + ${float(SHADOW_BLUR)};
+      float blur = 2.0 * lookMarkEdge(pxShadow, soft) + ${float(SHADOW_BLUR)};
       shade = smoothstep(-blur, blur, f0.w - rs) * (1.0 - cover);
       shade *= smoothstep(0.0, 0.5, alpha);
     }
