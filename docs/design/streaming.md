@@ -57,7 +57,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Historical borders** | 54 world snapshots (`places.geojson` is not one). The snapshot nearest the cursor date (3.0; ties go to the earlier), with no per-beat pins. The plaque always names it ("Borders · 1878"). All 54 previews stay resident; detailed `.wot` tiles stream for the snapshot shown. A snapshot change crossfades over `borderFade`: previews while scrubbing, detail once the ruler rests for `borderRest`. Milestone 1 draws only 1815, from one global field of distances loaded in the lobby (3.3). | Owner decision. A coarse global raster cannot hold island-scale shape (a 4096-wide raster samples ~9.8 km), so previews stand in only while scrubbing. |
 | **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore is enabled. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The tiles run three past each edge of the viewport, since a mark on relief seen tilted stands above the sea-level foot its tile is found from. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and three texels a mark, uploaded only when the view or a fade changed. The look finds a fragment's tile from its inlay direction, so relief never moves it out of its mark's tile, and cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own, by default the cast token: a raised bronze boss for nature, a dark seal with a niello glyph for governance and a small gilt seal with its glyph sunk for infrastructure, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`TOKEN_INK`, 0.8 of its radius, clear of the rim its bevel casts); `?markVariant` and the dev panel draw the other candidates. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. The cast token is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it while Explore is open: bundled inline in the entry, started at each dive and terminated when Explore ends (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. Inlined, it fetches nothing from Pages after boot. Ended with Explore, it holds nothing during a walk, whose memory already stands at its CPU line (6). |
-| **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: a 60-month ring and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
+| **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: one monthly field the CPU blends, and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
 | **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, noted as illustrative in Credits. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
 | **Story compile and media** | `uv run prebuild media --story <id>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
 | **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then desired set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on the full tier; also keeping N+1's desired set and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
@@ -618,27 +618,33 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 - Year files have 12 frames. `annual.bin` has 588 frames, 1421-2008, each the unweighted mean of the
   year's 12 monthly means. Months follow the source's `(year, month)` indexing; its hour offsets are
   not reinterpreted through dates.
-- **GPU:** an R8 ring of 60 monthly layers (1.1 MB), and the annual means in three arrays covering
-  1421-1617, 1617-1813 and 1813-2008 (197/197/196 layers). The boundary year sits in both neighbors,
-  so interpolation never spans two textures. Per-frame scale and offset live in a small LUT texture.
-- **Shader:** mix frames `floor(m)` and `ceil(m)`, sample bicubically on the sphere through a 96-entry
-  latitude LUT, and apply a diverging palette that saturates at `climateRangeK`, independent of the
-  data values.
-- **Monthly or annual:** monthly frames are drawn when the ruler's visible span is at most
-  `climateMonthlySpan` and the cursor year's file is resident; otherwise annual, crossfading over
-  `climateSwitchFade`. The legend reads "Annual mean" whenever annual data is drawn.
-- **Milestone 1** draws monthly means only, on the beats whose layers carry
-  `{climate: {mode: monthly}}` (`app/src/story/effects/climate.ts`). The walk loads the years those
-  beats reach, from the beat before each (a flight sweeps story time from its date) to the end of
-  the beat's window, and a year a scrub reaches beyond them when first asked for; past the data's
-  years the layer eases out. Each month's frame stands at its middle day; the CPU blends the two
-  around the story day into one 192 × 96 RG16F field (anomaly × coverage, coverage), uploaded only
-  when the blend changes, and the look samples it with a B-spline, mapping latitude to rows by a
-  straight line through the Gaussian latitudes. The ring (and with it, dropping years far from the
-  cursor), the annual arrays, the latitude LUT, the span switch and the prefetch come with explore
-  mode. The layer eases in and out over 0.5 s as beats change; the look's program always holds it,
-  so the walk's precompile builds it at strength 0. Without a `modera` section, or once a file
-  fails, the walk logs once and draws no climate.
+- **The field:** monthly means only, for now. Each month's frame stands at its middle day, and the
+  CPU blends the two around the day into one 192 × 96 RG16F field (anomaly × coverage, coverage;
+  72 KiB), which the look samples with a B-spline, mapping latitude to rows by a straight line
+  through the Gaussian latitudes, under a diverging palette that saturates at `climateRangeK`,
+  independent of the data values. The field is one per look (`app/src/climate/field.ts`): it
+  remembers which months of which year files it holds and rewrites and uploads only for another
+  blend, so a story drawn after Explore redraws its own month. The look's program always holds the
+  layer, so the walk's precompile builds it at strength 0, and it eases in and out over 0.5 s.
+  Without a `modera` section, or once a file fails, a story logs once and draws no climate, and
+  Explore likewise until its next dive.
+- **In a story** (`app/src/story/effects/climate.ts`), the field shows the story day on the beats
+  whose layers carry `{climate: {mode: monthly}}`. The walk loads the years those beats reach, from the beat before
+  each (a flight sweeps story time from its date) to the end of the beat's window, and a year a
+  scrub reaches beyond them when first asked for; past the data's years the layer eases out. Its
+  months are Gregorian, as stories write their dates.
+- **In Explore** (`app/src/climate/clock.ts`, `app/src/explore/exploreClimate.ts`), it shows the
+  world clock's date while the ruler's visible width is at most `climateMonthlySpan` and both
+  months lie within 1421-2008, and eases out otherwise. The source indexes its frames by year and
+  month alone, so Explore names them as its ruler does, Julian before the reform. It keeps its own
+  years: the day's and `climatePrefetchYears` either side (about 1.1 MiB inflated), fetched two at
+  a time with the blend's own years first, dropped as the day leaves them and emptied when Explore
+  ends (`explore.climate` in the memory account). At most one year is inflated and the field
+  rewritten once a frame. While the years a distant day needs are on their way, the layer eases
+  out rather than show a month more than one away from the day.
+- **Annual means** come later (`annual.bin`, 10.8 MB inflated): drawn when the ruler is wider than
+  `climateMonthlySpan`, crossfading over `climateSwitchFade`, with the legend reading "Annual mean"
+  whenever they are.
 - **Look** (owner decision 22): a frost and verdigris wash on the metal
   (`app/src/look/climateHook.ts`). Cold land takes a blue-green patina that tints the metal rather
   than covering it, so its wear, rivers and coast still show, and loses some of its polish (rougher,
@@ -648,8 +654,9 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
 - **Legend:** a small plate of Meanwhile's cast brass, in Meanwhile's column over the ruler's right
   end, while climate is drawn: the month ("July 1816"), an enamel strip in the look's colors as the
   key lamp shows them, "Colder" and "Warmer" at its ends, ticks at 0, ±½ and ±1 of the range (−4 to
-  "+4 °C"), and "than the 1901–2000 average". It rises into view once a flight has landed, since a
-  flight sweeps story time through months the ruler's date plate already names.
+  "+4 °C"), and "than the 1901–2000 average". In a story it rises into view once a flight has
+  landed, since a flight sweeps story time through months the ruler's date plate already names;
+  Explore's shows at once, as its flights leave the clock where it stands.
 
 ### 3.6 Effect data
 
@@ -1561,7 +1568,7 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + previews 7 + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **227**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + 7 + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **166**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
 | **CPU** (all threads, incl. audio and decoded images) | full ≤ **256 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4; event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. Milestone 1's walk holds 252-258 MiB live, once it releases the sources it has uploaded and never reads again; about 25 MiB of that is cached audio noise, past `audioDecodedMax` [M `e3/results/live-2026-09-28-trims.json`, `e3/results/local-2026-09-28-cpu-after.json`]. |
 | **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8, instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
-| **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year (12 × 18 KB) uploaded per frame; border previews crossfade with no fetch |
+| **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year inflated and one 72 KiB climate field uploaded per frame; border previews crossfade with no fetch |
 
 ---
 
@@ -2000,8 +2007,8 @@ simpler piece carried the Tambora walk:
   stage compiles each beat's and month's entries and the lobby's glows into the story's lock
   (3.9). No `.wev` is built and there is no event worker, since milestone 1's lists are short and
   fixed, and only the globe's events layer queries the index at run time.
-- **Climate:** monthly means on the 1816 beats, blended on the CPU into one small field; the ring,
-  the annual arrays and the span switch come with explore mode (3.5).
+- **Climate:** monthly means on the 1816 beats, blended on the CPU into one small field; the annual
+  arrays and the span switch come later (3.5).
 - **Effects:** the plume, ash and veil are functions of story time in the app (`story/effects/`,
   `look/ashHook.ts`), illustrative as the story's credits say, so there is no `fx` stage yet; the
   spread datasets the story names wait for the first effect drawn from data.
