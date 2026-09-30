@@ -26,10 +26,10 @@ year here is astronomical.
   Lakes stay empty, so the bake's fill splits each among its neighbours. A stateless piece that
   touches the sea loses its parts narrower than 2·`sliverKm` to the polity nearest them (an opening
   on an equal-area projection about the piece). One that does not goes to its neighbours when it
-  touches a lake or lies in a hole of the polities and is under `pocketKm2`, or when it is narrower
-  than 2·`sliverKm` throughout: the bake fills a pocket that touches a polity from the polities
-  alone, since across a lake stateless land can lie nearer. Other pieces stay stateless; a `pocket`
-  correction overrides the rule, for a coastal piece too.
+  touches a lake and is under `pocketKm2`, or when it is narrower than 2·`sliverKm` throughout: the
+  bake fills a pocket that touches a polity from the polities alone, since across a lake stateless
+  land can lie nearer. Other enclosed pieces stay stateless, since they may be real stateless
+  enclaves; a `pocket` correction overrides the rule, for a coastal piece too.
 - **The antimeridian:** Cliopatria's shapes stop at ±180°, so land just across it that no polity
   holds goes to the polity whose shape runs along the other side at the same latitudes: otherwise
   Chukotka east of the meridian is stateless from 1778 and a border runs down it.
@@ -1135,18 +1135,6 @@ def _stateless(
     pieces = parts_of_dimension(free, 2)
     sea = _touching(pieces, terrain.coast)
     lake = _touching(pieces, terrain.lake_tree)
-    holes = np.array(
-        [
-            shapely.Polygon(ring)
-            for part in shapely.get_parts(parts_of_dimension(held, 2))
-            for ring in part.interiors
-        ],
-        dtype=object,
-    )
-    in_hole = np.zeros(pieces.size, dtype=bool)
-    if holes.size and pieces.size:
-        found = shapely.STRtree(holes).query(shapely.point_on_surface(pieces), predicate="within")
-        in_hole[found[0]] = True
     overrides = {}  # a piece's index -> whether it stays stateless, and the correction
     for k, pocket in pockets:
         point = shapely.Point(pocket.at)
@@ -1174,8 +1162,8 @@ def _stateless(
             rule = None if stateless else "correction"
         else:
             rule = None
-            if (lake[i] or in_hole[i]) and area < rules.pocket_km2:
-                rule = "lake" if lake[i] else "hole"
+            if lake[i] and area < rules.pocket_km2:
+                rule = "lake"
             elif shapely.is_empty(_opening(piece, radius)):
                 rule = "narrow"
             if i in overrides:

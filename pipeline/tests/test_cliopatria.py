@@ -292,16 +292,29 @@ def test_a_pocket_by_a_lake_goes_to_its_neighbours_and_the_lake_stays_empty(terr
     assert pocket["rule"] == "lake"
 
 
-def test_a_hole_under_the_cap_is_given_and_a_larger_one_stays(terrain):
-    small = box(-15, -3, -13, -1)  # about 49,000 km²
+def test_a_hole_that_touches_no_lake_stays_stateless_however_small(terrain):
+    small = box(-15, -3, -14.5, -2.5)  # about 3,100 km², far wider than 2·sliverKm
     large = box(5, -4, 15, 4)  # about 990,000 km²
     rows = [row("Realm", shapely.difference(shapely.difference(LAND, small), large))]
     chosen = select(rows, terrain)
-    assert not stateless_at(chosen, -14, -2)
+    assert stateless_at(chosen, -14.75, -2.75)
     assert stateless_at(chosen, 10, 0)
+    kept = chosen.report["stateless"]["enclosed"]
+    assert [k["km2"] for k in kept] == [
+        pytest.approx(990_000, rel=0.02),
+        pytest.approx(3_100, rel=0.02),
+    ]
+    assert not any(k["lake"] for k in kept)
+    assert chosen.report["stateless"]["pockets"] == 0
+
+
+def test_a_hole_beside_a_lake_past_the_cap_stays_stateless(terrain):
+    # The polities leave a ring 3° wide around the lake, about 740,000 km².
+    rows = [row("Realm", shapely.difference(LAND, box(-4, -4, 4, 4)))]
+    chosen = select(rows, terrain)
+    assert stateless_at(chosen, 3, 0)
     (kept,) = chosen.report["stateless"]["enclosed"]
-    assert kept["km2"] == pytest.approx(990_000, rel=0.02)
-    assert kept["lake"] is False
+    assert kept["lake"] is True
 
 
 def test_an_enclosed_piece_past_the_cap_goes_when_it_is_narrow_throughout(terrain):
@@ -314,12 +327,17 @@ def test_an_enclosed_piece_past_the_cap_goes_when_it_is_narrow_throughout(terrai
 
 
 def test_a_pocket_correction_overrides_the_rule(terrain):
-    small = box(-15, -3, -13, -1)
-    rows = [row("Realm", shapely.difference(LAND, small))]
-    keep = correction(clio.Pocket((-14, -2), stateless=True))
-    chosen = select(rows, terrain, corrections=[keep])
-    assert stateless_at(chosen, -14, -2)
-    assert chosen.applied == {0}
+    # A hole that touches no lake is given, and a pocket by the lake kept.
+    hole = [row("Realm", shapely.difference(LAND, box(-15, -3, -13, -1)))]
+    give = correction(clio.Pocket((-14, -2), stateless=False))
+    given = select(hole, terrain, corrections=[give])
+    assert not stateless_at(given, -14, -2)
+    assert given.applied == {0}
+    ring = [row("Realm", shapely.difference(LAND, box(-1.5, -1.5, 1.5, 1.5)))]
+    keep = correction(clio.Pocket((1.25, 0), stateless=True))
+    kept = select(ring, terrain, corrections=[keep])
+    assert stateless_at(kept, 1.25, 0)
+    assert kept.applied == {0}
 
 
 def test_a_pocket_that_touches_a_polity_is_filled_from_the_polities(terrain):
