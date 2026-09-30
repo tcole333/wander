@@ -5,7 +5,9 @@
 // polish; warm lands blush a rosy copper; the sea's lacquer takes a third of either. The palette
 // saturates at the look's climateRangeK either side of the 1901-2000 average, and the field is
 // sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
-// default, the look is unchanged; the walk compiles it at 0 before it starts.
+// default, the look is unchanged; the walk compiles it at 0 before it starts. Where the look cuts
+// marks, each keeps its family's material: the wash lies on the casting around a mark, not on the
+// mark (globe-language.md, principle 4: nature's channel never takes another pace layer's).
 import {
   ClampToEdgeWrapping,
   DataTexture,
@@ -147,8 +149,11 @@ export function climateSwatch(base: string, k: number, rangeK: number): string {
 const f = (x: number) => x.toFixed(6);
 const vec3 = (hex: string) => `vec3(${linearRgb(hex).map(f).join(', ')})`;
 
-/** After the look's pars: the uniforms and lookClimate(), which reads lookDirAt and LookSurface. */
-export const CLIMATE_FRAGMENT_PARS = /* glsl */ `
+/**
+ * After the look's pars: the uniforms and lookClimate(), which reads lookDirAt and LookSurface, and
+ * with `marks`, the marks' cover, which it leaves unwashed.
+ */
+export const climateFragmentPars = (marks: boolean) => /* glsl */ `
 uniform float lookClimateStrength;
 uniform sampler2D lookClimateField;
 uniform vec4 lookClimateGrid;
@@ -181,6 +186,7 @@ void lookClimate(inout LookSurface s) {
   float k = field.x / max(field.y, 1e-3);
   float t = clamp(k / lookClimateRange, -1.0, 1.0);
   float a = lookClimateStrength * cover * mix(${f(CLIMATE_LOOK.seaShare)}, 1.0, s.land);
+  ${marks ? 'a *= 1.0 - s.marks.cover;' : ''}
   if (t < 0.0) {
     // Frost and verdigris: a blue-green patina as bright as the metal under it, which dulls its
     // polish.

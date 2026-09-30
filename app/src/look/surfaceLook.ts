@@ -34,7 +34,7 @@ import {
 } from './bordersHook';
 import {
   CLIMATE_FRAGMENT_APPLY,
-  CLIMATE_FRAGMENT_PARS,
+  climateFragmentPars,
   createClimateUniforms,
   registerClimate,
 } from './climateHook';
@@ -235,7 +235,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${fragment.pars}\n${CLIMATE_FRAGMENT_PARS}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
+        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${BORDERS_FRAGMENT_PARS}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
       ],
       [
         '#include <color_fragment>',
