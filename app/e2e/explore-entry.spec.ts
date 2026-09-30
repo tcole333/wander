@@ -189,15 +189,29 @@ test('shows Explore’s plaque last, dives in, labels its marks, scrubs and retu
   await page.keyboard.press('Enter');
   await expect.poll(() => pinned(page)).toBe(/^xl-(Q[0-9]+)/.exec(chosen!)![1]);
 
-  // Meanwhile names what happens elsewhere; choosing an entry flies there and pins it.
-  const entry = page.locator('.wu-meanwhile .wu-mw-entry').first();
-  await expect(entry).toBeVisible();
-  const name = await entry.locator('.wu-mw-label').textContent();
-  await entry.click();
+  // Meanwhile names what happens elsewhere; choosing an entry flies there and pins it. The pin
+  // changed what the globe draws, so the list stands only once its new question has been asked
+  // and answered: it is read until it holds for a second.
+  await settled(page);
+  const entries = page.locator('.wu-meanwhile .wu-mw-entry');
+  await expect(entries.first()).toBeVisible();
+  let listed = '';
+  await expect
+    .poll(
+      async () => {
+        const now = (await entries.locator('.wu-mw-label').allTextContents()).join('\n');
+        const held = now === listed && now !== '';
+        listed = now;
+        return held;
+      },
+      { intervals: [1000] },
+    )
+    .toBe(true);
+  const [name] = listed.split('\n');
+  await entries.first().click();
   await expect(pinnedPlate.locator('.xl-name')).toHaveText(name!);
   await expect(pinnedPlate).toHaveClass(/is-shown/);
-  const entryPinned = await pinned(page);
-  expect(entryPinned).not.toBe('Q48314');
+  expect(await pinned(page)).not.toBe('Q48314');
 
   // Escape unpins first, then returns to the lobby.
   await page.keyboard.press('Escape');
