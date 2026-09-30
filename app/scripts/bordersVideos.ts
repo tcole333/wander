@@ -23,10 +23,10 @@
 //   4,000 and 2,500 km over Europe; how many of 400 frames there come more than 20 ms after the
 //   last, a step at rest and the borders off in turn, twice each; and the border array's size on
 //   the GPU.
-// - walk: the Tambora walk on the dev page, drawing border steps (?explore) and milestone 1's 1815
-//   field (without), sampling borders.* every 50 ms from the first beat through the sixth, the
-//   most while a border beat's step loads, each account's total once the sixth has settled, and
-//   the GPU time its borders add there.
+// - walk: the Tambora walk on the dev page, drawing border steps, which the data server's release
+//   names, and milestone 1's 1815 field (?borderSteps=0), sampling borders.* every 50 ms from the
+//   first beat through the sixth, the most while a border beat's step loads, each account's total
+//   once the sixth has settled, and the GPU time its borders add there.
 // Writes <out>/videos.json with every measurement and any console problems.
 import { chromium, type Browser, type Page } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
@@ -436,7 +436,7 @@ async function walk(browser: Browser, steps: boolean): Promise<unknown> {
   const where = steps ? 'walk (steps)' : 'walk (1815 field)';
   watch(page, where);
   const query = new URLSearchParams({ story: 'tambora', data: values.data, ui: '0', memory: '1' });
-  if (steps) query.set('explore', '');
+  if (!steps) query.set('borderSteps', '0');
   await page.goto(`${values.url}/prototype.html?${query}`);
   await page.waitForFunction(
     () => {
