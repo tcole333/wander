@@ -4,17 +4,22 @@
 // globe and scrubs through all of history. The arrow keys keep panning the view, as in the lobby.
 // Where the release has its event index and the look cuts marks, the events of the now window
 // mark the globe (exploreEvents.ts), the opening focal among them; the layer's data-explore-marks
-// counts the events marked in view. Leaving stops input on the ruler, stops asking for events,
-// eases their marks out and fades the sound to the room; ending releases the clock, ruler and
-// event worker and takes the marks off, so the world clock has one owner at a time.
-// window.__worldTime and window.__exploreEvents serve scripts while Explore runs.
+// counts the events marked in view. The globe shows the climate at the clock's date wherever
+// ModE-RA has it and the ruler is close enough (exploreClimate.ts). Leaving stops input on the
+// ruler, stops asking for events, eases their marks and the climate out and fades the sound to the
+// room; ending releases the clock, ruler, event worker and climate years and takes the marks off,
+// so the world clock has one owner at a time. window.__worldTime and window.__exploreEvents serve
+// scripts while Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
+import type { ClimateSource } from '../climate/years';
 import { tunables } from '../config/tunables';
+import type { SurfaceLook } from '../contract';
 import type { EventsRelease } from '../data/release';
 import { EventClient } from '../events/client';
 import type { EventMark } from '../events/query';
+import { GLOW_FADE_S } from '../lobby/lobby';
 import type { MarkLayer, MarkSpec, PlacedMark } from '../marks/marks';
 import type { LonLat } from '../story/story';
 import { el } from '../story/ui/dom';
@@ -26,6 +31,7 @@ import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
 import type { ViewState } from '../view/viewState';
 import type { Mode } from '../walk/mode';
+import { ExploreClimate } from './exploreClimate';
 import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { openings, type Opening } from './openings';
 
@@ -93,6 +99,12 @@ export interface ExploreParts {
   opening?: Pick<Opening, 'qid' | 'day' | 'at' | 'precision' | 'class'>;
   /** Where to find the events, or null for a globe without them. */
   events?: EventsSource | null;
+  /**
+   * The look Explore draws on and the release naming its data; without both (the unit tests),
+   * Explore draws no climate.
+   */
+  look?: SurfaceLook;
+  release?: ClimateSource;
 }
 
 /** The world view over `at`, its latitude kept within WORLD_LAT. */
@@ -114,9 +126,11 @@ export function startExplore({
   clock = worldClock,
   opening = waterloo(),
   events: source = null,
+  look,
+  release,
 }: ExploreParts): Mode {
-  // The clock, flight and layer hold no listeners and stand nowhere on the page, so they come
-  // first, then the ruler, the one part holding listeners, and the event worker, and only then
+  // The clock, flight, layer and climate hold no listeners and stand nowhere on the page, so they
+  // come first, then the ruler, the one part holding listeners, and the event worker, and only then
   // are the page, the view's control, the marks and the script hooks touched: a dive that throws
   // on the way leaves nothing behind, since the boot never gets a mode to end.
   const focal = focalOf(opening);
@@ -128,12 +142,14 @@ export function startExplore({
       ? new FreeFlight(control.current, worldViewOn(opening.at, control.maxKm))
       : null;
   const layer = el('div', 'wu wu-explore wu-mode');
+  const climate = look && release ? new ExploreClimate(look, release, clock, layer) : null;
   const ruler = new CraftRuler(time);
   let client: EventClient | null;
   try {
     client = source ? EventClient.create(source.release, source.dataHost) : null;
   } catch (error) {
     ruler.dispose();
+    climate?.end();
     throw error;
   }
   const events =
@@ -141,6 +157,10 @@ export function startExplore({
   layer.append(ruler.element);
   root.append(layer);
   let counted = -1;
+  // The globe's layers fade in over the dive and out over the return, as a story's effects do.
+  let fade = arrive === 'fly' ? 0 : 1;
+  let left = false;
+  let frameS = 0;
 
   const landings = new Set<() => void>();
   const land = () => {
@@ -184,14 +204,18 @@ export function startExplore({
     },
     lensShift: () => 0,
     beforeCamera(_nowMs, dtS) {
+      frameS = dtS;
+      fade = Math.max(0, Math.min(1, fade + (left ? -dtS : dtS) / GLOW_FADE_S));
       if (!flight) return;
       control.go(flight.step(dtS), true);
       if (flight.done) land();
     },
     afterPlace(frame, nowMs) {
+      climate?.update(frameS, fade);
       events?.update(frame, clock.state(), nowMs);
     },
     ui() {
+      climate?.ui();
       if (!events) return;
       const count = events.markedInView();
       if (count === counted) return;
@@ -200,6 +224,7 @@ export function startExplore({
     },
     audio: () => null,
     leave() {
+      left = true;
       flight = null;
       landings.clear();
       layer.inert = true;
@@ -211,12 +236,14 @@ export function startExplore({
       landings.clear();
       events?.dispose();
       ruler.dispose();
+      climate?.end();
       layer.remove();
       if (window.__worldTime === hook) delete window.__worldTime;
       if (eventsHook && window.__exploreEvents === eventsHook) delete window.__exploreEvents;
     },
     inspectMemory(account) {
       events?.inspectMemory(account);
+      climate?.inspectMemory(account);
     },
   };
 }

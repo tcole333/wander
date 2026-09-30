@@ -1,9 +1,11 @@
 // The climate legend, at the bottom right over the ruler's end: a small plate of dark cast brass
 // like Meanwhile's, shown while the globe draws ModE-RA's temperatures. Its month is engraved in
 // gilt over an enamel strip in the look's own colors (look/climateHook.ts climateSwatch), with the
-// strip's ends named and its degrees engraved under it, the warm end's with the unit. It waits for
-// a flight to land, since a flight sweeps story time through months the ruler's date plate already
-// names, then rises into view like the Resume plaque, and fades as the layer eases out.
+// strip's ends named and its degrees engraved under it, the warm end's with the unit. It rises into
+// view like the Resume plaque and fades as the layer eases out. A story's waits for a flight to
+// land (walkUi.ts gives it no climate during one), since a flight sweeps story time through months
+// the ruler's date plate already names; Explore's shows at once (explore/exploreClimate.ts), since
+// its flights leave the clock where it stands.
 import { climateSwatch } from '../../look/climateHook';
 import { monthName } from '../dates';
 import type { ClimateShown } from '../contract';
