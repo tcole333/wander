@@ -140,7 +140,8 @@ const EM_TEXELS = 56;
 /** Blank texels around each name, room for an italic's overhang, so its mips never take a
  * neighbor's ink. */
 const PAD = 16;
-const ATLAS_WIDTH = 2048;
+/** The atlas's width in texels: the names' rows, and below them the marks' glyph shelf. */
+export const ATLAS_WIDTH = 2048;
 /** Line spacing, in ems. */
 const LEADING = 1.25;
 /** Space added between letters, in ems, by style. */

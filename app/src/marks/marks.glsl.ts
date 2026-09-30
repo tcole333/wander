@@ -33,8 +33,9 @@ export const MARKS_MAX = Math.floor(((TABLE_ROWS - MARK_ROW) * TABLE_WIDTH) / MA
 /** The most marks a tile's range can count: tunables.markTileCap stays within it. */
 export const TILE_COUNT_MAX = 15;
 
-/** Flags a mark's texel carries. */
-export const FLAG = { focal: 1, hover: 2, hollow: 4, soft: 8 } as const;
+/** Flags a mark's texel carries, below its family (FAMILY_STEP times the family's index). */
+export const FLAG = { focal: 1, hover: 2, hollow: 4, soft: 8, mirror: 16 } as const;
+export const FAMILY_STEP = 32;
 
 /** The focal mark's ember ring, in r: its radius and half its width. */
 export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
@@ -184,9 +185,11 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     // The glyph's cell, the family and flags, and the mark's strength.
     vec4 t2 = lookMarkTexel(m + 1);
     int familyFlags = int(t2.z);
-    int flags = familyFlags & 15;
+    int flags = familyFlags & ${FAMILY_STEP - 1};
     bool soft = (flags & ${FLAG.soft}) != 0;
     bool hollow = (flags & ${FLAG.hollow}) != 0;
+    // A mirrored glyph is read east to west: a storm's south of the equator.
+    float mirror = (flags & ${FLAG.mirror}) != 0 ? -1.0 : 1.0;
     float alpha = t2.w;
     // Relief rises first, and the fill comes after; estimates are softer and half as deep.
     float rise = smoothstep(0.0, 0.5, alpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
@@ -198,7 +201,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     float discBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
     float bevel = max(0.25 * lookMarkStyle.x, pxR) * (soft ? 1.6 : 1.0);
 
-    int f = (familyFlags >> 4) * LOOK_MARK_FAMILY_VEC4;
+    int f = (familyFlags / ${FAMILY_STEP}) * LOOK_MARK_FAMILY_VEC4;
     vec4 f0 = lookMarkFamily[f];
     vec4 f1 = lookMarkFamily[f + 1];
     vec4 f2 = lookMarkFamily[f + 2];
@@ -224,12 +227,12 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     float line = min(max(0.08, 1.1 * pxR), 0.35 * fieldReach);
     float rimWidth = f4.z > 0.0 ? min(max(f4.z, 1.2 * pxR), 0.35 * fieldReach) : 0.0;
     float aaGlyph = min(aa, 0.5 * (fieldReach - rimWidth - (hollow ? line : 0.0)));
-    vec2 gq = q / scale;
+    vec2 gq = q / scale * vec2(mirror, 1.0);
     float dGlyph = -1.0;
     vec2 nGlyph = vec2(0.0);
     if (max(abs(gq.x), abs(gq.y)) < LOOK_MARK_GLYPH_BOX) {
-      vec2 gx2 = vec2(qx.x, -qx.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
-      vec2 gy2 = vec2(qy.x, -qy.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
+      vec2 gx2 = vec2(mirror * qx.x, -qx.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
+      vec2 gy2 = vec2(mirror * qy.x, -qy.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
       float s0 = lookMarkGlyph(t2.xy, gq, atlas, gx2, gy2);
       dGlyph = s0 > -126.0 ? s0 * LOOK_MARK_BYTE_TO_GLYPH * scale : -1.0;
       if (f2.y != 0.0 && abs(dGlyph) < bevel + aaGlyph + (hollow ? line : 0.0)) {
@@ -237,7 +240,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
         float su = lookMarkGlyph(t2.xy, gq + vec2(step, 0.0), atlas, gx2, gy2);
         float sv = lookMarkGlyph(t2.xy, gq + vec2(0.0, step), atlas, gx2, gy2);
         vec2 n = vec2(su - s0, sv - s0);
-        nGlyph = dot(n, n) > 1e-6 ? normalize(n) : vec2(0.0);
+        nGlyph = dot(n, n) > 1e-6 ? normalize(n) * vec2(mirror, 1.0) : vec2(0.0);
       }
     }
     if (hollow) {

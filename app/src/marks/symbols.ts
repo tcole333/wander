@@ -102,11 +102,6 @@ function rotate(points: readonly Point[], degrees: number, about: Point = C): Po
   });
 }
 
-/** Points mirrored east to west across the cell's north-south axis. */
-function mirror(points: readonly Point[]): Point[] {
-  return points.map(([x, y]) => [2 * C[0] - x, y] as const);
-}
-
 function translate(points: readonly Point[], dx: number, dy: number): Point[] {
   return points.map(([x, y]) => [x + dx, y + dy] as const);
 }
@@ -301,11 +296,11 @@ const stormArms = (() => {
   return [arm, rotate(arm, 180)];
 })();
 
-/** A storm's eye and two trailing arms, turning as the northern hemisphere's do. */
+/**
+ * A storm's eye and two trailing arms, turning as the northern hemisphere's do; south of the
+ * equator its mark draws it mirrored (eventSymbols.ts, mirroredAt).
+ */
 const cyclone = [circle(C, 10), ...stormArms.map((arm) => polygon(arm))].join('');
-
-/** The same storm south of the equator, where it turns the other way. */
-const cycloneSouth = [circle(C, 10), ...stormArms.map((arm) => polygon(mirror(arm)))].join('');
 
 /** A slope and the boulders tumbling from it. */
 const slide = [
@@ -581,7 +576,6 @@ export const EVENT_GLYPHS = {
   eruption,
   flood,
   cyclone,
-  cycloneSouth,
   slide,
   fire,
   heat,
