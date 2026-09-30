@@ -1,28 +1,9 @@
 import { defineConfig, devices, type Project } from '@playwright/test';
 import type { Profile } from './scripts/release';
 import { DATA_URL, DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/servers';
+import { shardSpecs } from './e2e/shards';
 
-// CI runs the browser tests as parallel jobs, one per shard named here plus 'rest' (ci.yml's e2e
-// matrix lists every one), so the slowest shard sets how long CI takes. Each named shard runs the
-// specs it lists, grouped by their times on CI; 'rest' runs every spec no shard names, so a new
-// spec lands there. WANDER_E2E_SHARD picks one; unset, as in every local run, every spec runs.
-const NAMED_SHARDS = new Map<string, string[]>([
-  ['magellan', ['story-selection.spec.ts']],
-  ['lobby', ['lobby-round-trip.spec.ts', 'globe-mesh.spec.ts']],
-  ['explore', ['explore-entry.spec.ts', 'marks.spec.ts']],
-]);
-
-function shardSpecs(shard: string | undefined): Pick<Project, 'testMatch' | 'testIgnore'> {
-  if (!shard) return {};
-  if (shard === 'rest') return { testIgnore: [...NAMED_SHARDS.values()].flat() };
-  const specs = NAMED_SHARDS.get(shard);
-  if (!specs) {
-    const known = [...NAMED_SHARDS.keys(), 'rest'].join(', ');
-    throw new Error(`WANDER_E2E_SHARD=${shard} names no shard; the shards are ${known}.`);
-  }
-  return { testMatch: specs };
-}
-
+// WANDER_E2E_SHARD picks one of the shards e2e/shards.ts names, as each CI e2e job does.
 const shard = shardSpecs(process.env.WANDER_E2E_SHARD);
 
 // CI's software renderer. SwiftShader screenshots misrepresent the look and timing, so this

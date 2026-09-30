@@ -1756,9 +1756,10 @@ and the release's `media` section lists every key the locks name (3.8).
   6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`,
      ~960×600, lite tier; the production build under `vite preview` on :4173 and `build/fixture` on
      :8791 with production headers. CI runs it as four E2E jobs, one per shard that
-     `app/playwright.config.ts` names from the specs' CI times: `magellan` (story-selection),
+     `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
      `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks) and `rest`, every spec
-     the others do not name, so a new spec lands there. `WANDER_E2E_SHARD` picks one; unset, every
+     the others do not name, so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the
+     shards to that module. `WANDER_E2E_SHARD` picks one; unset, every
      spec runs. Each job runs one test at a time, since two SwiftShader walks starve a four-core
      runner, and builds its own dist, recording its sha256. It checks: the one-frame render smoke test (8.1 step 0); zero
      key-check magenta at each beat once ready; no new program after the lobby; landing at desired−1 or
