@@ -1120,7 +1120,12 @@ only a failed start or a worker error ends the worker.
   nor a request) logs once and takes the index's marks off, and nothing more is asked of it; a
   window the index cap cannot hold logs its plan's error once, from a result as from a state. The
   marks ease in with the dive and out with the lobby's glows as Explore leaves, and
-  `explore.events` counts the index the worker holds.
+  `explore.events` counts the index the worker holds. The now window stays within history,
+  10,000 BCE through 2000, the years Explore's plaque names (`exploreWindow`,
+  `app/src/time/exploreTime.ts`): near either end the ruler's width reaches past them, and the
+  index holds later events, the Arab Spring and the Syrian Civil War among them, that would
+  otherwise be marked, stay focal or reach Meanwhile. The event client keeps every query and
+  Meanwhile question within history too.
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,
@@ -1857,9 +1862,8 @@ and the release's `media` section lists every key the locks name (3.8).
      image (its opening beat's 256w JPEG, which the release's `media` must name, 3.8) and, when it
      names the event files, their overview (3.4), with the app's `Origin`, checking R2's headers
      (4.2): one missing year turns the walk's climate off, and a missing overview leaves Explore
-     only its opening's mark. It runs as its own job on every
-     pull request and push, so a page naming data that is not live cannot merge, and the Pages
-     deploy on `main` waits for it.
+     only its opening's mark. It runs as its own job on every pull request and push, so a page
+     naming data that is not live cannot merge, and the Pages deploy on `main` waits for it.
   8. **Tested build**, after the app checks and E2E jobs, on every run: the sha256 each E2E job
      recorded for the build it tested must equal the app checks job's, so a pull request proves
      that every shard tested the build `main` would deploy.
