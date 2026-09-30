@@ -52,3 +52,44 @@ corrections:
       title: Dead Kultuk
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Dead_Kultuk
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, or a place without a state kept stateless, each cited (owner decision 38).
+  - years: [451, 451]
+    pocket:
+      at: [9.2, 49.57]
+      to: Kingdom of Alamannia
+    why: >-
+      The right bank of the Rhine from the Main to the Neckar, around Frankfurt, Darmstadt and
+      Heilbronn, was the Alamanni's from their taking of the Agri Decumates in 260 until Clovis
+      conquered them in 496, a confederation of cantons under kings. Cliopatria's Kingdom of
+      Alamannia begins in 462, and in 451 leaves the land empty between the Huns and the Ripuarian
+      Franks.
+    source:
+      title: Alamanni
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Alamanni
+  - years: [724, 902]
+    pocket:
+      at: [36.63, 38.71]
+      stateless: true
+    why: >-
+      The band along the Anti-Taurus between the Caliphate and Byzantium, around Sarız, Pınarbaşı
+      and Kangal, lay in the frontier zone unclaimed by either power and virtually deserted, its
+      forts razed on both sides and its people often gone. The later steps, from the Byzantine
+      resettlement of Lykandos in 903, wait for a cited shape of that district.
+    source:
+      title: Al-Awasim
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Al-Awasim
+  - years: [980, 989]
+    pocket:
+      at: [19.58, 43.36]
+      to: First Bulgarian Empire
+    why: >-
+      The upper Drina, Lim and Tara country (Foča, Višegrad, Pljevlja, Užice) was dominated by the
+      restored Bulgarian Empire after 976, when Byzantine rule through the Catepanate of Ras lapsed,
+      until Byzantium returned in 1018. Cliopatria draws it Byzantine to 979 and Bulgarian from 990.
+    source:
+      title: Catepanate of Ras
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Catepanate_of_Ras
