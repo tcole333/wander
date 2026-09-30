@@ -2804,6 +2804,12 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `eventFade` | 300 ms | event fades | eye |
 | `nowShare` | 0.1 of the ruler's visible width, at least a day | the now window events, Meanwhile and focal drops read | eye |
 | `exploreOpenYears` | 200 years, centered on the opening event | the ruler's span as Explore opens | eye |
+| `exploreMinSpanDays`, `exploreMaxSpanYears` | 10 days, 5,000 years | the narrowest and widest Explore's tape shows | eye |
+| `overviewWarpYears` | 100 years after 2000's end | the log scale of Explore's overview: 1 CE at 36%, 1500 at 63% | eye |
+| `timeWheelRate`, `timePinchRate` | 0.004, 0.01 per px | span change per wheel and pinch pixel over Explore's ruler | eye |
+| `timeFlickTauS`, `timeFlickMaxSpans` | 0.3 s, 2 spans | a flicked tape's coast | eye |
+| `timeFlightS` | 0.22-0.9 s | a flight between dates in Explore | eye |
+| `timeHoldGlide` | after 300 ms, 0.25 rising to 0.85 spans/s over 2 s | a held arrow's glide through time | eye |
 | `markPx` | 12 CSS px at 12,000 km wide and wider, 16 at 3,000, 20 at 300 and closer, log-interpolated | a mark's diameter | eye |
 | `markMinDevicePx` | 16 device px | the fewest device pixels a mark spans, over `markPx`: at one device pixel a CSS px, marks at world view are 16 CSS px so their glyphs read | eye |
 | `markTileCap` | 8 per 32 CSS px tile | marks the look inlays in one screen tile | eye |

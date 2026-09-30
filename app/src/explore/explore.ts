@@ -259,7 +259,7 @@ export function startExplore({
     state: () => clock.state(),
     span: () => time.span,
     seek: (day) => time.seek(day),
-    zoom: (factor, share) => time.zoom(factor, share),
+    zoom: (factor) => time.zoomBy(factor),
   };
   window.__worldTime = hook;
   const eventsHook: ExploreEventsHook | null = events && {

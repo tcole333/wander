@@ -313,7 +313,7 @@ export class CraftRuler {
     this.#plate.append(plateBody, plateText);
 
     this.#play = button('rc-knob rc-play', this.#explore ? 'Zoom in' : 'Play', () => {
-      if (this.#explore) this.#explore.zoom(0.5, this.#shareOfDay());
+      if (this.#explore) this.#explore.zoomBy(0.5);
       else this.#walk?.togglePlay();
     });
     const mark = knobLayer('rc-knob-mark');
@@ -331,7 +331,7 @@ export class CraftRuler {
     this.#play.append(...this.#knob(0), mark, ring);
 
     this.#count = button('rc-knob rc-count', this.#explore ? 'Zoom out' : 'Resume story', () => {
-      if (this.#explore) this.#explore.zoom(2, this.#shareOfDay());
+      if (this.#explore) this.#explore.zoomBy(2);
       else this.#walk?.resume();
     });
     const countMark = knobLayer('rc-knob-mark');
@@ -400,21 +400,13 @@ export class CraftRuler {
         (event) => {
           event.preventDefault();
           event.stopPropagation();
-          const share = (this.#angleAt(event.clientX, event.clientY) / this.#arc.reach + 1) / 2;
-          this.#explore?.zoom(wheelZoom(event.deltaY, event.deltaMode, innerHeight), share);
+          this.#explore?.zoomBy(wheelZoom(event.deltaY, event.deltaMode, innerHeight));
         },
         { passive: false },
       );
       this.#unsubscribe = this.#explore.subscribe(() => this.#updateExplore());
     }
     this.#build();
-  }
-
-  #shareOfDay(): number {
-    return (
-      ((this.#explore?.clock.state().day ?? 0) - this.#span.start) /
-      (this.#span.end - this.#span.start)
-    );
   }
 
   #updateExplore(): void {

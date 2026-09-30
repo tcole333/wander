@@ -54,6 +54,23 @@ export const tunables = {
   nowShare: 0.1,
   // Years the ruler shows as Explore opens, centered on the opening event.
   exploreOpenYears: 200,
+  // The narrowest and widest Explore's tape shows: at 10 days the now window's one-day floor
+  // never outgrows the glass, and at 5,000 years the tape never repeats the overview.
+  exploreMinSpanDays: 10,
+  exploreMaxSpanYears: 5000,
+  // Explore's overview is logarithmic in the years before 2000's end plus this many.
+  overviewWarpYears: 100,
+  // The span's change per wheel pixel over Explore's ruler, and per pinch pixel (the globe's), as
+  // e^(rate·px): a 100 px notch shows 1.49 times as much.
+  timeWheelRate: 0.004,
+  timePinchRate: 0.01,
+  // A flicked tape coasts with this time constant, at most this many spans.
+  timeFlickTauS: 0.3,
+  timeFlickMaxSpans: 2,
+  // A flight between dates lasts 0.22 + 0.11·log2(1 + distance/span) s, within these.
+  timeFlightS: { min: 0.22, max: 0.9 },
+  // A held arrow glides after `delay` ms, from `from` to `to` spans a second over `ramp` ms.
+  timeHoldGlide: { delay: 300, from: 0.25, to: 0.85, ramp: 2000 },
   // A mark's diameter in CSS px by the view's width in km, log-interpolated between the rows and
   // held beyond them: one size at a given scale (globe-language.md, principle 7).
   markPx: [

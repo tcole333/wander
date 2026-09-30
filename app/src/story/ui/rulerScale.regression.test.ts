@@ -12,7 +12,7 @@ import {
   radial,
   storyYears,
 } from './rulerScale';
-import { ExploreTime, HISTORY } from '../../time/exploreTime';
+import { ExploreTime } from '../../time/exploreTime';
 import { WorldClock } from '../../time/worldClock';
 import type { Span } from './format';
 
@@ -60,17 +60,6 @@ function historical(iso: string): number {
 }
 
 describe('review: free ruler calendar', () => {
-  it('gives 31 December its full cell at the four-day limit', () => {
-    const explore = new ExploreTime(new WorldClock());
-    explore.zoom(1e-9, 1);
-    explore.seek(HISTORY.end);
-    expect(band(explore.span).map((label) => label.text)).toEqual(['28', '29', '30', '31']);
-    expect(explore.clock.state().day).toBe(HISTORY.end);
-    expect(explore.span.end).toBe(HISTORY.end + 1);
-    explore.scrub(HISTORY.end + 1);
-    expect(explore.clock.state().day).toBe(HISTORY.end);
-  });
-
   it('keeps round decades instead of the exact view edges', () => {
     const span = { start: historical('-0069-01-01'), end: historical('0071-01-01') };
     expect(band(span).map((label) => label.text)).toEqual([
