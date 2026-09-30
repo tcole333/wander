@@ -1,8 +1,9 @@
 // The look's one climate field: it rewrites and uploads only for a blend it does not hold, so a
-// story's month drawn after Explore's draws again instead of keeping Explore's.
+// story's month drawn after Explore's draws again instead of keeping Explore's, and it keeps none
+// of the year files it drew from alive once their owner lets them go.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { monthsAround, parseClimate } from '../data/climate';
+import { monthsAround, parseClimate, type ClimateFile } from '../data/climate';
 import type { ModeraRelease } from '../data/release';
 import { createClimateUniforms } from '../look/climateHook';
 import type { WalkState } from '../story/contract';
@@ -10,6 +11,7 @@ import { dayFromIso } from '../story/dates';
 import { StoryClimate } from '../story/effects/climate';
 import { parseStory } from '../story/story';
 import { syntheticYear } from '../test/climate';
+import { survivors } from '../test/gc';
 import { ClockClimate } from './clock';
 import { climateFieldOf, ClimateField } from './field';
 
@@ -104,5 +106,42 @@ describe('the climate field', () => {
 
     tambora.update(onEurope, 1 / 30, 1);
     expect(texels(uniforms)).toEqual(europe);
+  });
+
+  describe('keeps no year file alive', () => {
+    /** Explore on a field of its own, with a weak hold on each year file it reads. */
+    const explore = () => {
+      const files: WeakRef<ClimateFile>[] = [];
+      const climate = new ClockClimate(SOURCE, new ClimateField(createClimateUniforms()), {
+        fetch: (url) => Promise.resolve(stored(yearOf(url))),
+        decode: (stored) => {
+          const file = parseClimate(new Uint8Array(stored));
+          files.push(new WeakRef(file));
+          return Promise.resolve(file);
+        },
+      });
+      return { climate, files };
+    };
+    const july1816 = { day: dayFromIso('1816-07-01'), spanDays: 365 };
+
+    it('once Explore has ended', async () => {
+      const { climate, files } = explore();
+      for (let frame = 0; frame < 20; frame += 1) {
+        climate.update(july1816, 1 / 30);
+        await flush();
+      }
+      climate.end();
+      expect(await survivors(files)).toBe(0);
+    });
+
+    it('once Explore has dropped it for a day beyond the data', async () => {
+      const { climate, files } = explore();
+      for (let frame = 0; frame < 20; frame += 1) {
+        climate.update(july1816, 1 / 30);
+        await flush();
+      }
+      climate.update({ day: dayFromIso('1300-07-01'), spanDays: 365 }, 1 / 30);
+      expect(await survivors(files)).toBe(0);
+    });
   });
 });

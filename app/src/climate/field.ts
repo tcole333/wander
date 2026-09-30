@@ -2,7 +2,8 @@
 // lookClimateField. A story's climate (story/effects/climate.ts) and Explore's (clock.ts) each ask
 // it for a blend of two months; it remembers which months of which files it holds, and rewrites
 // and uploads the field only when asked for another. So a Tambora dive after Explore redraws its
-// month instead of keeping Explore's, and a blend asked for again costs nothing.
+// month instead of keeping Explore's, and a blend asked for again costs nothing. It knows a file by
+// a number, not by holding it, so a year its owner drops, or empties at its end, is freed.
 import { DataUtils } from 'three';
 import { blendMonths, type ClimateFile, type Month, type MonthBlend } from '../data/climate';
 import type { ModeraRelease } from '../data/release';
@@ -14,11 +15,25 @@ const HALF_ONE = DataUtils.toHalfFloat(1);
 /** A blend's weight closer than this to the one held draws the same field. */
 const SAME_W = 1e-4;
 
-/** What the field holds: month `blend.from` of `from` blended toward month `blend.to` of `to`. */
+/** What the field holds: month `blend.from` of file `from` blended toward `blend.to` of `to`. */
 interface Held {
-  from: ClimateFile;
-  to: ClimateFile;
+  from: number;
+  to: number;
   blend: MonthBlend;
+}
+
+/** The number of each file drawn from, which the field remembers in place of the file. */
+const fileIds = new WeakMap<ClimateFile, number>();
+let nextFileId = 0;
+
+function idOf(file: ClimateFile): number {
+  let id = fileIds.get(file);
+  if (id === undefined) {
+    id = nextFileId;
+    nextFileId += 1;
+    fileIds.set(file, id);
+  }
+  return id;
 }
 
 const sameMonth = (a: Month, b: Month) => a.year === b.year && a.month === b.month;
@@ -45,8 +60,8 @@ export class ClimateField {
     const held = this.#held;
     return (
       held !== null &&
-      held.from === from &&
-      held.to === to &&
+      held.from === idOf(from) &&
+      held.to === idOf(to) &&
       sameMonth(held.blend.from, blend.from) &&
       sameMonth(held.blend.to, blend.to) &&
       Math.abs(held.blend.w - blend.w) < SAME_W
@@ -70,7 +85,7 @@ export class ClimateField {
       data[2 * i + 1] = present ? HALF_ONE : 0;
     }
     texture.needsUpdate = true;
-    this.#held = { from, to, blend };
+    this.#held = { from: idOf(from), to: idOf(to), blend };
     return true;
   }
 
