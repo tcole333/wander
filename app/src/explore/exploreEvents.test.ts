@@ -123,6 +123,8 @@ function marksLayer(): EventMarks & { specs: MarkSpec[]; sets: number; under: st
     /** The mark the pointer is over, as the test puts it there. */
     under: null as string | null,
     hit: () => layer.under,
+    span: (id: string) =>
+      layer.specs.some((s) => s.id === id) ? { x0: 0, y0: 0, x1: 0, y1: -9 } : null,
   };
   return layer;
 }
@@ -545,6 +547,10 @@ describe("Explore's events", () => {
     expect(events.hit(0, 0)).toBeNull();
     marks.under = null;
     expect(events.hit(0, 0)).toBeNull();
+    // Where its own marks stand, lifted by the relief, and none of another layer's.
+    expect(events.span('Q1')).toEqual({ x0: 0, y0: 0, x1: 0, y1: -9 });
+    marks.specs.push({ ...marks.specs[0]!, id: 'demo-3' });
+    expect(events.span('demo-3')).toBeNull();
   });
 
   it('names the events it marks in view, and describes them, a child with its parent', () => {

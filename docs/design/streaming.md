@@ -1148,7 +1148,10 @@ only a failed start or a worker error ends the worker.
   plate. At most two plates stand, the pinned and the hovered, each on the first side of right,
   left, above and below that stays in view and clear of the other, the ruler, Meanwhile, the
   legend, the page's mark and sound knob, the listbox's tag while it shows and the focal ember,
-  keeping its side while it serves within 8 px (`platePlacement.ts`).
+  keeping its side while it serves within 8 px (`platePlacement.ts`). A plate and the ember's
+  keep-out take their mark as the segment `marks.hit` picks along (`MarkLayer.span`), so over land
+  in a tilted view a plate stands clear of all the way the relief may lift its mark; the arrow keys
+  take each mark halfway along it.
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
   list while the beat shows, and while scrubbing, the month's or the nearest month's it holds
   (3.9). Explore asks the worker. It stands `client.meanwhile({t0, t1, center, view, count,
