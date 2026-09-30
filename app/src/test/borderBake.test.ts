@@ -13,6 +13,7 @@ import {
   decodeStep,
   drawnLeaves,
   innerDistance,
+  leafFindings,
   outerDistance,
   previewAgreement,
   shoreBand,
@@ -66,6 +67,27 @@ describe('shoreRuns', () => {
     const [run] = shoreRuns(ring, shoreBand(lake, SIZE), SIZE, 0);
     expect(run?.km).toBeGreaterThan(2 * LAKE.radius * TEXEL_KM);
     expect(run?.texels).toBeGreaterThan(40);
+  });
+
+  test("keeps each plane's borders apart when asked", () => {
+    // A ring round the lake, R on its northern half and G on its southern.
+    const lake = shores();
+    const ring = new Uint8Array(6 * SIZE * SIZE * 2);
+    for (let k = 0; k < SIZE * SIZE; k += 1) {
+      const y = Math.floor(k / SIZE);
+      const d = outerDistance(lake[k]!);
+      const shore = d > 0 && d <= 1;
+      ring[2 * k] = shore && y < LAKE.y ? 128 : 255;
+      ring[2 * k + 1] = shore && y >= LAKE.y ? 64 : 127;
+    }
+    const band = shoreBand(lake, SIZE);
+    const [both] = shoreRuns(ring, band, SIZE, 0);
+    const [outer] = shoreRuns(ring, band, SIZE, 0, 'R');
+    const [inner] = shoreRuns(ring, band, SIZE, 0, 'G');
+    expect(outer!.box[3]).toBeLessThan(LAKE.y);
+    expect(inner!.box[1]).toBeGreaterThanOrEqual(LAKE.y);
+    expect(outer!.texels + inner!.texels).toBe(both!.texels);
+    expect(Math.max(outer!.km, inner!.km)).toBeLessThan(both!.km);
   });
 
   test('finds none on another face', () => {
@@ -137,6 +159,53 @@ test('drawnLeaves counts the names not in parentheses each step lists', () => {
   expect(drawnLeaves(polities, [1800, 1810, 1820])).toEqual([2, 1, 1]);
   expect(stepHolding([1800, 1810, 1820], 1815)).toBe(1);
   expect(stepHolding([1800, 1810, 1820], 1799)).toBe(-1);
+});
+
+describe('leafFindings', () => {
+  const entry = (leaves: number, added: string[] = [], removed: string[] = []) => ({
+    leaves,
+    drawn: 0,
+    added,
+    removed,
+    unexplained: [],
+  });
+  const none = {};
+
+  test('passes steps that draw their rows valid, with what corrections add and take away', () => {
+    const byStep = { 1800: entry(3), 1810: entry(3, ['Mexico'], ['Duchy', 'March']) };
+    expect(leafFindings([1800, 1810], [3, 2], byStep, none)).toEqual([]);
+  });
+
+  test('names a step whose leaves drawn do not add up, corrections or not', () => {
+    const byStep = { 1800: entry(3), 1810: entry(3, ['Mexico']) };
+    expect(leafFindings([1800, 1810], [2, 3], byStep, none)).toEqual([
+      '1800: 2 leaves drawn, not 3 rows valid, 0 added and 0 taken away',
+      '1810: 3 leaves drawn, not 3 rows valid, 1 added and 0 taken away',
+    ]);
+  });
+
+  test('names the leaves no correction names, and a step with no record of them', () => {
+    const lost = { leaves: 2, drawn: 1, added: [], removed: ['Beta'], unexplained: ['Beta'] };
+    const findings = leafFindings(
+      [1800, 1810],
+      [1, 2],
+      { 1800: lost, 1810: { leaves: 2, drawn: 2 } },
+      none,
+    );
+    expect(findings).toEqual([
+      '1800: no correction names Beta',
+      '1810: its review entry records no leaves added or taken away',
+    ]);
+  });
+
+  test("checks the compared years' rows valid in every step, corrections or not", () => {
+    const byStep = {
+      1497: { ...entry(129), corrections: ['1000-1499.yaml correction 10 (pocket, 1450-1914)'] },
+    };
+    expect(leafFindings([1497], [129], byStep, { 1500: 130 })).toEqual([
+      "1500: 129 rows valid, not the comparison's 130",
+    ]);
+  });
 });
 
 describe('the decoders', () => {

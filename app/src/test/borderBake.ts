@@ -45,8 +45,15 @@ export interface BordersRecord {
 
 /** One step's review entry in borders-review.json, as the verify reads it. */
 export interface StepReview {
+  /** Cliopatria's POLITY rows valid in the step's year, not composites. */
   leaves: number;
   drawn: number;
+  /** The leaves the step draws that no valid row gives it. */
+  added?: string[];
+  /** The leaves a valid row gives the step that it does not draw. */
+  removed?: string[];
+  /** Of those added and removed, the ones no correction the step applies names. */
+  unexplained?: string[];
   /** The corrections that changed the step, by label. */
   corrections?: string[];
 }
@@ -196,9 +203,13 @@ export const outerDistance = (byte: number): number => byte / 16 - 8;
 /** G's and a preview's distance in texels, from bits 0-6 (a preview's q is v >> 1). */
 export const innerDistance = (q: number): number => (q & 127) / 8 - 8;
 
+/** Which plane's borders a check reads: R, G or, by default, both. */
+export type Plane = 'R' | 'G' | 'both';
+
 /** A texel a border passes through: within half a texel of an R or a G border. */
-export function onBorder(r: number, g: number): boolean {
-  return Math.abs(outerDistance(r)) <= 0.5 || Math.abs(innerDistance(g)) <= 0.5;
+export function onBorder(r: number, g: number, plane: Plane = 'both'): boolean {
+  const outer = plane !== 'G' && Math.abs(outerDistance(r)) <= 0.5;
+  return outer || (plane !== 'R' && Math.abs(innerDistance(g)) <= 0.5);
 }
 
 /** How far a lake must reach from its shore, in texels, for a border in it to clear the shore. */
@@ -259,27 +270,30 @@ export interface ShoreRun {
   /** The run's first texel, column and row. */
   at: [number, number];
   texels: number;
+  /** The run's bounding box, columns and rows: x0, y0, x1, y1, inclusive. */
+  box: [number, number, number, number];
   /** The diagonal of the run's bounding box, at TEXEL_KM a texel. */
   km: number;
 }
 
 /**
- * The runs of border texels in a shore band (shoreBand) on one face, 8-connected, longest first.
- * A border the fill carries across a lake meets each shore in a few texels; one that follows or
- * rings a shore runs beside it.
+ * The runs of border texels in a shore band (shoreBand) on one face, 8-connected, longest first,
+ * of both planes' borders or one's. A border the fill carries across a lake meets each shore in a
+ * few texels; one that follows or rings a shore runs beside it.
  */
 export function shoreRuns(
   planes: Uint8Array,
   band: Uint8Array,
   size: number,
   face: number,
+  plane: Plane = 'both',
 ): ShoreRun[] {
   const cells = size * size;
   const base = face * cells;
   const hit = new Uint8Array(cells);
   for (let k = 0; k < cells; k += 1) {
     const texel = base + k;
-    if (band[texel] === 1 && onBorder(planes[2 * texel]!, planes[2 * texel + 1]!)) {
+    if (band[texel] === 1 && onBorder(planes[2 * texel]!, planes[2 * texel + 1]!, plane)) {
       hit[k] = 1;
     }
   }
@@ -311,7 +325,8 @@ export function shoreRuns(
       }
     }
     const km = Math.hypot(x1 - x0 + 1, y1 - y0 + 1) * TEXEL_KM;
-    runs.push({ face, at: [start % size, Math.floor(start / size)], texels, km });
+    const at: [number, number] = [start % size, Math.floor(start / size)];
+    runs.push({ face, at, texels, box: [x0, y0, x1, y1], km });
   }
   return runs.sort((a, b) => b.km - a.km);
 }
@@ -424,6 +439,47 @@ export function drawnLeaves(polities: Polities, years: readonly number[]): numbe
     });
   }
   return counts;
+}
+
+/**
+ * What the steps' leaves owe Cliopatria (streaming.md 7.3): each step draws as many leaves as it
+ * has rows valid in its year, with those its corrections add and less those they take away, each
+ * of them a polity some correction the step applies names; and the steps holding the years task 0
+ * compared have that comparison's rows. `drawn` is each step's drawnLeaves.
+ */
+export function leafFindings(
+  years: readonly number[],
+  drawn: readonly number[],
+  byStep: Readonly<Record<string, StepReview>>,
+  compared: Readonly<Record<number, number>> = COMPARED_LEAVES,
+): string[] {
+  const found: string[] = [];
+  years.forEach((year, k) => {
+    const review = byStep[String(year)];
+    const { added, removed, unexplained } = review ?? {};
+    if (!review || !added || !removed || !unexplained) {
+      found.push(`${year}: its review entry records no leaves added or taken away`);
+      return;
+    }
+    const expected = review.leaves + added.length - removed.length;
+    if (drawn[k] !== expected) {
+      found.push(
+        `${year}: ${drawn[k]} leaves drawn, not ${review.leaves} rows valid, ` +
+          `${added.length} added and ${removed.length} taken away`,
+      );
+    }
+    if (unexplained.length > 0) {
+      found.push(`${year}: no correction names ${unexplained.join(', ')}`);
+    }
+  });
+  for (const [year, leaves] of Object.entries(compared)) {
+    const held = years[stepHolding(years, Number(year))];
+    const review = held === undefined ? undefined : byStep[String(held)];
+    if (review?.leaves !== leaves) {
+      found.push(`${year}: ${review?.leaves ?? 'no'} rows valid, not the comparison's ${leaves}`);
+    }
+  }
+  return found;
 }
 
 /** The step holding `year`: the last one beginning at or before it, or -1. */
