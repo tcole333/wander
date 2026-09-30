@@ -387,10 +387,11 @@ def test_other_profiles_read_raw_data():
 @pytest.mark.parametrize("tile", [SUMBAWA_EAST, KIRKUK_TOP], ids=Tile.key)
 def test_a_tile_builds_well_within_a_second(fixture_sources, tile):
     # Measured at about 0.2 s with gzip on the M5: a coastal 15" tile, and one whose edges read
-    # owner strips on two other faces.
+    # owner strips on two other faces. CPU time, not wall time: at load 58 the build took 1.23 s
+    # on the wall clock and 0.39 s of CPU.
     def seconds() -> float:
-        start = time.perf_counter()
+        start = time.process_time()
         to_file(build_tile(surface(tile, fixture_sources), q_land_start(tile.level)))
-        return time.perf_counter() - start
+        return time.process_time() - start
 
     assert min(seconds(), seconds()) < 1.0
