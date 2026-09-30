@@ -492,6 +492,8 @@ async function eventNames(): Promise<Map<number, { label: string; cls: string }>
 
 /** A mark as a render drew it: its place and size, its treatment and its event. */
 interface DrawnMark extends PlacedMark {
+  /** Its event's Q number, `Q…`: a hollow parent's mark id adds a suffix to it. */
+  qid: string;
   at: LonLat;
   glyph: string;
   pace: string;
@@ -591,12 +593,12 @@ async function drawnMarks(
     return { focal: events.focal(), placed: events.placed(), specs: events.marks() };
   });
   const marks = placed.map((mark) => {
-    // A war splitting into its battles is drawn twice for a moment: its solid mark fading out
-    // and its hollow one fading in. The strongest names it.
-    const spec = specs.filter((s) => s.id === mark.id).sort((a, b) => b.opacity - a.opacity)[0];
-    const named = names.get(Number(mark.id.slice(1)));
+    const spec = specs.find((s) => s.id === mark.id);
+    const qid = /^Q[0-9]+/.exec(mark.id)?.[0] ?? mark.id;
+    const named = names.get(Number(qid.slice(1)));
     return {
       ...mark,
+      qid,
       at: spec?.at ?? [NaN, NaN],
       glyph: spec?.glyph ?? '?',
       pace: spec?.pace ?? '?',
@@ -770,7 +772,7 @@ async function shootSheet(page: Page, html: string, path: string): Promise<void>
 function spotOf(shot: EventShot): { x: number; y: number } {
   // On relief seen tilted, a mark stands above its sea-level place.
   const lift = shot.scene.includes('tilted') ? 25 : 0;
-  const focal = shot.marks.find((m) => m.focal || m.id === shot.spot);
+  const focal = shot.marks.find((m) => m.focal || m.qid === shot.spot);
   if (focal) return { x: focal.x, y: focal.y - lift };
   const inView = shot.marks.filter((m) => m.x > 60 && m.x < 1380 && m.y > 60 && m.y < 760);
   const crowd = (m: DrawnMark) =>

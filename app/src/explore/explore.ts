@@ -4,9 +4,9 @@
 // globe and scrubs through all of history. The arrow keys keep panning the view, as in the lobby.
 // Where the release has its event index and the look cuts marks, the events of the now window
 // mark the globe (exploreEvents.ts), the opening focal among them; the layer's data-explore-marks
-// counts those drawn in view. Leaving stops input on the ruler, stops asking for events, eases
-// their marks out and fades the sound to the room; ending releases the clock, ruler and event
-// worker and takes the marks off, so the world clock has one owner at a time.
+// counts the events marked in view. Leaving stops input on the ruler, stops asking for events,
+// eases their marks out and fades the sound to the room; ending releases the clock, ruler and
+// event worker and takes the marks off, so the world clock has one owner at a time.
 // window.__worldTime and window.__exploreEvents serve scripts while Explore runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
@@ -189,7 +189,7 @@ export function startExplore({
     },
     ui() {
       if (!events) return;
-      const count = events.placed().length;
+      const count = events.markedInView();
       if (count === counted) return;
       counted = count;
       layer.dataset.exploreMarks = String(count);
