@@ -2,10 +2,11 @@
    in gilt over a hairline, and each story's plaque in dark cast brass lit from
    the lamp at the upper left: an engraved medallion, the title in gilt, the years in brass small
    capitals, the blurb in ivory and Begin at its foot. A hovered or focused plaque catches the lamp
-   along its edge, and an ember wakes in its socket and in its medallion's crater. The lamp's pool
-   falls on the wall behind them, and the Credits link is engraved at the top right. The walk's UI
-   arrives from here: its ruler rises during the dive, and its card and Meanwhile come in at the
-   landing. */
+   along its edge, and an ember wakes in its socket and in its medallion's crater. The plaques
+   stand on a shelf that reaches down to the window's foot and scrolls within itself where they
+   outrun it, More engraved below it while any wait under its faded foot. The lamp's pool falls on
+   the wall behind them, and the Credits link is engraved at the top right. The walk's UI arrives
+   from here: its ruler rises during the dive, and its card and Meanwhile come in at the landing. */
 
 .lobby-column,
 .lobby-credits {
@@ -50,23 +51,29 @@
 
 .lobby-column {
   --delay: 0.15s;
+  --top: 146px;
+  /* Room either side of the shelf for the plaques' cast shadows and lit glow, which its scroll box
+     would otherwise clip. */
+  --bleed: 28px;
+  /* The band kept below a shelf the plaques outrun, where More stands. */
+  --foot: 44px;
+  /* How far a shelf's cut-off head and foot fade into the wall. */
+  --fade-above: 28px;
+  --fade-below: 40px;
 
   position: absolute;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   left: 30px;
-  top: 146px;
+  top: var(--top);
   width: 356px;
+  max-height: calc(100dvh - var(--top));
   translate: -14px 0;
 }
 
-/* Short desktop windows keep both choices reachable without squeezing their lettering. */
-@media (max-height: 760px) {
-  .lobby-column {
-    max-height: calc(100vh - 162px);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #7a5a2a transparent;
-  }
+.lobby-column.is-overflowing {
+  max-height: calc(100dvh - var(--top) - var(--foot));
 }
 
 .lobby.is-shown .lobby-column {
@@ -101,10 +108,55 @@
 }
 
 .lobby-rule {
+  flex: none;
   height: 1px;
-  margin: 12px 0 16px;
+  margin: 12px 0 0;
   background: linear-gradient(90deg, #b08a4a, rgb(176 138 74 / 0.35) 60%, transparent);
   box-shadow: 0 1px 0 rgb(0 0 0 / 0.6);
+}
+
+/* The plaques' shelf. Where they outrun the window it scrolls within itself, with no bar: plaques
+   cut off at either end fade into the wall, and More (.lobby-more) stands below it. A plaque
+   reached by Tab scrolls clear of the fades. */
+.lobby-shelf {
+  --fade-head: 0px;
+  --fade-foot: 0px;
+
+  min-height: 0;
+  margin: 0 calc(-1 * var(--bleed));
+  padding: 16px var(--bleed) 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  scroll-padding-block: calc(var(--fade-above) + 4px) calc(var(--fade-below) + 4px);
+}
+
+.lobby-shelf::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lobby-shelf {
+    scroll-behavior: smooth;
+  }
+}
+
+.is-more-above .lobby-shelf {
+  --fade-head: var(--fade-above);
+}
+
+.is-more-below .lobby-shelf {
+  --fade-foot: var(--fade-below);
+}
+
+.is-more-above .lobby-shelf,
+.is-more-below .lobby-shelf {
+  mask-image: linear-gradient(
+    transparent,
+    #000 var(--fade-head),
+    #000 calc(100% - var(--fade-foot)),
+    transparent
+  );
 }
 
 /* A story's plaque: dark cast brass (walkUi.css .wu-brass), its lettering cut into it. */
@@ -244,14 +296,14 @@
 }
 
 /* Begin, engraved at the plaque's foot as the card's Sources are, brightening as the plaque is
-   lit. */
-.lobby-begin {
-  grid-column: 2 / -1;
-  justify-self: end;
+   lit, and More, engraved the same way below the shelf between gilt hairlines while plaques wait
+   under its faded foot. More is for the pointer: pressed, it brings the next plaque up; the
+   keyboard reaches each plaque by Tab. */
+.lobby-begin,
+.lobby-more {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin-top: 12px;
   font: 400 11px/1 var(--display);
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -260,13 +312,65 @@
   transition: color 0.35s;
 }
 
+.lobby-begin {
+  grid-column: 2 / -1;
+  justify-self: end;
+  margin-top: 12px;
+}
+
 .lobby-begin-hand {
   font-size: 15px;
   letter-spacing: 0;
 }
 
-.lobby-plaque:is(:hover, :focus-visible) .lobby-begin {
+.lobby-plaque:is(:hover, :focus-visible) .lobby-begin,
+.lobby-more:hover {
   color: var(--brass-hi);
+}
+
+.lobby-more {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: var(--foot);
+  align-items: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    color 0.35s,
+    opacity 0.35s;
+}
+
+.lobby-more::before,
+.lobby-more::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  margin: 0 8px;
+  background: linear-gradient(90deg, transparent, rgb(176 138 74 / 0.7));
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.6);
+}
+
+.lobby-more::after {
+  background: linear-gradient(270deg, transparent, rgb(176 138 74 / 0.7));
+}
+
+/* A chevron cut in the brass, pointing down. */
+.lobby-more-chevron {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px 4px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  rotate: 45deg;
+  filter: drop-shadow(0.5px 1px 0 rgb(0 0 0 / 0.85));
+}
+
+.is-more-below .lobby-more {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .lobby-credits {

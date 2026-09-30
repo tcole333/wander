@@ -4,8 +4,9 @@
 // and the blurb, a Begin line at its foot, and an ember that wakes in its socket when the plaque
 // is hovered or focused. Where Explore stands, its plaque comes last, an armillary sphere on
 // its medallion, with its title and years and no blurb. The plaque is a button, so Tab reaches it
-// and Enter or Space chooses it. The column fades in as the opening ends and slides away once the
-// plaque is chosen.
+// and Enter or Space chooses it. The plaques stand on a shelf that scrolls within itself where
+// they outrun the window, and while any wait below its foot, More is engraved there. The column
+// fades in as the opening ends and slides away once the plaque is chosen.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -31,7 +32,9 @@ export class Plaques {
   /** The lobby's layer, over the canvas as the walk's UI is. */
   readonly element = el('div', 'wu lobby');
   readonly #column = el('nav', 'lobby-column');
+  readonly #shelf = el('div', 'lobby-shelf');
   readonly #credits = creditsLink('lobby-credits');
+  readonly #resized = new ResizeObserver(() => this.#edges());
   #chosen: HTMLButtonElement | undefined;
 
   /**
@@ -41,7 +44,13 @@ export class Plaques {
   constructor(stories: readonly Story[], onChoose: (choice: Choice) => void, explore = false) {
     this.#column.setAttribute('aria-label', 'Stories');
     const rule = el('div', 'lobby-rule');
-    this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule);
+    const more = el('span', 'lobby-more', 'More');
+    more.setAttribute('aria-hidden', 'true');
+    more.append(el('span', 'lobby-more-chevron'));
+    more.addEventListener('click', () => this.#bringUp());
+    this.#column.append(el('h2', 'lobby-head', 'Choose a story'), rule, this.#shelf, more);
+    this.#shelf.addEventListener('scroll', () => this.#edges(), { passive: true });
+    this.#resized.observe(this.#shelf);
     const add = (face: PlaqueFace, choice: Choice) => {
       const button = plaque(face, () => {
         this.#chosen = button;
@@ -50,7 +59,8 @@ export class Plaques {
       if (choice.kind === 'story') button.dataset.story = choice.story.id;
       else button.dataset.choice = choice.kind;
       this.#chosen ??= button;
-      this.#column.append(button);
+      this.#shelf.append(button);
+      this.#resized.observe(button);
     };
     for (const story of stories) {
       const face = {
@@ -93,7 +103,33 @@ export class Plaques {
   }
 
   dispose(): void {
+    this.#resized.disconnect();
     this.element.remove();
+  }
+
+  /**
+   * Marks whether the plaques outrun the room down to the window's foot, which keeps a band there
+   * for More, and where plaques wait beyond the shelf's ends, for its fades and More.
+   */
+  #edges(): void {
+    const shelf = this.#shelf;
+    const { scrollTop, scrollHeight, clientHeight } = shelf;
+    const room = innerHeight - shelf.getBoundingClientRect().top;
+    this.#column.classList.toggle('is-overflowing', scrollHeight > room + 1);
+    this.#column.classList.toggle('is-more-above', scrollTop > 1);
+    this.#column.classList.toggle('is-more-below', scrollHeight - clientHeight - scrollTop > 1);
+  }
+
+  /** Scrolls the first plaque the shelf's faded foot cuts off up to its head. */
+  #bringUp(): void {
+    const shelf = this.#shelf;
+    const box = shelf.getBoundingClientRect();
+    const { scrollPaddingTop, scrollPaddingBottom } = getComputedStyle(shelf);
+    const foot = box.bottom - parseFloat(scrollPaddingBottom);
+    const next = [...shelf.children].find((plaque) => plaque.getBoundingClientRect().bottom > foot);
+    if (!next) return;
+    const rise = next.getBoundingClientRect().top - box.top - parseFloat(scrollPaddingTop);
+    shelf.scrollTo({ top: shelf.scrollTop + rise });
   }
 }
 
