@@ -565,13 +565,13 @@ corrections:
       The Congress of Vienna made Monaco a protectorate of the Kingdom of Sardinia in 1815, until
       Sardinian forces left in 1860.
     source: *monaco
-  - years: [1815, 1879]
+  - years: [1816, 1879]
     rename:
       polity: Serbs
       to: Principality of Serbia
     why: >-
-      The Principality of Serbia emerged in 1815 and was recognised as autonomous in 1830; Cliopatria
-      names its rows Serbs.
+      The Principality of Serbia emerged from the Second Serbian Uprising of 1815 and was recognised
+      as autonomous in 1830; Cliopatria names its rows Serbs.
     source:
       title: Principality of Serbia
       publisher: Wikipedia
