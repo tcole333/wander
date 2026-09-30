@@ -20,7 +20,12 @@ names, Meanwhile and the lobby's glows from the all-eras Wikidata index, synthes
 Credits panel. The production entry (`app/index.html`, `app/src/main.ts`) plays them from the
 bundled release, `app/src/generated/release.json`, whose data is on R2; the dev page
 `app/prototype.html?story=tambora|magellan` boots the same walk (`app/src/walk/boot.ts`) under a
-tuning panel. Next is milestone 3, open-world exploration, live as it grows (`docs/PRD.md`).
+tuning panel. Milestone 3, open-world exploration, is live as it grows (`docs/PRD.md`): the
+lobby's last plaque, All of History, dives into Explore wherever the release names the event index,
+with the free clock over all of history, the now window's events as marks, the climate at the
+clock's date and its own sound; `app/prototype.html` without `?story=` starts in it. The bundled
+release names no event index until the event files are published, so until then the live lobby
+shows the stories' plaques alone.
 
 ## Layout
 
