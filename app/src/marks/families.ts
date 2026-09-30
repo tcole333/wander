@@ -1,7 +1,7 @@
 // Each pace layer's marks as one family: the material its marks take in each variant, so that no
-// two layers part by glyph alone (docs/design/globe-language.md, principle 4). The variants were
-// the owner's candidates, drawn side by side on R1's renders; the owner chose 0, the cast token
-// (29 September), which the marks draw unless ?markVariant or the dev panel asks for another:
+// two layers part by glyph alone (docs/design/globe-language.md, principle 4). The variants are
+// the candidates drawn side by side on R1's renders; the marks draw 0, the cast token, unless
+// ?markVariant or the dev panel asks for another:
 //
 //   0 Cast token (E1b): a raised bronze boss with its glyph worn bright; a raised dark seal with a
 //     niello glyph; a small gilt seal with its glyph sunk. Each casts a contact shadow.
