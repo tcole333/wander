@@ -45,6 +45,8 @@ class InPlaceWorker implements EventSource {
   asked: EventQuery[] = [];
   /** Replies the next drain adds after its own, as a worker failing would send them. */
   extra: EventReply[] = [];
+  /** The error each result's plan carries, as a window past the index cap gives it. */
+  planError: string | undefined;
   #pending: EventQuery | undefined;
   #stated = false;
   #generation = 0;
@@ -72,7 +74,8 @@ class InPlaceWorker implements EventSource {
     }
     if (this.#pending) {
       const result = this.engine.query(this.#pending, now);
-      replies.push({ type: 'result', generation: ++this.#generation, result, plan });
+      const planned = this.planError ? { ...plan, error: this.planError } : plan;
+      replies.push({ type: 'result', generation: ++this.#generation, result, plan: planned });
       this.#pending = undefined;
     }
     replies.push(...this.extra);
@@ -394,6 +397,18 @@ describe("Explore's events", () => {
     events.update(WORLD, at(5000), 1032);
     expect(marks.specs).toEqual([]);
     expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs once when a result’s plan says the window does not fit the index', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { worker, marks } = setup([{ row: 0, qid: 1, lon: 10, lat: 45, t0: 1000, t1: 1000 }]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, at(1000), 0);
+    worker.planError = 'event window needs 9 B; full index cap is 8 B';
+    events.update(WORLD, at(1001), 16);
+    events.update(WORLD, at(1002), 32);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]![0])).toContain('index cap');
   });
 
   it('logs a class without a mark once and draws the rest', () => {

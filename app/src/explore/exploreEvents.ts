@@ -319,6 +319,9 @@ export class ExploreEvents {
         this.#result = reply.result;
         this.#resident = reply.plan.bytes;
         this.#changed = true;
+        // Once the overview is resident, a window the index cap cannot hold asks for nothing to
+        // load, so no state reply follows to say so.
+        if (reply.plan.error) this.#report('plan', reply.plan.error);
         const focal = this.#focal;
         const found = focal && reply.result.markers.find((m) => m.qid === focal.qid);
         if (focal && found) this.#focal = { ...focal, span: { t0: found.t0, t1: found.t1 } };

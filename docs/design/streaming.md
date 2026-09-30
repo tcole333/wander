@@ -1103,7 +1103,8 @@ only a failed start or a worker error ends the worker.
   The focal event, the opening until a pin replaces it, passes the query's budgets until the now
   window leaves its dates, then drops to an ordinary mark; until the index holds it, or once the
   worker has failed, the openings lock draws it. A failed worker (an error naming neither a file
-  nor a request) logs once and takes the index's marks off, and nothing more is asked of it. The
+  nor a request) logs once and takes the index's marks off, and nothing more is asked of it; a
+  window the index cap cannot hold logs its plan's error once, from a result as from a state. The
   marks ease in with the dive and out with the lobby's glows as Explore leaves, and
   `explore.events` counts the index the worker holds.
 - **Meanwhile panel:** its lists remain outside the globe budget. A story reads its lock: a beat's
