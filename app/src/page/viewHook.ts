@@ -9,7 +9,10 @@ export interface WanderViewHook {
   go(view: ViewState): void;
   /** The view as drawn. */
   view(): ViewState;
-  /** The view has settled and the streamer has been idle for a while. */
+  /**
+   * The view has settled and the streamer has been idle for a while, with a story's border beat
+   * holding its step.
+   */
   ready(): boolean;
 }
 
