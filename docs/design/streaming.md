@@ -1583,11 +1583,13 @@ only a failed start or a worker error ends the worker.
   place draw one glyph, while other events at one place stand side by side (section 2, Event marks);
   the layer's `data-explore-marks` counts the events marked in view, each once; an inherited or
   derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser) is
-  soft, its edge within a fifth of its radius so a 14 px seal keeps its shape, and half as deep. The
-  focal event, the opening until a pin replaces it, passes the query's budgets while its dates are
-  on the ruler's tape (`tapeWindow`), at half strength while they stand outside the glass's now
-  window, then drops to an ordinary mark; until the index holds it, or once the worker has failed,
-  the openings lock draws it. A failed worker (an error naming neither a file
+  soft: its seal's outer edge spreads up to a fifth of its radius, so a 14 px seal keeps its shape,
+  while its face, bezel and glyph are drawn as a sure mark's, so a war, whose place is nearly always
+  borrowed, keeps its family's dark niello. The focal event, the opening until a pin replaces it,
+  passes the query's budgets while its dates are on the ruler's tape (`tapeWindow`), at half
+  strength while they stand outside the glass's now window, then drops to an ordinary mark; until
+  the index holds it, or once the worker has failed, the openings lock draws it. A failed worker (an
+  error naming neither a file
   nor a request) logs once and takes the index's marks off, and nothing more is asked of it; a
   window the index cap cannot hold logs its plan's error once, from a result as from a state. The
   marks ease in with the dive and out with the lobby's glows as Explore leaves, and

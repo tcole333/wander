@@ -71,7 +71,7 @@ export interface MarkSpec {
   hover?: boolean;
   /** An expanded parent: its glyph as an outline. */
   hollow?: boolean;
-  /** An inherited or derived place, or a date known only to the year: a softer edge, half relief. */
+  /** An inherited or derived place, or a date known only to the year: a softer outer edge. */
   soft?: boolean;
   /** Its glyph drawn mirrored east to west: a storm's south of the equator (eventSymbols.ts). */
   mirror?: boolean;
