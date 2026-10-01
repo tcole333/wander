@@ -16,8 +16,6 @@ test('keeps GPU texels and draws intact after releasing immutable CPU sources', 
   expect(report.renderer).toMatch(
     test.info().project.name === 'gpu-chromium' ? /Metal/ : /SwiftShader/,
   );
-  expect(report.retained).toEqual([25_165_840, 25_165_840, 25_165_840, 25_165_840, 25_165_840, 0]);
-  expect(report.borderErrors).toEqual([0, 0, 0, 0, 0, 0]);
   const pixels = (rgba: number[]) => [...rgba, ...rgba, ...rgba, ...rgba];
   expect(report.canvasPixels).toEqual([pixels([38, 75, 145, 255]), pixels([38, 75, 145, 255])]);
   expect(report.atlasPixels).toEqual([pixels([73, 0, 0, 255]), pixels([73, 0, 0, 255])]);

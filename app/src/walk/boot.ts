@@ -251,7 +251,7 @@ async function assemble(
   const layer = streamer.layer;
   // The look cuts event marks where Explore stands, and holds the border steps where the release
   // names them: Explore's borders and the walks' border beats follow the world clock through them.
-  // Without them a walk draws milestone 1's 1815 field, and Explore no borders.
+  // Without them neither draws borders.
   const look = createSurfaceLook(streamer.pools, release.surface, {
     ...(explore ? { marks: MARK_GLYPHS } : {}),
     ...(release.borderSteps ? { borderSteps: BORDER_TIER } : {}),
@@ -340,11 +340,10 @@ async function assemble(
 
   // A story's effects hang in the globe frame from the start, so the precompile readies their
   // programs, the climate's and the borders' too, whose files come from the release's data host;
-  // the borders' field loads in the background from the room's first frame, or, on the border
-  // steps, the walk's first border step while the lobby stands. Its page steps through its beats:
-  // the walk flies the camera, and holds a late landing until the streamer has nothing in hand and
-  // the beat has its border step. It starts on its first beat, or in the lobby, which starts it in
-  // the press that chooses its plaque.
+  // the walk's first border step loads in the background while the lobby stands. Its page steps
+  // through its beats: the walk flies the camera, and holds a late landing until the streamer has
+  // nothing in hand and the beat has its border step. It starts on its first beat, or in the lobby,
+  // which starts it in the press that chooses its plaque.
   const prepared = new Map(
     sources.map((source) => {
       const effects = createWalkEffects(source.story, look, labels, release);
