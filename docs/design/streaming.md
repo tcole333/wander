@@ -765,15 +765,15 @@ climate wash and before the ash:
   none and skips the other three taps. Most of the land takes the one tap, which halves a step's
   cost at rest close in, and a quad that draws keeps all its fragments, so the lines' derivatives
   hold.
-- **Outer line** (owner decision 42): an etched cut through the patina, 1.25 CSS px wide, of polished
-  metal lighter than the bronze (`#e4d2aa`, roughness 0.5), with a hairline shadow 0.75 CSS px wide
-  beside it on the lamp's side, where the cut's near wall faces away from the lamp, darkening the
-  metal by 0.7 and leaving it a touch rougher; the shadow fades as a line turns to run toward the
-  lamp, whose direction the look takes from the scene's spot light. A cut reflects at most 0.7 in
-  luminance, under the bloom's threshold, so it never glows. Lines are sized in CSS px, so they
-  keep their size on screen at any pixel ratio. Light lines against the rivers' dark blued steel
-  tell borders from rivers at a glance at every distance. Milestone 1's 1815 field, which a walk
-  draws while the release names no steps, keeps its dotted groove.
+- **Outer line** (owner decision 42): an etched cut through the patina, 1.25 CSS px wide, of
+  polished metal lighter than the bronze (`#e4d2aa`, roughness 0.5), with a hairline shadow 0.75 CSS
+  px wide beside it on the lamp's side, where the cut's near wall faces away from the lamp,
+  darkening the metal by 0.7 and leaving it a touch rougher; the shadow fades as a line turns to run
+  toward the lamp, whose direction the look takes from the scene's spot light. A cut reflects at
+  most 0.7 in luminance, under the bloom's threshold, so it never glows. Lines are sized in CSS px,
+  so they keep their size on screen at any pixel ratio. Light lines against the rivers' dark blued
+  steel tell borders from rivers at a glance at every distance. Milestone 1's 1815 field, which a
+  walk draws while the release names no steps, keeps its dotted groove.
 - **Inner lines** (owner decisions 34 and 42): a 0.75 CSS px cut at 0.45 of the outer cut's
   brightness, with a 0.5 px shadow darkening by 0.3, fading in as the view narrows from 9,000 to
   4,500 km across (`borderInnerKm`) and dimming on a log scale to 0.79 of that from 2,000 to
@@ -870,9 +870,9 @@ stage (owner decision 26), and Cliopatria gives no capitals.
   and dark engraved rivers. Drawn in one program at 2160×1350 (a Retina display at the page's 1.5
   cap) and timed by the GPU process's own GPU time over interleaved windows, every look's median
   over three rounds lies within 0.25 ms a draw of theirs, over Europe at 4,750 km and at 3,000 km,
-  as close as drawing no borders at all does (−0.11 and +0.26 ms), against 1.7-2.1 ms for the whole
-  scene, so the budget question above is as it was. Firefox held the GPU at
-  86% throughout, so the timer queries, which count other processes' work, back nothing there
+  as close as drawing no borders at all does (−0.11 and +0.26 ms), against 1.7-2.1 ms for the
+  whole scene, so the budget question above is as it was. Firefox held the GPU at 86% throughout,
+  so the timer queries, which count other processes' work, back nothing there
   [M `borders/results/etched-2026-10-01.json`].
 - **Frames:** scrubbing through all the steps (521 in that bake) at world view, eight a second, and
   from 1900 to 1950 over Europe, five a second, no task passed 50 ms, and every frame at world view
