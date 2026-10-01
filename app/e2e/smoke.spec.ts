@@ -7,9 +7,10 @@
 // an error; no request goes to Wikimedia: the images are the media stage's, on the data host;
 // bounds.bin is fetched once; and once the room opens, nothing more is fetched from the app's own
 // host: every face and worker came with the boot.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { fetchedSinceOpening, markOpening } from './opening';
 import { DATA_URL, PREVIEW_URL } from './servers';
 

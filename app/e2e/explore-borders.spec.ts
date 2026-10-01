@@ -6,10 +6,11 @@
 // and back in the lobby, Tambora's sixth beat, the first after the eruption to list borders, draws
 // its step under the walk's plate, its images answered by the media stage's test image. Nothing
 // logs an error.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { dayFromIso } from '../src/story/dates';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
 const TIMEOUT = 90_000;

@@ -1,9 +1,10 @@
 // The same visit can walk both stories, keeping one mark and sound knob. Fixture images stay on
 // the data origin, and the route may be absent until its renderer lands.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { withLock, type StoryLock } from '../src/story/lock';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { DATA_URL, DEV_URL, PREVIEW_URL } from './servers';
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
