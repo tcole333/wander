@@ -251,8 +251,8 @@ export function defaultMarkParams(): Params {
     marks: true,
     // The mark's size over tunables.markPx and markMinDevicePx.
     markSize: 1,
-    // A disc's bevel as a share of its radius (a glyph's is a quarter of it, or a pixel), and the
-    // relief's height over the family's.
+    // The seal's bevel as a share of its radius (a glyph's is a quarter of it, or a pixel, within
+    // its narrowest stroke), and the relief's height over the family's.
     markBevel: 0.4,
     markRelief: 1,
     // How much of their own colors the marks take, and how polished they are.
