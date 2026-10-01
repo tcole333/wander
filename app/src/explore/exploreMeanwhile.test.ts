@@ -123,6 +123,14 @@ describe('Explore’s Meanwhile', () => {
     expect(element.hidden).toBe(true);
   });
 
+  it('sources a pick without an English article to its Wikidata item', () => {
+    const event = { ...picked(34103, 'Second Syrian War', [36, 35]), flags: 32 };
+    expect(entryOf(event).source).toEqual({
+      title: 'Wikidata',
+      url: 'https://www.wikidata.org/wiki/Q34103',
+    });
+  });
+
   it('hands the chosen entry’s event over to fly to', () => {
     const events = fakeEvents();
     const chosen: MeanwhileEvent[] = [];

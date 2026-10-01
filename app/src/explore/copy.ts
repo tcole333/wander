@@ -10,5 +10,7 @@ export const EVENTS_LIST = 'Events';
  * date is, the name on its own line below: PART OF / Napoleonic Wars.
  */
 export const PART_OF = 'Part of';
-/** The source an index event's pinned plate links to. */
+/** The source an index event's pinned plate links to when it has an English article. */
 export const SOURCE_NAME = 'Wikipedia';
+/** The source when the export has no English Wikipedia article for the event. */
+export const WIKIDATA_SOURCE_NAME = 'Wikidata';

@@ -66,4 +66,11 @@ describe('.wev pages', () => {
     expect(() => parsePage({ v: 2, rows: 0 })).toThrow(/version/);
     expect(() => parsePage({ v: 1, rows: 1, row: [2 ** 32] })).toThrow(/row/);
   });
+  test('keeps the no-English-article bit in the flags byte and rejects unknown flags', () => {
+    const withArticle = pageOf([{ row: 0, flags: 31 }]);
+    const noArticle = pageOf([{ row: 0, flags: 63 }]);
+    expect(noArticle.flags).toEqual(Uint8Array.of(63));
+    expect(noArticle.bytes).toBe(withArticle.bytes);
+    expect(() => pageOf([{ row: 0, flags: 64 }])).toThrow(/flags/);
+  });
 });

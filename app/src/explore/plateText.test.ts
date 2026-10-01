@@ -76,15 +76,22 @@ describe('an event’s plate', () => {
   });
 
   it('links an event’s source to the Wikipedia article Wikidata gives it', () => {
-    expect(sourceOf(48314)).toEqual({
+    expect(sourceOf(48314, 0)).toEqual({
       title: 'Wikipedia',
       url: 'https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/Q48314',
     });
   });
 
+  it('links an event without an English article to its Wikidata item', () => {
+    expect(sourceOf(34103, 32)).toEqual({
+      title: 'Wikidata',
+      url: 'https://www.wikidata.org/wiki/Q34103',
+    });
+  });
+
   it('pins an opening with its written line and the source the line rests on', () => {
     const waterloo = openings.find((opening) => opening.qid === 'Q48314')!;
-    const text = pinnedText(openingText(waterloo), 48314, waterloo);
+    const text = pinnedText(openingText(waterloo), 48314, 32, waterloo);
     expect(text).toEqual({
       name: 'Battle of Waterloo',
       date: '18 June 1815',
@@ -94,14 +101,14 @@ describe('an event’s plate', () => {
     expect(text.line).toMatch(/Waterloo/);
     // A line's straight quotes read as typographer's.
     const fire = openings.find((opening) => opening.qid === 'Q164679')!;
-    expect(pinnedText(openingText(fire), 164679, fire).line).toContain('Old St Paul’s');
+    expect(pinnedText(openingText(fire), 164679, 0, fire).line).toContain('Old St Paul’s');
     // A number stays on one line with its unit.
     const krakatoa = openings.find((opening) => opening.qid === 'Q8094772')!;
-    expect(pinnedText(openingText(krakatoa), 8094772, krakatoa).line).toContain('4,800\u00a0km');
-    expect(pinnedText({ name: 'Battle of Ligny', date: '16 June 1815' }, 207318)).toEqual({
+    expect(pinnedText(openingText(krakatoa), 8094772, 0, krakatoa).line).toContain('4,800\u00a0km');
+    expect(pinnedText({ name: 'Battle of Ligny', date: '16 June 1815' }, 207318, 0)).toEqual({
       name: 'Battle of Ligny',
       date: '16 June 1815',
-      source: sourceOf(207318),
+      source: sourceOf(207318, 0),
     });
   });
 });
