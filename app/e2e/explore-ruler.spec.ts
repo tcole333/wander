@@ -5,70 +5,20 @@
 // its own stop, + and - stay the globe's, a typed date flies there and Backspace flies back, the
 // overview's rider names the year a press flies to, over the return point its year, a pull moves
 // the tape 1:1 under a needle that never moves, the wheel shows more or less about the needle and
-// a sideways swipe travels, a touch pulls and a pinch anywhere on the ruler, the counter's knobs
-// included, zooms without zooming the page, a finger sliding off a knob stops it, no label shows
-// cut by a glass edge's line or in a reel's fade, no press on the brass selects text, a pin holds
-// while its date is on the tape, Home and End reach history's ends, a letter on the plaque opens
-// its entry, and a refused date is said. Nothing logs an error.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
-import type { ExploreLabelsHook, ExploreViewHook, WorldTimeHook } from '../src/explore/explore';
+// a sideways swipe travels, no label shows cut by a glass edge's line or in a reel's fade, no
+// press on the brass selects text, a pin holds while its date is on the tape, Home and End reach
+// history's ends, a letter on the plaque opens its entry, and a refused date is said. Nothing logs
+// an error. Touch is explore-ruler-touch.spec.ts's.
+import { test, type Page } from '@playwright/test';
 import { dayFromIso } from '../src/story/dates';
 import { HISTORY } from '../src/time/exploreTime';
-import { nextDetent, SPAN_DETENTS } from '../src/time/timeMotion';
-import { DATA_URL, PREVIEW_URL } from './servers';
+import { clock, dive, expect, pinned, rested, ruler, watch, type RulerPage } from './rulerPage';
 
-const TIMEOUT = 90_000;
-const expect = playwrightExpect.configure({ timeout: TIMEOUT });
 const WATERLOO = dayFromIso('1815-06-18');
 const YEAR_DAYS = 365.2425;
 
-type RulerPage = Window & {
-  __worldTime?: WorldTimeHook;
-  __exploreView?: ExploreViewHook;
-  __exploreLabels?: ExploreLabelsHook;
-  pointerCancels?: number;
-};
-
-/** The world clock, and whether anything moves the tape. */
-function clock(page: Page): Promise<{ day: number; spanDays: number; moving: boolean }> {
-  return page.evaluate(() => {
-    const time = (window as RulerPage).__worldTime!;
-    return { ...time.state(), moving: time.moving() };
-  });
-}
-
-/** Waits for the tape to come to rest and returns the clock. */
-async function rested(page: Page): Promise<{ day: number; spanDays: number }> {
-  await expect.poll(async () => (await clock(page)).moving).toBe(false);
-  await page.waitForTimeout(100);
-  const { day, spanDays } = await clock(page);
-  return { day, spanDays };
-}
-
 function goal(page: Page) {
   return page.evaluate(() => (window as RulerPage).__exploreView!.goal());
-}
-
-function pinned(page: Page): Promise<string | null> {
-  return page.evaluate(() => (window as RulerPage).__exploreLabels?.pinned() ?? null);
-}
-
-/** The ruler's box and its scales' heights at the crown, in the page's px. */
-async function ruler(page: Page) {
-  return page.evaluate(() => {
-    const element = document.querySelector<HTMLElement>('.xr')!;
-    const box = element.getBoundingClientRect();
-    return {
-      top: box.top,
-      left: box.left,
-      width: box.width,
-      height: box.height,
-      bottom: box.bottom,
-      tapeY: box.top + Number(element.dataset.tapeY),
-      overviewY: box.top + Number(element.dataset.overviewY),
-      rulePx: Number(element.dataset.rulePx),
-    };
-  });
 }
 
 /**
@@ -99,32 +49,6 @@ function cutLabels(page: Page): Promise<string[]> {
     }
     return cut;
   });
-}
-
-/** Collects the page's errors, which each test expects none of. */
-function watch(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  return errors;
-}
-
-/** Opens the lobby and dives into Explore on Waterloo, waiting for the landing zoom to rest. */
-async function dive(page: Page): Promise<void> {
-  await page.goto(`${PREVIEW_URL}/?data=${DATA_URL.fixture}&opening=Q48314`);
-  await expect(page.locator('#room')).toBeHidden();
-  await page.keyboard.press('Shift');
-  await expect(page.locator('body')).toHaveAttribute('data-lobby', 'idle');
-  const plaque = page.locator('.lobby-plaque[data-choice="explore"]');
-  await plaque.scrollIntoViewIfNeeded();
-  await plaque.click();
-  await expect(page.locator('body')).toHaveAttribute('data-lobby', 'gone');
-  await expect.poll(() => pinned(page)).toBe('Q48314');
-  await rested(page);
-  // Nothing has the focus: the keys are time's.
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 }
 
 test('Explore’s ruler moves time by keys, typing, the overview, a pull and the wheel', async ({
@@ -312,105 +236,6 @@ test('Explore’s pin holds while on the tape, Home and End reach history’s en
   );
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
-});
-
-test('Explore’s ruler takes a touch’s pull and a pinch, never zooming the page', async ({
-  browser,
-}) => {
-  test.setTimeout(600_000);
-  const context = await browser.newContext({
-    hasTouch: true,
-    viewport: { width: 960, height: 600 },
-  });
-  const page = await context.newPage();
-  const errors = watch(page);
-  await page.addInitScript(() => {
-    addEventListener(
-      'pointercancel',
-      () => {
-        const w = window as RulerPage;
-        w.pointerCancels = (w.pointerCancels ?? 0) + 1;
-      },
-      { capture: true },
-    );
-  });
-  await dive(page);
-  const at = await ruler(page);
-  const cdp = await context.newCDPSession(page);
-  const touch = (
-    type: 'touchStart' | 'touchMove' | 'touchEnd',
-    points: { x: number; y: number }[],
-  ) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points });
-  const x = at.left + at.width / 2 + 120;
-
-  // One finger pulls the tape, twenty moves to the left.
-  const before = await clock(page);
-  await touch('touchStart', [{ x, y: at.tapeY }]);
-  for (let move = 1; move <= 20; move++)
-    await touch('touchMove', [{ x: x - 8 * move, y: at.tapeY }]);
-  await page.waitForTimeout(150);
-  await touch('touchEnd', []);
-  const pulled = await rested(page);
-  expect(pulled.day).toBeGreaterThan(before.day);
-  expect(await page.evaluate(() => (window as RulerPage).pointerCancels ?? 0)).toBe(0);
-
-  // Two fingers spread apart show less, and the page itself never zooms.
-  const mid = at.left + at.width / 2;
-  await touch('touchStart', [
-    { x: mid - 40, y: at.tapeY },
-    { x: mid + 40, y: at.tapeY },
-  ]);
-  for (let move = 1; move <= 10; move++) {
-    await touch('touchMove', [
-      { x: mid - 40 - 10 * move, y: at.tapeY },
-      { x: mid + 40 + 10 * move, y: at.tapeY },
-    ]);
-  }
-  await touch('touchEnd', []);
-  const pinched = await rested(page);
-  expect(pinched.spanDays).toBeLessThan(pulled.spanDays * 0.5);
-  expect(await page.evaluate(() => visualViewport?.scale ?? 1)).toBe(1);
-  expect(await page.evaluate(() => (window as RulerPage).pointerCancels ?? 0)).toBe(0);
-
-  // A pinch landing on the counter's two knobs is the ruler's pinch too: neither knob steps, the
-  // span follows the fingers' spread, and the page never zooms.
-  const knobAt = async (name: string) => {
-    const box = (await page.locator(`.xr-knob.is-${name}`).boundingBox())!;
-    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-  };
-  const [fewer, more] = [await knobAt('fewer'), await knobAt('more')];
-  await touch('touchStart', [fewer, more]);
-  for (let move = 1; move <= 10; move++)
-    await touch('touchMove', [fewer, { x: more.x + 15 * move, y: more.y }]);
-  await touch('touchEnd', []);
-  const counted = await rested(page);
-  const spread = (more.x - fewer.x) / (more.x + 150 - fewer.x);
-  expect(Math.abs(counted.spanDays / pinched.spanDays / spread - 1)).toBeLessThan(0.02);
-  expect(await page.evaluate(() => visualViewport?.scale ?? 1)).toBe(1);
-  expect(await page.evaluate(() => (window as RulerPage).pointerCancels ?? 0)).toBe(0);
-  // A finger on a knob steps it, and lifted, stops it. A slow renderer may take long enough
-  // between the two touches for the knob to count a hold and step again, so the check is that it
-  // stepped at least once, onto a detent, and stays there once lifted.
-  await touch('touchStart', [more]);
-  await touch('touchEnd', []);
-  const tapped = (await rested(page)).spanDays;
-  expect(tapped).toBeGreaterThanOrEqual(nextDetent(counted.spanDays, 1));
-  expect(SPAN_DETENTS).toContain(tapped);
-  await page.waitForTimeout(600);
-  expect((await rested(page)).spanDays).toBe(tapped);
-  // A finger that lands on a knob and slides off stops it: held there, it repeats nothing, and
-  // lifted, steps nothing. (A slow renderer may count a hold before the slide reaches it.)
-  await touch('touchStart', [fewer]);
-  for (let move = 1; move <= 6; move++)
-    await touch('touchMove', [{ x: fewer.x + 30 * move, y: fewer.y - 6 * move }]);
-  await page.waitForTimeout(700);
-  const slid = (await clock(page)).spanDays;
-  await page.waitForTimeout(700);
-  expect((await clock(page)).spanDays).toBe(slid);
-  await touch('touchEnd', []);
-  expect((await rested(page)).spanDays).toBe(slid);
-  expect(errors).toEqual([]);
-  await context.close();
 });
 
 /** A year as history writes it, '1066' or '500 BCE' or '2 July 1066 CE', as a calendar year. */
