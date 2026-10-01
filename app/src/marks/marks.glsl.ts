@@ -1,12 +1,12 @@
 // The marks' part of the surface look (lookFragment.glsl.ts), compiled only where Explore is
-// enabled. The look finds the fragment's screen tile from its inlay direction, the sea-level
-// direction the graticule and sea names use, so relief never moves a fragment out of its mark's
-// tile; reads that tile's marks from the table MarkLayer packs each frame (marks.ts); and for each
-// cuts the mark into the bronze: its family's seal and polished bezel, standing on the relief with a
-// contact shadow, and its glyph on the seal, coverage and a bevel from the glyph's distance field;
-// a hollow outline, a hover ring and the focal ember as its flags ask. Where marks overlap, the one
-// first in priority is drawn on top. The marks take the look's lamp, shadow, polish and the
-// ridges' occlusion, since they are the globe's own surface.
+// enabled. The look finds the fragment's screen tile from where the fragment stands on screen;
+// reads that tile's marks from the table MarkLayer packs each frame (marks.ts), which bins each
+// mark over everywhere its drawing can stand; and for each cuts the mark into the bronze: its
+// family's seal and polished bezel, lying flat at its anchor's height with a contact shadow, and
+// its glyph on the seal, coverage and a bevel from the glyph's distance field; a hollow outline, a
+// hover ring and the focal ember as its flags ask. Where marks overlap, the one first in priority
+// is drawn on top. The marks take the look's lamp, shadow, polish and the ridges' occlusion, since
+// they are the globe's own surface.
 import { tunables } from '../config/tunables';
 import { EARTH_M } from '../story/effects/geo';
 import { FAMILY_VEC4S, PACES } from './families';
@@ -24,12 +24,6 @@ export const SLOT_ROW = 4;
 export const MARK_ROW = 12;
 export const MARK_TEXELS = 4;
 export const TILES_MAX = SLOT_ROW * TABLE_WIDTH * 4;
-/**
- * The tiles the grid runs past each edge of the viewport: a fragment drawn on relief seen tilted
- * stands above its sea-level foot, which the look finds its tile from, so near the screen's edge
- * the foot can lie beyond it.
- */
-export const PAD_TILES = 3;
 export const SLOTS_MAX = (MARK_ROW - SLOT_ROW) * TABLE_WIDTH;
 export const MARKS_MAX = Math.floor(((TABLE_ROWS - MARK_ROW) * TABLE_WIDTH) / MARK_TEXELS);
 /** The most marks a tile's range can count: tunables.markTileCap stays within it. */
@@ -84,7 +78,6 @@ const float = (value: number) => (Number.isInteger(value) ? `${value}.0` : Strin
 /** Declarations, before the look's LookSurface. */
 export const MARKS_DECLARATIONS = /* glsl */ `
 #define LOOK_MARK_TILE_CAP ${tunables.markTileCap}
-#define LOOK_MARK_PAD_TILES ${float(PAD_TILES)}
 #define LOOK_MARK_FAMILY_VEC4 ${FAMILY_VEC4S}
 #define LOOK_MARK_FAMILIES ${PACES.length}
 #define LOOK_MARK_ROUGH_MIN ${float(tunables.markRoughMin)}
@@ -106,8 +99,7 @@ uniform highp sampler2D lookMarkTable;
 // The globe frame to clip space for this draw, and to view space for normals.
 uniform mat4 lookMarkClip;
 uniform mat3 lookMarkView;
-// The viewport's width and height in CSS px, a tile's side in CSS px, and the tiles across, the
-// grid running LOOK_MARK_PAD_TILES tiles past each edge.
+// The viewport's width and height in CSS px, a tile's side in CSS px, and the tiles across.
 uniform vec4 lookMarkGrid;
 uniform vec4 lookMarkFamily[LOOK_MARK_FAMILIES * LOOK_MARK_FAMILY_VEC4];
 // A disc's bevel as a share of r, the relief's and the fill's strength, and the sub-threshold glow.
@@ -178,15 +170,13 @@ void lookMarksApply(
   o.marks.glow = vec3(0.0);
   o.marks.ember = vec3(0.0);
   if (!lookMarksOn) return;
-  vec4 clip = lookMarkClip * vec4(g, 1.0);
+  // Where the fragment stands on screen, CSS px: its tile, and what each mark's screen disc there
+  // is measured against.
+  vec4 clip = lookMarkClip * vec4(vLookPos, 1.0);
   if (clip.w <= 0.0) return;
   vec2 px = (clip.xy / clip.w * vec2(0.5, -0.5) + 0.5) * lookMarkGrid.xy;
-  vec2 pad = vec2(LOOK_MARK_PAD_TILES * lookMarkGrid.z);
-  vec2 inGrid = px + pad;
-  if (any(lessThan(inGrid, vec2(0.0))) || any(greaterThanEqual(inGrid, lookMarkGrid.xy + 2.0 * pad))) {
-    return;
-  }
-  ivec2 tile = ivec2(inGrid / lookMarkGrid.z);
+  if (any(lessThan(px, vec2(0.0))) || any(greaterThanEqual(px, lookMarkGrid.xy))) return;
+  ivec2 tile = ivec2(px / lookMarkGrid.z);
   int t = tile.y * int(lookMarkGrid.w) + tile.x;
   int range = int(lookMarkTexel(t >> 2)[t & 3]);
   int count = range & ${TILE_COUNT_MAX};
@@ -200,7 +190,8 @@ void lookMarksApply(
   // The tile lists its marks in priority order; the first is drawn last, on top of the others.
   for (int i = 0; i < LOOK_MARK_TILE_CAP; i++) {
     if (i >= count) break;
-    // The mark's screen disc, CSS px, and its index: most of a tile lies outside it, and stops.
+    // The mark's screen disc, CSS px, over everywhere its drawing can stand, and its index: most
+    // of a tile lies outside it, and stops.
     vec4 slot = lookMarkTexel(start + count - 1 - i);
     vec2 fromCenter = px - slot.xy;
     if (dot(fromCenter, fromCenter) > slot.z * slot.z) continue;
@@ -225,30 +216,28 @@ void lookMarksApply(
     vec2 qgy = vec2(dot(gy, east), dot(gy, north)) / r;
     float pxRg = max(max(length(qgx), length(qgy)), 1e-4);
     // The seal lies flat at its anchor's height, where the height pool holds it (its fourth
-    // texel): the fragment is where the view ray crosses that plane, so the seal keeps its round
-    // footprint over ridges and valleys, and relief rising more than a radius above it hides it,
-    // as a ridge in front of it does. Without a height, the seal lies on the inlay direction.
-    vec2 q = qg;
-    vec2 qx = qgx;
-    vec2 qy = qgy;
-    float hidden = 0.0;
+    // texel; at sea level without one): the fragment is where the view ray crosses that plane, so
+    // the seal keeps its round footprint over ridges and valleys, and relief rising more than a
+    // radius above it hides it, as a ridge in front of it does.
     vec4 t4 = lookMarkTexel(m + 3);
-    float toward = dot(ray, anchor);
-    if (t4.z >= 0.0 && toward < -1e-3) {
+    float h = 0.0;
+    if (t4.z >= 0.0) {
       int packed = int(t4.z);
       int heightSlot = packed / ${HEIGHT_LEVELS};
       vec3 at = vec3(t4.xy, float(heightSlot));
-      float h = lookMeters(textureLod(wanderHeight, at, 2.0).r + t4.w, packed - ${HEIGHT_LEVELS} * heightSlot);
-      vec3 top = anchor * (1.0 + wanderKLand * max(h, 0.0) * LOOK_MARK_INV_R);
-      float t = dot(top - lookCamLocal, anchor) / toward;
-      vec3 w = lookCamLocal + ray * t - top;
-      vec3 wx = rayX * t - ray * (t * dot(rayX, anchor) / toward);
-      vec3 wy = rayY * t - ray * (t * dot(rayY, anchor) / toward);
-      q = vec2(dot(w, east), dot(w, north)) / r;
-      qx = vec2(dot(wx, east), dot(wx, north)) / r;
-      qy = vec2(dot(wy, east), dot(wy, north)) / r;
-      hidden = smoothstep(0.8, 1.2, dot(vLookPos - top, anchor) / r);
+      h = lookMeters(textureLod(wanderHeight, at, 2.0).r + t4.w, packed - ${HEIGHT_LEVELS} * heightSlot);
     }
+    vec3 top = anchor * (1.0 + wanderKLand * max(h, 0.0) * LOOK_MARK_INV_R);
+    // A ray running level with the plane, or away from it, meets it nowhere near the seal.
+    float toward = min(dot(ray, anchor), -1e-3);
+    float t = dot(top - lookCamLocal, anchor) / toward;
+    vec3 w = lookCamLocal + ray * t - top;
+    vec3 wx = rayX * t - ray * (t * dot(rayX, anchor) / toward);
+    vec3 wy = rayY * t - ray * (t * dot(rayY, anchor) / toward);
+    vec2 q = vec2(dot(w, east), dot(w, north)) / r;
+    vec2 qx = vec2(dot(wx, east), dot(wx, north)) / r;
+    vec2 qy = vec2(dot(wy, east), dot(wy, north)) / r;
+    float hidden = smoothstep(0.8, 1.2, dot(vLookPos - top, anchor) / r);
     float pxR = max(max(length(qx), length(qy)), 1e-4);
     // The glyph's cell, the family and flags, and the mark's strength.
     vec4 t2 = lookMarkTexel(m + 1);
