@@ -397,6 +397,8 @@
   align-items: center;
   height: 28px;
   pointer-events: auto;
+  /* A pinch here zooms time, as anywhere on the ruler, never the page. */
+  touch-action: none;
   outline: none;
   filter: brightness(var(--shade, 1)) drop-shadow(1px 3px 3px rgb(0 0 0 / 0.5));
   transition: filter 0.15s;
@@ -421,7 +423,7 @@
   border: 0;
   background: none;
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none;
   transition: filter 0.15s;
 }
 

@@ -5,12 +5,14 @@
 // its own stop, + and - stay the globe's, a typed date flies there and Backspace flies back, the
 // overview's rider names the year a press flies to, a pull moves the tape 1:1 under a needle that
 // never moves, the wheel shows more or less about the needle and a sideways swipe travels, a touch
-// pulls and a pinch zooms without zooming the page, no press on the brass selects text, a pin holds
-// while its date is on the tape, and Home and End reach history's ends. Nothing logs an error.
+// pulls and a pinch anywhere on the ruler, the counter's knobs included, zooms without zooming the
+// page, no press on the brass selects text, a pin holds while its date is on the tape, and Home
+// and End reach history's ends. Nothing logs an error.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import type { ExploreLabelsHook, ExploreViewHook, WorldTimeHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
 import { HISTORY } from '../src/time/exploreTime';
+import { nextDetent, SPAN_DETENTS } from '../src/time/timeMotion';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
 const TIMEOUT = 90_000;
@@ -306,6 +308,33 @@ test('Explore’s ruler takes a touch’s pull and a pinch, never zooming the pa
   expect(pinched.spanDays).toBeLessThan(pulled.spanDays * 0.5);
   expect(await page.evaluate(() => visualViewport?.scale ?? 1)).toBe(1);
   expect(await page.evaluate(() => (window as RulerPage).pointerCancels ?? 0)).toBe(0);
+
+  // A pinch landing on the counter's two knobs is the ruler's pinch too: neither knob steps, the
+  // span follows the fingers' spread, and the page never zooms.
+  const knobAt = async (name: string) => {
+    const box = (await page.locator(`.xr-knob.is-${name}`).boundingBox())!;
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+  const [fewer, more] = [await knobAt('fewer'), await knobAt('more')];
+  await touch('touchStart', [fewer, more]);
+  for (let move = 1; move <= 10; move++)
+    await touch('touchMove', [fewer, { x: more.x + 15 * move, y: more.y }]);
+  await touch('touchEnd', []);
+  const counted = await rested(page);
+  const spread = (more.x - fewer.x) / (more.x + 150 - fewer.x);
+  expect(Math.abs(counted.spanDays / pinched.spanDays / spread - 1)).toBeLessThan(0.02);
+  expect(await page.evaluate(() => visualViewport?.scale ?? 1)).toBe(1);
+  expect(await page.evaluate(() => (window as RulerPage).pointerCancels ?? 0)).toBe(0);
+  // A finger on a knob steps it, and lifted, stops it. A slow renderer may take long enough
+  // between the two touches for the knob to count a hold and step again, so the check is that it
+  // stepped at least once, onto a detent, and stays there once lifted.
+  await touch('touchStart', [more]);
+  await touch('touchEnd', []);
+  const tapped = (await rested(page)).spanDays;
+  expect(tapped).toBeGreaterThanOrEqual(nextDetent(counted.spanDays, 1));
+  expect(SPAN_DETENTS).toContain(tapped);
+  await page.waitForTimeout(600);
+  expect((await rested(page)).spanDays).toBe(tapped);
   expect(errors).toEqual([]);
   await context.close();
 });
