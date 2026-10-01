@@ -176,18 +176,28 @@ export function lensExtent(
   return { u0, u1, u };
 }
 
-/** The rider's year: where 1 px holds more than 6 years, rounded to 5, 10 or 50 years. */
+/** The rider's year: rounded to a step no finer than a pixel there holds. */
 export interface RiderYear {
   /** Astronomical year, as the calendar counts. */
   year: number;
-  /** The years it is rounded to: 1, 5, 10 or 50. */
+  /** The years it is rounded to, one of RIDER_STEPS. */
   step: number;
   /** Its middle day, where a press flies. */
   day: number;
   text: string;
 }
 
-/** The year under `u` on an overview `lengthPx` long, rounded to what a pixel there can tell. */
+/**
+ * The years the rider rounds to. Wider than 50 only on a narrow view, whose overview holds more
+ * years to a pixel in the deep past.
+ */
+export const RIDER_STEPS: readonly number[] = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+/**
+ * The year under `u` on an overview `lengthPx` long, rounded to the finest step of RIDER_STEPS at
+ * least the years a pixel holds there: as the pointer moves a pixel the year moves a step at most,
+ * so every year it names is one a pointer at whole pixels can reach.
+ */
 export function riderYear(
   warp: Warp,
   extent: Span,
@@ -197,7 +207,7 @@ export function riderYear(
 ): RiderYear {
   const at = warp.day(u);
   const yearsPerPx = warp.daysPerU(at) / lengthPx / YEAR_DAYS;
-  const step = yearsPerPx <= 6 ? 1 : yearsPerPx <= 12 ? 5 : yearsPerPx <= 25 ? 10 : 50;
+  const step = RIDER_STEPS.find((s) => s >= yearsPerPx) ?? RIDER_STEPS.at(-1)!;
   const exact = calendar.civil(Math.min(extent.end - 1, Math.max(extent.start, at))).year;
   const first = calendar.civil(extent.start).year;
   const last = calendar.civil(extent.end - 1).year;
