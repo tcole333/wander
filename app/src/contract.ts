@@ -20,6 +20,7 @@ import type { UploadJob } from './gpu/uploadQueue';
 import type { GlyphSet } from './marks/glyphs';
 import type { MarkLayer } from './marks/marks';
 import type { MemoryAccount } from './perf/memory';
+import type { Vec3 } from './surface/cube';
 
 export type Params = Record<string, number | boolean | string>;
 
@@ -65,8 +66,22 @@ export interface SurfaceStreamer {
   uploadBehind(job: UploadJob): void;
   /** Drops the rest of an upload queued behind. */
   cancelUpload(key: string): void;
+  /**
+   * Where the height pool holds the ground at `dir` (the cube's frame G): the finest resident tile
+   * containing it, which the look's marks read their anchors' heights from.
+   */
+  heightTexel(dir: Vec3): HeightTexel | null;
   stats(): StreamerStats;
   dispose(): void;
+}
+
+/** A place's texel in the height pool: its slot, its uv there, and the tile's level and codeMid. */
+export interface HeightTexel {
+  slot: number;
+  u: number;
+  v: number;
+  level: number;
+  codeMid: number;
 }
 
 export type CreateSurfaceStreamer = (

@@ -149,6 +149,15 @@ export function texelOf(s: number, level: number, tile: number): number {
   return Math.min(TILE - 1, Math.max(0, g - TILE * tile));
 }
 
+/**
+ * The uv along s (or t) of a place in tile x's texels, its BORDER included, as the pools hold
+ * them: 0 to 1 across the tile's TILE + 2·BORDER texels, its own TILE from BORDER in.
+ */
+export function tileUv(s: number, level: number, tile: number): number {
+  const local = ((s + 1) * 2 ** level) / 2 - tile;
+  return (BORDER + local * TILE) / (TILE + 2 * BORDER);
+}
+
 /** 2(4^L − 1) + f·4^L + y·2^L + x: the tile's bit in the availability bitmap. */
 export function nodeIndex(t: Tile): number {
   const side = 2 ** t.level;
