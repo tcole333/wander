@@ -1,8 +1,9 @@
 // The look's climate hook (streaming.md 3.5): ModE-RA's temperature anomaly for one month, a
 // 192 x 96 field on the source's grid that the walk's effects fill (story/effects/climate.ts), as a
 // frost and verdigris wash on the metal. Cold lands take a blue-green patina that tints the metal
-// rather than covering it, so its wear, rivers and coast still show, and lose some of their
-// polish; warm lands blush a rosy copper; the sea's lacquer takes a third of either. The palette
+// rather than covering it, so its wear and coast still show, and lose some of their polish; warm
+// lands blush a rosy copper; the sea's lacquer takes a third of either. The rivers' blued steel
+// takes no patina: the wash lies on the bronze around it (owner decision 42). The palette
 // saturates at the look's climateRangeK either side of the 1901-2000 average, and the field is
 // sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
 // default, the look is unchanged; the walk compiles it at 0 before it starts. Where the look cuts
@@ -186,6 +187,7 @@ void lookClimate(inout LookSurface s) {
   float k = field.x / max(field.y, 1e-3);
   float t = clamp(k / lookClimateRange, -1.0, 1.0);
   float a = lookClimateStrength * cover * mix(${f(CLIMATE_LOOK.seaShare)}, 1.0, s.land);
+  a *= 1.0 - s.river;
   ${marks ? 'a *= 1.0 - s.marks.cover;' : ''}
   if (t < 0.0) {
     // Frost and verdigris: a blue-green patina as bright as the metal under it, which dulls its

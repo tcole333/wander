@@ -32,12 +32,17 @@ export const tunables = {
   borderScrubFade: 120,
   // View widths, km across, over which borders fade out as the view closes in: gone at near.
   borderCloseKm: { near: 220, far: 400 },
-  // View widths, km across, over which the inner border line fades in as the view narrows: full
+  // View widths, km across, over which the inner border lines fade in as the view narrows: full
   // at near.
-  borderInnerKm: { near: 2500, far: 6000 },
-  // View widths, km across, over which the outer border line eases, on a log scale, from its near
-  // weight at near to its world-view weight at far (look/bordersHook.ts, outerLook).
-  borderWeightKm: { near: 6000, far: 32_000 },
+  borderInnerKm: { near: 4500, far: 9000 },
+  // View widths, km across, over which the inner border lines dim, on a log scale, to
+  // ETCHED_LOOK.inner.close of their brightness at near and closer (look/bordersHook.ts,
+  // innerShare).
+  borderInnerCloseKm: { near: 1000, far: 2000 },
+  // View widths, km across, over which the etched outer border line grows, on a log scale, from
+  // its near size at near to ETCHED_LOOK.far times it at far and wider (look/bordersHook.ts,
+  // etchedScale).
+  borderWeightKm: { near: 14_000, far: 32_000 },
   borderWarnYears: 20,
   l7WarnViewKm: 400,
   eventQueryHz: 30,

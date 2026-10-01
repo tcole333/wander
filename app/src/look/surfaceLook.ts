@@ -1,7 +1,7 @@
 // The globe's material (SurfaceLook in ../contract.ts): a MeshStandardMaterial whose vertex stage
 // is the merged surface vertex chunk and whose fragment stage computes the spike's baked look from
 // the surface pools, per fragment, with the ocean and sea names inlaid in its lacquer
-// (seaNames.ts). A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
+// (seaNames.ts) and its rivers in blued steel. A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
 // own shadows. Given a glyph set, where Explore stands, the look also cuts marks into its
 // surface (marks/marks.ts, look.marks); without one, its program and atlas are the look's alone.
 // Given a tier for the border steps, where the release names them, its border array holds the
@@ -33,8 +33,10 @@ import {
   BORDERS_FRAGMENT_PARS,
   createBorderUniforms,
   createStepUniforms,
+  ETCHED_LOOK,
   registerBorders,
   registerBorderSteps,
+  STEPS_FRAGMENT_APPLY,
   STEPS_FRAGMENT_PARS,
 } from './bordersHook';
 import {
@@ -63,7 +65,8 @@ export const PALETTE = {
   lacquerDeep: '#111b26',
   lacquerShelf: '#2e3d44',
   inlay: '#9c7a40',
-  river: '#2a1d0e',
+  /** The rivers' inlay: the deep blue of heat-blued steel (owner decision 42). */
+  riverSteel: '#2250b8',
 } as const;
 
 export type PaletteName = keyof typeof PALETTE;
@@ -76,7 +79,7 @@ const PALETTE_UNIFORMS: Record<PaletteName, string> = {
   lacquerDeep: 'lookDeep',
   lacquerShelf: 'lookShelf',
   inlay: 'lookInlay',
-  river: 'lookRiver',
+  riverSteel: 'lookRiverSteel',
 };
 
 /** Numeric params and the uniform each one feeds. */
@@ -91,6 +94,9 @@ const SCALAR_UNIFORMS = {
   broadBevelDeg: 'lookBroadDeg',
   coastLine: 'lookCoastPx',
   riverLine: 'lookRiverPx',
+  riverSteelRough: 'lookRiverSteelRough',
+  riverSteelSink: 'lookRiverSteelSink',
+  borderEtchedCap: 'lookCutCap',
   graticule: 'lookGraticule',
   noise: 'lookNoise',
   polish: 'lookPolish',
@@ -142,6 +148,17 @@ export function defaultLookParams(): Params {
     debugView: 0,
     // The climate palette's saturation either side of the average, K.
     climateRangeK: tunables.climateRangeK,
+    // The rivers' blued steel: its roughness, and how deep it lies in the channel the relief cuts
+    // for it, a share of the channel's full depth.
+    riverSteelRough: 0.5,
+    riverSteelSink: 0.6,
+    // The border steps' etched cut (bordersHook.ts, ETCHED_LOOK): its polished metal's color and
+    // roughness, how much its outer line's shadow darkens the metal, and the most light it
+    // reflects, in luminance.
+    borderEtched: ETCHED_LOOK.color,
+    borderEtchedRough: ETCHED_LOOK.roughness,
+    borderEtchedShade: ETCHED_LOOK.outer.shade,
+    borderEtchedCap: ETCHED_LOOK.cap,
     ...PALETTE,
   };
 }
@@ -216,6 +233,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     renderer.getSize(viewport);
     const pixelRatio = renderer.getPixelRatio();
     routes.lookRoutePixelRatio.value = pixelRatio;
+    if (steps) steps.lookBorderPixelRatio.value = pixelRatio;
     const pxPerUnit = (camera.projectionMatrix.elements[5] ?? 1) * 0.5 * viewport.y;
     toClip
       .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
@@ -249,7 +267,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
       ],
       [
         '#include <color_fragment>',
-        `${fragment.color}\n${CLIMATE_FRAGMENT_APPLY}\n${BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
+        `${fragment.color}\n${CLIMATE_FRAGMENT_APPLY}\n${steps ? STEPS_FRAGMENT_APPLY : BORDERS_FRAGMENT_APPLY}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
       ],
       ['#include <roughnessmap_fragment>', fragment.roughness],
       ['#include <metalnessmap_fragment>', fragment.metalness],
@@ -284,6 +302,13 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
       (target.value as Color).set(hex);
     }
     climate.lookClimateRange.value = Math.max(0.5, Number(params.climateRangeK));
+    if (steps) {
+      steps.lookBorderEtched.value.set(String(params.borderEtched));
+      steps.lookBorderEtchedLook.value.set(
+        Number(params.borderEtchedRough),
+        Number(params.borderEtchedShade) / ETCHED_LOOK.outer.shade,
+      );
+    }
   };
   update();
 

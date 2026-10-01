@@ -3,9 +3,9 @@
 // pass draws it, in each of a few passes in turn, after each frame, samples of three draws each, as
 // scripts/exploreShots.ts times the marks. Where the look holds the border steps (the release names
 // them) the passes are the borders off, at rest (one step slot) and mid-dissolve (two slots halfway
-// into each other, and two previews halfway), each with the inner line at full strength and the
-// outer line at the view's weight, and each again with the outer line at its near weight
-// (`restNear`, `slotsNear`, `previewsNear`), which the heavier line far out is measured against;
+// into each other, and two previews halfway), each with the inner lines at full strength and the
+// outer line at the view's size, and each again with the outer line at its near size (`restNear`,
+// `slotsNear`, `previewsNear`), which the larger line far out is measured against;
 // where it holds milestone 1's 1815 field, the borders off and drawn. The renderer and camera are
 // the page's own, taken as it draws the globe. It also gives the border array's size on the GPU.
 // scripts/bordersVideos.ts reads it.
@@ -22,7 +22,6 @@ import {
 import type { MuseumScene } from '../../contract';
 import {
   borderUniformsOf,
-  OUTER_NEAR,
   sourceVector,
   stepLayers,
   stepUniformsOf,
@@ -95,9 +94,8 @@ function stepPasses(uniforms: StepUniforms, tier: 'full' | 'lite'): Passes {
     mix: uniforms.lookBorderMix.value,
     a: uniforms.lookBorderA.value.clone(),
     b: uniforms.lookBorderB.value.clone(),
-    outer: uniforms.lookBorderOuter.value.clone(),
+    scale: uniforms.lookBorderScale.value,
   };
-  const { widthPx, darken, halfDotPx, follow } = OUTER_NEAR;
   const passes: Record<string, () => void> = {
     off: () => (uniforms.lookBorderStrength.value = 0),
   };
@@ -111,11 +109,11 @@ function stepPasses(uniforms: StepUniforms, tier: 'full' | 'lite'): Passes {
     };
     passes[name] = () => {
       draw();
-      uniforms.lookBorderOuter.value.copy(was.outer);
+      uniforms.lookBorderScale.value = was.scale;
     };
     passes[`${name}Near`] = () => {
       draw();
-      uniforms.lookBorderOuter.value.set(widthPx, darken, halfDotPx, follow);
+      uniforms.lookBorderScale.value = 1;
     };
   }
   return {
@@ -126,7 +124,7 @@ function stepPasses(uniforms: StepUniforms, tier: 'full' | 'lite'): Passes {
       uniforms.lookBorderMix.value = was.mix;
       uniforms.lookBorderA.value.copy(was.a);
       uniforms.lookBorderB.value.copy(was.b);
-      uniforms.lookBorderOuter.value.copy(was.outer);
+      uniforms.lookBorderScale.value = was.scale;
     },
   };
 }

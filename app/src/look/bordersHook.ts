@@ -1,26 +1,27 @@
-// The look's borders hook (streaming.md 3.3): borders as a fine dotted groove engraved in the
-// land, as engraved maps of the period tell frontiers from rivers, darkened like the coast's and a
-// touch rougher, a constant width and pitch on screen. Lakes count as land, so a border runs on
-// across them, and each ends where the look draws the coast; at sea the field's borders run on
-// unseen. With its strength at 0, the default, the look is unchanged; the walk compiles it at 0
-// before it starts.
+// The look's borders hook (streaming.md 3.3): borders cut into the land at a constant size on
+// screen. Lakes count as land, so a border runs on across them, and each ends where the look draws
+// the coast; at sea the field's borders run on unseen. With its strength at 0, the default, the
+// look is unchanged; the walk compiles it at 0 before it starts.
 //
 // The look holds one border array in one sampler. Without border steps in the release it is
 // milestone 1's 1815 field: one R8 array of six faces, allocated with the look, given its bytes
 // once its file has arrived and uploaded a face at a time (story/effects/borders.ts), and read at
-// the face coordinates the look already has; visitors' program is exactly milestone 1's. Where the
-// release names them, it holds the border steps (borders/): an RG8 array of 1024² layers, a slot
-// of six faces per step drawn (two on the full tier, one on lite) and a two-layer ring of preview
-// cells. It draws two sources, each a slot or a preview cell, and dissolves between them by
-// blending their drawn lines: a step's outer line as the 1815 groove, lighter and feathered where
-// stateless land lies on one side, and its inner line, finer and fainter, fading in as the view
-// narrows.
+// the face coordinates the look already has, which it draws as milestone 1's fine dotted groove;
+// visitors' program is exactly milestone 1's. Where the release names them, it holds the border
+// steps (borders/): an RG8 array of 1024² layers, a slot of six faces per step drawn (two on the
+// full tier, one on lite) and a two-layer ring of preview cells. It draws two sources, each a slot
+// or a preview cell, and dissolves between them by blending their drawn lines: a step's outer line
+// as an etched bright cut with a hairline shadow on the lamp's side (owner decision 42), dimmer
+// where stateless land lies on one side, and its inner lines, finer and fainter, fading in as the
+// view narrows.
 import {
+  Color,
   DataArrayTexture,
   NearestFilter,
   RedFormat,
   RGFormat,
   UnsignedByteType,
+  Vector2,
   Vector4,
   type Material,
 } from 'three';
@@ -34,7 +35,7 @@ import {
   STEP_TEXELS,
 } from '../data/borders';
 
-/** How the groove is cut. */
+/** How milestone 1's 1815 field cuts its groove. */
 export const BORDER_LOOK = {
   /** Its width in pixels, whatever the zoom. */
   widthPx: 2,
@@ -157,64 +158,55 @@ export const BORDERS_FRAGMENT_APPLY = /* glsl */ `
   lookBorders(lookS);
 `;
 
-/** A step's inner line (owner decision 36): 2 px dots every 4 px, 1.5 px wide, darkening 0.55. */
-export const INNER_LOOK = { widthPx: 1.5, dotPx: 4, halfDotPx: 1, darken: 0.55 } as const;
+/**
+ * A step's lines (owner decision 42): an etched cut through the patina, lighter than the bronze,
+ * with a hairline shadow on the lamp's side, where the cut's near wall faces away from the lamp,
+ * sized in CSS px. `outer`: the outer line's cut and shadow and how much the shadow darkens the
+ * metal. `inner`: the inner lines', finer and fainter (owner decision 34), their brightness, and
+ * `close`, their brightness at `borderInnerCloseKm.near` across and closer. `soft`: a soft edge's
+ * share of the cut's brightness, drawn without its shadow (owner decision 35). `far`: the outer
+ * line's size at `borderWeightKm.far` across and wider, as a share of its near size, since under
+ * Explore's lighting the near line is hard to see that far out (owner decision 40). Then the
+ * polished metal's color and roughness, and `cap`, the most light a cut reflects, in luminance,
+ * under the bloom's threshold, so a cut never glows. The dev page tunes the metal, the shadow's
+ * darkening and the cap.
+ */
+export const ETCHED_LOOK = {
+  outer: { cutPx: 1.25, shadowPx: 0.75, shade: 0.7 },
+  inner: { cutPx: 0.75, shadowPx: 0.5, bright: 0.45, shade: 0.3, close: 0.79 },
+  soft: 0.55,
+  far: 1.27,
+  color: '#e4d2aa',
+  roughness: 0.5,
+  cap: 0.7,
+} as const;
+
+/** Where `viewKm` lies between `near` and `far` on a log scale, 0 to 1. */
+const logShare = (viewKm: number, { near, far }: { near: number; far: number }) =>
+  Math.min(1, Math.max(0, Math.log(viewKm / near) / Math.log(far / near)));
 
 /**
- * A step's soft edge, an outer line with stateless land on one side (owner decision 35): a third
- * lighter than a hard one, its edge feathered out to 2.5 px.
+ * The outer line's size at a view `viewKm` across, as a share of its near size: 1 at
+ * `borderWeightKm.near` across and closer, growing evenly on a log scale of the view's width to
+ * ETCHED_LOOK.far at `borderWeightKm.far` and wider.
  */
-export const SOFT_LOOK = { lighten: 1 / 3, featherPx: [0.25, 2.5] } as const;
-
-/** The outer line's dots: about 2.7 px of every 5 (BORDER_LOOK.dotPx), as milestone 1's. */
-const OUTER_HALF_DOT_PX = 1.35;
-
-/**
- * How a step's outer line is cut: its width, darkening and half a dot's length in px, and how far
- * its soft edges take on the hard line's weight, 0 to 1.
- */
-export interface OuterLook {
-  widthPx: number;
-  darken: number;
-  halfDotPx: number;
-  follow: number;
+export function etchedScale(viewKm: number): number {
+  return 1 + (ETCHED_LOOK.far - 1) * logShare(viewKm, tunables.borderWeightKm);
 }
 
 /**
- * The outer line as owner decision 36 set it: a 2 px groove darkening 0.75, dots of about 2.7 px in
- * 5, drawn at `borderWeightKm.near` across and closer.
+ * How strongly the inner lines draw at a view `viewKm` across, 0 to 1: none at `borderInnerKm.far`
+ * and wider, fading in to all at its near, and dimmed on a log scale of the view's width to
+ * ETCHED_LOOK.inner.close at `borderInnerCloseKm.near` and closer.
  */
-export const OUTER_NEAR: OuterLook = {
-  widthPx: BORDER_LOOK.widthPx,
-  darken: BORDER_LOOK.darken,
-  halfDotPx: OUTER_HALF_DOT_PX,
-  follow: 0,
-};
-
-/**
- * The outer line at world view (owner decision 40): a 3.5 px groove darkening 0.95, its dots
- * closing up to 4.5 px in 5 and its soft edges taking on its weight, since under Explore's lighting
- * the near line is hard to see that far out.
- */
-export const OUTER_FAR: OuterLook = { widthPx: 3.5, darken: 0.95, halfDotPx: 2.25, follow: 1 };
-
-/**
- * What the field's reach holds of a line with the near line's margin, as (width px + 1) times the
- * texels a pixel spans: the 2 px line starts to fade where a pixel spans 4 texels, so 12. A wider
- * line narrows to HELD_TEXELS / texPx − 1 px, no narrower than the near line, as texPx grows.
- */
-const HELD_TEXELS = (BORDER_LOOK.widthPx + 1) * BORDER_LOOK.fadeTexPx[0];
-
-/**
- * The outer line's look at a view `viewKm` across, as its uniform: (width px, darkening, half dot
- * px, follow). OUTER_NEAR at `borderWeightKm.near` and closer, easing evenly on a log scale of the
- * view's width to OUTER_FAR at `borderWeightKm.far`, so it still grows past 17,500 km.
- */
-export function outerLook(viewKm: number, out = new Vector4()): Vector4 {
-  const { near, far } = tunables.borderWeightKm;
-  const t = Math.min(1, Math.max(0, Math.log(viewKm / near) / Math.log(far / near)));
-  const at = (key: keyof OuterLook) => OUTER_NEAR[key] + (OUTER_FAR[key] - OUTER_NEAR[key]) * t;
-  return out.set(at('widthPx'), at('darken'), at('halfDotPx'), at('follow'));
+export function innerShare(viewKm: number): number {
+  const { near, far } = tunables.borderInnerKm;
+  const t = Math.min(1, Math.max(0, (viewKm - near) / (far - near)));
+  const close = ETCHED_LOOK.inner.close;
+  return (
+    (1 - t * t * (3 - 2 * t)) *
+    (close + (1 - close) * logShare(viewKm, tunables.borderInnerCloseKm))
+  );
 }
 
 /** Step slots, each six faces; the preview ring's layers after them, 2 × 4 cells a layer. */
@@ -258,10 +250,15 @@ export function sourceVector(tier: Tier, source: BorderSource, out = new Vector4
 export interface StepUniforms {
   /** 0 leaves the look as it is. */
   lookBorderStrength: { value: number };
-  /** How strongly the inner lines draw, by the view's width (borderInnerKm). */
+  /** How strongly the inner lines draw, by the view's width (innerShare). */
   lookBorderInner: { value: number };
-  /** The outer line's look at the view's width (outerLook). */
-  lookBorderOuter: { value: Vector4 };
+  /** The outer line's size by the view's width, as a share of its near size (etchedScale). */
+  lookBorderScale: { value: number };
+  /** Device px a CSS px, which the lines are sized in. */
+  lookBorderPixelRatio: { value: number };
+  /** The cut's polished metal; its roughness, and its shadows' share of ETCHED_LOOK's darkening. */
+  lookBorderEtched: { value: Color };
+  lookBorderEtchedLook: { value: Vector2 };
   /**
    * RG8, 1024² a layer: a step's six faces a slot, R the outer distance and G the inner with the
    * soft bit (WBF2), then the preview ring's cells, two previews a cell (WBP2).
@@ -290,7 +287,10 @@ export function createStepUniforms(tier: Tier): StepUniforms {
   return {
     lookBorderStrength: { value: 0 },
     lookBorderInner: { value: 0 },
-    lookBorderOuter: { value: outerLook(tunables.borderWeightKm.near) },
+    lookBorderScale: { value: 1 },
+    lookBorderPixelRatio: { value: 1 },
+    lookBorderEtched: { value: new Color(ETCHED_LOOK.color) },
+    lookBorderEtchedLook: { value: new Vector2(ETCHED_LOOK.roughness, 1) },
     lookBorderField: { value: field },
     lookBorderA: { value: new Vector4(0, 0, 0, 0) },
     lookBorderB: { value: new Vector4(0, 0, 0, 0) },
@@ -315,7 +315,10 @@ const STEP_INTERIOR = STEP_TEXELS - 2 * BORDER_APRON;
 export const STEPS_FRAGMENT_PARS = /* glsl */ `
 uniform float lookBorderStrength;
 uniform float lookBorderInner;
-uniform vec4 lookBorderOuter;
+uniform float lookBorderScale;
+uniform float lookBorderPixelRatio;
+uniform vec3 lookBorderEtched;
+uniform vec2 lookBorderEtchedLook;
 uniform highp sampler2DArray lookBorderField;
 uniform vec4 lookBorderA;
 uniform vec4 lookBorderB;
@@ -357,7 +360,7 @@ vec3 lookStepDist(vec2 st, int layer) {
 // draw one, given its nearest texel's distance to the nearest line the source draws, in the
 // source's texels: more than a line reaches (2.5 px), and what a neighbor 1 px away and the taps
 // around it can add. Most of the land takes that one tap, not four, and skips the line, while a
-// quad that draws one keeps all its fragments, so the dots' derivatives hold.
+// quad that draws one keeps all its fragments, so the lines' derivatives hold.
 bool lookBorderFar(float near, float texPx) {
   return near > 4.0 * texPx + 2.5;
 }
@@ -423,65 +426,67 @@ vec3 lookPreviewDist(vec2 ll, vec4 src) {
   return vec3(dist, 8.0, lookBorderLerp1(soft, fr));
 }
 
-// Dots along a border of distance d, pitchPx apart and 2 halfDotPx long on screen: the border's
-// screen tangent is across the gradient of d.
-float lookBorderDots(float d, float pitchPx, float halfDotPx) {
+// Where a fragment lies across a line of distance d: x, its distance from the line's middle in
+// device px, positive on the lamp's side (lampPx, the lamp's direction on screen); and y, how
+// squarely the line faces the lamp, 0 where it runs toward it.
+vec2 lookBorderAcross(float d, float texPx, vec2 lampPx) {
   vec2 g = vec2(dFdx(d), dFdy(d));
-  vec2 along = vec2(-g.y, g.x) / max(length(g), 1e-6);
-  float phase = abs(fract(dot(gl_FragCoord.xy, along) / pitchPx) - 0.5) * pitchPx;
-  return 1.0 - smoothstep(halfDotPx - 0.25, halfDotPx + 0.25, phase);
+  float facing = dot(g, lampPx) / max(length(g), 1e-6);
+  return vec2(d / texPx * (facing < 0.0 ? -1.0 : 1.0), abs(facing));
 }
 
-// The groove a source cuts, as the share it darkens the metal: its outer line as lookBorderOuter
-// cuts it, a soft edge lighter and feathered, and its inner line, both faded out where a pixel
-// spans more of the source's texels than their reach allows. A line wider than the default narrows
-// toward it where the field's reach, 8 texels, cannot hold it with today's margin, so it fades as
-// today's does. src.x is uniform, so its branches keep derivatives.
-float lookBorderGroove(vec4 src, vec2 ll, float degPx) {
-  if (src.x < 0.5) return 0.0;
+// An etched line, given where a fragment lies across it (lookBorderAcross): (its shadow, its
+// cut). The cut is cutPx wide about the line's middle; the shadow, shadowPx wide, lies beside it on
+// the lamp's side, where the cut's near wall faces away from the lamp, and fades as the line turns
+// toward the lamp.
+vec2 lookEtched(vec2 across, float cutPx, float shadowPx) {
+  float cut = lookLine(abs(across.x), cutPx);
+  float shadow = lookLine(abs(across.x - 0.5 * (cutPx + shadowPx)), shadowPx);
+  return vec2(shadow * smoothstep(0.15, 0.6, across.y), cut);
+}
+
+// What a source cuts into the metal: x the share its shadows darken it, y the share its cuts take
+// the polished metal's color. Its outer line at lookBorderScale, a soft edge dimmer and without its
+// shadow, and its inner lines at lookBorderInner's strength, all faded out where a pixel spans
+// more of the source's texels than their reach allows. Where the field's reach, 8 texels, ends
+// within a shadow, the distance stops changing there, so the shadow, which faces the lamp by the
+// distance's gradient, fades out rather than spread. src.x is uniform, so its branches keep
+// derivatives.
+vec2 lookBorderCut(vec4 src, vec2 ll, float degPx, vec2 lampPx) {
+  if (src.x < 0.5) return vec2(0.0);
   vec3 fd;
   float texPx;
   if (src.x < 1.5) {
     int layer = int(src.y + 0.5) + vLookFace;
     texPx = max(max(length(dFdx(vLookSt)), length(dFdy(vLookSt))) * ${f(STEP_INTERIOR / 2)}, 1e-4);
-    if (lookBorderFar(lookStepNear(vLookSt, layer), texPx)) return 0.0;
+    if (lookBorderFar(lookStepNear(vLookSt, layer), texPx)) return vec2(0.0);
     fd = lookStepDist(vLookSt, layer);
   } else {
     texPx = max(degPx * ${f(PREVIEW_H / 180)}, 1e-4);
-    if (lookBorderFar(lookPreviewNear(ll, src), texPx)) return 0.0;
+    if (lookBorderFar(lookPreviewNear(ll, src), texPx)) return vec2(0.0);
     fd = lookPreviewDist(ll, src);
   }
   float wide = 1.0 - smoothstep(${f(BORDER_LOOK.fadeTexPx[0])}, ${f(BORDER_LOOK.fadeTexPx[1])}, texPx);
   float soft = fd.z;
-  float distR = abs(fd.x) / texPx;
-  float follow = lookBorderOuter.w;
-  float widthPx = min(
-    lookBorderOuter.x,
-    max(${f(BORDER_LOOK.widthPx)}, ${f(HELD_TEXELS)} / texPx - 1.0)
-  );
-  // A soft edge that follows the line feathers out as far as it widens, within what the field's
-  // reach holds and no further than 3.5 px, where lookBorderFar still finds it.
-  float featherHeld = max(${f(SOFT_LOOK.featherPx[1])}, min(3.5, 6.0 / texPx));
-  float featherWide = min(${f(SOFT_LOOK.featherPx[1] / BORDER_LOOK.widthPx)} * widthPx, featherHeld);
-  float featherPx = mix(${f(SOFT_LOOK.featherPx[1])}, featherWide, follow);
-  float feathered = 1.0 - smoothstep(${f(SOFT_LOOK.featherPx[0])}, featherPx, distR);
-  float outerLine = mix(lookLine(distR, widthPx), feathered, soft);
-  float halfDot = mix(lookBorderOuter.z, mix(${f(OUTER_HALF_DOT_PX)}, lookBorderOuter.z, follow), soft);
-  float darken = mix(
-    lookBorderOuter.y,
-    mix(${f(BORDER_LOOK.darken)}, lookBorderOuter.y, follow) * ${f(1 - SOFT_LOOK.lighten)},
-    soft
-  );
-  float outer = outerLine * lookBorderDots(fd.x, ${f(BORDER_LOOK.dotPx)}, halfDot) * darken;
-  float inner = lookBorderInner > 0.0
-    ? lookLine(abs(fd.y) / texPx, ${f(INNER_LOOK.widthPx)})
-      * lookBorderDots(fd.y, ${f(INNER_LOOK.dotPx)}, ${f(INNER_LOOK.halfDotPx)})
-      * ${f(INNER_LOOK.darken)} * lookBorderInner
-    : 0.0;
+  float px = lookBorderPixelRatio;
+  vec2 outer = lookEtched(
+    lookBorderAcross(fd.x, texPx, lampPx),
+    ${f(ETCHED_LOOK.outer.cutPx)} * lookBorderScale * px,
+    ${f(ETCHED_LOOK.outer.shadowPx)} * lookBorderScale * px
+  ) * vec2(${f(ETCHED_LOOK.outer.shade)} * (1.0 - soft), mix(1.0, ${f(ETCHED_LOOK.soft)}, soft));
+  vec2 inner = vec2(0.0);
+  if (lookBorderInner > 0.0) {
+    inner = lookEtched(
+      lookBorderAcross(fd.y, texPx, lampPx),
+      ${f(ETCHED_LOOK.inner.cutPx)} * px,
+      ${f(ETCHED_LOOK.inner.shadowPx)} * px
+    ) * vec2(${f(ETCHED_LOOK.inner.shade)}, ${f(ETCHED_LOOK.inner.bright)}) * lookBorderInner;
+  }
   return max(outer, inner) * wide;
 }
 
-void lookBorders(inout LookSurface s) {
+// lampPx: the lamp's direction on screen, for the cuts' shadows (STEPS_FRAGMENT_APPLY).
+void lookBorders(inout LookSurface s, vec2 lampPx) {
   if (lookBorderStrength <= 0.0 || lookDebug != 0) return;
   vec2 ll = vec2(0.0);
   float degPx = 1.0;
@@ -490,10 +495,43 @@ void lookBorders(inout LookSurface s) {
     ll = lookLonLat(dir);
     degPx = max(degrees(max(length(dFdx(dir)), length(dFdy(dir)))), 1e-7);
   }
-  float a = lookBorderMix < 1.0 ? lookBorderGroove(lookBorderA, ll, degPx) : 0.0;
-  float b = lookBorderMix > 0.0 ? lookBorderGroove(lookBorderB, ll, degPx) : 0.0;
-  float groove = mix(a, b, lookBorderMix) * s.ground * lookBorderStrength;
-  s.albedo *= 1.0 - groove;
-  s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughen / BORDER_LOOK.darken)} * groove);
+  vec2 a = lookBorderMix < 1.0 ? lookBorderCut(lookBorderA, ll, degPx, lampPx) : vec2(0.0);
+  vec2 b = lookBorderMix > 0.0 ? lookBorderCut(lookBorderB, ll, degPx, lampPx) : vec2(0.0);
+  vec2 cut = mix(a, b, lookBorderMix) * s.ground * lookBorderStrength;
+  // The cut through the patina is polished metal, whose light the look caps (s.cut); its shadow
+  // darkens the metal beside it and leaves it rougher, as the 1815 groove does.
+  s.cut = cut.y;
+  s.albedo = mix(s.albedo, lookBorderEtched, cut.y);
+  s.roughness = mix(s.roughness, lookBorderEtchedLook.x, cut.y);
+  s.metalness = mix(s.metalness, 1.0, cut.y);
+  float shadow = min(cut.x * lookBorderEtchedLook.y, 0.95);
+  s.albedo *= 1.0 - shadow;
+  s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughen / BORDER_LOOK.darken)} * shadow);
 }
+`;
+
+/**
+ * STEPS: after the climate's wash, before the ash hook lays its dust over the land, with the key
+ * lamp's direction on screen at the fragment for the cuts' shadows: the lamp's direction along the
+ * surface, as the view projects it there; up and to the left where the scene has no spot light.
+ */
+export const STEPS_FRAGMENT_APPLY = /* glsl */ `
+  {
+    vec2 lookLampPx = vec2(-0.6, 0.8);
+#if NUM_SPOT_LIGHTS > 0
+    if (lookBorderStrength > 0.0) {
+      vec3 lookLampAt = -vViewPosition;
+      vec3 lookLampL = normalize(spotLights[0].position - lookLampAt);
+      vec3 lookLampN = normalize(cross(vLookTs, vLookTt));
+      if (dot(lookLampN, vViewPosition) < 0.0) lookLampN = -lookLampN;
+      vec3 lookLampT = lookLampL - lookLampN * dot(lookLampL, lookLampN);
+      vec2 lookLampS = vec2(
+        lookLampT.x * -lookLampAt.z + lookLampAt.x * lookLampT.z,
+        lookLampT.y * -lookLampAt.z + lookLampAt.y * lookLampT.z
+      );
+      if (dot(lookLampS, lookLampS) > 1e-12) lookLampPx = normalize(lookLampS);
+    }
+#endif
+    lookBorders(lookS, lookLampPx);
+  }
 `;
