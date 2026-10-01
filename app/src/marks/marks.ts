@@ -787,7 +787,8 @@ export class MarkLayer {
     const field = this.#clearance;
     const kLand = this.#view.kLand;
     if (!field || kLand <= 0) return [mark.x, mark.y];
-    const dir: [number, number, number] = [mark.dir.x, mark.dir.y, mark.dir.z];
+    // The field reads the cube's frame G; three's axes are (G.y, G.z, G.x).
+    const dir: [number, number, number] = [mark.dir.z, mark.dir.x, mark.dir.y];
     const ceiling = field.ceilingM(dir, Math.max(mark.r, 1e-5), kLand);
     return (ceiling > 0 ? this.#lifted(mark.dir, ceiling) : null) ?? [mark.x, mark.y];
   }
