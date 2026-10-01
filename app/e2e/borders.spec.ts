@@ -6,6 +6,7 @@
 // along it draws; and the look reads the steps through the border field's one sampler.
 import { expect, test } from '@playwright/test';
 import type { BordersProbe } from './bordersProbe';
+import { closeIdle } from './idle';
 import { DATA_URL, DEV_URL } from './servers';
 
 const RENDERER: Record<string, RegExp> = {
@@ -23,7 +24,8 @@ const problems: string[] = [];
 
 test.beforeAll(async ({ browser }) => {
   test.setTimeout(240_000);
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   page.on('console', (message) => {
     if (message.type() === 'error') problems.push(message.text());
@@ -33,7 +35,8 @@ test.beforeAll(async ({ browser }) => {
     if (!window.bordersProbe) throw new Error('e2e/borders.html did not start the probe');
     return window.bordersProbe;
   });
-  await page.close();
+  await closeIdle(page);
+  await context.close();
 });
 
 test('runs on the renderer its project names, without errors', () => {

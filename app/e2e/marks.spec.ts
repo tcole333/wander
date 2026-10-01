@@ -6,6 +6,7 @@
 // boxes are checked here rather than in Vitest, whose Node environment has no canvas to letter in.
 import { expect, test } from '@playwright/test';
 import type { MarksProbe } from './marksProbe';
+import { closeIdle } from './idle';
 import { DATA_URL, DEV_URL } from './servers';
 
 const RENDERER: Record<string, RegExp> = {
@@ -27,7 +28,8 @@ const problems: string[] = [];
 test.beforeAll(async ({ browser }) => {
   // About 4 s on Metal on the M5 and 25 s on SwiftShader.
   test.setTimeout(240_000);
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   page.on('console', (message) => {
     if (message.type() === 'error') problems.push(message.text());
@@ -37,7 +39,8 @@ test.beforeAll(async ({ browser }) => {
     if (!window.marksProbe) throw new Error('e2e/marks.html did not start the probe');
     return window.marksProbe;
   });
-  await page.close();
+  await closeIdle(page);
+  await context.close();
 });
 
 test('runs on the renderer its project names, without errors', () => {

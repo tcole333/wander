@@ -9,6 +9,7 @@
 // - the limb: marks past it change nothing anywhere;
 // - light: at the lamp's own reflection, in every variant, no mark but the focal one reaches the
 //   bloom's threshold (1.05), and the focal one's ember passes it.
+// Once it has measured, it stops the walk.
 import { FloatType, Mesh, RGBAFormat, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import type { Release } from '../src/data/release';
@@ -218,14 +219,16 @@ async function probe(dataHost: string): Promise<MarksProbe> {
   marks.set('probe', []);
   target.dispose();
 
-  return {
+  const report = {
     renderer: rendererName(gl),
     samplers: fragmentSamplers(renderer),
-    seaNames: await seaNamesAlike(),
     covered,
     pastLimb,
     light,
   };
+  // The last readback drained the GPU's queue, so the walk stops with nothing left to draw.
+  page.dispose();
+  return { ...report, seaNames: await seaNamesAlike() };
 }
 
 function spec(id: string, at: LonLat, i: number): MarkSpec {
