@@ -2363,14 +2363,20 @@ and the release's `media` section lists every key the locks name (3.8).
      SwiftShader and Metal): only outer lines at 8,000 km across and inner lines too at 2,000 km,
      soft edges lighter, half strength mid-dissolve, both previews of a cell decoded, and no seam at
      ±180°. The pool, readback and probe tests run test-only pages on the Vite dev server, not the
-     production build, so nothing of them reaches the bundle. CI runs it as six E2E jobs, one per
-     shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
-     `lobby` (lobby-round-trip, globe-mesh, lobby-reach), `explore` (explore-entry, marks), `ruler`
-     (explore-ruler), `touch` (explore-ruler-touch) and `rest`, every spec the others do not name,
-     so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
-     test at a time, since two SwiftShader walks starve a four-core runner, and builds its own dist,
-     recording its sha256. The dev server scans the test pages at startup (`optimizeDeps.entries`),
-     so each job's cold server bundles their imports before a test loads them.
+     production build, so nothing of them reaches the bundle. CI runs it as one E2E job per shard
+     that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
+     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks), `ruler`
+     (explore-ruler), `touch` (explore-ruler-touch), `borders` (borders-unpublished, the borders
+     probe, explore-borders) and `rest`, every spec the others do not name, so a new spec lands
+     there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD`
+     picks one; unset, every spec runs. Each job runs one test at a time, since two SwiftShader
+     walks starve a four-core runner, and builds its own dist, recording its sha256. A page that
+     draws the globe closes only once the GPU process has drawn the frames it queued
+     (`e2e/idle.ts`), and the probes stop their walks once measured: on a runner's four cores
+     SwiftShader draws those frames seconds apart, and a page closed while drawing left the next
+     test's browser context waiting on them past its 30 s. The dev server scans the test pages at
+     startup (`optimizeDeps.entries`), so each job's cold server bundles their imports before a
+     test loads them.
      - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
        in the decode workers, uploads it through the upload queue into the real pools, packs every
        mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
