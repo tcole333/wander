@@ -1,6 +1,5 @@
-// The production build as the live site stands until publish-data's --border-steps: dist/ under
-// vite preview, on the fixture's data server through ?data=, its release routed without its
-// borderSteps section. The look then compiles milestone 1's 1815 field in place of the steps'
+// The production build on a release that names no border steps: dist/ under vite preview, on the
+// fixture's data server through ?data=, its release routed without its borderSteps section. The look then compiles milestone 1's 1815 field in place of the steps'
 // arrays; the lobby preloads no step, and its Credits panel names historical-basemaps and not
 // Cliopatria; the dive into Explore draws no borders and serves no window.__borders; and Tambora's
 // sixth beat, which lists borders, shows no borders plate, since the fixture bakes no 1815 field

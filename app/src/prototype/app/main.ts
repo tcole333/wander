@@ -24,9 +24,8 @@
 // and ?marks=0 and the other marks params apply. The marks compile only where Explore stands, so
 // ?markDemo with ?story stops the page, naming the conflict.
 //
-// ?borderSteps=0 boots on the release without its border steps, as the published release stands
-// until publish-data's --border-steps: a walk draws milestone 1's 1815 field, and Explore no
-// borders (scripts/bordersVideos.ts).
+// ?borderSteps=0 boots on the release without its border steps: a walk draws milestone 1's 1815
+// field, and Explore no borders (scripts/bordersVideos.ts).
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';

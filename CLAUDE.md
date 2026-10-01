@@ -26,9 +26,8 @@ index, with the free clock over all of history, the now window's events as marks
 come on hover and pin on a click, the opening's line pinned at the landing, a live Meanwhile, the
 climate at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in
 it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 523 steps (#80), draw in
-Explore and on the walks' border beats wherever the release names the border steps; the bundled
-release names none until `npm run publish-data -- --border-steps`, so until then the walks draw the
-1815 field and Explore no borders.
+Explore and on the walks' border beats from the bundled release's border steps; a release that
+names none draws the 1815 field on the walks and no borders in Explore.
 
 ## Layout
 
@@ -185,18 +184,17 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   building the bake needs the raw data; verification reads it without rebuilding. It fails, naming
   the command, when the bake is missing or was built from other pipeline code, configs or pinned
   sources.
-- `npm run publish-data -- [--profile global|region] [--dry-run] [--border-steps]`: uploads the
-  keys the build's release names that R2 lacks, canary first and never overwriting a key, then
-  writes `app/src/generated/release.json` (commit it) and `rel/<id>.json`
-  (`docs/design/streaming.md` 4.3). `--dry-run` lists R2 and reports what it would upload. Local
-  only; the fixture is never published. The border steps stay out of the release until
-  `--border-steps` publishes them (about 270 MB): with them Explore draws the borders through time
-  and the story walks their beats' steps, and without them the walks draw the 1815 field. With it,
-  the run stops, before reading R2, while the steps owe the history pass an overlap
-  acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap (the borders
-  record's `owed`) that `pipeline/config/borders/acknowledged.yaml` does not list as a known gap
-  the owner acknowledged, naming each such place by its id. The first publish with them names the
-  steps' notice, which `app/credits.html` must then link (`credits.test.ts` fails until it does).
+- `npm run publish-data -- [--profile global|region] [--dry-run]`: uploads the keys the build's
+  release names that R2 lacks, canary first and never overwriting a key, then writes
+  `app/src/generated/release.json` (commit it) and `rel/<id>.json` (`docs/design/streaming.md`
+  4.3). `--dry-run` lists R2 and reports what it would upload. Local only; the fixture is never
+  published, and run it from a checkout whose `build/` holds the bake. The release names the
+  border steps whenever the bake holds them, and the run stops, before reading R2, while the steps
+  owe the history pass an overlap acknowledgement, a hierarchy class or a cited verdict on a
+  stateless hole or gap (the borders record's `owed`) that
+  `pipeline/config/borders/acknowledged.yaml` does not list as a known gap the owner acknowledged,
+  naming each such place by its id. A release naming a new steps notice needs `app/credits.html` to
+  link it (`credits.test.ts` fails until it does).
   When the 1815 field's `ver` is new, tag the commit that built it `borders-<ver>` and push the tag
   first: its GPL notice links the build scripts there, and the run stops, naming the commands,
   until origin holds it.
