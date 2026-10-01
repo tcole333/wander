@@ -112,7 +112,7 @@ export type CreateSurfaceLook = (
   /**
    * `marks`: the glyphs of the marks to cut into the surface, only where Explore stands.
    * `borderSteps`: where the release names the border steps, the tier whose slots and preview ring
-   * the border array holds in place of milestone 1's 1815 field (streaming.md 3.3).
+   * the border array holds (streaming.md 3.3); without it the look draws no borders.
    */
   options?: { marks?: GlyphSet; borderSteps?: Tier },
 ) => SurfaceLook;

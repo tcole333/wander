@@ -5,23 +5,20 @@
 // them) the passes are the borders off, at rest (one step slot) and mid-dissolve (two slots halfway
 // into each other, and two previews halfway), each with the inner lines at full strength and the
 // outer line at the view's size, and each again with the outer line at its near size (`restNear`,
-// `slotsNear`, `previewsNear`), which the larger line far out is measured against;
-// where it holds milestone 1's 1815 field, the borders off and drawn. The renderer and camera are
-// the page's own, taken as it draws the globe. It also gives the border array's size on the GPU.
-// scripts/bordersVideos.ts reads it.
+// `slotsNear`, `previewsNear`), which the larger line far out is measured against. The renderer and
+// camera are the page's own, taken as it draws the globe. It also gives the border array's size on
+// the GPU. scripts/bordersVideos.ts reads it.
 import {
   HalfFloatType,
   Mesh,
   Vector2,
   WebGLRenderTarget,
   type Camera,
-  type DataArrayTexture,
   type Material,
   type WebGLRenderer,
 } from 'three';
 import type { MuseumScene } from '../../contract';
 import {
-  borderUniformsOf,
   sourceVector,
   stepLayers,
   stepUniformsOf,
@@ -34,7 +31,7 @@ import type { GpuTimes } from './markDemo';
 
 export interface BordersTimingApi {
   /** The border array on the GPU: its bytes, its layers, and what it holds. */
-  array(): { bytes: number; layers: number; holds: 'full' | 'lite' | '1815' };
+  array(): { bytes: number; layers: number; holds: 'full' | 'lite' };
   /** GPU ms of a scene draw in each pass, by name; null without timer queries. */
   gpu(samples: number): Promise<Record<string, GpuTimes> | null>;
 }
@@ -51,26 +48,15 @@ interface Passes {
   restore: () => void;
 }
 
-/** Serves window.__bordersTiming for the look's border steps or its 1815 field. */
+/** Serves window.__bordersTiming where the look holds the border steps. */
 export function serveBordersTiming(museum: MuseumScene, globe: Material): void {
   const steps = stepUniformsOf(globe);
-  const field = borderUniformsOf(globe);
-  const texture: DataArrayTexture | undefined = (steps ?? field)?.lookBorderField.value;
-  if (!texture) return;
-  const { width, height, depth } = texture.image;
-  const holds = !steps ? '1815' : depth === stepLayers('full') ? 'full' : 'lite';
-  const passes = (): Passes => {
-    if (steps) return stepPasses(steps, holds === 'lite' ? 'lite' : 'full');
-    const strength = field?.lookBorderStrength ?? { value: 0 };
-    const was = strength.value;
-    return {
-      passes: { off: () => (strength.value = 0), rest: () => (strength.value = 1) },
-      restore: () => (strength.value = was),
-    };
-  };
+  if (!steps) return;
+  const { width, height, depth } = steps.lookBorderField.value.image;
+  const holds = depth === stepLayers('full') ? 'full' : 'lite';
   window.__bordersTiming = {
-    array: () => ({ bytes: width * height * depth * (steps ? 2 : 1), layers: depth, holds }),
-    gpu: (samples) => timeDraws(museum, globe, passes(), samples),
+    array: () => ({ bytes: width * height * depth * 2, layers: depth, holds }),
+    gpu: (samples) => timeDraws(museum, globe, stepPasses(steps, holds), samples),
   };
 }
 

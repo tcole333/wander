@@ -3,22 +3,18 @@
 // the coast; at sea the field's borders run on unseen. With its strength at 0, the default, the
 // look is unchanged; the walk compiles it at 0 before it starts.
 //
-// The look holds one border array in one sampler. Without border steps in the release it is
-// milestone 1's 1815 field: one R8 array of six faces, allocated with the look, given its bytes
-// once its file has arrived and uploaded a face at a time (story/effects/borders.ts), and read at
-// the face coordinates the look already has, which it draws as milestone 1's fine dotted groove;
-// visitors' program is exactly milestone 1's. Where the release names them, it holds the border
-// steps (borders/): an RG8 array of 1024² layers, a slot of six faces per step drawn (two on the
-// full tier, one on lite) and a two-layer ring of preview cells. It draws two sources, each a slot
-// or a preview cell, and dissolves between them by blending their drawn lines: a step's outer line
-// as an etched bright cut with a hairline shadow on the lamp's side (owner decision 42), dimmer
-// where stateless land lies on one side, and its inner lines, finer and fainter, fading in as the
-// view narrows.
+// Where the release names the border steps the look holds them (borders/) in one border array in
+// one sampler: an RG8 array of 1024² layers, a slot of six faces per step drawn (two on the full
+// tier, one on lite) and a two-layer ring of preview cells. It draws two sources, each a slot or a
+// preview cell, and dissolves between them by blending their drawn lines: a step's outer line as
+// an etched bright cut with a hairline shadow on the lamp's side (owner decision 42), dimmer where
+// stateless land lies on one side, and its inner lines, finer and fainter, fading in as the view
+// narrows. Where the release names none the look has no hook, array or sampler and draws no
+// borders.
 import {
   Color,
   DataArrayTexture,
   NearestFilter,
-  RedFormat,
   RGFormat,
   UnsignedByteType,
   Vector2,
@@ -26,137 +22,20 @@ import {
   type Material,
 } from 'three';
 import { tunables, type Tier } from '../config/tunables';
-import {
-  BORDER_APRON,
-  BORDER_FACES,
-  BORDER_TEXELS,
-  PREVIEW_H,
-  PREVIEW_W,
-  STEP_TEXELS,
-} from '../data/borders';
-
-/** How milestone 1's 1815 field cuts its groove. */
-export const BORDER_LOOK = {
-  /** Its width in pixels, whatever the zoom. */
-  widthPx: 2,
-  /** The pitch of its dots along the border, in pixels: each dot about half of it. */
-  dotPx: 5,
-  /** How much it darkens the metal, and how much rougher it leaves it. */
-  darken: 0.75,
-  roughen: 0.2,
-  /**
-   * Field texels a pixel over which it fades out as the view widens: past about 5, the field's
-   * reach (8 texels) no longer spans the line, and every texel beyond it would read as a border.
-   */
-  fadeTexPx: [4, 5],
-} as const;
-
-export interface BorderUniforms {
-  /** 0 leaves the look as it is. */
-  lookBorderStrength: { value: number };
-  /** Six faces of signed distances in texels, each min(255, rha(128 + 16·clamp(d, −8, 8))). */
-  lookBorderField: { value: DataArrayTexture };
-}
+import { BORDER_APRON, BORDER_FACES, PREVIEW_H, PREVIEW_W, STEP_TEXELS } from '../data/borders';
 
 /**
- * The uniforms, with the field allocated on the GPU at its first draw but not filled, and no bytes
- * of its own until its file arrives.
+ * What every line the steps draw shares: `fadeTexPx`, the field texels a pixel over which a line
+ * fades out as the view widens, since past about 5 the field's reach, 8 texels, no longer spans
+ * the line and every texel beyond it would read as a border; and `roughenPerShade`, how much
+ * rougher a shadow leaves the metal beside a cut, for each unit it darkens it.
  */
-export function createBorderUniforms(): BorderUniforms {
-  const field = new DataArrayTexture(null, BORDER_TEXELS, BORDER_TEXELS, BORDER_FACES);
-  field.format = RedFormat;
-  field.type = UnsignedByteType;
-  field.minFilter = field.magFilter = NearestFilter;
-  field.generateMipmaps = false;
-  field.unpackAlignment = 1;
-  field.source.dataReady = false;
-  field.needsUpdate = true;
-  return { lookBorderStrength: { value: 0 }, lookBorderField: { value: field } };
-}
-
-/** Gives the field its six faces' bytes, one face after another, to upload a face at a time. */
-export function fillBorderField(uniforms: BorderUniforms, faces: Uint8Array): void {
-  const field = uniforms.lookBorderField.value;
-  field.image.data = faces;
-  field.source.dataReady = true;
-}
-
-/** Uploads one face of the filled field at the next draw. */
-export function uploadBorderFace(uniforms: BorderUniforms, face: number): void {
-  const field = uniforms.lookBorderField.value;
-  field.addLayerUpdate(face);
-  if (face === BORDER_FACES - 1) {
-    // Faces are scheduled in order. three calls this only after uploading every pending layer;
-    // clearing here, rather than when the last face is scheduled, keeps all partial reads valid.
-    // The field never changes again, and a lost context reloads the page (owner decision 21).
-    field.onUpdate = () => {
-      field.image.data = null;
-      field.onUpdate = null;
-    };
-  }
-  field.needsUpdate = true;
-}
-
-const registry = new WeakMap<Material, BorderUniforms>();
-
-export function registerBorders(material: Material, uniforms: BorderUniforms): void {
-  registry.set(material, uniforms);
-}
-
-/** The border uniforms of a surface look's material, if it has the hook. */
-export function borderUniformsOf(material: Material): BorderUniforms | undefined {
-  return registry.get(material);
-}
+export const BORDER_LOOK = {
+  fadeTexPx: [4, 5],
+  roughenPerShade: 0.2 / 0.75,
+} as const;
 
 const f = (x: number) => x.toFixed(6);
-const INTERIOR = BORDER_TEXELS - 2 * BORDER_APRON;
-
-/** After the look's pars: the uniforms and lookBorders(), which reads LookSurface. */
-export const BORDERS_FRAGMENT_PARS = /* glsl */ `
-uniform float lookBorderStrength;
-uniform highp sampler2DArray lookBorderField;
-
-// The signed distance in field texels to the nearest border at face coordinates st: bilinear from
-// the four texels around, in float, so it holds its sub-texel place close up. Its sign flips where
-// the nearest border changes, in a polity's middle, without passing a border; four texels that
-// span such a jump, more than a border's step apart, lie far from any.
-float lookBorderDist(vec2 st, int face) {
-  vec2 t = (st + 1.0) * ${f(INTERIOR / 2)} + ${f(BORDER_APRON - 0.5)};
-  vec2 fr = fract(t);
-  ivec2 b = clamp(ivec2(t - fr), ivec2(0), ivec2(${BORDER_TEXELS - 2}));
-  vec4 d = vec4(
-    texelFetch(lookBorderField, ivec3(b, face), 0).r,
-    texelFetch(lookBorderField, ivec3(b + ivec2(1, 0), face), 0).r,
-    texelFetch(lookBorderField, ivec3(b + ivec2(0, 1), face), 0).r,
-    texelFetch(lookBorderField, ivec3(b + ivec2(1, 1), face), 0).r
-  ) * ${f(255 / 16)} - 8.0;
-  float lo = min(min(d.x, d.y), min(d.z, d.w));
-  float hi = max(max(d.x, d.y), max(d.z, d.w));
-  if (lo < 0.0 && hi > 0.0 && hi - lo > 2.0) return 8.0;
-  return mix(mix(d.x, d.y, fr.x), mix(d.z, d.w, fr.x), fr.y);
-}
-
-void lookBorders(inout LookSurface s) {
-  if (lookBorderStrength <= 0.0 || lookDebug != 0) return;
-  float texPx = max(max(length(dFdx(vLookSt)), length(dFdy(vLookSt))) * ${f(INTERIOR / 2)}, 1e-4);
-  float d = lookBorderDist(vLookSt, vLookFace);
-  // Dots along the border: its screen tangent is across the gradient of d.
-  vec2 g = vec2(dFdx(d), dFdy(d));
-  vec2 along = vec2(-g.y, g.x) / max(length(g), 1e-6);
-  float phase = abs(fract(dot(gl_FragCoord.xy, along) / ${f(BORDER_LOOK.dotPx)}) - 0.5);
-  float dots = 1.0 - smoothstep(0.22, 0.32, phase);
-  float wide = 1.0 - smoothstep(${f(BORDER_LOOK.fadeTexPx[0])}, ${f(BORDER_LOOK.fadeTexPx[1])}, texPx);
-  float line = lookLine(abs(d) / texPx, ${f(BORDER_LOOK.widthPx)}) * dots * wide;
-  float groove = line * s.ground * lookBorderStrength;
-  s.albedo *= 1.0 - ${f(BORDER_LOOK.darken)} * groove;
-  s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughen)} * groove);
-}
-`;
-
-/** After the climate's wash, before the ash hook lays its dust over the land. */
-export const BORDERS_FRAGMENT_APPLY = /* glsl */ `
-  lookBorders(lookS);
-`;
 
 /**
  * A step's lines (owner decision 42): an etched cut through the patina, lighter than the bronze,
@@ -499,14 +378,14 @@ void lookBorders(inout LookSurface s, vec2 lampPx) {
   vec2 b = lookBorderMix > 0.0 ? lookBorderCut(lookBorderB, ll, degPx, lampPx) : vec2(0.0);
   vec2 cut = mix(a, b, lookBorderMix) * s.ground * lookBorderStrength;
   // The cut through the patina is polished metal, whose light the look caps (s.cut); its shadow
-  // darkens the metal beside it and leaves it rougher, as the 1815 groove does.
+  // darkens the metal beside it and leaves it rougher.
   s.cut = cut.y;
   s.albedo = mix(s.albedo, lookBorderEtched, cut.y);
   s.roughness = mix(s.roughness, lookBorderEtchedLook.x, cut.y);
   s.metalness = mix(s.metalness, 1.0, cut.y);
   float shadow = min(cut.x * lookBorderEtchedLook.y, 0.95);
   s.albedo *= 1.0 - shadow;
-  s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughen / BORDER_LOOK.darken)} * shadow);
+  s.roughness = min(1.0, s.roughness + ${f(BORDER_LOOK.roughenPerShade)} * shadow);
 }
 `;
 

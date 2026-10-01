@@ -1,18 +1,16 @@
 // The walk's story effects (contract.ts WalkEffects): the ember, the plume, pulses, callout
-// plaques, the illustrative ash and veil, ModE-RA's real climate, the 1815 borders and the dated
-// routes, each a
-// function of story time, so scrubbing backward shows the right state. The plume, ash and veil
-// belong to the story: any beat that lists them turns them on for every beat, and story time alone
-// shows or hides them, so they never vanish as a flight leaves the beat that lists them. Pulses and
-// plaques come from the beat's effect list, and its layers switch the look's lines, sea names,
-// bathymetry, climate (climate.ts) and borders (borders.ts). Where the climate's data is drawn,
-// the illustrative veil gives way to it. Every mesh is made up front, the story's pulses too, so
-// their shaders compile before the walk starts (walk/boot.ts). `group` hangs from the museum's
-// globeMount (the globe frame, radius 1).
+// plaques, the illustrative ash and veil, ModE-RA's real climate, the border steps and the dated
+// routes, each a function of story time, so scrubbing backward shows the right state. The plume,
+// ash and veil belong to the story: any beat that lists them turns them on for every beat, and
+// story time alone shows or hides them, so they never vanish as a flight leaves the beat that lists
+// them. Pulses and plaques come from the beat's effect list, and its layers switch the look's
+// lines, sea names, bathymetry, climate (climate.ts) and borders (borders.ts). Where the climate's
+// data is drawn, the illustrative veil gives way to it. Every mesh is made up front, the story's
+// pulses too, so their shaders compile before the walk starts (walk/boot.ts). `group` hangs from
+// the museum's globeMount (the globe frame, radius 1).
 import { Group, Vector3 } from 'three';
 import { ashUniformsOf } from '../../look/ashHook';
 import { clockBordersOf } from '../../borders/clockBorders';
-import { borderUniformsOf } from '../../look/bordersHook';
 import { climateUniformsOf } from '../../look/climateHook';
 import { climateFieldOf } from '../../climate/field';
 import { routeUniformsOf } from '../../look/routeHook';
@@ -20,7 +18,7 @@ import type { Params } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
 import { dayFromIso } from '../dates';
 import type { LonLat, Story, StoryBeat } from '../story';
-import { StepBorders, WalkBorders, type BeatBorders } from './borders';
+import { NO_BORDERS, StepBorders, type BeatBorders } from './borders';
 import { Callouts } from './callouts';
 import { StoryClimate } from './climate';
 import { Ember } from './ember';
@@ -94,11 +92,10 @@ export const createWalkEffects: CreateWalkEffects = (
   const callouts = new Callouts(labelRoot);
   const ash = ashUniformsOf(look.material);
   const climate = new StoryClimate(story, source, climateFieldOf(climateUniformsOf(look.material)));
-  // Where the release names the border steps the look holds them, and the walk draws its beats'.
+  // Where the release names the border steps the look holds them, and the walk draws its beats';
+  // where it names none the walk draws no borders.
   const steps = clockBordersOf(look.material);
-  const borders: BeatBorders = steps
-    ? new StepBorders(story, steps)
-    : new WalkBorders(story, source, borderUniformsOf(look.material));
+  const borders: BeatBorders = steps ? new StepBorders(story, steps) : NO_BORDERS;
   const routes = new WalkRoutes(
     story,
     source,

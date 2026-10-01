@@ -9,7 +9,6 @@ import type { ViewState } from '../view/viewState';
 import type { WorldClock } from '../time/worldClock';
 import type { RouteData } from '../data/route';
 import type { Precision } from './dates';
-import type { BordersSource } from './effects/borders';
 import type { ClimateSource } from '../climate/years';
 import type { RouteSource } from './effects/route';
 import type { LonLat, Story } from './story';
@@ -112,7 +111,7 @@ export interface ClimateShown {
   strength: number;
 }
 
-/** The borders the globe draws: their snapshot's astronomical year, and how strongly. */
+/** The borders the globe draws: the astronomical year their step begins, and how strongly. */
 export interface BordersShown {
   year: number;
   /** 0 to 1, easing in and out with the layer and fading as the view closes in. */
@@ -167,8 +166,9 @@ export type CreateWalkUi = (
  * The ember, plume, pulses, callout labels, illustrative ash and veil, the real climate and the
  * historical borders, as functions of story time: scrubbing backward shows the right state.
  * `group` hangs from the museum's globeMount (the globe frame, radius 1); labels go into
- * `labelRoot`. Ash, climate and borders reach the surface through the look; climate and borders
- * read their files from `source`'s data host.
+ * `labelRoot`. Ash, climate and borders reach the surface through the look; climate and routes
+ * read their files from `source`'s data host, and the borders' steps stream through the look's
+ * border runtime (borders/clockBorders.ts).
  */
 export interface WalkEffects {
   inspectMemory?(account: import('../perf/memory').MemoryAccount): void;
@@ -189,9 +189,9 @@ export interface WalkEffects {
   /** The director may follow a route only once the effects have loaded it. */
   route(dataset: string): RouteData | undefined;
   /**
-   * Every frame from the room's opening, the story started or not: what loads in the background
-   * (the borders' field, a face a frame). `lobby` while the lobby stands with no mode running,
-   * where a story on the border steps preloads its first border beat's step.
+   * Every frame from the room's opening, the story started or not: what loads in the background.
+   * `lobby` while the lobby stands with no mode running, where a story on the border steps
+   * preloads its first border beat's step.
    */
   background(lobby: boolean): void;
   /**
@@ -211,5 +211,5 @@ export type CreateWalkEffects = (
   story: Story,
   look: SurfaceLook,
   labelRoot: HTMLElement,
-  source?: ClimateSource & BordersSource & RouteSource,
+  source?: ClimateSource & RouteSource,
 ) => WalkEffects;

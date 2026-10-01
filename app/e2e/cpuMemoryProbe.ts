@@ -14,15 +14,13 @@ import {
   WebGLRenderTarget,
   type Texture,
 } from 'three';
-import { BORDER_FACES, BORDER_TEXELS } from '../src/data/borders';
 import { FULLSCREEN_VERTEX, drawFullscreen } from '../src/gpu/fullscreen';
-import { createSampler, rendererName } from '../src/gpu/poolReadback';
+import { rendererName } from '../src/gpu/poolReadback';
 import {
   releaseCanvasAfterUpload,
   releaseDataAfterUpload,
   releaseGeometryAfterUpload,
 } from '../src/gpu/uploadOnce';
-import { createBorderUniforms, fillBorderField, uploadBorderFace } from '../src/look/bordersHook';
 import { MemoryAccount } from '../src/perf/memory';
 
 function probe() {
@@ -54,37 +52,6 @@ function probe() {
     material.dispose();
     return pixels;
   };
-
-  // The real six-face field and upload path, including the initial allocation without data.
-  const uniforms = createBorderUniforms();
-  const field = uniforms.lookBorderField.value;
-  renderer.initTexture(field);
-  const faces = new Uint8Array(16 + BORDER_FACES * BORDER_TEXELS ** 2).subarray(16);
-  for (let face = 0; face < BORDER_FACES; face++) {
-    faces.fill(17 + face * 31, face * BORDER_TEXELS ** 2, (face + 1) * BORDER_TEXELS ** 2);
-  }
-  fillBorderField(uniforms, faces);
-  const retained: number[] = [];
-  for (let face = 0; face < BORDER_FACES; face++) {
-    uploadBorderFace(uniforms, face);
-    renderer.initTexture(field);
-    retained.push(accountOf(field).arrayBuffers);
-  }
-  const sampler = createSampler(renderer);
-  const borderErrors = Array.from({ length: BORDER_FACES }, (_, slot) =>
-    sampler.worst(
-      field,
-      {
-        slot,
-        lod: 0,
-        texels: [BORDER_TEXELS, BORDER_TEXELS],
-        offset: 0.5,
-        points: [2, 2],
-      },
-      () => [17 + slot * 31],
-      (value) => Math.round(value * 255),
-    ),
-  );
 
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 8;
@@ -126,8 +93,6 @@ function probe() {
   account.geometry('geometry', geometry);
   const report = {
     renderer: rendererName(gl),
-    retained,
-    borderErrors,
     canvasPixels,
     atlasPixels,
     geometryPixels,
@@ -136,8 +101,7 @@ function probe() {
     geometryBytes: account.report().totals.arrayBuffers,
     glError: gl.getError(),
   };
-  sampler.dispose();
-  for (const texture of [field, canvasTexture, atlas]) texture.dispose();
+  for (const texture of [canvasTexture, atlas]) texture.dispose();
   geometry.dispose();
   material.dispose();
   target.dispose();
