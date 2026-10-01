@@ -970,7 +970,6 @@ export class MarkLayer {
       c.dir = dir.clone().addScaledVector(east, de).addScaledVector(north, dn).normalize();
       c.x += ox;
       c.y += oy;
-      c.reachPx += Math.hypot(ox, oy);
     });
   }
 

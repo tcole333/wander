@@ -362,8 +362,9 @@ describe('MarkLayer', () => {
 
   it('neither draws nor picks a mark its full tiles leave out', () => {
     const marks = layer();
+    // One group's marks, which share their place rather than stand apart.
     const crowd = Array.from({ length: tunables.markTileCap + 1 }, (_, i) =>
-      mark(`m${i}`, [20 + i * 0.002, 10], { score: -i }),
+      mark(`m${i}`, [20 + i * 0.002, 10], { score: -i, group: 'crowd' }),
     );
     marks.set('events', crowd);
     marks.place(view);
@@ -664,5 +665,26 @@ describe('MarkLayer’s marks at one place', () => {
     expect(drawn[0]![0]).toBeCloseTo(flood.x, 1);
     expect(drawn[0]![1]).toBeCloseTo(flood.y, 1);
     expect(drawn[1]![0]).toBeCloseTo(treaty.x, 1);
+  });
+
+  it('reaches as far about each mark stood apart as about a mark standing alone', () => {
+    const marks = new MarkLayer(() => cells);
+    const reaches = () => {
+      const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+      const ranges = (MARK_ROW - SLOT_ROW) * TABLE_WIDTH;
+      const out = new Map<number, number>();
+      for (let slot = 0; slot < ranges; slot++) {
+        const reach = data[SLOT_ROW * TABLE_WIDTH * 4 + slot * 4 + 2] ?? 0;
+        if (reach > 0) out.set(data[SLOT_ROW * TABLE_WIDTH * 4 + slot * 4 + 3] ?? -1, reach);
+      }
+      return out;
+    };
+    marks.set('events', [mark('alone', [20, 10])]);
+    marks.place(view);
+    const alone = reaches().get(0);
+    expect(alone).toBeGreaterThan(0);
+    marks.set('events', [mark('a', [20, 10], { score: 2 }), mark('b', [20, 10], { score: 1 })]);
+    marks.place(view);
+    expect([...reaches().values()]).toEqual([alone, alone]);
   });
 });
