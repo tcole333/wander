@@ -81,9 +81,9 @@ globe. The table gives each pace layer its channel and a first material to try.
 
 | Pace layer | Pace | What it shows | Its events | Channel and first material |
 |---|---|---|---|---|
-| Nature | millennia | relief, seas, rivers, climate, biomes, where resources lie, disease and hazard belts | eruptions, earthquakes, floods, cold years, epidemics | the casting itself: the bronze's shape, grain and patina, with climate as its verdigris and copper wash |
+| Nature | millennia | relief, seas, rivers, climate, biomes, where resources lie, disease and hazard belts | eruptions, earthquakes, floods, cold years, epidemics | the casting itself: the bronze's shape, grain and patina, with rivers inlaid in blued steel and climate as its verdigris and copper wash, which leaves the steel bare |
 | Culture | centuries | faiths, languages, the names people give places | new faiths and scripts, schisms, foundings | cut deep and filled: faith pictograms incised and filled with black niello, and place names engraved as they were at that date |
-| Governance | centuries to decades | borders, capitals, states | wars, battles, sieges, treaties, revolutions | engraved: boundary lines and state names, re-cut as they change |
+| Governance | centuries to decades | borders, capitals, states | wars, battles, sieges, treaties, revolutions | engraved: boundary lines etched bright through the patina, each with a hairline shadow on the lamp's side, and state names, re-cut as they change |
 | Infrastructure | decades | where people live, cities, roads, railways, sea lanes, mines and wells, cables | openings of canals, railways, bridges and cables | laid on: polish worn into land in use, hair-fine lines for routes (engraved on land, gilt at sea), small cast seals for cities |
 | Commerce | years | what moves (silver, sugar, cotton, oil), production and trade | booms, busts, embargoes, rushes | loose on the surface: small cast tokens along the routes, in the goods' own metal where they have one; a route's width for its volume, as in Minard's flow maps, and a slow drift along it for direction |
 | Fashion and art | months | works, styles, music, news, lives | premieres, publications, discoveries | paper: the vellum card and its images, beside the globe |
