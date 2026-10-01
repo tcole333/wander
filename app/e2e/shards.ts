@@ -7,7 +7,7 @@ import type { Project } from '@playwright/test';
 
 const NAMED_SHARDS = new Map<string, string[]>([
   ['magellan', ['story-selection.spec.ts']],
-  ['lobby', ['lobby-round-trip.spec.ts', 'globe-mesh.spec.ts', 'lobby-reach.spec.ts']],
+  ['lobby', ['lobby-round-trip.spec.ts', 'globe-mesh.spec.ts']],
   ['explore', ['explore-entry.spec.ts', 'marks.spec.ts']],
   ['ruler', ['explore-ruler.spec.ts']],
   ['touch', ['explore-ruler-touch.spec.ts']],
