@@ -194,10 +194,11 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   and the story walks their beats' steps, and without them the walks draw the 1815 field. With it,
   the run stops, before reading R2, while the steps owe the history pass an overlap
   acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap (the borders
-  record's `owed`); the first such publish also waits on #80's task 9, the lobby's preload of the
-  walk's first border step. When the 1815 field's `ver` is new, tag the commit that
-  built it `borders-<ver>` and push the tag first: its GPL notice links the build scripts there,
-  and the run stops, naming the commands, until origin holds it.
+  record's `owed`) that `pipeline/config/borders/acknowledged.yaml` does not list as a known gap
+  the owner acknowledged, naming each such place by its id; the first such publish also waits on
+  #80's task 9, the lobby's preload of the walk's first border step. When the 1815 field's `ver`
+  is new, tag the commit that built it `borders-<ver>` and push the tag first: its GPL notice
+  links the build scripts there, and the run stops, naming the commands, until origin holds it.
 - `uv run prebuild wikidata` exports the event index's classes
   (`pipeline/config/event-classes.yaml`) from QLever's public Wikidata endpoint into
   `sources/wikidata-events-<date>/` in the raw-data folder, one class at a time, and appends its
