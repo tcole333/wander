@@ -305,15 +305,6 @@
   letter-spacing: 0.04em;
 }
 
-.xr-pl-year.is-under {
-  font-size: 17px;
-}
-
-.xr-pl-year.is-long {
-  font-size: 15px;
-  letter-spacing: 0.02em;
-}
-
 .xr-pl-top {
   font: 600 8.5px/1 var(--reading);
   letter-spacing: 0.22em;
@@ -453,12 +444,25 @@
   filter: brightness(0.6) saturate(0.6);
 }
 
-/* On a touch screen the knobs take a fingertip's 44 px. */
+/* On a touch screen the knobs, the plaque and the counter take a fingertip's 44 px. */
 @media (pointer: coarse) {
-  .xr-knob::before {
+  .xr-knob::before,
+  .xr-plaque::before,
+  .xr-counter::before {
     content: '';
     position: absolute;
+  }
+
+  .xr-knob::before {
     inset: -8px;
+  }
+
+  .xr-plaque::before {
+    inset: -6px -2px -4px;
+  }
+
+  .xr-counter::before {
+    inset: -8px 0;
   }
 }
 
@@ -532,6 +536,19 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* The narrowest views: the counter's words close up to fit between its knobs. */
+@media (max-width: 419px) {
+  .xr-count {
+    font-size: 11px;
+  }
+
+  .xr-unit {
+    margin-left: 3px;
+    font-size: 7.5px;
+    letter-spacing: 0.12em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
