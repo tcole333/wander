@@ -1,9 +1,10 @@
 // The borders through time at run time, on synthetic steps and previews, with the world clock,
 // the time and the streamer's upload queue in the test's hands: a step streams in once the clock
-// rests, in bands behind the tiles, two at most in hand; a new target aborts a fetch; slots
-// dissolve into each other and rocking swaps them without refetching; previews stand in while
-// the step streams and dissolve over the scrub fade; a fast clock fades the borders out; nothing
-// draws before the first step; and end() leaves no memory behind.
+// rests, in bands behind the tiles, two at most in hand; a new target aborts a fetch; a walk's
+// beat has its step fetched at once and kept, and the lobby's preload loads one with no mode
+// running; slots dissolve into each other and rocking swaps them without refetching; previews
+// stand in while the step streams and dissolve over the scrub fade; a fast clock fades the
+// borders out; nothing draws before the first step; and end() leaves no memory behind.
 import { gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { tunables, type Tier } from '../config/tunables';
@@ -144,6 +145,20 @@ function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTI
     async frames(count: number, ms = 16, frame: Partial<BordersFrame> = {}) {
       for (let i = 0; i < count; i += 1) await h.frame(ms, frame);
     },
+    /**
+     * Lobby frames until `done`, failing past `limit`: the preload of the step holding `day`, no
+     * mode's update, then the queue and the loads as in a frame.
+     */
+    async lobbyUntil(done: () => boolean, day: number, limit = 400) {
+      for (let i = 0; i < limit && !done(); i += 1) {
+        t += 16;
+        borders.preload(day);
+        queue.run(tunables.uploadAnimated.full);
+        do await new Promise((wake) => setImmediate(wake));
+        while (borders.inflating);
+      }
+      expect(done()).toBe(true);
+    },
     /** Frames until `done`, failing past `limit`. */
     async until(done: () => boolean, frame: Partial<BordersFrame> = {}, limit = 400) {
       for (let i = 0; i < limit && !done(); i += 1) await h.frame(16, frame);
@@ -266,6 +281,95 @@ describe('two slots', () => {
     await h.frame(0);
     expect(h.drawing()).toEqual(h.slot(0));
     expect(h.uniforms.lookBorderMix.value).toBeCloseTo(1 - mix, 5);
+  });
+});
+
+describe("a walk's beat", () => {
+  /** A frame of a walk heading for, or on, a border beat in `year`. */
+  const onBeat = (year: number) => ({ beat: inYear(year) });
+
+  test('has its step fetched at once, wherever the clock is, and holds it once in a slot', async () => {
+    const h = harness();
+    expect(h.borders.holds(inYear(1820))).toBe(false);
+    await h.frame(16, onBeat(1820));
+    expect(h.fetched.map(({ url }) => url)).toEqual([`${HOST}/${SECTION.keys[at(1820)]}`]);
+    expect(h.borders.holds(inYear(1820))).toBe(false);
+    await h.until(() => h.borders.holds(inYear(1820)), onBeat(1820));
+    expect(h.borders.slotSteps).toContain(at(1820));
+  });
+
+  test('keeps its step streaming as the clock moves more than a step away', async () => {
+    const h = harness();
+    const url = `${HOST}/${SECTION.keys[at(1820)]}`;
+    h.held.set(url, () => {});
+    await h.frames(20, 16, onBeat(1820));
+    h.clock.set(inYear(1800));
+    await h.frames(2, 16, onBeat(1820));
+    expect(h.fetched.find((fetch) => fetch.url === url)?.signal.aborted).toBe(false);
+  });
+
+  test("keeps its step's slot from the clock's neighbour", async () => {
+    const h = harness();
+    // At rest in 1815, drawn, with its neighbour 1817 in the other slot.
+    await h.until(() => h.borders.slotSteps.includes(at(1817)));
+    await h.frames(Math.ceil(tunables.borderFade / 16));
+    // A beat of 1800 takes the slot the neighbour held, and keeps it while the clock rests.
+    await h.until(() => h.borders.slotSteps.includes(at(1800)), onBeat(1800));
+    await h.frames(60, 16, onBeat(1800));
+    expect(h.borders.slotSteps).toEqual([at(1815), at(1800)]);
+    const neighbour = `${HOST}/${SECTION.keys[at(1817)]}`;
+    expect(h.fetched.filter(({ url }) => url === neighbour)).toHaveLength(1);
+  });
+
+  test('counts its step as held once the file fails, so the beat never waits on it', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const h = harness();
+    h.flaky.set(`${HOST}/${SECTION.keys[at(1820)]}`, 1);
+    await h.frames(3, 16, onBeat(1820));
+    expect(h.borders.holds(inYear(1820))).toBe(true);
+    expect(h.borders.slotSteps).not.toContain(at(1820));
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  test('holds any day without steps, and any day before the first', () => {
+    expect(harness('full', null).borders.holds(inYear(1815))).toBe(true);
+    expect(harness().borders.holds(firstDay(1800) - 1)).toBe(true);
+  });
+});
+
+describe("the lobby's preload", () => {
+  test("loads a walk's first border step with no mode running, which its beat then draws at once", async () => {
+    const h = harness();
+    // The lobby's clock stands where the last mode left it, here past the last step.
+    h.clock.set(inYear(1960));
+    const step = `${HOST}/${SECTION.keys[at(1815)]}`;
+    await h.lobbyUntil(() => h.borders.slotSteps.includes(at(1815)), inYear(1815));
+    expect(h.fetched.map(({ url }) => url)).toEqual([step]);
+    expect(h.borders.shown).toBeNull();
+    // The dive sets the clock to the walk's first beat, which draws the step from its first frame
+    // without fetching it again.
+    h.clock.set(inYear(1815));
+    await h.frame(16, { beat: inYear(1815) });
+    expect(h.drawing()).toEqual(h.slot(0));
+    expect(h.fetched.filter(({ url }) => url === step)).toHaveLength(1);
+  });
+
+  test('takes an empty slot first, then the one holding a step far from it', async () => {
+    const h = harness();
+    await h.until(() => h.borders.slotSteps.includes(at(1817)));
+    await h.frames(Math.ceil(tunables.borderFade / 16));
+    // Back in the lobby, 1817 is two steps from 1810 and 1815 one: 1817's slot goes.
+    h.borders.hide();
+    await h.lobbyUntil(() => h.borders.slotSteps.includes(at(1810)), inYear(1810));
+    expect(h.borders.slotSteps).toEqual([at(1815), at(1810)]);
+  });
+
+  test('loads nothing before the first step, or without steps', () => {
+    const h = harness();
+    h.borders.preload(firstDay(1800) - 1);
+    const none = harness('full', null);
+    none.borders.preload(inYear(1815));
+    expect([h.fetched, none.fetched]).toEqual([[], []]);
   });
 });
 

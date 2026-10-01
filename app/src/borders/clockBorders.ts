@@ -7,7 +7,11 @@
 // until it slows, and before the first step nothing draws.
 //
 // A step is fetched once the clock has rested in it for borderRest, and a new target aborts a
-// fetch more than a step away. Its field inflates in bands of a quarter MiB that join the
+// fetch more than a step away. A walk's beat that lists borders names its own step, its readiness
+// item: that step is fetched at once, wherever the clock is, and keeps its slot, no new target
+// aborting it, until the walk moves on. In the lobby, a walk's first border step preloads into a
+// slot no source draws, so the walk's first border beat draws it as it arrives. Its field inflates
+// in bands of a quarter MiB that join the
 // streamer's uploads behind its tiles, two at most in hand, so a step holds its compressed file
 // and two bands at its peak. On the full tier, once a step draws, the next step in the scrub
 // direction fills the other slot, but never in place of the step across the boundary just
@@ -65,6 +69,12 @@ export interface BordersFrame {
   viewKm: number;
   /** The mode's own strength: its layer's easing and the lobby's fade. */
   strength: number;
+  /**
+   * A walk's beat that lists borders: a day its step holds. That step is the beat's readiness
+   * item, fetched at once wherever the clock is, which no new target aborts and no other step
+   * takes the slot of. Absent, or null, where no beat names one.
+   */
+  beat?: number | null;
 }
 
 /** The step drawn: its first year, how strongly, and whether its preview stands in for it. */
@@ -135,6 +145,8 @@ export class ClockBorders {
   #mix = 1;
   #fadeMs: number = tunables.borderFade;
   #target: number | null = null;
+  /** The step a walk's beat needs, which loads at once and keeps its slot; null when none does. */
+  #pinned: number | null = null;
   #since = 0;
   #direction: 1 | -1 = 1;
   #fastAt = -Infinity;
@@ -201,6 +213,8 @@ export class ClockBorders {
       return;
     }
     const step = stepAt(steps, this.#clock.state().day);
+    const beat = frame.beat ?? null;
+    this.#pinned = beat === null ? null : stepAt(steps, beat);
     if (step !== this.#target) this.#retarget(step, now);
     const still = now - this.#fastAt >= tunables.borderScrubFade;
     const rate = dt / tunables.borderScrubFade;
@@ -213,6 +227,8 @@ export class ClockBorders {
     this.#mix = Math.min(1, this.#mix + dt / this.#fadeMs);
     if (this.#mix >= 1) this.#from = null;
 
+    // The beat's own step first, without waiting for the clock to rest in it.
+    if (this.#pinned !== null) this.#wantSlot(this.#pinned, false);
     if (frame.wanted && step !== null) {
       if (frame.previews) this.#wantCells(step, now);
       if (now - this.#since >= tunables.borderRest) this.#wantSlot(step, false);
@@ -220,6 +236,28 @@ export class ClockBorders {
       if (settled) this.#wantNeighbour(step);
     }
     this.#write(frame.strength * this.#fast, frame.viewKm);
+  }
+
+  /**
+   * The lobby's preload of a walk's first border step: loads the step holding `day` into a slot no
+   * source draws, an empty one first, then one holding a step far from it, so the walk's first
+   * border beat draws it as it arrives. Nothing loads before the first step, or without steps.
+   */
+  preload(day: number): void {
+    const step = this.#steps ? stepAt(this.#steps, day) : null;
+    if (step !== null) this.#wantSlot(step, false, step);
+  }
+
+  /**
+   * Whether the step holding `day` is in a slot, ready to draw, or none will come there: the
+   * release names no steps, the day is before the first, or the step's file failed, for
+   * `degradeFor` or for good. A walk's beat that lists borders is ready only once this holds.
+   */
+  holds(day: number): boolean {
+    const step = this.#steps ? stepAt(this.#steps, day) : null;
+    if (step === null) return true;
+    if (this.#slots.some((slot) => slot.ready && slot.step === step)) return true;
+    return this.#failing(this.#section?.keys[step] ?? '');
   }
 
   /** Fetches Explore's preview chunks, the clock's own first, to hold compressed until end(). */
@@ -275,6 +313,7 @@ export class ClockBorders {
     this.#from = null;
     this.#to = null;
     this.#mix = 1;
+    this.#pinned = null;
     this.#write(0, Infinity);
   }
 
@@ -323,10 +362,12 @@ export class ClockBorders {
     }
     this.#target = step;
     this.#since = now;
-    // A new target aborts the fetches it no longer needs: any more than a step away.
+    // A new target aborts the fetches it no longer needs: any more than a step away, but never the
+    // step a walk's beat needs.
     this.#slots.forEach((slot, i) => {
       const load = slot.load;
-      if (load && (step === null || Math.abs(load.step - step) > 1)) this.#empty(i);
+      if (!load || load.step === this.#pinned) return;
+      if (step === null || Math.abs(load.step - step) > 1) this.#empty(i);
     });
   }
 
@@ -366,21 +407,21 @@ export class ClockBorders {
   }
 
   /**
-   * Loads `step` into a slot no source draws: an empty one first, then one holding a step more
-   * than a step away from it, and only for the clock's own step one holding its neighbour.
+   * Loads `step` into a slot no source draws and no beat needs: an empty one first, then one
+   * holding a step more than a step away from `around` (the clock's step), and, but for a
+   * neighbour's load, one holding a step next to it.
    */
-  #wantSlot(step: number, neighbour: boolean): void {
+  #wantSlot(step: number, neighbour: boolean, around = this.#target ?? step): void {
     if (this.#slots.some((slot) => slot.step === step)) return;
     const key = this.#section?.keys[step] ?? '';
     if (this.#failing(key)) return;
-    const target = this.#target ?? step;
     const drawn = this.#drawnSlots();
     let best = -1;
     let bestRank = Infinity;
     this.#slots.forEach((slot, i) => {
-      if (drawn.has(i)) return;
       const held = slot.step;
-      const rank = held === null ? 0 : Math.abs(held - target) > 1 ? 1 : 2;
+      if (drawn.has(i) || (held !== null && held === this.#pinned)) return;
+      const rank = held === null ? 0 : Math.abs(held - around) > 1 ? 1 : 2;
       if (rank < bestRank) [best, bestRank] = [i, rank];
     });
     if (best < 0 || (neighbour && bestRank > 1)) return;
