@@ -119,7 +119,8 @@ uniform mat3 lookMarkView;
 // The viewport's width and height in CSS px, a tile's side in CSS px, and the tiles across.
 uniform vec4 lookMarkGrid;
 uniform vec4 lookMarkFamily[LOOK_MARK_FAMILIES * LOOK_MARK_FAMILY_VEC4];
-// A disc's bevel as a share of r, the relief's and the fill's strength, and the sub-threshold glow.
+// The seal's bevel as a share of r, the relief's and the fill's strength, and the sub-threshold
+// glow.
 uniform vec4 lookMarkStyle;
 // The ember's linear color and its strength, and its breath now.
 uniform vec4 lookMarkEmber;

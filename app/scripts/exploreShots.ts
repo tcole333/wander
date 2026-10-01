@@ -515,7 +515,7 @@ async function eventNames(): Promise<Map<number, { label: string; cls: string }>
   return names;
 }
 
-/** A mark as a render drew it: its place and size, its treatment and its event. */
+/** A mark as a render drew it: its place and size, its family and its event. */
 interface DrawnMark extends PlacedMark {
   /** Its event's Q number, `Q…`: a hollow parent's mark id adds a suffix to it. */
   qid: string;
@@ -607,7 +607,7 @@ async function settleEvents(page: Page): Promise<void> {
   await frames(page, 2);
 }
 
-/** The marks drawn in view, with their treatments and their events' names. */
+/** The marks drawn in view, with their families and their events' names. */
 async function drawnMarks(
   page: Page,
   names: Map<number, { label: string; cls: string }>,
