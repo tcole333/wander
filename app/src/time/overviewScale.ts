@@ -235,6 +235,12 @@ export function riderYear(
   return { year, step: stepAt(day), day, text: riderText(year) };
 }
 
+/** The rider over a mark on the overview: the year of the day a press there flies to. */
+export function riderOn(day: number, calendar: Calendar = HISTORICAL): RiderYear {
+  const year = calendar.civil(day).year;
+  return { year, step: 1, day, text: riderText(year) };
+}
+
 /** A year's middle day in `calendar`. */
 export function middleDay(year: number, calendar: Calendar = HISTORICAL): number {
   const start = calendar.day({ year, month: 1, day: 1 });
