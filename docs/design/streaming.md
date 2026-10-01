@@ -478,6 +478,27 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   inside one state with that state, and the enclosed pieces kept, each with the outer units around
   it and whether a correction cites it, are listed per step, and a `pocket` correction overrides
   the rules, for a coastal piece too.
+- **Land carried through a short gap is its state's** (owner decision 38): where one polity draws
+  land in the steps on both sides of a stateless run of at most 25 years, each step of the run
+  draws that land as the polity's, in its shape of the step before as far as the step after holds
+  it, since that is how a row Cliopatria drops for a while shows. Indian Territory, which a cited
+  `pocket` draws as the United States' in 1846-47 and Cliopatria from 1866, is the United States'
+  in between. Every step is first selected without the rule, and its polities' land and its
+  stateless land, less what a `pocket` keeps, are kept in the cache by its key, the stateless land
+  cut into pieces of at most 1,024 vertices so the land beside a polity is found without the rest.
+  The carry-through reads them in year order, and a step it reaches is selected again with that
+  land, which the rules above then work around. A polity the step does not draw otherwise joins
+  the outer unit both sides draw it in where the step draws that unit, and is its own otherwise.
+  Land two polities hold on the two sides stays as the rules leave it, since which of them held it
+  through the run, and when it passed, needs a source; so does land a stateless `pocket` keeps in
+  any step of the run. So does a part narrower than 2·`sliverKm` throughout, as a narrow hole does:
+  where two steps' outlines differ a little they leave slivers, 124,000 under 1 km² across the
+  steps, one so thin that clipping it to a face fails the bake. Of the 529 steps, 198 carry land,
+  332 pieces of 1,000 km² or more, 230 of them 10,000 km² or more; the largest are the Qing's
+  Xinjiang in 1864-76, 1.7 million km², Mongolia in 1920-21 as Cliopatria's Great Mongol State of
+  1919 and 1922, and Russia in 1918 as its Russian Republic of 1917 and 1919 [M global bake,
+  30 September]. The review queue lists each piece of 1,000 km² or more with its polity and the
+  steps on either side of its run.
 - **The antimeridian:** Cliopatria's shapes stop at 180°, so land just across it that no polity
   holds, in pieces within 20° of it, goes to the one polity whose shape runs along the other side
   where the piece meets the meridian. Otherwise Chukotka east of 180° is stateless whenever
@@ -597,16 +618,18 @@ Besides the 23 pairs:
   fixture holds only its own years' rows). Seven are cited as stateless: the Syrian Desert in
   1805-19 but 1811, the Chaco in 1814-19, the Arunachal hills in 1822-1913, the Pirara in
   1877-1904, the Minisink in 1677-82 and the Anti-Taurus frontier in 724-902. The other 43 stay
-  stateless, uncited, owed (below): 25 whose sources disagree or name no holder (the
-  Arabian and Syrian desert frontiers, the Amazon interior of 1769-76, Guizhou's native kingdoms
-  under the Song, the Pamirs and Yarkand, the Balkans after 626, Wallachia and Transylvania,
-  Carniola), 9 whose holder Cliopatria lacks, which need cited shapes (the Kalachuris, the
-  Himalayan kingdoms, Basalawarmi's Yunnan, the Pechenegs, Jalor, Kakheti and Hereti, Sikkim), 3
-  whose holders' line is undocumented (Upper Jambi and Kerinci, Nizhny Novgorod between Moscow and
-  Kazan, unoccupied Dutch New Guinea in 1943-44) and 6 whose verdict the check refuted, among them
-  Zhang Xianzhong's Sichuan in 1645 and the Syrian Desert in 1811. So do the rest of four places:
-  Manipur from 1826 under Gambhir Singh, Braničevo from 1255, the western Deccan from 1758 after
-  the cessions of Sindkhed and Udgir, and the Anti-Taurus from 903, when Lykandos was resettled.
+  stateless, uncited, owed (below), but for unoccupied Dutch New Guinea in 1943-44, which the
+  carry-through draws as the Dutch East Indies', since they hold it in 1942 and 1946: 25 whose
+  sources disagree or name no holder (the Arabian and Syrian desert frontiers, the Amazon
+  interior of 1769-76, Guizhou's native kingdoms under the Song, the Pamirs and Yarkand, the
+  Balkans after 626, Wallachia and Transylvania, Carniola), 9 whose holder Cliopatria lacks,
+  which need cited shapes (the Kalachuris, the Himalayan kingdoms, Basalawarmi's Yunnan, the
+  Pechenegs, Jalor, Kakheti and Hereti, Sikkim), 3 whose holders' line is undocumented (Upper
+  Jambi and Kerinci, Nizhny Novgorod between Moscow and Kazan, unoccupied Dutch New Guinea in
+  1943-44) and 6 whose verdict the check refuted, among them Zhang Xianzhong's Sichuan in 1645 and
+  the Syrian Desert in 1811. So do the rest of four places: Manipur from 1826 under Gambhir Singh,
+  Braničevo from 1255, the western Deccan from 1758 after the cessions of Sindkhed and Udgir, and
+  the Anti-Taurus from 903, when Lykandos was resettled.
 - **Northern Germany in 1866-70** lay along the coast, not in a hole: Cliopatria drops Prussia
   from 1864, Hanover, Hesse-Kassel, Nassau and Frankfurt from 1866, and Saxony, Hesse-Darmstadt and
   Austria's Bohemia in 1866-67, so most of northern Germany stood stateless. On 1 January 1866 each
@@ -618,12 +641,14 @@ Besides the 23 pairs:
 - **What the history pass owes** (owner decision 38): the record lists, and `publish-data` refuses
   the steps while it lists, every stateless hole of 10,000 km² or more that no correction cites,
   as a place over its run of steps, and every gap of that size: land held in the steps on both
-  sides of a stateless run of at most 25 years, which is how a row Cliopatria drops for a while
-  shows, as Prussia's did. Land stateless for longer is more often a state's real end, which
-  decision 35 leaves blank. Each step records its stateless land on a half-degree grid for the
-  gaps, and a gap that holds a listed hole or a stateless `pocket`'s point is not counted again.
-  The global bake owes 65 holes, 23 of them beside a lake and past the 100,000 km² cap, and 234
-  gaps, among them Russia in 1918-19, Mongolia in 1920-21 and the Thirteen Colonies in 1775
+  sides of a stateless run of at most 25 years that the carry-through leaves stateless, since two
+  polities hold it there, as Prussia's was in 1864-70 between Cliopatria's German Confederation
+  and German Empire. Land stateless for longer is more often a state's real end, which decision 35
+  leaves blank. Each step records its stateless land on a half-degree grid for the gaps, and a gap
+  that holds a listed hole or a stateless `pocket`'s point is not counted again. The global bake
+  owes 61 holes, 21 of them beside a lake and past the 100,000 km² cap, and 161 gaps, among them
+  Russia in 1918-19 between the Russian Republic and the Soviet republics, Manchuria in 1917-28
+  between the Empire of China and the Kuomintang, and the Thirteen Colonies in 1775
   [M global bake, 30 September]; each needs a cited `pocket`, the state that held it or stateless,
   before the steps are published.
 
@@ -656,8 +681,10 @@ u8 rg[6][size][size][2]
   which number the sorted names, so a correction elsewhere in time that adds a name changes no
   other step's bytes. A step's key hashes its year, the POLITY and vassalage rows valid in it, the
   hierarchy's classes of those, the operations (not the `why` or `source`) of the corrections
-  active in it, the rules, the land and lakes, and the step code; `build/cache/borders/` keeps each
-  baked step under its key, so a rebuild bakes only the steps whose key changed.
+  active in it, the rules, the land and lakes, the step code, and the land the carry-through
+  carries in it; `build/cache/borders/` keeps each baked step under its key, each step selected
+  without the carry-through under its key without that land, and what the carry-through found
+  under every step's such key, so a rebuild selects and bakes only the steps whose key changed.
 - **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 273 MB for
   all 524 [M global bake, 30 September]. A step takes about 22 CPU-seconds to select and bake: when
   every step's key changes, as a change to the code does, all 529 take about 41 minutes with 8
@@ -2140,7 +2167,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake}], gaps: [{at, km2, years}]}`, all of which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
+| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake}], gaps: [{at, km2, years}]}`, all of which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), the land carried through (each piece of 1,000 km² or more with its polity and the steps on either side of its run, the rest counted), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -2423,9 +2450,10 @@ and the release's `media` section lists every key the locks name (3.8).
       texel (a sign jump between two borders in it is no disagreement), in at least 99% of such
       texels in every step;
     - each step draws as many leaves, `polities.json`'s names not in parentheses, as Cliopatria has
-      rows valid in its year, with those its corrections add and less those they take away, which
-      the review queue lists, each a polity a correction the step applies names; and the steps
-      holding 1000, 1500, 1800, 1815 and 1914 have task 0's 126, 130, 121, 139 and 74 rows valid;
+      rows valid in its year, with those its corrections and the carry-through add and less those
+      they take away, which the review queue lists, each a polity a correction the step applies
+      names or the carry-through draws; and the steps holding 1000, 1500, 1800, 1815 and 1914
+      have task 0's 126, 130, 121, 139 and 74 rows valid;
     - the overlap pairs no `overlap` correction acknowledges are listed with their steps (3.3).
 
     On 30 September the 524 steps and 33 chunks decoded and passed every check in 13 s. The longest
