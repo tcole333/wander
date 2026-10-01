@@ -15,9 +15,9 @@ milestone 1's acceptance, passed there on 2026-09-28 except CPU memory, now at i
 (`docs/design/streaming.md` 8.1 lists where it departs from the design, and 8.2 what the
 experiments settled). The site opens on the lobby, whose plaques dive into the eight-beat Tambora
 walk and the ten-beat Magellan voyage: the global surface bake, ModE-RA's 1816 cold on two of
-Tambora's beats, the 1815 borders under their year plate, Magellan's route and ship, engraved sea
-names, Meanwhile and the lobby's glows from the all-eras Wikidata index, synthesized sound, and the
-Credits panel. The production entry (`app/index.html`, `app/src/main.ts`) plays them from the
+Tambora's beats, Cliopatria's borders under their year plate, Magellan's route and ship, engraved
+sea names, Meanwhile and the lobby's glows from the all-eras Wikidata index, synthesized sound, and
+the Credits panel. The production entry (`app/index.html`, `app/src/main.ts`) plays them from the
 bundled release, `app/src/generated/release.json`, whose data is on R2; the dev page
 `app/prototype.html?story=tambora|magellan` boots the same walk (`app/src/walk/boot.ts`) under a
 tuning panel. Milestone 3, open-world exploration, is live as it grows (`docs/PRD.md`): the
@@ -27,7 +27,7 @@ come on hover and pin on a click, the opening's line pinned at the landing, a li
 climate at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in
 it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 523 steps (#80), draw in
 Explore and on the walks' border beats from the bundled release's border steps; a release that
-names none draws the 1815 field on the walks and no borders in Explore.
+names none draws no borders.
 
 ## Layout
 
@@ -80,11 +80,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, with
-  border steps the step holding 1815, its preview chunk and the notice, each story's first image
-  and, when the release names the event files, their overview, and checks R2's headers. CI runs
-  it as its own job, which the Pages deploy waits for; it fails, naming `npm run publish-data`,
-  until the release's data is uploaded.
+  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the border step holding
+  1815, its preview chunk and the notice, each story's first image and, when the release names the
+  event files, their overview, and checks R2's headers. CI runs it as its own job, which the Pages
+  deploy waits for; it fails, naming `npm run publish-data`, until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run check [-- --base <rev>]`: the inner loop while working, scoped to what the branch
   changes since it left origin/main (or since `<rev>`): Prettier and ESLint on the changed app
@@ -129,7 +128,7 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `node scripts/bordersVideos.ts --url <dev server> --data <global data server>`: Explore's border
   scrub videos (3400 BCE to 2000 at world view, 1900 to 1950 over Europe) on this Mac's GPU, with
   ffmpeg, into `build/borders/videos/`, measuring the borders' CPU bytes, frames, long tasks and GPU
-  time as they run, and the Tambora walk's on the steps and on the 1815 field.
+  time as they run, and the Tambora walk's.
 - `node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results`: E3,
   milestone 1's acceptance, against the live site in headless Chromium on Metal: cold loads at
   25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
@@ -144,11 +143,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   rewrite their locks. `uv run prebuild borders` bakes the border steps from Cliopatria, one for
   each of 529 change years, 523 once those equal to the step before are dropped (about 41 minutes
   with 8 workers when every step's key changes; a rerun bakes only the steps whose inputs changed,
-  taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the fixture bakes
-  its two steps and no 1815 field, whose GPL source is never committed.
+  taking the rest from `build/cache/borders/`); the fixture bakes its two steps from its excerpt.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
-  2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile, and
-  30 s for `borders`, the whole 1815 field and no steps).
+  2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile),
+  with no borders.
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
@@ -195,9 +193,6 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   `pipeline/config/borders/acknowledged.yaml` does not list as a known gap the owner acknowledged,
   naming each such place by its id. A release naming a new steps notice needs `app/credits.html` to
   link it (`credits.test.ts` fails until it does).
-  When the 1815 field's `ver` is new, tag the commit that built it `borders-<ver>` and push the tag
-  first: its GPL notice links the build scripts there, and the run stops, naming the commands,
-  until origin holds it.
 - `uv run prebuild wikidata` exports the event index's classes
   (`pipeline/config/event-classes.yaml`) from QLever's public Wikidata endpoint into
   `sources/wikidata-events-<date>/` in the raw-data folder, one class at a time, and appends its

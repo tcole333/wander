@@ -106,8 +106,8 @@ Every layer toggles independently:
 - historical climate: monthly temperature anomalies, 1421-2008
 - events
 
-Borders come from the historical snapshot nearest the current date, and the snapshot's year is
-always shown.
+Borders are Cliopatria's polities as they stood at the current date, changing as the ruler moves;
+a story's plate names the year they draw from, and in Explore the ruler carries the date.
 
 Several layers are present-day data (coastlines, rivers and lakes, ecoregions, petroleum provinces,
 mountain ranges, critical-mineral deposits). The Credits panel lists each source and its date once;
@@ -231,8 +231,7 @@ including those the folder lacks, in `pipeline/sources.toml`:
 - RESOLVE Ecoregions 2017
 - USGS World Petroleum Provinces (2000) and critical-mineral deposits (2017)
 - GMBA mountain inventory (42 selected ranges)
-- historical-basemaps: border snapshots from prehistory to 2010 (GPL-3.0; derived border files keep
-  that license)
+- Cliopatria: polity shapes by year, 3400 BCE to 2024 (CC BY 4.0)
 - Wikidata: events, from pinned QLever SPARQL exports
 
 **Global event index.** v1 builds an index of dated, located Wikidata events across all eras,
@@ -279,7 +278,7 @@ ongoing work that starts in v1.
 ## Milestones
 
 1. **Tambora slice, deployed.** Done, live since 27 September 2026: the lobby, the Tambora story,
-   the globe around it, its climate and 1815 border layers, ocean and sea names, Meanwhile drawn
+   the globe around it, its climate and border layers, ocean and sea names, Meanwhile drawn
    from events worldwide during Tambora's years (out of the all-eras event index, which this
    milestone builds), synthesized sound, and deployment. The layers panel, polity names, Read more,
    the globe's events layer, and the time ruler's zoom out to centuries with its deep-time segment
