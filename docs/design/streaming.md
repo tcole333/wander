@@ -871,7 +871,8 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   "t0":    [...], "t1":  [...],               // day numbers (3.0); [t0, t1] covers the date's precision
   "prec":  [...], "cls": [...], "score": [...],   // Wikidata precision 0-14; display class index; score 0-1000
   "flags": [...],   // bit0 location inherited (P276/P131), bit1 derived parent position,
-                    // bit2 multi-location, bit3 date conflict resolved by rule, bit4 curated
+                    // bit2 multi-location, bit3 date conflict resolved by rule, bit4 curated,
+                    // bit5 no English Wikipedia article in the export
   "unc":   [...],   // location uncertainty radius in km (0 = point)
   "parent":[...],   // global row of the display parent, −1 = none
   "ext":   [[row, w, s, e, n], ...],   // bbox × 1e5 for parents and multi-location events
@@ -886,6 +887,13 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   extents, average about 75 B per row [M `e5/results/runtime-2026-09-29.json`]. Compressed bytes,
   JSON and per-row strings are released after packing, to stay within section 6. The build
   asserts that every t0 and t1 round-trips exactly.
+- **No titles:** the files carry no Wikipedia title, since Wikidata's
+  `Special:GoToLinkedPage/enwiki/Q<qid>` finds the English article from the Q number and follows
+  its moves. About a fifth of the events have no English article, and that link shows them
+  Wikidata's bare form, so bit5 marks them, table rows and recovered ancestors alike, and their
+  plates link the Wikidata item instead (5.3). The bit costs about 85 B gzipped on the overview
+  and 2.6 KB on `all.wev`, and nothing in the worker, where flags are already a byte; every title
+  would cost 36 and 184 KB gzipped and 111 and 551 KB of worker memory (link audit, 2026-09-30).
 - **Split rule:** `overview.wev` holds 4,096 quota rows, with equal quotas per era bin ×
   macro-region cell (~21 rows each), filled by score, and leftovers by score, plus Explore's
   openings (below). If the corpus is at most 100K rows and 16 MiB decoded, the rest goes into
@@ -1277,8 +1285,8 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   dates only to 1815 leaves a June beat once its line dates it
   to November. Every entry, a beat's or a month's, shows the written line where there is one, else
   the Wikidata label (its first letter capitalized, without a title's year in brackets), and cites
-  the written source, else its Wikipedia article. Each list is in date order. The stage names any
-  beat entry without a line.
+  the written source, else its Wikipedia article, or its Wikidata item when it has no English
+  article. Each list is in date order. The stage names any beat entry without a line.
 - **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages,
   committed): `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?,
   license, source}], audio: [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry,
@@ -1593,11 +1601,13 @@ only a failed start or a worker error ends the worker.
   `marks.hit` picks among the placed discs, and over land along the segment from a mark's sea-level
   place to where the clearance field's ceiling would lift it, since the relief draws it somewhere
   between. A click (a press moving less than 4 px) pins the plate, adds its source and makes the
-  event focal: the English Wikipedia article through Wikidata's `Special:GoToLinkedPage`, as the
-  index holds no title, or for an opening its written line and the source that line rests on. A
-  click on bare metal, Escape while the pinned plate stands in view, another pin, or the event's
-  dates leaving the ruler's tape unpins it (its plate dims while they stand outside the glass), and
-  Escape with no pinned plate in view (none pinned, or its mark panned away)
+  event focal: "Wikipedia", the English article through Wikidata's `Special:GoToLinkedPage`, or
+  "Wikidata", the item's page, which lists its articles in other languages, when flags bit5 says
+  it has none in English (3.4), never an article guessed from the label; or for an opening its
+  written line and the source that line rests on. A click on bare metal, Escape while the pinned
+  plate stands in view, another pin, or the event's dates leaving the ruler's tape unpins it (its
+  plate dims while they stand outside the glass), and Escape with no pinned plate in view (none
+  pinned, or its mark panned away)
   returns to the lobby. One listbox, hidden from sight, holds the worker's labels for the events
   marked in view behind one tab stop, reached once the dive has landed: its active option shows its
   plate as a hover does, or rings the pinned plate when it is the pinned event's, and while it has
@@ -1630,8 +1640,8 @@ only a failed start or a worker error ends the worker.
   the client keeps the description. At world view the screen shows the near side of the globe, so
   Meanwhile names what happens on the far side. Explore's panel (`app/src/explore/exploreMeanwhile.ts`)
   is the stories' list (`MeanwhileList`) with its own entries: each pick named as its plate names
-  it, dated by `formatHistorical` and sourced to its Wikipedia article through
-  `Special:GoToLinkedPage`, set in the label family; it stands its question only once the dive has
+  it, dated by `formatHistorical` and sourced as its plate is (Wikipedia or Wikidata), set in the
+  label family; it stands its question only once the dive has
   landed, keeps an answer's entries until the next, and drops at once an entry whose dates the now
   window has left. Choosing one flies there with a free flight, keeping the view's tilt and
   heading, to 1,500 km wide, and pins it on landing; input during the flight takes the view and
