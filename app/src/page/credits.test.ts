@@ -24,6 +24,21 @@ const plain = (html: string) =>
     .replaceAll('&quot;', '"')
     .replace(/\s+/g, ' ');
 
+/** sources.toml's table for Cliopatria: its version, attribution and license's URL. */
+const cliopatria = (() => {
+  const toml = read('../../../pipeline/sources.toml');
+  const table = /^\[cliopatria\]\n([\s\S]*?)\n\n/m.exec(toml)?.[1] ?? '';
+  const field = (name: string) => new RegExp(`^${name} = "(.*)"$`, 'm').exec(table)?.[1] ?? '?';
+  return {
+    version: field('version'),
+    attribution: field('attribution'),
+    license: field('license_url'),
+  };
+})();
+
+/** The page's entry for the border steps, from its term to the end of its text. */
+const stepsEntry = /<dt data-release="borderSteps">[\s\S]*?<\/dd>/.exec(credits)?.[0] ?? '';
+
 /** The page's image entries, in order: each one's Commons link and its text. */
 const entries = [...credits.matchAll(/<li>([\s\S]*?)<\/li>/g)]
   .map((match) => match[1] ?? '')
@@ -75,10 +90,37 @@ describe('credits.html', () => {
     }
   });
 
-  it("links the borders' GPL notice and changed source as the bundled release publishes them", () => {
+  it('links exactly the notices and sources the bundled release publishes under lic/', () => {
+    // The 1815 field's GPL notice and changed source; the border steps' notice joins them with the
+    // steps' first publish, which names it.
     const release = bundled as Release;
-    const file = release.borders?.files['1815'];
-    const links = [file?.notice, file?.source].map((key) => `${release.dataHost}/${key ?? '?'}`);
-    for (const link of links) expect(credits).toContain(`href="${link}"`);
+    const keys = [
+      ...Object.values(release.borders?.files ?? {}).flatMap((file) => [file.notice, file.source]),
+      ...(release.borderSteps ? [release.borderSteps.notice] : []),
+    ];
+    const linked = [...credits.matchAll(/href="([^"]*\/lic\/[^"]*)"/g)].map((match) => match[1]);
+    expect(new Set(linked)).toEqual(new Set(keys.map((key) => `${release.dataHost}/${key}`)));
+  });
+
+  it('credits Cliopatria by the attribution sources.toml gives it, linking each DOI', () => {
+    const { attribution, version } = cliopatria;
+    const authors = /^(.+? \(\d{4}\))/.exec(attribution)?.[1] ?? '?';
+    const text = plain(stepsEntry);
+    for (const part of [authors, 'Cliopatria', 'Seshat Global History Databank', version]) {
+      expect(text).toContain(part);
+    }
+    const dois = [...attribution.matchAll(/DOI (10\.\d+\/[^\s;]+?)[.;]?(?=\s|$)/g)];
+    expect(dois.length).toBeGreaterThan(0);
+    for (const [, doi] of dois) expect(stepsEntry).toContain(`href="https://doi.org/${doi}"`);
+  });
+
+  it("links Cliopatria's license as sources.toml names it", () => {
+    expect(stepsEntry).toContain(`href="${cliopatria.license}"`);
+  });
+
+  it("marks Cliopatria's term and text for the release's border steps", () => {
+    expect(stepsEntry).toMatch(
+      /^<dt data-release="borderSteps">[\s\S]*<dd data-release="borderSteps">/,
+    );
   });
 });
