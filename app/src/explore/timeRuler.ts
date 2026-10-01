@@ -36,7 +36,14 @@ import {
   YEAR_DAYS,
   type RiderYear,
 } from '../time/overviewScale';
-import { engraveTape, graduation, TAPE_FADE_PX, type Graduation } from '../time/tapeScale';
+import {
+  engraveTape,
+  graduation,
+  labelShown,
+  labelWidth,
+  TAPE_FADE_PX,
+  type Graduation,
+} from '../time/tapeScale';
 import { nearestTick, nextDetent } from '../time/timeMotion';
 import { nowWindow } from '../time/worldClock';
 import { EXPLORE_YEARS } from './copy';
@@ -90,6 +97,11 @@ interface Engraved {
   span: number;
   width: number;
   pin: number | null;
+  /**
+   * Each label's extent as cut, radians from the cut's middle, its row's radius, and whether it
+   * shows.
+   */
+  labels: { el: SVGTextElement; a0: number; a1: number; radius: number; shown: boolean }[];
 }
 
 type Zone =
@@ -554,7 +566,9 @@ export class TimeRuler {
       this.#engrave(center, span);
     }
     const cut = this.#engraved!;
-    this.#tape.style.transform = `rotate(${f(deg(-(center - cut.center) * k), 5)}deg)`;
+    const slid = -(center - cut.center) * k;
+    this.#tape.style.transform = `rotate(${f(deg(slid), 5)}deg)`;
+    this.#clearLabels(cut, slid);
     // A rotated layer is resampled; at rest the tape is cut again unrotated, so it reads crisp.
     clearTimeout(this.#settle);
     if (center !== cut.center) {
@@ -608,6 +622,7 @@ export class TimeRuler {
       stops += radial(arc, a, 1.5, TAPE_TOP - 0.5) + radial(arc, a + beyond, 1.5, TAPE_TOP - 0.5);
     }
     let labels = '';
+    const placed: { a: number; radius: number; label: (typeof tape.labels)[number] }[] = [];
     for (const label of tape.labels) {
       const shift = label.anchor === 'start' ? 7 : label.anchor === 'end' ? -7 : 0;
       const a = angle(label.day) + shift / (arc.r + NUMERAL_ROW);
@@ -615,6 +630,7 @@ export class TimeRuler {
       const [x, y] = at(arc, a, row);
       const cls = label.face === 'caps' ? 'xr-caps' : 'xr-num';
       labels += `<text class="${cls}" text-anchor="${label.anchor}" transform="translate(${f(x)} ${f(y)}) rotate(${f(deg(a), 2)})">${escapeText(label.text)}</text>`;
+      placed.push({ a, radius: arc.r + row, label });
     }
     let bookmark = '';
     if (this.#pin !== null) {
@@ -626,12 +642,42 @@ export class TimeRuler {
     this.#tape.innerHTML =
       `${leaders}${cuts('xr-tick-lip', ' transform="translate(0.6 0.9)"')}${cuts('xr-tick', '')}` +
       `<g class="xr-labels">${labels}</g>${bookmark}`;
-    this.#engraved = {
-      center,
-      span,
-      width: layout.width,
-      pin: this.#pin,
-    };
+    // Each label's extent along the tape as set, its shadow's px included, so the glass's edges
+    // and the fades see its letters; the estimate stands in while nothing is laid out.
+    const texts = this.#tape.querySelectorAll<SVGTextElement>('.xr-labels text');
+    const labelsCut = placed.map(({ a, radius, label }, i) => {
+      const el = texts[i]!;
+      const set = el.getComputedTextLength();
+      const w = (set > 0 ? set + 1 : labelWidth(label.text, label.face)) / radius;
+      const [a0, a1] =
+        label.anchor === 'start'
+          ? [a, a + w]
+          : label.anchor === 'end'
+            ? [a - w, a]
+            : [a - w / 2, a + w / 2];
+      return { el, a0, a1, radius, shown: true };
+    });
+    this.#engraved = { center, span, width: layout.width, pin: this.#pin, labels: labelsCut };
+  }
+
+  /**
+   * Shows each label where the tape has turned it to only if it stands clear of the glass's edges
+   * and the reels' fades (time/tapeScale.ts, labelShown), whole or not at all.
+   */
+  #clearLabels(cut: Engraved, slid: number): void {
+    const { arc, glass } = this.#layout;
+    for (const label of cut.labels) {
+      const r = label.radius;
+      const shown = labelShown(
+        (label.a0 + slid) * r,
+        (label.a1 + slid) * r,
+        arc.reach * r,
+        glass * r,
+      );
+      if (shown === label.shown) continue;
+      label.shown = shown;
+      label.el.classList.toggle('is-off', !shown);
+    }
   }
 
   #drawPlaque(): void {
