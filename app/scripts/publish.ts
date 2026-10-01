@@ -9,15 +9,12 @@
 // acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap that
 // pipeline/config/borders/acknowledged.yaml does not list as a known gap, and the 1815
 // field's GPL notice goes up only once origin holds the tag it links the build scripts at. The
-// border steps stay out of the release until their first publish: `--border-steps` publishes
-// them, about 270 MB that are never deleted, and moves Tambora onto them at once, so it waits on
-// #80's task 9, the lobby's preload of the walk's first border step and the step as the beat's
-// readiness item (streaming.md 3.3). Last
-// come the bundled app/src/generated/release.json and its copy rel/<id>.json; CI's
-// `npm run check-release` reads the same roots through the data host. The fixture never leaves
-// this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
+// release names the border steps whenever the build holds them, so no publish drops them from the
+// live site. Last come the bundled app/src/generated/release.json and its copy rel/<id>.json;
+// CI's `npm run check-release` reads the same roots through the data host. The fixture never
+// leaves this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
 //
-//   npm run publish-data -- [--profile global|region] [--dry-run] [--border-steps]
+//   npm run publish-data -- [--profile global|region] [--dry-run]
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -321,20 +318,12 @@ export interface PublishOptions {
   profile: (typeof PUBLISHED)[number];
   /** List R2 and report what an upload would send, writing nothing. */
   dryRun?: boolean;
-  /**
-   * Publish the border steps with the release: their first publish, #80's task 9, which moves
-   * Tambora onto them. Without it the release leaves them out, so a routine publish uploads none.
-   */
-  borderSteps?: boolean;
 }
 
 export async function publish(options: PublishOptions): Promise<void> {
-  const { profile, dryRun = false, borderSteps = false } = options;
+  const { profile, dryRun = false } = options;
   const { root, stages } = profileBuild(profile);
-  const release = localRelease(stages, DATA_HOST, undefined, { borderSteps });
-  if (!borderSteps && readBordersRecord(stages)?.steps) {
-    console.log('the border steps stay out of the release until --border-steps publishes them');
-  }
+  const release = localRelease(stages, DATA_HOST);
   const known = refuseOwedBorders(stages, release);
   if (known.length > 0) {
     console.log(
@@ -481,7 +470,7 @@ function scaled(bytes: number): string {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // npm keeps a flag written before `--` as its own config and runs the script without it, so
   // `npm run publish-data --dry-run` would upload everything: a flag npm kept stops the run.
-  const kept = ['dry-run', 'profile', 'border-steps'].filter(
+  const kept = ['dry-run', 'profile'].filter(
     (flag) => process.env[`npm_config_${flag.replace('-', '_')}`] !== undefined,
   );
   if (kept.length > 0) {
@@ -491,7 +480,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     options: {
       profile: { type: 'string', default: 'global' },
       'dry-run': { type: 'boolean', default: false },
-      'border-steps': { type: 'boolean', default: false },
     },
   });
   const profile = PUBLISHED.find((name) => name === values.profile);
@@ -500,7 +488,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     throw new PublishError(`--profile must be global or region; ${serve}`);
   }
   try {
-    await publish({ profile, dryRun: values['dry-run'], borderSteps: values['border-steps'] });
+    await publish({ profile, dryRun: values['dry-run'] });
   } catch (error) {
     const known = [PublishError, R2Error, ReleaseError].find((type) => error instanceof type);
     if (!known) throw error;
