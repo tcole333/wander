@@ -3,6 +3,7 @@ import json
 import math
 from dataclasses import replace
 
+import numpy as np
 import pytest
 import shapely
 
@@ -1014,6 +1015,43 @@ def test_a_cited_correction_settles_a_hole_between_states(terrain):
     assert owed_over(rows, terrain, [cited])["holes"] == []
 
 
+def around(hole):
+    """States on either side of the line at -13° around `hole`, from 1800 to 1815."""
+    return [row(r.name, r.geometry, 1800, 1815) for r in split(shapely.difference(LAND, hole), -13)]
+
+
+def test_an_owed_hole_is_known_by_its_kind_years_and_centroid(terrain):
+    (hole,) = owed_over(around(HOLE), terrain)["holes"]
+    assert hole["id"] == "hole 1800..1815 13W 2S"
+
+
+def test_an_owed_hole_keeps_its_id_when_a_rebake_moves_its_outline_a_little(terrain):
+    (hole,) = owed_over(around(box(-15.2, -4, -11, 0.1)), terrain)["holes"]
+    assert hole["id"] == "hole 1800..1815 13W 2S"
+
+
+def stateless_report(*enclosed):
+    """A step's report with these enclosed stateless pieces and no stateless cells."""
+    nothing = clio.pack_cells(np.zeros((360, 720), bool))  # the half-degree grid
+    return {"stateless": {"enclosed": list(enclosed)}, "statelessCells": nothing}
+
+
+def test_owed_places_that_would_share_an_id_are_told_apart_in_order():
+    piece = {"km2": 20_000, "lake": False, "states": ["East", "West"]}
+    reports = {
+        1800: stateless_report(
+            {**piece, "at": [10.1, 5.4], "centroid": [10.2, 5.1]},
+            {**piece, "at": [14.0, 5.0], "centroid": [9.6, 4.8]},
+        ),
+        1810: stateless_report(),
+    }
+    owing = clio.owed([1800, 1810], reports, config(), np.zeros((360, 720), bool))
+    assert [hole["id"] for hole in owing["holes"]] == [
+        "hole 1800..1809 10E 5N #1",
+        "hole 1800..1809 10E 5N #2",
+    ]
+
+
 def held(first, last, name="Realm", shape=LAND):
     return row(name, shape, first, last)
 
@@ -1042,6 +1080,11 @@ def test_land_two_polities_hold_on_the_sides_of_a_short_stateless_run_is_an_owed
     (gap,) = owing["gaps"]
     assert gap["years"] == [1810, 1819]
     assert gap["km2"] == pytest.approx(clio.km2(DRY), rel=0.05)
+
+
+def test_an_owed_gap_is_known_by_its_years_and_the_middle_of_its_cells(terrain):
+    _, owing = selected_over([held(1800, 1809), held(1820, 1830, "Republic")], terrain)
+    assert owing["gaps"][0]["id"] == "gap 1810..1819 0E 0N"
 
 
 def test_the_carried_land_is_the_step_befores_shape_as_far_as_the_step_after_holds_it(terrain):
