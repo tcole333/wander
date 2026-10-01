@@ -48,7 +48,7 @@ export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
  */
 export const MARK_AA_PX = { hard: 0.75, soft: 2.5 } as const;
 /**
- * The widest a soft edge spreads, in r, however small the mark: at 12 px, 2.5 px either side of
+ * The widest a soft edge spreads, in r, however small the mark: at 14 px, 2.5 px either side of
  * its edge would blur a seal into a smudge, and a war, whose place is nearly always borrowed, would
  * vanish from the views where it stands for its battles.
  */

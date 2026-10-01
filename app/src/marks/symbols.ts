@@ -2,7 +2,7 @@
 // layer, after Otto and Marie Neurath and Gerd Arntz. Each glyph is a solid silhouette with no
 // outline, drawn as SVG path data on a 64-unit grid, y down and north up, which the marks' glyph
 // atlas turns into a distance field and scripts/glyphSheet.ts prints. The drawing rules keep them
-// legible on the globe's smallest marks, 12 CSS px and at least 16 device px across
+// legible on the globe's smallest marks, 14 CSS px and at least 16 device px across
 // (tunables.markMinDevicePx), whose seals hold the glyph about 9 device px wide or more, a unit
 // to a seventh of a pixel, and never less than 7:
 // - every stroke and gap a glyph needs to be read is at least 6 units wide; finer details, such
@@ -529,7 +529,7 @@ const wreck = (() => {
     [50, 49],
     [14, 49],
   ];
-  // Sails 6 units clear of each other and of the hull, so the ship stays three shapes at 12 px.
+  // Sails 6 units clear of each other and of the hull, so the ship stays three shapes at 14 px.
   const mainsail: Point[] = [
     [35, 4],
     [35, 29],

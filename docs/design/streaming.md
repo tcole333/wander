@@ -1580,7 +1580,7 @@ only a failed start or a worker error ends the worker.
   highest-scored parent standing first, so parents sharing a borrowed place draw one glyph; the
   layer's `data-explore-marks` counts the events marked in view, each once; an inherited
   or derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser)
-  is soft, its edge within a fifth of its radius so a 12 px seal keeps its shape, and half as deep.
+  is soft, its edge within a fifth of its radius so a 14 px seal keeps its shape, and half as deep.
   The focal event, the opening until a pin replaces it, passes the query's budgets while its dates
   are on the ruler's tape (`tapeWindow`), at half strength while they stand outside the glass's now
   window, then drops to an ordinary mark; until the index holds it, or once the worker has failed,
@@ -2852,7 +2852,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `timeFlickTauS`, `timeFlickMaxSpans` | 0.3 s, 2 spans | a flicked tape's coast | eye |
 | `timeFlightS` | 0.22-0.9 s | a flight between dates in Explore | eye |
 | `timeHoldGlide` | after 300 ms, 0.25 rising to 0.85 spans/s over 2 s | a held arrow's glide through time | eye |
-| `markPx` | 12 CSS px at 12,000 km wide and wider, 16 at 3,000, 20 at 300 and closer, log-interpolated | a mark's diameter | eye |
+| `markPx` | 14 CSS px at 12,000 km wide and wider, 22 at 3,000, 32 at 1,000, 44 at 300 and closer, log-interpolated | a mark's diameter | eye |
 | `markMinDevicePx` | 16 device px | the fewest device pixels a mark spans, over `markPx`: at one device pixel a CSS px, marks at world view are 16 CSS px so their glyphs read | eye |
 | `markTileCap` | 8 per 32 CSS px tile | marks the look inlays in one screen tile | eye |
 | `markRoughMin`, `markSpecMax` | 0.35, 0.9 | a mark's roughness floor; the cap on its lit luminance, under the bloom's 1.05 | eye |
