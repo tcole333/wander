@@ -41,6 +41,7 @@ import {
 import {
   engraveTape,
   graduation,
+  labelAtEdge,
   labelShown,
   labelWidth,
   TAPE_FADE_PX,
@@ -692,22 +693,29 @@ export class TimeRuler {
   }
 
   /**
-   * Shows each label where the tape has turned it to only if it stands clear of the glass's edges
-   * and the reels' fades (time/tapeScale.ts, labelShown), whole or not at all.
+   * Shows each label where the tape has turned it to only if it stands clear of the reels' fades,
+   * whole or not at all, and opens a glass edge's line behind a shown label that crosses it
+   * (time/tapeScale.ts, labelShown and labelAtEdge).
    */
   #clearLabels(cut: Engraved, slid: number): void {
     const { arc, glass } = this.#layout;
+    const open = { left: false, right: false };
     for (const label of cut.labels) {
       const r = label.radius;
-      const shown = labelShown(
-        (label.a0 + slid) * r,
-        (label.a1 + slid) * r,
-        arc.reach * r,
-        glass * r,
-      );
+      const [left, right] = [(label.a0 + slid) * r, (label.a1 + slid) * r];
+      const shown = labelShown(left, right, arc.reach * r);
+      if (shown) {
+        open.left ||= labelAtEdge(left, right, -glass * r);
+        open.right ||= labelAtEdge(left, right, glass * r);
+      }
       if (shown === label.shown) continue;
       label.shown = shown;
       label.el.classList.toggle('is-off', !shown);
+    }
+    for (const side of ['left', 'right'] as const) {
+      const name = `is-open-${side}`;
+      if (this.#glass.classList.contains(name) !== open[side])
+        this.#glass.classList.toggle(name, open[side]);
     }
   }
 

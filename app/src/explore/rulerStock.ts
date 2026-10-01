@@ -26,6 +26,8 @@ export const TICK = { label: 11, mid: 7, fine: 4 } as const;
 /** Numerals' baseline, and the caps', from the beaded rule. */
 export const NUMERAL_ROW = 9.5;
 export const CAPS_ROW = 11;
+/** The band the labels' letters stand in, which a glass edge's line opens across behind one. */
+export const LABEL_BAND = { from: NUMERAL_ROW - 4.5, to: NUMERAL_ROW + 11 } as const;
 /** The jewel's centre on the lip, and its bezel's radius. */
 export const JEWEL_AT = TAPE_TOP + 2;
 export const JEWEL_R = 6.3;
@@ -247,7 +249,8 @@ export function liveSvg(
 /**
  * The glass fixed at the crown over the now window, a tenth of the tape: a pale pane whose fine
  * gilt edges are held by small brass clips on the lip and a riveted clip at the tape's foot, a
- * blued hairline down through the tape, and the garnet jewel in its beaded bezel on the lip.
+ * blued hairline down through the tape, and the garnet jewel in its beaded bezel on the lip. Each
+ * edge's line across the labels' band can open behind a label.
  */
 export function glassSvg(layout: Layout): string {
   const { arc, glass: g } = layout;
@@ -255,8 +258,12 @@ export function glassSvg(layout: Layout): string {
   out += `<path d="${along(arc, -g, g, TAPE_TOP - 2.2)}" stroke="rgb(255 250 235 / 0.5)" stroke-width="1" fill="none"/>`;
   for (const side of [-1, 1]) {
     const a = side * g;
-    out += `<path d="${radial(arc, a, 1, TAPE_TOP)}" stroke="rgb(20 12 4 / 0.55)" stroke-width="1.6"/>`;
-    out += `<path d="${radial(arc, a, 1, TAPE_TOP)}" stroke="rgb(255 226 170 / 0.85)" stroke-width="0.7"/>`;
+    const edge = (from: number, to: number) =>
+      `<path d="${radial(arc, a, from, to)}" stroke="rgb(20 12 4 / 0.55)" stroke-width="1.6"/>` +
+      `<path d="${radial(arc, a, from, to)}" stroke="rgb(255 226 170 / 0.85)" stroke-width="0.7"/>`;
+    // The line across the labels' band opens behind a label that crosses it (timeRuler.ts).
+    const { from, to } = LABEL_BAND;
+    out += `${edge(1, from)}<g class="xr-edge-band is-${side < 0 ? 'left' : 'right'}">${edge(from, to)}</g>${edge(to, TAPE_TOP)}`;
     const w = 2.8 / arc.r;
     out += `<path d="${sector(arc, a - w, a + w, TAPE_TOP - 2, LIP_TOP + 1.5)}" fill="url(#rc-frame-fill)" stroke="#1a1006" stroke-width="0.7" filter="url(#rc-lit-plate)"/>`;
     out += `<path d="${sector(arc, a - w * 1.2, a + w * 1.2, -2.5, 3.5)}" fill="url(#rc-frame-fill)" stroke="#1a1006" stroke-width="0.7" filter="url(#rc-lit-plate)"/>`;

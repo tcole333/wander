@@ -110,7 +110,13 @@
   transition: opacity 0.12s;
 }
 
-/* A label at a glass edge or in a reel's fade goes at once, and comes back softly. */
+/* A glass edge's line opens across the labels' band behind a label that crosses it. */
+.xr-glass.is-open-left .xr-edge-band.is-left,
+.xr-glass.is-open-right .xr-edge-band.is-right {
+  opacity: 0;
+}
+
+/* A label in a reel's fade goes at once, and comes back softly. */
 .xr-labels text.is-off {
   opacity: 0;
   transition: none;
