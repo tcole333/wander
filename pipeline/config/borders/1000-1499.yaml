@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1000 to 1499 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-30
+modified: 2026-10-01
 corrections:
   - years: [1028, 1028]
     overlap:
@@ -181,3 +181,278 @@ corrections:
       title: Bulgarian–Hungarian wars
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Bulgarian%E2%80%93Hungarian_wars
+  # The holes and gaps the bake owed, each settled by a verdict checked against its source
+  # (owner decision 38): a gap's land as the state that held it, drawn inside the shapes of
+  # the polities that held it on both sides of the run where those bound it.
+  - years: [1010, 1017]
+    pocket:
+      at: [111.75, -7.75]
+      to: Mataram Kingdom
+      shape_from: {polity: Mataram Kingdom, year: 1003}
+      within: {polity: Kahuripan, year: 1028}
+    why: >-
+      Central and East Java (Madiun, Kediri, Malang) were Dharmawangsa's Mataram until the rebel
+      vassal Wurawari destroyed his capital Watugaluh in 1016. Cliopatria's Mataram row ends in
+      1009.
+    source:
+      title: Calcutta Stone
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Calcutta_Stone
+  - years: [1056, 1065]
+    pocket:
+      at: [93.25, 20.25]
+      to: Pyinsa Kingdom
+      shape_from: {polity: Chandra Dynasty, year: 1046}
+      within: {polity: Pagan Kingdom, year: 1066}
+      wikidata: Q7263060
+    why: >-
+      Northern Arakan (Kyauktaw, Maungdaw, the lower Kaladan) was ruled from Pyinsa on the Lemro, by
+      Min Kala (1043-1062) and Min Bilu; Pagan's suzerainty over it was nominal. Cliopatria has no
+      Arakanese row before Mrauk U. No source covers the upper Kaladan around Paletwa, which goes
+      with the rest.
+    source:
+      title: List of Arakanese monarchs
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/List_of_Arakanese_monarchs
+  - years: [1111, 1176]
+    pocket:
+      at: [71.49, 26.91]
+      to: Kingdom of Jaisalmer
+      wikidata: Q1678784
+    why: >-
+      The desert strip between Jaisalmer and Pokaran was the Bhati Rajputs' country, ruled from
+      Lodhruva until Rawal Jaisal moved the capital to Jaisalmer in 1156. Cliopatria has no Bhati
+      row; a thin seam toward Nadol in the same hole goes with it.
+    source:
+      title: Kingdom of Jaisalmer
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Jaisalmer
+  - years: [1192, 1201]
+    pocket:
+      at: [71.49, 26.91]
+      to: Kingdom of Jaisalmer
+      wikidata: Q1678784
+    why: >-
+      The same strip between Jaisalmer and Pokaran was the Bhatis' kingdom, ruled from Jaisalmer by
+      Jaisal's descendants from 1156.
+    source:
+      title: Kingdom of Jaisalmer
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Jaisalmer
+  - years: [1210, 1215]
+    pocket:
+      at: [76.75, 30.75]
+      to: Mamluk Dynasty
+      shape_from: {polity: Ghurid Dynasty, year: 1206}
+      within: {polity: Mamluk Dynasty, year: 1216}
+    why: >-
+      On 1 January 1210 the Sirhind and Ambala country was Qutb ud-Din Aibak's: he held the Punjab
+      from Lahore to Delhi, including Tabarhinda, Tarain and Hansi around it, until his death later
+      in 1210; Cliopatria names his state the Mamluk Dynasty.
+    source:
+      title: Qutb ud-Din Aibak
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qutb_ud-Din_Aibak
+  - years: [1210, 1215]
+    pocket:
+      at: [81.75, 25.25]
+      to: Mamluk Dynasty
+      shape_from: {polity: Ghurid Dynasty, year: 1206}
+      within: {polity: Mamluk Dynasty, year: 1216}
+    why: >-
+      Varanasi, Mirzapur and Allahabad were Aibak's, who had retaken Varanasi in 1197-1198 and
+      Kannauj in 1198-1199.
+    source:
+      title: Qutb ud-Din Aibak
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qutb_ud-Din_Aibak
+  - years: [1210, 1215]
+    pocket:
+      at: [85.75, 25.25]
+      to: Mamluk Dynasty
+      shape_from: {polity: Ghurid Dynasty, year: 1206}
+      within: {polity: Mamluk Dynasty, year: 1227}
+    why: >-
+      On 1 January 1210 Bihar was governed for Aibak by the Khalji Iwaz, in his first term as
+      governor (1208-1210).
+    source:
+      title: Khalji dynasty (Bengal)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khalji_dynasty_(Bengal)
+  - years: [1220, 1235]
+    pocket:
+      at: [76.25, 10.75]
+      to: Chola Empire
+      shape_from: {polity: Chola Empire, year: 1210}
+      within: {polity: Pandya Empire, year: 1236}
+    why: >-
+      Southern Kongu (Coimbatore, Pollachi, Palani) was governed by the Kongu Cholas, probably Chola
+      vassals or viceroys, until the Pandyas annexed it after Vikrama Chola II; Cliopatria draws the
+      rest of Kongu as the Chola Empire's.
+    source:
+      title: Kongu Nadu
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kongu_Nadu
+  - years: [1279, 1284]
+    pocket:
+      at: [14.75, 36.75]
+      to: Kingdom of Sicily
+      shape_from: {polity: Kingdom of Sicily, year: 1272}
+      within: {polity: Crown of Aragon, year: 1285}
+    why: >-
+      The island of Sicily was Charles of Anjou's Kingdom of Sicily from Benevento in 1266 until the
+      Vespers of March 1282.
+    source:
+      title: Sicilian Vespers
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sicilian_Vespers
+  - years: [1279, 1284]
+    pocket:
+      at: [15.75, 40.75]
+      to: Kingdom of Sicily
+      shape_from: {polity: Kingdom of Sicily, year: 1272}
+      within: {polity: Kingdom of Naples, year: 1285}
+    why: >-
+      The mainland south of the Papal States (Naples, Apulia, Calabria, Abruzzo) was Charles of
+      Anjou's Kingdom of Sicily, which after the Vespers of 1282 kept only these lands, customarily
+      known as the Kingdom of Naples.
+    source:
+      title: Kingdom of Naples
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Naples
+  - years: [1260, 1278]
+    pocket:
+      at: [78.41, 14.25]
+      to: Kakatiya Dynasty
+    why: >-
+      Rayalaseema (Kadapa, Valluru, Gandikota, Anantapur) was held for the Kakatiyas by their
+      Kayastha vassals Janniga-deva and Tripurari-deva, loyal to Rudrama.
+    source:
+      title: Ambadeva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ambadeva
+  - years: [1279, 1293]
+    pocket:
+      at: [78.45, 14.24]
+      to: Kayasthas of Valluru
+      wikidata: Q117354037
+    why: >-
+      From 1272 the Kayastha Ambadeva broke with Rudrama and carved out an independent principality
+      from Valluru, with Gandikota, Renadu, Pottapi-nadu and Sakili, until a Kakatiya army defeated
+      him in mid-1291. Cliopatria has no row for it.
+    source:
+      title: Ambadeva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ambadeva
+  - years: [1294, 1325]
+    pocket:
+      at: [78.2, 14.3]
+      to: Kakatiya Dynasty
+    why: >-
+      After its army defeated Ambadeva and took 72 forts in mid-1291, Rayalaseema was Kakatiya land
+      again.
+    source:
+      title: Ambadeva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ambadeva
+  - years: [1294, 1313]
+    pocket:
+      at: [54.25, 60.75]
+      to: Novgorod Republic
+      shape_from: {polity: Mongol Empire, year: 1285}
+      within: {polity: Novgorod Republic, year: 1314}
+    why: >-
+      The Vychegda, the upper Kama, the Pechora headwaters and Yugra across the Urals were
+      Novgorod's tributary lands: the treaty of 1264 with Yaroslav Yaroslavich lists Perm, Pechora
+      and Yugra among the volosts of Novgorod, which drew fur tribute from them from the 11th to the
+      15th century.
+    source:
+      title: 'Rechnye dorogi, ryb''i zuby i den''gi iz mekha: kak novgorodtsy Ural osvaivali'
+      publisher: Russian Geographical Society
+      url: https://rgo.ru/activity/redaction/articles/rechnye-dorogi-rybi-zuby-i-dengi-iz-mekha-kak-novgorodtsy-ural-osvaivali/
+  - years: [1305, 1313]
+    pocket:
+      at: [76.75, 23.75]
+      to: Paramara Dynasty
+      shape_from: {polity: Mamluk Dynasty, year: 1285}
+      within: {polity: Khalji Dynasty, year: 1314}
+    why: >-
+      On 1 January 1305 Malwa (Ujjain, Dhar, Mandu, Vidisha) was still the Paramara Mahalakadeva's:
+      Alauddin Khalji's army took Mandu only in November 1305, and Malwa then became a province of
+      Delhi.
+    source:
+      title: 'Alauddin Khalji''s conquest of Malwa'
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Alauddin_Khalji%27s_conquest_of_Malwa
+  - years: [1326, 1343]
+    pocket:
+      at: [77.75, 9.75]
+      to: Tughlaq Dynasty
+      shape_from: {polity: Pandya Empire, year: 1314}
+      within: {polity: Vijayanagara Empire, year: 1344}
+    why: >-
+      The southern Tamil country (Madurai, Tiruchirappalli, Thanjavur, Tirunelveli) was Delhi's
+      province of Ma'bar from its annexation in 1323 until its governor Jalaluddin Ahsan Khan
+      founded the Madurai Sultanate in 1335; a Pandya remnant at Tenkasi in the far south is not
+      drawn apart.
+    source:
+      title: Madurai–Delhi confrontation
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Madurai%E2%80%93Delhi_confrontation
+  - years: [1344, 1351]
+    pocket:
+      at: [79.25, 11.75]
+      to: Sambuvarayar
+      shape_from: {polity: Tughlaq Dynasty, year: 1333}
+      within: {polity: Vijayanagara Empire, year: 1352}
+      wikidata: Q7409124
+    why: >-
+      Southern Tondaimandalam (Tiruvannamalai, Gingee, Villupuram) was the Sambuvarayars', ruling
+      from Padaveedu, whose Rajanarayana issued records in his own regnal years from 1337 until
+      Vijayanagara ended their rule. Cliopatria has no row for them; the southern edge toward
+      Chidambaram, which the Madurai Sultanate may have held, goes with the rest.
+    source:
+      title: Sambuvarayar
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sambuvarayar
+  - years: [1352, 1374]
+    pocket:
+      at: [70.75, 38.75]
+      to: Chagatai Khanate
+      shape_from: {polity: Chagatai Khanate, year: 1344}
+      within: {polity: Timurid Empire, year: 1375}
+    why: >-
+      Transoxiana, Ferghana, Tokharistan and Badakhshan were the western Chagatai ulus: Qazaghan
+      ruled it through puppet khans to 1357, Tughlugh Timur restored the khanate in 1360, and after
+      1363 Timur and Husayn took it over, under Timurid rule by 1370.
+    source:
+      title: Chagatai Khanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Chagatai_Khanate
+  - years: [1375, 1401]
+    pocket:
+      at: [100.23, 36.06]
+      to: Ming Dynasty
+    why: >-
+      Lanzhou, Liangzhou, Hezhou, Xining, Qinghai Lake and the Qaidam were the Ming's: Lanzhou fell
+      in 1369, Feng Sheng took the Hexi Corridor in 1372, the Ming set up the Xining Guard in 1373
+      and sent an expedition to the Kunlun in 1377, and held the Qaidam through guards of
+      surrendered Mongols.
+    source:
+      title: Ming dynasty in Inner Asia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ming_dynasty_in_Inner_Asia
+  - years: [1482, 1496]
+    pocket:
+      at: [83.75, 25.75]
+      to: Lodi Dynasty
+      shape_from: {polity: Jaunpur Sultanate, year: 1475}
+      within: {polity: Lodi Dynasty, year: 1497}
+    why: >-
+      The old Jaunpur Sultanate (Jaunpur, Ayodhya, Gorakhpur, Varanasi) was the Lodis' after Bahlul
+      Lodi annexed it in 1479; he made his son Barbak Shah its viceroy in 1486, and Husain Shah
+      Sharqi's last attempt failed in 1494.
+    source:
+      title: Bahlul Lodi
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bahlul_Lodi
