@@ -6,21 +6,20 @@
 // the step has streamed in. A clock crossing more than one step a frame fades the borders out
 // until it slows, and before the first step nothing draws.
 //
-// A step is fetched once the clock has rested in it for borderRest, and a new target aborts a
-// fetch more than a step away. A walk's beat that lists borders names its own step, its readiness
-// item: that step is fetched at once, wherever the clock is, and keeps its slot, no new target
-// aborting it, until the walk moves on. In the lobby, a walk's first border step preloads into a
-// slot no source draws, so the walk's first border beat draws it as it arrives. Its field inflates
-// in bands of a quarter MiB that join the
-// streamer's uploads behind its tiles, two at most in hand, so a step holds its compressed file
-// and two bands at its peak. On the full tier, once a step draws, the next step in the scrub
-// direction fills the other slot, but never in place of the step across the boundary just
-// crossed: rocking back and forth over one boundary swaps the slots without refetching. Explore's
-// preview chunks stay compressed, and a cell decodes by streaming its chunk through the cell, the
-// clock's own and those either side, least recently used first out. end() empties the slots and
-// the ring and drops the chunks. A step or chunk that does not arrive logs once and waits
-// `degradeFor`, and is fetched again once the clock wants it; one the data host lacks, or that
-// does not decode, never comes back.
+// A step is fetched once the clock has rested in it for borderRest, and a new target aborts a fetch
+// more than a step away. A walk's beat that lists borders names its own step, its readiness item:
+// that step is fetched at once, wherever the clock is, and keeps its slot, no new target aborting
+// it, until the walk moves on. In the lobby, a walk's first border step preloads into a slot no
+// source draws, so the walk's first border beat draws it as it arrives. A step's field inflates in
+// bands of a quarter MiB that join the streamer's uploads behind its tiles, two at most in hand, so
+// a step holds its compressed file and two bands at its peak. On the full tier, once a step draws,
+// the next step in the scrub direction fills the other slot, but never in place of the step across
+// the boundary just crossed: rocking back and forth over one boundary swaps the slots without
+// refetching. Explore's preview chunks stay compressed, and a cell decodes by streaming its chunk
+// through the cell, the clock's own and those either side, least recently used first out. end()
+// empties the slots and the ring and drops the chunks. A step or chunk that does not arrive logs
+// once and waits `degradeFor`, and is fetched again once the clock wants it; one the data host
+// lacks, or that does not decode, never comes back.
 import type { Material, WebGLRenderer } from 'three';
 import { tunables, type Tier } from '../config/tunables';
 import { BordersError, CELL_BYTES, decodePreviewPair, stepBands } from '../data/borders';
