@@ -134,9 +134,39 @@ describe('Explore’s time', () => {
     time.step(1, 'label');
     run();
     expect(historicalCivil(clock.state().day).year).toBe(1820);
+    // On a labelled tick, a span's step lands on one.
     time.step(-1, 'span');
     run();
-    expect(historicalCivil(clock.state().day).year).toBe(1620);
+    expect(historicalCivil(clock.state().day)).toEqual({ year: 1620, month: 1, day: 1 });
+  });
+
+  it('steps exactly a span off a labelled tick, and back again without drifting', () => {
+    const hastings = dayFromIso('1066-10-14');
+    const { clock, time, run } = setup(hastings);
+    for (let press = 0; press < 3; press += 1) {
+      time.step(1, 'span');
+      run();
+    }
+    const there = clock.state().day;
+    for (let press = 0; press < 3; press += 1) {
+      time.step(-1, 'span');
+      run();
+    }
+    expect([there, clock.state().day]).toEqual([hastings + 3 * Y200, hastings]);
+  });
+
+  it('steps a span between labelled ticks that each step undoes, whatever the span', () => {
+    const { clock, time, run } = setup(dayFromHistorical({ year: 1500, month: 1, day: 1 }));
+    // A span no labelled step divides: its step snaps, by under half a label, to a tick.
+    time.zoomTo(237 * YEAR_DAYS);
+    const start = clock.state().day;
+    time.step(1, 'span');
+    run();
+    const there = historicalCivil(clock.state().day);
+    time.step(-1, 'span');
+    run();
+    // 1500 + 237 years is 1737; the tape labels every 20 years there.
+    expect([there, clock.state().day]).toEqual([{ year: 1740, month: 1, day: 1 }, start]);
   });
 
   it('hands a flight to a hand at the span it was going to', () => {
