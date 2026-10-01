@@ -7,9 +7,11 @@
 // the marks for the view (tunables.markPx: one size at a given scale), fades them toward the limb,
 // and bins each mark's screen disc, widened by its contact shadow, its ember or its hovered ring,
 // into 32 CSS px tiles, at most tunables.markTileCap a tile, focal first, then hovered, then by
-// score. One RGBA32F table holds the tiles' ranges, one texel per tile listing (its mark's screen
-// disc and index) and three texels a mark; it is uploaded only when the view or a fade changed, and
-// exists only while some layer has marks set.
+// score. Marks that would overlap stand apart (fanOffsets). One RGBA32F table holds the tiles'
+// ranges, one texel per tile listing (its mark's screen disc and index) and four texels a mark, the
+// last naming where the height pool holds the ground under its anchor, so the look lays its seal
+// flat at that height; it is uploaded only when the view or a fade changed, and exists only while
+// some layer has marks set.
 import {
   Color,
   DataTexture,
@@ -22,13 +24,14 @@ import {
   Vector4,
 } from 'three';
 import { tunables } from '../config/tunables';
-import type { Params } from '../contract';
+import type { HeightTexel, Params } from '../contract';
 import type { ClearanceField } from '../globe/clearance';
 import type { MemoryAccount } from '../perf/memory';
 import { EMBER } from '../story/effects/ember';
 import { dirOf, EARTH_KM, EARTH_M, tangents } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
 import type { LonLat } from '../story/story';
+import type { Vec3 } from '../surface/cube';
 import { FAMILIES, familyUniforms, FAMILY_VEC4S, PACES, type Family, type Pace } from './families';
 import { GLYPH_CELL, type GlyphCell } from './glyphAtlas';
 import {
@@ -36,6 +39,7 @@ import {
   FAMILY_STEP,
   FLAG,
   GLYPH_FIELD,
+  HEIGHT_LEVELS,
   MARK_AA_PX,
   MARK_ROW,
   MARK_TEXELS,
@@ -489,6 +493,7 @@ export class MarkLayer {
   #extent = [0, 0, 0];
   #placed: (PlacedMark & { dir: Vector3; r: number })[] = [];
   #clearance: ClearanceField | null = null;
+  #heights: ((dir: Vec3) => HeightTexel | null) | null = null;
   /** The unknown glyphs and paces already reported: each is logged once, and its marks not drawn. */
   readonly #reported = new Set<string>();
   readonly #view = { toClip: new Matrix4(), kLand: 0, width: 1, height: 1 };
@@ -551,6 +556,14 @@ export class MarkLayer {
   /** The terrain's ceiling, so a pick over land reaches the mark drawn on the relief. */
   useClearance(field: ClearanceField | null): void {
     this.#clearance = field;
+  }
+
+  /**
+   * Where the height pool holds the ground at a place (the cube's frame G), so the look lays each
+   * seal flat at its anchor's height rather than over the relief around it.
+   */
+  useHeights(lookup: ((dir: Vec3) => HeightTexel | null) | null): void {
+    this.#heights = lookup;
   }
 
   /** The params' values into the uniforms, and the ember's breath at `elapsedS`. */
@@ -664,7 +677,7 @@ export class MarkLayer {
     const bins = binDiscs(candidates, view.width, view.height, tunables.markTileCap);
 
     // The table (marks.glsl.ts): each tile's first slot and its count, four a texel;
-    // each slot's mark's screen disc and index; three texels a mark.
+    // each slot's mark's screen disc and index; four texels a mark.
     const next = table.next;
     const ranges = Math.ceil(bins.counts.length / 4) * 4;
     next.fill(0, 0, ranges);
@@ -706,6 +719,13 @@ export class MarkLayer {
       next[at + 9] = c.shadowY;
       next[at + 10] = c.ring;
       next[at + 11] = c.cosMin;
+      // Where the height pool holds the ground under its anchor, in the cube's frame G (three's
+      // axes are G.y, G.z, G.x): its uv, slot and level, and the tile's codeMid; slot −1 for none.
+      const texel = this.#heights?.([dir.z, dir.x, dir.y]) ?? null;
+      next[at + 12] = texel?.u ?? 0;
+      next[at + 13] = texel?.v ?? 0;
+      next[at + 14] = texel ? texel.slot * HEIGHT_LEVELS + texel.level : -1;
+      next[at + 15] = texel?.codeMid ?? 0;
       if (bins.binned[m] === 1) {
         this.#placed.push({ id: spec.id, x: c.x, y: c.y, rPx: c.rPx, alpha: c.alpha, dir, r: c.r });
       }

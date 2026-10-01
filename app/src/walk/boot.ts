@@ -256,6 +256,7 @@ async function assemble(
   const clearance = new ClearanceField(layer);
   const rig = new CameraRig(clearance);
   look.marks?.useClearance(clearance);
+  look.marks?.useHeights((dir) => streamer.heightTexel(dir));
 
   const globe = new Mesh(streamer.geometry, look.material);
   // The grid's positions are lattice indices; the vertex shader places them.

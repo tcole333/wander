@@ -13,7 +13,9 @@ import { FAMILIES, FAMILY_VEC4S } from './families';
 import {
   FAMILY_STEP,
   FLAG,
+  HEIGHT_LEVELS,
   MARK_ROW,
+  MARK_TEXELS,
   SLOT_ROW,
   SLOTS_MAX,
   TABLE_WIDTH,
@@ -461,6 +463,28 @@ describe('MarkLayer', () => {
   });
 });
 
+describe('MarkLayer’s seals over the relief', () => {
+  it('tells the look where the height pool holds the ground under each anchor', () => {
+    const marks = new MarkLayer(() => cells);
+    marks.set('events', [mark('a', [20, 10])]);
+    const at = MARK_ROW * TABLE_WIDTH * 4 + 12;
+    const data = () => marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    marks.place(over([20, 10], 0.47));
+    // No height to lay the seal at: it lies on the relief.
+    expect(data()[at + 2]).toBe(-1);
+    const asked: number[][] = [];
+    marks.useHeights((dir) => {
+      asked.push([...dir]);
+      return { slot: 9, u: 0.25, v: 0.5, level: 6, codeMid: -120 };
+    });
+    marks.place(over([20, 10], 0.47));
+    expect([...data().subarray(at, at + 4)]).toEqual([0.25, 0.5, 9 * HEIGHT_LEVELS + 6, -120]);
+    // Asked at the anchor, in the cube's frame.
+    const own = lonLatToDir(20, 10);
+    asked[0]!.forEach((v, i) => expect(v).toBeCloseTo(own[i] ?? NaN, 6));
+  });
+});
+
 describe('fanOffsets', () => {
   const fan = (marks: FanMark[], rPx = 10) => {
     const offsets = fanOffsets(marks, rPx);
@@ -549,7 +573,7 @@ describe('MarkLayer’s marks at one place', () => {
     // The look draws each about its own anchor, its place on screen.
     const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
     const anchor = (m: number) => {
-      const i = MARK_ROW * TABLE_WIDTH * 4 + m * 12;
+      const i = MARK_ROW * TABLE_WIDTH * 4 + m * MARK_TEXELS * 4;
       const clip = new Vector4(data[i], data[i + 1], data[i + 2], 1).applyMatrix4(view.toClip);
       return [(clip.x / clip.w / 2 + 0.5) * 1440, (0.5 - clip.y / clip.w / 2) * 900];
     };

@@ -80,8 +80,10 @@ describe('lookFragment', () => {
 
   it('cuts the marks in with them', () => {
     const chunks = lookFragment({ marks: true });
-    expect(chunks.pars).toContain('void lookMarksApply(inout LookSurface o');
-    expect(chunks.pars).toContain('lookMarksApply(o, gratDir, lookMarkDx, lookMarkDy);');
+    expect(chunks.pars).toContain('void lookMarksApply(\n  inout LookSurface o,');
+    expect(chunks.pars).toContain(
+      'lookMarksApply(o, gratDir, lookMarkDx, lookMarkDy, lookMarkRay, lookMarkRayX, lookMarkRayY);',
+    );
     expect(chunks.specular).toContain('totalEmissiveRadiance += lookS.marks.glow');
   });
 });
