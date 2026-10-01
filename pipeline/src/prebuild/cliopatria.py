@@ -68,12 +68,14 @@ gives it or that a valid row gives it and it does not draw, naming those neither
 names nor the carry-through draws; and what the steps owe the history pass (owner decision 38),
 which publish-data refuses: each stateless hole of OWED_KM2 or more no correction cites, and each
 gap, land held on both sides of a stateless run of at most GAP_YEARS that the carry-through leaves
-stateless, as each step's stateless land on a CELL_DEG grid shows it. It exits 1 when a step fails
-or a correction leaves a step unchanged, after writing the queue.
+stateless, as each step's stateless land on a CELL_DEG grid shows it, unless `acknowledged.yaml`
+names it as a known gap the owner acknowledged. It exits 1 when a step fails or a correction leaves
+a step unchanged, after writing the queue.
 """
 
 import argparse
 import base64
+import datetime
 import gzip
 import hashlib
 import itertools
@@ -89,7 +91,7 @@ import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -126,6 +128,8 @@ EXCERPT_YEARS = (1815, 1830)  # the fixture's two steps
 CONFIG = "borders"  # the folder under pipeline/config
 HIERARCHY = "hierarchy.yaml"
 RULES = "rules.yaml"
+ACKNOWLEDGED = "acknowledged.yaml"  # the owed places the owner acknowledged as known gaps
+KNOWN_GAP = "known gap"  # the verdict an acknowledged place carries
 # The era files and the years a correction in each may start in.
 ERAS: dict[str, tuple[int | None, int | None]] = {
     "bce": (None, 0),
@@ -432,18 +436,31 @@ class Correction:
 
 
 @dataclass(frozen=True)
+class Acknowledgment:
+    """The owner's verdict on an owed place no source settles yet: a known gap, drawn as the rules
+    leave it, blank where nothing is cited, while the history pass keeps looking."""
+
+    verdict: str
+    decided: str  # the decision's date, YYYY-MM-DD
+    why: str  # what is missing
+
+
+@dataclass(frozen=True)
 class Config:
     hierarchy: Hierarchy
     rules: Rules
     corrections: tuple[Correction, ...]  # in era order, then file order
     modified: Mapping[str, str]  # each file's `modified` date, keyed by file name
+    # The owed places acknowledged as known gaps, by their ids (`place_id`).
+    acknowledged: Mapping[str, Acknowledgment] = field(default_factory=dict)
 
 
 def load_config(folder: Path | None = None) -> Config:
-    """`pipeline/config/borders/`: the hierarchy, the rules and the era correction files. A file
-    other than these, or a key the format does not name, fails."""
+    """`pipeline/config/borders/`: the hierarchy, the rules, the era correction files and the owed
+    places acknowledged as known gaps. A file other than these, or a key the format does not name,
+    fails."""
     folder = config_dir() / CONFIG if folder is None else folder
-    known = {HIERARCHY, RULES, *(f"{era}.yaml" for era in ERAS)}
+    known = {HIERARCHY, RULES, ACKNOWLEDGED, *(f"{era}.yaml" for era in ERAS)}
     stray = sorted(p.name for p in folder.glob("*.yaml") if p.name not in known)
     if stray:
         raise ConfigError(f"{folder.name}/ holds files the borders do not read: {', '.join(stray)}")
@@ -463,7 +480,41 @@ def load_config(folder: Path | None = None) -> Config:
         if not isinstance(rows, list):
             raise ConfigError(f"{path.name}: corrections is not a list")
         corrections += [load_correction(row, era, k + 1, folder) for k, row in enumerate(rows)]
-    return Config(hierarchy, rules, tuple(corrections), modified)
+    acknowledged = (
+        load_acknowledged(_yaml(folder / ACKNOWLEDGED, {"acknowledged"}))
+        if (folder / ACKNOWLEDGED).is_file()
+        else {}
+    )
+    return Config(hierarchy, rules, tuple(corrections), modified, acknowledged)
+
+
+PLACE_ID = re.compile(r"(hole|gap) -?\d+\.\.-?\d+ \d+[EW] \d+[NS]( #\d+)?")  # as place_id gives
+
+
+def load_acknowledged(doc: Mapping[str, Any]) -> dict[str, Acknowledgment]:
+    """`acknowledged.yaml`: each owed place the owner acknowledged as a known gap, by its id, with
+    the decision's date and what is missing."""
+    rows = doc["acknowledged"] or []
+    if not isinstance(rows, list):
+        raise ConfigError(f"{ACKNOWLEDGED}: acknowledged is not a list")
+    acknowledged: dict[str, Acknowledgment] = {}
+    for k, row in enumerate(rows, 1):
+        where = f"{ACKNOWLEDGED} entry {k}"
+        _keys(row, {"id", "verdict", "decided", "why"}, set(), where)
+        place = row["id"]
+        if not isinstance(place, str) or not PLACE_ID.fullmatch(place):
+            raise ConfigError(
+                f"{where}: {place!r} is not an owed place's id, such as 'gap 1294..1313 70E 26N'"
+            )
+        if place in acknowledged:
+            raise ConfigError(f"{where}: {place} is listed twice")
+        if row["verdict"] != KNOWN_GAP:
+            raise ConfigError(f"{where}: the verdict is {KNOWN_GAP}")
+        if not isinstance(row["decided"], datetime.date):
+            raise ConfigError(f"{where}: decided is the decision's date, YYYY-MM-DD")
+        decided = row["decided"].isoformat()
+        acknowledged[place] = Acknowledgment(KNOWN_GAP, decided, _why(row, where))
+    return acknowledged
 
 
 _RULE_KEYS = {
@@ -1845,7 +1896,8 @@ def owed(
     most GAP_YEARS, holding no such hole, no stateless pocket's point and no land a stateless
     pocket keeps. `land` is the cells of the terrain's dry land; each place's years run from its
     first step to the day before the step after its last. Each place carries its `id`
-    (`place_id`)."""
+    (`place_id`), and those `acknowledged.yaml` names the owner's acknowledgment as a known gap,
+    which publish-data accepts; `lapsed` lists the ids it names that the steps no longer owe."""
     steps = [y for y in years if y in reports]
     holes: list[dict[str, Any]] = []
     gaps: list[dict[str, Any]] = []
@@ -1877,13 +1929,16 @@ def owed(
     for place, base in zip([*holes, *gaps], ids, strict=True):
         seen[base] += 1
         place["id"] = f"{base} #{seen[base]}" if base in shared else base
-    return {"holes": holes, "gaps": gaps}
+        if place["id"] in config.acknowledged:
+            place["acknowledged"] = asdict(config.acknowledged[place["id"]])
+    lapsed = sorted(set(config.acknowledged) - {place["id"] for place in [*holes, *gaps]})
+    return {"holes": holes, "gaps": gaps, "lapsed": lapsed}
 
 
 def place_id(kind: str, years: Sequence[int], centroid: Sequence[float]) -> str:
-    """An owed place's id: its kind, its years and its centroid to the whole degree, so a rebake
-    that moves its outline a little keeps it, as in 'hole 347..357 67E 30N'. Places that would
-    share one are told apart as '#1', '#2' in order."""
+    """An owed place's id, which `acknowledged.yaml` names it by: its kind, its years and its
+    centroid to the whole degree, so a rebake that moves its outline a little keeps it, as in
+    'hole 347..357 67E 30N'. Places that would share one are told apart as '#1', '#2' in order."""
     lon, lat = (math.floor(v + 0.5) for v in centroid)
     east = f"{abs(lon)}{'W' if lon < 0 else 'E'}"
     north = f"{abs(lat)}{'S' if lat < 0 else 'N'}"
@@ -2225,6 +2280,8 @@ def write_review(ctx: Context) -> int:
         f"{len(overlaps['unacknowledged'])} unacknowledged pairs, "
         f"{len(overlaps['smaller'])} smaller overlaps, {len(queue['returns'])} returns, "
         f"{len(owing['holes'])} holes and {len(owing['gaps'])} gaps owed, "
+        f"{sum('acknowledged' in p for p in [*owing['holes'], *owing['gaps']])} of them "
+        f"acknowledged as known gaps, {len(owing['lapsed'])} lapsed acknowledgments, "
         f"{time.perf_counter() - started:.0f} s",
         flush=True,
     )

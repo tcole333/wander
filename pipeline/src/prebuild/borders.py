@@ -48,7 +48,8 @@ source is never committed.
 The record `build/stages/<profile>/borders.json` holds release.json's `borderSteps` section as
 `steps`, the step each story's border beats draw, the overlap pairs no correction acknowledges,
 the composites and relations `hierarchy.yaml` does not class, the stateless holes and gaps the
-history pass owes a cited verdict (`owed`), and the 1815 field's `borders` section as is
+history pass owes a cited verdict (`owed`), each by its id and with the owner's acknowledgment
+where `acknowledged.yaml` lists it as a known gap, and the 1815 field's `borders` section as is
 (streaming.md 3.8, 7.2).
 """
 
