@@ -28,7 +28,7 @@ import { cartouche, smallKnob, teeth } from '../story/ui/brass';
 import { el, svg } from '../story/ui/dom';
 import { at, deg, f, radial, sector } from '../story/ui/rulerScale';
 import { parseEntry } from '../time/dateEntry';
-import { ExploreTime, wheelPixels } from '../time/exploreTime';
+import { ExploreTime, MAX_EXPLORE_DAYS, MIN_EXPLORE_DAYS, wheelPixels } from '../time/exploreTime';
 import {
   groupDigits,
   lensExtent,
@@ -39,6 +39,7 @@ import {
 import { engraveTape, graduation, TAPE_FADE_PX, type Graduation } from '../time/tapeScale';
 import { nearestTick, nextDetent } from '../time/timeMotion';
 import { nowWindow } from '../time/worldClock';
+import { EXPLORE_YEARS } from './copy';
 import {
   bodySvg,
   CAPS_ROW,
@@ -80,13 +81,15 @@ const WHEEL_GESTURE_MS = 160;
 /** A knob held down repeats its step, after a wait, this often. */
 const REPEAT_WAIT_MS = 420;
 const REPEAT_MS = 240;
+/** Once the tape has rested this long, it is cut again where it stands, so it reads crisp. */
+const SETTLE_MS = 180;
+
 /** The tape as last engraved: its middle day and span, and the view it was cut for. */
 interface Engraved {
   center: number;
   span: number;
   width: number;
   pin: number | null;
-  grade: Graduation;
 }
 
 type Zone =
@@ -124,7 +127,7 @@ export class TimeRuler {
   readonly #plaque = el('div', 'xr-plaque');
   readonly #plateBody = svg('svg', { class: 'xr-plate-body', 'aria-hidden': 'true' });
   readonly #plateText = svg('svg', { class: 'xr-plate-text', 'aria-hidden': 'true' });
-  readonly #limits = el('span', 'xr-limits', '10,000 BCE – 2000');
+  readonly #limits = el('span', 'xr-limits', EXPLORE_YEARS);
   readonly #entry = el('input', 'xr-entry');
   readonly #counter = el('div', 'xr-counter');
   readonly #counterBody = svg('svg', { class: 'xr-counter-body', 'aria-hidden': 'true' });
@@ -143,6 +146,7 @@ export class TimeRuler {
   #dirty = true;
   #frame = 0;
   #resizeFrame = 0;
+  #settle = 0;
   /** The tape's travel, px, which turns the reels, and the middle it was last measured from. */
   #travel = 0;
   #lastCenter = NaN;
@@ -189,8 +193,8 @@ export class TimeRuler {
     this.#counter.tabIndex = 0;
     this.#counter.setAttribute('role', 'slider');
     this.#counter.setAttribute('aria-label', 'Years shown');
-    this.#counter.setAttribute('aria-valuemin', '10');
-    this.#counter.setAttribute('aria-valuemax', String(Math.round(5000 * YEAR_DAYS)));
+    this.#counter.setAttribute('aria-valuemin', String(MIN_EXPLORE_DAYS));
+    this.#counter.setAttribute('aria-valuemax', String(Math.round(MAX_EXPLORE_DAYS)));
     this.#fewer = this.#knob('fewer', -1);
     this.#more = this.#knob('more', 1);
     this.#reading.append(this.#count, this.#unitWord);
@@ -310,6 +314,7 @@ export class TimeRuler {
     cancelAnimationFrame(this.#frame);
     cancelAnimationFrame(this.#resizeFrame);
     clearTimeout(this.#repeat);
+    clearTimeout(this.#settle);
     this.element.remove();
   }
 
@@ -528,6 +533,15 @@ export class TimeRuler {
     }
     const cut = this.#engraved!;
     this.#tape.style.transform = `rotate(${f(deg(-(center - cut.center) * k), 5)}deg)`;
+    // A rotated layer is resampled; at rest the tape is cut again unrotated, so it reads crisp.
+    clearTimeout(this.#settle);
+    if (center !== cut.center) {
+      this.#settle = window.setTimeout(() => {
+        if (this.#press || this.#pinch || this.#time.moving) return;
+        this.#engraved = null;
+        this.#draw();
+      }, SETTLE_MS);
+    }
     this.#grade = graduation(span, layout.rulePx, time.day);
 
     // The reels turn with the tape's travel, in px, so they never strobe.
@@ -595,7 +609,6 @@ export class TimeRuler {
       span,
       width: layout.width,
       pin: this.#pin,
-      grade: tape.graduation,
     };
   }
 
@@ -901,11 +914,14 @@ export class TimeRuler {
     if (this.#pinch) {
       if (this.#pointers.size < 2) this.#pinch = null;
       this.#press = null;
+      this.#invalidate();
       return;
     }
     const press = this.#press;
     if (!press || press.pointerId !== event.pointerId) return;
     this.#press = null;
+    // Drawn again, so the tape is cut crisp once it rests.
+    this.#invalidate();
     this.element.classList.remove('is-pulling');
     if (event.pointerType !== 'mouse') this.#setRider(null);
     if (cancelled) {
