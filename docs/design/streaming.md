@@ -534,7 +534,7 @@ begins in 1812.
 
 A correction must change every step in its range, or the build fails, naming the unchanged steps;
 a `pocket` keeping a piece stateless changes a step whenever it finds its piece there, since it
-cites it, even where the rules would keep it too. The era files hold 142 corrections, each cited.
+cites it, even where the rules would keep it too. The era files hold 162 corrections, each cited.
 Besides the 23 pairs:
 - **Gaps and swaps:** Mexico carries its 1912 row through 1913-19. Kuwait, drawn as Ottoman, Omani
   and British in Cliopatria, carries its 1820-72 shape from 1873 to 1960 and the State of Kuwait's
@@ -597,7 +597,7 @@ Besides the 23 pairs:
   fixture holds only its own years' rows). Seven are cited as stateless: the Syrian Desert in
   1805-19 but 1811, the Chaco in 1814-19, the Arunachal hills in 1822-1913, the Pirara in
   1877-1904, the Minisink in 1677-82 and the Anti-Taurus frontier in 724-902. The other 43 stay
-  stateless, uncited, in the review queue: 25 whose sources disagree or name no holder (the
+  stateless, uncited, owed (below): 25 whose sources disagree or name no holder (the
   Arabian and Syrian desert frontiers, the Amazon interior of 1769-76, Guizhou's native kingdoms
   under the Song, the Pamirs and Yarkand, the Balkans after 626, Wallachia and Transylvania,
   Carniola), 9 whose holder Cliopatria lacks, which need cited shapes (the Kalachuris, the
@@ -607,7 +607,25 @@ Besides the 23 pairs:
   Zhang Xianzhong's Sichuan in 1645 and the Syrian Desert in 1811. So do the rest of four places:
   Manipur from 1826 under Gambhir Singh, Braničevo from 1255, the western Deccan from 1758 after
   the cessions of Sindkhed and Udgir, and the Anti-Taurus from 903, when Lykandos was resettled.
-  Prussia's land in 1866-70 lies along the coast, not in a hole, and waits for the same review.
+- **Northern Germany in 1866-70** lay along the coast, not in a hole: Cliopatria drops Prussia
+  from 1864, Hanover, Hesse-Kassel, Nassau and Frankfurt from 1866, and Saxony, Hesse-Darmstadt and
+  Austria's Bohemia in 1866-67, so most of northern Germany stood stateless. On 1 January 1866 each
+  state takes its shape of 1865 (Prussia its 1863 one), Holstein Austria's and Schleswig Prussia's
+  by the Gastein Convention; from 1867 Prussia also takes Hanover, Hesse-Kassel, Nassau, Frankfurt
+  and Schleswig-Holstein, which it annexed after the Austro-Prussian War, in their 1865 shapes.
+  Cliopatria's rows of 1870 also leave out north-eastern France and the Palatinate, which take the
+  Second Empire's and Bavaria's shapes of 1869.
+- **What the history pass owes** (owner decision 38): the record lists, and `publish-data` refuses
+  the steps while it lists, every stateless hole of 10,000 km² or more that no correction cites,
+  as a place over its run of steps, and every gap of that size: land held in the steps on both
+  sides of a stateless run of at most 25 years, which is how a row Cliopatria drops for a while
+  shows, as Prussia's did. Land stateless for longer is more often a state's real end, which
+  decision 35 leaves blank. Each step records its stateless land on a half-degree grid for the
+  gaps, and a gap that holds a listed hole or a stateless `pocket`'s point is not counted again.
+  The global bake owes 65 holes, 23 of them beside a lake and past the 100,000 km² cap, and 234
+  gaps, among them Russia in 1918-19, Mongolia in 1920-21 and the Thirteen Colonies in 1775
+  [M global bake, 30 September]; each needs a cited `pocket`, the state that held it or stateless,
+  before the steps are published.
 
 The 1815 field's corrections are not carried over: Cliopatria already has Brussels Dutch and Hong
 Kong Qing [M].
@@ -799,7 +817,10 @@ CC BY 4.0 URL, and every correction with its source; the Credits panel links it.
 **Milestone 1's 1815 field, `fd/borders/<ver8>/1815.bin`.** The live Tambora walk draws its borders
 from one historical-basemaps snapshot, 1815, the nearest to every Tambora date, until the published
 release names the border steps. Tambora's move onto the steps retires this field, its release
-section, its corrections and its license gate. Until then the build's release holds both sections
+section, its corrections and its license gate. Publishing the steps makes that move at once, so
+the first `--border-steps` publish waits on the lobby's preload of the walk's first border step
+and on the step as its beat's readiness item (below, and 5.7), as well as on the history pass's
+owed list. Until then the build's release holds both sections
 (3.8), and the look holds one border array in one sampler: this field's where the release names no
 border steps, as the published one does until publish-data's `--border-steps` (4.3), so visitors'
 program is unchanged until then, and the steps' where it names them, where Explore and the walks
@@ -1345,8 +1366,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
    - lists R2 under each section's prefix; a key R2 holds at another size stops the run before any
      upload, because keys are content-versioned and a mismatch means a broken build or upload
    - stops, before it reads R2, when the borders record lists an overlap pair that no `overlap`
-     correction acknowledges, or a composite or relation `hierarchy.yaml` does not class (3.3), so
-     `--dry-run` refuses them too
+     correction acknowledges, a composite or relation `hierarchy.yaml` does not class, or a
+     stateless hole or gap no correction gives a verdict (3.3), so `--dry-run` refuses them too
    - stops before any upload when it would send the 1815 field's GPL notice and origin lacks the
      `borders-<ver8>` tag the notice links the build scripts at (3.3)
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
@@ -2119,7 +2140,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, unclassified, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, and `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), enclosed pieces kept with the outer units around them, and corrections applied; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
+| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake}], gaps: [{at, km2, years}]}`, all of which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
