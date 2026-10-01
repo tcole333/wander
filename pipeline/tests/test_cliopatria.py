@@ -1,3 +1,4 @@
+import datetime
 import gzip
 import json
 import math
@@ -6,6 +7,7 @@ from dataclasses import replace
 import numpy as np
 import pytest
 import shapely
+import yaml
 
 from prebuild import cliopatria as clio
 from prebuild.config import ConfigError
@@ -40,9 +42,9 @@ def relation(name, first=YEAR, last=YEAR):
     return clio.make_row(name, first, last, shapely.Polygon(), polity=False)
 
 
-def config(composites=None, relations=None, corrections=(), rules=RULES):
+def config(composites=None, relations=None, corrections=(), rules=RULES, acknowledged=None):
     hierarchy = clio.Hierarchy(composites or {}, relations or {}, {})
-    return clio.Config(hierarchy, rules, tuple(corrections), {})
+    return clio.Config(hierarchy, rules, tuple(corrections), {}, acknowledged or {})
 
 
 def correction(op, years=(YEAR, YEAR), source=SOURCE):
@@ -869,6 +871,45 @@ def test_a_file_the_borders_do_not_read_fails(tmp_path):
         clio.load_config(folder)
 
 
+KNOWN = {
+    "id": "gap 1294..1313 70E 26N",
+    "verdict": "known gap",
+    "decided": datetime.date(2026, 10, 1),
+    "why": "Several holders, and no line between them is cited.",
+}
+
+
+def write_acknowledged(folder, entries):
+    (folder / clio.ACKNOWLEDGED).write_text(yaml.safe_dump({"acknowledged": entries}))
+    return folder
+
+
+def test_the_places_acknowledged_as_known_gaps_load_by_their_ids(tmp_path):
+    folder = write_acknowledged(write_config(tmp_path / "borders", []), [KNOWN])
+    assert clio.load_config(folder).acknowledged == {
+        "gap 1294..1313 70E 26N": clio.Acknowledgment(
+            "known gap", "2026-10-01", "Several holders, and no line between them is cited."
+        )
+    }
+
+
+@pytest.mark.parametrize(
+    ("entries", "message"),
+    [
+        ([{**KNOWN, "id": "G079"}], "not an owed place's id"),
+        ([{**KNOWN, "verdict": "settled"}], "the verdict is known gap"),
+        ([{**KNOWN, "decided": "October"}], "decided is the decision's date"),
+        ([{**KNOWN, "why": ""}], "needs a why"),
+        ([{key: value for key, value in KNOWN.items() if key != "decided"}], "needs decided"),
+        ([KNOWN, KNOWN], "listed twice"),
+    ],
+)
+def test_an_acknowledgment_the_format_does_not_allow_fails(tmp_path, entries, message):
+    folder = write_acknowledged(write_config(tmp_path / "borders", []), entries)
+    with pytest.raises(ConfigError, match=message):
+        clio.load_config(folder)
+
+
 # The fixture's steps, the polities and the review queue ----------------------------------------
 
 
@@ -1028,6 +1069,29 @@ def test_an_owed_hole_is_known_by_its_kind_years_and_centroid(terrain):
 def test_an_owed_hole_keeps_its_id_when_a_rebake_moves_its_outline_a_little(terrain):
     (hole,) = owed_over(around(box(-15.2, -4, -11, 0.1)), terrain)["holes"]
     assert hole["id"] == "hole 1800..1815 13W 2S"
+
+
+def test_an_owed_place_acknowledged_as_a_known_gap_carries_the_acknowledgment(terrain):
+    known = clio.Acknowledgment("known gap", "2026-10-01", "No source names its holder.")
+    acknowledged = {"hole 1800..1815 13W 2S": known}
+    _, owing = selected_over(around(HOLE), terrain, acknowledged=acknowledged)
+    assert owing["holes"][0]["acknowledged"] == {
+        "verdict": "known gap",
+        "decided": "2026-10-01",
+        "why": "No source names its holder.",
+    }
+
+
+def test_an_owed_place_no_acknowledgment_names_carries_none(terrain):
+    (hole,) = owed_over(around(HOLE), terrain)["holes"]
+    assert "acknowledged" not in hole
+
+
+def test_an_acknowledgment_the_steps_no_longer_owe_has_lapsed(terrain):
+    known = clio.Acknowledgment("known gap", "2026-10-01", "No source names its holder.")
+    acknowledged = {"hole 1800..1815 13W 2S": known, "gap 1700..1709 1E 1N": known}
+    _, owing = selected_over(around(HOLE), terrain, acknowledged=acknowledged)
+    assert owing["lapsed"] == ["gap 1700..1709 1E 1N"]
 
 
 def stateless_report(*enclosed):
