@@ -412,11 +412,13 @@ def describe(op: clio.Operation) -> str:
             return f"{polity} is a member of {of}"
         case clio.Rename(polity, to):
             return f"{polity} is named {to}"
-        case clio.Pocket(at, _, str() as to, shape_from, shape):
+        case clio.Pocket(at, _, str() as to, shape_from, shape, _, within):
             land = f"the stateless land at {at[0]}, {at[1]}"
             if shape_from:
                 name, year = shape_from
                 land = f"the part of {land} inside {name}'s shape of {_year(year)}"
+                if within:
+                    land += f" and {within[0]}'s of {_year(within[1])}"
             elif shape is not None:
                 land = f"the part of {land} inside a shape from the source"
             return f"{land} is drawn as {to}"

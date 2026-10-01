@@ -384,6 +384,22 @@ def test_a_pocket_correction_draws_a_polity_the_step_lacks_from_the_hole_alone(t
         select(rows, terrain, corrections=[slip])
 
 
+def test_a_pocket_draws_a_holder_cliopatria_lacks_under_its_wikidata_item(terrain):
+    # The Duchy has no row in Cliopatria; the pocket names it with its Wikidata item.
+    hole = box(-15, -3, -13, -1)
+    rows = split(shapely.difference(LAND, hole), at=-14)
+    fill = correction(clio.Pocket((-14, -2), to="Duchy", wikidata="Q42"))
+    chosen = select(rows, terrain, corrections=[fill])
+    assert outers(chosen)["Duchy"] == "Duchy"
+    assert area_of(chosen, "Duchy") == pytest.approx(clio.km2(hole), rel=0.01)
+    assert chosen.applied == {0}
+    assert (chosen.report["added"], chosen.report["unexplained"]) == (["Duchy"], [])
+    document = clio.polities_document(
+        clio.Cliopatria(tuple(rows), None), config(corrections=[fill]), [(YEAR, chosen.outers())]
+    )
+    assert document["Duchy"]["wikidata"] == ["Q42"]
+
+
 def test_a_pocket_correction_draws_only_the_part_inside_another_years_shape_or_a_cited_one(
     terrain,
 ):
@@ -403,6 +419,29 @@ def test_a_pocket_correction_draws_only_the_part_inside_another_years_shape_or_a
     assert not stateless_at(drawn, -14.5, -2) and stateless_at(drawn, -13.5, -2)
     missed = correction(clio.Pocket((0, 5), to="West", shape_from=("West", 1816)))
     assert select(rows, terrain, corrections=[missed]).applied == set()
+
+
+def test_a_pocket_draws_only_the_part_both_holders_held_with_within(terrain):
+    # West held the hole's western half in 1814, and East its south and north ends in 1816: on
+    # 1 January 1815 the pocket draws the south-western corner both held, holding its point, and
+    # the north-western corner they also both held stays stateless with the rest.
+    hole = box(-15, -3, -13, 3)
+    rows = [
+        *split(shapely.difference(LAND, hole), at=-14),
+        row("West", box(-20, -10, -14, 10), first=1814, last=1814),
+        row("East", shapely.union(box(-20, -10, 0, -2), box(-20, 2, 0, 10)), 1816, 1816),
+    ]
+    both = clio.Pocket((-14.5, -2.5), to="West", shape_from=("West", 1814), within=("East", 1816))
+    chosen = select(rows, terrain, corrections=[correction(both)])
+    assert not stateless_at(chosen, -14.5, -2.5)
+    assert stateless_at(chosen, -14.5, 0) and stateless_at(chosen, -13.5, -2.5)
+    assert stateless_at(chosen, -14.5, 2.5)
+    assert chosen.applied == {0}
+    away = clio.Pocket((-14.5, 0), to="West", shape_from=("West", 1814), within=("East", 1816))
+    assert select(rows, terrain, corrections=[correction(away)]).applied == set()
+    gone = clio.Pocket((-14.5, -2.5), to="West", shape_from=("West", 1814), within=("East", 1790))
+    with pytest.raises(clio.SelectionError, match="no East in 1790"):
+        select(rows, terrain, corrections=[correction(gone)])
 
 
 def test_a_hole_between_two_states_stays_stateless_however_small(terrain):
@@ -734,6 +773,17 @@ def test_a_pocket_names_the_polity_it_draws_and_the_shape_it_takes_the_part_insi
     assert whole.op == clio.Pocket((1.0, 2.0), to="A")
     assert inside_row.op == clio.Pocket((1.0, 2.0), to="A", shape_from=("B", 1820))
     assert inside_shape.op.shape.bounds == pytest.approx((1, 2, 3, 4))
+    both = pocket_entry(
+        at=[1, 2],
+        to="New",
+        wikidata="Q42",
+        shape_from={"polity": "B", "year": 1820},
+        within={"polity": "C", "year": 1810},
+    )
+    (named,) = clio.load_config(write_config(shape.parent, [both])).corrections
+    assert named.op == clio.Pocket(
+        (1.0, 2.0), to="New", shape_from=("B", 1820), wikidata="Q42", within=("C", 1810)
+    )
 
 
 @pytest.mark.parametrize(
@@ -750,6 +800,9 @@ def test_a_pocket_names_the_polity_it_draws_and_the_shape_it_takes_the_part_insi
             "not both",
         ),
         (pocket_entry(at=[1, 2], to="A", shape_from={"polity": "B"}), "needs"),
+        (pocket_entry(at=[1, 2], stateless=True, wikidata="Q42"), "only with to"),
+        (pocket_entry(at=[1, 2], to="A", wikidata="42"), "item id"),
+        (pocket_entry(at=[1, 2], to="A", within={"polity": "B", "year": 1820}), "only with"),
         (
             {
                 "years": [1815, 1815],

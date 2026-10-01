@@ -318,6 +318,20 @@ def test_each_correction_is_described_in_the_notice():
             clio.Correction(
                 "1800-1913", 4, (1677, 1677), "No state.", CITED, clio.Pocket((-74.7, 41.7), True)
             ),
+            clio.Correction(
+                "1800-1913",
+                5,
+                (1866, 1866),
+                "Held by both.",
+                CITED,
+                clio.Pocket(
+                    (9.0, 50.0),
+                    to="Duchy",
+                    shape_from=("Kingdom", 1865),
+                    wikidata="Q42",
+                    within=("Empire", 1867),
+                ),
+            ),
         ),
         {"1800-1913.yaml": "2026-09-29"},
     )
@@ -330,4 +344,8 @@ def test_each_correction_is_described_in_the_notice():
         "is drawn as British Africa."
     ) in text
     assert "1677: the stateless land at -74.7, 41.7 stays stateless. No state." in text
+    assert (
+        "1866: the part of the stateless land at 9.0, 50.0 inside Kingdom's shape of 1865 and "
+        "Empire's of 1867 is drawn as Duchy. Held by both."
+    ) in text
     assert "last on 2026-09-29" in text

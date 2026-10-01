@@ -631,6 +631,8 @@ def operation_digest(correction: clio.Correction, source: clio.Cliopatria) -> st
         fields["row"] = _row_digest(source, op.polity, op.year)
     if isinstance(op, clio.Give | clio.Pocket) and op.shape_from is not None:
         fields["row"] = _row_digest(source, *op.shape_from)
+    if isinstance(op, clio.Pocket) and op.within is not None:
+        fields["withinRow"] = _row_digest(source, *op.within)
     return sha256_bytes(json.dumps(fields, sort_keys=True, default=list).encode())
 
 

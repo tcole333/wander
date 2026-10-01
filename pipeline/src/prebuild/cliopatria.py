@@ -34,7 +34,8 @@ year here is astronomical.
   nearer. Other holes between states stay stateless, since they may be real stateless enclaves; a
   `pocket` correction overrides the rules, for a coastal piece too, and is how a place really
   without a state inside one stays stateless, how one between states is cited as stateless, and
-  how a gap in Cliopatria's shapes is drawn as the land of the state that held it.
+  how a gap in Cliopatria's shapes is drawn as the land of the state that held it, a state
+  Cliopatria lacks under its Wikidata item.
 - **Carried through:** land one polity draws in the steps on both sides of a stateless run of at
   most GAP_YEARS is drawn as that polity's through the run (owner decision 38), in its shape of the
   step before as far as the step after holds it, which is how a row Cliopatria drops for a while
@@ -380,13 +381,18 @@ class Pocket:
     """The stateless piece holding `at`, enclosed or on a coast, stays stateless whole, as a place
     really without a state does even inside one, or goes to its neighbours; or, with `to`, it is
     that polity's land, all of it or its part inside another polity's shape in another year or
-    inside a cited shape."""
+    inside a cited shape. `within` narrows `shape_from` to its part inside a second polity's shape
+    in another year that holds `at`: the land both held there, as a gap between two holders is, and
+    not the land they both held elsewhere in the piece. `wikidata` names a holder Cliopatria lacks,
+    which `to` then may be."""
 
     at: tuple[float, float]
     stateless: bool = False
     to: str | None = None
     shape_from: tuple[str, int] | None = None
     shape: shapely.Geometry | None = None
+    wikidata: str = ""
+    within: tuple[str, int] | None = None
 
 
 @dataclass(frozen=True)
@@ -572,14 +578,19 @@ def _operation(kind: str, value: Any, where: str, folder: Path) -> Operation:
         _keys(value, {"polity", "to"}, set(), where)
         return Rename(_name(value["polity"], where), _name(value["to"], where))
     if kind == "pocket":
-        _keys(value, {"at"}, {"stateless", "to", "shape_from", "shape"}, where)
+        optional = {"stateless", "to", "shape_from", "shape", "wikidata", "within"}
+        _keys(value, {"at"}, optional, where)
         if ("stateless" in value) == ("to" in value):
             raise ConfigError(f"{where}: pocket takes stateless or to")
         if "shape_from" in value and "shape" in value:
             raise ConfigError(f"{where}: pocket takes shape_from or shape, not both")
+        if "within" in value and "shape_from" not in value:
+            raise ConfigError(f"{where}: pocket takes within only with shape_from")
         if "stateless" in value:
-            if "shape_from" in value or "shape" in value:
-                raise ConfigError(f"{where}: pocket takes shape_from or shape only with to")
+            if "shape_from" in value or "shape" in value or "wikidata" in value:
+                raise ConfigError(
+                    f"{where}: pocket takes shape_from, shape or wikidata only with to"
+                )
             if not isinstance(value["stateless"], bool):
                 raise ConfigError(f"{where}: pocket's stateless is true or false")
             return Pocket(_point(value["at"], where), value["stateless"])
@@ -590,6 +601,8 @@ def _operation(kind: str, value: Any, where: str, folder: Path) -> Operation:
             shape=_shape(folder / _name(value["shape"], where), where)
             if "shape" in value
             else None,
+            wikidata=_wikidata(value["wikidata"], where) if "wikidata" in value else "",
+            within=_shape_from(value["within"], where) if "within" in value else None,
         )
     _keys(value, {"polities", "winner"}, set(), where)
     pair = value["polities"]
@@ -599,6 +612,12 @@ def _operation(kind: str, value: Any, where: str, folder: Path) -> Operation:
     if winner not in pair:
         raise ConfigError(f"{where}: overlap's winner is one of its polities")
     return Overlap((_name(pair[0], where), _name(pair[1], where)), winner)
+
+
+def _wikidata(value: Any, where: str) -> str:
+    if not isinstance(value, str) or not re.fullmatch(r"Q[1-9][0-9]*", value):
+        raise ConfigError(f"{where}: wikidata is an item id such as Q42")
+    return value
 
 
 def _yaml(path: Path, keys: set[str]) -> dict[str, Any]:
@@ -1253,18 +1272,23 @@ def _named_fills(
     applied: set[int],
 ) -> tuple[shapely.Geometry, list[dict[str, Any]]]:
     """Draws, in file order, the stateless land each `pocket` with `to` names as that polity's: the
-    piece holding its point, or that piece's part inside another polity's shape in another year or
-    inside a cited shape. A Cliopatria polity the step does not draw otherwise is drawn from that
-    land alone, its own outer unit; a name Cliopatria never gives fails, as a slip would. No cap
-    holds, since one polity takes the land and no line is drawn through it. The land held after,
-    and the pockets given, for the report."""
+    piece holding its point, or that piece's part inside another polity's shape in another year, or
+    the part holding its point inside two such shapes, or inside a cited shape. A Cliopatria polity
+    the step does not draw otherwise is drawn from that land alone, its own outer unit, as is a
+    holder Cliopatria lacks, which the pocket names with its Wikidata item; a name Cliopatria never
+    gives fails otherwise, as a slip would. No cap holds, since one polity takes the land and no
+    line is drawn through it. The land held after, and the pockets given, for the report."""
     given: list[dict[str, Any]] = []
     if not fills:
         return held, given
     pieces = list(parts_of_dimension(shapely.difference(terrain.dry, held), 2))
     for k, op in fills:
         assert op.to is not None
-        if op.to not in drawn and not any(r.polity and r.name == op.to for r in source.rows):
+        if (
+            op.to not in drawn
+            and not op.wikidata
+            and not any(r.polity and r.name == op.to for r in source.rows)
+        ):
             raise SelectionError(f"pocket at {op.at}: Cliopatria has no polity named {op.to}")
         point = shapely.Point(op.at)
         found = next((i for i, p in enumerate(pieces) if shapely.contains(p, point)), None)
@@ -1279,6 +1303,14 @@ def _named_fills(
             if row is None:
                 raise SelectionError(f"pocket at {op.at}: Cliopatria has no {name} in {year}")
             moved = polygons(shapely.intersection(piece, row.geometry))
+            if op.within is not None:
+                name, year = op.within
+                row = source.at(name, year)
+                if row is None:
+                    raise SelectionError(f"pocket at {op.at}: Cliopatria has no {name} in {year}")
+                both = parts_of_dimension(shapely.intersection(moved, row.geometry), 2)
+                there = [p for p in both if shapely.contains(p, point)]
+                moved = shapely.multipolygons(there) if there else shapely.MultiPolygon()
         else:
             moved = piece
         area = km2(moved)
@@ -1913,8 +1945,12 @@ def polities_document(
         if row.polity and row.wikidata and row.wikidata not in wikidata[row.name]:
             wikidata[row.name].append(row.wikidata)
     for c in config.corrections:
-        if isinstance(c.op, Add) and c.op.wikidata and c.op.wikidata not in wikidata[c.op.polity]:
-            wikidata[c.op.polity].append(c.op.wikidata)
+        op = c.op
+        if not isinstance(op, Add | Pocket) or not op.wikidata:
+            continue
+        name = op.polity if isinstance(op, Add) else op.to
+        if name is not None and op.wikidata not in wikidata[name]:
+            wikidata[name].append(op.wikidata)
     runs: dict[str, list[list[Any]]] = defaultdict(list)
     previous: dict[str, str] = {}
     for year, outers in steps:
