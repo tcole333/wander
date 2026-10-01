@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from 1
 # to 999 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction covers
 # the years whose 1 January falls in its dates.
-modified: 2026-09-30
+modified: 2026-10-01
 corrections:
   - years: [407, 409]
     overlap:
@@ -75,8 +75,7 @@ corrections:
     why: >-
       The band along the Anti-Taurus between the Caliphate and Byzantium, around Sarız, Pınarbaşı
       and Kangal, lay in the frontier zone unclaimed by either power and virtually deserted, its
-      forts razed on both sides and its people often gone. The later steps, from the Byzantine
-      resettlement of Lykandos in 903, wait for a cited shape of that district.
+      forts razed on both sides and its people often gone.
     source:
       title: Al-Awasim
       publisher: Wikipedia
@@ -93,3 +92,451 @@ corrections:
       title: Catepanate of Ras
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Catepanate_of_Ras
+  # The holes and gaps the bake owed, each settled by a verdict checked against its source
+  # (owner decision 38): a gap's land as the state that held it, drawn inside the shapes of
+  # the polities that held it on both sides of the run where those bound it.
+  - years: [23, 29]
+    pocket:
+      at: [104.75, 25.75]
+      to: Xin Dynasty
+      shape_from: {polity: Xin Dynasty, year: 14}
+      within: {polity: Han Dynasty, year: 30}
+    why: >-
+      On 1 January 23 south China (Guizhou, Guangxi, western Hunan) was still Wang Mang's Xin, which
+      ended only when Chang'an fell in October 23. Cliopatria's Xin row for 23-29 leaves the land
+      out.
+    source:
+      title: Xin dynasty
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Xin_dynasty
+  - years: [23, 29]
+    pocket:
+      at: [114.25, 33.25]
+      to: Xin Dynasty
+      shape_from: {polity: Xin Dynasty, year: 14}
+      within: {polity: Han Dynasty, year: 30}
+    why: >-
+      On 1 January 23 the central and eastern plain (Henan, Anhui, Jiangsu, Shandong) was still
+      Xin's: the Lülin and Red Eyebrows were armies in the field, Gengshi was enthroned later that
+      year, and Wang Mang was killed in October.
+    source:
+      title: Xin dynasty
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Xin_dynasty
+  - years: [224, 237]
+    pocket:
+      at: [101.75, 39.25]
+      to: Xianbei
+      shape_from: {polity: Xianbei, year: 215}
+      within: {polity: Cao Wei, year: 238}
+    why: >-
+      The desert edge north of the Hexi Corridor around Minqin was the Hexi Xianbei's range under
+      Tufa Pigu, which the Book of Wei gives from Maitian and Qiantun to Shiluo and from the Jiaohe
+      to the Gobi.
+    source:
+      title: Tufa Shujineng
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Tufa_Shujineng
+  - years: [353, 382]
+    pocket:
+      at: [80.71, 21.47]
+      to: Gupta Empire
+    why: >-
+      Kawardha and Rajnandgaon, in Mekala and western Dakshina Kosala, lay under Gupta overlordship:
+      Samudragupta defeated Mahendra of Kosala, so that South Kosala came under the Guptas in the
+      4th century, and Cliopatria already gives Raipur, Durg and Bilaspur to the Guptas.
+    source:
+      title: Dakshina Kosala
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dakshina_Kosala
+  - years: [439, 440]
+    pocket:
+      at: [-5.75, 37.75]
+      to: Western Roman Empire
+      shape_from: {polity: Vandals, year: 426}
+      within: {polity: Kingdom of the Suebi, year: 441}
+    why: >-
+      Western Baetica (Seville, Córdoba, the Guadalquivir) was Roman: in 438 Rechila beat the Roman
+      commander Andevotus on the Genil, inside Baetica, and he took Seville, its capital, only in
+      441.
+    source:
+      title: Rechila
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Rechila
+  - years: [439, 442]
+    pocket:
+      at: [-2.75, 38.75]
+      to: Western Roman Empire
+      shape_from: {polity: Alans, year: 426}
+      within: {polity: Visigothic Kingdom, year: 458}
+    why: >-
+      Inland Carthaginiensis (La Mancha) was Roman until Rechila turned on it after taking Seville
+      in 441.
+    source:
+      title: Gothic War in Spain (456)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gothic_War_in_Spain_(456)
+  - years: [443, 454]
+    pocket:
+      at: [-2.75, 38.75]
+      to: Kingdom of the Suebi
+      shape_from: {polity: Alans, year: 426}
+      within: {polity: Visigothic Kingdom, year: 458}
+    why: >-
+      Inland Carthaginiensis was under Suebic control in the 440s, until Rechiar gave it up in the
+      treaty of 452-453 with Aetius's envoys Mansuetus and Fronto.
+    source:
+      title: Gothic War in Spain (456)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gothic_War_in_Spain_(456)
+  - years: [455, 457]
+    pocket:
+      at: [-2.75, 38.75]
+      to: Western Roman Empire
+      shape_from: {polity: Alans, year: 426}
+      within: {polity: Visigothic Kingdom, year: 458}
+    why: >-
+      By the treaty of 452-453 Rechiar gave inland Carthaginiensis back to Rome; on 1 January 455 it
+      held, and after the Suebic retaking of 455-456 the Visigothic expedition of 456 restored Roman
+      rule.
+    source:
+      title: Gothic War in Spain (456)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gothic_War_in_Spain_(456)
+  - years: [455, 461]
+    pocket:
+      at: [8.75, 48.25]
+      to: Kingdom of Alamannia
+      shape_from: {polity: Kingdom of Alamannia, year: 462}
+    why: >-
+      The upper Neckar and the Black Forest, in the former Agri Decumates, were the Alamanni's from
+      260 until Clovis conquered them in 496, a kingdom under its kings. Cliopatria's Kingdom of
+      Alamannia begins in 462, and its shape of that year is drawn before.
+    source:
+      title: Alamanni
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Alamanni
+  - years: [455, 468]
+    pocket:
+      at: [10.25, 50.25]
+      to: Thuringian states
+      shape_from: {polity: Hunnic Empire, year: 452}
+      within: {polity: Thuringian states, year: 469}
+    why: >-
+      Thuringia and northern Franconia were the Thuringians' after the Hunnic empire broke up in
+      454: Gregory of Tours has Childeric I spend eight years in exile with Bisinus, their king,
+      which falls between 456/457 and 465 (though the story may be a folk tale). The land the
+      Thuringian states hold in Cliopatria's 469 rows is drawn.
+    source:
+      title: Bisinus
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bisinus
+  - years: [476, 479]
+    pocket:
+      at: [12.25, 42.75]
+      to: Western Roman Empire
+      shape_from: {polity: Western Roman Empire, year: 469}
+      within: {polity: Ostrogothic Kingdom, year: 500}
+    why: >-
+      On 1 January 476 Italy and the Alps were still the Western Empire's, under Romulus Augustulus,
+      whom Odoacer deposed on 4 September 476. Cliopatria's Western Roman Empire ends in 475.
+    source:
+      title: Kingdom of Odoacer
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Odoacer
+  - years: [480, 489]
+    pocket:
+      at: [18.25, 42.75]
+      to: Western Roman Empire
+      shape_from: {polity: Kingdom of Soissons, year: 476}
+      within: {polity: Ostrogoths, year: 490}
+    why: >-
+      Inland Dalmatia was the Western Empire's under Julius Nepos, who ruled it from Salona after
+      475 and was still recognised as emperor in Constantinople until he was murdered on 9 May 480.
+      Cliopatria labels his Dalmatia the Kingdom of Soissons in 476-479.
+    source:
+      title: Julius Nepos
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Julius_Nepos
+  - years: [490, 499]
+    pocket:
+      at: [12.25, 42.75]
+      to: Kingdom of Odoacer
+      shape_from: {polity: Western Roman Empire, year: 469}
+      within: {polity: Ostrogothic Kingdom, year: 500}
+      wikidata: Q3755547
+    why: >-
+      South-central Italy was Odoacer's kingdom from 476: the Ostrogoths reached Ravenna only in
+      490, and Odoacer held out there until March 493. Cliopatria has no row for his kingdom.
+    source:
+      title: Kingdom of Odoacer
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Odoacer
+  - years: [490, 499]
+    pocket:
+      at: [14.75, 36.75]
+      to: Kingdom of Odoacer
+      shape_from: {polity: Vandal Kingdom, year: 480}
+      within: {polity: Ostrogothic Kingdom, year: 500}
+      wikidata: Q3755547
+    why: >-
+      Sicily was Odoacer's: Gaiseric gave it to him for tribute in 476, the Vandals keeping only
+      Lilybaeum, and the Ostrogoths took the island only in 491.
+    source:
+      title: Kingdom of Odoacer
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Odoacer
+  - years: [623, 626]
+    pocket:
+      at: [21.11, 44.12]
+      to: Avar Khaganate
+    why: >-
+      The Morava and Danube country (Belgrade, Viminacium, Kragujevac) was Avar-dominated: the Avars
+      took Singidunum and Viminacium in 583 and Naissus and Serdica in 615, and the army of 626 was
+      Avars and their Slav subjects, though their rule south of the Danube rested on raids and
+      subject Slavs rather than garrisons.
+    source:
+      title: Avar–Byzantine wars
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Avar%E2%80%93Byzantine_wars
+  - years: [629, 632]
+    pocket:
+      at: [48.25, 27.25]
+      to: First Islamic state
+      shape_from: {polity: Sasanian Empire, year: 628}
+      within: {polity: Rashidun Caliphate, year: 633}
+      wikidata: Q76821846
+    why: >-
+      Eastern Arabia's Bahrayn coast answered to Muhammad from 628, when its Sasanian governor
+      al-Mundhir ibn Sawa received his envoy al-Ala al-Hadrami and accepted Islam with the Arabs of
+      Bahrayn. Cliopatria has no row for Muhammad's state at Medina.
+    source:
+      title: Al-Mundhir ibn Sawa
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Al-Mundhir_ibn_Sawa
+  - years: [630, 646]
+    pocket:
+      at: [48.75, 47.25]
+      to: Western Göktürks
+      shape_from: {polity: Western Göktürks, year: 629}
+      within: {polity: Khazaria, year: 647}
+    why: >-
+      The steppe between the lower Volga and the Ural was the Western Turks': the Khazars cannot be
+      told apart from their Western Turkic masters until their dominance after the Qaghanate's fall
+      in 659, and became discernible only in the 650s.
+    source:
+      title: Khazars
+      publisher: Encyclopaedia Iranica
+      url: https://www.iranicaonline.org/articles/khazars/
+  - years: [647, 655]
+    pocket:
+      at: [86.75, 45.75]
+      to: Western Göktürks
+      shape_from: {polity: Western Göktürks, year: 644}
+      within: {polity: Tang Dynasty, year: 656}
+    why: >-
+      Dzungaria (Bortala, Lake Ebinur, Tarbagatai, the upper Irtysh) was the Western Turkic
+      khagans': Irbis Seguy to about 650, then Ashina Helu, who set up his horde near Shuanghe in
+      Bortala, until Su Dingfang beat him on the Irtysh in 657.
+    source:
+      title: Ashina Helu
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ashina_Helu
+  - years: [647, 660]
+    pocket:
+      at: [62.75, 45.75]
+      to: Western Göktürks
+      shape_from: {polity: Western Göktürks, year: 644}
+      within: {polity: Tang Dynasty, year: 661}
+    why: >-
+      The steppe north-east of the Aral on the lower Syr Darya was the Western Turkic Khaganate's
+      under Irbis Seguy and Ashina Helu until the battle of the Irtysh in 657, after which the Tang
+      ruled the Ten Arrows through the Kunling and Mengchi protectorates.
+    source:
+      title: Western Turkic Khaganate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Western_Turkic_Khaganate
+  - years: [647, 660]
+    pocket:
+      at: [71.75, 43.75]
+      to: Western Göktürks
+      shape_from: {polity: Western Göktürks, year: 644}
+      within: {polity: Tang Dynasty, year: 661}
+    why: >-
+      The lower Chu and the Moiynkum, the heartland of the Ten Arrows, were Western Turkic until the
+      Tang beat Ashina Helu on the Irtysh in 657.
+    source:
+      title: Western Turkic Khaganate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Western_Turkic_Khaganate
+  - years: [682, 691]
+    pocket:
+      at: [104.25, 44.75]
+      to: Tang Dynasty
+      shape_from: {polity: Tang Dynasty, year: 674}
+      within: {polity: Türgesh, year: 692}
+    why: >-
+      On 1 January 682 the Mongolian plateau was still under Tang protection, the Ötüken held by the
+      Toquz Oghuz: Ilterish revolted against the Tang only later in 682, founding the Second Turkic
+      Khaganate, and took the Ötüken from 684.
+    source:
+      title: Ilterish Qaghan
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ilterish_Qaghan
+  - years: [732, 749]
+    pocket:
+      at: [70.75, 21.75]
+      to: Maitraka Dynasty
+      shape_from: {polity: Maitraka Dynasty, year: 724}
+      within: {polity: Gurjara-Pratihara Dynasty, year: 750}
+    why: >-
+      Saurashtra and Kutch (Valabhi, Junagadh, Bhuj) were the Maitrakas' kingdom of Valabhi, which
+      lasted to about 776. Cliopatria ends its Maitraka row in 731.
+    source:
+      title: Maitraka dynasty
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Maitraka_dynasty
+  - years: [732, 749]
+    pocket:
+      at: [77.25, 23.75]
+      to: Gurjara-Pratihara Dynasty
+      shape_from: {polity: Maitraka Dynasty, year: 724}
+      within: {polity: Gurjara-Pratihara Dynasty, year: 750}
+    why: >-
+      Eastern Malwa (Bhopal, Vidisha) was Nagabhata I's (c. 730-760), who ruled the Avanti or Malava
+      region from Ujjain and repulsed an Arab invasion from Sindh.
+    source:
+      title: Nagabhata I
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Nagabhata_I
+  - years: [850, 874]
+    pocket:
+      at: [72.75, 35.75]
+      to: Tibetans
+      shape_from: {polity: Tibetan Empire, year: 840}
+      within: {polity: Saffarid Dynasty, year: 875}
+    why: >-
+      The northern rim of Bruzha (upper Hunza, Shimshal, upper Chitral) stayed under Tibetan control
+      until the late 800s (Mock 2013); Cliopatria names post-imperial Tibet the Tibetans, and its
+      Saffarid holding of the land from 875 is spurious.
+    source:
+      title: Patola Shahis
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Patola_Shahis
+  - years: [860, 874]
+    pocket:
+      at: [74.75, 35.75]
+      to: Tibetans
+      shape_from: {polity: Karkota Dynasty, year: 850}
+      within: {polity: Saffarid Dynasty, year: 875}
+    why: >-
+      Gilgit, Hunza, Yasin, Astore and Chilas, which the Tibetans called Bruzha, were under Tibetan
+      control until the late 800s (Mock 2013), against Cliopatria's Karkota row to 859.
+    source:
+      title: History of Gilgit-Baltistan
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/History_of_Gilgit-Baltistan
+  - years: [900, 989]
+    pocket:
+      at: [64.96, 43.5]
+      to: Oghuz Turks
+    why: >-
+      The Kyzylkum and the middle Syr Darya (Jend, Sygnak, Sauran, Otrar) were the Oghuz Yabgu
+      state's in the 10th century: citing the Hudud al-Alam, Istakhri and Ibn Hawqal, the authors
+      give the Oghuz the Syr Darya towns and a territory from the Caspian to Urgench and Bukhara and
+      north to Sauran and the Karatau, with its centre at Yangikent from the early 10th century. The
+      steps before 900 wait for a source.
+    source:
+      title: 'The Migrations of the Oghuz in the Early Medieval Period: Causes, Directions and Consequences'
+      publisher: Asian and African Studies
+      url: https://doi.org/10.31577/aassav.2022.31.1.05
+      locator: vol. 31, no. 1 (2022); Mensitova, Khabizhanova, Koshymova, Omarbayev
+  - years: [896, 899]
+    pocket:
+      at: [33.36, 48.75]
+      to: Pechenegs
+      wikidata: Q181752
+    why: >-
+      The steppe of the Dnieper bend (Kryvyi Rih, Kremenchuk, Dnipro) was the Pechenegs' after they
+      drove the Magyars west of the Dnieper by 892: Constantine VII lists their eight provinces
+      under princes, four on each side of the river. Cliopatria has no row for them.
+    source:
+      title: Pechenegs
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Pechenegs
+  - years: [903, 910]
+    pocket:
+      at: [36.61, 38.71]
+      stateless: true
+    why: >-
+      On 1 January 903 the Anti-Taurus frontier around Sarız, Pınarbaşı and Kangal still lay
+      uninhabited: Melias settled Lykandos only in 903, was expelled in 905 and came back in 908.
+    source:
+      title: Lykandos
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Lykandos
+  - years: [911, 925]
+    pocket:
+      at: [36.61, 38.71]
+      to: Byzantine Empire
+    why: >-
+      The district was Byzantium's from 908, when Melias returned as kleisourarches of Lykandos and
+      built the castle of Tzamandos at Pınarbaşı; Lykandos was a theme by 916, and Cliopatria draws
+      it Byzantine from 926.
+    source:
+      title: Lykandos
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Lykandos
+  - years: [926, 959]
+    pocket:
+      at: [14.74, 46.02]
+      to: Principality of Hungary
+    why: >-
+      Carniola proper (Kranj, Ljubljana, Novo Mesto, Celje) was under Hungarian rule for about half
+      a century after the Bavarians' defeat by the Magyars near Bratislava in 907, until the
+      Hungarians lost at Augsburg in 955; Cliopatria draws Carinthia and Styria beside it as the
+      Principality of Hungary.
+    source:
+      title: Zgodovina Slovenije
+      publisher: Wikipedia (Slovene)
+      url: https://sl.wikipedia.org/wiki/Zgodovina_Slovenije
+  - years: [936, 959]
+    pocket:
+      at: [79.25, 23.75]
+      to: Chandela Kingdom
+      shape_from: {polity: Gurjara-Pratihara Dynasty, year: 926}
+      within: {polity: Chandela Kingdom, year: 960}
+    why: >-
+      Bundelkhand around Khajuraho, Chhatarpur and Sagar was the Chandela Yashovarman's (c.
+      925-953), practically independent while he acknowledged Pratihara suzerainty, with Khajuraho
+      his capital.
+    source:
+      title: Yashovarman (Chandela dynasty)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yashovarman_(Chandela_dynasty)
+  - years: [947, 959]
+    pocket:
+      at: [47.14, 41.1]
+      to: Kingdom of Hereti
+      wikidata: Q187461
+    why: >-
+      The land around Shaki and Qakh was the Kingdom of Hereti's, under Ishkhanik and then John
+      (951-959), when Hereti reached its height with its capital at Shaki. Cliopatria has no row for
+      Hereti.
+    source:
+      title: Kingdom of Hereti
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Hereti
+  - years: [990, 999]
+    pocket:
+      at: [68.78, 43.02]
+      to: Kara-Khanids
+    why: >-
+      The Karatau uplands north of Sayram and Shymkent were the Kara-Khanids': they seized Isfijab,
+      the Samanid-vassal town on the range's south-east flank, in 980 (or in Hasan Khan's campaign
+      of 990-991), and Cliopatria draws the range Kara-Khanid from 1000. The sources name the town,
+      not the range.
+    source:
+      title: Isfijab
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Isfijab
