@@ -18,7 +18,7 @@ export interface ClockHeard {
   day: number;
   /** The finest unit the ruler engraves now. */
   unit: Precision;
-  /** The years between the years it labels, where it engraves years (CraftRuler.yearStep). */
+  /** The years between the years it labels, where it labels years (TimeRuler.yearStep). */
   yearStep: number;
 }
 
@@ -36,9 +36,9 @@ export interface ClockFrame {
 
 /**
  * The most marks a frame walks. A drag passes at most the ruler's width of its finest marks, a
- * few hundred days on the widest screens; a move past more (a leap along the tier, or Home and
- * End to history's ends) is one the pacer could sound only a few detents of, so it walks coarser
- * marks instead, and a leap across twelve thousand years costs no more than a drag.
+ * few hundred days on the widest screens; a move past more (a flight along the overview, or Home
+ * and End to history's ends) is one the pacer could sound only a few detents of, so it walks
+ * coarser marks instead, and a leap across twelve thousand years costs no more than a drag.
  */
 const MOST_MARKS = 400;
 
