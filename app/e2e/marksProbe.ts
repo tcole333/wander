@@ -7,14 +7,14 @@
 // - sea names: the atlas with the glyph shelf letters its names exactly as the atlas without;
 // - coverage: every mark placed in view changes the pixels of its disc;
 // - the limb: marks past it change nothing anywhere;
-// - light: at the lamp's own reflection, in every variant, no mark but the focal one reaches the
-//   bloom's threshold (1.05), and the focal one's ember passes it.
+// - light: at the lamp's own reflection, at world view and at 3,000 km, no mark but the focal one
+//   reaches the bloom's threshold (1.05), and the focal one's ember passes it.
 // Once it has measured, it stops the walk.
 import { FloatType, Mesh, RGBAFormat, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import type { Release } from '../src/data/release';
 import { SeaNameLayer } from '../src/look/seaNames';
-import { MARK_VARIANTS, PACES } from '../src/marks/families';
+import { PACES } from '../src/marks/families';
 import { MARK_GLYPHS } from '../src/marks/glyphs';
 import type { MarkSpec } from '../src/marks/marks';
 import type { LonLat } from '../src/story/story';
@@ -27,7 +27,6 @@ export interface MarksProbe {
   covered: { id: string; change: number }[];
   pastLimb: { placed: number; change: number };
   light: {
-    variant: string;
     pose: string;
     /** The cluster's marks placed in view, beside the focal one. */
     cluster: number;
@@ -183,39 +182,33 @@ async function probe(dataHost: string): Promise<MarksProbe> {
     }
     cluster.push({ ...spec('focal', [hot[0], hot[1] - 4 * step], 0), focal: true });
     marks.set('probe', cluster);
-    for (const [variant, name] of MARK_VARIANTS.entries()) {
-      marks.params.markVariant = variant;
-      marks.update(0);
-      off = render(false);
-      on = render(true);
-      const placed = discs(1.6);
-      // The brightest pixel a mark made brighter, and the ground's brightest under the cluster.
-      const brightest = (ids: (id: string) => boolean) => {
-        let most = 0;
-        for (const { indices } of placed.filter(({ id }) => ids(id))) {
-          for (const i of indices) {
-            if (luminance(on, i) > luminance(off, i) + 0.01) {
-              most = Math.max(most, luminance(on, i));
-            }
+    off = render(false);
+    on = render(true);
+    const placed = discs(1.6);
+    // The brightest pixel a mark made brighter, and the ground's brightest under the cluster.
+    const brightest = (ids: (id: string) => boolean) => {
+      let most = 0;
+      for (const { indices } of placed.filter(({ id }) => ids(id))) {
+        for (const i of indices) {
+          if (luminance(on, i) > luminance(off, i) + 0.01) {
+            most = Math.max(most, luminance(on, i));
           }
         }
-        return most;
-      };
-      let ground = 0;
-      for (const { indices } of placed.filter(({ id }) => id !== 'focal')) {
-        for (const i of indices) ground = Math.max(ground, luminance(off, i));
       }
-      light.push({
-        variant: name,
-        pose,
-        cluster: marks.placed().filter(({ id }) => id !== 'focal').length,
-        ground,
-        marks: brightest((id) => id !== 'focal'),
-        focal: brightest((id) => id === 'focal'),
-      });
+      return most;
+    };
+    let ground = 0;
+    for (const { indices } of placed.filter(({ id }) => id !== 'focal')) {
+      for (const i of indices) ground = Math.max(ground, luminance(off, i));
     }
+    light.push({
+      pose,
+      cluster: marks.placed().filter(({ id }) => id !== 'focal').length,
+      ground,
+      marks: brightest((id) => id !== 'focal'),
+      focal: brightest((id) => id === 'focal'),
+    });
   }
-  marks.params.markVariant = 0;
   marks.set('probe', []);
   target.dispose();
 

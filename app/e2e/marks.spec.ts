@@ -1,9 +1,10 @@
 // Explore's marks as the look draws them (e2e/marks.html, marksProbe.ts), on the fixture: each
 // mark placed in view changes its pixels and none past the limb changes any; the atlas letters its
 // sea names as it does without the glyph shelf; the look's program reads no more samplers than it
-// does without marks; and under the lamp's own reflection, in every variant, no mark but
-// the focal one reaches the bloom's threshold, which the focal one's ember passes. The sea names'
-// boxes are checked here rather than in Vitest, whose Node environment has no canvas to letter in.
+// does without marks; and under the lamp's own reflection, at world view and at 3,000 km, no mark
+// but the focal one reaches the bloom's threshold, which the focal one's ember passes. The sea
+// names' boxes are checked here rather than in Vitest, whose Node environment has no canvas to
+// letter in.
 import { expect, test } from '@playwright/test';
 import type { MarksProbe } from './marksProbe';
 import { closeIdle } from './idle';
@@ -67,11 +68,11 @@ test('reads the marks’ table within the samplers the look reads without marks'
 });
 
 test('keeps every mark but the focal one under the bloom, at the lamp’s reflection', () => {
-  expect(report.light).toHaveLength(8);
-  for (const { variant, pose, cluster, ground, marks, focal } of report.light) {
-    expect(cluster, `${variant}'s cluster in view at ${pose}`).toBeGreaterThan(0);
-    expect(ground, `the ground under ${variant}'s cluster at ${pose}`).toBeGreaterThan(0);
-    expect(marks, `${variant} at ${pose}`).toBeLessThan(BLOOM_THRESHOLD);
-    expect(focal, `${variant}'s ember at ${pose}`).toBeGreaterThan(BLOOM_THRESHOLD);
+  expect(report.light.map(({ pose }) => pose)).toEqual(['world', '3000km']);
+  for (const { pose, cluster, ground, marks, focal } of report.light) {
+    expect(cluster, `the cluster in view at ${pose}`).toBeGreaterThan(0);
+    expect(ground, `the ground under the cluster at ${pose}`).toBeGreaterThan(0);
+    expect(marks, `the marks at ${pose}`).toBeLessThan(BLOOM_THRESHOLD);
+    expect(focal, `the ember at ${pose}`).toBeGreaterThan(BLOOM_THRESHOLD);
   }
 });

@@ -158,13 +158,11 @@ describe('MarkLayer', () => {
     expect(marks.uniforms.lookMarksOn.value).toBe(true);
   });
 
-  it('draws the owner’s cast token unless asked for another variant', () => {
+  it('gives the look each family’s seal and glyph', () => {
     const marks = layer();
-    marks.update(0);
-    const token = FAMILIES.governance.variants[0];
-    expect(marks.params.markVariant).toBe(0);
-    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S + 1]?.w).toBe(token.glyph.scale);
-    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S]?.w).toBe(token.disc?.radius);
+    const { seal, glyph } = FAMILIES.governance;
+    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S + 1]?.w).toBe(glyph.scale);
+    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S]?.w).toBe(seal.radius);
   });
 
   it('packs a mirrored glyph’s flag below its family', () => {
@@ -220,10 +218,10 @@ describe('MarkLayer', () => {
     expect(marks.uniforms.lookMarksOn.value).toBe(false);
   });
 
-  it('reaches past a soft token’s blurred contact shadow at world view', () => {
+  it('reaches past a soft seal’s blurred contact shadow at world view', () => {
     const marks = layer();
     const world = over([20, 10], 2);
-    // The lamp low in the east, so the token's shadow runs long to the west.
+    // The lamp low in the east, so the seal's shadow runs long to the west.
     const east = dirOf([110, 10]).multiplyScalar(10);
     marks.set('events', [mark('a', [20, 10], { soft: true })]);
     marks.place({ ...world, lamp: east });
@@ -233,7 +231,7 @@ describe('MarkLayer', () => {
     const at = MARK_ROW * TABLE_WIDTH * 4;
     const shadow = Math.hypot(data[at + 8] ?? 0, data[at + 9] ?? 0);
     expect(shadow).toBeGreaterThan(0.3);
-    // The look blurs the shadow's edge over 2 × 2.5 px and 0.12 r beyond the disc's radius, 1 r.
+    // The look blurs the shadow's edge over 2 × 2.5 px and 0.12 r beyond the seal's radius, 1 r.
     const rPx = placed?.rPx ?? 0;
     expect(rPx).toBeCloseTo(6, 0);
     expect(reachPx).toBeGreaterThanOrEqual((shadow + 1 + 0.12) * rPx + 2 * 2.5);

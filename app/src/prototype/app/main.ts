@@ -21,8 +21,8 @@
 //
 // ?markDemo boots in Explore with its marks cut into the look and sets the demo's (markDemo.ts),
 // without the event index, so Explore's own event marks stay off; the panel gains a Marks folder,
-// and ?markVariant=0-3, ?marks=0 and the other marks params apply. The marks compile only where
-// Explore stands, so ?markDemo with ?story stops the page, naming the conflict.
+// and ?marks=0 and the other marks params apply. The marks compile only where Explore stands, so
+// ?markDemo with ?story stops the page, naming the conflict.
 //
 // ?borderSteps=0 boots on the release without its border steps, as the published release stands
 // until publish-data's --border-steps: a walk draws milestone 1's 1815 field, and Explore no

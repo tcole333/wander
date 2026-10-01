@@ -4,33 +4,33 @@
 //
 //   node scripts/exploreShots.ts --demo --url http://127.0.0.1:5173 --out ../build/explore/r1
 //     [--data http://127.0.0.1:8795] [--e1b <E1b.png>] [--scene <name>] [--no-gpu]
+//     [--gpu-marks 140,256,512]
 //   node scripts/exploreShots.ts --events --url http://127.0.0.1:5173 --out ../build/explore/r2
-//     [--data http://127.0.0.1:8795] [--variants 0,1,2,3] [--scene <name>] [--no-video]
+//     [--data http://127.0.0.1:8795] [--scene <name>] [--no-video]
 //   node scripts/exploreShots.ts --labels --url http://127.0.0.1:5173 --out ../build/explore/labels
 //     [--data http://127.0.0.1:8795]
 //   node scripts/exploreShots.ts --ruler --url http://127.0.0.1:5173 --out ../build/explore/ruler
 //     [--data http://127.0.0.1:8795]
 //
-// --demo: the dev page's ?markDemo (the lobby's glows as marks in the event glyphs), every
-// mark variant at world view, 3,000 km over Europe, 3,000 km over the demo's specimen tray in the
-// Sahara and 300 km tilted over the Alps, each with one focal mark; a contact sheet per variant
-// and one of all variants side by side, beside E1b's cast token (--e1b, by default
-// docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png, which must exist: no sheet
-// goes without it); and the GPU time of 140, 256 and 512 marks at world view over the marks
-// turned off, in explore.json with any console errors. The time is the scene drawn into a target
-// of the canvas's size, 400 samples of three draws each with the marks on and as many off, in
-// turn (markDemo.ts, gpuAB): the fastest twentieth of each, where other work sharing the GPU has
-// added least, and the median. --scene renders one scene only, and --no-gpu skips the timing.
+// --demo: the dev page's ?markDemo (the lobby's glows as marks in the event glyphs) at world view,
+// 3,000 km over Europe, 3,000 km over the demo's specimen tray in the Sahara and 300 km tilted over
+// the Alps, each with one focal mark; a contact sheet of them, and one of the tray, beside E1b's
+// cast brass (--e1b, by default docs/design/concepts/2026-09-28-material-trials/e1-fleet/E1b.png,
+// which must exist: no sheet goes without it); and the GPU time of 140, 256 and 512 marks
+// (--gpu-marks) at world view over the marks turned off, in explore.json with any console errors.
+// The time is the scene drawn into a target of the canvas's size, 400 samples of three draws each
+// with the marks on and as many off, in turn (markDemo.ts, gpuAB): the fastest twentieth of each,
+// where other work sharing the GPU has added least, and the median. --scene renders one scene
+// only, and --no-gpu skips the timing.
 //
-// --events: Explore's own events on the dev page, in each variant of --variants in turn (the
-// owner's default, 0, first): three openings at world view, each focal in its twenty years; Europe
-// in 1805-1815 from the world view down to 3,000 km, the Napoleonic Wars giving way to their wars
-// and battles as the view closes; Lepanto in 1571 at 800 km; the Julian Alps in 1917 at 180 km,
-// tilted, close enough that the Battles of the Isonzo span more than parentSplitPx and give way to
-// their battles; and history's end, 31 December 2000, the ruler 400 years wide, where nothing after
-// 2000 is marked. A contact sheet per variant, one of the European sequence, one of all variants
-// side by side, and a video of the ruler scrubbing from 3000 BCE to 2000 at world view with a sheet
-// of its frames (--no-video skips it); explore.json lists every render's marks with their events'
+// --events: Explore's own events on the dev page: three openings at world view, each focal in its
+// twenty years; Europe in 1805-1815 from the world view down to 3,000 km, the Napoleonic Wars
+// giving way to their wars and battles as the view closes; Lepanto in 1571 at 800 km; the Julian
+// Alps in 1917 at 180 km, tilted, close enough that the Battles of the Isonzo span more than
+// parentSplitPx and give way to their battles; and history's end, 31 December 2000, the ruler 400
+// years wide, where nothing after 2000 is marked. A contact sheet of them, one of the European
+// sequence, and a video of the ruler scrubbing from 3000 BCE to 2000 at world view with a sheet of
+// its frames (--no-video skips it); explore.json lists every render's marks with their events'
 // names, and any console errors.
 //
 // --labels: Explore's labels and Meanwhile. From the production page's lobby, a dive onto each of
@@ -59,7 +59,6 @@ import type {
   ExploreLabelsHook,
   WorldTimeHook,
 } from '../src/explore/explore.ts';
-import { MARK_VARIANTS } from '../src/marks/families.ts';
 import type { MarkSpec, PlacedMark } from '../src/marks/marks.ts';
 import type { MarkDemoApi } from '../src/prototype/app/markDemo.ts';
 import { dayFromHistorical } from '../src/story/dates.ts';
@@ -223,7 +222,7 @@ const { values } = parseArgs({
     events: { type: 'boolean', default: false },
     labels: { type: 'boolean', default: false },
     ruler: { type: 'boolean', default: false },
-    variants: { type: 'string', default: '0,1,2,3' },
+    'gpu-marks': { type: 'string', default: '140,256,512' },
     'no-video': { type: 'boolean', default: false },
     timeout: { type: 'string', default: '120' },
     e1b: { type: 'string', default: E1B_DEFAULT },
@@ -296,7 +295,7 @@ async function open(browser: Browser): Promise<Page> {
       : route.abort();
   });
   const url = new URL('/prototype.html', origin);
-  url.search = `data=${encodeURIComponent(dataOrigin.origin)}&ui=0&markDemo&markVariant=0`;
+  url.search = `data=${encodeURIComponent(dataOrigin.origin)}&ui=0&markDemo`;
   await page.goto(url.href);
   await page.waitForFunction(() => (window as ShotPage).__markDemo !== undefined, null, {
     timeout,
@@ -308,7 +307,6 @@ async function open(browser: Browser): Promise<Page> {
 
 interface Shot {
   name: string;
-  variant: number;
   scene: string;
   path: string;
   focal: { id: string; x: number; y: number } | null;
@@ -328,38 +326,37 @@ async function demoShots(page: Page): Promise<Shot[]> {
       },
       { view: scene.view, id: focal },
     );
-    for (const [variant] of MARK_VARIANTS.entries()) {
-      await page.evaluate((v) => (window as ShotPage).__markDemo!.set({ markVariant: v }), variant);
-      await settle(page);
-      const name = `v${variant}-${scene.name}`;
-      const path = join(out, `${name}.png`);
-      await page.screenshot({ path });
-      const placed = await page.evaluate(() => (window as ShotPage).__markDemo!.placed());
-      const at = placed.find((mark) => mark.id === focal);
-      shots.push({
-        name,
-        variant,
-        scene: scene.name,
-        path,
-        focal: at ? { id: at.id, x: at.x, y: at.y } : null,
-        placed,
-      });
-      console.log(path);
-    }
+    await settle(page);
+    const name = scene.name;
+    const path = join(out, `${name}.png`);
+    await page.screenshot({ path });
+    const placed = await page.evaluate(() => (window as ShotPage).__markDemo!.placed());
+    const at = placed.find((mark) => mark.id === focal);
+    shots.push({
+      name,
+      scene: scene.name,
+      path,
+      focal: at ? { id: at.id, x: at.x, y: at.y } : null,
+      placed,
+    });
+    console.log(path);
   }
   return shots;
 }
 
-/** The GPU time of the marks at world view: 140, 256 and 512, each over the marks turned off. */
+/** The GPU time of --gpu-marks marks at world view, each count over the marks turned off. */
 async function gpuTimes(page: Page) {
+  const counts = values['gpu-marks'].split(',').map(Number);
+  if (counts.some((n) => !Number.isInteger(n) || n < 1)) {
+    throw new Error('--gpu-marks takes counts of marks, comma-separated');
+  }
   await page.evaluate(() => {
     const w = window as ShotPage;
     w.__proto!.view({ lon: 75, lat: 15, viewKm: Infinity, tilt: 0, heading: 0 }, true);
     w.__markDemo!.focus(null);
-    w.__markDemo!.set({ markVariant: 0 });
   });
   const results: Record<string, unknown> = {};
-  for (const count of [140, 256, 512]) {
+  for (const count of counts) {
     await page.evaluate((n) => (window as ShotPage).__markDemo!.stress(n, [75, 15], 70), count);
     await settle(page);
     const placed = await page.evaluate(() => (window as ShotPage).__markDemo!.placed().length);
@@ -406,7 +403,7 @@ function nearest(marks: readonly MarkSpec[], [lon, lat]: LonLat): string {
   return best;
 }
 
-/** A contact sheet per variant, and one of all of them, each beside E1b's cast token. */
+/** A contact sheet of the renders, and one of the specimen tray, each beside E1b's cast brass. */
 async function sheets(browser: Browser, shots: Shot[]): Promise<void> {
   const page = await browser.newPage({
     viewport: { width: 1600, height: 900 },
@@ -418,7 +415,7 @@ async function sheets(browser: Browser, shots: Shot[]): Promise<void> {
     `<div class="crop" style="width:${w * k}px;height:${h * k}px">
       <img src="${src}" style="transform:scale(${k}) translate(${-x}px,${-y}px)"></div>`;
   const e1bCell = `<figure>${zoom(e1b, E1B_CROP.x, E1B_CROP.y, E1B_CROP.w, E1B_CROP.h)}
-      <figcaption>E1b cast token, 2×</figcaption></figure>`;
+      <figcaption>E1b cast brass, 2×</figcaption></figure>`;
   /** A crop `w` x `h` about a point, kept on screen and off the ruler, at `k` times. */
   const crop = (shot: Shot, at: { x: number; y: number }, w: number, h: number, k = 2) => {
     const x = Math.max(0, Math.min(1440 - w, at.x - w / 2));
@@ -473,42 +470,19 @@ async function sheets(browser: Browser, shots: Shot[]): Promise<void> {
   const figure = (inner: string, caption: string) =>
     `<figure>${inner}<figcaption>${caption}</figcaption></figure>`;
   const TRAY = { w: 300, h: 270 };
-  for (const [variant, title] of MARK_VARIANTS.entries()) {
-    const own = shots.filter((shot) => shot.variant === variant);
-    const rows = own.map((shot) => {
-      const { focal, busiest, tray } = spots(shot);
-      return `<div class="row">${figure(`<img class="full" src="${png(shot.path)}">`, shot.scene)}
-        ${figure(crop(shot, focal, 180, 150), 'focal, 2×')}
-        ${tray ? figure(crop(shot, tray, TRAY.w, TRAY.h), 'the specimen tray, 2×') : figure(crop(shot, busiest, 180, 150), 'others, 2×')}
-        ${shot === own[0] ? e1bCell : ''}</div>`;
-    });
-    await shoot(
-      `<h1>Variant ${variant}: ${title}</h1>${rows.join('')}`,
-      join(out, `sheet-v${variant}.png`),
-    );
-  }
-  const rows = MARK_VARIANTS.map((title, variant) => {
-    const own = shots.filter((shot) => shot.variant === variant);
-    const cells = own.map((shot) => {
-      const { focal, busiest, tray } = spots(shot);
-      const inner = tray
-        ? crop(shot, tray, TRAY.w, TRAY.h)
-        : `<div class="row" style="gap:4px;margin:0">${crop(shot, focal, 150, 135)}${crop(shot, busiest, 150, 135)}</div>`;
-      return figure(inner, shot.scene);
-    });
-    return `<h1>${variant} ${title}</h1><div class="row">${cells.join('')}${e1bCell}</div>`;
+  const rows = shots.map((shot) => {
+    const { focal, busiest, tray } = spots(shot);
+    return `<div class="row">${figure(`<img class="full" src="${png(shot.path)}">`, shot.scene)}
+      ${figure(crop(shot, focal, 180, 150), 'focal, 2×')}
+      ${tray ? figure(crop(shot, tray, TRAY.w, TRAY.h), 'the specimen tray, 2×') : figure(crop(shot, busiest, 180, 150), 'others, 2×')}
+      ${shot === shots[0] ? e1bCell : ''}</div>`;
   });
-  await shoot(rows.join(''), join(out, 'sheet-all.png'));
-  const trays = MARK_VARIANTS.map((title, variant) => {
-    const shot = shots.find((s) => s.variant === variant && spots(s).tray);
-    const tray = shot && spots(shot).tray;
-    return shot && tray
-      ? figure(crop(shot, tray, TRAY.w, TRAY.h, 3), `${variant} ${title}, 3×`)
-      : '';
-  });
-  if (trays.some(Boolean)) {
+  await shoot(`<h1>The marks</h1>${rows.join('')}`, join(out, 'sheet.png'));
+  const trayShot = shots.find((shot) => spots(shot).tray);
+  const tray = trayShot && spots(trayShot).tray;
+  if (trayShot && tray) {
     await shoot(
-      `<h1>The specimen tray at 3,000 km: rows nature, governance, infrastructure, then a hovered hollow parent, a soft mark, the focal one and a hollow one</h1><div class="row">${trays.join('')}${e1bCell}</div>`,
+      `<h1>The specimen tray at 3,000 km: rows nature, governance, infrastructure, then a hovered hollow parent, a soft mark, the focal one and a hollow one</h1><div class="row">${figure(crop(trayShot, tray, TRAY.w, TRAY.h, 3), '3×')}${e1bCell}</div>`,
       join(out, 'sheet-tray.png'),
     );
   }
@@ -557,7 +531,6 @@ interface DrawnMark extends PlacedMark {
 
 interface EventShot {
   name: string;
-  variant: number;
   scene: string;
   caption: string;
   path: string;
@@ -568,8 +541,8 @@ interface EventShot {
   marks: DrawnMark[];
 }
 
-/** Opens the dev page in Explore, the marks in `variant`. */
-async function openExplore(context: BrowserContext, variant: number): Promise<Page> {
+/** Opens the dev page in Explore. */
+async function openExplore(context: BrowserContext): Promise<Page> {
   const page = await context.newPage();
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -582,7 +555,7 @@ async function openExplore(context: BrowserContext, variant: number): Promise<Pa
       : route.abort();
   });
   const url = new URL('/prototype.html', origin);
-  url.search = `data=${encodeURIComponent(dataOrigin.origin)}&ui=0&markVariant=${variant}`;
+  url.search = `data=${encodeURIComponent(dataOrigin.origin)}&ui=0`;
   await page.goto(url.href);
   await page.waitForFunction(
     () => {
@@ -664,42 +637,35 @@ async function drawnMarks(
 }
 
 async function eventRenders(browser: Browser, report: Record<string, unknown>): Promise<void> {
-  const variants = values.variants.split(',').map(Number);
-  if (variants.some((v) => !Number.isInteger(v) || v < 0 || v >= MARK_VARIANTS.length)) {
-    throw new Error(`--variants takes 0-${MARK_VARIANTS.length - 1}, comma-separated`);
-  }
   const names = await eventNames();
   const shots: EventShot[] = [];
-  for (const variant of variants) {
-    const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
-      deviceScaleFactor: 1,
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+  });
+  const page = await openExplore(context);
+  for (const scene of eventScenes) {
+    await stage(page, scene.view, dayFromHistorical(scene.date), scene.years, scene.focal);
+    await settleEvents(page);
+    const name = scene.name;
+    const path = join(out, `${name}.png`);
+    await page.screenshot({ path });
+    const { focal, marks } = await drawnMarks(page, names);
+    const viewKm = await page.evaluate(() => (window as ShotPage).__proto!.stats().view.viewKm);
+    shots.push({
+      name,
+      scene: scene.name,
+      caption: scene.caption,
+      path,
+      focal,
+      spot: scene.spot,
+      viewKm,
+      marks,
     });
-    const page = await openExplore(context, variant);
-    for (const scene of eventScenes) {
-      await stage(page, scene.view, dayFromHistorical(scene.date), scene.years, scene.focal);
-      await settleEvents(page);
-      const name = `v${variant}-${scene.name}`;
-      const path = join(out, `${name}.png`);
-      await page.screenshot({ path });
-      const { focal, marks } = await drawnMarks(page, names);
-      const viewKm = await page.evaluate(() => (window as ShotPage).__proto!.stats().view.viewKm);
-      shots.push({
-        name,
-        variant,
-        scene: scene.name,
-        caption: scene.caption,
-        path,
-        focal,
-        spot: scene.spot,
-        viewKm,
-        marks,
-      });
-      const hollow = marks.filter((m) => m.hollow).length;
-      console.log(`${path}: ${marks.length} marks, ${hollow} hollow, focal ${focal ?? 'none'}`);
-    }
-    await context.close();
+    const hollow = marks.filter((m) => m.hollow).length;
+    console.log(`${path}: ${marks.length} marks, ${hollow} hollow, focal ${focal ?? 'none'}`);
   }
+  await context.close();
   report.shots = shots.map(({ path, ...shot }) => ({ path, ...shot }));
   await eventSheets(browser, shots);
   if (!values['no-video']) report.scrub = await scrubVideo(browser, names);
@@ -715,7 +681,7 @@ async function scrubVideo(
   const to = dayFromHistorical(SCRUB.to);
   // The frames first, each settled.
   const still = await browser.newContext({ viewport: size, deviceScaleFactor: 1 });
-  const page = await openExplore(still, 0);
+  const page = await openExplore(still);
   const frameShots: { year: number; path: string; marks: number }[] = [];
   for (const year of SCRUB.frames) {
     await stage(page, SCRUB.view, dayFromHistorical({ year, month: 7, day: 1 }), SCRUB.years, null);
@@ -733,7 +699,7 @@ async function scrubVideo(
     deviceScaleFactor: 1,
     recordVideo: { dir: out, size },
   });
-  const filmed = await openExplore(recording, 0);
+  const filmed = await openExplore(recording);
   await stage(filmed, SCRUB.view, from, SCRUB.years, null);
   await settleEvents(filmed);
   // The playhead moves at a steady pace through the years, a frame at a time.
@@ -773,7 +739,7 @@ async function scrubVideo(
   );
   await shootSheet(
     sheet,
-    `<h1>The ruler scrubbed from 3000 BCE to 2000 at world view, a ${SCRUB.years}-year ruler (a ${SCRUB.years / 10}-year now window), variant 0</h1><div class="grid3">${cells.join('')}</div>`,
+    `<h1>The ruler scrubbed from 3000 BCE to 2000 at world view, a ${SCRUB.years}-year ruler (a ${SCRUB.years / 10}-year now window)</h1><div class="grid3">${cells.join('')}</div>`,
     join(out, 'sheet-scrub.png'),
   );
   await sheet.close();
@@ -856,24 +822,15 @@ async function eventSheets(browser: Browser, shots: EventShot[]): Promise<void> 
   const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
   const figure = (inner: string, caption: string) =>
     `<figure>${inner}<figcaption>${caption}</figcaption></figure>`;
-  const variants = [...new Set(shots.map((s) => s.variant))];
-  for (const variant of variants) {
-    const rows = shots
-      .filter((shot) => shot.variant === variant)
-      .map(
-        (shot) => `<div class="row">
-          ${figure(`<img class="full" src="${png(shot.path)}">`, `${shot.caption}. ${tally(shot)}`)}
-          ${figure(cropOf(shot.path, spotOf(shot), 220, 180), shot.focal ? 'the focal mark, 2×' : 'the densest marks, 2×')}
-        </div>`,
-      );
-    await shootSheet(
-      page,
-      `<h1>Explore's events, variant ${variant}: ${MARK_VARIANTS[variant]}</h1>${rows.join('')}`,
-      join(out, `sheet-v${variant}.png`),
-    );
-  }
-  // Europe as the view closes, in the first variant rendered.
-  const europe = shots.filter((s) => s.variant === variants[0] && s.scene.startsWith('europe'));
+  const rows = shots.map(
+    (shot) => `<div class="row">
+      ${figure(`<img class="full" src="${png(shot.path)}">`, `${shot.caption}. ${tally(shot)}`)}
+      ${figure(cropOf(shot.path, spotOf(shot), 220, 180), shot.focal ? 'the focal mark, 2×' : 'the densest marks, 2×')}
+    </div>`,
+  );
+  await shootSheet(page, `<h1>Explore's events</h1>${rows.join('')}`, join(out, 'sheet.png'));
+  // Europe as the view closes.
+  const europe = shots.filter((s) => s.scene.startsWith('europe'));
   if (europe.length > 0) {
     const cells = europe.map((shot) =>
       figure(`<img class="full" src="${png(shot.path)}">`, `${shot.caption}. ${tally(shot)}`),
@@ -890,25 +847,12 @@ async function eventSheets(browser: Browser, shots: EventShot[]): Promise<void> 
     });
     await shootSheet(
       page,
-      `<h1>Europe, the ruler over 1805-1815, now 1810, as the view closes over Iberia, variant ${variants[0]}: the Peninsular War gives way to its battles and sieges and stays as a hollow glyph</h1>
+      `<h1>Europe, the ruler over 1805-1815, now 1810, as the view closes over Iberia: the Peninsular War gives way to its battles and sieges and stays as a hollow glyph</h1>
       <div class="row">${crops.join('')}</div>
       <div class="grid2">${cells.join('')}</div>`,
       join(out, 'sheet-europe.png'),
     );
   }
-  // Every variant side by side, a crop of each scene.
-  const scenesDrawn = [...new Set(shots.map((s) => s.scene))];
-  const rows = scenesDrawn.map((scene) => {
-    const own = shots.filter((s) => s.scene === scene);
-    const cells = own.map((shot) =>
-      figure(
-        cropOf(shot.path, spotOf(shot), 240, 170, 1.5),
-        `${shot.variant} ${MARK_VARIANTS[shot.variant]}`,
-      ),
-    );
-    return `<h1>${own[0]?.caption ?? scene}</h1><div class="row">${cells.join('')}</div>`;
-  });
-  await shootSheet(page, rows.join(''), join(out, 'sheet-all.png'));
   await page.close();
 }
 
@@ -1072,7 +1016,7 @@ async function labelRenders(browser: Browser, report: Record<string, unknown>): 
 
   // Hovered and pinned plates on the dev page, whose views the scenes set.
   const context = await browser.newContext(size);
-  const page = await openExplore(context, 0);
+  const page = await openExplore(context);
   const europe = EVENT_SCENES.find((scene) => scene.name === 'europe-1810-3000km')!;
   await stage(page, europe.view, dayFromHistorical(europe.date), europe.years, null);
   await settleEvents(page);

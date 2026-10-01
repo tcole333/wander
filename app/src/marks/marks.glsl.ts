@@ -2,10 +2,11 @@
 // enabled. The look finds the fragment's screen tile from its inlay direction, the sea-level
 // direction the graticule and sea names use, so relief never moves a fragment out of its mark's
 // tile; reads that tile's marks from the table MarkLayer packs each frame (marks.ts); and for each
-// cuts the mark into the bronze: coverage and a bevel from its glyph's distance field, with a disc,
-// a contact shadow, a hollow outline, a hover ring and the focal ember as its family and flags ask.
-// The marks take the look's lamp, shadow, polish and the ridges' occlusion, since they are the
-// globe's own surface.
+// cuts the mark into the bronze: its family's seal and polished bezel, standing on the relief with a
+// contact shadow, and its glyph on the seal, coverage and a bevel from the glyph's distance field;
+// a hollow outline, a hover ring and the focal ember as its flags ask. Where marks overlap, the one
+// first in priority is drawn on top. The marks take the look's lamp, shadow, polish and the
+// ridges' occlusion, since they are the globe's own surface.
 import { tunables } from '../config/tunables';
 import { FAMILY_VEC4S, PACES } from './families';
 import { GLYPH_SPREAD } from './glyphAtlas';
@@ -42,7 +43,7 @@ export const EMBER_RING = { radius: 1.35, half: 0.07 } as const;
 
 /**
  * Antialiasing, in device px across an edge: a hard one's and a soft one's (an inherited place or
- * a date known to the year). Across a disc's edge or its shadow's it is taken along the radius, so
+ * a date known to the year). Across a seal's edge or its shadow's it is taken along the radius, so
  * a tilted mark's edge is as sharp on screen as a facing one's.
  */
 export const MARK_AA_PX = { hard: 0.75, soft: 2.5 } as const;
@@ -52,8 +53,9 @@ export const MARK_AA_PX = { hard: 0.75, soft: 2.5 } as const;
  * vanish from the views where it stands for its battles.
  */
 export const SOFT_EDGE_MAX = 0.2;
-/** The contact shadow's blur beyond its edge's antialiasing, in r. */
+/** The contact shadow's blur beyond its edge's antialiasing, in r, and how much light it takes. */
 export const SHADOW_BLUR = 0.12;
+export const SHADOW_DEPTH = 0.75;
 /**
  * The rings' widths in the most of r a pixel spans (which a tilt widens): the ember's half width
  * when wider than its own, and a hovered ring's outer edge.
@@ -69,7 +71,7 @@ export const RING_ENGRAVE = { ink: 0.9, wall: 1.2 } as const;
 /**
  * A glyph's field as the look reads it, in its half grid: within `box` of its center (the cell's
  * margin, less mips' reach), and out to `reach` beyond its edge, short of where its bytes run out
- * (GLYPH_SPREAD); every edge, outline, rim and cap a glyph draws ends within that reach.
+ * (GLYPH_SPREAD); every edge, outline and cap a glyph draws ends within that reach.
  */
 export const GLYPH_FIELD = { reach: 0.45, box: 1.45 } as const;
 
@@ -178,10 +180,11 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
   float groundRough = o.roughness;
   float groundMetal = o.metalness;
   float flatten = 0.0;
-  for (int k = 0; k < LOOK_MARK_TILE_CAP; k++) {
-    if (k >= count) break;
+  // The tile lists its marks in priority order; the first is drawn last, on top of the others.
+  for (int i = 0; i < LOOK_MARK_TILE_CAP; i++) {
+    if (i >= count) break;
     // The mark's screen disc, CSS px, and its index: most of a tile lies outside it, and stops.
-    vec4 slot = lookMarkTexel(start + k);
+    vec4 slot = lookMarkTexel(start + count - 1 - i);
     vec2 fromCenter = px - slot.xy;
     if (dot(fromCenter, fromCenter) > slot.z * slot.z) continue;
     int m = ${MARK_ROW * 512} + ${MARK_TEXELS} * int(slot.w);
@@ -216,9 +219,10 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     float rise = smoothstep(0.0, 0.5, alpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
     float fill = smoothstep(0.4, 1.0, alpha) * lookMarkStyle.z;
     float aa = lookMarkEdge(pxR, soft);
-    // A disc's bevel rounds a good share of it, so its slope turns through the lamp's reflection
-    // and lights the lamp's side; a glyph's is a pixel or a tenth of r, within its strokes.
-    float discBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
+    // The seal's bevel rounds a good share of it, so its slope turns through the lamp's reflection
+    // and lights the bezel on the lamp's side; a glyph's is a pixel or a tenth of r, within its
+    // strokes.
+    float sealBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
     float bevel = max(0.25 * lookMarkStyle.x, pxR) * (soft ? 1.6 : 1.0);
 
     int f = (familyFlags / ${FAMILY_STEP}) * LOOK_MARK_FAMILY_VEC4;
@@ -228,25 +232,22 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec4 f3 = lookMarkFamily[f + 3];
     vec4 f4 = lookMarkFamily[f + 4];
 
-    // The disc, if the family has one, antialiased along its radius: pxRad is a pixel's share of r
-    // that way.
+    // The seal, antialiased along its radius: pxRad is a pixel's share of r that way.
     float rq = length(q);
     vec2 nq = rq > 1e-5 ? q / rq : vec2(1.0, 0.0);
     float pxRad = max(length(vec2(dot(nq, qx), dot(nq, qy))), 1e-4);
     float aaRound = lookMarkEdge(pxRad, soft);
-    bool hasDisc = f0.w > 0.0;
-    float dDisc = f0.w - rq;
-    vec2 nDisc = rq > 1e-5 ? -nq : vec2(0.0);
+    float dSeal = f0.w - rq;
+    vec2 nSeal = rq > 1e-5 ? -nq : vec2(0.0);
 
     // The glyph's field, in r; near its edge, where the bevel slopes and the glyph has relief,
-    // its gradient from two more taps a texel or a pixel away. Its outline, its rim and its
-    // antialiasing, the cap's twice over, all end within the field's reach beyond its edge, so
-    // nothing is drawn where the field has run out or the cell's box would cut it square.
+    // its gradient from two more taps a texel or a pixel away. Its outline and its antialiasing,
+    // the cap's twice over, all end within the field's reach beyond its edge, so nothing is drawn
+    // where the field has run out or the cell's box would cut it square.
     float scale = f1.w;
     float fieldReach = LOOK_MARK_GLYPH_REACH * scale;
     float line = min(max(0.08, 1.1 * pxR), 0.35 * fieldReach);
-    float rimWidth = f4.z > 0.0 ? min(max(f4.z, 1.2 * pxR), 0.35 * fieldReach) : 0.0;
-    float aaGlyph = min(aa, 0.5 * (fieldReach - rimWidth - (hollow ? line : 0.0)));
+    float aaGlyph = min(aa, 0.5 * (fieldReach - (hollow ? line : 0.0)));
     vec2 gq = q / scale * vec2(mirror, 1.0);
     float dGlyph = -1.0;
     vec2 nGlyph = vec2(0.0);
@@ -290,48 +291,46 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     }
 
     // Coverage, and the heights' slopes in the mark's frame.
-    float cDisc = hasDisc ? smoothstep(-aaRound, aaRound, dDisc) : 0.0;
+    float cSeal = smoothstep(-aaRound, aaRound, dSeal);
     float cGlyph = smoothstep(-aaGlyph, aaGlyph, dGlyph);
-    vec2 bDisc = hasDisc ? lookMarkBevel(dDisc, discBevel) : vec2(0.0);
+    vec2 bSeal = lookMarkBevel(dSeal, sealBevel);
     vec2 bGlyph = lookMarkBevel(dGlyph, bevel);
-    vec2 slope = f2.x * bDisc.y * nDisc + f2.y * bGlyph.y * nGlyph;
+    vec2 slope = f2.x * bSeal.y * nSeal + f2.y * bGlyph.y * nGlyph;
     o.marks.grad += (slope.x * east + slope.y * north) * rise;
     o.marks.grad += (ringSlope.x * east + ringSlope.y * north) * lookMarkStyle.y;
+    // The polished bezel, a band just inside the seal's edge, on its bevel.
+    float cBezel = cSeal * (1.0 - smoothstep(-aaRound, aaRound, dSeal - f4.w));
 
-    // Coverage of the whole mark, with champlevé's metal walls round the glyph; and the light's
-    // cap, over its shapes out to two edges' antialiasing, where a bevel can still face the lamp.
-    float rim =
-      f4.z > 0.0 ? smoothstep(-aaGlyph, aaGlyph, dGlyph + rimWidth) * (1.0 - cGlyph) : 0.0;
-    float cover = max(max(cDisc, cGlyph), rim);
-    float capped = smoothstep(-2.0 * aaGlyph, 0.0, dGlyph + rimWidth);
-    if (hasDisc) capped = max(capped, smoothstep(-2.0 * aaRound, 0.0, dDisc));
+    // Coverage of the whole mark, and the light's cap, over its shapes out to two edges'
+    // antialiasing, where a bevel can still face the lamp.
+    float cover = max(cSeal, cGlyph);
+    float capped = max(
+      smoothstep(-2.0 * aaGlyph, 0.0, dGlyph),
+      smoothstep(-2.0 * aaRound, 0.0, dSeal)
+    );
     flatten = max(flatten, f3.z * cover * smoothstep(0.0, 0.5, alpha));
 
     // The contact shadow, away from the lamp, on the ground outside the mark.
-    float shade = 0.0;
-    if (f3.w > 0.0 && hasDisc) {
-      vec2 fromShadow = q + t3.xy;
-      float rs = length(fromShadow);
-      vec2 ns = rs > 1e-5 ? fromShadow / rs : vec2(1.0, 0.0);
-      float pxShadow = max(length(vec2(dot(ns, qx), dot(ns, qy))), 1e-4);
-      float blur = 2.0 * lookMarkEdge(pxShadow, soft) + ${float(SHADOW_BLUR)};
-      shade = smoothstep(-blur, blur, f0.w - rs) * (1.0 - cover);
-      shade *= smoothstep(0.0, 0.5, alpha);
-    }
+    vec2 fromShadow = q + t3.xy;
+    float rs = length(fromShadow);
+    vec2 ns = rs > 1e-5 ? fromShadow / rs : vec2(1.0, 0.0);
+    float pxShadow = max(length(vec2(dot(ns, qx), dot(ns, qy))), 1e-4);
+    float blur = 2.0 * lookMarkEdge(pxShadow, soft) + ${float(SHADOW_BLUR)};
+    float shade = smoothstep(-blur, blur, f0.w - rs) * (1.0 - cover) * smoothstep(0.0, 0.5, alpha);
 
-    // Colors: the disc, the walls, the glyph on them.
-    vec3 color = mix(ground, f0.rgb, cDisc * f4.x);
-    float rough = mix(groundRough, f2.z, cDisc);
-    float metal = mix(groundMetal, f3.x, cDisc);
-    color = mix(color, ground * 1.6, rim);
-    rough = mix(rough, 0.35, rim);
-    metal = mix(metal, 1.0, rim);
-    color = mix(color, f1.rgb, cGlyph * f4.y);
+    // Colors: the seal, its bezel, the glyph on them.
+    vec3 color = mix(ground, f0.rgb, cSeal);
+    float rough = mix(groundRough, f2.z, cSeal);
+    float metal = mix(groundMetal, f3.x, cSeal);
+    color = mix(color, f4.rgb, cBezel);
+    rough = mix(rough, f3.w, cBezel);
+    metal = mix(metal, 1.0, cBezel);
+    color = mix(color, f1.rgb, cGlyph);
     rough = mix(rough, f2.w, cGlyph);
     metal = mix(metal, f3.y, cGlyph);
 
     float a = cover * fill;
-    o.albedo = mix(o.albedo, color, fill) * (1.0 - 0.75 * shade);
+    o.albedo = mix(o.albedo, color, fill) * (1.0 - ${float(SHADOW_DEPTH)} * shade);
     rough = max(rough / lookMarkPolish, LOOK_MARK_ROUGH_MIN);
     o.roughness = mix(o.roughness, rough, a);
     o.metalness = mix(o.metalness, metal, fill);
