@@ -54,7 +54,10 @@ export interface StepReview {
   added?: string[];
   /** The leaves a valid row gives the step that it does not draw. */
   removed?: string[];
-  /** Of those added and removed, the ones no correction the step applies names. */
+  /**
+   * Of those added and removed, the ones neither a correction the step applies names nor the
+   * carry-through draws.
+   */
   unexplained?: string[];
   /** The corrections that changed the step, by label. */
   corrections?: string[];
@@ -445,9 +448,10 @@ export function drawnLeaves(polities: Polities, years: readonly number[]): numbe
 
 /**
  * What the steps' leaves owe Cliopatria (streaming.md 7.3): each step draws as many leaves as it
- * has rows valid in its year, with those its corrections add and less those they take away, each
- * of them a polity some correction the step applies names; and the steps holding the years task 0
- * compared have that comparison's rows. `drawn` is each step's drawnLeaves.
+ * has rows valid in its year, with those its corrections and the carry-through add and less those
+ * they take away, each of them a polity some correction the step applies names or the
+ * carry-through draws; and the steps holding the years task 0 compared have that comparison's
+ * rows. `drawn` is each step's drawnLeaves.
  */
 export function leafFindings(
   years: readonly number[],

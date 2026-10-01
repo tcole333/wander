@@ -75,7 +75,8 @@ export interface BordersRecord extends Partial<BordersRelease> {
   unclassified?: { composites: string[]; relations: string[] };
   /**
    * Stateless holes of 10,000 km² or more no correction cites, with the states around them, and
-   * gaps of that size: land held on both sides of a stateless run of at most 25 years (3.3).
+   * gaps of that size: land held on both sides of a stateless run of at most 25 years that the
+   * carry-through leaves stateless, since two polities hold it there (3.3).
    */
   owed?: { holes: (OwedPlace & { states: string[] })[]; gaps: OwedPlace[] };
   inputs?: { code: string; cliopatria: string };

@@ -3,10 +3,10 @@
 // runs beside a lake shore for more than SHORE_RUN_KM (a border crosses a lake, never rings it),
 // but for the runs EXCUSED names, that a lake ring planted in a real step is caught, that each
 // preview agrees in sign with its field near the outer borders, that each step draws as many
-// leaves as Cliopatria has rows valid in its year, with those its corrections add and less those
-// they take away, and it reports the overlap pairs no correction acknowledges. The region bake has
-// no steps, so the checks run for the global profile only. A missing or stale bake fails, naming
-// the command.
+// leaves as Cliopatria has rows valid in its year, with those its corrections and the
+// carry-through add and less those they take away, and it reports the overlap pairs no correction
+// acknowledges. The region bake has no steps, so the checks run for the global profile only. A
+// missing or stale bake fails, naming the command.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
