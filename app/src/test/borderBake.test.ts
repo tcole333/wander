@@ -247,7 +247,7 @@ describe('the decoders', () => {
     const body = Buffer.alloc(6 * 2 * 2 * 2, 7);
     const step = decodeStep(gzipSync(Buffer.concat([header, body])));
     expect([step.year, step.size, step.apron, step.planes.length]).toEqual([-3399, 2, 4, 48]);
-    header.write('WBF1', 0, 'ascii');
+    header.write('WBP2', 0, 'ascii');
     expect(() => decodeStep(gzipSync(Buffer.concat([header, body])))).toThrow(/not a version/);
   });
 
