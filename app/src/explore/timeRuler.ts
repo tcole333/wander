@@ -118,7 +118,7 @@ function layoutFor(width: number): Layout {
     ovLen: 2 * reach * (r - OVD / 2),
     glass: 0.1 * reach,
     plateW: narrow ? 104 : 124,
-    counterW: width < 420 ? 104 : narrow ? 122 : 142,
+    counterW: width < 420 ? 112 : narrow ? 122 : 142,
     short: width < 420,
   };
 }
@@ -454,6 +454,12 @@ export class TimeRuler {
       layer.setAttribute('viewBox', `0 0 ${width} ${RULER_H}`);
     }
     const { arc } = layout;
+    // Where scripts and tests find the scales at the crown, px from the box's top, and the tape's
+    // length.
+    const crown = arc.cy - arc.r;
+    this.element.dataset.tapeY = f(crown - TAPE_MID);
+    this.element.dataset.overviewY = f(crown + OVD / 2);
+    this.element.dataset.rulePx = f(layout.rulePx, 2);
     this.#tape.style.transformOrigin = `${f(arc.cx, 2)}px ${f(arc.cy, 2)}px`;
     this.#body.innerHTML = bodySvg(layout);
     this.#over.innerHTML = overviewSvg(layout, this.#time);
@@ -523,7 +529,9 @@ export class TimeRuler {
   #buildCounter(): void {
     const { arc, side, reelR, counterW, narrow } = this.#layout;
     const h = 28;
-    const left = side + reelR + (narrow ? 4 : 8);
+    // On a narrow view the counter stands over the reel, which stays under the lip, to clear the
+    // plaque.
+    const left = narrow ? side + 2 : side + reelR + 8;
     const mid = left + counterW / 2;
     const lip = arc.cy - Math.sqrt((arc.r + LIP_TOP) ** 2 - (mid - arc.cx) ** 2);
     const top = lip - 4 - h;
@@ -663,16 +671,12 @@ export class TimeRuler {
         this.#plateText.setAttribute('height', String(h));
         this.#plateText.setAttribute('viewBox', `0 0 ${plateW} ${h}`);
       }
-      const long = year.length > 8;
+      // The year as large as its face allows: 19 px, or less for a long one on a narrow plaque.
+      const size = Math.min(top ? 17 : 19, (plateW - 18) / (year.length * 0.68));
       this.#plateText.innerHTML = this.#entryOpen
         ? ''
         : (top ? engravedText(plateW / 2, 15, 'xr-pl-top', top) : '') +
-          engravedText(
-            plateW / 2,
-            top ? 34 : 24.5,
-            `xr-pl-year${long ? ' is-long' : ''}${top ? ' is-under' : ''}`,
-            year,
-          );
+          engravedText(plateW / 2, top ? 34 : 24.5, 'xr-pl-year', year, f(size));
       const [cx, jewelY] = at(arc, 0, JEWEL_AT);
       const tip = jewelY - JEWEL_R + 0.5;
       this.#plaque.style.width = `${plateW}px`;
@@ -1126,10 +1130,11 @@ function twoFigures(n: number): string {
 export function spanWords(span: number, short: boolean): [string, string] {
   const years = span / YEAR_DAYS;
   const months = span / (YEAR_DAYS / 12);
+  // A month or a year shows from a hair under it, as a detent at it may come to rest there.
   const [n, unit] =
-    years >= 0.97
+    years >= 0.995
       ? [twoFigures(years), short ? 'YRS' : 'YEARS']
-      : months >= 0.97
+      : months >= 0.995
         ? [twoFigures(months), short ? 'MOS' : 'MONTHS']
         : [twoFigures(span), 'DAYS'];
   if (n !== '1') return [n, unit];
@@ -1153,12 +1158,19 @@ function escapeText(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 }
 
-/** Text engraved at (x, y): the lit lip of the cut, then the cut. */
-function engravedText(x: number, y: number, className: string, text: string): string {
+/** Text engraved at (x, y), at `size` px if given: the lit lip of the cut, then the cut. */
+function engravedText(
+  x: number,
+  y: number,
+  className: string,
+  text: string,
+  size?: string,
+): string {
   const t = escapeText(text);
+  const style = size ? ` style="font-size:${size}px"` : '';
   return (
-    `<text x="${x + 0.6}" y="${y + 0.9}" text-anchor="middle" class="${className} rc-cut-lip">${t}</text>` +
-    `<text x="${x}" y="${y}" text-anchor="middle" class="${className} rc-cut">${t}</text>`
+    `<text x="${x + 0.6}" y="${y + 0.9}" text-anchor="middle" class="${className} rc-cut-lip"${style}>${t}</text>` +
+    `<text x="${x}" y="${y}" text-anchor="middle" class="${className} rc-cut"${style}>${t}</text>`
   );
 }
 
@@ -1335,7 +1347,7 @@ function glassSvg(layout: Layout): string {
     `<path d="M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}" stroke="url(#rc-steel)" stroke-width="1.2"/>` +
     `<path d="M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}" stroke="#7f9ccc" stroke-width="0.4" opacity="0.8"/>`;
   const [jx, jy] = at(arc, 0, JEWEL_AT);
-  out += `<g transform="translate(${f(jx)} ${f(jy)})">
+  out += `<g class="xr-jewel" transform="translate(${f(jx)} ${f(jy)})">
 <circle r="10" fill="url(#rc-garnet-glow)"/>
 <circle r="6.6" fill="#1c1208" opacity="0.6" transform="translate(0.8 1.2)"/>
 <circle r="${JEWEL_R}" fill="url(#rc-bezel)" stroke="#2a1a0a" stroke-width="0.7"/>
