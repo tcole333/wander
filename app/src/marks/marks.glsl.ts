@@ -267,12 +267,12 @@ void lookMarksApply(
     float alpha = t2.w;
     // The seal's alpha, less what relief rising above its plane hides.
     float sealAlpha = alpha * (1.0 - hidden);
-    // Relief rises first, and the fill comes after; estimates are softer and half as deep.
-    float rise = smoothstep(0.0, 0.5, sealAlpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
+    // Relief rises first, and the fill comes after.
+    float rise = smoothstep(0.0, 0.5, sealAlpha) * lookMarkStyle.y;
     float fill = smoothstep(0.4, 1.0, sealAlpha) * lookMarkStyle.z;
     // The seal's bevel rounds a good share of it, so its slope turns through the lamp's reflection
     // and lights the bezel on the lamp's side.
-    float sealBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
+    float sealBevel = max(lookMarkStyle.x, 2.0 * pxR);
 
     int f = (familyFlags / ${FAMILY_STEP}) * LOOK_MARK_FAMILY_VEC4;
     vec4 f0 = lookMarkFamily[f];
@@ -281,11 +281,13 @@ void lookMarksApply(
     vec4 f3 = lookMarkFamily[f + 3];
     vec4 f4 = lookMarkFamily[f + 4];
 
-    // The seal, antialiased along its radius: pxRad is a pixel's share of r that way.
+    // The seal, antialiased along its radius: pxRad is a pixel's share of r that way. An estimate
+    // is softer at its outer edge alone, so its face, bezel and glyph read as a sure mark's do.
     float rq = length(q);
     vec2 nq = rq > 1e-5 ? q / rq : vec2(1.0, 0.0);
     float pxRad = max(length(vec2(dot(nq, qx), dot(nq, qy))), 1e-4);
     float aaRound = lookMarkEdge(pxRad, soft);
+    float aaInner = lookMarkEdge(pxRad, false);
     float dSeal = f0.w - rq;
     vec2 nSeal = rq > 1e-5 ? -nq : vec2(0.0);
 
@@ -365,7 +367,7 @@ void lookMarksApply(
     o.marks.grad += (slope.x * east + slope.y * north) * rise;
     o.marks.grad += (ringSlope.x * east + ringSlope.y * north) * lookMarkStyle.y;
     // The polished bezel, a band just inside the seal's edge, on its bevel.
-    float cBezel = cSeal * (1.0 - smoothstep(-aaRound, aaRound, dSeal - f4.w));
+    float cBezel = cSeal * (1.0 - smoothstep(-aaInner, aaInner, dSeal - f4.w));
 
     // Coverage of the whole mark, and the light's cap, over its shapes out to two edges'
     // antialiasing, where a bevel can still face the lamp.

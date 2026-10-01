@@ -10,8 +10,8 @@
 // overlap, so parents sharing a borrowed place do not pile into one blot. The worker keeps two
 // events to a cell four marks across at the size the look draws them (tunables.declutterCellMarks),
 // so larger marks keep as far apart. An event whose place is inherited or derived, or whose date is
-// known only to its year, draws softer and half as deep (globe-language.md, principle 1). The focal
-// event, the opening at first, keeps its ember while its dates are on the ruler's tape
+// known only to its year, draws with a softer outer edge (globe-language.md, principle 1). The
+// focal event, the opening at first, keeps its ember while its dates are on the ruler's tape
 // (time/exploreTime.ts, tapeWindow), its mark at half strength while they stand outside the glass's
 // now window; once they leave the tape it becomes one mark among the others. Until the index holds
 // it, or once the worker has failed, the openings lock draws it. A failed worker logs once and its
@@ -148,7 +148,7 @@ export function inWindow(span: { t0: number; t1: number }, window: DayWindow): b
   return span.t0 <= window.end && span.t1 >= window.start;
 }
 
-/** An estimated place or a date known only to its year: drawn softer and half as deep. */
+/** An estimated place or a date known only to its year: drawn with a softer outer edge. */
 export function isSoft({ flags, prec }: Pick<EventMark, 'flags' | 'prec'>): boolean {
   return (flags & BORROWED_PLACE) !== 0 || prec <= YEAR_PRECISION;
 }
