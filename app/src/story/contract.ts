@@ -190,9 +190,16 @@ export interface WalkEffects {
   route(dataset: string): RouteData | undefined;
   /**
    * Every frame from the room's opening, the story started or not: what loads in the background
-   * (the borders' field, a face a frame).
+   * (the borders' field, a face a frame). `lobby` while the lobby stands with no mode running,
+   * where a story on the border steps preloads its first border beat's step.
    */
-  background(): void;
+  background(lobby: boolean): void;
+  /**
+   * Whether the beat the walk is on, or flying to, has what it needs of the effects: its border
+   * step, where it lists borders and the look holds the steps (streaming.md 5.7). The flight's
+   * readiness gate waits for it as it does for the tiles.
+   */
+  ready(state: WalkState): boolean;
   /** The climate drawn, for its legend; null while none is. */
   climate(): ClimateShown | null;
   /** The borders drawn, for their year plate; null while none are. */

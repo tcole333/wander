@@ -97,7 +97,10 @@ declare global {
       scrub(day: number): void;
       breakOut(): void;
       flyTo(target: LonLat, viewKm: number): void;
-      /** True once the flight to the beat is over and the streamer has been idle for a while. */
+      /**
+       * True once the flight to the beat is over and the streamer has been idle for a while, with
+       * the beat's border step drawn where it lists borders.
+       */
       landed(): boolean;
       flights(): readonly FlightRecord[];
     };
@@ -195,7 +198,10 @@ async function main(): Promise<void> {
   if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);
 }
 
-/** window.__walk, for scripts: `ready` is the page's own check that the streamer is idle. */
+/**
+ * window.__walk, for scripts: `ready` is the page's own check that the streamer is idle and the
+ * beat has its border step.
+ */
 function serveWalk(current: () => DirectedWalk | null, ready: () => boolean): void {
   const walk = () => {
     const active = current();

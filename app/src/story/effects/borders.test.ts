@@ -1,8 +1,10 @@
 // The walk's borders: the field loads in the background and goes to the GPU a face a frame; once
 // every face is in, the borders ease in on the beats that list them, out on the others and as the
-// view closes in; without a borders section nothing loads or draws, and the walk goes on. Where
-// the look holds the border steps, the beats' layers gate the steps over borderFade, never with
-// previews, and a story without border beats never drives them.
+// view closes in; without a borders section nothing loads or draws, and the walk goes on, the
+// field no beat's readiness item. Where the look holds the border steps, the beats' layers gate
+// the steps over borderFade, never with previews; a beat that lists borders names its step from
+// the flight's start and is ready only once the steps hold it; the lobby preloads the story's first
+// border step; and a story without border beats never drives them.
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { describe, expect, it, vi } from 'vitest';
@@ -118,19 +120,40 @@ describe('the walk borders', () => {
     expect([borders.shown, load.mock.calls.length, warn.mock.calls.length]).toEqual([null, 0, 1]);
     warn.mockRestore();
   });
+
+  it('never hold a beat: the field loads from the room, no readiness item', () => {
+    const load = vi.fn(() => new Promise<ArrayBuffer>(() => {}));
+    const source = { dataHost: '', borders: BORDERS };
+    const borders = new WalkBorders(story, source, createBorderUniforms(), load);
+    borders.background();
+    expect([borders.ready, borders.beatReady()]).toEqual([false, true]);
+  });
 });
 
-/** The border steps' runtime as the walk sees it: the frames it is asked for, and its calls. */
-function fakeSteps(shown: StepShown | null = null) {
+/**
+ * The border steps' runtime as the walk sees it: the frames it is asked for, and its calls. It
+ * holds the steps of the days `held` names.
+ */
+function fakeSteps(shown: StepShown | null = null, held: (day: number) => boolean = () => false) {
   const frames: BordersFrame[] = [];
   const steps = {
     shown,
     update: vi.fn((frame: BordersFrame) => frames.push(frame)),
+    preload: vi.fn(),
+    holds: vi.fn(held),
     hide: vi.fn(),
     end: vi.fn(),
   };
   return { steps, frames, clock: steps as unknown as ClockBorders };
 }
+
+/** On the way to beat `id`, a tenth of the flight flown, in `mode`. */
+function flyingTo(id: string, mode: WalkState['mode'] = 'paused'): WalkState {
+  return { ...pausedOn(id), mode, flight: 0.1, flying: true };
+}
+
+/** A beat's day, by its id. */
+const dayOf = (id: string) => story.beats.find((beat) => beat.id === id)?.day ?? NaN;
 
 /** `ms` of frames at 60 a second, over a view 3,000 km across, at the walk's strength. */
 function framesOn(borders: StepBorders, state: WalkState, ms: number, strength = 1): void {
@@ -193,10 +216,49 @@ describe('the walk borders on the border steps', () => {
       advanceIn: null,
     };
     framesOn(borders, state, 1000);
+    borders.background(true);
+    expect(borders.beatReady(state)).toBe(true);
     borders.hide();
     borders.dispose();
     expect(steps.update).not.toHaveBeenCalled();
+    expect(steps.preload).not.toHaveBeenCalled();
     expect(steps.hide).not.toHaveBeenCalled();
     expect(steps.end).not.toHaveBeenCalled();
+  });
+
+  it("name a border beat's step from the flight's start, and none on other beats or in a break-out", () => {
+    const { frames, clock } = fakeSteps();
+    const borders = new StepBorders(story, clock);
+    borders.update(flyingTo('europe-1816'), 1 / 60, 3000, 1);
+    expect(frames.at(-1)?.beat).toBe(dayOf('europe-1816'));
+    borders.update(pausedOn('europe-1816'), 1 / 60, 3000, 1);
+    expect(frames.at(-1)?.beat).toBe(dayOf('europe-1816'));
+    borders.update(flyingTo('sumbawa'), 1 / 60, 3000, 1);
+    expect(frames.at(-1)?.beat).toBeNull();
+    borders.update({ ...pausedOn('europe-1816'), mode: 'breakout' }, 1 / 60, 3000, 1);
+    expect(frames.at(-1)?.beat).toBeNull();
+  });
+
+  it('are ready on a border beat only once the steps hold its step, and at once elsewhere', () => {
+    let held = false;
+    const { steps, clock } = fakeSteps(null, () => held);
+    const borders = new StepBorders(story, clock);
+    expect(borders.beatReady(flyingTo('europe-1816'))).toBe(false);
+    expect(steps.holds).toHaveBeenLastCalledWith(dayOf('europe-1816'));
+    held = true;
+    expect(borders.beatReady(flyingTo('europe-1816'))).toBe(true);
+    held = false;
+    expect(borders.beatReady(pausedOn('sumbawa'))).toBe(true);
+    expect(borders.beatReady({ ...pausedOn('europe-1816'), mode: 'breakout' })).toBe(true);
+  });
+
+  it("preload the story's first border step while the lobby stands, and only then", () => {
+    const { steps, clock } = fakeSteps();
+    const borders = new StepBorders(story, clock);
+    borders.background(false);
+    expect(steps.preload).not.toHaveBeenCalled();
+    borders.background(true);
+    // The walk's first beat, 1 April 1815, lists borders.
+    expect(steps.preload).toHaveBeenCalledWith(dayOf('world-1815'));
   });
 });
