@@ -806,18 +806,21 @@ export class MarkLayer {
   }
 
   /**
-   * The mark under CSS px (x, y), or null: the nearest drawn and not too faint whose disc reaches
-   * the point. Over land the disc runs from the mark's sea-level place to where the highest ground
-   * its height can read would lift it, since its seal lies flat at its anchor's height somewhere
-   * between.
+   * The mark under CSS px (x, y), or null: of those drawn and not too faint whose disc reaches the
+   * point, the one most likely drawn under it. Over land the disc runs from the mark's sea-level
+   * place to where the highest ground its height can read would lift it, since its seal lies flat
+   * at its anchor's height somewhere between; where several reach the point, as when marks stood
+   * apart north and south of each other are lifted toward one another, the nearest to its likeliest
+   * place, halfway along that way, is under it, and of those as near, the first in priority.
    */
   hit(x: number, y: number): string | null {
     let best: string | null = null;
     let bestD = Infinity;
     for (const mark of this.#placed) {
       if (mark.alpha < PICK_ALPHA_MIN) continue;
-      const d = segmentDistance(x, y, mark.x, mark.y, mark.x1, mark.y1);
-      if (d <= mark.rPx && d < bestD) {
+      if (segmentDistance(x, y, mark.x, mark.y, mark.x1, mark.y1) > mark.rPx) continue;
+      const d = Math.hypot(x - (mark.x + mark.x1) / 2, y - (mark.y + mark.y1) / 2);
+      if (d < bestD) {
         bestD = d;
         best = mark.id;
       }
