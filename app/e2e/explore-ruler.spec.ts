@@ -135,16 +135,15 @@ test('Explore’s ruler moves time by keys, typing, the overview, a pull and the
   await globe.focus();
   await expect(page.locator('.xt-globe-name')).toHaveClass(/is-shown/);
   const globeBefore = await goal(page);
+  // Held until a frame has turned the globe: a slow renderer may draw none in a short hold.
   await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(300);
-  await page.keyboard.up('ArrowRight');
   await expect.poll(async () => (await goal(page)).lon).not.toBe(globeBefore.lon);
+  await page.keyboard.up('ArrowRight');
   expect((await rested(page)).day).toBe(labelled.day);
   const width = (await goal(page)).viewKm;
   await page.keyboard.down('+');
-  await page.waitForTimeout(300);
-  await page.keyboard.up('+');
   await expect.poll(async () => (await goal(page)).viewKm).toBeLessThan(width);
+  await page.keyboard.up('+');
   expect(await rested(page)).toEqual({ day: labelled.day, spanDays: 200 * YEAR_DAYS });
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 
