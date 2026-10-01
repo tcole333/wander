@@ -67,8 +67,9 @@ export interface SurfaceStreamer {
   /** Drops the rest of an upload queued behind. */
   cancelUpload(key: string): void;
   /**
-   * Where the height pool holds the ground at `dir` (the cube's frame G): the finest resident tile
-   * containing it, which the look's marks read their anchors' heights from.
+   * Where the height pool holds the ground at `dir` (the cube's frame G): the source tile the
+   * surface draws there (stream/heightTexel.ts), which the look's marks read their anchors'
+   * heights from.
    */
   heightTexel(dir: Vec3): HeightTexel | null;
   stats(): StreamerStats;
