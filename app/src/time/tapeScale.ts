@@ -5,12 +5,17 @@
 // and is a whole day, month or year. Labels stand under the labelled ticks, one even rhythm with
 // no end labels: at month scale January is named by its year, and at day scale each month's 1st
 // carries the month. Past history's ends the tape runs on as a leader, unengraved, behind a stop
-// labelled with history's first or last year. Pure, so it can be tested without a page.
+// labelled with history's first or last year. As the tape moves, a label shows whole or not at
+// all: never cut by the glass's edges, never partly in a reel's fade. Pure, so it can be tested
+// without a page.
 import { HISTORICAL, monthName, type Calendar, type Precision } from '../story/dates';
 import { calendarYearLabel, monthAbbrev, monthsIn, yearsIn, type Span } from '../story/ui/format';
 import { groupDigits, YEAR_DAYS } from './overviewScale';
 
-/** The labels and ticks fade over this many px at each reel, so they slide in and out. */
+/**
+ * The ticks fade over this many px at each reel, so they slide in and out; a label is dropped
+ * whole once any of it reaches the fade (labelShown).
+ */
 export const TAPE_FADE_PX = 46;
 /** Fine ticks stay at least this far apart, px. */
 export const FINE_PX = 6;
@@ -308,9 +313,25 @@ export function engraveTape(
   return { graduation: grade, ticks, labels, stops, leaders };
 }
 
+/** A label keeps this far from the glass's edges, px, so no edge line cuts its letters. */
+export const GLASS_EDGE_PX = 3;
+
+/**
+ * Whether a tape label from `left` to `right`, px along the tape from the needle, shows where it
+ * stands now: clear of the glass's edges at ±`glassPx`, which would cut its letters, and wholly
+ * out of the fade toward each reel at ±`halfPx`, where it would leave a fragment. A label is shown
+ * or dropped whole as the tape moves it.
+ */
+export function labelShown(left: number, right: number, halfPx: number, glassPx: number): boolean {
+  if (left < -halfPx + TAPE_FADE_PX || right > halfPx - TAPE_FADE_PX) return false;
+  return [-glassPx, glassPx].every(
+    (edge) => right <= edge - GLASS_EDGE_PX || left >= edge + GLASS_EDGE_PX,
+  );
+}
+
 /**
  * The tape's fade toward the reels: 0 at the rule's end, rising to 1 TAPE_FADE_PX in, for the mask
- * the labels slide under. `x` is px from the rule's start, `rulePx` its length.
+ * the ticks slide under. `x` is px from the rule's start, `rulePx` its length.
  */
 export function tapeFade(x: number, rulePx: number): number {
   const edge = Math.min(x, rulePx - x);

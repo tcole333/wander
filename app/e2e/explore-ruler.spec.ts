@@ -6,8 +6,9 @@
 // overview's rider names the year a press flies to, a pull moves the tape 1:1 under a needle that
 // never moves, the wheel shows more or less about the needle and a sideways swipe travels, a touch
 // pulls and a pinch anywhere on the ruler, the counter's knobs included, zooms without zooming the
-// page, no press on the brass selects text, a pin holds while its date is on the tape, and Home
-// and End reach history's ends. Nothing logs an error.
+// page, no label shows cut by the glass's edges or in a reel's fade, no press on the brass selects
+// text, a pin holds while its date is on the tape, and Home and End reach history's ends. Nothing
+// logs an error.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import type { ExploreLabelsHook, ExploreViewHook, WorldTimeHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
@@ -66,6 +67,30 @@ async function ruler(page: Page) {
       overviewY: box.top + Number(element.dataset.overviewY),
       rulePx: Number(element.dataset.rulePx),
     };
+  });
+}
+
+/**
+ * The tape's shown labels that a glass edge cuts or that reach into a reel's fade, from the
+ * browser's own boxes: the glass's edges stand a twentieth of the tape each side of the needle,
+ * and the fades take the last 46 px at each end.
+ */
+function cutLabels(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const element = document.querySelector<HTMLElement>('.xr')!;
+    const box = element.getBoundingClientRect();
+    const half = Number(element.dataset.rulePx) / 2;
+    const middle = box.left + box.width / 2;
+    const cut: string[] = [];
+    for (const text of document.querySelectorAll('.xr-labels text:not(.is-off)')) {
+      const { left, right } = text.getBoundingClientRect();
+      const [l, r] = [left - middle, right - middle];
+      if (r < -half - 200 || l > half + 200) continue;
+      if ([-half / 10, half / 10].some((edge) => l < edge + 0.8 && r > edge - 0.8))
+        cut.push(`${text.textContent} at a glass edge`);
+      if (l < -half + 46 - 0.5 || r > half - 46 + 0.5) cut.push(`${text.textContent} in a fade`);
+    }
+    return cut;
   });
 }
 
@@ -183,10 +208,15 @@ test('Explore’s ruler moves time by keys, typing, the overview, a pull and the
   const daysPerPx = pulled.spanDays / at.rulePx;
   await page.mouse.move(view.width / 2 + 150, at.tapeY);
   await page.mouse.down();
-  for (let step = 1; step <= 20; step++)
+  // Labels cross the glass's edges and the fades as the tape moves, and are dropped whole there.
+  const cut = await cutLabels(page);
+  for (let step = 1; step <= 20; step++) {
     await page.mouse.move(view.width / 2 + 150 - 15 * step, at.tapeY);
+    cut.push(...(await cutLabels(page)));
+  }
   await page.waitForTimeout(200);
   await page.mouse.up();
+  expect(cut).toEqual([]);
   const released = await clock(page);
   await page.waitForTimeout(600);
   const after = await rested(page);
