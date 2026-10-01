@@ -147,9 +147,9 @@ function fakeSteps(shown: StepShown | null = null, held: (day: number) => boolea
   return { steps, frames, clock: steps as unknown as ClockBorders };
 }
 
-/** On the way to beat `id`, a tenth of the flight flown, in `mode`. */
-function flyingTo(id: string, mode: WalkState['mode'] = 'paused'): WalkState {
-  return { ...pausedOn(id), mode, flight: 0.1, flying: true };
+/** On the way to beat `id`, a tenth of the flight flown. */
+function flyingTo(id: string): WalkState {
+  return { ...pausedOn(id), flight: 0.1, flying: true };
 }
 
 /** A beat's day, by its id. */
