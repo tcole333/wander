@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1800 to 1913 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-30
+modified: 2026-10-01
 corrections:
   # The Dutch East Indies and the British interregnum.
   - years: [1800, 1802]
@@ -633,7 +633,7 @@ corrections:
       url: https://en.wikipedia.org/wiki/Kingdom_of_Greece
   # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
   # it, or a place without a state kept stateless, each cited (owner decision 38).
-  - years: [1805, 1810]
+  - years: [1805, 1811]
     pocket:
       at: [40.94, 32.5]
       stateless: true
@@ -642,8 +642,7 @@ corrections:
       tribes, the Aneza and Shammar, who had moved north out of Najd partly to escape the Wahhabi
       movement, saw themselves as no subjects of the Sultan, paid no taxes and were regarded as
       free; only the sheep-herding tribes on the settled margins paid Ottoman taxes. Cliopatria
-      itself leaves this desert empty in every other step before the mandates. The 1811 step, whose
-      outline differs, is left for review.
+      itself leaves this desert empty in every other step before the mandates.
     source: &chatty
       title: 'The Bedouin in Contemporary Syria: The Persistence of Tribal Authority and Control'
       publisher: Middle East Journal
@@ -1080,3 +1079,227 @@ corrections:
       title: Sarh
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Sarh
+  # The holes and gaps the bake owed, each settled by a verdict checked against its source
+  # (owner decision 38): a gap's land as the state that held it, drawn inside the shapes of
+  # the polities that held it on both sides of the run where those bound it.
+  - years: [1815, 1819]
+    pocket:
+      at: [54.75, 23.25]
+      to: Sheikhdom of Abu Dhabi
+      shape_from: {polity: Emirate of Diriyah, year: 1814}
+      within: {polity: Trucial States, year: 1820}
+      wikidata: Q187712
+    why: >-
+      Liwa and the Dhafra interior were the Bani Yas homeland under the Al Bu Falah, who settled in
+      Liwa around 1700 and moved their seat to Abu Dhabi island in 1793-1795; the sheikhdom's lands
+      ran from Abu Dhabi to Khor al Adaid. Cliopatria draws them only as the Trucial States from
+      1820.
+    source:
+      title: Bani Yas
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bani_Yas
+  - years: [1826, 1833]
+    pocket:
+      at: [93.92, 24.79]
+      to: Kingdom of Manipur
+      shape_from: {polity: Burma, year: 1824}
+      wikidata: Q889030
+    why: >-
+      The Manipur valley and hills were Gambhir Singh's kingdom, restored with British support in
+      1825 and recognised as independent by the Treaty of Yandabo in February 1826, until his death
+      in January 1834. Manipur takes the shape Burma held it in 1824; the southern hills toward the
+      Lushai country stay stateless.
+    source:
+      title: Gambhir Singh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gambhir_Singh
+  - years: [1848, 1861]
+    pocket:
+      at: [-107.25, 38.25]
+      to: United States of America
+      shape_from: {polity: Federated Republic of Mexico, year: 1846}
+      within: {polity: United States of America, year: 1890}
+    why: >-
+      The Mexican Cession and Texas's claim west of the Nueces (Colorado's Western Slope and
+      south-east, New Mexico, the Panhandle, Trans-Pecos and the Nueces Strip) were the United
+      States' from the war's occupation of 1846 and the treaty of 1848: Texas kept the land south of
+      36°30' and east of 103° W by the Compromise of 1850, and the rest went to the New Mexico and
+      Utah territories; the Gadsden strip south of the Gila follows from 1854. The Comanche, Apache
+      and Ute held much of it in fact. The land Mexico held in 1846 inside the United States' shape
+      of 1890 is drawn.
+    source:
+      title: Compromise of 1850
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Compromise_of_1850
+  - years: [1862, 1865]
+    pocket:
+      at: [-98.25, 27.25]
+      to: Confederate States of America
+      shape: texas-1850.geojson
+    why: >-
+      Texas declared its secession on 1 February 1861 and joined the Confederacy in March, so from
+      1862 its Panhandle, West Texas and the Nueces Strip, which Cliopatria leaves out of its
+      Confederate shape, were Confederate. They are drawn inside Texas's lines of the Compromise of
+      1850 and the Rio Grande (texas-1850.geojson); otherwise the carry-through would draw them as
+      the United States', which held them in 1861 and 1866.
+    source:
+      title: Texas in the American Civil War
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Texas_in_the_American_Civil_War
+  - years: [1857, 1857]
+    pocket:
+      at: [81.22, 26.52]
+      to: British Empire
+    why: >-
+      On 1 January 1857 north and central India (Awadh, the North-Western Provinces, Bundelkhand,
+      Malwa) was Company territory, Awadh annexed in 1856, or princely states under British
+      paramountcy; the rebellion began at Meerut only on 10 May 1857.
+    source:
+      title: Indian Rebellion of 1857
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Indian_Rebellion_of_1857
+  - years: [1864, 1864]
+    pocket:
+      at: [81.89, 43.9]
+      to: Qing Dynasty
+      shape_from: {polity: Qing Dynasty, year: 1863}
+      within: {polity: Russian Empire, year: 1871}
+    why: >-
+      On 1 January 1864 the Ili valley around Kulja was still the Qing's: the Taranchis and Tungans
+      rose only in 1864.
+    source:
+      title: 'Reconsidering the Ili Crisis: The Ili Region under Russian Rule (1871-1881)'
+      publisher: RIHN Ili project
+      url: https://www.chikyu.ac.jp/ilipro/page/18-publication/workshop-book/workshop-book_individual%20files/3-4_Noda.pdf
+      locator: Jin Noda
+  - years: [1867, 1870]
+    pocket:
+      at: [81.89, 43.9]
+      to: Taranchi Sultanate
+      shape_from: {polity: Qing Dynasty, year: 1863}
+      within: {polity: Russian Empire, year: 1871}
+      wikidata: Q889879
+    why: >-
+      The Ili valley was the Taranchi sultanate's, established under Aila-khan in May 1867, until
+      the Russian occupation of 1871. Cliopatria has no row for it.
+    source:
+      title: 'Reconsidering the Ili Crisis: The Ili Region under Russian Rule (1871-1881)'
+      publisher: RIHN Ili project
+      url: https://www.chikyu.ac.jp/ilipro/page/18-publication/workshop-book/workshop-book_individual%20files/3-4_Noda.pdf
+      locator: Jin Noda
+  - years: [1864, 1864]
+    pocket:
+      at: [9.25, 54.75]
+      to: Kingdom of Denmark
+    why: >-
+      On 1 January 1864 the Duchy of Schleswig was still Danish: Prussian and Austrian troops
+      crossed into it on 1 February 1864.
+    source:
+      title: Second Schleswig War
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Schleswig_War
+  - years: [1866, 1867]
+    pocket:
+      at: [-107.25, 38.25]
+      to: United States of America
+      shape_from: {polity: Federated Republic of Mexico, year: 1846}
+      within: {polity: United States of America, year: 1890}
+    why: >-
+      After the war Colorado, New Mexico, Arizona and Trans-Pecos Texas were again United States
+      territory and land, the New Mexico Territory reaching from Texas to Arizona's line of 1863;
+      Cliopatria's United States covers them only from 1868 and 1890.
+    source:
+      title: New Mexico Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/New_Mexico_Territory
+  - years: [1868, 1876]
+    pocket:
+      at: [-113.39, 35.23]
+      to: United States of America
+    why: >-
+      Arizona, New Mexico, Trans-Pecos Texas and the deserts of Nevada, California and Utah lay
+      inside the United States' border: Arizona Territory was organised in 1863, and New Mexico and
+      Utah were territories and Nevada, California and Texas states; Apache resistance went on
+      inside them until 1886.
+    source:
+      title: Arizona Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Arizona_Territory
+  - years: [1877, 1889]
+    pocket:
+      at: [-109.38, 33.04]
+      to: United States of America
+    why: >-
+      Arizona and New Mexico Territories and Trans-Pecos Texas were United States territory from
+      1848 and 1853; Cliopatria's United States covers them from 1890.
+    source:
+      title: Arizona Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Arizona_Territory
+  - years: [1885, 1889]
+    pocket:
+      at: [43.75, 10.25]
+      to: British Africa
+      shape_from: {polity: Khedivate of Egypt, year: 1882}
+      within: {polity: British Africa, year: 1890}
+    why: >-
+      Western Somaliland (Zeila, Borama, Gebiley) came under British protection as Egypt withdrew:
+      the Gadabuursi signed their treaty with the British at Zeila on 11 December 1884.
+    source:
+      title: Gadabuursi Ughazate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gadabuursi_Ughazate
+  - years: [1885, 1904]
+    pocket:
+      at: [-8.25, 28.25]
+      to: Morocco
+      shape_from: {polity: Morocco, year: 1882}
+      within: {polity: French Africa, year: 1905}
+    why: >-
+      The strip south of the Jebel Bani toward Tindouf was under the Sultan's suzerainty: Hassan I's
+      expeditions invested the qaids of the Ait Oussa and the Tajakant with Moroccan authority, and
+      Britain recognised Moroccan suzerainty from the Draa to Cape Bojador.
+    source:
+      title: Sous expedition
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sous_expedition
+  - years: [1895, 1897]
+    pocket:
+      at: [15.75, 11.25]
+      to: Sultanate of Rabih az-Zubayr
+      shape_from: {polity: Bornu Empire, year: 1890}
+      within: {polity: French Africa, year: 1900}
+      wikidata: Q932368
+    why: >-
+      Bornu, the Kotoko lands and Baguirmi south and east of Lake Chad were Rabih az-Zubayr's, who
+      conquered Bornu in 1893-1894 and ruled from Dikwa until he was killed at Kousséri in April
+      1900. Cliopatria has no row for his state.
+    source:
+      title: Rabih az-Zubayr
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Rabih_az-Zubayr
+  - years: [1900, 1907]
+    pocket:
+      at: [35.22, 7.29]
+      to: Ethiopian Empire
+    why: >-
+      South-western Ethiopia (Kaffa, Gore, Maji, Gambela, Asosa, Borana) was Menelik's: Kaffa and
+      Borana fell in 1897, Asosa became the centre of Benishangul in 1898, and the flag was planted
+      on Lake Turkana in March 1898.
+    source:
+      title: 'Menelik''s Expansions'
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Menelik%27s_Expansions
+  - years: [1905, 1925]
+    pocket:
+      at: [45.75, 22.75]
+      to: Emirate of Nejd
+      shape_from: {polity: Emirate of Jabal Shammar, year: 1900}
+      within: {polity: Kingdom of Hejaz and Nejd, year: 1926}
+    why: >-
+      Southern Najd (al-Kharj, al-Aflaj, Wadi ad-Dawasir) was Ibn Saud's after he beat the Rashidis
+      at ad-Dilam in January 1903, when they lost control of southern Najd.
+    source:
+      title: Battle of Dilam
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Battle_of_Dilam
