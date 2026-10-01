@@ -99,7 +99,7 @@ jobs:
       matrix:
         # Every shard app/e2e/shards.ts names; 'rest' takes every spec the others do not name.
         # app/scripts/ciShards.test.ts holds this list, the outputs and Tested build's to it.
-        shard: [magellan, lobby, explore, ruler, rest]
+        shard: [magellan, lobby, explore, ruler, touch, rest]
     defaults:
       run:
         working-directory: app
@@ -109,6 +109,7 @@ jobs:
       lobby: ${{ steps.dist.outputs.lobby }}
       explore: ${{ steps.dist.outputs.explore }}
       ruler: ${{ steps.dist.outputs.ruler }}
+      touch: ${{ steps.dist.outputs.touch }}
       rest: ${{ steps.dist.outputs.rest }}
     steps:
       - uses: actions/checkout@v7
@@ -190,7 +191,7 @@ jobs:
           CHECKS: ${{ needs.checks.outputs.dist-sha256 }}
           TESTED: ${{ toJSON(needs.e2e.outputs) }}
           # Every shard in the e2e matrix.
-          SHARDS: magellan lobby explore ruler rest
+          SHARDS: magellan lobby explore ruler touch rest
         run: |
           echo "the checks job built dist sha256 $CHECKS"
           test -n "$CHECKS" || { echo "The checks job recorded no dist sha256."; exit 1; }
