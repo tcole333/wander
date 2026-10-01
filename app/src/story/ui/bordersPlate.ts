@@ -1,14 +1,14 @@
 // The borders' year plate, at the top of the page between the mark and the sound knob, clear of
 // the card, Meanwhile, the climate legend and the ruler: a small riveted plate of Meanwhile's dark
-// cast brass naming the snapshot's year in engraved gilt capitals ("Borders · 1815"), as the
-// globe's borders always carry their year. Like the climate legend, it settles into view once the
+// cast brass naming the year their step begins in engraved gilt capitals ("Borders · 1815"), as the
+// walk's borders always carry their year. Like the climate legend, it settles into view once the
 // borders are drawn at half strength or more and fades as they ease out, never lingering
 // half-seen while the view holds inside the borders' zoom fade.
 import type { BordersShown } from '../contract';
 import { yearLabel } from '../dates';
 import { el } from './dom';
 
-/** The plate's words for a snapshot's astronomical year: the year as history writes it. */
+/** The plate's words for a step's astronomical first year: the year as history writes it. */
 export function bordersLabel(year: number): string {
   return `Borders · ${yearLabel(year)}`;
 }
