@@ -54,6 +54,7 @@ function fakeEvents(shown: OnScreen[]) {
   });
   const events = {
     focal: null as FocalEvent | null,
+    focalNow: true as boolean,
     hovered: null as string | null,
     focused: [] as (FocalEvent | null)[],
     placed: (): PlacedMark[] => shown.map(({ id, x, y }) => ({ id, x, y, rPx: 8, alpha: 1 })),
@@ -307,14 +308,32 @@ describe('Explore’s labels', () => {
     expect(escape.defaultPrevented).toBe(false);
   });
 
-  it('unpin once the event is no longer focal, as when the now window leaves it', () => {
+  it('hold a pin while its dates are on the tape, dimmed outside the glass, unpinning off it', () => {
     const { events, labels, root, click } = setup();
     labels.land(null);
     click(700, 400);
     labels.update(0);
-    events.focal = null;
+    const plate = plate$(root, true);
+    expect([labels.pinned, shown(plate), plate.classList.contains('is-away')]).toEqual([
+      48314,
+      true,
+      false,
+    ]);
+    // A step takes its dates out of the glass but not off the tape: the pin holds, dimmed.
+    events.focalNow = false;
     labels.update(16);
-    expect([labels.pinned, shown(plate$(root, true))]).toEqual([null, false]);
+    expect([labels.pinned, shown(plate), plate.classList.contains('is-away')]).toEqual([
+      48314,
+      true,
+      true,
+    ]);
+    events.focalNow = true;
+    labels.update(32);
+    expect(plate.classList.contains('is-away')).toBe(false);
+    // Off the tape the event is no longer focal, and the pin goes.
+    events.focal = null;
+    labels.update(48);
+    expect([labels.pinned, shown(plate)]).toEqual([null, false]);
   });
 
   it('pin a hovered event’s plate in place of its hovered one, the other plate clear of it', () => {

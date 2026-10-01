@@ -266,7 +266,7 @@ describe("Explore's events", () => {
     expect(events.focal).toBeNull();
   });
 
-  it('drops the focal event once the now window leaves its dates, keeping it as a mark', () => {
+  it('holds the focal event while its dates are on the tape, dropping it once they leave', () => {
     const waterloo = { row: 0, qid: 48314, lon: 10, lat: 45, t0: 1000, t1: 1000, cls: BATTLE };
     const { worker, marks } = setup([waterloo]);
     const focal = focalOf({
@@ -282,22 +282,34 @@ describe("Explore's events", () => {
     expect(byId(marks.specs, 48314)).toMatchObject({ focal: true, opacity: 1 });
     expect(worker.asked[0]!.focalQids).toEqual([48314]);
 
-    // A scrub within the window keeps it.
+    // A scrub within the glass keeps it whole.
     events.update(WORLD, at(1008), 400);
     expect(events.focal?.qid).toBe(48314);
-    expect(byId(marks.specs, 48314)).toMatchObject({ focal: true });
+    expect(events.focalNow).toBe(true);
+    expect(byId(marks.specs, 48314)).toMatchObject({ focal: true, opacity: 1 });
 
-    // Past it, the focal event drops at once: an ordinary mark, fading out with the window.
-    events.update(WORLD, at(1500), 800);
+    // A 50-day step on a 200-day tape takes it out of the glass, not off the tape: it holds, its
+    // mark easing to half strength, and comes back whole inside the glass.
+    events.update(WORLD, at(1050), 416);
+    expect(events.focal?.qid).toBe(48314);
+    expect(events.focalNow).toBe(false);
+    for (let ms = 500; ms <= 1000; ms += 50) events.update(WORLD, at(1050), ms);
+    expect(byId(marks.specs, 48314)).toMatchObject({ focal: true, opacity: 0.5 });
+    for (let ms = 1050; ms <= 1600; ms += 50) events.update(WORLD, at(1002), ms);
+    expect(events.focalNow).toBe(true);
+    expect(byId(marks.specs, 48314)).toMatchObject({ focal: true, opacity: 1 });
+
+    // Off the tape, the focal event drops at once: an ordinary mark, fading out with the window.
+    events.update(WORLD, at(1500), 1800);
     expect(events.focal).toBeNull();
     expect(worker.asked.at(-1)!.focalQids).toEqual([]);
     expect(byId(marks.specs, 48314)).toMatchObject({ focal: false });
-    events.update(WORLD, at(1500), 800 + tunables.eventFade * 2);
+    events.update(WORLD, at(1500), 1800 + tunables.eventFade * 2);
     expect(byId(marks.specs, 48314)).toBeUndefined();
 
     // Back in its window, it returns as one mark among the others.
-    events.update(WORLD, at(1000), 2000);
-    events.update(WORLD, at(1000), 2000 + tunables.eventFade * 2);
+    events.update(WORLD, at(1000), 3000);
+    events.update(WORLD, at(1000), 3000 + tunables.eventFade * 2);
     expect(byId(marks.specs, 48314)).toMatchObject({ focal: false, opacity: 1 });
     expect(events.focal).toBeNull();
   });
@@ -311,7 +323,10 @@ describe("Explore's events", () => {
     events.update(WORLD, at(1000), 0);
     events.update(WORLD, at(1100), 16);
     expect(events.focal?.span).toEqual({ t0: 800, t1: 1200 });
+    // The tape, 1200 to 1400, still holds its last day.
     events.update(WORLD, at(1300), 32);
+    expect(events.focal?.qid).toBe(7);
+    events.update(WORLD, at(1400), 48);
     expect(events.focal).toBeNull();
   });
 
