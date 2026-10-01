@@ -4,9 +4,10 @@
 // arrays; the dive into Explore draws no borders and serves no window.__borders; and Tambora's
 // sixth beat, which lists borders, shows no borders plate, since the fixture bakes no 1815 field
 // (the walk says why once, as a warning). Nothing logs an error.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
 const TIMEOUT = 90_000;

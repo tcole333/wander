@@ -6,6 +6,7 @@
 // takes several minutes over the touches.
 import { test } from '@playwright/test';
 import { nextDetent, SPAN_DETENTS } from '../src/time/timeMotion';
+import { closeIdle } from './idle';
 import { clock, dive, expect, rested, ruler, watch, type RulerPage } from './rulerPage';
 
 test('Explore’s ruler takes a touch’s pull and a pinch, never zooming the page', async ({
@@ -104,5 +105,6 @@ test('Explore’s ruler takes a touch’s pull and a pinch, never zooming the pa
   await touch('touchEnd', []);
   expect((await rested(page)).spanDays).toBe(slid);
   expect(errors).toEqual([]);
+  await closeIdle(page);
   await context.close();
 });

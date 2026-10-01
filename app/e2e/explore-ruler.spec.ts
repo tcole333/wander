@@ -9,9 +9,10 @@
 // press on the brass selects text, a pin holds while its date is on the tape, Home and End reach
 // history's ends, a letter on the plaque opens its entry, and a refused date is said. Nothing logs
 // an error. Touch is explore-ruler-touch.spec.ts's.
-import { test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { dayFromIso } from '../src/story/dates';
 import { HISTORY } from '../src/time/exploreTime';
+import { test } from './idle';
 import { clock, dive, expect, pinned, rested, ruler, watch, type RulerPage } from './rulerPage';
 
 const WATERLOO = dayFromIso('1815-06-18');

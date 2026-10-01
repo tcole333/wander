@@ -7,9 +7,10 @@
 // then returns. A release that names no event index, as the bundled one does until the event
 // files are published, shows the stories' plaques alone. Nothing logs an error, no request goes to
 // Wikimedia, and once the room opens nothing more is fetched from the app's own host.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Page } from '@playwright/test';
 import type { ExploreEventsHook, ExploreLabelsHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
+import { test } from './idle';
 import { fetchedSinceOpening, markOpening } from './opening';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
