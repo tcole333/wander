@@ -135,22 +135,53 @@ describe('the lens', () => {
 });
 
 describe('the rider', () => {
-  const riderAt = (iso: string) => riderYear(WARP, EXTENT, WARP.u(dayFromIso(iso)), L);
+  const riderAt = (iso: string, length: number = L) =>
+    riderYear(WARP, EXTENT, WARP.u(dayFromIso(iso)), length);
 
-  it('names the exact year where a pixel holds 6 years or fewer', () => {
-    expect(riderAt('1066-10-14')).toMatchObject({ year: 1066, step: 1, text: '1066' });
-    expect(riderAt('0950-06-01')).toMatchObject({ step: 1, text: '950 CE' });
+  it('rounds to the finest of 1, 2, 5, 10, 20 or 50 years a pixel there can tell', () => {
+    expect(riderAt('1815-06-18')).toMatchObject({ step: 2, text: '1816' });
+    expect(riderAt('1066-10-14')).toMatchObject({ year: 1065, step: 5, text: '1065' });
+    expect(riderAt('0950-06-01')).toMatchObject({ step: 5, text: '950 CE' });
+    expect(riderAt('-3000-06-01')).toMatchObject({ step: 20, text: '3000 BCE' });
+    expect(riderAt('-7999-06-01')).toMatchObject({ step: 50, text: '8000 BCE' });
   });
 
-  it('rounds to 5, 10 or 50 years as the scale closes, in history’s numbering', () => {
-    const bce500 = riderAt('-0499-06-01');
-    expect(bce500.step).toBe(5);
-    expect(bce500.text).toBe('500 BCE');
-    const deep = riderAt('-7999-06-01');
-    expect(deep.step).toBe(50);
-    expect(deep.text).toBe('8000 BCE');
-    const mid = riderAt('-3000-06-01');
-    expect(mid.step).toBe(10);
+  it('rounds in history’s numbering, so 500 BCE and not 499 BCE', () => {
+    expect(riderAt('-0499-06-01')).toMatchObject({ step: 10, text: '500 BCE' });
+  });
+
+  it('rounds wider than 50 years where a narrow view’s pixel holds more', () => {
+    expect(riderAt('-7999-06-01', LENGTHS[390])).toMatchObject({ step: 200, text: '8000 BCE' });
+  });
+
+  // Swept a whole pixel at a time, as a mouse moves, about 1066 and 500 BCE: the rider never
+  // passes over a year it would name, so each one near the target comes up.
+  it.each([
+    ['1066', 1066, 5, '1065'],
+    ['500 BCE', -499, 10, '500 BCE'],
+  ])('names every step about %s at whole pixels', (_, target, step, text) => {
+    // Years as history numbers them, BCE negative, so a step's multiples are the names.
+    const named = (y: number) => (y <= 0 ? y - 1 : y);
+    const x = Math.round(WARP.u(year(target)) * L);
+    const riders = Array.from({ length: 81 }, (_, i) =>
+      riderYear(WARP, EXTENT, (x - 40 + i) / L, L),
+    );
+    const failures: string[] = [];
+    riders.forEach((rider, i) => {
+      const yearsPerPx = WARP.daysPerU(rider.day) / L / YEAR_DAYS;
+      if (rider.step < yearsPerPx) failures.push(`${rider.text} in steps of ${rider.step}`);
+      if (named(rider.year) % rider.step !== 0) failures.push(`${rider.text} is off its step`);
+      const last = riders[i - 1];
+      if (last && named(rider.year) - named(last.year) > Math.max(rider.step, last.step))
+        failures.push(`${last.text} to ${rider.text} passes over a step`);
+    });
+    const shown = new Set(riders.map((r) => named(r.year)));
+    for (let k = -2; k <= 2; k += 1) {
+      const y = named(target) - (named(target) % step) + k * step;
+      if (!shown.has(y)) failures.push(`${y} is never named`);
+    }
+    expect(failures).toEqual([]);
+    expect(riders.map((r) => r.text)).toContain(text);
   });
 
   it('flies to its year’s middle day and never names year 0', () => {
