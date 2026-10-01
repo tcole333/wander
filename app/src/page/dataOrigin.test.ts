@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dataOverride, memoryRequested } from './dataOrigin';
+import { dataOverride, memoryRequested, viewHookRequested } from './dataOrigin';
 
 describe('memoryRequested', () => {
   it('requires an explicit opt-in on an exact loopback hostname', () => {
@@ -12,6 +12,16 @@ describe('memoryRequested', () => {
     for (const hostname of ['wander.traviscole.xyz', 'localhost.example.com', '192.168.1.1']) {
       expect(memoryRequested({ hostname, search: '?memory=1' })).toBe(false);
     }
+  });
+});
+
+describe('viewHookRequested', () => {
+  it('requires an explicit opt-in on an exact loopback hostname', () => {
+    expect(viewHookRequested({ hostname: '127.0.0.1', search: '?data=global&hooks=1' })).toBe(true);
+    expect(viewHookRequested({ hostname: 'localhost', search: '?hooks=0' })).toBe(false);
+    expect(viewHookRequested({ hostname: 'wander.traviscole.xyz', search: '?hooks=1' })).toBe(
+      false,
+    );
   });
 });
 

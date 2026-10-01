@@ -9,13 +9,14 @@
 // reloads once; a second loss within a few minutes brings the card (page/contextLoss.ts).
 //
 // On a page served from this machine, ?data=<origin>|fixture|region|global reads a local data
-// server's release instead (page/dataOrigin.ts), for the smoke test and local checks.
+// server's release instead (page/dataOrigin.ts), for the smoke test and local checks; ?memory=1
+// and ?hooks=1 serve the memory account and the view hook to scripts.
 import './page/room.css';
 import { DataError, fetchData } from './data/surfaceLayer';
 import type { Release } from './data/release';
 import bundled from './generated/release.json';
 import { afterContextLoss } from './page/contextLoss';
-import { dataOverride, memoryRequested } from './page/dataOrigin';
+import { dataOverride, memoryRequested, viewHookRequested } from './page/dataOrigin';
 import { dataPlate, explorePlate, lobbyPlate, Room, storyPlate, type Unable } from './page/room';
 import { stories } from './story/catalog';
 import { bootWalk, DrawError } from './walk/boot';
@@ -76,14 +77,18 @@ async function main(): Promise<void> {
         room.fail(failurePlate(error));
       },
     });
-    dispose = () => walk.dispose();
+    const removeHooks: (() => void)[] = [];
+    dispose = () => {
+      for (const remove of removeHooks) remove();
+      walk.dispose();
+    };
     if (memoryRequested(location)) {
       const { installMemoryHook } = await import('./perf/memoryHook');
-      const removeMemoryHook = installMemoryHook(walk);
-      dispose = () => {
-        removeMemoryHook();
-        walk.dispose();
-      };
+      removeHooks.push(installMemoryHook(walk));
+    }
+    if (viewHookRequested(location)) {
+      const { installViewHook } = await import('./page/viewHook');
+      removeHooks.push(installViewHook(walk));
     }
     opened = walk.lobby?.opened;
     mark = walk.lobby?.mark;
