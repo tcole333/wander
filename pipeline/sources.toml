@@ -4,9 +4,9 @@
 # without one is verify-only: checked, never downloaded), unzips each `unzipped` member beside its
 # zip, and checks every sha256. Other stages check only byte sizes.
 #
-# This holds the surface core's inputs (issue #3), ModE-RA for the modera stage and the 1815 border
-# snapshot for the borders stage (issue #7); each later issue pins the inputs its stages read. The
-# open-world plan's sources are pinned ahead of the stages that read them.
+# This holds the surface core's inputs (issue #3), ModE-RA for the modera stage and Cliopatria for
+# the borders stage; each later issue pins the inputs its stages read. The open-world plan's sources
+# are pinned ahead of the stages that read them.
 
 [gebco-2026]
 name = "GEBCO_2026 Grid, 15 arc-second global land and sea-floor elevation (ice surface), NetCDF"
@@ -119,31 +119,12 @@ source_url = "https://www.ncei.noaa.gov/pub/data/paleo/gcmoutput/ModE/ModE-readm
 bytes = 13775
 sha256 = "06d7fde69a896cfc382f4683b83bc8f1ce806803244081af3d67b8e0e9571ff1"
 
-# The border snapshots, one GeoJSON per year; milestone 1 draws 1815, the snapshot every Tambora date
-# falls nearest (streaming.md 3.0). GPL-3.0, so the borders built from it are published under it
-# too, with its notice and the corrected source beside them (owner decision 6). The raw-data folder
-# holds it once `uv run prebuild fetch` has run; it is never committed.
-[historical-basemaps]
-name = "historical-basemaps, world border snapshots"
-version = "da7a4b735ecef70aebdc9c73e409d8a2500d50f3"
-license = "GPL-3.0"
-license_url = "https://www.gnu.org/licenses/gpl-3.0.html"
-attribution = "historical-basemaps, by André Ourednik and contributors"
-landing_page = "https://github.com/aourednik/historical-basemaps"
-retrieved = "2026-09-27"
-
-[[historical-basemaps.files]]
-path = "sources/historical-basemaps/world_1815.geojson"
-source_url = "https://raw.githubusercontent.com/aourednik/historical-basemaps/da7a4b735ecef70aebdc9c73e409d8a2500d50f3/geojson/world_1815.geojson"
-bytes = 2413409
-sha256 = "fb654f734583f550904cfa45f361e395c1a488c4960050da2632cb2ac7d1cd1e"
-
-# Cliopatria's polity shapes by year, the alternative to historical-basemaps for the borders through
-# time. The latest release is v0.2.0 (commit ad28a69, 2026-05-16); `main` has not moved since, and
-# the v0.2.0-duplicate tag re-released the same commit to re-trigger Zenodo. The GitHub releases
-# carry no assets and the Zenodo record (DOI 10.5281/zenodo.20274630) archives the whole repository
-# (297 MB), so the file is the repository's own `cliopatria.geojson.zip` at that commit; its git
-# blob sha (cefab0f4b622e2e7fb3daf68d4f461f83991204c) matches the download. The zip holds
+# Cliopatria's polity shapes by year, for the borders through time. The latest release is v0.2.0
+# (commit ad28a69, 2026-05-16); `main` has not moved since, and the v0.2.0-duplicate tag re-released
+# the same commit to re-trigger Zenodo. The GitHub releases carry no assets and the Zenodo record
+# (DOI 10.5281/zenodo.20274630) archives the whole repository (297 MB), so the file is the
+# repository's own `cliopatria.geojson.zip` at that commit; its git blob sha
+# (cefab0f4b622e2e7fb3daf68d4f461f83991204c) matches the download. The zip holds
 # `cliopatria_polities_only.geojson` (EPSG:4326, 166 MB unzipped) and a macOS `__MACOSX` stub. Its
 # 13,765 rows (13,380 POLITY, 385 RELATION) of 1,633 names run from 3400 BCE to 2024 CE, with the
 # columns Name, FromYear, ToYear, Area, Type, Wikipedia, Wikidata, SeshatID, Components, MemberOf.

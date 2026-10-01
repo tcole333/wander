@@ -1,8 +1,7 @@
-"""The cube-face rasters border fields are made from (streaming.md 3.3): polity ids at 4x4 subpixels
-per texel in face-global subpixels, as fields.py rasterizes coasts, the fill that gives every
-empty subpixel the id nearest it, and signed distances to the borders between ids, per subpixel
-and per texel. Milestone 1's 1815 field (borders.py) and the border steps (step_fields.py) share
-them.
+"""The cube-face rasters the border steps are made from (streaming.md 3.3, step_fields.py): polity
+ids at 4x4 subpixels per texel in face-global subpixels, as fields.py rasterizes coasts, the fill
+that gives every empty subpixel the id nearest it, and signed distances to the borders between ids,
+per subpixel and per texel.
 
 Each face stores INTERIOR texels across the face and an APRON past each edge, computed from the
 same polygons, so lines run on across face edges. Texel (i, j) is centered at

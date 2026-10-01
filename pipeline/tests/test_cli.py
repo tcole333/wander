@@ -40,10 +40,7 @@ def planned(*argv: str) -> list[str]:
     ("argv", "stages"),
     [
         ((), ["fetch", "coverage", "surface", "borders", "events", "modera", "fx"]),
-        (
-            ("--profile", "region"),
-            ["fetch", "coverage", "surface", "borders", "events", "modera", "fx"],
-        ),
+        (("--profile", "region"), ["fetch", "coverage", "surface", "events", "modera", "fx"]),
         (("--profile", "fixture"), ["coverage", "surface", "borders", "events", "modera", "fx"]),
         (("--profile", "fixture", "borders"), ["borders"]),
         (("surface", "coverage"), ["coverage", "surface"]),
@@ -69,6 +66,7 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("--profile", "fixture", "fetch"),
         ("--profile", "fixture", "excerpts"),
         ("--profile", "fixture", "wikidata"),
+        ("--profile", "region", "borders"),
         ("--profile", "moon"),
         ("--jobs", "0"),
         ("--jobs", "many"),
