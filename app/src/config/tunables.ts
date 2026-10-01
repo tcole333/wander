@@ -43,7 +43,6 @@ export const tunables = {
   // its near size at near to ETCHED_LOOK.far times it at far and wider (look/bordersHook.ts,
   // etchedScale).
   borderWeightKm: { near: 14_000, far: 32_000 },
-  borderWarnYears: 20,
   l7WarnViewKm: 400,
   eventQueryHz: 30,
   eventMarkers: { lite: 80, full: 140 },
