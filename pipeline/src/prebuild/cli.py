@@ -52,16 +52,24 @@ NAMED_ONLY = frozenset({"wikidata", "excerpts", "openings", "media", "meanwhile"
 # Each builds the story named with --story.
 STORY_STAGES = frozenset({"media", "meanwhile"})
 # The fixture reads only committed excerpts, so it never runs the stages that read raw data; its
-# borders bake two steps from Cliopatria's excerpt and no 1815 field (borders.py). Meanwhile also
-# stays out until it has a fixture story and lock of its own: a fixture build must never rewrite
-# the Tambora lock. Openings stays out too: its lock is checked against the whole index, which the
-# fixture holds a slice of.
+# borders bake two steps from Cliopatria's excerpt (borders.py). Meanwhile also stays out until it
+# has a fixture story and lock of its own: a fixture build must never rewrite the Tambora lock.
+# Openings stays out too: its lock is checked against the whole index, which the fixture holds a
+# slice of.
 RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "meanwhile", "openings"})
+# The region profile bakes the surface, climate and events of the milestone-1 beats' region, and no
+# borders: the steps' carry-through selects every step of Cliopatria first, which takes longer than
+# the rest of the region bake together, and nothing reads the region's.
+NOT_IN_REGION = frozenset({"borders"})
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
     """What a run with no stage named runs, in order."""
-    skipped = NAMED_ONLY | (RAW_DATA_ONLY if profile is Profile.FIXTURE else frozenset())
+    skipped = NAMED_ONLY
+    if profile is Profile.FIXTURE:
+        skipped |= RAW_DATA_ONLY
+    if profile is Profile.REGION:
+        skipped |= NOT_IN_REGION
     return [name for name in stages if name not in skipped]
 
 
@@ -85,6 +93,8 @@ def plan(
             if name == "openings":
                 parser.error("openings checks its list against the whole event index")
             parser.error(f"the fixture profile reads no raw data, so it does not run {name}")
+        if profile is Profile.REGION and name in NOT_IN_REGION:
+            parser.error("the region profile bakes no borders; the global and fixture profiles do")
     for name in STORY_STAGES & set(named):
         if args.story is None:
             parser.error(f"{name} builds one story: name it with --story <id>")
@@ -150,7 +160,7 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
             "wikidata, excerpts, openings, media and meanwhile; the fixture profile also skips "
-            "fetch."
+            "fetch, and the region profile borders."
         ),
     )
     parser.add_argument(
