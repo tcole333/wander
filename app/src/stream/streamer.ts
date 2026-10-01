@@ -32,7 +32,7 @@ import { GRID_SEGMENTS } from '../globe/tileGrid';
 import { FIXED_SLOTS, SlotTable } from '../gpu/slotTable';
 import { createSurfacePools, surfaceParts } from '../gpu/surfaceUploads';
 import { UploadQueue, type StopReason, type UploadRun } from '../gpu/uploadQueue';
-import { nodeIndex, tileKey, type Tile } from '../surface/cube';
+import { faceOf, faceSt, nodeIndex, tileKey, tileOf, tileUv, type Tile } from '../surface/cube';
 import type { DecodedWst } from '../surface/wst';
 import { DecodePool } from '../workers/decodePool';
 import { decodeTiles } from '../workers/decodeTiles';
@@ -458,6 +458,22 @@ export const createSurfaceStreamer = (async (
         residentCpuGridBytes: 0,
         fetches: inFlight.size,
       };
+    },
+
+    heightTexel(dir) {
+      const face = faceOf(dir);
+      const [s, t] = faceSt(face, dir);
+      for (let level = layer.surface.maxLevel; level >= 0; level -= 1) {
+        const x = tileOf(s, level);
+        const y = tileOf(t, level);
+        const key = tileKey({ face, level, x, y });
+        const slot = table.slotOf(key);
+        const codeMid = codeMids.get(key);
+        if (slot === undefined || codeMid === undefined || table.stateOf(key) !== 'resident')
+          continue;
+        return { slot, u: tileUv(s, level, x), v: tileUv(t, level, y), level, codeMid };
+      }
+      return null;
     },
 
     update(camera, viewport, globe) {

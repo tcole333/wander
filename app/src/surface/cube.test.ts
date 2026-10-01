@@ -23,6 +23,7 @@ import {
   subsample,
   texelCenter,
   texelOf,
+  tileUv,
   tileKey,
   tileOf,
   toThree,
@@ -416,5 +417,15 @@ describe('the sides that store edge profiles', () => {
       );
       expect(faceEdgeSides(t), tileKey(t)).toEqual(across);
     }
+  });
+});
+
+describe('tileUv', () => {
+  it('runs from the tile’s first texel to its last, within its border', () => {
+    expect(tileUv(-1, 3, 0)).toBeCloseTo(4 / 264, 12);
+    expect(tileUv(-0.75, 3, 0)).toBeCloseTo(260 / 264, 12);
+    expect(tileUv(-0.75, 3, 1)).toBeCloseTo(4 / 264, 12);
+    // As the look reads an L1 tile (lookFragment.glsl.ts, uv1).
+    expect(tileUv(0.3, 1, 1)).toBeCloseTo((4 + 0.3 * 256) / 264, 12);
   });
 });
