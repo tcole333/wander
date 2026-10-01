@@ -8,6 +8,7 @@
 // first in priority is drawn on top. The marks take the look's lamp, shadow, polish and the
 // ridges' occlusion, since they are the globe's own surface.
 import { tunables } from '../config/tunables';
+import { EARTH_M } from '../story/effects/geo';
 import { FAMILY_VEC4S, PACES } from './families';
 import { GLYPH_SPREAD } from './glyphAtlas';
 import { GLYPH_UNITS } from './glyphs';
@@ -15,13 +16,13 @@ import { GLYPH_UNITS } from './glyphs';
 /**
  * The table's width and height in texels, and its rows: the tiles' ranges, four a texel (the
  * first slot times TILE_COUNT_MAX + 1 plus the count); the slots, one a texel (a mark's screen disc and index,
- * so a fragment outside it stops after one fetch); then three texels a mark.
+ * so a fragment outside it stops after one fetch); then four texels a mark.
  */
 export const TABLE_WIDTH = 512;
 export const TABLE_ROWS = 16;
 export const SLOT_ROW = 4;
 export const MARK_ROW = 12;
-export const MARK_TEXELS = 3;
+export const MARK_TEXELS = 4;
 export const TILES_MAX = SLOT_ROW * TABLE_WIDTH * 4;
 /**
  * The tiles the grid runs past each edge of the viewport: a fragment drawn on relief seen tilted
@@ -33,6 +34,9 @@ export const SLOTS_MAX = (MARK_ROW - SLOT_ROW) * TABLE_WIDTH;
 export const MARKS_MAX = Math.floor(((TABLE_ROWS - MARK_ROW) * TABLE_WIDTH) / MARK_TEXELS);
 /** The most marks a tile's range can count: tunables.markTileCap stays within it. */
 export const TILE_COUNT_MAX = 15;
+
+/** A mark's height texel packs its slot times this plus its tile's level. */
+export const HEIGHT_LEVELS = 16;
 
 /** Flags a mark's texel carries, below its family (FAMILY_STEP times the family's index). */
 export const FLAG = { focal: 1, hover: 2, hollow: 4, soft: 8, mirror: 16 } as const;
@@ -93,6 +97,10 @@ export const MARKS_DECLARATIONS = /* glsl */ `
 #define LOOK_MARK_GLYPH_BOX ${float(GLYPH_FIELD.box)}
 #define LOOK_MARK_SOFT_EDGE_MAX ${float(SOFT_EDGE_MAX)}
 
+// The relief's exaggeration over land, which the vertex stage displaces by, and globe radii a meter.
+uniform float wanderKLand;
+#define LOOK_MARK_INV_R ${String(1 / EARTH_M)}
+
 uniform bool lookMarksOn;
 uniform highp sampler2D lookMarkTable;
 // The globe frame to clip space for this draw, and to view space for normals.
@@ -152,9 +160,18 @@ float lookMarkGlyph(vec2 cell, vec2 gq, vec2 atlas, vec2 gx, vec2 gy) {
 
 /** The marks' pass over the look's surface, after LookSurface is declared. */
 export const MARKS_FUNCTIONS = /* glsl */ `
-// Cuts the marks of the fragment's tile into the surface o: g is the inlay direction and gx, gy
-// its derivatives per pixel, taken where every fragment still runs.
-void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
+// Cuts the marks of the fragment's tile into the surface o: g is the inlay direction, and ray the
+// view ray's direction, in the globe frame; gx, gy and rayX, rayY their derivatives per pixel,
+// taken where every fragment still runs.
+void lookMarksApply(
+  inout LookSurface o,
+  vec3 g,
+  vec3 gx,
+  vec3 gy,
+  vec3 ray,
+  vec3 rayX,
+  vec3 rayY
+) {
   o.marks.cover = 0.0;
   o.marks.cap = 0.0;
   o.marks.grad = vec3(0.0);
@@ -200,11 +217,38 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     float eastLength = length(east);
     east = eastLength > 1e-6 ? east / eastLength : vec3(1.0, 0.0, 0.0);
     vec3 north = cross(anchor, east);
+    // The fragment's inlay direction in the mark's frame, in r, and its change per pixel: where a
+    // hovered parent's ring is engraved, on the relief.
     vec3 v = g - anchor;
-    // The fragment in the mark's frame, in r, and its change per pixel.
-    vec2 q = vec2(dot(v, east), dot(v, north)) / r;
-    vec2 qx = vec2(dot(gx, east), dot(gx, north)) / r;
-    vec2 qy = vec2(dot(gy, east), dot(gy, north)) / r;
+    vec2 qg = vec2(dot(v, east), dot(v, north)) / r;
+    vec2 qgx = vec2(dot(gx, east), dot(gx, north)) / r;
+    vec2 qgy = vec2(dot(gy, east), dot(gy, north)) / r;
+    float pxRg = max(max(length(qgx), length(qgy)), 1e-4);
+    // The seal lies flat at its anchor's height, where the height pool holds it (its fourth
+    // texel): the fragment is where the view ray crosses that plane, so the seal keeps its round
+    // footprint over ridges and valleys, and relief rising more than a radius above it hides it,
+    // as a ridge in front of it does. Without a height, the seal lies on the inlay direction.
+    vec2 q = qg;
+    vec2 qx = qgx;
+    vec2 qy = qgy;
+    float hidden = 0.0;
+    vec4 t4 = lookMarkTexel(m + 3);
+    float toward = dot(ray, anchor);
+    if (t4.z >= 0.0 && toward < -1e-3) {
+      int packed = int(t4.z);
+      int heightSlot = packed / ${HEIGHT_LEVELS};
+      vec3 at = vec3(t4.xy, float(heightSlot));
+      float h = lookMeters(textureLod(wanderHeight, at, 2.0).r + t4.w, packed - ${HEIGHT_LEVELS} * heightSlot);
+      vec3 top = anchor * (1.0 + wanderKLand * max(h, 0.0) * LOOK_MARK_INV_R);
+      float t = dot(top - lookCamLocal, anchor) / toward;
+      vec3 w = lookCamLocal + ray * t - top;
+      vec3 wx = rayX * t - ray * (t * dot(rayX, anchor) / toward);
+      vec3 wy = rayY * t - ray * (t * dot(rayY, anchor) / toward);
+      q = vec2(dot(w, east), dot(w, north)) / r;
+      qx = vec2(dot(wx, east), dot(wx, north)) / r;
+      qy = vec2(dot(wy, east), dot(wy, north)) / r;
+      hidden = smoothstep(0.8, 1.2, dot(vLookPos - top, anchor) / r);
+    }
     float pxR = max(max(length(qx), length(qy)), 1e-4);
     // The glyph's cell, the family and flags, and the mark's strength.
     vec4 t2 = lookMarkTexel(m + 1);
@@ -215,9 +259,11 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     // A mirrored glyph is read east to west: a storm's south of the equator.
     float mirror = (flags & ${FLAG.mirror}) != 0 ? -1.0 : 1.0;
     float alpha = t2.w;
+    // The seal's alpha, less what relief rising above its plane hides.
+    float sealAlpha = alpha * (1.0 - hidden);
     // Relief rises first, and the fill comes after; estimates are softer and half as deep.
-    float rise = smoothstep(0.0, 0.5, alpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
-    float fill = smoothstep(0.4, 1.0, alpha) * lookMarkStyle.z;
+    float rise = smoothstep(0.0, 0.5, sealAlpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
+    float fill = smoothstep(0.4, 1.0, sealAlpha) * lookMarkStyle.z;
     float aa = lookMarkEdge(pxR, soft);
     // The seal's bevel rounds a good share of it, so its slope turns through the lamp's reflection
     // and lights the bezel on the lamp's side; a glyph's is a pixel or a tenth of r, within its
@@ -278,16 +324,18 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     float ring = 0.0;
     vec2 ringSlope = vec2(0.0);
     if (t3.z > 0.0) {
-      float fromRing = rq - t3.z;
-      float across = abs(fromRing) / pxR;
-      float around = atan(q.y, q.x) / 6.283185307179586;
-      float dashes = max(12.0, floor(6.283185307179586 * t3.z / (10.0 * pxR)));
+      float rqg = length(qg);
+      vec2 nqg = rqg > 1e-5 ? qg / rqg : vec2(1.0, 0.0);
+      float fromRing = rqg - t3.z;
+      float across = abs(fromRing) / pxRg;
+      float around = atan(qg.y, qg.x) / 6.283185307179586;
+      float dashes = max(12.0, floor(6.283185307179586 * t3.z / (10.0 * pxRg)));
       float weight = smoothstep(0.0, 0.5, alpha) * step(0.45, fract(around * dashes));
       float ink = ${float(RING_ENGRAVE.ink)};
       float edge = ${float(RING_PX.hover)};
       ring = (1.0 - smoothstep(ink - 0.5, ink + 0.5, across)) * weight;
       float wall = smoothstep(ink - 0.5, ink, across) * (1.0 - smoothstep(edge - 0.5, edge, across));
-      ringSlope = sign(fromRing) * nq * ${float(RING_ENGRAVE.wall)} * wall * weight;
+      ringSlope = sign(fromRing) * nqg * ${float(RING_ENGRAVE.wall)} * wall * weight;
     }
 
     // Coverage, and the heights' slopes in the mark's frame.
@@ -308,7 +356,7 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
       smoothstep(-2.0 * aaGlyph, 0.0, dGlyph),
       smoothstep(-2.0 * aaRound, 0.0, dSeal)
     );
-    flatten = max(flatten, f3.z * cover * smoothstep(0.0, 0.5, alpha));
+    flatten = max(flatten, f3.z * cover * smoothstep(0.0, 0.5, sealAlpha));
 
     // The contact shadow, away from the lamp, on the ground outside the mark.
     vec2 fromShadow = q + t3.xy;
@@ -316,7 +364,8 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     vec2 ns = rs > 1e-5 ? fromShadow / rs : vec2(1.0, 0.0);
     float pxShadow = max(length(vec2(dot(ns, qx), dot(ns, qy))), 1e-4);
     float blur = 2.0 * lookMarkEdge(pxShadow, soft) + ${float(SHADOW_BLUR)};
-    float shade = smoothstep(-blur, blur, f0.w - rs) * (1.0 - cover) * smoothstep(0.0, 0.5, alpha);
+    float shade =
+      smoothstep(-blur, blur, f0.w - rs) * (1.0 - cover) * smoothstep(0.0, 0.5, sealAlpha);
 
     // Colors: the seal, its bezel, the glyph on them.
     vec3 color = mix(ground, f0.rgb, cSeal);
@@ -341,14 +390,14 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
     o.marks.cap = max(o.marks.cap, max(capped * max(fill, rise), ring));
     // A glow under the bloom's threshold, of the glyph's own color.
     float lum = max(dot(f1.rgb, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
-    o.marks.glow += f1.rgb / lum * min(lookMarkStyle.w, 0.4) * cGlyph * alpha;
+    o.marks.glow += f1.rgb / lum * min(lookMarkStyle.w, 0.4) * cGlyph * sealAlpha;
 
     // The focal mark alone: an ember ring that breathes, bright enough to bloom.
     if ((flags & ${FLAG.focal}) != 0) {
       float ringW = max(${float(EMBER_RING.half)}, ${float(RING_PX.ember)} * pxR);
       float ring =
         1.0 - smoothstep(ringW - pxR, ringW + pxR, abs(rq - ${float(EMBER_RING.radius)}));
-      o.marks.ember += lookMarkEmber.rgb * lookMarkEmber.w * lookMarkBreath * ring * alpha;
+      o.marks.ember += lookMarkEmber.rgb * lookMarkEmber.w * lookMarkBreath * ring * sealAlpha;
     }
     ground = o.albedo;
     groundRough = o.roughness;
@@ -361,12 +410,15 @@ void lookMarksApply(inout LookSurface o, vec3 g, vec3 gx, vec3 gy) {
 
 /** In lookSurface, once the surface is complete: the inlay direction's derivatives, then marks. */
 export const MARKS_APPLY = /* glsl */ `
-  lookMarksApply(o, gratDir, lookMarkDx, lookMarkDy);`;
+  lookMarksApply(o, gratDir, lookMarkDx, lookMarkDy, lookMarkRay, lookMarkRayX, lookMarkRayY);`;
 
 /** In lookSurface, beside gratDir, where every fragment still runs. */
 export const MARKS_DERIVATIVES = /* glsl */ `
   vec3 lookMarkDx = dFdx(gratDir);
-  vec3 lookMarkDy = dFdy(gratDir);`;
+  vec3 lookMarkDy = dFdy(gratDir);
+  vec3 lookMarkRay = normalize(vLookPos - lookCamLocal);
+  vec3 lookMarkRayX = dFdx(lookMarkRay);
+  vec3 lookMarkRayY = dFdy(lookMarkRay);`;
 
 /** In lookPerturb: the marks' bevels tilt the normal with the relief's. */
 export const MARKS_PERTURB = /* glsl */ `
