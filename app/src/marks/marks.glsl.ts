@@ -257,6 +257,12 @@ void lookMarksApply(
     vec2 qy = vec2(dot(wy, east), dot(wy, north)) / r;
     float hidden = smoothstep(0.8, 1.2, dot(vLookPos - top, anchor) / r);
     float pxR = max(max(length(qx), length(qy)), 1e-4);
+    // Past everything the mark draws about its anchor (its seal and the cap beyond its edge, its
+    // contact shadow, its glyph's box and its ember, each with its widest antialiasing), a
+    // fragment its screen disc reaches is left as it is: in a tilted view over mountains the disc
+    // spans all the way a seal's height can lift it, of which the seal covers a small share. A
+    // hovered parent's ring, engraved about the inlay direction, is drawn as far as it reaches.
+    if (t3.z <= 0.0 && dot(q, q) > pow(2.2 + 3.0 * pxR, 2.0)) continue;
     // The glyph's cell, the family and flags, and the mark's strength.
     vec4 t2 = lookMarkTexel(m + 1);
     int familyFlags = int(t2.z);
