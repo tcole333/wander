@@ -313,3 +313,11 @@ def test_a_steps_key_ignores_why_and_source_but_not_what_a_correction_does():
     assert first(1815) == reworded(1815)
     other = dataclasses.replace(rename((1815, 1815)), op=clio.Rename("Duchy", "Margraviate"))
     assert first(1815) != keyed([other])(1815)
+
+
+def test_a_steps_key_holds_the_land_the_carry_through_carries_in_it():
+    key = keyed([])(1815)
+    piece = clio.Carried("West", "West", box(0, -10, 5, 10), (1800, 1820))
+    assert step_fields.carried_key(key, [piece]) != key
+    moved = dataclasses.replace(piece, shape=box(0, -10, 6, 10))
+    assert step_fields.carried_key(key, [piece]) != step_fields.carried_key(key, [moved])

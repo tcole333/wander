@@ -3,8 +3,9 @@ state of the world from 3400 BCE to 2000, and, until Tambora moves onto the step
 1815 field from a historical-basemaps snapshot.
 
 **Steps** (global and fixture profiles). The selection (cliopatria.py) gives each step's polities,
-their outer units and the stateless land, and step_fields.py bakes each step's field and preview,
-skipping those the cache holds. The stage then writes, in the profile's output root:
+their outer units and the stateless land, with the land the carry-through carries in it from every
+step selected without it, and step_fields.py bakes each step's field and preview, skipping those
+the cache holds. The stage then writes, in the profile's output root:
 
 - each step's field as `fd/borders/s/<sha16>.bin`, a step whose field equals the one before
   dropped;
@@ -154,7 +155,12 @@ def bake_steps(ctx: Context) -> dict[str, Any]:
     print(f"borders: {len(source.rows)} Cliopatria rows, {len(years)} steps", flush=True)
     masks = step_fields.terrain_masks(ctx, terrain, config.rules.sliver_km, ctx.jobs)
     identity = step_fields.code_identity(ctx.repo, masks)
-    keys = {year: step_fields.step_key(year, source, config, identity) for year in years}
+    plain = {year: step_fields.step_key(year, source, config, identity) for year in years}
+    carried = step_fields.carried_steps(ctx, plain, source, config, terrain)
+    keys = {
+        year: step_fields.carried_key(key, carried[year]) if year in carried else key
+        for year, key in plain.items()
+    }
 
     def progress(count: int, total: int, year: int) -> None:
         if count % 25 == 0 or count == total:
@@ -163,7 +169,7 @@ def bake_steps(ctx: Context) -> dict[str, Any]:
 
     baked: dict[int, step_fields.Baked] = {}
     failed: dict[int, str] = {}
-    chosen = step_fields.bake_steps(ctx, keys, source, config, terrain, masks, progress)
+    chosen = step_fields.bake_steps(ctx, keys, source, config, terrain, masks, progress, carried)
     for year, step, error in chosen:
         if step is None:
             failed[year] = str(error)
