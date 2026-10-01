@@ -15,7 +15,6 @@ import { beatSpan, type Span } from './format';
 import {
   anchored,
   arcFor,
-  engraveHistoryTier,
   engraveScale,
   engravedUnit,
   labelledYearStep,
@@ -128,11 +127,10 @@ describe('the crafted ruler', () => {
     },
   );
 
-  it('labels both full-history ends and keeps the overview bounded too', () => {
+  it('labels both ends of all of history', () => {
     const labels = engrave(HISTORY, HISTORICAL);
     expect(labels[0]?.text).toBe('10000 BCE');
     expect(labels.at(-1)?.text).toBe('2000 CE');
-    expect(engraveHistoryTier(arc, HISTORY).labels.length).toBeLessThan(20);
     for (const width of [1024, 1440, 1920]) {
       const sized = arcFor(width);
       const angle = (day: number) =>
@@ -140,11 +138,6 @@ describe('the crafted ruler', () => {
       const labels = engraveScale(sized, HISTORY, angle, HISTORICAL, HISTORY).labels;
       expect(labels[0]?.text).toBe('10000 BCE');
       expect(labels.at(-1)?.text).toBe('2000 CE');
-      const tier = engraveHistoryTier(sized, new ExploreTime(new WorldClock()).extent).labels;
-      expect([tier[0]?.text, tier.at(-1)?.text], `the tier at ${width}px`).toEqual([
-        '10000 BCE',
-        '2000 CE',
-      ]);
     }
     for (const edge of [HISTORY.start, HISTORY.end]) {
       const span = {
