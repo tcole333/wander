@@ -397,7 +397,7 @@ interface Table {
 export const FAN_APART = 2.1;
 /** Rounds of pushing apart: enough for the few marks that share a spot, or a short chain. */
 const FAN_ROUNDS = 6;
-/** Marks nearer than this, CSS px, share a spot: they stand side by side, east to west. */
+/** Marks nearer than this, CSS px, share a spot: they stand side by side across the screen. */
 const SAME_SPOT_PX = 1e-3;
 
 /** A mark as fanOffsets reads it: where it stands on screen, CSS px, and how present it is. */
@@ -416,7 +416,7 @@ export interface FanMark {
  * `rPx` stand closer than FAN_APART radii, center to center: each pair that would overlap is pushed
  * apart along the line between them, each mark in proportion to how present the other is, so a
  * mark fading in slides out from under one already standing, which gives way as it comes. Marks at
- * one spot stand side by side on screen, the higher-scored to the west. Marks of one group never
+ * one spot stand side by side on screen, the higher-scored to the left. Marks of one group never
  * push each other. Every round takes its pushes from the same places, so the result does not hang
  * on the marks' order, and it changes only as the view or a fade does.
  */
@@ -427,8 +427,8 @@ export function fanOffsets(marks: readonly FanMark[], rPx: number): Float64Array
   if (n < 2 || !(apart > 0)) return out;
   const at = marks.map(({ x, y }) => ({ x, y }));
   const push = marks.map(() => ({ x: 0, y: 0 }));
-  /** Whether `a` stands west of `b` at one spot: the higher score first, then by id. */
-  const westOf = (a: FanMark, b: FanMark) =>
+  /** Whether `a` stands left of `b` at one spot: the higher score first, then by id. */
+  const leftOf = (a: FanMark, b: FanMark) =>
     b.score < a.score || (b.score === a.score && a.id < b.id);
   for (let round = 0; round < FAN_ROUNDS; round++) {
     // Neighbors by a grid of cells as wide as the reach, so each pair lies in adjacent cells.
@@ -456,9 +456,9 @@ export function fanOffsets(marks: readonly FanMark[], rPx: number): Float64Array
             if (j <= i || (a.group !== undefined && a.group === b.group)) continue;
             const d = Math.hypot(q.x - p.x, q.y - p.y);
             if (d >= apart) continue;
-            // From a to b; at one spot, side by side, the earlier to the west.
+            // From a to b; at one spot, side by side, the earlier to the left.
             const [ux, uy] =
-              d < SAME_SPOT_PX ? [westOf(a, b) ? 1 : -1, 0] : [(q.x - p.x) / d, (q.y - p.y) / d];
+              d < SAME_SPOT_PX ? [leftOf(a, b) ? 1 : -1, 0] : [(q.x - p.x) / d, (q.y - p.y) / d];
             const half = (apart - d) / 2;
             push[i]!.x -= ux * half * b.alpha;
             push[i]!.y -= uy * half * b.alpha;
