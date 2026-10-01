@@ -29,16 +29,35 @@ const swiftshader: Project = {
   },
 };
 
+const metal: Project['use'] = {
+  ...devices['Desktop Chrome'],
+  viewport: { width: 1440, height: 900 },
+  launchOptions: { args: ['--use-angle=metal'] },
+};
+
 // This Mac's GPU (`npm run e2e:gpu`), the first project of the GPU matrix in streaming.md 7.3.
-// CI runners have no GPU, so CI never lists it.
+// CI runners have no GPU, so CI never lists it. It leaves the tests tagged @alone to gpu-alone.
 const gpuChromium: Project = {
   name: 'gpu-chromium',
   ...shard,
-  use: {
-    ...devices['Desktop Chrome'],
-    viewport: { width: 1440, height: 900 },
-    launchOptions: { args: ['--use-angle=metal'] },
-  },
+  grepInvert: /@alone\b/,
+  teardown: 'gpu-alone',
+  use: metal,
+};
+
+// The tests tagged @alone, on this GPU with no other test drawing: one at a time, after
+// gpu-chromium's. A GPU timer query counts the GPU's other work during its pass too: beside
+// gpu-chromium's other workers, eight draws' fastest pass measured as little as 4.5 times one
+// draw's, against 6.8 or more alone. gpu-chromium names this project its teardown, which
+// Playwright runs after it whatever its results (a failing dependency would skip the GPU run) and
+// whole, whatever the run's filters. e2e:gpu names it as well, so filters that leave gpu-chromium
+// nothing, as --last-failed after a failure here does, still reach it.
+const gpuAlone: Project = {
+  name: 'gpu-alone',
+  ...shard,
+  grep: /@alone\b/,
+  workers: 1,
+  use: metal,
 };
 
 // Lab runs on this Mac (`npm run lab`, which sets WANDER_LAB): measurements and cross-browser
@@ -97,6 +116,6 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  projects: process.env.CI ? [swiftshader] : LAB ? [lab] : [swiftshader, gpuChromium],
+  projects: process.env.CI ? [swiftshader] : LAB ? [lab] : [swiftshader, gpuChromium, gpuAlone],
   webServer: LAB ? [dev] : [preview, dev, fixtureData],
 });
