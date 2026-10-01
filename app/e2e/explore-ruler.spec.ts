@@ -8,7 +8,8 @@
 // a sideways swipe travels, a touch pulls and a pinch anywhere on the ruler, the counter's knobs
 // included, zooms without zooming the page, a finger sliding off a knob stops it, no label shows
 // cut by the glass's edges or in a reel's fade, no press on the brass selects text, a pin holds
-// while its date is on the tape, and Home and End reach history's ends. Nothing logs an error.
+// while its date is on the tape, Home and End reach history's ends, a letter on the plaque opens
+// its entry, and a refused date is said. Nothing logs an error.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import type { ExploreLabelsHook, ExploreViewHook, WorldTimeHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
@@ -272,7 +273,7 @@ test('Explore’s ruler moves time by keys, typing, the overview, a pull and the
   expect(errors).toEqual([]);
 });
 
-test('Explore’s pin holds while on the tape, and Home and End reach history’s ends', async ({
+test('Explore’s pin holds while on the tape, Home and End reach history’s ends, and the plaque reads a month', async ({
   page,
 }) => {
   test.setTimeout(600_000);
@@ -287,6 +288,22 @@ test('Explore’s pin holds while on the tape, and Home and End reach history’
   await expect.poll(() => pinned(page)).toBeNull();
   await page.keyboard.press('Home');
   expect((await rested(page)).day).toBe(HISTORY.start);
+
+  // With the plaque focused a letter opens the entry too, so a month types whole; a date the
+  // entry refuses is said, as the plaque shakes.
+  const date = page.getByRole('slider', { name: 'World date' });
+  await date.focus();
+  await page.keyboard.type('June 1815');
+  await expect(page.locator('.xr-entry')).toHaveValue('June 1815');
+  await page.keyboard.press('Enter');
+  await expect(date).toHaveAttribute('aria-valuetext', /^15 June 1815 CE;/);
+  await expect(date).toBeFocused();
+  await page.keyboard.type('31 February 1815');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.xr-status')).toHaveText(
+    'There is no 31 February 1815 in the calendar.',
+  );
+  await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });
 

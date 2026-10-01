@@ -28,7 +28,7 @@ import { HISTORICAL, monthName, type Precision } from '../story/dates';
 import { cartouche, smallKnob, teeth } from '../story/ui/brass';
 import { el, svg } from '../story/ui/dom';
 import { at, deg, f, radial, sector } from '../story/ui/rulerScale';
-import { parseEntry } from '../time/dateEntry';
+import { parseEntry, refusalText } from '../time/dateEntry';
 import { ExploreTime, MAX_EXPLORE_DAYS, MIN_EXPLORE_DAYS, wheelPixels } from '../time/exploreTime';
 import {
   groupDigits,
@@ -824,13 +824,18 @@ export class TimeRuler {
         passive: false,
       });
     }
+    // Enter opens the date entry on the plaque, and a letter opens it with the letter, ahead of
+    // any key a letter means elsewhere, so 'June 1815' types whole. A digit opens it from anywhere
+    // (timeKeys.ts).
     this.#plaque.addEventListener(
       'keydown',
       (event) => {
-        if (event.target !== this.#plaque || event.key !== 'Enter') return;
+        if (event.target !== this.#plaque) return;
         if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (event.key === 'Enter') this.openEntry();
+        else if (/^\p{L}$/u.test(event.key)) this.openEntry(event.key);
+        else return;
         event.preventDefault();
-        this.openEntry();
       },
       { signal },
     );
@@ -856,7 +861,10 @@ export class TimeRuler {
     entry.addEventListener('blur', () => this.closeEntry(), { signal });
   }
 
-  /** Reads what was typed: a date flies there and closes; one out of reach shakes the plaque. */
+  /**
+   * Reads what was typed: a date flies there and closes; one out of reach shakes the plaque and
+   * says what is wrong with it.
+   */
   #commit(): void {
     const typed = parseEntry(this.#entry.value, this.#time.bounds);
     if (!typed.ok) {
@@ -868,6 +876,7 @@ export class TimeRuler {
       // Once more, so the shake runs again.
       void this.#plaque.offsetWidth;
       this.#plaque.classList.add('is-refused');
+      this.say(refusalText(typed.why, this.#entry.value, this.#time.bounds));
       return;
     }
     const span = this.#time.target.span;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dayFromHistorical, dayFromIso, HISTORICAL } from '../story/dates';
-import { parseEntry } from './dateEntry';
+import { parseEntry, refusalText } from './dateEntry';
 import { HISTORY } from './exploreTime';
 import { middleDay, YEAR_DAYS } from './overviewScale';
 
@@ -73,5 +73,19 @@ describe('a typed date', () => {
     expect(HISTORICAL.civil(dayOf('10,000 BCE')).year).toBe(-9999);
     expect(HISTORICAL.civil(dayOf('2000')).year).toBe(2000);
     expect(dayOf('31 December 2000')).toBe(HISTORY.end);
+  });
+});
+
+describe('a refused date', () => {
+  it.each([
+    ['hello', 'hello is not a date. Type a year, as 1066 or 500 BCE, or a day, as 18 June 1815.'],
+    ['0', 'There is no year 0: 1 BCE runs into 1 CE.'],
+    ['31 February 1815', 'There is no 31 February 1815 in the calendar.'],
+    ['12000 BCE', '12000 BCE is outside 10,000 BCE to 2000.'],
+    [' 3000 ', '3000 is outside 10,000 BCE to 2000.'],
+  ])('says what is wrong with %j', (text, words) => {
+    const entry = parse(text);
+    if (entry.ok || entry.why === 'empty') throw new Error(`${text} was not refused`);
+    expect(refusalText(entry.why, text, HISTORY)).toBe(words);
   });
 });
