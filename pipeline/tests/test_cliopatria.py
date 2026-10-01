@@ -1094,6 +1094,17 @@ def test_a_cited_stateless_pocket_keeps_the_land_a_run_would_carry_stateless(ter
     assert owing["gaps"] == []
 
 
+def test_a_gap_in_land_a_stateless_pocket_keeps_is_not_owed(terrain):
+    # Realm held the west half before the run and Republic all of it after: the west half is a
+    # gap, and the pocket, whose point lies in the east half, keeps the whole piece stateless.
+    rows = [held(1800, 1809, shape=box(-20, -10, 0, 10)), held(1820, 1830, "Republic")]
+    assert len(owed_over(rows, terrain)["gaps"]) == 1
+    cited = correction(clio.Pocket(at=(10.0, 5.0), stateless=True), years=(1810, 1819))
+    chosen, owing = selected_over(rows, terrain, [cited])
+    assert stateless_at(chosen[1810], -10, 5) and chosen[1810].applied == {0}
+    assert owing["gaps"] == []
+
+
 def test_a_step_selected_without_the_carry_through_round_trips_through_its_bytes(terrain):
     chosen = select([held(1815, 1815, shape=box(-20, -10, 0, 10))], terrain)
     plain = clio.Plain.of(chosen)

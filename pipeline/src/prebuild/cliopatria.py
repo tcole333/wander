@@ -916,6 +916,7 @@ def select(
         "carried": carried_through,
         "stateless": unclaimed,
         "statelessCells": pack_cells(cells(stateless)),
+        "citedCells": pack_cells(cells(cited)) if not shapely.is_empty(cited) else None,
     }
     return Selection(
         year, parts, stateless, frozenset(applied), unacknowledged, report, filled, holes, cited
@@ -1839,9 +1840,9 @@ def owed(
     """What the steps owe the history pass, which publish-data refuses (owner decision 38): each
     stateless hole of OWED_KM2 or more no pocket correction cites, as a place over its run of steps,
     and each gap of OWED_KM2 or more, land held in the steps on both sides of a stateless run of at
-    most GAP_YEARS, holding no such hole and no stateless pocket's point. `land` is the cells of
-    the terrain's dry land; each place's years run from its first step to the day before the step
-    after its last."""
+    most GAP_YEARS, holding no such hole, no stateless pocket's point and no land a stateless
+    pocket keeps. `land` is the cells of the terrain's dry land; each place's years run from its
+    first step to the day before the step after its last."""
     steps = [y for y in years if y in reports]
     if not steps:
         return {"holes": [], "gaps": []}
@@ -1888,6 +1889,14 @@ def _gaps(
         for c in config.corrections
         if isinstance(c.op, Pocket) and c.op.stateless
     ]
+    kept = np.stack(
+        [
+            unpack_cells(reports[y]["citedCells"])
+            if reports[y].get("citedCells")
+            else np.zeros_like(stateless[0])
+            for y in steps
+        ]
+    )
     listed = [
         (year, _cell_of(entry["at"]))
         for year in steps
@@ -1910,6 +1919,8 @@ def _gaps(
                 if any(first <= y <= last and region[cell] for y, cell in listed):
                     continue
                 if any(f <= last and first <= t and region[cell] for (f, t), cell in cited):
+                    continue
+                if (kept[a : b + 1] & region).any():
                     continue
                 rows, columns = np.nonzero(region)
                 at = [
