@@ -45,7 +45,13 @@ export const SEAL_INK = 0.8;
 
 const NIELLO = { color: '#0d0a08', roughness: 0.55, metalness: 0.1 };
 /** A seal: its radius and height in r, color, roughness and metalness. */
-const seal = (radius: number, height: number, color: string, roughness: number, metalness = 1) => ({
+const seal = (
+  radius: number,
+  height: number,
+  color: string,
+  roughness: number,
+  metalness: number,
+) => ({
   radius,
   height,
   color,
@@ -58,8 +64,15 @@ const glyph = (
   height: number,
   finish: { color: string; roughness: number; metalness: number },
 ) => ({ scale, height, ...finish });
+/**
+ * Gilt's metalness: polished, but with a share of its color lit as a diffuse surface is. Wholly
+ * metal, gilt reflects only what lies in its mirror direction, which in a tilted view is the dark
+ * room rather than the lamp behind the camera: a flat gilt face reads as dark as niello there, and a
+ * glyph as its bevel's two bright rims.
+ */
+const GILT_METALNESS = 0.6;
 /** A glyph's worn metal, bright where hands have polished it. */
-const worn = (color: string) => ({ color, roughness: 0.35, metalness: 1 });
+const worn = (color: string) => ({ color, roughness: 0.35, metalness: GILT_METALNESS });
 /** A polished bezel `width` of r inside the seal's edge. */
 const bezel = (width: number, color: string) => ({ width, color, roughness: 0.3 });
 
@@ -75,12 +88,12 @@ export const FAMILIES: Record<Pace, Family> = {
     // The treaty's seal reaches 35.4 units.
     seal: seal(1, 0.12, '#1c1510', 0.5, 0.2),
     bezel: bezel(0.13, '#e2bc6c'),
-    glyph: glyph(0.72, 0.04, { color: '#e8bf64', roughness: 0.32, metalness: 1 }),
+    glyph: glyph(0.72, 0.04, { color: '#e8bf64', roughness: 0.32, metalness: GILT_METALNESS }),
     flatten: 0.9,
   },
   infrastructure: {
     // The wreck reaches 36.1 units, on a seal 0.8 of the mark's radius.
-    seal: seal(0.8, 0.12, '#dcb25a', 0.36),
+    seal: seal(0.8, 0.12, '#dcb25a', 0.36, GILT_METALNESS),
     bezel: bezel(0.1, '#f6de9c'),
     glyph: glyph(0.56, -0.05, NIELLO),
     flatten: 0.9,
