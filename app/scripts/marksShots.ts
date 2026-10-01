@@ -121,8 +121,15 @@ interface Shot {
   path: string;
   viewKm: number;
   marks: DrawnMark[];
-  /** The marks of the events placed at each spot, and each one's hovered render. */
-  spots: { name: string; marks: string[]; hovers: string[] }[];
+  /**
+   * The marks of the events placed at each spot, and for each the render with the pointer resting
+   * on it and the mark the pointer reached there: another, when one hides it.
+   */
+  spots: {
+    name: string;
+    marks: string[];
+    hovers: { id: string; reached: string | null; path: string }[];
+  }[];
 }
 
 const names = await eventNames();
@@ -196,21 +203,20 @@ async function shoot(page: Page, name: string, { view, spots = [] }: View): Prom
   for (const spot of spots) {
     // The marks of events placed within a few kilometers of the spot.
     const near = marks.filter((m) => Math.hypot(m.at[0] - spot.at[0], m.at[1] - spot.at[1]) < 0.05);
-    const hovers: string[] = [];
+    const hovers: Shot['spots'][number]['hovers'] = [];
     if (values.hover) {
       for (const mark of near) {
         await page.mouse.move(mark.x, mark.y);
-        await page.waitForFunction(
-          (id) => (window as ShotPage).__exploreLabels?.hovered() === id,
-          mark.id,
-          { timeout: 10_000 },
-        );
         // The plate comes once the pointer has rested (hoverQueue) and fades in.
-        await page.waitForTimeout(700);
-        const hovered = join(out, `${name}-hover-${mark.id.replace('/', '-')}.png`);
-        await page.screenshot({ path: hovered });
-        hovers.push(hovered);
-        console.log(`${hovered}: ${mark.label}`);
+        await page.waitForTimeout(900);
+        const reached = await page.evaluate(
+          () => (window as ShotPage).__exploreLabels?.hovered() ?? null,
+        );
+        const path = join(out, `${name}-hover-${mark.id.replace('/', '-')}.png`);
+        await page.screenshot({ path });
+        hovers.push({ id: mark.id, reached, path });
+        const missed = reached === mark.id ? '' : `, but the pointer reaches ${reached ?? 'none'}`;
+        console.log(`${path}: ${mark.label}${missed}`);
       }
       await page.mouse.move(1439, 1);
       await page.waitForTimeout(500);
