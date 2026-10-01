@@ -76,6 +76,11 @@ export interface MarkSpec {
   ringRad?: number;
   /** Orders marks in a crowded tile after focal and hovered ones: higher first. */
   score?: number;
+  /**
+   * Marks of one group, such as an event's solid and hollow marks as they crossfade, share their
+   * place rather than stand apart (fanOffsets).
+   */
+  group?: string;
 }
 
 /** A mark as place() last drew it: its place and radius on screen, in CSS px, and its fade. */
@@ -259,6 +264,8 @@ interface Entry {
 
 interface Candidate {
   entry: Entry;
+  /** Its anchor as drawn, stood apart from a mark it would overlap (fanOffsets), and on screen. */
+  dir: Vector3;
   x: number;
   y: number;
   /** Its radius and its reach, CSS px, and its radius at sea level in globe radii. */
@@ -369,6 +376,95 @@ interface Table {
   data: Float32Array;
   next: Float32Array;
   texture: DataTexture;
+}
+
+/** How far apart the look keeps two marks' centers on screen, in their radii: their seals clear. */
+export const FAN_APART = 2.1;
+/** Rounds of pushing apart: enough for the few marks that share a spot, or a short chain. */
+const FAN_ROUNDS = 6;
+/** Marks nearer than this, CSS px, share a spot: they stand side by side, east to west. */
+const SAME_SPOT_PX = 1e-3;
+
+/** A mark as fanOffsets reads it: where it stands on screen, CSS px, and how present it is. */
+export interface FanMark {
+  x: number;
+  y: number;
+  /** Its opacity, 0 to 1: a mark fading in pushes its neighbors aside as far as it has come. */
+  alpha: number;
+  score: number;
+  id: string;
+  group?: string;
+}
+
+/**
+ * How far to move each of `marks` on screen, CSS px, as [dx, dy] pairs, so that no two of radius
+ * `rPx` stand closer than FAN_APART radii, center to center: each pair that would overlap is pushed
+ * apart along the line between them, each mark in proportion to how present the other is, so a
+ * mark fading in slides out from under one already standing, which gives way as it comes. Marks at
+ * one spot stand side by side on screen, the higher-scored to the west. Marks of one group never
+ * push each other. Every round takes its pushes from the same places, so the result does not hang
+ * on the marks' order, and it changes only as the view or a fade does.
+ */
+export function fanOffsets(marks: readonly FanMark[], rPx: number): Float64Array {
+  const n = marks.length;
+  const apart = FAN_APART * rPx;
+  const out = new Float64Array(2 * n);
+  if (n < 2 || !(apart > 0)) return out;
+  const at = marks.map(({ x, y }) => ({ x, y }));
+  const push = marks.map(() => ({ x: 0, y: 0 }));
+  /** Whether `a` stands west of `b` at one spot: the higher score first, then by id. */
+  const westOf = (a: FanMark, b: FanMark) =>
+    b.score < a.score || (b.score === a.score && a.id < b.id);
+  for (let round = 0; round < FAN_ROUNDS; round++) {
+    // Neighbors by a grid of cells as wide as the reach, so each pair lies in adjacent cells.
+    const cells = new Map<string, number[]>();
+    const cellOf = (p: { x: number; y: number }) => [
+      Math.floor(p.x / apart),
+      Math.floor(p.y / apart),
+    ];
+    at.forEach((p, i) => {
+      const key = cellOf(p).join();
+      const list = cells.get(key);
+      if (list) list.push(i);
+      else cells.set(key, [i]);
+    });
+    for (const p of push) p.x = p.y = 0;
+    let moved = false;
+    at.forEach((p, i) => {
+      const a = marks[i]!;
+      const [cx = 0, cy = 0] = cellOf(p);
+      for (let gy = cy - 1; gy <= cy + 1; gy++) {
+        for (let gx = cx - 1; gx <= cx + 1; gx++) {
+          for (const j of cells.get(`${gx},${gy}`) ?? []) {
+            const b = marks[j]!;
+            const q = at[j]!;
+            if (j <= i || (a.group !== undefined && a.group === b.group)) continue;
+            const d = Math.hypot(q.x - p.x, q.y - p.y);
+            if (d >= apart) continue;
+            // From a to b; at one spot, side by side, the earlier to the west.
+            const [ux, uy] =
+              d < SAME_SPOT_PX ? [westOf(a, b) ? 1 : -1, 0] : [(q.x - p.x) / d, (q.y - p.y) / d];
+            const half = (apart - d) / 2;
+            push[i]!.x -= ux * half * b.alpha;
+            push[i]!.y -= uy * half * b.alpha;
+            push[j]!.x += ux * half * a.alpha;
+            push[j]!.y += uy * half * a.alpha;
+            moved = true;
+          }
+        }
+      }
+    });
+    if (!moved) break;
+    at.forEach((p, i) => {
+      p.x += push[i]!.x;
+      p.y += push[i]!.y;
+    });
+  }
+  at.forEach((p, i) => {
+    out[2 * i] = p.x - marks[i]!.x;
+    out[2 * i + 1] = p.y - marks[i]!.y;
+  });
+  return out;
 }
 
 /** Focal first, then hovered, then by score; ties keep the order the layers gave. */
@@ -547,8 +643,22 @@ export class MarkLayer {
       const cosMin = Math.min(MARK_COS_MIN, Math.cos(Math.min(1.1 * ringRad + 0.02, Math.PI / 2)));
       if (x + reachPx < -grid.pad || x - reachPx > view.width + grid.pad) continue;
       if (y + reachPx < -grid.pad || y - reachPx > view.height + grid.pad) continue;
-      candidates.push({ entry, x, y, rPx, reachPx, r, alpha, shadowX, shadowY, ring, cosMin });
+      candidates.push({
+        entry,
+        dir,
+        x,
+        y,
+        rPx,
+        reachPx,
+        r,
+        alpha,
+        shadowX,
+        shadowY,
+        ring,
+        cosMin,
+      });
     }
+    this.#standApart(candidates, px / 2, view);
     candidates.sort(byPriority);
     if (candidates.length > MARKS_MAX) candidates.length = MARKS_MAX;
     const bins = binDiscs(candidates, view.width, view.height, tunables.markTileCap);
@@ -572,7 +682,8 @@ export class MarkLayer {
     });
     const markBase = MARK_ROW * TABLE_WIDTH * 4;
     candidates.forEach((c, m) => {
-      const { spec, dir, family } = c.entry;
+      const { spec, family } = c.entry;
+      const { dir } = c;
       const cell = cells.get(spec.glyph);
       const flags =
         (spec.focal ? FLAG.focal : 0) |
@@ -705,6 +816,59 @@ export class MarkLayer {
     this.#entries = [];
     this.#release();
     this.#blank.dispose();
+  }
+
+  /**
+   * Stands apart marks that would overlap on screen (fanOffsets): each moved mark's anchor slides
+   * on the globe by its offset, through the view's local stretch at its place, so the look draws
+   * it, and the pointer finds it, where it stands.
+   */
+  #standApart(candidates: Candidate[], rPx: number, view: MarkView): void {
+    const offsets = fanOffsets(
+      candidates.map(({ x, y, alpha, entry: { spec } }) => ({
+        x,
+        y,
+        alpha,
+        score: spec.score ?? 0,
+        id: spec.id,
+        group: spec.group,
+      })),
+      rPx,
+    );
+    const north = new Vector3();
+    const step = new Vector3();
+    const clip = new Vector4();
+    const screenOf = (dir: Vector3): [number, number] | null => {
+      clip.set(dir.x, dir.y, dir.z, 1).applyMatrix4(view.toClip);
+      if (clip.w <= 0) return null;
+      return [(clip.x / clip.w / 2 + 0.5) * view.width, (0.5 - clip.y / clip.w / 2) * view.height];
+    };
+    candidates.forEach((c, i) => {
+      const ox = offsets[2 * i] ?? 0;
+      const oy = offsets[2 * i + 1] ?? 0;
+      if (Math.hypot(ox, oy) < 1e-3) return;
+      // The screen's stretch of a small step east and north on the globe, CSS px per radian.
+      const { dir, east } = c.entry;
+      north.crossVectors(dir, east);
+      const h = c.r;
+      const e = screenOf(step.copy(dir).addScaledVector(east, h));
+      const nn = screenOf(step.copy(dir).addScaledVector(north, h));
+      if (!e || !nn) return;
+      const [ex, ey, nx, ny] = [
+        (e[0] - c.x) / h,
+        (e[1] - c.y) / h,
+        (nn[0] - c.x) / h,
+        (nn[1] - c.y) / h,
+      ];
+      const det = ex * ny - nx * ey;
+      if (Math.abs(det) < 1e-9) return;
+      const de = (ox * ny - nx * oy) / det;
+      const dn = (ex * oy - ox * ey) / det;
+      c.dir = dir.clone().addScaledVector(east, de).addScaledVector(north, dn).normalize();
+      c.x += ox;
+      c.y += oy;
+      c.reachPx += Math.hypot(ox, oy);
+    });
   }
 
   #report(what: 'glyph' | 'pace', name: string): void {

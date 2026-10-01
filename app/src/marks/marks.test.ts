@@ -20,6 +20,9 @@ import {
 } from './marks.glsl';
 import {
   binDiscs,
+  FAN_APART,
+  fanOffsets,
+  type FanMark,
   limbFade,
   MarkLayer,
   markPx,
@@ -449,5 +452,104 @@ describe('MarkLayer', () => {
     const asked = ceilings.length;
     expect(marks.hit(sea.x + 300, sea.y)).toBeNull();
     expect(ceilings).toHaveLength(asked);
+  });
+});
+
+describe('fanOffsets', () => {
+  const fan = (marks: FanMark[], rPx = 10) => {
+    const offsets = fanOffsets(marks, rPx);
+    return marks.map((m, i) => ({
+      x: m.x + (offsets[2 * i] ?? 0),
+      y: m.y + (offsets[2 * i + 1] ?? 0),
+    }));
+  };
+  const at = (id: string, x: number, y: number, extra: Partial<FanMark> = {}): FanMark => ({
+    id,
+    x,
+    y,
+    alpha: 1,
+    score: 0,
+    ...extra,
+  });
+
+  it('stands two marks at one spot side by side, the higher-scored to the west', () => {
+    const [treaty, battle] = fan([
+      at('treaty', 100, 50, { score: 3 }),
+      at('battle', 100, 50, { score: 7 }),
+    ]);
+    expect(battle!.x).toBeCloseTo(100 - (FAN_APART * 10) / 2, 6);
+    expect(treaty!.x).toBeCloseTo(100 + (FAN_APART * 10) / 2, 6);
+    expect([battle!.y, treaty!.y]).toEqual([50, 50]);
+  });
+
+  it('pushes overlapping marks apart along the line between them, and leaves the rest', () => {
+    const [a, b, c] = fan([at('a', 0, 0), at('b', 6, 8), at('c', 200, 0)]);
+    expect(Math.hypot(b!.x - a!.x, b!.y - a!.y)).toBeCloseTo(FAN_APART * 10, 3);
+    // Along the line from a to b, 3 to 4.
+    expect((b!.y - a!.y) / (b!.x - a!.x)).toBeCloseTo(8 / 6, 6);
+    expect(c).toEqual({ x: 200, y: 0 });
+  });
+
+  it('slides a mark fading in out from under one standing, which gives way as it comes', () => {
+    const [standing, coming] = fan([at('standing', 0, 0), at('coming', 2, 0, { alpha: 0.2 })]);
+    expect(Math.hypot(coming!.x - standing!.x, coming!.y - standing!.y)).toBeCloseTo(
+      FAN_APART * 10,
+      0,
+    );
+    expect(-standing!.x).toBeLessThan((coming!.x - 2) / 3);
+  });
+
+  it('leaves a group’s marks on their shared place', () => {
+    const marks = [at('Q1', 0, 0, { group: 'Q1' }), at('Q1/outline', 0, 0, { group: 'Q1' })];
+    expect(fan(marks)).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
+  });
+
+  it('places the marks the same whatever their order', () => {
+    const marks = [at('a', 0, 0), at('b', 5, 1), at('c', 9, -2, { score: 2 }), at('d', 9, -2)];
+    const forward = fan(marks);
+    const backward = fan([...marks].reverse()).reverse();
+    forward.forEach((p, i) => {
+      expect(p.x).toBeCloseTo(backward[i]!.x, 9);
+      expect(p.y).toBeCloseTo(backward[i]!.y, 9);
+    });
+  });
+});
+
+describe('MarkLayer’s marks at one place', () => {
+  const view = over([20, 10], 0.47);
+
+  it('stands them apart, drawn, picked and spanned where each stands', () => {
+    const marks = new MarkLayer(() => cells);
+    marks.set('events', [
+      mark('treaty', [20, 10], { pace: 'governance', score: 5 }),
+      mark('flood', [20, 10], { score: 9 }),
+    ]);
+    marks.place(view);
+    const placed = marks.placed();
+    const flood = placed.find((p) => p.id === 'flood')!;
+    const treaty = placed.find((p) => p.id === 'treaty')!;
+    expect(flood.x).toBeLessThan(treaty.x);
+    expect(Math.hypot(treaty.x - flood.x, treaty.y - flood.y)).toBeCloseTo(
+      FAN_APART * flood.rPx,
+      0,
+    );
+    // Each is picked, and spanned, where it stands.
+    expect(marks.hit(flood.x, flood.y)).toBe('flood');
+    expect(marks.hit(treaty.x, treaty.y)).toBe('treaty');
+    expect(marks.span('treaty')).toMatchObject({ x0: treaty.x, y0: treaty.y });
+    // The look draws each about its own anchor, its place on screen.
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const anchor = (m: number) => {
+      const i = MARK_ROW * TABLE_WIDTH * 4 + m * 12;
+      const clip = new Vector4(data[i], data[i + 1], data[i + 2], 1).applyMatrix4(view.toClip);
+      return [(clip.x / clip.w / 2 + 0.5) * 1440, (0.5 - clip.y / clip.w / 2) * 900];
+    };
+    const drawn = [anchor(0), anchor(1)].sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
+    expect(drawn[0]![0]).toBeCloseTo(flood.x, 1);
+    expect(drawn[0]![1]).toBeCloseTo(flood.y, 1);
+    expect(drawn[1]![0]).toBeCloseTo(treaty.x, 1);
   });
 });

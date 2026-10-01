@@ -496,6 +496,7 @@ export class ExploreEvents {
         soft: isSoft(mark),
         ringRad: hollow ? ringRadOf(mark) : undefined,
         score: mark.score,
+        group: markIdOf(mark.qid),
       });
       shown.set(id, mark);
       if (mark.anchorVisible) standing.push({ mark, opacity });
@@ -541,6 +542,7 @@ export class ExploreEvents {
           focal: true,
           hover: id === this.#hovered,
           soft: lock.soft,
+          group: id,
         });
         shown.set(id, null);
       } else this.#report(`class ${lock.cls}`, `no mark for the class '${lock.cls}'`);
