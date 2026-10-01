@@ -662,7 +662,8 @@ export class ExploreLabels {
     const pinnedMark = this.#pinnedMark(placed);
     const words = qid !== null && pinnedMark ? this.#textOf(pinnedMark.id) : null;
     if (qid !== null && pinnedMark && words) {
-      const text = pinnedText(words, qid, this.#openings.get(qid));
+      const flags = this.#events.event(pinnedMark.id)?.flags ?? 0;
+      const text = pinnedText(words, qid, flags, this.#openings.get(qid));
       this.#pinPlate.set(text);
       const { side, box } = placePlate(
         anchor(pinnedMark),

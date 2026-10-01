@@ -4,9 +4,9 @@
 // history (time/exploreTime.ts, exploreWindow), and the view, the events the globe draws and the
 // focal one left out; the client asks it once the clock and view have rested for meanwhileRest.
 // Each answer lists up to meanwhileCount events off the screen, each named as its plate names it
-// (plateText.ts), dated as history writes it and sourced to its Wikipedia article; an entry whose
-// dates the now window has left goes at once, before the next answer. Choosing one flies there
-// (explore.ts), and the landing pins it. A keyboard visitor on an entry keeps their place as
+// (plateText.ts), dated as history writes it and sourced to its Wikipedia article or Wikidata item.
+// An entry whose dates the now window has left goes at once, before the next answer. Choosing one
+// flies there (explore.ts), and the landing pins it. A keyboard visitor keeps their place as
 // answers change the list; once none is left, the focus goes to `heir` (Explore's events listbox).
 import { tunables } from '../config/tunables';
 import type { MeanwhileEvent, MeanwhileQuery } from '../events/meanwhile';
@@ -36,7 +36,7 @@ export function entryOf(event: MeanwhileEvent): MeanwhileEntry {
     dateLabel: eventDate(event.t0, event.t1, event.prec),
     at: event.at,
     qid: `Q${event.qid}`,
-    source: sourceOf(event.qid),
+    source: sourceOf(event.qid, event.flags),
   };
 }
 

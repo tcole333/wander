@@ -2,12 +2,12 @@
 // history writes it (story/dates.ts, formatHistorical: Julian before 15 October 1582, BCE before
 // 1 CE), and for a child, the event it is part of. A pinned plate adds its source; an opening's
 // adds the line its writers give it (openings.ts), the only lines Explore has until every label
-// gets one (#82). The index holds no Wikipedia title, so an event's source is the English
-// Wikipedia article Wikidata links it to.
+// gets one (#82). The index flags events without an English Wikipedia article, whose source is
+// their Wikidata item; the rest link through Wikidata to their English article.
 import type { EventDescription } from '../events/describe';
 import { formatHistorical, type Precision } from '../story/dates';
 import { curlyQuotes } from '../story/ui/format';
-import { PART_OF, SOURCE_NAME } from './copy';
+import { PART_OF, SOURCE_NAME, WIKIDATA_SOURCE_NAME } from './copy';
 import type { Opening } from './openings';
 
 /**
@@ -19,6 +19,8 @@ const NUMBER_UNIT = /(\d) (km²?|m|cm|mm|mi|kg|t|ha|°[CF])(?![\p{L}\d])/gu;
 /** Wikidata's precision of a day; a month's is one less, a year's two less. */
 const DAY_PRECISION = 11;
 const MONTH_PRECISION = 10;
+/** .wev bit5: the pinned Wikidata export has no English Wikipedia article for this event. */
+const NO_ENWIKI = 1 << 5;
 
 export interface PlateText {
   /** The event's name. */
@@ -57,8 +59,11 @@ export function eventDate(t0: number, t1: number, prec: number): string {
   return formatHistorical(t0, precisionOf(prec), t1);
 }
 
-/** The English Wikipedia article Wikidata links the event with Q number `qid` to. */
-export function sourceOf(qid: number): { title: string; url: string } {
+/** The event's English Wikipedia article, or its Wikidata item when it has no English article. */
+export function sourceOf(qid: number, flags: number): { title: string; url: string } {
+  if (flags & NO_ENWIKI) {
+    return { title: WIKIDATA_SOURCE_NAME, url: `https://www.wikidata.org/wiki/Q${qid}` };
+  }
   return {
     title: SOURCE_NAME,
     url: `https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/Q${qid}`,
@@ -81,10 +86,15 @@ export function openingText(opening: Opening): PlateText {
 
 /**
  * A plate's words once pinned: an opening's line and the source its line rests on, or any other
- * event's Wikipedia article.
+ * event's Wikipedia article or Wikidata item.
  */
-export function pinnedText(text: PlateText, qid: number, opening?: Opening): PinnedText {
-  if (!opening) return { ...text, source: sourceOf(qid) };
+export function pinnedText(
+  text: PlateText,
+  qid: number,
+  flags: number,
+  opening?: Opening,
+): PinnedText {
+  if (!opening) return { ...text, source: sourceOf(qid, flags) };
   const line = opening.label === opening.name ? {} : { line: writtenLine(opening.label) };
   return { ...text, ...line, source: opening.source };
 }

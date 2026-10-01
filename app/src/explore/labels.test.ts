@@ -29,6 +29,7 @@ interface OnScreen {
   labelled?: string;
   /** Not yet described by the worker. */
   undescribed?: boolean;
+  flags?: number;
 }
 
 /** Explore's events as the labels see them: marks placed on screen, 8 px in radius. */
@@ -46,7 +47,7 @@ function fakeEvents(shown: OnScreen[]) {
     t0: DAY,
     t1: DAY,
     prec: 11,
-    flags: 0,
+    flags: on.flags ?? 0,
     unc: 0,
     parent: -1,
     focal: false,
@@ -256,6 +257,7 @@ describe('Explore’s labels', () => {
     const plate = plate$(root, true);
     expect(shown(plate)).toBe(true);
     const link = byClass(plate, 'xl-source');
+    expect(link.textContent).toBe('Wikipedia');
     expect([link.href, link.target, link.rel]).toEqual([
       'https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/Q207318',
       '_blank',
@@ -263,6 +265,32 @@ describe('Explore’s labels', () => {
     ]);
     // The live region reads the pinned plate once.
     expect(byClass(root, 'xl-live').textContent).toBe('Battle of Ligny, 18 June 1815');
+  });
+
+  it('links a pinned event with no English article to its Wikidata item', () => {
+    const on: OnScreen = {
+      id: 'Q34103',
+      x: 640,
+      y: 380,
+      label: 'Second Syrian War',
+      flags: 32 | 16,
+      undescribed: true,
+    };
+    const { labels, root, click } = setup([on]);
+    labels.land(null);
+    click(on.x, on.y);
+    labels.update(0);
+    expect(labels.pinned).toBe(34103);
+    expect(shown(plate$(root, true))).toBe(false);
+    on.undescribed = false;
+    labels.update(16);
+    const plate = plate$(root, true);
+    expect(shown(plate)).toBe(true);
+    const link = byClass(plate, 'xl-source');
+    expect([link.textContent, link.href]).toEqual([
+      'Wikidata',
+      'https://www.wikidata.org/wiki/Q34103',
+    ]);
   });
 
   it('take a press that moves as far as a drag for no click', () => {
