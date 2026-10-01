@@ -2,8 +2,8 @@
 // from a root that also holds the release's copy and each story's first image it passes, and
 // without the event files it names the missing overview; from the build alone, which holds
 // neither copy nor images, it names the missing copy and fetches nothing else. On the bundled
-// release it reads every climate year the walk loads as it starts, and the 1815 border field; with
-// border steps, the step holding 1815, its preview chunk and the notice.
+// release it reads every climate year the walk loads as it starts and, with border steps, the step
+// holding 1815, its preview chunk and the notice.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -91,11 +91,11 @@ describe('check-release', () => {
     expect(data.filter((key) => key.startsWith('fd/modera/'))).toEqual(climate);
   });
 
-  test('reads the 1815 border field', () => {
+  test('reads the border step holding 1815, its preview chunk and the notice', () => {
     const release = bundled as Release;
-    const field = release.borders?.files['1815']?.key;
-    expect(field).toMatch(/^fd\/borders\/[0-9a-f]{8}\/1815\.bin$/);
-    expect(releaseKeys(release).data).toContain(field);
+    const { data } = releaseKeys(release);
+    expect(data).toEqual(expect.arrayContaining(borderStepKeys(release.borderSteps!)));
+    expect(data.filter((key) => key.startsWith('fd/borders/'))).toHaveLength(2);
   });
 });
 

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { FxRelease, Release } from '../src/data/release';
-import { noticeTag, plan, refuseOwedBorders, releaseSections } from './publish';
+import { plan, refuseOwedBorders, releaseSections } from './publish';
 import type { R2Bucket } from './r2';
 
 // Bits 0-6: the six L0 nodes and L1 node 6 (face 0, x 0, y 0).
@@ -20,9 +20,6 @@ const FILES: Record<string, number> = {
   'fd/modera/cccc3333/mean/1816.bin': 90,
   'fd/modera/cccc3333/spread/1816.bin': 60,
   'fd/modera/cccc3333/annual.bin': 400,
-  'fd/borders/eeee5555/1815.bin': 700,
-  'lic/1111222233334444.txt': 20,
-  'lic/5555666677778888.geojson': 900,
   'img/cccc3333cccc3333-1024.jpg': 400,
   'img/cccc3333cccc3333-256.jpg': 40,
   'fx/1111222233334444.json': 80,
@@ -43,19 +40,6 @@ const MODERA = {
   lon0: -180,
   dlon: 90,
   bytes: { mean: { '1816': 90 }, spread: { '1816': 60 }, annual: 400 },
-};
-const BORDERS = {
-  ver: 'eeee5555',
-  stems: ['1815'],
-  years: [1815],
-  files: {
-    '1815': {
-      key: 'fd/borders/eeee5555/1815.bin',
-      bytes: 700,
-      notice: 'lic/1111222233334444.txt',
-      source: 'lic/5555666677778888.geojson',
-    },
-  },
 };
 const STEPS = {
   ver: 'ffff6666',
@@ -164,24 +148,8 @@ describe('releaseSections', () => {
     expect(() => releaseSections({ ...release(SEVEN), modera }, root)).toThrow(/400 B, not/);
   });
 
-  test('names each border field, and its notice and source under lic/, with their sizes', () => {
-    const [, fields, licenses] = releaseSections({ ...release(SEVEN), borders: BORDERS }, root);
-    expect(fields?.prefix).toBe('fd/borders/eeee5555/');
-    expect(fields?.objects.map(({ key, size }) => [key, size])).toEqual([
-      ['fd/borders/eeee5555/1815.bin', 700],
-    ]);
-    expect(licenses?.prefix).toBe('lic/');
-    expect(licenses?.objects.map(({ key, size }) => [key, size])).toEqual([
-      ['lic/1111222233334444.txt', 20],
-      ['lic/5555666677778888.geojson', 900],
-    ]);
-  });
-
-  test('names the border steps, their chunks and polities, and every notice under one lic/', () => {
-    const sections = releaseSections(
-      { ...release(SEVEN), borders: BORDERS, borderSteps: STEPS },
-      root,
-    );
+  test("names the border steps, their chunks and polities, and the steps' notice under lic/", () => {
+    const sections = releaseSections({ ...release(SEVEN), borderSteps: STEPS }, root);
     const listed = Object.fromEntries(
       sections.map(({ prefix, objects }) => [prefix, objects.map(({ key, size }) => [key, size])]),
     );
@@ -191,12 +159,15 @@ describe('releaseSections', () => {
     ]);
     expect(listed['fd/borders/p/']).toEqual([['fd/borders/p/bbbb000000000001.bin', 90]]);
     expect(listed['fd/borders/m/']).toEqual([['fd/borders/m/cccc000000000001.json', 30]]);
-    expect(listed['lic/']).toEqual([
-      ['lic/1111222233334444.txt', 20],
-      ['lic/5555666677778888.geojson', 900],
-      ['lic/dddd000000000001.txt', 25],
-    ]);
+    expect(listed['lic/']).toEqual([['lic/dddd000000000001.txt', 25]]);
     expect(sections.filter(({ prefix }) => prefix === 'lic/')).toHaveLength(1);
+  });
+
+  test('names no border objects where the release names no border steps', () => {
+    const prefixes = releaseSections(release(SEVEN), root).map(({ prefix }) => prefix);
+    expect(
+      prefixes.filter((prefix) => prefix.startsWith('fd/borders') || prefix === 'lic/'),
+    ).toEqual([]);
   });
 
   test('refuses a border step or chunk of another size than the section gives', () => {
@@ -236,21 +207,6 @@ describe('plan', () => {
   test('stops on a key R2 holds at another size, before anything is uploaded', async () => {
     const sections = releaseSections(release(SEVEN), root);
     await expect(plan(holding({ [BOUNDS]: 13 }), sections)).rejects.toThrow(/13 B, not 12 B/);
-  });
-});
-
-describe('noticeTag', () => {
-  const withBorders = { ...release(SEVEN), borders: BORDERS };
-  const missing = async (held: Record<string, number>) =>
-    (await plan(holding(held), releaseSections(withBorders, root))).flatMap((p) => p.missing);
-
-  test("names the tag the borders' notice links while R2 lacks the notice", async () => {
-    expect(noticeTag(withBorders, await missing({}))).toBe('borders-eeee5555');
-  });
-
-  test('names none once R2 holds the notice', async () => {
-    const held = { 'lic/1111222233334444.txt': 20 };
-    expect(noticeTag(withBorders, await missing(held))).toBeNull();
   });
 });
 

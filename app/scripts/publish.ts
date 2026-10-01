@@ -7,15 +7,13 @@
 // If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. It
 // refuses, before reading R2, a build whose border steps still owe the history pass an overlap
 // acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap that
-// pipeline/config/borders/acknowledged.yaml does not list as a known gap, and the 1815
-// field's GPL notice goes up only once origin holds the tag it links the build scripts at. The
-// release names the border steps whenever the build holds them, so no publish drops them from the
-// live site. Last come the bundled app/src/generated/release.json and its copy rel/<id>.json;
-// CI's `npm run check-release` reads the same roots through the data host. The fixture never
-// leaves this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
+// pipeline/config/borders/acknowledged.yaml does not list as a known gap. The release names the
+// border steps whenever the build holds them, so no publish drops them from the live site. Last
+// come the bundled app/src/generated/release.json and its copy rel/<id>.json; CI's
+// `npm run check-release` reads the same roots through the data host. The fixture never leaves
+// this machine: `npm run data -- --profile fixture` serves it and its release. Plain Node:
 //
 //   npm run publish-data -- [--profile global|region] [--dry-run]
-import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
@@ -23,7 +21,6 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type {
   BorderStepsRelease,
-  BordersRelease,
   EventsRelease,
   FxRelease,
   MediaRelease,
@@ -74,19 +71,9 @@ export interface Section {
 export function releaseSections(release: Release, root: string): Section[] {
   const sections = [surfaceSection(release.surface, root)];
   if (release.modera) sections.push(moderaSection(release.modera, root));
-  const licenses: string[] = [];
-  if (release.borders) {
-    const { fields, notices } = bordersSection(release.borders, root);
-    sections.push(fields);
-    licenses.push(...notices);
-  }
   if (release.borderSteps) {
     sections.push(...borderStepsSections(release.borderSteps, root));
-    licenses.push(release.borderSteps.notice);
-  }
-  if (licenses.length > 0) {
-    const objects = [...new Set(licenses)].sort().map((key) => localObject(root, key));
-    sections.push({ prefix: 'lic/', objects });
+    sections.push({ prefix: 'lic/', objects: [localObject(root, release.borderSteps.notice)] });
   }
   if (release.fx) sections.push(fxSection(release.fx, root));
   if (release.events) sections.push(eventsSection(release.events, root));
@@ -143,31 +130,6 @@ function moderaSection(modera: ModeraRelease, root: string): Section {
 }
 
 /**
- * Every border field the borders record lists under fd/borders/<ver>/, each the size the record
- * gives it, and the keys under lic/ of the GPL notice and the corrected source each is published
- * with.
- */
-function bordersSection(
-  borders: BordersRelease,
-  root: string,
-): { fields: Section; notices: string[] } {
-  const files = borders.stems.map((stem) => {
-    const file = borders.files[stem];
-    if (!file) throw new PublishError(`the borders record lists no file for ${stem}`);
-    return file;
-  });
-  const fields = files.map(({ key, bytes }) => {
-    const object = localObject(root, key);
-    if (object.size !== bytes) {
-      throw new PublishError(`${object.path} holds ${object.size} B, not the record's ${bytes} B`);
-    }
-    return object;
-  });
-  const notices = files.flatMap(({ notice, source }) => [notice, source]);
-  return { fields: { prefix: `fd/borders/${borders.ver}/`, objects: fields }, notices };
-}
-
-/**
  * The border steps under fd/borders/s/, their preview chunks under fd/borders/p/, each the size the
  * section gives it, and the polities under fd/borders/m/ (streaming.md 3.3).
  */
@@ -215,28 +177,6 @@ export function refuseOwedBorders(stages: string, release: Release): OwedPlace[]
       'list it by its id in pipeline/config/borders/acknowledged.yaml as a known gap; then run ' +
       '`uv run prebuild borders` in pipeline/ with the same --profile',
   );
-}
-
-/**
- * The tag the borders' GPL notice links the build scripts at, `borders-<ver8>` (streaming.md 3.3),
- * when the upload sends that notice; null when it sends none.
- */
-export function noticeTag(release: Release, missing: LocalObject[]): string | null {
-  const { borders } = release;
-  if (!borders) return null;
-  const notices = new Set(Object.values(borders.files).map(({ notice }) => notice));
-  return missing.some(({ key }) => notices.has(key)) ? `borders-${borders.ver}` : null;
-}
-
-/** Whether origin holds the tag. */
-function onOrigin(tag: string): boolean {
-  try {
-    const args = ['ls-remote', '--exit-code', '--tags', 'origin', `refs/tags/${tag}`];
-    execFileSync('git', args, { cwd: REPO_ROOT, stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /** The stories' images under img/, each baked by the media stage into this output root. */
@@ -345,14 +285,6 @@ export async function publish(options: PublishOptions): Promise<void> {
     );
   }
   const missing = plans.flatMap((p) => p.missing);
-  // The notice's key is never overwritten, so the link in it must resolve before it goes up.
-  const tag = noticeTag(release, missing);
-  if (tag !== null && !onOrigin(tag)) {
-    throw new PublishError(
-      `origin has no tag ${tag}, where the borders' GPL notice links the build scripts: on the ` +
-        `commit that built them, run \`git tag ${tag} && git push origin ${tag}\``,
-    );
-  }
   if (dryRun) {
     console.log(`dry run: ${missing.length} keys to upload, ${sizeOf(missing)}; nothing written`);
     return;

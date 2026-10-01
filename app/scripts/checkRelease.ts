@@ -2,11 +2,11 @@
 // will read it? It HEADs rel/<id>.json (never a GET: the edge caches a 404 for hours), which
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
 // its six L0 tiles, the climate years the walk loads as it starts when the release has a modera
-// section, the 1815 border field when it has a borders section, the border step that holds 1815
-// with its preview chunk and notice when it has a borderSteps section, the event overview Explore
-// reads first when it names the event files, and each story's first image, as the page fetches
-// them, cross-origin from the app's origin, so it never leaves a 404 cached for a key about to be
-// uploaded, and checks each answers 200 with R2's headers and its Content-Type (streaming.md 4.2).
+// section, the border step that holds 1815 with its preview chunk and notice when it has a
+// borderSteps section, the event overview Explore reads first when it names the event files, and
+// each story's first image, as the page fetches them, cross-origin from the app's origin, so it
+// never leaves a 404 cached for a key about to be uploaded, and checks each answers 200 with R2's
+// headers and its Content-Type (streaming.md 4.2).
 // CI runs it as its own job, which the Pages deploy waits for, so the app never ships naming data
 // that is not there. Plain Node:
 //
@@ -77,10 +77,9 @@ export function borderStepKeys(steps: BorderStepsRelease, year = BORDER_YEAR): s
 
 /**
  * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
- * section the climate's mean for each of CLIMATE_YEARS, with a borders section the field of its
- * one snapshot (the walk's, 3.3), with a borderSteps section the step holding BORDER_YEAR, its
- * preview chunk and the notice, with an events section its overview (3.4), and each story's first
- * image.
+ * section the climate's mean for each of CLIMATE_YEARS, with a borderSteps section the step
+ * holding BORDER_YEAR, its preview chunk and the notice, with an events section its overview (3.4),
+ * and each story's first image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -89,15 +88,12 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
   const climate = modera
     ? CLIMATE_YEARS.map((year) => `fd/modera/${modera.ver}/mean/${year}.bin`)
     : [];
-  const stem = release.borders?.stems[0];
-  const border = stem === undefined ? undefined : release.borders?.files[stem]?.key;
-  const borders = border ? [border] : [];
   const steps = release.borderSteps ? borderStepKeys(release.borderSteps) : [];
   const events = release.events ? [release.events.overview] : [];
   const images = firstStoryImages();
   return {
     copy: `rel/${release.id}.json`,
-    data: [bounds, ...roots, ...climate, ...borders, ...steps, ...events, ...new Set(images)],
+    data: [bounds, ...roots, ...climate, ...steps, ...events, ...new Set(images)],
   };
 }
 
