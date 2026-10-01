@@ -29,15 +29,7 @@ import { EMBER } from '../story/effects/ember';
 import { dirOf, EARTH_KM, EARTH_M, tangents } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
 import type { LonLat } from '../story/story';
-import {
-  FAMILIES,
-  familyUniforms,
-  FAMILY_VEC4S,
-  PACES,
-  type MarkVariant,
-  type Pace,
-  type Treatment,
-} from './families';
+import { FAMILIES, familyUniforms, FAMILY_VEC4S, PACES, type Family, type Pace } from './families';
 import { GLYPH_CELL, type GlyphCell } from './glyphAtlas';
 import {
   EMBER_RING,
@@ -156,8 +148,8 @@ const EMBER_STRENGTH = 6;
 const BREATH = { period: 3.2, depth: 0.2 } as const;
 /** The contact shadow's reach, in r, however low the lamp. */
 const SHADOW_MAX = 0.6;
-/** A cast token's thickness, in r, for its contact shadow: its bevel's height shapes only light. */
-const TOKEN_THICKNESS = 0.45;
+/** A seal's thickness, in r, for its contact shadow: its bevel's height shapes only light. */
+const SEAL_THICKNESS = 0.45;
 /** The widest hovered ring drawn, radians of arc from its mark: an eighth of the globe's round. */
 export const RING_MAX_RAD = Math.PI / 4;
 /** The least facing a mark is drawn at: the limb fade leaves nothing below it. */
@@ -196,12 +188,12 @@ function markRowPx(viewKm: number): number {
 /**
  * How far from its anchor, in CSS px, the look draws a mark (marks.glsl.ts) whose r spans at most
  * `pxPerR` CSS px on screen and a pixel at most `pxR` of r: its glyph out to its field's reach
- * (`glyphExtent` is the glyph's, in half grids); its disc, contact shadow (`shadow` r from it),
+ * (`glyphExtent` is the glyph's, in half grids); its seal, contact shadow (`shadow` r from it),
  * ember and hovered ring (`ringPx` px from it on screen), each with the antialiasing, blur or line
  * the look gives it and the light's cap two edges beyond.
  */
 export function markReachPx(
-  treatment: Treatment,
+  family: Family,
   mark: Pick<MarkSpec, 'soft' | 'focal'>,
   glyphExtent: number,
   shadow: number,
@@ -211,12 +203,8 @@ export function markReachPx(
 ): number {
   const edge = mark.soft ? MARK_AA_PX.soft : MARK_AA_PX.hard;
   const glyph = Math.min(glyphExtent + GLYPH_FIELD.reach, GLYPH_FIELD.box * Math.SQRT2);
-  let reach = glyph * treatment.glyph.scale * pxPerR;
-  const disc = treatment.disc?.radius ?? 0;
-  if (disc > 0) reach = Math.max(reach, disc * pxPerR + 2 * edge);
-  if (disc > 0 && treatment.shadow) {
-    reach = Math.max(reach, (shadow + disc + SHADOW_BLUR) * pxPerR + 2 * edge);
-  }
+  const seal = (shadow + family.seal.radius + SHADOW_BLUR) * pxPerR + 2 * edge;
+  let reach = Math.max(glyph * family.glyph.scale * pxPerR, seal);
   if (mark.focal) {
     const half = Math.max(EMBER_RING.half, RING_PX.ember * pxR);
     reach = Math.max(reach, (EMBER_RING.radius + half + pxR) * pxPerR);
@@ -241,13 +229,11 @@ export function limbFade(dir: Vector3, camera: Vector3): number {
   return smoothstep(0.05, 0.35, facingOf(dir, camera));
 }
 
-/** The dev panel's params (the Marks folder), and the query's (?markVariant=2, ?marks=0). */
+/** The dev panel's params (the Marks folder), and the dev page's query's (?marks=0). */
 export function defaultMarkParams(): Params {
   return {
     // Off skips the look's marks entirely: the GPU time's baseline.
     marks: true,
-    // 0, the cast token (families.ts).
-    markVariant: 0,
     // The mark's size over tunables.markPx and markMinDevicePx.
     markSize: 1,
     // A disc's bevel as a share of its radius (a glyph's is a quarter of it, or a pixel), and the
@@ -409,7 +395,6 @@ export class MarkLayer {
   #clearance: ClearanceField | null = null;
   /** The unknown glyphs and paces already reported: each is logged once, and its marks not drawn. */
   readonly #reported = new Set<string>();
-  #variant = -1;
   readonly #view = { toClip: new Matrix4(), kLand: 0, width: 1, height: 1 };
 
   /** `cells` gives the glyphs' atlas cells once the look has lettered them. */
@@ -423,7 +408,9 @@ export class MarkLayer {
       lookMarkView: { value: new Matrix3() },
       lookMarkGrid: { value: new Vector4(1, 1, TILE_PX, 1) },
       lookMarkFamily: {
-        value: Array.from({ length: PACES.length * FAMILY_VEC4S }, () => new Vector4()),
+        value: familyUniforms(
+          Array.from({ length: PACES.length * FAMILY_VEC4S }, () => new Vector4()),
+        ),
       },
       lookMarkStyle: { value: new Vector4() },
       lookMarkEmber: { value: new Vector4() },
@@ -463,14 +450,6 @@ export class MarkLayer {
 
   /** The params' values into the uniforms, and the ember's breath at `elapsedS`. */
   update(elapsedS: number): void {
-    const variant = Math.min(
-      3,
-      Math.max(0, Math.round(Number(this.params.markVariant))),
-    ) as MarkVariant;
-    if (variant !== this.#variant) {
-      this.#variant = variant;
-      familyUniforms(variant, this.uniforms.lookMarkFamily.value);
-    }
     const p = this.params;
     this.uniforms.lookMarkStyle.value.set(
       Math.max(0.05, Number(p.markBevel)),
@@ -528,22 +507,20 @@ export class MarkLayer {
       const distance = view.camera.distanceTo(dir);
       const rPx = px / 2;
       const r = (rPx * distance) / view.pxPerUnit;
-      // The contact shadow, toward the side away from the lamp, in r: the token's height over
+      // The contact shadow, toward the side away from the lamp, in r: the seal's height over
       // the lamp's elevation there.
-      const treatment = FAMILIES[spec.pace].variants[this.#variant as MarkVariant];
+      const family = FAMILIES[spec.pace];
       let shadowX = 0;
       let shadowY = 0;
-      if (treatment.shadow && treatment.disc) {
-        lamp.copy(view.lamp).sub(dir).normalize();
-        north.crossVectors(dir, entry.east);
-        const [e, n] = [lamp.dot(entry.east), lamp.dot(north)];
-        const flat = Math.hypot(e, n);
-        const rise = Math.max(lamp.dot(dir), 0.05);
-        const length = Math.min(SHADOW_MAX, (TOKEN_THICKNESS * relief * flat) / rise);
-        if (flat > 1e-6) {
-          shadowX = (e / flat) * length;
-          shadowY = (n / flat) * length;
-        }
+      lamp.copy(view.lamp).sub(dir).normalize();
+      north.crossVectors(dir, entry.east);
+      const [e, n] = [lamp.dot(entry.east), lamp.dot(north)];
+      const flat = Math.hypot(e, n);
+      const rise = Math.max(lamp.dot(dir), 0.05);
+      const length = Math.min(SHADOW_MAX, (SEAL_THICKNESS * relief * flat) / rise);
+      if (flat > 1e-6) {
+        shadowX = (e / flat) * length;
+        shadowY = (n / flat) * length;
       }
       // A hovered parent's ring: its arc's circle on the anchor's tangent plane, in r, and its
       // reach on screen from the circle's points there.
@@ -556,7 +533,7 @@ export class MarkLayer {
       const shadow = Math.hypot(shadowX, shadowY);
       // A pixel spans the most of r across the tilt, by the facing's inverse (a CSS px, at worst).
       const pxR = 1 / (rPx * Math.max(facing, FACING_MIN));
-      const reachPx = markReachPx(treatment, spec, cell.extent, shadow, ringPx, pxPerR, pxR);
+      const reachPx = markReachPx(family, spec, cell.extent, shadow, ringPx, pxPerR, pxR);
       const cosMin = Math.min(MARK_COS_MIN, Math.cos(Math.min(1.1 * ringRad + 0.02, Math.PI / 2)));
       if (x + reachPx < -grid.pad || x - reachPx > view.width + grid.pad) continue;
       if (y + reachPx < -grid.pad || y - reachPx > view.height + grid.pad) continue;

@@ -41,7 +41,6 @@ const RANGES: Record<string, [number, number, number?]> = {
   // The climate's palette: saturation in K.
   climateRangeK: [1, 10, 0.5],
   // Marks (marks/marks.ts).
-  markVariant: [0, 3, 1],
   markSize: [0.25, 3, 0.05],
   markBevel: [0.05, 1, 0.01],
   markRelief: [0, 3, 0.05],
