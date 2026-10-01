@@ -404,7 +404,7 @@ const SAME_SPOT_PX = 1e-3;
 export interface FanMark {
   x: number;
   y: number;
-  /** Its opacity, 0 to 1: a mark fading in pushes its neighbors aside as far as it has come. */
+  /** Its own fade, 0 to 1: a mark fading in pushes its neighbors aside as far as it has come. */
   alpha: number;
   score: number;
   id: string;
@@ -928,10 +928,12 @@ export class MarkLayer {
    */
   #standApart(candidates: Candidate[], rPx: number, view: MarkView): void {
     const offsets = fanOffsets(
-      candidates.map(({ x, y, alpha, entry: { spec } }) => ({
+      // Each pushes as far as its own fade has come: the layer's strength and the limb fade every
+      // mark at a spot alike, and must not draw them together or apart.
+      candidates.map(({ x, y, entry: { spec } }) => ({
         x,
         y,
-        alpha,
+        alpha: Math.min(1, Math.max(0, spec.opacity)),
         score: spec.score ?? 0,
         id: spec.id,
         group: spec.group,

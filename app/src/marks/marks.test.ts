@@ -667,6 +667,25 @@ describe('MarkLayer’s marks at one place', () => {
     expect(drawn[1]![0]).toBeCloseTo(treaty.x, 1);
   });
 
+  it('stands them as far apart while the layer fades in or out, and toward the limb', () => {
+    const at = (strength: number, where: LonLat, from: MarkView) => {
+      const marks = new MarkLayer(() => cells);
+      marks.strength = strength;
+      marks.set('events', [mark('a', where, { score: 2 }), mark('b', where, { score: 1 })]);
+      marks.place(from);
+      const [a, b] = ['a', 'b'].map((id) => marks.placed().find((p) => p.id === id)!);
+      return Math.hypot(b!.x - a!.x, b!.y - a!.y) / a!.rPx;
+    };
+    expect(at(0.3, [20, 10], view)).toBeCloseTo(at(1, [20, 10], view), 6);
+    expect(at(1, [20, 10], view)).toBeCloseTo(FAN_APART, 1);
+    // Toward the limb, where the limb fades them, they still stand apart.
+    const limb: LonLat = [77, 10];
+    const world = over([20, 10], 2);
+    expect(limbFade(dirOf(limb), world.camera)).toBeLessThan(0.9);
+    expect(limbFade(dirOf(limb), world.camera)).toBeGreaterThan(0.3);
+    expect(at(1, limb, world)).toBeGreaterThan(0.9 * FAN_APART);
+  });
+
   it('reaches as far about each mark stood apart as about a mark standing alone', () => {
     const marks = new MarkLayer(() => cells);
     const reaches = () => {
