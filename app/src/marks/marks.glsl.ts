@@ -73,6 +73,20 @@ export const RING_ENGRAVE = { ink: 0.9, wall: 1.2 } as const;
  */
 export const GLYPH_FIELD = { reach: 0.45, box: 1.45 } as const;
 
+/**
+ * The widest a glyph's bevel runs in from its edge, in its half grid: 2 of its 64 units, two thirds
+ * of the half width of its narrowest stroke (symbols.ts draws none under 6), so every stroke keeps
+ * a flat top however near or tilted the mark.
+ */
+export const GLYPH_BEVEL_MAX = 2 / (GLYPH_UNITS / 2);
+
+/**
+ * An expanded parent's outline, in its glyph's half grid: half its width at least, 1.25 of the 64
+ * units, so the narrowest stroke keeps a dark core between its two lines; and in pixels across it,
+ * at least 0.6, so the line stays whole on a small mark, where it fills the stroke.
+ */
+export const GLYPH_LINE = { min: 1.25 / (GLYPH_UNITS / 2), px: 0.6 } as const;
+
 const float = (value: number) => (Number.isInteger(value) ? `${value}.0` : String(value));
 
 /** Declarations, before the look's LookSurface. */
@@ -88,6 +102,9 @@ export const MARKS_DECLARATIONS = /* glsl */ `
 #define LOOK_MARK_HALF_GRID ${float(GLYPH_UNITS / 2)}
 #define LOOK_MARK_GLYPH_REACH ${float(GLYPH_FIELD.reach)}
 #define LOOK_MARK_GLYPH_BOX ${float(GLYPH_FIELD.box)}
+#define LOOK_MARK_GLYPH_BEVEL_MAX ${float(GLYPH_BEVEL_MAX)}
+#define LOOK_MARK_GLYPH_LINE ${float(GLYPH_LINE.min)}
+#define LOOK_MARK_GLYPH_LINE_PX ${float(GLYPH_LINE.px)}
 #define LOOK_MARK_SOFT_EDGE_MAX ${float(SOFT_EDGE_MAX)}
 
 // The relief's exaggeration over land, which the vertex stage displaces by, and globe radii a meter.
@@ -253,12 +270,9 @@ void lookMarksApply(
     // Relief rises first, and the fill comes after; estimates are softer and half as deep.
     float rise = smoothstep(0.0, 0.5, sealAlpha) * lookMarkStyle.y * (soft ? 0.5 : 1.0);
     float fill = smoothstep(0.4, 1.0, sealAlpha) * lookMarkStyle.z;
-    float aa = lookMarkEdge(pxR, soft);
     // The seal's bevel rounds a good share of it, so its slope turns through the lamp's reflection
-    // and lights the bezel on the lamp's side; a glyph's is a pixel or a tenth of r, within its
-    // strokes.
+    // and lights the bezel on the lamp's side.
     float sealBevel = max(lookMarkStyle.x, 2.0 * pxR) * (soft ? 1.6 : 1.0);
-    float bevel = max(0.25 * lookMarkStyle.x, pxR) * (soft ? 1.6 : 1.0);
 
     int f = (familyFlags / ${FAMILY_STEP}) * LOOK_MARK_FAMILY_VEC4;
     vec4 f0 = lookMarkFamily[f];
@@ -275,30 +289,45 @@ void lookMarksApply(
     float dSeal = f0.w - rq;
     vec2 nSeal = rq > 1e-5 ? -nq : vec2(0.0);
 
-    // The glyph's field, in r; near its edge, where the bevel slopes and the glyph has relief,
-    // its gradient from two more taps a texel or a pixel away. Its outline and its antialiasing,
-    // the cap's twice over, all end within the field's reach beyond its edge, so nothing is drawn
-    // where the field has run out or the cell's box would cut it square.
+    // The glyph's field, in r; near its edge, its gradient from two more taps a texel or a pixel
+    // away. The edge's antialiasing, the outline and the bevel take the pixel's span across that
+    // edge (pxGlyph), as the seal's take it along the radius, so a tilt that foreshortens the mark
+    // one way does not blur its strokes the other; and they are a hard edge's, a soft mark's
+    // softness being its seal's. The bevel keeps within the narrowest stroke. The outline and the
+    // antialiasing, the cap's twice over, all end within the field's reach beyond its edge, so
+    // nothing is drawn where the field has run out or the cell's box would cut it square.
     float scale = f1.w;
     float fieldReach = LOOK_MARK_GLYPH_REACH * scale;
-    float line = min(max(0.08, 1.1 * pxR), 0.35 * fieldReach);
-    float aaGlyph = min(aa, 0.5 * (fieldReach - (hollow ? line : 0.0)));
+    float bevelMax = LOOK_MARK_GLYPH_BEVEL_MAX * scale;
     vec2 gq = q / scale * vec2(mirror, 1.0);
     float dGlyph = -1.0;
     vec2 nGlyph = vec2(0.0);
+    float pxGlyph = pxR;
     if (max(abs(gq.x), abs(gq.y)) < LOOK_MARK_GLYPH_BOX) {
       vec2 gx2 = vec2(mirror * qx.x, -qx.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
       vec2 gy2 = vec2(mirror * qy.x, -qy.y) * (LOOK_MARK_HALF_GRID / scale) / atlas;
       float s0 = lookMarkGlyph(t2.xy, gq, atlas, gx2, gy2);
       dGlyph = s0 > -126.0 ? s0 * LOOK_MARK_BYTE_TO_GLYPH * scale : -1.0;
-      if (f2.y != 0.0 && abs(dGlyph) < bevel + aaGlyph + (hollow ? line : 0.0)) {
+      // Past this, every edge, outline and cap below is whole or nothing at any pixel span.
+      float window = bevelMax + 2.5 * pxR + (hollow ? 0.35 * fieldReach : 0.0);
+      if (abs(dGlyph) < window) {
         float step = max(pxR / scale, 1.5 / LOOK_MARK_HALF_GRID);
         float su = lookMarkGlyph(t2.xy, gq + vec2(step, 0.0), atlas, gx2, gy2);
         float sv = lookMarkGlyph(t2.xy, gq + vec2(0.0, step), atlas, gx2, gy2);
         vec2 n = vec2(su - s0, sv - s0);
-        nGlyph = dot(n, n) > 1e-6 ? normalize(n) * vec2(mirror, 1.0) : vec2(0.0);
+        if (dot(n, n) > 1e-6) {
+          nGlyph = normalize(n) * vec2(mirror, 1.0);
+          pxGlyph = max(length(vec2(dot(nGlyph, qx), dot(nGlyph, qy))), 1e-4);
+        }
       }
     }
+    float line = min(max(LOOK_MARK_GLYPH_LINE * scale, LOOK_MARK_GLYPH_LINE_PX * pxGlyph), 0.35 * fieldReach);
+    float aaGlyph = min(lookMarkEdge(pxGlyph, false), 0.5 * (fieldReach - (hollow ? line : 0.0)));
+    // A glyph's bevel is a tenth of r or a pixel across, within its narrowest stroke; narrowed,
+    // its relief is as much lower, so its rim slopes no steeper.
+    float bevelWide = max(0.25 * lookMarkStyle.x, pxGlyph);
+    float bevel = min(bevelWide, bevelMax);
+    float glyphHeight = f2.y * bevel / bevelWide;
     if (hollow) {
       // An expanded parent keeps its glyph as an outline.
       nGlyph *= -sign(dGlyph);
@@ -332,7 +361,7 @@ void lookMarksApply(
     float cGlyph = smoothstep(-aaGlyph, aaGlyph, dGlyph);
     vec2 bSeal = lookMarkBevel(dSeal, sealBevel);
     vec2 bGlyph = lookMarkBevel(dGlyph, bevel);
-    vec2 slope = f2.x * bSeal.y * nSeal + f2.y * bGlyph.y * nGlyph;
+    vec2 slope = f2.x * bSeal.y * nSeal + glyphHeight * bGlyph.y * nGlyph;
     o.marks.grad += (slope.x * east + slope.y * north) * rise;
     o.marks.grad += (ringSlope.x * east + ringSlope.y * north) * lookMarkStyle.y;
     // The polished bezel, a band just inside the seal's edge, on its bevel.
