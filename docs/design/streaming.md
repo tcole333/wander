@@ -57,7 +57,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Physical layers** | Independent uniforms: Relief (`kLand`), Bathymetry (`kSea` + depth bands), Coastline, Land/sea tint, Rivers & lakes, Graticule (analytic), Labels (ocean and sea names). Depth bands are GEBCO contours at Natural Earth's depth intervals, and the legend names both sources (owner decision 4). | Owner: nothing is always on. Contours cost 0 bytes and match the drawn seafloor; keeping the signed seafloor costs ~10 KB on coastal tiles [M]. |
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders and range names follow Mountains. Ocean and sea names follow Labels: a curated list of modern English names bundled with the app (`app/src/look/seaNames.json`: text, place, em size in degrees, tracking, angle, and the view widths it shows within), lettered at boot into one canvas atlas (oceans in the display face's tracked capitals, seas in the reading face's italic) and inlaid by the surface look in the lacquer at sea level, as the graticule is. Each name fades in and out with its em on screen (7-48 px) and toward the limb, so a sea shows several names across zoom levels, each with its own size and place; of the names in the view, the 16 strongest are inlaid, so none beyond its edges holds back one on screen. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. Inlaid in the look, the sea names never bend with relief and take the lamp, ash and climate as the lacquer does; they are lettered into one R8 atlas 2048 texels wide and as tall as the list needs (1638 for milestone 1's 50 placements of 42 names: ~4.3 MiB on the GPU with mips, plus the 3.2 MiB of texels three keeps; the lettering canvas is released), with nothing to fetch and no labels stage. |
-| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 524 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. Explore names no step on a plate: the ruler and the Credits carry the dates (owner decision 39). A walk draws the steps of its border beats where the release names them, and until it does, as the published release does until publish-data's `--border-steps`, milestone 1's 1815 field from historical-basemaps (3.3). | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
+| **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 523 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. Explore names no step on a plate: the ruler and the Credits carry the dates (owner decision 39). A walk draws the steps of its border beats where the release names them, and until it does, as the published release does until publish-data's `--border-steps`, milestone 1's 1815 field from historical-basemaps (3.3). | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
 | **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore stands: wherever the release names its event index (3.4), and where a page starts in Explore, as the dev shell does. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into the viewport's 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The look finds a fragment's tile from where the fragment stands on screen, so each mark's screen disc spans everywhere its drawing can stand: from its sea-level place up to where the highest ground its height can read lifts it (the terrain's ceiling about the texel it reads), and for a hovered ring, which is engraved on the relief, from the deepest sea floor to the highest ground. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and four texels a mark, the last naming where the height pool holds the ground under its anchor (in the source tile the surface draws there), uploaded only when the view, a fade or the height pool under a mark changed. The look cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own (`app/src/marks/families.ts`): a seal standing on the relief, which it hides, casting a contact shadow and ringed by a polished brass bezel that catches the lamp, the seal green patina with a bright glyph for nature, dark niello with a gilt glyph for governance and a smaller gilt one with a niello glyph for infrastructure, its gilt lit partly as a diffuse surface so it reads gilt seen tilted, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`SEAL_INK`, 0.8 of its radius, inside the bezel and clear of the rim its bevel casts). Marks that would overlap on screen stand apart, 2.1 radii center to center (`fanOffsets`): each pair is pushed along the line between them, marks at one spot stand side by side on screen, the higher-scored to the left, a mark fading in slides out from under one standing, each by its own fade alone, and each moved mark's anchor moves with it on the globe, so it is drawn and picked where it stands; an event's solid and hollow marks crossfade on their place. Where marks still touch, the first in priority is drawn on top. Each seal lies flat at its anchor's height, read from the height pool (at sea level without one): a fragment is cut from where the view ray crosses that plane, so in a tilted view over mountains the seal keeps its round footprint rather than bend over ridges, and relief rising more than a seal's radius above the plane in front of it hides it, as a ridge does; a hovered parent's ring stays engraved on the relief. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. A hovered expanded parent's extent is a dashed line engraved about 2 px wide at full weight: the graticule's brass over the sea and niello over land, between walls that slope into it and take the lamp. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. Closer views cost more, their marks being larger: 150 marks (the dev page's `markDemo.stress` and `gpuAB`, at 1440×900 and one device pixel a CSS px) cost about 0.3 ms at world view, 0.55 ms at 1,700 km over Europe and 0.8 ms at 300 km over the Alps tilted 50 degrees, where each mark's screen disc spans the way its height can lift it. The seal is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it while Explore is open: bundled inline in the entry, started at each dive and terminated when Explore ends (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. Inlined, it fetches nothing from Pages after boot. Ended with Explore, it holds nothing during a walk, whose memory already stands at its CPU line (6). |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: one monthly field the CPU blends, and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
@@ -388,7 +388,7 @@ field per step.
 **Steps.** A step begins in every change year: a POLITY row's first year, or the year after its
 last, once corrections apply. From 3400 BCE, Cliopatria's first year, to 2000 its rows give 505, a
 median of 5 years apart [M Cliopatria v0.2.0], and 529 with the corrections' years; a step whose
-field equals the one before is dropped, which leaves 524 [M global bake, 30 September]. A step holds
+field equals the one before is dropped, which leaves 523 [M global bake, 1 October]. A step holds
 from its year's 1 January in the historical calendar until the next step begins (3.0).
 The stage record lists the step each story's border beats draw, and a beat before the first step
 fails the build.
@@ -478,6 +478,27 @@ and every polity, under one id, and draws no border of its own (owner decision 3
   inside one state with that state, and the enclosed pieces kept, each with the outer units around
   it and whether a correction cites it, are listed per step, and a `pocket` correction overrides
   the rules, for a coastal piece too.
+- **Land carried through a short gap is its state's** (owner decision 38): where one polity draws
+  land in the steps on both sides of a stateless run of at most 25 years, each step of the run
+  draws that land as the polity's, in its shape of the step before as far as the step after holds
+  it, since that is how a row Cliopatria drops for a while shows. Indian Territory, which a cited
+  `pocket` draws as the United States' in 1846-47 and Cliopatria from 1866, is the United States'
+  in between. Every step is first selected without the rule, and its polities' land and its
+  stateless land, less what a `pocket` keeps, are kept in the cache by its key, the stateless land
+  cut into pieces of at most 1,024 vertices so the land beside a polity is found without the rest.
+  The carry-through reads them in year order, and a step it reaches is selected again with that
+  land, which the rules above then work around. A polity the step does not draw otherwise joins
+  the outer unit both sides draw it in where the step draws that unit, and is its own otherwise.
+  Land two polities hold on the two sides stays as the rules leave it, since which of them held it
+  through the run, and when it passed, needs a source; so does land a stateless `pocket` keeps in
+  any step of the run. So does a part narrower than 2·`sliverKm` throughout, as a narrow hole does:
+  where two steps' outlines differ a little they leave slivers, 124,000 under 1 km² across the
+  steps, one so thin that clipping it to a face fails the bake. Of the 529 steps, 198 carry land,
+  331 pieces of 1,000 km² or more, 229 of them 10,000 km² or more; the largest are the Qing's
+  Xinjiang in 1864-76, 1.7 million km², Mongolia in 1920-21 as Cliopatria's Great Mongol State of
+  1919 and 1922, and the Umayyads' land in 682 as their shape of 674 and 692 [M global bake,
+  1 October]. The review queue lists each piece of 1,000 km² or more with its polity and the
+  steps on either side of its run.
 - **The antimeridian:** Cliopatria's shapes stop at 180°, so land just across it that no polity
   holds, in pieces within 20° of it, goes to the one polity whose shape runs along the other side
   where the piece meets the meridian. Otherwise Chukotka east of 180° is stateless whenever
@@ -521,20 +542,26 @@ fails the build:
   polity and what names it;
 - `pocket: {at, stateless}` keeps the stateless piece holding `at`, enclosed or on a coast,
   stateless whole or gives it whole to its neighbours, and fails the step when that piece is
-  `pocketKm2` or larger; `pocket: {at, to, shape_from: {polity, year} | shape}` draws it as the
-  land of `to`, whole, or only its part inside another polity's shape in another year or inside a
-  cited shape, with no cap, since one polity takes the land and no line runs through it. These
-  fills come first, in file order; a Cliopatria polity the step lacks is drawn from that land
-  alone as its own outer unit, and a name Cliopatria never gives fails the step, as a slip would;
+  `pocketKm2` or larger; `pocket: {at, to, shape_from: {polity, year} | shape, within, wikidata}`
+  draws it as the land of `to`, whole, or only its part inside another polity's shape in another
+  year or inside a cited shape, with no cap, since one polity takes the land and no line runs
+  through it. `within: {polity, year}` narrows `shape_from` to its part inside a second polity's
+  shape that holds `at`: a gap is land the polities on the two sides of a stateless run held, and
+  the free piece holding it often runs on into other gaps with other holders. These fills come
+  first, in file order; a Cliopatria polity the step lacks is drawn from that land alone as its own
+  outer unit, as is a state Cliopatria lacks, named with its `wikidata` item, which `polities.json`
+  carries; a name Cliopatria never gives fails the step otherwise, as a slip would;
 - `overlap: {polities, winner}` names which of two keeps the land they share.
 
 A step shows the world as it stood on 1 January of its year, so a correction covers the years whose
 1 January falls within its dates: the British took Java in September 1811, so their correction
-begins in 1812.
+begins in 1812. A correction that settles an owed place spans the steps it settles, from the
+first one's year to the day before the step after, so it makes no step of its own, and its `why`
+gives the state on that first 1 January, which the step draws until the next.
 
 A correction must change every step in its range, or the build fails, naming the unchanged steps;
 a `pocket` keeping a piece stateless changes a step whenever it finds its piece there, since it
-cites it, even where the rules would keep it too. The era files hold 162 corrections, each cited.
+cites it, even where the rules would keep it too. The era files hold 270 corrections, each cited.
 Besides the 23 pairs:
 - **Gaps and swaps:** Mexico carries its 1912 row through 1913-19. Kuwait, drawn as Ottoman, Omani
   and British in Cliopatria, carries its 1820-72 shape from 1873 to 1960 and the State of Kuwait's
@@ -596,17 +623,36 @@ Besides the 23 pairs:
   the Upper Assam plains in 1828-33 British India's of 1827 (`assam-1827.geojson`, since the
   fixture holds only its own years' rows). Seven are cited as stateless: the Syrian Desert in
   1805-19 but 1811, the Chaco in 1814-19, the Arunachal hills in 1822-1913, the Pirara in
-  1877-1904, the Minisink in 1677-82 and the Anti-Taurus frontier in 724-902. The other 43 stay
-  stateless, uncited, owed (below): 25 whose sources disagree or name no holder (the
-  Arabian and Syrian desert frontiers, the Amazon interior of 1769-76, Guizhou's native kingdoms
-  under the Song, the Pamirs and Yarkand, the Balkans after 626, Wallachia and Transylvania,
-  Carniola), 9 whose holder Cliopatria lacks, which need cited shapes (the Kalachuris, the
-  Himalayan kingdoms, Basalawarmi's Yunnan, the Pechenegs, Jalor, Kakheti and Hereti, Sikkim), 3
-  whose holders' line is undocumented (Upper Jambi and Kerinci, Nizhny Novgorod between Moscow and
-  Kazan, unoccupied Dutch New Guinea in 1943-44) and 6 whose verdict the check refuted, among them
-  Zhang Xianzhong's Sichuan in 1645 and the Syrian Desert in 1811. So do the rest of four places:
-  Manipur from 1826 under Gambhir Singh, Braničevo from 1255, the western Deccan from 1758 after
-  the cessions of Sindkhed and Udgir, and the Anti-Taurus from 903, when Lykandos was resettled.
+  1877-1904, the Minisink in 1677-82 and the Anti-Taurus frontier in 724-902. The other 43 went to
+  the owed list (below), but for unoccupied Dutch New Guinea in 1943-44, which the carry-through
+  draws as the Dutch East Indies', since they hold it in 1942 and 1946.
+- **The owed places** (owner decision 38): each of the 222 places the bake owed, 61 holes and 161
+  gaps, was researched and its verdict checked against its sources, and 108 corrections apply those
+  that held. A gap's correction draws the land inside the shapes of the polities that held it on
+  the two sides of its run, `within` keeping it to the part at its point, as the state that held
+  it: among them Eshnunna as Babylon's, Xin China on 1 January 23, the Tang's Mongolia on
+  1 January 682, the Western Turks' Dzungaria in 647-60, the Chagatai west in 1352-74, the
+  Thirteen Colonies on 1 January 1775 as British, the United States' south-west from 1848,
+  Manchuria as the Kuomintang's China in 1917-28 and Soviet Russia in 1918-19. Thirteen holders
+  Cliopatria lacks are drawn under their Wikidata items: the Pechenegs, Hereti, the Bhatis'
+  Jaisalmer, Ambadeva's Kayasthas, Loulan, Odoacer's kingdom, Muhammad's state at Medina, Pyinsa's
+  Arakan, the Sambuvarayars, Abu Dhabi, Gambhir Singh's Manipur, the Taranchi sultanate and Rabih's
+  Bornu. Five are cited stateless: Lykandos before its resettlement (903-10), the Amazon interior
+  in 1769-77, the Hamad in 1794-1804 and 1811, and Aksai Chin in 1352-74 with the Karakoram valleys
+  in its piece. Confederate Texas in 1862-65 is drawn inside its lines of 1850
+  (`texas-1850.geojson`), since the United States held its Panhandle and Nueces Strip in 1861 and
+  1866 and the carry-through would draw them as the Union's; Manipur and Liwa take shapes clipped
+  from Cliopatria's rows (`manipur-1824.geojson`, `liwa-1814.geojson`), which the fixture's two
+  steps can read. A margin no source covers, under about a quarter of a place, goes with the rest,
+  and its `why` says so. The rest stay owed: the verdicts the check found uncertain or refuted;
+  land the sources divide among holders with no line between them, such as Slavonia beside the
+  stateless Sklavinia in 627-37, the Kalachuri kingdoms, Bengal and Sonargaon in 1344, the Sutlej
+  in 1177-91 and the Enns in 911; two cited stateless places whose free land runs on into a
+  continent's, Liguria in 205-188 BCE and Lower Nubia in 1519, since a stateless `pocket` would
+  keep all of it whole; and the steps of a run a verdict does not settle, such as the Oghuz steppe
+  before 900. Drawing a place can make the run beside it a gap, its land now held on both sides:
+  four places owe a verdict so, the land south of Rabih's Bornu in 1895-97, Rayalaseema in
+  1250-59, Sindh in 1579-94 and eastern Malwa in 49-31 BCE.
 - **Northern Germany in 1866-70** lay along the coast, not in a hole: Cliopatria drops Prussia
   from 1864, Hanover, Hesse-Kassel, Nassau and Frankfurt from 1866, and Saxony, Hesse-Darmstadt and
   Austria's Bohemia in 1866-67, so most of northern Germany stood stateless. On 1 January 1866 each
@@ -618,14 +664,15 @@ Besides the 23 pairs:
 - **What the history pass owes** (owner decision 38): the record lists, and `publish-data` refuses
   the steps while it lists, every stateless hole of 10,000 km² or more that no correction cites,
   as a place over its run of steps, and every gap of that size: land held in the steps on both
-  sides of a stateless run of at most 25 years, which is how a row Cliopatria drops for a while
-  shows, as Prussia's did. Land stateless for longer is more often a state's real end, which
-  decision 35 leaves blank. Each step records its stateless land on a half-degree grid for the
-  gaps, and a gap that holds a listed hole or a stateless `pocket`'s point is not counted again.
-  The global bake owes 65 holes, 23 of them beside a lake and past the 100,000 km² cap, and 234
-  gaps, among them Russia in 1918-19, Mongolia in 1920-21 and the Thirteen Colonies in 1775
-  [M global bake, 30 September]; each needs a cited `pocket`, the state that held it or stateless,
-  before the steps are published.
+  sides of a stateless run of at most 25 years that the carry-through leaves stateless, since two
+  polities hold it there, as Prussia's was in 1864-70 between Cliopatria's German Confederation
+  and German Empire. Land stateless for longer is more often a state's real end, which decision 35
+  leaves blank. Each step records its stateless land, and the land stateless `pocket`s keep, on a
+  half-degree grid for the gaps, and a gap that holds a listed hole, a stateless `pocket`'s point
+  or land one keeps is not counted again. The global bake owes 42 holes, 16 of them beside a lake
+  and past the 100,000 km² cap, and 91 gaps, among them the Balkans in 627-37, the Tarim in 78-90,
+  Bengal in 1344-51 and Siberia's Ob in 1588-94 [M global bake, 1 October]; each needs a cited
+  `pocket`, the state that held it or stateless, before the steps are published.
 
 The 1815 field's corrections are not carried over: Cliopatria already has Brussels Dutch and Hong
 Kong Qing [M].
@@ -656,13 +703,16 @@ u8 rg[6][size][size][2]
   which number the sorted names, so a correction elsewhere in time that adds a name changes no
   other step's bytes. A step's key hashes its year, the POLITY and vassalage rows valid in it, the
   hierarchy's classes of those, the operations (not the `why` or `source`) of the corrections
-  active in it, the rules, the land and lakes, and the step code; `build/cache/borders/` keeps each
-  baked step under its key, so a rebuild bakes only the steps whose key changed.
+  active in it, the rules, the land and lakes, the step code, and the land the carry-through
+  carries in it; `build/cache/borders/` keeps each baked step under its key, each step selected
+  without the carry-through under its key without that land, and what the carry-through found
+  under every step's such key, so a rebuild selects and bakes only the steps whose key changed.
 - **Size:** 12 MiB inflated; a step stores 15 KB (3400 BCE, a few borders) to 1.03 MB, 273 MB for
-  all 524 [M global bake, 30 September]. A step takes about 22 CPU-seconds to select and bake: when
+  all 523 [M global bake, 1 October]. A step takes about 22 CPU-seconds to select and bake: when
   every step's key changes, as a change to the code does, all 529 take about 41 minutes with 8
-  workers on the M5, longer beside other work, and a rerun that changes no step takes 7 s from the
-  cache [M].
+  workers on the M5, longer beside other work. The carry-through first selects every step, about
+  6 minutes with 8 workers, then finds what it carries in under a minute; a rerun that changes no
+  step reads both from the cache and takes 9 s [M].
 
 **Previews,** in chunks of at most 16 steps, each starting at an even step index, so the two steps a
 ring cell pairs (below) never span two chunks:
@@ -2133,7 +2183,7 @@ min(8, CPUs), with spawn-context worker processes. `media` also takes `--offline
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts, Cliopatria's rows for the fixture's border steps among them (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
-| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml` and the era correction files) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged (`build/cache/borders/`), the review queue and the lakes and land `verify:bake` reads (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`; the region profile bakes only that field. The fixture bakes two steps from its excerpt, and no 1815 field | about 22 CPU-seconds a step: about 41 min for all 529 with 8 workers on the M5 when every key changes, 7 s when none changed; 28 s for the 1815 field; 38 s for the fixture's two steps with 8 workers [M] | local |
+| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml` and the era correction files) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged (`build/cache/borders/`), the review queue and the lakes and land `verify:bake` reads (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`; the region profile bakes only that field. The fixture bakes two steps from its excerpt, and no 1815 field | about 22 CPU-seconds a step: about 41 min for all 529 with 8 workers on the M5 when every key changes, after 6 min selecting every step for the carry-through, 9 s when none changed; 28 s for the 1815 field; 38 s for the fixture's two steps with 8 workers [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | range names + polity names from `polities.json` → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
@@ -2183,7 +2233,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake}], gaps: [{at, km2, years}]}`, all of which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step without baking, in about 7 minutes with 8 workers [M] |
+| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake}], gaps: [{at, km2, years}]}`, all of which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), the land carried through (each piece of 1,000 km² or more with its polity and the steps on either side of its run, the rest counted), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step and then again the 198 the carry-through reaches, without baking, in about 9 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -2483,20 +2533,21 @@ and the release's `media` section lists every key the locks name (3.8).
       texel (a sign jump between two borders in it is no disagreement), in at least 99% of such
       texels in every step;
     - each step draws as many leaves, `polities.json`'s names not in parentheses, as Cliopatria has
-      rows valid in its year, with those its corrections add and less those they take away, which
-      the review queue lists, each a polity a correction the step applies names; and the steps
-      holding 1000, 1500, 1800, 1815 and 1914 have task 0's 126, 130, 121, 139 and 74 rows valid;
+      rows valid in its year, with those its corrections and the carry-through add and less those
+      they take away, which the review queue lists, each a polity a correction the step applies
+      names or the carry-through draws; and the steps holding 1000, 1500, 1800, 1815 and 1914
+      have task 0's 126, 130, 121, 139 and 74 rows valid;
     - the overlap pairs no `overlap` correction acknowledges are listed with their steps (3.3).
 
-    On 30 September the 524 steps and 33 chunks decoded and passed every check in 13 s. The longest
+    On 1 October the 523 steps and 33 chunks decoded and passed every check in 7 s. The longest
     border beside a lake shore runs 44 km, and Lake Sevan's excused run is still there with no one
-    border in it past the line; the previews agreed on 368,894 of 369,126 texels; every step drew
-    its rows' leaves with its corrections', 124 of the 529 with leaves the corrections add or take
-    away, each named by one, and the compared years had task 0's rows; no pair awaits
-    acknowledgement, and 65 holes and 234 gaps await a verdict [M]. The lake-shore rule (3.3)
-    removed Lake Urmia's 126 km run, the pocket fill Lake Michigan's east shore in 1822-33 and Green
-    Bay's in 1836, the drop of Nazi Germany's scraps Ladoga's west shore in 1936-44, and the Door
-    Peninsula's correction Green Bay's 53 km in 1834.
+    border in it past the line; the previews agreed on 366,808 of 366,948 texels; every step drew
+    its rows' leaves with its corrections' and the carry-through's, 183 of the 529 with leaves they
+    add or take away, each named by a correction or carried, and the compared years had task 0's
+    rows; no pair awaits acknowledgement, and 42 holes and 91 gaps await a verdict [M]. The
+    lake-shore rule (3.3) removed Lake Urmia's 126 km run, the pocket fill Lake Michigan's east
+    shore in 1822-33 and Green Bay's in 1836, the drop of Nazi Germany's scraps Ladoga's west shore
+    in 1936-44, and the Door Peninsula's correction Green Bay's 53 km in 1834.
 
   Global uses `l7.yaml` and `water.yaml`; only region also checks `regions-milestone1.yaml`,
   which limits its L5-L6 coverage. All the known-place checks apply to both. On 28 September the
@@ -2926,7 +2977,7 @@ Review items not taken as written, one line each:
   warning stays an author note for the 1815 field until Tambora moves onto the steps.
 - **Border steps on a grid of years, or folded (#80):** not taken. A grid shows states that had
   already ended in 29% of first-millennium years, and a fold hides 29 states, while a step at every
-  change year costs only storage, 273 MB for 524 steps [M].
+  change year costs only storage, 273 MB for 523 steps [M].
 - **Sparse border tiles (#80, Design 2):** not taken at 1024 texels, where two whole-field slots fit
   the GPU budget with one sampler and no indirection. They return if the fields go to 2048 texels,
   where two slots would reach the 320 MiB line.

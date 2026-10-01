@@ -52,7 +52,10 @@ def rasterize(face: int, drawn: Sequence[Polity], interior: int) -> IdArray:
         parts = parts_of_dimension(np.array(clipped, dtype=object), 2)
         if parts.size == 0:
             continue
-        segments = ring_segments(shapely.segmentize(parts, SEGMENT_DEG), face, interior)
+        # Segmentizing can split a polygon whose ring nearly meets itself into several, when the
+        # points it adds cross there and GEOS mends the result, and a multipolygon has no rings.
+        dense = parts_of_dimension(shapely.segmentize(parts, SEGMENT_DEG), 2)
+        segments = ring_segments(dense, face, interior)
         window = _window(segments, grid)
         if window is None:
             continue

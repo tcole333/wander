@@ -4,9 +4,11 @@ import json
 
 import numpy as np
 import pytest
+import shapely
 
-from prebuild import borders, step_fields
+from prebuild import border_fields, borders, cube, step_fields
 from prebuild import cliopatria as clio
+from prebuild.fields import SUBPIXELS
 from prebuild.profiles import Profile, make_context
 from prebuild.records import read_record
 from prebuild.sources import Source, SourceFile, load_sources
@@ -55,6 +57,40 @@ def test_the_border_runs_on_across_the_sea_but_never_along_a_coast(face0):
     assert np.all(np.abs(face0[:, CENTER - 1 : CENTER + 1]) <= 0.5 + 1 / 16)
     near_a_border = np.argwhere(np.abs(face0) < 2)
     assert set(near_a_border[:, 1].tolist()) == set(range(CENTER - 2, CENTER + 2))
+
+
+# A polygon of the Tsardom of Russia in the 1609 step with the land carried through the Time of
+# Troubles, cut to two degrees about a thin spike whose two edges segmentizing makes cross, so GEOS
+# returns it as three polygons.
+SPIKED = shapely.Polygon(
+    [
+        (36.73762512207031, 55.63479995727539),
+        (36.65000534057617, 55.63479995727539),
+        (36.71207809448242, 55.90821838378906),
+        (36.88772964477539, 55.90821838378906),
+        (37.28913879394531, 56.86860656738281),
+        (36.91434917580165, 55.97190672548055),
+        (36.18, 55.92676973629439),
+        (36.18, 57.62),
+        (38.18, 57.62),
+        (38.18, 55.62),
+        (36.73050074892969, 55.62),
+    ]
+)
+
+
+def test_a_polygon_segmentizing_splits_is_drawn_whole():
+    assert shapely.get_type_id(shapely.segmentize(SPIKED, border_fields.SEGMENT_DEG)) == 6
+    inside = [(37.7, 57.2), (36.5, 56.8), (37.9, 55.8)]
+    face = int(cube.face_of(cube.lonlat_to_dir(*inside[0])))
+    interior = 1016
+    ids = border_fields.rasterize(face, [border_fields.Polity(2, SPIKED, 1.0)], interior)
+    origin = SUBPIXELS * (border_fields.APRON + border_fields.MARGIN_TEXELS)
+    for lon, lat in inside:
+        s, t = cube.face_st(face, cube.lonlat_to_dir(lon, lat))
+        row = int((t + 1) / 2 * interior * SUBPIXELS) + origin
+        column = int((s + 1) / 2 * interior * SUBPIXELS) + origin
+        assert ids[row, column] == 2
 
 
 def test_a_correction_gives_one_part_of_a_polity_to_another():
@@ -282,6 +318,20 @@ def test_each_correction_is_described_in_the_notice():
             clio.Correction(
                 "1800-1913", 4, (1677, 1677), "No state.", CITED, clio.Pocket((-74.7, 41.7), True)
             ),
+            clio.Correction(
+                "1800-1913",
+                5,
+                (1866, 1866),
+                "Held by both.",
+                CITED,
+                clio.Pocket(
+                    (9.0, 50.0),
+                    to="Duchy",
+                    shape_from=("Kingdom", 1865),
+                    wikidata="Q42",
+                    within=("Empire", 1867),
+                ),
+            ),
         ),
         {"1800-1913.yaml": "2026-09-29"},
     )
@@ -294,4 +344,8 @@ def test_each_correction_is_described_in_the_notice():
         "is drawn as British Africa."
     ) in text
     assert "1677: the stateless land at -74.7, 41.7 stays stateless. No state." in text
+    assert (
+        "1866: the part of the stateless land at 9.0, 50.0 inside Kingdom's shape of 1865 and "
+        "Empire's of 1867 is drawn as Duchy. Held by both."
+    ) in text
     assert "last on 2026-09-29" in text

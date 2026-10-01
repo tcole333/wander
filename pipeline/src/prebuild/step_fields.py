@@ -39,9 +39,12 @@ q = rha(64 + 8·clamp(d, -8, 7.875)). Chunks of at most PER_CHUNK steps store th
 Both are gzip level 9, mtime 0.
 
 **Cache.** A step's key hashes what its bytes depend on: its year, the rows valid in it, the
-hierarchy entries and correction operations that reach it, the rules, the land and lakes, and the
-code in STEP_CODE. `build/cache/borders/<key>/` holds its stored field, its preview layer and
-what its selection reported.
+hierarchy entries and correction operations that reach it, the rules, the land and lakes, the code
+in STEP_CODE, and the land the carry-through carries in it (`carried_key`).
+`build/cache/borders/<key>/` holds its stored field, its preview layer and what its selection
+reported. The carry-through reads every step selected without it: `build/cache/borders/plain/`
+keeps each step's Plain by its key without the carried land, and what the carry-through found by
+every step's such key.
 """
 
 import gzip
@@ -115,6 +118,7 @@ STEP_CODE = (
     "shared/constants.json",
 )
 CACHE = "borders"  # under build/cache/
+PLAIN = "plain"  # under CACHE: the steps selected without the carry-through, and what it found
 
 
 class StepError(ValueError):
@@ -540,9 +544,9 @@ def face_side(texels: int) -> int:
 
 
 def step_key(year: int, source: clio.Cliopatria, config: clio.Config, identity: str) -> str:
-    """What a step's bytes depend on, hashed: `identity` (the code and the terrain), the rules,
-    the year, the POLITY and vassalage rows valid in it, the hierarchy's classes of those, and
-    the operations of the corrections active in it."""
+    """What a step's selection without the carry-through depends on, hashed: `identity` (the code
+    and the terrain), the rules, the year, the POLITY and vassalage rows valid in it, the
+    hierarchy's classes of those, and the operations of the corrections active in it."""
     rows = [
         r for r in source.rows if r.holds(year) and (r.polity or clio.VASSALAGE.fullmatch(r.name))
     ]
@@ -567,6 +571,53 @@ def step_key(year: int, source: clio.Cliopatria, config: clio.Config, identity: 
     return sha256_bytes(json.dumps(doc, sort_keys=True).encode())
 
 
+def carried_key(key: str, carried: Sequence[clio.Carried]) -> str:
+    """A step's key with the land the carry-through carries in it: its polities, outer units,
+    runs and shapes."""
+    pieces = [
+        [c.polity, c.outer, list(c.run), sha256_bytes(shapely.to_wkb(c.shape, byte_order=1))]
+        for c in carried
+    ]
+    return sha256_bytes(json.dumps({"key": key, "carried": pieces}).encode())
+
+
+def carried_steps(
+    ctx: Context,
+    keys: Mapping[int, str],
+    source: clio.Cliopatria,
+    config: clio.Config,
+    terrain: clio.Terrain,
+) -> dict[int, tuple[clio.Carried, ...]]:
+    """The land the carry-through carries in each step, by its year: from the cache when every
+    step's key is the one it was found for, else from each step's Plain, selecting those the cache
+    lacks by `ctx.jobs` workers. A step whose selection fails has none, and its error is the bake's
+    to report."""
+    folder = ctx.cache / CACHE / PLAIN
+    years = sorted(keys)
+    found = folder / f"carried-{sha256_bytes(json.dumps([keys[y] for y in years]).encode())[:40]}"
+    if found.is_file():
+        return clio.unpack_carried(found.read_bytes())
+    paths = {year: folder / f"{keys[year][:40]}.bin" for year in years}
+    work: list[clio.Work] = [(y, (), paths[y]) for y in years if not paths[y].is_file()]
+    if work:
+        print(f"borders: selecting {len(work)} steps without the carry-through", flush=True)
+    selected = clio.selections(ctx, work, source, config, terrain)
+    failed = {summary[0] for summary in selected if summary[4] is not None}
+    plains = clio.read_plains(paths[y] for y in years if y not in failed)
+    carried = clio.carry_through(plains, config.rules.sliver_km)
+    if not failed:
+        _write_file(found, clio.pack_carried(carried))
+    print(f"borders: {len(carried)} steps carry land through a stateless run", flush=True)
+    return carried
+
+
+def _write_file(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    partial.write_bytes(data)
+    partial.replace(path)
+
+
 def operation_digest(correction: clio.Correction, source: clio.Cliopatria) -> str:
     """A correction's years and operation, hashed, with the rows it reads from other years: what
     it does to a step, but not why or on whose authority."""
@@ -580,6 +631,8 @@ def operation_digest(correction: clio.Correction, source: clio.Cliopatria) -> st
         fields["row"] = _row_digest(source, op.polity, op.year)
     if isinstance(op, clio.Give | clio.Pocket) and op.shape_from is not None:
         fields["row"] = _row_digest(source, *op.shape_from)
+    if isinstance(op, clio.Pocket) and op.within is not None:
+        fields["withinRow"] = _row_digest(source, *op.within)
     return sha256_bytes(json.dumps(fields, sort_keys=True, default=list).encode())
 
 
@@ -648,9 +701,11 @@ def bake_step(
     terrain: clio.Terrain,
     masks: Terrain,
     ids: Mapping[str, int],
+    carried: Sequence[clio.Carried] = (),
 ) -> Baked:
-    """Selects and bakes one step into the cache; a SelectionError fails it."""
-    chosen = clio.select(year, source, config, terrain)
+    """Selects and bakes one step, with the land the carry-through carries in it, into the cache;
+    a SelectionError fails it."""
+    chosen = clio.select(year, source, config, terrain, carried)
     raster = step_raster(chosen, ids)
     side = face_side(masks.texels)
     faces = np.stack(
@@ -721,9 +776,10 @@ def bake_steps(
     terrain: clio.Terrain,
     masks: Terrain,
     progress: Callable[[int, int, int], None] | None = None,
+    carried: Mapping[int, tuple[clio.Carried, ...]] | None = None,
 ) -> Iterator[tuple[int, Baked | None, str | None]]:
-    """Each step's bake, from the cache or baked now by `ctx.jobs` workers, in no set order, with
-    the error of a step whose selection fails."""
+    """Each step's bake, with the land `carried` gives it, from the cache or baked now by
+    `ctx.jobs` workers, in no set order, with the error of a step whose selection fails."""
     cache = ctx.cache / CACHE
     ids = clio.polity_ids(source, config)
     missing = []
@@ -735,10 +791,10 @@ def bake_steps(
             yield year, found, None
     if not missing:
         return
-    work = [(year, keys[year]) for year in missing]
+    work = [(year, keys[year], (carried or {}).get(year, ())) for year in missing]
     if ctx.jobs <= 1:
-        for count, (year, key) in enumerate(work, 1):
-            yield _bake_or_fail(year, key, cache, source, config, terrain, masks, ids)
+        for count, (year, key, land) in enumerate(work, 1):
+            yield _bake_or_fail(year, key, cache, source, config, terrain, masks, ids, land)
             if progress:
                 progress(count, len(work), year)
         return
@@ -752,9 +808,10 @@ def bake_steps(
                 progress(count, len(work), result[0])
 
 
-def _bake_or_fail(year, key, cache, source, config, terrain, masks, ids):
+def _bake_or_fail(year, key, cache, source, config, terrain, masks, ids, carried=()):
     try:
-        return year, bake_step(year, key, cache, source, config, terrain, masks, ids), None
+        baked = bake_step(year, key, cache, source, config, terrain, masks, ids, carried)
+        return year, baked, None
     except clio.SelectionError as error:
         return year, None, str(error)
 
@@ -775,9 +832,11 @@ def _start(ctx: Context, terrain: bytes, masks: Terrain, ids: dict[str, int], ca
     _worker = (source, config, clio.Terrain.from_wkb(terrain), masks, ids, cache)
 
 
-def _task(work: tuple[int, str]) -> tuple[int, Baked | None, str | None]:
+def _task(
+    work: tuple[int, str, tuple[clio.Carried, ...]],
+) -> tuple[int, Baked | None, str | None]:
     if _worker is None:
         raise RuntimeError("the steps' inputs exist only inside a bake worker")
     source, config, terrain, masks, ids, cache = _worker
-    year, key = work
-    return _bake_or_fail(year, key, cache, source, config, terrain, masks, ids)
+    year, key, carried = work
+    return _bake_or_fail(year, key, cache, source, config, terrain, masks, ids, carried)

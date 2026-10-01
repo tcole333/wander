@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here before
 # 1 CE (streaming.md 3.3). Years are astronomical: 1 BCE is 0, 44 BCE is -43. A step shows the state
 # of 1 January of its year, so a correction covers the years whose 1 January falls in its dates.
-modified: 2026-09-29
+modified: 2026-10-01
 corrections:
   - years: [-649, -615]
     overlap:
@@ -28,3 +28,210 @@ corrections:
       title: Yue (state)
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Yue_(state)
+  # The holes and gaps the bake owed, each settled by a verdict checked against its source
+  # (owner decision 38): a gap's land as the state that held it, drawn inside the shapes of
+  # the polities that held it on both sides of the run where those bound it.
+  - years: [-1759, -1750]
+    pocket:
+      at: [45.25, 33.75]
+      to: Babylonia
+      shape_from: {polity: Elam, year: -1799}
+      within: {polity: Babylonia, year: -1749}
+    why: >-
+      The Diyala valley, the kingdom of Eshnunna (Tell Asmar, Baqubah, Khafajah, Mandali), was
+      Babylon's: in 1762 BCE, Hammurabi's 31st year, the Babylonians occupied Eshnunna, and his 38th
+      year name records its destruction by flood. Cliopatria draws it Elamite before and Babylonian
+      from 1749 BCE, and leaves it empty between.
+    source:
+      title: Eshnunna
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Eshnunna
+  - years: [-549, -540]
+    pocket:
+      at: [35.25, 37.25]
+      to: Neo-Babylonian Empire
+      shape_from: {polity: Neo-Babylonian Empire, year: -599}
+      within: {polity: Achaemenid Empire, year: -539}
+    why: >-
+      Plain and Rough Cilicia (Tarsus, Adana, Silifke) was the kingdom of the syennesis, who after
+      Neriglissar's failed attack of 557/556 BCE appears to have become a vassal of Babylon:
+      Nabonidus marched through Cilicia unopposed in 555. It passed to the Achaemenids only about
+      542 BCE.
+    source:
+      title: Tarsus
+      publisher: Livius.org
+      url: https://www.livius.org/articles/place/tarsus/
+  - years: [-325, -301]
+    pocket:
+      at: [41.75, 41.75]
+      to: Colchis
+      shape_from: {polity: Achaemenid Empire, year: -330}
+      within: {polity: Colchis, year: -300}
+    why: >-
+      Ajara (Batumi, Khulo) and Samtskhe (Akhaltsikhe, Borjomi) were Colchis's: the Colchians threw
+      off Achaemenid rule and formed a state ruled through skeptoukhi, its king Kuji listed for
+      325-280 BCE, though his dates come from the late, semi-legendary Georgian chronicles.
+      Cliopatria's Colchis begins in 300 BCE.
+    source:
+      title: Colchis
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Colchis
+  - years: [-322, -318]
+    pocket:
+      at: [36.75, 38.75]
+      to: Kingdom of Cappadocia
+      shape_from: {polity: Ptolemaic Kingdom, year: -325}
+      within: {polity: Macedonian Empire, year: -317}
+    why: >-
+      On 1 January 323 BCE eastern Cappadocia (Gürün, Comana, Darende, Malatya) was the kingdom of
+      Ariarathes I, who after Gaugamela held out from Gaziura as an independent monarch; Eumenes,
+      granted Cappadocia in 323, could not dislodge him, and Perdiccas defeated and crucified him
+      only in summer 322. Cliopatria's Kingdom of Cappadocia begins in 239 BCE.
+    source:
+      title: Ariarathes I of Cappadocia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ariarathes_I_of_Cappadocia
+  - years: [-322, -301]
+    pocket:
+      at: [32.75, 41.25]
+      to: Paphlagonia
+      shape_from: {polity: Ptolemaic Kingdom, year: -325}
+      within: {polity: Kingdom of Lysimachus, year: -300}
+    why: >-
+      Inland Paphlagonia (Kastamonu, Tosya, Safranbolu) was assigned to Eumenes after Alexander's
+      death but continued to be governed by its native princes until Pontus absorbed it. Cliopatria
+      draws the same land as Paphlagonia from 279 BCE.
+    source:
+      title: Paphlagonia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Paphlagonia
+  - years: [-283, -283]
+    pocket:
+      at: [21.25, 40.75]
+      to: Kingdom of Lysimachus
+      shape_from: {polity: Antigonid Dynasty, year: -290}
+      within: {polity: Kingdom of Lysimachus, year: -282}
+    why: >-
+      Upper Macedonia, Pelagonia and Paeonia were Lysimachus's on 1 January 284 BCE: in 285 BCE he
+      expelled Pyrrhus, with whom he had shared Macedonia, and took complete control.
+    source:
+      title: Lysimachus
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Lysimachus
+  - years: [-278, -277]
+    pocket:
+      at: [21.25, 40.75]
+      to: Macedonian Empire
+      shape_from: {polity: Ptolemaic Kingdom, year: -280}
+      within: {polity: Antigonid Macedonia, year: -276}
+    why: >-
+      On 1 January 279 BCE Macedonia, northern Thessaly and western Thrace were still the kingdom of
+      Ptolemy Keraunos, acclaimed king at Lysimachia after he murdered Seleucus in 281; he died
+      fighting the Gauls in January or February 279, and short-lived rulers followed until Antigonus
+      Gonatas won at Lysimachia in 277. Cliopatria names the kingdom the Macedonian Empire, draws
+      Keraunos's realm as Ptolemaic in 281-280 and leaves the next step empty.
+    source:
+      title: Ptolemy Keraunos
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ptolemy_Keraunos
+  - years: [-271, -256]
+    pocket:
+      at: [20.25, 40.75]
+      to: Illyrian Kingdom
+      shape_from: {polity: Antigonid Macedonia, year: -274}
+      within: {polity: Illyrian Kingdom, year: -255}
+    why: >-
+      Central Albania (Tirana, Elbasan, Lezhë) was the Taulantian kings': from about 280 BCE
+      Monunius and Mytilos struck coins at Dyrrachion and ruled its hinterland between the Mat and
+      the Shkumbin, the kingdom Cliopatria draws as the Illyrian Kingdom from 255 BCE. Who held
+      Dassaretis and the south (Korçë, Berat), about a quarter of the land, is not documented, and
+      it goes with the rest.
+    source:
+      title: Taulantii
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Taulantii
+  - years: [-205, -203]
+    pocket:
+      at: [106.25, 34.75]
+      to: Yong
+      shape_from: {polity: Zhai, year: -207}
+      within: {polity: Han, year: -202}
+    why: >-
+      The former Qin commanderies of Longxi and Beidi (Tianshui, Pingliang, Qingyang) were the
+      Kingdom of Yong's: Xiang Yu made Zhang Han King of Yong in 206 BCE, with his capital at
+      Feiqiu, and when Han destroyed Yong in June 205 BCE its land became the Longxi, Beidi and
+      Zhongdi commanderies.
+    source:
+      title: 雍国 (楚汉战争)
+      publisher: Wikipedia (Chinese)
+      url: https://zh.wikipedia.org/zh-hans/%E9%9B%8D%E5%9B%BD_(%E6%A5%9A%E6%B1%89%E6%88%98%E4%BA%89)
+  - years: [-202, -202]
+    pocket:
+      at: [111.25, 29.75]
+      to: Linjiang
+      shape_from: {polity: Linjiang, year: -205}
+      within: {polity: Han Dynasty, year: -201}
+    why: >-
+      The Jiangling plain of Nan commandery was the Kingdom of Linjiang's: Gong Wei succeeded his
+      father Gong Ao in 204 BCE and kept it until Liu Bang's general Jin Xi conquered it in 202 BCE,
+      after Gaixia. Cliopatria's Linjiang ends in 204 BCE.
+    source:
+      title: Gong Wei
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gong_Wei
+  - years: [-125, -110]
+    pocket:
+      at: [60.75, 30.25]
+      to: Indo-Scythians
+      shape_from: {polity: Parthian Empire, year: -143}
+      within: {polity: Indo-Scythians, year: -109}
+    why: >-
+      The Sistan basin around the Hamun lakes and Zaranj was the Sakas': driven from Bactria by the
+      Yuezhi, they settled in Drangiana, fought Parthia in 138-124 BCE, and were folded into Parthia
+      only when Mithridates II defeated them around 100 BCE.
+    source:
+      title: Sakastan
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sakastan
+  - years: [-90, -77]
+    pocket:
+      at: [88.75, 39.75]
+      to: Loulan Kingdom
+      shape_from: {polity: Xiongnu, year: -109}
+      within: {polity: Han Dynasty, year: -76}
+      wikidata: Q1057551
+    why: >-
+      The Lop Nur basin was the kingdom of Loulan, its capital beside the lake: a tributary sending
+      hostages to both Han and the Xiongnu after 108 BCE, until Fu Jiezi had King Chang Gui killed
+      in 77 BCE and Han renamed it Shanshan. Cliopatria has no row for it.
+    source:
+      title: Loulan Kingdom
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Loulan_Kingdom
+  - years: [-65, -50]
+    pocket:
+      at: [76.88, 24.75]
+      to: Satavahana Dynasty
+    why: >-
+      Western Malwa around Ujjain and Guna, between Cliopatria's Kanvas at Vidisha and
+      Indo-Scythians at Kota and Mandsaur, was the Satavahanas': Satakarni, dated 70-60 BCE (c.
+      88-42 BCE by Ollett), seems to have conquered it from the Shungas, and the Shungas and then
+      the Satavahanas ruled Ujjain. No source names a holder for the northern end toward Gwalior,
+      about a fifth of the land, and it goes with the rest.
+    source:
+      title: Satakarni
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Satakarni
+  - years: [-49, -31]
+    pocket:
+      at: [74.75, 22.75]
+      to: Satavahana Dynasty
+      shape_from: {polity: Indo-Scythians, year: -62}
+      within: {polity: Satavahana Dynasty, year: -30}
+    why: >-
+      Western Malwa around Ujjain, Ratlam and Mandsaur was the Satavahanas' after Satakarni took it
+      from the Shungas; Cliopatria's Satavahana row takes it from 31 BCE.
+    source:
+      title: Satakarni
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Satakarni
