@@ -5,14 +5,13 @@ import { MemoryAccount } from '../perf/memory';
 import {
   createBorderUniforms,
   createStepUniforms,
+  ETCHED_LOOK,
+  etchedScale,
   fillBorderField,
-  OUTER_FAR,
-  OUTER_NEAR,
-  outerLook,
+  innerShare,
   sourceVector,
   uploadBorderFace,
   type BorderSource,
-  type OuterLook,
 } from './bordersHook';
 
 it('keeps the border backing buffer through partial uploads and releases it after the last upload', () => {
@@ -67,35 +66,51 @@ describe("the steps' sources", () => {
   });
 });
 
-describe("the outer line's weight", () => {
-  const vec = ({ widthPx, darken, halfDotPx, follow }: OuterLook) => [
-    widthPx,
-    darken,
-    halfDotPx,
-    follow,
-  ];
-  const look = (viewKm: number) => [...outerLook(viewKm).toArray()];
+describe("the etched outer line's size", () => {
   const { near, far } = tunables.borderWeightKm;
 
-  it('draws the near line at 6,000 km across and closer', () => {
-    for (const viewKm of [300, 2500, near]) expect(look(viewKm)).toEqual(vec(OUTER_NEAR));
+  it('keeps its near size at 14,000 km across and closer', () => {
+    for (const viewKm of [300, 3000, 4750, near]) expect(etchedScale(viewKm)).toBe(1);
   });
 
-  it('draws the far line at world view', () => {
-    for (const viewKm of [far, Infinity]) expect(look(viewKm)).toEqual(vec(OUTER_FAR));
+  it('grows to its far size at world view', () => {
+    for (const viewKm of [far, 40_000, Infinity]) expect(etchedScale(viewKm)).toBe(ETCHED_LOOK.far);
   });
 
-  it('grows between them at 17,500 km, heavier than at 10,000 km', () => {
-    const [width, darken] = look(17_500);
-    expect(width).toBeGreaterThan(look(10_000)[0]!);
-    expect(width).toBeLessThan(OUTER_FAR.widthPx);
-    expect(darken).toBeGreaterThan(OUTER_NEAR.darken);
-    expect(darken).toBeLessThan(OUTER_FAR.darken);
+  it('grows evenly on a log scale between them', () => {
+    const middle = etchedScale(Math.sqrt(near * far));
+    expect(middle).toBeCloseTo((1 + ETCHED_LOOK.far) / 2, 9);
+    expect(etchedScale(17_500)).toBeGreaterThan(1);
+    expect(etchedScale(17_500)).toBeLessThan(middle);
   });
 
-  it("starts the steps' uniform at the near line", () => {
-    expect([...createStepUniforms('full').lookBorderOuter.value.toArray()]).toEqual(
-      vec(OUTER_NEAR),
-    );
+  it("starts the steps' uniform at the near size", () => {
+    expect(createStepUniforms('full').lookBorderScale.value).toBe(1);
+  });
+});
+
+describe("the inner lines' share", () => {
+  const fade = tunables.borderInnerKm;
+  const close = tunables.borderInnerCloseKm;
+
+  it('draws none at 9,000 km across and wider', () => {
+    for (const viewKm of [fade.far, 14_000, Infinity]) expect(innerShare(viewKm)).toBe(0);
+  });
+
+  it('draws all from 4,500 to 2,000 km across', () => {
+    for (const viewKm of [fade.near, 3000, close.far]) expect(innerShare(viewKm)).toBe(1);
+  });
+
+  it('fades in between, half drawn halfway', () => {
+    expect(innerShare((fade.near + fade.far) / 2)).toBeCloseTo(0.5, 9);
+    expect(innerShare(6000)).toBeGreaterThan(innerShare(8000));
+  });
+
+  it('dims close in, to its close share at 1,000 km across and closer', () => {
+    for (const viewKm of [close.near, 500, 200]) {
+      expect(innerShare(viewKm)).toBeCloseTo(ETCHED_LOOK.inner.close, 9);
+    }
+    const middle = innerShare(Math.sqrt(close.near * close.far));
+    expect(middle).toBeCloseTo((1 + ETCHED_LOOK.inner.close) / 2, 9);
   });
 });

@@ -11,7 +11,7 @@ import { tunables, type Tier } from '../config/tunables';
 import { BAND_BYTES, STEP_BANDS } from '../data/borders';
 import type { BorderStepsRelease } from '../data/release';
 import { UploadQueue } from '../gpu/uploadQueue';
-import { createStepUniforms, OUTER_NEAR, outerLook, sourceVector } from '../look/bordersHook';
+import { createStepUniforms, etchedScale, innerShare, sourceVector } from '../look/bordersHook';
 import { MemoryAccount } from '../perf/memory';
 import { dayFromCivil } from '../story/dates';
 import { previewChunk, stepFile } from '../test/borderFiles';
@@ -482,23 +482,24 @@ describe('the clock', () => {
     const h = harness();
     await h.until(() => h.borders.slotSteps.includes(at(1815)));
     await h.frames(Math.ceil(tunables.borderFade / 16));
-    await h.frame(16, { viewKm: 8000 });
+    await h.frame(16, { viewKm: 10_000 });
     expect(h.uniforms.lookBorderInner.value).toBe(0);
     expect(h.uniforms.lookBorderStrength.value).toBe(1);
-    await h.frame(16, { viewKm: 2000 });
+    await h.frame(16, { viewKm: 3000 });
     expect(h.uniforms.lookBorderInner.value).toBe(1);
+    await h.frame(16, { viewKm: 1000 });
+    expect(h.uniforms.lookBorderInner.value).toBe(innerShare(1000));
     await h.frame(16, { viewKm: 200 });
     expect(h.uniforms.lookBorderStrength.value).toBe(0);
   });
 
-  test("the outer line's weight follows the view's width", async () => {
+  test("the outer line's size follows the view's width", async () => {
     const h = harness();
-    const outer = () => [...h.uniforms.lookBorderOuter.value.toArray()];
     await h.frame(16, { viewKm: 20_000 });
-    expect(outer()).toEqual([...outerLook(20_000).toArray()]);
+    expect(h.uniforms.lookBorderScale.value).toBe(etchedScale(20_000));
+    expect(h.uniforms.lookBorderScale.value).toBeGreaterThan(1);
     await h.frame(16, { viewKm: 4000 });
-    const { widthPx, darken, halfDotPx, follow } = OUTER_NEAR;
-    expect(outer()).toEqual([widthPx, darken, halfDotPx, follow]);
+    expect(h.uniforms.lookBorderScale.value).toBe(1);
   });
 });
 

@@ -27,7 +27,8 @@ import type { BorderStepsRelease, Release } from '../data/release';
 import { fetchData, MissingError } from '../data/surfaceLayer';
 import type { UploadJob } from '../gpu/uploadQueue';
 import {
-  outerLook,
+  etchedScale,
+  innerShare,
   sourceVector,
   stepUniformsOf,
   type BorderSource,
@@ -628,7 +629,7 @@ export class ClockBorders {
     this.#strength = drawing ? strength * fades.close : 0;
     uniforms.lookBorderStrength.value = this.#strength;
     uniforms.lookBorderInner.value = fades.inner;
-    outerLook(viewKm, uniforms.lookBorderOuter.value);
+    uniforms.lookBorderScale.value = etchedScale(viewKm);
     sourceVector(this.#tier, this.#from ?? NONE, uniforms.lookBorderA.value);
     sourceVector(this.#tier, this.#to ?? NONE, uniforms.lookBorderB.value);
     uniforms.lookBorderMix.value = this.#mix;
@@ -637,16 +638,12 @@ export class ClockBorders {
 
 /**
  * How the view's width fades the borders: `close`, all of them as the view closes in over
- * borderCloseKm, where a texel spans tens of pixels; `inner`, the inner lines in as it narrows over
- * borderInnerKm.
+ * borderCloseKm, where a texel spans tens of pixels; `inner`, how strongly the inner lines draw
+ * (innerShare in look/bordersHook.ts).
  */
 export function viewFades(viewKm: number): { close: number; inner: number } {
   const close = tunables.borderCloseKm;
-  const inner = tunables.borderInnerKm;
-  return {
-    close: smoothstep(close.near, close.far, viewKm),
-    inner: 1 - smoothstep(inner.near, inner.far, viewKm),
-  };
+  return { close: smoothstep(close.near, close.far, viewKm), inner: innerShare(viewKm) };
 }
 
 function same(a: Drawn | null, b: Drawn | null): boolean {

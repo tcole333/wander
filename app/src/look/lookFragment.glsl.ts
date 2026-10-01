@@ -55,7 +55,13 @@ uniform vec3 lookShallow;
 uniform vec3 lookDeep;
 uniform vec3 lookShelf;
 uniform vec3 lookInlay;
-uniform vec3 lookRiver;
+// The rivers' inlay of blued steel (owner decision 42): its color and roughness, and how deep it
+// lies in the channel the relief cuts for it, a share of the channel's full depth.
+uniform vec3 lookRiverSteel;
+uniform float lookRiverSteelRough;
+uniform float lookRiverSteelSink;
+// The most light a border's etched cut reflects, in luminance (bordersHook.ts, ETCHED_LOOK.cap).
+uniform float lookCutCap;
 uniform float lookNormalStrength;
 uniform float lookNormalZoom;
 uniform float lookMaxSlope;
@@ -413,7 +419,7 @@ float lookReliefAt(LookFields f, LookFootprint fp) {
   float land = clamp(0.5 + f.d / fp.texPx, 0.0, 1.0);
   float water = lookWater(f.w, fp.texPx);
   float lake = smoothstep(0.5, 2.5, -f.w);
-  float onLand = bevel + lookHeightRelief(f.h) - water * 0.12;
+  float onLand = bevel + lookHeightRelief(f.h) - water * 0.12 * lookRiverSteelSink;
   onLand -= lake * 0.8 * bevel;
   float depth = max(-f.h, 0.0);
   // Magnified, each step would spread over the taps as a soft ridge: it fades out instead.
@@ -434,7 +440,11 @@ ${marks ? MARKS_DECLARATIONS : ''}struct LookSurface {
   // 1 on land and lakes, 0 at sea: the ground inside the drawn coast.
   float ground;
   // The sea names' ink, 0 to 1.
-  float names;${marks ? '\n  // The marks cut into it (marks.glsl.ts).\n  LookMarks marks;' : ''}
+  float names;
+  // The rivers' steel inlay's share of the fragment, on land.
+  float river;
+  // A border's etched cut, 0 to 1 (bordersHook.ts).
+  float cut;${marks ? '\n  // The marks cut into it (marks.glsl.ts).\n  LookMarks marks;' : ''}
 };
 ${marks ? MARKS_FUNCTIONS : ''}
 LookSurface lookSurface() {
@@ -453,6 +463,9 @@ LookSurface lookSurface() {
   float mottle = nz.mottle * lookNoise;
   float fine = 0.5 + (nz.fine - 0.5) * lookNoise;
   float land = clamp(0.5 + c.d / fp.texPx, 0.0, 1.0);
+  float water = lookWater(c.w, fp.texPx);
+  float lake = smoothstep(0.5, 2.5, -c.w);
+  float river = water * (1.0 - lake);
 
   // Four taps a pixel or at least 2 texels away (within the tile's 4-texel border): the relief's
   // central differences, plus the fine noise's own gradient carried to s and t by the taps'
@@ -470,7 +483,8 @@ LookSurface lookSurface() {
   o.zoom = clamp(pow(fp.degPx / LOOK_REF_DEG_PX, lookNormalZoom), 0.15, 1.0);
   // The fine noise's relief at the spike's 0.06, keeping half its strength against that
   // softening, so the grain stays crisp close up (all of it reads as reptile skin).
-  float noiseRelief = 0.06 * land * lookNoise * mix(1.0, 1.0 / o.zoom, 0.5);
+  // The steel is polished smooth: the casting's grain stops at it.
+  float noiseRelief = 0.06 * land * lookNoise * mix(1.0, 1.0 / o.zoom, 0.5) * (1.0 - river);
   dh += noiseRelief * vec2(dot(nz.fineGrad, e.dir - w.dir), dot(nz.fineGrad, n.dir - s.dir));
   // The broad forms: the height's relief again from heights about LOOK_COARSE_PX pixels a texel,
   // up to 3 mips coarser (4-texel taps at most, within the border), mixed in from about 300 km
@@ -498,8 +512,6 @@ LookSurface lookSurface() {
   o.dh = dh / (2.0 * ds.x);
 
   float coast = lookLine(abs(c.d) / fp.texPx, lookCoastPx);
-  float water = lookWater(c.w, fp.texPx);
-  float lake = smoothstep(0.5, 2.5, -c.w);
 
   // Land: patina, bronze and worn brass highs.
   float r = pow(max(c.h, 0.0) / 6500.0, 0.55);
@@ -520,9 +532,12 @@ LookSurface lookSurface() {
   float belowWorld = 1.0 - smoothstep(0.8, 1.0, o.zoom);
   float polish = max(o.zoom * o.zoom, 0.5) * mix(1.0, lookPolish, belowWorld);
   vec3 landColor = mix(mix(lookPatina, lookBronze, t1), lookBrassHi, t2 * mix(0.45, 0.75, polish));
-  landColor = mix(landColor, lookRiver, 0.55 * water) * (1.0 - 0.35 * coast);
-  float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14 + water * 0.2;
-  float landMetal = 0.75 + 0.25 * t1;
+  // Rivers are inlaid in blued steel, polished, laid in their channel: it takes the lamp in deep
+  // blue.
+  landColor = mix(landColor, lookRiverSteel, water) * (1.0 - 0.35 * coast);
+  float landRough = 0.7 - (0.24 * t1 + 0.1 * t2) * polish + (fine - 0.5) * 0.14;
+  landRough = mix(landRough, lookRiverSteelRough, water);
+  float landMetal = mix(0.75 + 0.25 * t1, 1.0, water);
 
   // Sea: lacquer by depth, the shelf, mottle, and brass inlay. The depth is continuous, not the
   // spike's bands, and the shelf and mottle are gentler than its: close up, bands and blotches
@@ -554,6 +569,8 @@ LookSurface lookSurface() {
   o.land = land * (1.0 - lake);
   o.ground = land;
   o.names = names * (1.0 - land);
+  o.river = river * land;
+  o.cut = 0.0;
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
   o.roughness = clamp(mix(seaRough, landRough, land), 0.05, 1.0);
   o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);${marks ? MARKS_APPLY : ''}
@@ -612,13 +629,24 @@ const LOOK_FRAGMENT_METALNESS = /* glsl */ `
  * After three's `#include <lights_fragment_end>`: the sea's lacquer reflects the lamp less in
  * regional and close views, where its broad lobe lies mid-screen and veils the sea in warm grey;
  * the world view keeps the spike's. The sea names' brass keeps more of it than the lacquer, not all:
- * they stay a recessed inlay, never brighter than the lit land.
+ * they stay a recessed inlay, never brighter than the lit land. A border's etched cut reflects no
+ * more than lookCutCap, under the bloom's threshold.
  */
 const LOOK_FRAGMENT_SPECULAR = /* glsl */ `
   float lookSeaLit = max(lookS.land, lookS.names * 0.4);
   float lookSeaSpec = mix(mix(0.3, 1.0, smoothstep(0.45, 1.0, lookS.zoom)), 1.0, lookSeaLit);
   reflectedLight.directSpecular *= lookSeaSpec;
   reflectedLight.indirectSpecular *= lookSeaSpec;
+  if (lookS.cut > 0.0) {
+    vec3 lookCutLit = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse +
+      reflectedLight.directSpecular + reflectedLight.indirectSpecular;
+    float lookCutLum = dot(lookCutLit, vec3(0.2126, 0.7152, 0.0722));
+    float lookCutK = mix(1.0, min(1.0, lookCutCap / max(lookCutLum, 1e-4)), lookS.cut);
+    reflectedLight.directDiffuse *= lookCutK;
+    reflectedLight.indirectDiffuse *= lookCutK;
+    reflectedLight.directSpecular *= lookCutK;
+    reflectedLight.indirectSpecular *= lookCutK;
+  }
 `;
 
 /** Replaces three's `#include <normal_fragment_maps>`, after `normal` is set. */

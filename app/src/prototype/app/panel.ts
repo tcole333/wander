@@ -40,6 +40,12 @@ const RANGES: Record<string, [number, number, number?]> = {
   debugView: [0, 4, 1],
   // The climate's palette: saturation in K.
   climateRangeK: [1, 10, 0.5],
+  // The rivers' blued steel and the border steps' etched cut.
+  riverSteelRough: [0.05, 1, 0.01],
+  riverSteelSink: [0, 1.5, 0.05],
+  borderEtchedRough: [0.05, 1, 0.01],
+  borderEtchedShade: [0, 0.95, 0.01],
+  borderEtchedCap: [0.1, 2, 0.05],
   // Marks (marks/marks.ts).
   markSize: [0.25, 3, 0.05],
   markBevel: [0.05, 1, 0.01],
