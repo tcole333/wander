@@ -6,9 +6,9 @@
 // overview's rider names the year a press flies to, over the return point its year, a pull moves
 // the tape 1:1 under a needle that never moves, the wheel shows more or less about the needle and
 // a sideways swipe travels, a touch pulls and a pinch anywhere on the ruler, the counter's knobs
-// included, zooms without zooming the page, no label shows cut by the glass's edges or in a reel's
-// fade, no press on the brass selects text, a pin holds while its date is on the tape, and Home
-// and End reach history's ends. Nothing logs an error.
+// included, zooms without zooming the page, a finger sliding off a knob stops it, no label shows
+// cut by the glass's edges or in a reel's fade, no press on the brass selects text, a pin holds
+// while its date is on the tape, and Home and End reach history's ends. Nothing logs an error.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import type { ExploreLabelsHook, ExploreViewHook, WorldTimeHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
@@ -374,6 +374,17 @@ test('Explore’s ruler takes a touch’s pull and a pinch, never zooming the pa
   expect(SPAN_DETENTS).toContain(tapped);
   await page.waitForTimeout(600);
   expect((await rested(page)).spanDays).toBe(tapped);
+  // A finger that lands on a knob and slides off stops it: held there, it repeats nothing, and
+  // lifted, steps nothing. (A slow renderer may count a hold before the slide reaches it.)
+  await touch('touchStart', [fewer]);
+  for (let move = 1; move <= 6; move++)
+    await touch('touchMove', [{ x: fewer.x + 30 * move, y: fewer.y - 6 * move }]);
+  await page.waitForTimeout(700);
+  const slid = (await clock(page)).spanDays;
+  await page.waitForTimeout(700);
+  expect((await clock(page)).spanDays).toBe(slid);
+  await touch('touchEnd', []);
+  expect((await rested(page)).spanDays).toBe(slid);
   expect(errors).toEqual([]);
   await context.close();
 });

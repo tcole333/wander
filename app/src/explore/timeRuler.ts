@@ -87,6 +87,8 @@ const DOUBLE_PX = 20;
 const SNAP_PX = 8;
 /** Wheel events further apart than this start a new gesture, whose axis is set anew. */
 const WHEEL_GESTURE_MS = 160;
+/** A finger that slides this far off where it landed on a knob leaves the knob, px. */
+const SLIDE_PX = 10;
 /** A knob held down repeats its step, after a wait, this often. */
 const REPEAT_WAIT_MS = 420;
 const REPEAT_MS = 240;
@@ -352,7 +354,8 @@ export class TimeRuler {
   /**
    * A counter knob: fewer years (-1) or more (1), stepping one detent, repeating while held. A
    * finger steps when it lifts or once it has held, so a pinch that lands on a knob steps nothing:
-   * its second finger, anywhere on the ruler, makes it the ruler's pinch (#down).
+   * its second finger, anywhere on the ruler, makes it the ruler's pinch (#down). A finger that
+   * slides off steps nothing more.
    */
   #knob(name: string, dir: 1 | -1): HTMLButtonElement {
     const knob = el('button', `xr-knob is-${name}`);
@@ -370,6 +373,8 @@ export class TimeRuler {
     glyph.innerHTML = `<path d="${d}" class="rc-cut-lip" transform="translate(0.5 0.7)"/><path d="${d}" class="rc-niello"/>`;
     knob.append(face, glyph);
     const { signal } = this.#listeners;
+    /** The finger on this knob and where it landed, while it may still step. */
+    let landed: { id: number; x: number; y: number } | null = null;
     knob.addEventListener(
       'pointerdown',
       (event) => {
@@ -384,8 +389,23 @@ export class TimeRuler {
           this.#repeat = window.setTimeout(step, REPEAT_MS);
         };
         if (event.pointerType === 'mouse') this.#detent(dir);
-        else this.#knobTouch = event.pointerId;
+        else {
+          this.#knobTouch = event.pointerId;
+          landed = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        }
         this.#repeat = window.setTimeout(step, REPEAT_WAIT_MS);
+      },
+      { signal },
+    );
+    // A finger keeps the knob it lands on, so leaving it fires nothing: one that slides off,
+    // SLIDE_PX or more, stops the knob, which then neither repeats nor steps when it lifts.
+    knob.addEventListener(
+      'pointermove',
+      (event) => {
+        if (landed?.id !== event.pointerId) return;
+        if (Math.hypot(event.clientX - landed.x, event.clientY - landed.y) < SLIDE_PX) return;
+        landed = null;
+        this.#stopKnob();
       },
       { signal },
     );
@@ -394,12 +414,21 @@ export class TimeRuler {
       (event) => {
         // A tap.
         if (this.#knobTouch === event.pointerId) this.#detent(dir);
+        landed = null;
         this.#stopKnob();
       },
       { signal },
     );
-    for (const type of ['pointerleave', 'pointercancel', 'blur'] as const)
-      knob.addEventListener(type, () => this.#stopKnob(), { signal });
+    for (const type of ['pointerleave', 'pointercancel', 'blur'] as const) {
+      knob.addEventListener(
+        type,
+        () => {
+          landed = null;
+          this.#stopKnob();
+        },
+        { signal },
+      );
+    }
     // A click the keyboard makes (none reaches it: the knobs are out of the tab order), or a
     // screen reader's, steps once.
     knob.addEventListener(
