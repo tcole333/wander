@@ -661,18 +661,32 @@ Besides the 23 pairs:
   and Schleswig-Holstein, which it annexed after the Austro-Prussian War, in their 1865 shapes.
   Cliopatria's rows of 1870 also leave out north-eastern France and the Palatinate, which take the
   Second Empire's and Bavaria's shapes of 1869.
-- **What the history pass owes** (owner decision 38): the record lists, and `publish-data` refuses
-  the steps while it lists, every stateless hole of 10,000 km² or more that no correction cites,
-  as a place over its run of steps, and every gap of that size: land held in the steps on both
-  sides of a stateless run of at most 25 years that the carry-through leaves stateless, since two
-  polities hold it there, as Prussia's was in 1864-70 between Cliopatria's German Confederation
-  and German Empire. Land stateless for longer is more often a state's real end, which decision 35
-  leaves blank. Each step records its stateless land, and the land stateless `pocket`s keep, on a
-  half-degree grid for the gaps, and a gap that holds a listed hole, a stateless `pocket`'s point
-  or land one keeps is not counted again. The global bake owes 42 holes, 16 of them beside a lake
-  and past the 100,000 km² cap, and 91 gaps, among them the Balkans in 627-37, the Tarim in 78-90,
-  Bengal in 1344-51 and Siberia's Ob in 1588-94 [M global bake, 1 October]; each needs a cited
-  `pocket`, the state that held it or stateless, before the steps are published.
+- **What the history pass owes** (owner decision 38): the record lists every stateless hole of
+  10,000 km² or more that no correction cites, as a place over its run of steps, and every gap of
+  that size: land held in the steps on both sides of a stateless run of at most 25 years that the
+  carry-through leaves stateless, since two polities hold it there, as Prussia's was in 1864-70
+  between Cliopatria's German Confederation and German Empire. Land stateless for longer is more
+  often a state's real end, which decision 35 leaves blank. Each step records its stateless land,
+  and the land stateless `pocket`s keep, on a half-degree grid for the gaps, and a gap that holds a
+  listed hole, a stateless `pocket`'s point or land one keeps is not counted again. Each place has
+  an id: its kind, its years and its centroid to the whole degree (a hole's in its largest step, a
+  gap's over its cells), such as `gap 1344..1351 88E 24N` for Bengal, so a rebake that moves its
+  outline a little keeps it; places that would share one take `#1`, `#2` in order. The global
+  bake owes 42 holes, 16 of them beside a lake and past the 100,000 km² cap, and 91 gaps, among
+  them the Balkans in 627-37, the Tarim in 78-90, Bengal in 1344-51 and Siberia's Ob in 1588-94
+  [M global bake, 1 October].
+- **Known gaps** (owner decision 41): `pipeline/config/borders/acknowledged.yaml` lists the owed
+  places the owner acknowledged as known gaps, each by its id with `verdict: known gap`, the
+  decision's date (`decided`) and a `why` saying what is missing; an id it lists twice, or a
+  verdict other than `known gap`, fails the build. The owner acknowledged all 133 places the
+  global bake owes on 1 October: they draw as the rules leave them, blank where nothing is cited,
+  while the history pass keeps researching them, and a cited `pocket` that settles one takes its
+  entry away.
+  The record marks each listed place with its acknowledgment, and `publish-data` publishes the
+  steps once every owed place is listed and refuses, naming each by its id, any it does not list,
+  so a new hole or gap, or a place whose id a correction changes, still stops the publish.
+  `verify:bake` reports how many owed places are acknowledged and how many are not, and fails on an
+  entry the bake no longer owes (the record's `lapsed`).
 
 The 1815 field's corrections are not carried over: Cliopatria already has Brussels Dutch and Hong
 Kong Qing [M].
@@ -869,8 +883,9 @@ from one historical-basemaps snapshot, 1815, the nearest to every Tambora date, 
 release names the border steps. Tambora's move onto the steps retires this field, its release
 section, its corrections and its license gate. Publishing the steps makes that move at once, so
 the first `--border-steps` publish waits on the lobby's preload of the walk's first border step
-and on the step as its beat's readiness item (below, and 5.7), as well as on the history pass's
-owed list. Until then the build's release holds both sections
+and on the step as its beat's readiness item (below, and 5.7), as well as on every place on the
+history pass's owed list being settled or acknowledged as a known gap. Until then the build's
+release holds both sections
 (3.8), and the look holds one border array in one sampler: this field's where the release names no
 border steps, as the published one does until publish-data's `--border-steps` (4.3), so visitors'
 program is unchanged until then, and the steps' where it names them, where Explore and the walks
@@ -1425,7 +1440,8 @@ _smoke/<sha16>.*  _e4/…                                 hosting checks (issue 
      upload, because keys are content-versioned and a mismatch means a broken build or upload
    - stops, before it reads R2, when the borders record lists an overlap pair that no `overlap`
      correction acknowledges, a composite or relation `hierarchy.yaml` does not class, or a
-     stateless hole or gap no correction gives a verdict (3.3), so `--dry-run` refuses them too
+     stateless hole or gap no correction gives a verdict and `acknowledged.yaml` does not list as a
+     known gap (3.3), naming each place by its id, so `--dry-run` refuses them too
    - stops before any upload when it would send the 1815 field's GPL notice and origin lacks the
      `borders-<ver8>` tag the notice links the build scripts at (3.3)
    - uploads the canary first, `bounds.bin` and the L0 tiles, and checks the headers R2 stored with
@@ -2183,7 +2199,7 @@ min(8, CPUs), with spawn-context worker processes. `media` also takes `--offline
 | `excerpts` | verified sources → ≤ 3 MB committed excerpts, Cliopatria's rows for the fixture's border steps among them (7.3) | minutes | local |
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
-| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml` and the era correction files) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged (`build/cache/borders/`), the review queue and the lakes and land `verify:bake` reads (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`; the region profile bakes only that field. The fixture bakes two steps from its excerpt, and no 1815 field | about 22 CPU-seconds a step: about 41 min for all 529 with 8 workers on the M5 when every key changes, after 6 min selecting every step for the carry-through, 9 s when none changed; 28 s for the 1815 field; 38 s for the fixture's two steps with 8 workers [M] | local |
+| `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml`, the era correction files and `acknowledged.yaml`) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged (`build/cache/borders/`), the review queue and the lakes and land `verify:bake` reads (3.3, 7.2). Until Tambora moves onto the steps, also `world_1815.geojson` + `pipeline/config/borders-1815.yaml` → milestone 1's `fd/borders/<ver8>/1815.bin`, with its GPL notice and corrected source under `lic/`; the region profile bakes only that field. The fixture bakes two steps from its excerpt, and no 1815 field | about 22 CPU-seconds a step: about 41 min for all 529 with 8 workers on the M5 when every key changes, after 6 min selecting every step for the carry-through, 9 s when none changed; 28 s for the 1815 field; 38 s for the fixture's two steps with 8 workers [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
 | `labels` | range names + polity names from `polities.json` → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
@@ -2233,7 +2249,7 @@ and the release's `media` section lists every key the locks name (3.8).
 |---|---|
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
-| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake}], gaps: [{at, km2, years}]}`, all of which `publish-data` refuses (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), the land carried through (each piece of 1,000 km² or more with its polity and the steps on either side of its run, the rest counted), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step and then again the 198 the carry-through reaches, without baking, in about 9 minutes with 8 workers [M] |
+| borders | `{steps, beats, unacknowledged, unclassified, owed, inputs, ver, stems[], years[], files{stem: {key, bytes, notice, source}}}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake, id, acknowledged?}], gaps: [{at, km2, years, id, acknowledged?}], lapsed}`, each place's `acknowledged` the `{verdict, decided, why}` of its entry in `acknowledged.yaml`, and `lapsed` the ids that file lists that the steps no longer owe, which `verify:bake` fails on; `publish-data` refuses the pairs, the unclassified entries and the owed places not acknowledged (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks; `ver`, `stems`, `years` and `files` are milestone 1's `borders` section as is, until Tambora moves onto the steps. The global and fixture profiles bake the steps, and the global and region profiles the 1815 field. Beside the record go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), the land carried through (each piece of 1,000 km² or more with its polity and the steps on either side of its run, the rest counted), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step and then again the 198 the carry-through reaches, without baking, in about 9 minutes with 8 workers [M] |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -3135,3 +3151,9 @@ Decided on the renders of the outer line's weights far out (issue #80), 2026-09-
     stays as decision 36 left it; wider, it grows with the view's width all the way out, to a
     3.5 px groove darkening 0.95 with dots of 4.5 px in 5 at world view, its soft edges taking on
     its weight.
+
+Decided on the history pass's owed places (#111), 2026-10-01:
+
+41. **Known gaps:** the borders publish now. The owed places no cited verdict settles yet are
+    listed as known gaps, drawn blank where nothing is cited, and the history pass keeps
+    researching them in follow-up PRs.
