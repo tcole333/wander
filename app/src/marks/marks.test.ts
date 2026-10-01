@@ -30,6 +30,7 @@ import {
   MarkLayer,
   markPx,
   RING_MAX_RAD,
+  type MarkSpan,
   type MarkSpec,
   type MarkView,
 } from './marks';
@@ -566,6 +567,43 @@ describe('MarkLayer’s seals over the relief', () => {
     expect(marks.hit(sea.x, sea.y)).toBe('peak');
     // Past its lifted place, nothing.
     expect(marks.hit(top.x, top.y - 30)).toBeNull();
+  });
+
+  it('picks, of marks stood apart north and south and lifted into each other, the one drawn there', () => {
+    const at: LonLat = [20, 10];
+    const view = tilted(at);
+    const marks = new MarkLayer(() => cells);
+    marks.useClearance(ceiling(80_000));
+    marks.useHeights(() => texel);
+    // Nearly at one place, the southern one first in priority: stood apart north and south, a
+    // little across the screen.
+    marks.set('events', [
+      mark('south', [20, 10], { score: 9 }),
+      mark('north', [20.0005, 10.001], { score: 1 }),
+    ]);
+    marks.place(view);
+    const [south, north] = ['south', 'north'].map((id) => marks.span(id)!) as [MarkSpan, MarkSpan];
+    const rPx = marks.placed()[0]!.rPx;
+    expect(south.y0 - north.y0).toBeGreaterThan(rPx);
+    // On the northern seal, seven tenths of a radius from its likeliest place toward the southern
+    // one's way up, which runs nearer the pointer than the northern one's own way.
+    const side = Math.sign(south.x0 - north.x0);
+    const pointer = {
+      x: (north.x0 + north.x1) / 2 + side * 0.7 * rPx,
+      y: (north.y0 + north.y1) / 2,
+    };
+    const way = (s: MarkSpan) => {
+      const [dx, dy] = [s.x1 - s.x0, s.y1 - s.y0];
+      const t = Math.max(
+        0,
+        Math.min(1, ((pointer.x - s.x0) * dx + (pointer.y - s.y0) * dy) / (dx * dx + dy * dy)),
+      );
+      return Math.hypot(pointer.x - s.x0 - t * dx, pointer.y - s.y0 - t * dy);
+    };
+    expect(way(south)).toBeLessThan(way(north));
+    expect(way(south)).toBeLessThan(rPx);
+    expect(marks.hit(pointer.x, pointer.y)).toBe('north');
+    expect(marks.hit((south.x0 + south.x1) / 2, (south.y0 + south.y1) / 2)).toBe('south');
   });
 });
 
