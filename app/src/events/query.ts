@@ -9,6 +9,11 @@ export interface EventQuery {
   t1: number;
   view: EventView;
   tier: Tier;
+  /**
+   * The declutter cell's side in CSS px, declutterPerCell events a cell: declutterCellMarks marks
+   * across at the size the marks are drawn, so larger marks keep as far apart.
+   */
+  cellPx: number;
   /** Resident story events: exempt from time, nesting, cell and count budgets. Still horizon-culled. */
   focalQids?: number[];
 }
@@ -103,8 +108,21 @@ class Fades<T extends { row: number }> {
   }
 }
 
-/** Greedy score budget. A 20-point incumbent margin applies both globally and inside cells. */
-function budget(candidates: Candidate[], limit: number, incumbent: Set<number>): Candidate[] {
+/** The declutter cell's side, CSS px, for marks `markPx` across. */
+export function cellPxFor(markPx: number): number {
+  return tunables.declutterCellMarks * markPx;
+}
+
+/**
+ * Greedy score budget over cells `cellPx` square. A 20-point incumbent margin applies both
+ * globally and inside cells.
+ */
+function budget(
+  candidates: Candidate[],
+  limit: number,
+  incumbent: Set<number>,
+  cellPx: number,
+): Candidate[] {
   candidates.sort(
     (a, b) =>
       b.score +
@@ -120,7 +138,7 @@ function budget(candidates: Candidate[], limit: number, incumbent: Set<number>):
   for (const c of candidates) {
     if (ordinary >= limit && remainingFocal === 0) break;
     if (!c.focal && ordinary >= limit) continue;
-    const cell = `${Math.floor(c.x / 64)},${Math.floor(c.y / 64)}`;
+    const cell = `${Math.floor(c.x / cellPx)},${Math.floor(c.y / cellPx)}`;
     const count = cells.get(cell) ?? 0;
     if (!c.focal && (ordinary >= limit || count >= tunables.declutterPerCell)) continue;
     chosen.push(c);
@@ -150,9 +168,10 @@ export class EventQueryEngine {
     if (
       ![query.t0, query.t1, now].every(Number.isFinite) ||
       query.t0 > query.t1 ||
+      !(query.cellPx > 0 && Number.isFinite(query.cellPx)) ||
       (query.tier !== 'lite' && query.tier !== 'full')
     )
-      throw new Error('invalid event window or tier');
+      throw new Error('invalid event window, cell or tier');
     const focal = new Set(query.focalQids ?? []);
     const missingFocal = [...focal].filter((qid) => !this.index.qid(qid));
     const inTime = ({ page: p, i }: Ref) => p.t0[i]! <= query.t1 && p.t1[i]! >= query.t0;
@@ -231,7 +250,12 @@ export class EventQueryEngine {
     const eligible = visible.filter(
       (c) => c.focal || (!isExpanded(c) && ancestors(c).every((p) => !blocksChild(p))),
     );
-    const chosen = budget(eligible, tunables.eventMarkers[query.tier], this.#markers.incumbents());
+    const chosen = budget(
+      eligible,
+      tunables.eventMarkers[query.tier],
+      this.#markers.incumbents(),
+      query.cellPx,
+    );
     const context = new Map<number, Candidate>();
     for (const c of chosen)
       for (const parent of ancestors(c)) {
@@ -290,6 +314,7 @@ export class EventQueryEngine {
       labelCandidates,
       tunables.eventLabels[query.tier],
       this.#labels.incumbents(),
+      query.cellPx,
     ).map((c) => ({ ...mark(c, context.has(c.row)), text: labelAt(c.page, c.i) }));
     const result: EventResult = {
       markers: this.#markers.update(

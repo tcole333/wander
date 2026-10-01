@@ -1516,7 +1516,9 @@ only a failed start or a worker error ends the worker.
   scrub. A failed file stays failed until explicit `retry()` clears it, avoiding a retry loop.
   A timed retry after `degradeFor` (5.2) remains to be added, including a failed overview.
 - **Detail budget:** lite/full target 80/140 markers and 24/40 labels, each with at most two per
-  64 × 64 CSS-pixel cell. Resident focal Q numbers bypass time, nesting, cell and count budgets
+  square cell `declutterCellMarks` marks across at the size the look draws them (`cellPx` in the
+  query; 64 CSS px where marks are 16 px, 176 where they are 44), so larger marks keep as far
+  apart. Resident focal Q numbers bypass time, nesting, cell and count budgets
   because a story names them explicitly; view and horizon culling still apply. Missing focal Q
   numbers are returned so the story can use its compiled place while loading.
 - **Nesting:** a parent shows until its projected extent exceeds 150 px, and returns below
@@ -2841,7 +2843,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `eventQueryHz` | 30 | event query rate while moving | E5 |
 | `eventMarkers`, `eventLabels` | 80 / 140, 24 / 40 | event detail budget | eye, when explore opens |
 | `parentSplitPx`, `parentMergePx` | 150, 120 px | parent → children switch | eye |
-| `declutterPerCell` | 2 per 64 px cell | event declutter | eye |
+| `declutterPerCell`, `declutterCellMarks` | 2 per cell, 4 marks across (64 CSS px at 16 px marks, 176 at 44) | event declutter: the cell scales with the marks' size | eye |
 | `hysteresisScore` | 20 on the 0-1000 score scale | margin to displace an incumbent | eye |
 | `eventFade` | 300 ms | event fades | eye |
 | `nowShare` | 0.1 of the ruler's visible width, at least a day | the now window events, Meanwhile and focal drops read | eye |

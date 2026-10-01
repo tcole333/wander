@@ -396,6 +396,7 @@ export class MarkLayer {
   /** The unknown glyphs and paces already reported: each is logged once, and its marks not drawn. */
   readonly #reported = new Set<string>();
   readonly #view = { toClip: new Matrix4(), kLand: 0, width: 1, height: 1 };
+  #sizePx = markPx(Infinity, 1);
 
   /** `cells` gives the glyphs' atlas cells once the look has lettered them. */
   constructor(cells: () => GlyphCells | null) {
@@ -443,6 +444,14 @@ export class MarkLayer {
     else this.#table ??= this.#allocate();
   }
 
+  /**
+   * The marks' diameter in CSS px for the last draw (tunables.markPx at its width), which the
+   * event declutter's cells are sized by.
+   */
+  get sizePx(): number {
+    return this.#sizePx;
+  }
+
   /** The terrain's ceiling, so a pick over land reaches the mark drawn on the relief. */
   useClearance(field: ClearanceField | null): void {
     this.#clearance = field;
@@ -478,13 +487,14 @@ export class MarkLayer {
     this.#view.width = view.width;
     this.#view.height = view.height;
     this.#placed = [];
+    this.#sizePx =
+      markPx(viewKmOf(view), view.pixelRatio) * Math.max(0.1, Number(this.params.markSize));
     const table = this.#table;
     if (!on || !table || this.#entries.length === 0) {
       this.uniforms.lookMarksOn.value = false;
       return;
     }
-    const px =
-      markPx(viewKmOf(view), view.pixelRatio) * Math.max(0.1, Number(this.params.markSize));
+    const px = this.#sizePx;
     const relief = Math.max(0, Number(this.params.markRelief));
     const candidates: Candidate[] = [];
     const grid = markGrid(view.width, view.height);
