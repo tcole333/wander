@@ -38,17 +38,9 @@ LEVEL_SIZES = [6 * 4**level for level in range(5)]
 
 
 @pytest.fixture(scope="module")
-def fixture_record(tmp_path_factory):
-    """The coverage stage run on the fixture profile, into a temporary build folder."""
-    build = tmp_path_factory.mktemp("build")
-    ctx = dataclasses.replace(
-        make_context(Profile.FIXTURE, 2),
-        out=build / "fixture",
-        stages_dir=build / "stages",
-        cache=build / "cache",
-    )
-    coverage.run(ctx)
-    return json.loads(record_path(ctx, "coverage").read_text())
+def fixture_record(fixture_coverage):
+    """The coverage stage's record on the fixture profile (conftest's one run per session)."""
+    return json.loads(record_path(fixture_coverage, "coverage").read_text())
 
 
 def some_land(tiles: list[Tile]) -> list[bool]:
@@ -361,6 +353,11 @@ def test_the_record_keeps_what_the_stage_read(fixture_record):
 def test_a_file_saved_during_the_run_leaves_the_record_stale(tmp_path, monkeypatch):
     for part in ("pipeline/config", "pipeline/tests/data"):
         shutil.copytree(REPO_ROOT / part, tmp_path / part)
+    # The six L0 tiles, which the staleness needs no more of.
+    (config_dir(tmp_path) / "fixture.yaml").write_text(
+        "excerpts: {global-30m: 1800}\n"
+        "groups: {global: {rasters: {0: global-30m}, tiles: [all-L0]}}\n"
+    )
     ctx = make_context(Profile.FIXTURE, 1, tmp_path)
     available_tiles = coverage.available_tiles
 

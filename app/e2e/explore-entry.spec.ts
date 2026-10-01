@@ -3,7 +3,7 @@
 // dives into free time over its opening (?opening= pins Waterloo), landing with the opening's
 // line pinned on its plate, where the now window's events mark the globe, a mark pointed at shows
 // its plate, the keyboard pins one from the events' listbox, Meanwhile flies to an entry and pins
-// it, and the ruler scrubs the world clock. WANDER returns to the lobby, and Escape unpins a plate,
+// it, and the ruler steps the world clock. WANDER returns to the lobby, and Escape unpins a plate,
 // then returns. A release that names no event index, as the bundled one does until the event
 // files are published, shows the stories' plaques alone. Nothing logs an error, no request goes to
 // Wikimedia, and once the room opens nothing more is fetched from the app's own host.
@@ -106,7 +106,7 @@ test('shows Explore’s plaque last, dives in, labels its marks, scrubs and retu
   await plaque.click();
   await phase(page, 'diving');
   await phase(page, 'gone');
-  await expect(page.locator('.wu-explore .rc')).toBeVisible();
+  await expect(page.locator('.wu-explore .xr')).toBeVisible();
   await expect(clock).toHaveAttribute('aria-valuenow', String(WATERLOO));
   // The event worker answers from the fixture's index: the now window's events mark the globe,
   // more than the openings lock's one mark, and Waterloo's mark is the index's own.
@@ -147,7 +147,7 @@ test('shows Explore’s plaque last, dives in, labels its marks, scrubs and retu
     pointed.id,
   );
 
-  // The ruler's date plaque scrubs the world clock from the keyboard.
+  // The ruler's date plaque steps the world clock from the keyboard.
   await clock.focus();
   await page.keyboard.press('ArrowRight');
   await expect

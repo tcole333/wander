@@ -56,7 +56,7 @@ describe('the historical calendar', () => {
 
   it('counts Julian days without a gap across the era seam, a leap day every four years', () => {
     // Its 146,100 days are checked in plain code and asserted once: an expect for each day took
-    // up to 4.5 s on a loaded machine, against Vitest's 5 s timeout.
+    // 2.3-4.5 s on a loaded machine, where plain checks take 0.15 s.
     const start = dayFromJulian({ year: -200, month: 1, day: 1 });
     let previous = julianFromDay(start);
     const leapYears: number[] = [];

@@ -8,6 +8,8 @@
 //     [--data http://127.0.0.1:8795] [--variants 0,1,2,3] [--scene <name>] [--no-video]
 //   node scripts/exploreShots.ts --labels --url http://127.0.0.1:5173 --out ../build/explore/labels
 //     [--data http://127.0.0.1:8795]
+//   node scripts/exploreShots.ts --ruler --url http://127.0.0.1:5173 --out ../build/explore/ruler
+//     [--data http://127.0.0.1:8795]
 //
 // --demo: the dev page's ?markDemo (the lobby's glows as marks in the event glyphs), every
 // mark variant at world view, 3,000 km over Europe, 3,000 km over the demo's specimen tray in the
@@ -38,6 +40,13 @@
 // glyph hovered, its extent's ring drawn, and a battle beside it hovered; and Lepanto in 1571 at
 // 800 km, clicked and so pinned, with a mark beside it hovered. A contact sheet of them all;
 // explore.json lists each render's plates and Meanwhile's entries, and any console errors.
+//
+// --ruler: Explore's time ruler (explore/timeRuler.ts) from the production page's lobby, diving
+// onto Waterloo, at 1440x900, 1024x768 and 390x844: the landing zoom on its way and landed, the
+// tape at 5,000 years, 20 years, months and days, near 2000 and at 10,000 BCE, the date entry
+// open, the rider over the overview and a flight half way, each whole and cropped to the ruler; a
+// states sheet of the crops per width; and explore.json with each state's date, span and the
+// ruler's boxes, checked to stand inside the view and within 116 px.
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -213,6 +222,7 @@ const { values } = parseArgs({
     demo: { type: 'boolean', default: false },
     events: { type: 'boolean', default: false },
     labels: { type: 'boolean', default: false },
+    ruler: { type: 'boolean', default: false },
     variants: { type: 'string', default: '0,1,2,3' },
     'no-video': { type: 'boolean', default: false },
     timeout: { type: 'string', default: '120' },
@@ -221,12 +231,12 @@ const { values } = parseArgs({
     'no-gpu': { type: 'boolean', default: false },
   },
 });
-if ([values.demo, values.events, values.labels].filter(Boolean).length !== 1) {
-  throw new Error('pass one of --demo, --events and --labels');
+if ([values.demo, values.events, values.labels, values.ruler].filter(Boolean).length !== 1) {
+  throw new Error('pass one of --demo, --events, --labels and --ruler');
 }
 const scenes = SCENES.filter((scene) => !values.scene || scene.name === values.scene);
 const eventScenes = EVENT_SCENES.filter((scene) => !values.scene || scene.name === values.scene);
-if (!values.labels && (values.demo ? scenes : eventScenes).length === 0)
+if (!values.labels && !values.ruler && (values.demo ? scenes : eventScenes).length === 0)
   throw new Error(`no scene '${values.scene}'`);
 if (!values.out) throw new Error('--out <dir> is required');
 const origin = new URL(values.url);
@@ -257,6 +267,8 @@ try {
     console.log(`${shots.length} renders and their sheets in ${out}`);
   } else if (values.events) {
     await eventRenders(browser, report);
+  } else if (values.ruler) {
+    await rulerRenders(browser, report);
   } else {
     await labelRenders(browser, report);
   }
@@ -1110,4 +1122,190 @@ async function labelRenders(browser: Browser, report: Record<string, unknown>): 
     join(out, 'sheet-labels.png'),
   );
   await sheet.close();
+}
+
+/** A state of the ruler, rendered: its name, caption, the clock's date and span, and its boxes. */
+interface RulerShot {
+  name: string;
+  caption: string;
+  path: string;
+  crop: string;
+  day: number;
+  spanDays: number;
+  ruler: { top: number; height: number };
+  plaque: { top: number; left: number; right: number };
+}
+
+/** The ruler's states at one width, each set from where the last left it. */
+function rulerStates(): {
+  name: string;
+  caption: string;
+  set: (page: Page) => Promise<void>;
+  widths?: number[];
+}[] {
+  return [
+    {
+      name: 'landed',
+      caption: 'Landed on Waterloo, 200 years, the opening pinned',
+      set: async () => {},
+    },
+    {
+      name: 'wide',
+      caption: '5,000 years, the widest the tape goes; the overview holds all of history',
+      set: (page) => spanTo(page, 5000),
+    },
+    { name: 'decades', caption: '20 years: the glass, two years', set: (page) => spanTo(page, 20) },
+    {
+      name: 'months',
+      caption: 'Two years: months, January named by its year',
+      set: (page) => spanTo(page, 2),
+    },
+    {
+      name: 'days',
+      caption: 'A month: days, each 1st carrying its month',
+      set: (page) => spanTo(page, 30 / 365.2425),
+    },
+    {
+      name: 'near-2000',
+      caption: '1968 at 200 years: the tape stops at 2000 and runs on as leader',
+      set: async (page) => {
+        await spanTo(page, 200);
+        await page.evaluate(
+          (day) => (window as ShotPage).__worldTime!.seek(day),
+          dayFromHistorical({ year: 1968, month: 7, day: 1 }),
+        );
+      },
+    },
+    {
+      name: 'start',
+      caption: '9960 BCE at 200 years: history’s first stop',
+      set: (page) =>
+        page.evaluate(
+          (day) => (window as ShotPage).__worldTime!.seek(day),
+          dayFromHistorical({ year: -9959, month: 7, day: 1 }),
+        ),
+    },
+    {
+      name: 'entry',
+      caption: 'A date typed on the plaque: 1066, Enter to go',
+      set: async (page) => {
+        await page.evaluate(
+          (day) => (window as ShotPage).__worldTime!.seek(day),
+          dayFromHistorical({ year: 1815, month: 6, day: 18 }),
+        );
+        await page.keyboard.press('1');
+        await page.keyboard.type('066');
+      },
+    },
+    {
+      name: 'rider',
+      caption: 'The overview hovered: the rider names the year under the pointer',
+      set: async (page) => {
+        await page.keyboard.press('Escape');
+        const box = await page.locator('.xr').boundingBox();
+        if (!box) throw new Error('no ruler');
+        await page.mouse.move(box.x + box.width * 0.42, box.y + box.height - 18);
+      },
+    },
+    {
+      name: 'flight',
+      caption:
+        'Half way through the flight from 1815 to 500 BCE: the span rises to show the centuries',
+      set: async (page) => {
+        await page.mouse.move(5, 300);
+        await page.keyboard.type('500b');
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(150);
+      },
+    },
+  ];
+}
+
+/** Sets the tape's span to `years` about the needle at once. */
+async function spanTo(page: Page, years: number): Promise<void> {
+  await page.evaluate((years) => {
+    const time = (window as ShotPage).__worldTime!;
+    time.zoom((years * 365.2425) / time.state().spanDays);
+  }, years);
+}
+
+/** Explore's time ruler in each of its states at three widths, and a states sheet per width. */
+async function rulerRenders(browser: Browser, report: Record<string, unknown>): Promise<void> {
+  const shots: Record<string, RulerShot[]> = {};
+  for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+    [390, 844],
+  ] as const) {
+    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2 });
+    const page = await openLobby(context, 'Q48314');
+    const taken: RulerShot[] = (shots[width] = []);
+    const shoot = async (name: string, caption: string) => {
+      await frames(page, 4);
+      const path = join(out, `ruler-${width}-${name}.png`);
+      const crop = join(out, `ruler-${width}-${name}-crop.png`);
+      await page.screenshot({ path, scale: 'css' });
+      const state = await page.evaluate(() => {
+        const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+        const ruler = box('.xr');
+        const plaque = box('.xr-plaque');
+        return {
+          ...(window as ShotPage).__worldTime!.state(),
+          ruler: { top: ruler.top, height: ruler.height },
+          plaque: { top: plaque.top, left: plaque.left, right: plaque.right },
+        };
+      });
+      const top = Math.max(0, Math.min(state.ruler.top, state.plaque.top) - 24);
+      await page.screenshot({ path: crop, clip: { x: 0, y: top, width, height: height - top } });
+      assert(
+        state.ruler.height <= 116,
+        `${width}/${name}: the ruler is ${state.ruler.height} px tall`,
+      );
+      assert(
+        state.plaque.top >= 0 && state.plaque.left >= 0 && state.plaque.right <= width,
+        `${width}/${name}: the plaque leaves the view`,
+      );
+      taken.push({ name, caption, path, crop, ...state });
+      console.log(crop);
+    };
+    await page.locator('.lobby-plaque[data-choice="explore"]').click();
+    // The landing zoom on its way: the counter counts down as the lens shrinks.
+    await page.waitForTimeout(800);
+    await shoot(
+      'landing-zoom',
+      'The dive: the tape zooming in from 5,000 years as the ruler rises',
+    );
+    await page.waitForFunction(() => document.body.dataset.lobby === 'gone', null, { timeout });
+    await page.waitForFunction(() => (window as ShotPage).__worldTime?.moving() === false, null, {
+      timeout,
+    });
+    await settleLive(page);
+    for (const state of rulerStates()) {
+      await state.set(page);
+      if (state.name !== 'flight') {
+        await page.waitForFunction(
+          () => (window as ShotPage).__worldTime?.moving() === false,
+          null,
+          { timeout },
+        );
+        await page.waitForTimeout(400);
+      }
+      await shoot(state.name, state.caption);
+    }
+    await context.close();
+    const sheet = await browser.newPage({
+      viewport: { width: Math.max(1200, width + 40), height: 900 },
+    });
+    const cells = taken.map(
+      (shot) =>
+        `<figure><img src="${png(shot.crop)}" style="width:${width}px"><figcaption>${shot.caption}</figcaption></figure>`,
+    );
+    await shootSheet(
+      sheet,
+      `<h1>Explore's time ruler at ${width}x${height}</h1><div style="display:flex;flex-direction:column;gap:14px">${cells.join('')}</div>`,
+      join(out, `sheet-ruler-${width}.png`),
+    );
+    await sheet.close();
+  }
+  report.ruler = shots;
 }

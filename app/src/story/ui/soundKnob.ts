@@ -5,7 +5,7 @@
 // lobby and Sound Cabinet use the same knob; the lobby's press changes only the setting.
 import type { SoundSwitch } from '../contract';
 import { button, svg } from './dom';
-import { smallKnob } from './rulerCraft';
+import { smallKnob } from './brass';
 
 const CONE = 'M-10 -4 L-5 -4 L1 -9.5 L1 9.5 L-5 4 L-10 4 Z';
 const WAVES = 'M4.5 -4.5 Q7.5 0 4.5 4.5 M7.5 -8 Q12.5 0 7.5 8';

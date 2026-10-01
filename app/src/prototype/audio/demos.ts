@@ -12,6 +12,7 @@ import { beatView, createWalk } from '../../story/director';
 import type { Story } from '../../story/story';
 import { CraftRuler } from '../../story/ui/rulerCraft';
 import { ExploreTime, HISTORY } from '../../time/exploreTime';
+import { graduation } from '../../time/tapeScale';
 import { WorldClock } from '../../time/worldClock';
 import { FreeFlight } from '../../view/freeFlight';
 import { ViewControl } from '../../view/viewControl';
@@ -136,8 +137,9 @@ type Step = [seconds: number, move: (u: number) => void];
 
 /**
  * A stretch of Explore as it sounds, `seconds` long from `at`: the dive onto Waterloo, whirring,
- * then room tone, and the free ruler (ExploreTime and CraftRuler, run frame by frame into
- * Explore's score, audio/clockScore.ts) dragged a century back and forth at its opening span, by
+ * then room tone, and the free ruler (ExploreTime, with what its tape engraves, time/tapeScale.ts,
+ * run frame by frame into Explore's score, audio/clockScore.ts) dragged a century back and forth
+ * at its opening span, by
  * decades; zoomed out and dragged to 3000 BCE, by centuries and millennia; a leap along the tier
  * to 1066, zoomed in to its months and dragged into 1067; zoomed to days and dragged through
  * October; and a leap to history's start. The sound fades out over its last second.
@@ -147,7 +149,6 @@ export function exploreStretch(engine: SoundEngine, seconds: number, at: number)
   const time = new ExploreTime(new WorldClock(), HISTORY, opening, {
     openYears: tunables.exploreOpenYears,
   });
-  const ruler = new CraftRuler(time);
   const score = new ClockScore(engine, opening);
   const day = () => time.clock.state().day;
   const width = () => time.span.end - time.span.start;
@@ -171,8 +172,7 @@ export function exploreStretch(engine: SoundEngine, seconds: number, at: number)
     let ratio: number | undefined;
     return (u: number) => {
       ratio ??= (years * 365.2425) / width();
-      const share = (day() - time.span.start) / width();
-      time.zoom(ratio ** (u - done), share);
+      time.zoomBy(ratio ** (u - done));
       done = u;
     };
   };
@@ -210,11 +210,11 @@ export function exploreStretch(engine: SoundEngine, seconds: number, at: number)
       move(ease(u));
       if (u === 1) [step, stepAt] = [step + 1, t];
     }
-    const clock = { day: day(), unit: ruler.unit, yearStep: ruler.yearStep };
+    const { unit, yearStep } = graduation(time.spanDays, time.rulePx, day());
+    const clock = { day: day(), unit, yearStep };
     const pace = paceOf(view, next, dt);
     score.frame({ clock, flying: flight !== null, pace, at: at + t, dt });
     view = next;
   }
   score.stop(at + seconds - 1);
-  ruler.dispose();
 }

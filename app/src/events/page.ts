@@ -66,7 +66,7 @@ export function parsePage(value: unknown): EventPage {
     unc: Uint16Array.from(numbers(doc, 'unc', n, 0, 65535)),
     prec: Uint8Array.from(numbers(doc, 'prec', n, 0, 14)),
     cls: Uint8Array.from(numbers(doc, 'cls', n, 0, 255)),
-    flags: Uint8Array.from(numbers(doc, 'flags', n, 0, 31)),
+    flags: Uint8Array.from(numbers(doc, 'flags', n, 0, 63)),
     t0: Float64Array.from(numbers(doc, 't0', n, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)),
     t1: Float64Array.from(numbers(doc, 't1', n, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)),
   };

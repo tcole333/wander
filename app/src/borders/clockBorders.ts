@@ -142,6 +142,8 @@ export class ClockBorders {
   #last: number | null = null;
   #strength = 0;
   #serial = 0;
+  /** Inflates in flight: a step's next band, or a preview cell. */
+  #inflates = 0;
 
   constructor(options: ClockBordersOptions) {
     this.#section = options.section;
@@ -177,6 +179,14 @@ export class ClockBorders {
   /** The steps each slot holds, null for an empty or loading one; for tests and the dev page. */
   get slotSteps(): (number | null)[] {
     return this.#slots.map((slot) => (slot.ready ? slot.step : null));
+  }
+
+  /**
+   * Whether a step's band or a preview cell is inflating: for tests, which let each inflate finish
+   * between frames however long the platform takes over it.
+   */
+  get inflating(): boolean {
+    return this.#inflates > 0;
   }
 
   /** Every frame the active mode draws borders in, or asks them not to draw. */
@@ -401,7 +411,7 @@ export class ClockBorders {
       for (;;) {
         while (load.bands.size >= 2) await this.#landed(load);
         signal.throwIfAborted();
-        const next = await reader.next();
+        const next = await this.#inflate(reader.next());
         if (next.done) {
           const year = this.#steps?.years[step];
           if (next.value !== year)
@@ -428,6 +438,16 @@ export class ClockBorders {
       if (signal.aborted) return;
       this.#empty(slot);
       this.#fail(key, error);
+    }
+  }
+
+  /** `work`, counted among the inflates in flight until it settles. */
+  async #inflate<T>(work: Promise<T>): Promise<T> {
+    this.#inflates += 1;
+    try {
+      return await work;
+    } finally {
+      this.#inflates -= 1;
     }
   }
 
@@ -516,7 +536,7 @@ export class ClockBorders {
     const key = this.#section?.previews.keys[chunkOf(this.#steps as BorderSteps, 2 * pair).chunk];
     try {
       const texels = new Uint8Array(CELL_BYTES);
-      await decodePreviewPair(stored, index, texels, decode.abort.signal);
+      await this.#inflate(decodePreviewPair(stored, index, texels, decode.abort.signal));
       if (decode.abort.signal.aborted) return;
       decode.texels = texels;
       decode.key = `borders:${(this.#serial += 1)}`;

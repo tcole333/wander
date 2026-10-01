@@ -5,14 +5,13 @@ import { parseStory } from '../story';
 import {
   arcFor,
   BAND,
-  engraveHistoryTier,
   engraveScale,
   engraveTier,
   LOWER_ROW,
   radial,
   storyYears,
 } from './rulerScale';
-import { ExploreTime, HISTORY } from '../../time/exploreTime';
+import { ExploreTime } from '../../time/exploreTime';
 import { WorldClock } from '../../time/worldClock';
 import type { Span } from './format';
 
@@ -60,17 +59,6 @@ function historical(iso: string): number {
 }
 
 describe('review: free ruler calendar', () => {
-  it('gives 31 December its full cell at the four-day limit', () => {
-    const explore = new ExploreTime(new WorldClock());
-    explore.zoom(1e-9, 1);
-    explore.seek(HISTORY.end);
-    expect(band(explore.span).map((label) => label.text)).toEqual(['28', '29', '30', '31']);
-    expect(explore.clock.state().day).toBe(HISTORY.end);
-    expect(explore.span.end).toBe(HISTORY.end + 1);
-    explore.scrub(HISTORY.end + 1);
-    expect(explore.clock.state().day).toBe(HISTORY.end);
-  });
-
   it('keeps round decades instead of the exact view edges', () => {
     const span = { start: historical('-0069-01-01'), end: historical('0071-01-01') };
     expect(band(span).map((label) => label.text)).toEqual([
@@ -108,14 +96,5 @@ describe('review: free ruler calendar', () => {
     const tick = angle(historical('-8999-01-01'));
     expect(scale.unnamed.some((unnamed) => Math.abs(unnamed - tick) < 1e-9)).toBe(true);
     expect(scale.full).toContain(radial(arc, tick, -BAND + 1, BAND - 1));
-  });
-
-  it('never labels the exclusive year 2001 on the history tier', () => {
-    const span = new ExploreTime(new WorldClock()).extent;
-    for (const width of [560, 640, 720, 1024, 1440, 1920]) {
-      const labels = engraveHistoryTier(arcFor(width), span).labels.map((label) => label.text);
-      expect(labels).not.toContain('2001 CE');
-      if (width >= 1440) expect(labels).toContain('2000 CE');
-    }
   });
 });

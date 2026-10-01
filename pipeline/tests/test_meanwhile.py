@@ -210,6 +210,33 @@ def test_an_entry_gives_its_date_with_its_precision():
 
 
 @pytest.mark.parametrize(
+    ("title", "path"),
+    [
+        ("War of Jenkins' Ear", "War_of_Jenkins'_Ear"),
+        ("Ottoman\u2013Venetian War", "Ottoman%E2%80%93Venetian_War"),
+        ("AC/DC", "AC%2FDC"),
+        ("What happened?", "What_happened%3F"),
+        ("War & peace", "War_%26_peace"),
+        ("100% #1", "100%25_%231"),
+    ],
+)
+def test_an_entry_links_its_english_article_with_the_title_quoted(title, path):
+    row = m.replace(event("Q1", 1, WATERLOO, "1815-06-18"), enwiki=title)
+    assert m.entry(row)["source"] == {
+        "title": f"{title} (Wikipedia)",
+        "url": f"https://en.wikipedia.org/wiki/{path}",
+    }
+
+
+def test_an_entry_without_an_english_article_links_to_its_wikidata_item():
+    row = event("Q34103", 1, WATERLOO, "1815-06-18")
+    assert m.entry(row)["source"] == {
+        "title": "Q34103 (Wikidata)",
+        "url": "https://www.wikidata.org/wiki/Q34103",
+    }
+
+
+@pytest.mark.parametrize(
     ("date", "precision", "first", "last"),
     [
         ((-700, 1, 1), events.YEAR, "-0700-01-01", "-0700-12-31"),  # 701 BCE

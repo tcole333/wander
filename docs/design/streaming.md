@@ -65,7 +65,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Story compile and media** | `uv run prebuild media --story <id>` on the owner's machine fetches and encodes media and resolves events into a committed lock. `npm run stories` is pure and runs in CI: zod schema, sanitized HTML, JSON bundled into the app, prerendered article pages. Source format in 3.9. | A text edit ships with a push; bundling the JSON removes the only Pages fetch after boot. Media prep is asset prep, so it sits in the uv prebuild with the event build it depends on. |
 | **Per-beat planning** | `lod.ts` plans each beat at run time, at the real viewport and tier: critical set, then desired set (5.7). Residency and eviction rules are in 5.5. Flight-corridor and N+2 prefetch are deferred. | Keeping roots, view N and N+1 critical on the GPU peaks at 206 of 256 slots on the full tier; also keeping N+1's desired set and N−1 overflows on 10 of 41 transitions [model `work/critic-smoothness/poolpressure.json`]. |
 | **Transitions** | van Wijk-Nuij flights with a readiness gate: a late beat slows into a short hold, then lands on ancestors (5.7). Optional refinement never blocks. | Flight + hold covers the largest critical set down to ~5.5 Mbps and the median down to ~2 Mbps [D from the model]. |
-| **Audio** | Web Audio. The AudioContext is created and resumed in the handler of the click that chooses a plaque in the lobby, a story's or Explore's; a walk that starts on its beat (the dev shell) unlocks it on the visitor's first gesture anywhere (a key, a press, the end of a touch), in that gesture's own handler, and nothing sounds or warns before. Buses ui, bed and cue. In v1 every sound is synthesized on the audio clock in `app/src/audio/`: the UI sounds (`detents`; the flight whir via `setTargetAtTime`), each story's bed (`bed.ts`, the Tambora rumble a function of story day) and the beats' cues (`cues.ts`, by the names `story.md` gives them). `walkAudio.ts` plays them with the walk: a clunk on each beat change (at least 150 ms apart), the whir through every flight at the camera's pace, a detent for each day, month or year the ruler's playhead passes among the marks it engraves at that moment (`marks.ts`; heavier for a month, heaviest for a year), scheduled `detents.scheduleAhead` ahead and at most `detents.maxPerSecond`, a lighter one too soon after the last dropped, a heavier one waiting its turn, the bed following story time from the first landing, and each beat's cues from landing until the walk leaves the beat, fading over `bedCrossfade`, and 12 dB down while a Meanwhile entry has the camera far from the beat's place. `clockScore.ts` plays Explore's: museum room tone from the dive's landing, the whir through every free flight at the camera's pace, and a detent at each of the free ruler's days and months, or, coarser, at each year it labels (`CraftRuler.yearStep`: every year, or its labels' step of decades, centuries or millennia), in the historical calendar, walking from one labelled year to the next rather than day by day; a frame's move past more than 400 of its finest marks (a leap along the tier, or to history's ends) walks the next coarser ones instead. Each dive, a story's or Explore's, builds its bed's noise in slices of a few milliseconds between frames (`prepareBed`, through `SoundEngine.prepareNoise`), so its landing's frame builds none. Once a return lands, the engine releases the noise no sound plays, the cues' and the mechanism's; the room tone plays on in the lobby with its own (5.7). A brass knob at the walk's top right, over Meanwhile, and the M key mute it; the mute is remembered in `localStorage`. Beds change over `bedCrossfade` (3.9). Every level is in dB in `app/src/audio/mix.ts`, tuned by ear on the dev page `app/prototype-audio.html`, which copies the mix out whole. CC0 samples (short mono AAC loops joined with `loopCrossfade` at loop points from the lock, within `audioEncodedMax` / `audioDecodedMax`) wait for a sound synthesis cannot make. | The PRD puts synthesis first, and synthesis makes the Tambora bed and cues with nothing to fetch, decode or license; loops of prime lengths behind slowly swaying filters never repeat audibly. The levels sit apart from the tunables so the audition can replace them in one paste. AAC decodes in every target browser. Detents follow the ruler's own engraving, so what the visitor hears is what the band shows passing under the playhead. |
+| **Audio** | Web Audio. The AudioContext is created and resumed in the handler of the click that chooses a plaque in the lobby, a story's or Explore's; a walk that starts on its beat (the dev shell) unlocks it on the visitor's first gesture anywhere (a key, a press, the end of a touch), in that gesture's own handler, and nothing sounds or warns before. Buses ui, bed and cue. In v1 every sound is synthesized on the audio clock in `app/src/audio/`: the UI sounds (`detents`; the flight whir via `setTargetAtTime`), each story's bed (`bed.ts`, the Tambora rumble a function of story day) and the beats' cues (`cues.ts`, by the names `story.md` gives them). `walkAudio.ts` plays them with the walk: a clunk on each beat change (at least 150 ms apart), the whir through every flight at the camera's pace, a detent for each day, month or year the ruler's playhead passes among the marks it engraves at that moment (`marks.ts`; heavier for a month, heaviest for a year), scheduled `detents.scheduleAhead` ahead and at most `detents.maxPerSecond`, a lighter one too soon after the last dropped, a heavier one waiting its turn, the bed following story time from the first landing, and each beat's cues from landing until the walk leaves the beat, fading over `bedCrossfade`, and 12 dB down while a Meanwhile entry has the camera far from the beat's place. `clockScore.ts` plays Explore's: museum room tone from the dive's landing, the whir through every free flight at the camera's pace, and a detent at each of the free ruler's days and months, or, coarser, at each year it labels (`TimeRuler.yearStep`: every year, or its labels' step of decades, centuries or millennia), in the historical calendar, walking from one labelled year to the next rather than day by day; a frame's move past more than 400 of its finest marks (a flight along the overview, or to history's ends) walks the next coarser ones instead. Each dive, a story's or Explore's, builds its bed's noise in slices of a few milliseconds between frames (`prepareBed`, through `SoundEngine.prepareNoise`), so its landing's frame builds none. Once a return lands, the engine releases the noise no sound plays, the cues' and the mechanism's; the room tone plays on in the lobby with its own (5.7). A brass knob at the walk's top right, over Meanwhile, and the M key mute it; the mute is remembered in `localStorage`. Beds change over `bedCrossfade` (3.9). Every level is in dB in `app/src/audio/mix.ts`, tuned by ear on the dev page `app/prototype-audio.html`, which copies the mix out whole. CC0 samples (short mono AAC loops joined with `loopCrossfade` at loop points from the lock, within `audioEncodedMax` / `audioDecodedMax`) wait for a sound synthesis cannot make. | The PRD puts synthesis first, and synthesis makes the Tambora bed and cues with nothing to fetch, decode or license; loops of prime lengths behind slowly swaying filters never repeat audibly. The levels sit apart from the tunables so the audition can replace them in one paste. AAC decodes in every target browser. Detents follow the ruler's own engraving, so what the visitor hears is what the band shows passing under the playhead. |
 | **Hosting** | App on Pages at `wander.traviscole.xyz`: one entry bundle, no lazy chunks. The decode workers are same-origin files started at boot; the event worker, started later at each dive, is bundled inline in the entry and started from a Blob URL. Data on R2 at `wander-data.traviscole.xyz`: immutable whole files (2 KB to ~3 MB) under content-versioned keys. Binaries are gzip streams stored as `application/octet-stream` with no `Content-Encoding`, inflated by `DecompressionStream`; small JSON is plain and edge-compressed. | A first-level name is covered by Universal SSL. `new Worker()` needs a same-origin script, and a Blob URL the page makes counts as one. Inlining the one worker started after boot keeps every Pages fetch at boot, since an old tab can outlive its deploy. Whole files give simple cancellation and whole-response caching. Stored `Content-Encoding` passthrough on R2 is unverified. |
 | **Browser caching** | The HTTP cache with `immutable`, plus an in-memory compressed-byte cache for the current story (16 / 32 MiB, lite / full). No Service Worker or Cache API in v1. | A SW brings update skew, and Safari clears script-writable storage after 7 days without interaction; a story's tiles fit the byte cache. |
 | **Scheduling** | Main-thread fetches (so preloads apply) in three classes, with a stall watchdog and no throughput estimator. 2 decode workers, and 1 event worker while Explore is open. Uploads admitted by bytes (5.2, 5.4). | At 150 ms RTT six streams of ~45 KB objects top out near 14 Mbps [D], so 12 fetches run at once. Flights gate on readiness, so an estimator would only add false alarms. |
@@ -899,7 +899,8 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   "t0":    [...], "t1":  [...],               // day numbers (3.0); [t0, t1] covers the date's precision
   "prec":  [...], "cls": [...], "score": [...],   // Wikidata precision 0-14; display class index; score 0-1000
   "flags": [...],   // bit0 location inherited (P276/P131), bit1 derived parent position,
-                    // bit2 multi-location, bit3 date conflict resolved by rule, bit4 curated
+                    // bit2 multi-location, bit3 date conflict resolved by rule, bit4 curated,
+                    // bit5 no English Wikipedia article in the export
   "unc":   [...],   // location uncertainty radius in km (0 = point)
   "parent":[...],   // global row of the display parent, −1 = none
   "ext":   [[row, w, s, e, n], ...],   // bbox × 1e5 for parents and multi-location events
@@ -914,6 +915,13 @@ overview and a 779 KB `all.wev`; together they occupy 2,241,992 B of worker arra
   extents, average about 75 B per row [M `e5/results/runtime-2026-09-29.json`]. Compressed bytes,
   JSON and per-row strings are released after packing, to stay within section 6. The build
   asserts that every t0 and t1 round-trips exactly.
+- **No titles:** the files carry no Wikipedia title, since Wikidata's
+  `Special:GoToLinkedPage/enwiki/Q<qid>` finds the English article from the Q number and follows
+  its moves. About a fifth of the events have no English article, and that link shows them
+  Wikidata's bare form, so bit5 marks them, table rows and recovered ancestors alike, and their
+  plates link the Wikidata item instead (5.3). The bit costs about 85 B gzipped on the overview
+  and 2.6 KB on `all.wev`, and nothing in the worker, where flags are already a byte; every title
+  would cost 36 and 184 KB gzipped and 111 and 551 KB of worker memory (link audit, 2026-09-30).
 - **Split rule:** `overview.wev` holds 4,096 quota rows, with equal quotas per era bin ×
   macro-region cell (~21 rows each), filled by score, and leftovers by score, plus Explore's
   openings (below). If the corpus is at most 100K rows and 16 MiB decoded, the rest goes into
@@ -1305,8 +1313,8 @@ h(c) maps codes to meters (3.1): the same values the decoder returns for a loade
   dates only to 1815 leaves a June beat once its line dates it
   to November. Every entry, a beat's or a month's, shows the written line where there is one, else
   the Wikidata label (its first letter capitalized, without a title's year in brackets), and cites
-  the written source, else its Wikipedia article. Each list is in date order. The stage names any
-  beat entry without a line.
+  the written source, else its Wikipedia article, or its Wikidata item when it has no English
+  article. Each list is in date order. The stage names any beat entry without a line.
 - **Lock** (`stories/<story>/story.lock.json`, written by the media and meanwhile stages,
   committed): `{images: [{commons, sha1, crop, files: [{key, w, h, bytes}], credit, collection?,
   license, source}], audio: [{key, bytes, loopStart, loopEnd}], meanwhile: {beats: {beatId: [entry,
@@ -1565,6 +1573,30 @@ only a failed start or a worker error ends the worker.
   holds comes back partial, without the parent's label, and is asked again after the next page
   loads (the overview's children whose parents only `all.wev` holds); its cached answer stands
   until the new one arrives, so a plate does not blink.
+- **Explore's time:** the ruler (`app/src/explore/timeRuler.ts`) is one 114 px brass stock with two
+  scales, as a slide rule has. The tape on top is linear over the span it shows, from
+  `exploreMinSpanDays` to `exploreMaxSpanYears`, always centred on the needle's day, which stays
+  within history while the span may run past it (`app/src/time/exploreTime.ts`); the needle and the
+  glass over the now window, a tenth of the tape, never move, so a zoom pivots on the needle and
+  never moves the date. Under it the overview holds all of history on a logarithmic scale in the
+  years before 2000's end plus `overviewWarpYears`, 1 CE at 36% and 1500 at 63%, a lens over the
+  tape's days. Every jump (an overview press, a click on the tape, a typed date, Home and End,
+  Backspace, the bookmark, a double click) flies for `timeFlightS`, its date moving evenly on the
+  overview's scale and its span rising by (distance/span)^0.6 at its middle; one longer than half
+  a span leaves a return point, which Backspace toggles. A pull moves the tape 1:1 and a fast
+  release coasts (`timeFlickTauS`, at most `timeFlickMaxSpans`), stopping at history's ends with a
+  short rubber band; the wheel changes the span about the needle at `timeWheelRate`, a pinch at
+  `timePinchRate`, and a sideways swipe travels. With nothing focused the arrow keys move time
+  (`app/src/explore/timeKeys.ts`): Left and Right land on the tape's next tick and glide when held
+  (`timeHoldGlide`), Up and Down step the span's detents, and the globe keeps + and - and takes
+  the arrows from a tab stop of its own. Through a flight the events keep their question and the
+  climate its field, each asking for where the flight lands, so nothing is fetched for eras flown
+  past. The dive's landing zooms the tape in from its widest to `exploreOpenYears`, so the ruler
+  shows it zooms. The tape's engraving is cut into a buffer three spans wide that slides by a
+  compositor rotation about the arc's centre, cut again only on a zoom or near its edge. A fixed
+  needle, an overview of all of history, typed dates and a span named in words reach any date in
+  an action or two, where the walks' ruler, whose plaque rides the playhead, took many presses and
+  hid its zoom; the stock is 56 px lower than the walks' ruler.
 - **Marks:** Explore (`app/src/explore/exploreEvents.ts`) asks again whenever the now window, the
   view or the focal event has changed, with the view the frame draws (`eventViewOf`: the camera's
   projection, lens offset included, times the globe frame as the camera sees it), and hands the
@@ -1577,9 +1609,10 @@ only a failed start or a worker error ends the worker.
   layer's `data-explore-marks` counts the events marked in view, each once; an inherited
   or derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser)
   is soft, its edge within a fifth of its radius so a 12 px seal keeps its shape, and half as deep.
-  The focal event, the opening until a pin replaces it, passes the query's budgets until the now
-  window leaves its dates, then drops to an ordinary mark; until the index holds it, or once the
-  worker has failed, the openings lock draws it. A failed worker (an error naming neither a file
+  The focal event, the opening until a pin replaces it, passes the query's budgets while its dates
+  are on the ruler's tape (`tapeWindow`), at half strength while they stand outside the glass's now
+  window, then drops to an ordinary mark; until the index holds it, or once the worker has failed,
+  the openings lock draws it. A failed worker (an error naming neither a file
   nor a request) logs once and takes the index's marks off, and nothing more is asked of it; a
   window the index cap cannot hold logs its plan's error once, from a result as from a state. The
   marks ease in with the dive and out with the lobby's glows as Explore leaves, and
@@ -1596,10 +1629,13 @@ only a failed start or a worker error ends the worker.
   `marks.hit` picks among the placed discs, and over land along the segment from a mark's sea-level
   place to where the clearance field's ceiling would lift it, since the relief draws it somewhere
   between. A click (a press moving less than 4 px) pins the plate, adds its source and makes the
-  event focal: the English Wikipedia article through Wikidata's `Special:GoToLinkedPage`, as the
-  index holds no title, or for an opening its written line and the source that line rests on. A
-  click on bare metal, Escape while the pinned plate stands in view, or the now window leaving the
-  event unpins it, and Escape with no pinned plate in view (none pinned, or its mark panned away)
+  event focal: "Wikipedia", the English article through Wikidata's `Special:GoToLinkedPage`, or
+  "Wikidata", the item's page, which lists its articles in other languages, when flags bit5 says
+  it has none in English (3.4), never an article guessed from the label; or for an opening its
+  written line and the source that line rests on. A click on bare metal, Escape while the pinned
+  plate stands in view, another pin, or the event's dates leaving the ruler's tape unpins it (its
+  plate dims while they stand outside the glass), and Escape with no pinned plate in view (none
+  pinned, or its mark panned away)
   returns to the lobby. One listbox, hidden from sight, holds the worker's labels for the events
   marked in view behind one tab stop, reached once the dive has landed: its active option shows its
   plate as a hover does, or rings the pinned plate when it is the pinned event's, and while it has
@@ -1632,8 +1668,8 @@ only a failed start or a worker error ends the worker.
   the client keeps the description. At world view the screen shows the near side of the globe, so
   Meanwhile names what happens on the far side. Explore's panel (`app/src/explore/exploreMeanwhile.ts`)
   is the stories' list (`MeanwhileList`) with its own entries: each pick named as its plate names
-  it, dated by `formatHistorical` and sourced to its Wikipedia article through
-  `Special:GoToLinkedPage`, set in the label family; it stands its question only once the dive has
+  it, dated by `formatHistorical` and sourced as its plate is (Wikipedia or Wikidata), set in the
+  label family; it stands its question only once the dive has
   landed, keeps an answer's entries until the next, and drops at once an entry whose dates the now
   window has left. Choosing one flies there with a free flight, keeping the view's tilt and
   heading, to 1,500 km wide, and pins it on landing; input during the flight takes the view and
@@ -2183,9 +2219,11 @@ and the release's `media` section lists every key the locks name (3.8).
   ran, and copies them into its own record. `npm run verify:bake` (7.3) requires the surface and
   coverage `inputs` to match each other and the working tree, so after a coverage rerun on changed
   code the bake stays stale until a surface run completes. The fixture build also writes
-  `build/stages/fixture/stamp.json`, a hash over the same paths plus `pipeline/tests/data`, which
-  the Vitest fixture loader checks (7.3). The fixture's events record also hashes its excerpt TSV
-  and sidecar in `inputs`, so it cannot be mistaken for an index of the full export.
+  `build/stages/fixture/stamp.json`, a hash over the same paths plus every other input the fixture
+  build reads (`pipeline/tests/data`, `stories`, `explore`, `pipeline/sources.toml` and
+  `pipeline/.python-version`), which the Vitest fixture loader checks (7.3). The fixture's events
+  record also hashes its excerpt TSV and sidecar in `inputs`, so it cannot be mistaken for an index
+  of the full export.
 
 ### 7.3 Fixture, dev and CI
 
@@ -2241,16 +2279,21 @@ and the release's `media` section lists every key the locks name (3.8).
 - **Fixture build:** `uv run prebuild --profile fixture` writes `build/fixture/` in the R2 layout,
   its stage records in `build/stages/fixture/`, and test sidecars (expected values and the cube
   samples, 3.0 item 9) in `build/stages/fixture/expect/`. It runs `coverage`, `surface`, `events`,
-  `modera` and `borders` (the 1815 and 1830 steps). Pytest checks the real excerpts' cold European
-  summer of 1816, monthly and annual climate output, Waterloo's date, place, score and parents, and
-  a curated date correction; Vitest decodes and blends the built climate and decodes the two border
-  steps and their preview chunk. Synthetic tests still cover edge cases, and for borders: the year
-  mapping; the hierarchy rules, the size-tier mask and a leaf reaching two roots failing; every
-  unclaimed-land rule, a large stateless enclosure staying among them; the overlap records; every
-  correction operation, and the coverage check failing; the planes' masks and signs, the soft bit
-  and the preview's wrap; WBF2 and WBP2 round trips; keys stable across an unrelated correction;
-  and the stage on the fixture's excerpt at 64 texels a face, from the cache on a second run.
-  `meanwhile` remains disabled until the fixture has a story and lock of its own and the stage
+  `modera` and `borders` (the 1815 and 1830 steps). Off CI, each full build also goes into the
+  fixture store, `~/.cache/wander/fixture/<inputs>/` keyed by the stamp's tree hash (7.2), when no
+  input changed while it ran; a build whose inputs the store holds replaces both folders with that
+  copy, stamp last, in about a second instead of building
+  (`pipeline/src/prebuild/fixture_store.py`), and `--rebuild` builds anyway and replaces the stored
+  copy. The store keeps the 16 most recently used builds. Pytest checks the real excerpts' cold
+  European summer of 1816, monthly and annual climate output, Waterloo's date, place, score and
+  parents, and a curated date correction; Vitest decodes and blends the built climate and decodes
+  the two border steps and their preview chunk. Synthetic tests still cover edge cases, and for
+  borders: the year mapping; the hierarchy rules, the size-tier mask and a leaf reaching two roots
+  failing; every unclaimed-land rule, a large stateless enclosure staying among them; the overlap
+  records; every correction operation, and the coverage check failing; the planes' masks and signs,
+  the soft bit and the preview's wrap; WBF2 and WBP2 round trips; keys stable across an unrelated
+  correction; and the stage on the fixture's excerpt at 64 texels a face, from the cache on a second
+  run. `meanwhile` remains disabled until the fixture has a story and lock of its own and the stage
   validates excerpt inputs; Tambora's committed lock changes only from its global build.
   Until the fixture story lands (#9), the fixture bakes no story images; it will bake them with
   `media --story _fixture --offline`. `--offline` reads the committed test image and the metadata
@@ -2328,14 +2371,18 @@ and the release's `media` section lists every key the locks name (3.8).
        lerps the profile on a face edge; and skirt bottoms sit `skirtTexels` node texels radially
        below their tops
   5. Compile the stories, then build the app.
-  6. **Playwright** (`npm run e2e`): Chromium with `--use-angle=swiftshader
-     --enable-unsafe-swiftshader`, ~960×600, lite tier; the production build under `vite preview` on
-     :4173 and `build/fixture` on :8791 with production headers. It checks: the one-frame render
-     smoke test (8.1 step 0); zero key-check magenta at each beat once ready; no new program after
-     the lobby; landing at desired−1 or finer, no hold over `holdMax`, and fetched object counts per
-     beat within 10% of the plan (bytes reported); an injected 3 s stall still lands; a seam depth
-     scan; in-place context-loss restore decoding from the byte cache with the network blocked, and
-     a reload with `?s&b` landing on the Continue plate; no request to the Pages origin after boot;
+  6. **Playwright** (`npm run e2e`): Chromium with
+     `--use-angle=swiftshader --enable-unsafe-swiftshader`, ~960×600, lite tier; the production
+     build, which the script builds first, under `vite preview` on :6273, the Vite dev server on
+     :6274 and `build/fixture` on :6275 with production headers, ports no manual command defaults
+     to. Locally the script runs Playwright under a machine-wide lock (`app/scripts/slot.sh`), so
+     one run at a time holds those ports and the GPU, and stops any server a killed run left on them
+     first; no run reuses a server already listening. It checks: the one-frame render smoke test
+     (8.1 step 0); zero key-check magenta at each beat once ready; no new program after the lobby;
+     landing at desired−1 or finer, no hold over `holdMax`, and fetched object counts per beat
+     within 10% of the plan (bytes reported); an injected 3 s stall still lands; a seam depth scan;
+     in-place context-loss restore decoding from the byte cache with the network blocked, and a
+     reload with `?s&b` landing on the Continue plate; no request to the Pages origin after boot;
      each L0 URL fetched once (the preload is used); every label renders; reduced motion, the
      article page and the no-WebGL2 redirect; the pool smoke test (5.5); the surface vertex readback
      (5.6); borders, failing on any console error: an 1815 opening draws the 1815 step from its slot
@@ -2344,11 +2391,11 @@ and the release's `media` section lists every key the locks name (3.8).
      SwiftShader and Metal): only outer lines at 8,000 km across and inner lines too at 2,000 km,
      soft edges lighter, half strength mid-dissolve, both previews of a cell decoded, and no seam at
      ±180°. The pool, readback and probe tests run test-only pages on the Vite dev server, not the
-     production build, so nothing of them reaches the bundle. CI runs it as four E2E jobs, one per
+     production build, so nothing of them reaches the bundle. CI runs it as six E2E jobs, one per
      shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
-     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks) and `rest`, every spec
-     the others do not name, so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the
-     shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
+     `lobby` (lobby-round-trip, globe-mesh, lobby-reach), `explore` (explore-entry, marks), `ruler`
+     (explore-ruler), `touch` (explore-ruler-touch) and `rest`, every spec the others do not name,
+     so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
      test at a time, since two SwiftShader walks starve a four-core runner, and builds its own dist,
      recording its sha256. The dev server scans the test pages at startup (`optimizeDeps.entries`),
      so each job's cold server bundles their imports before a test loads them.
@@ -2493,12 +2540,15 @@ and the release's `media` section lists every key the locks name (3.8).
   The mixed-level, moving and GPU checks remain with the fixture and E2.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
   starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
-  matrix as WebKit and Firefox projects join. It runs when renderer, streaming or format code
-  changes, and at milestone releases; results go in the PR description. It covers frame p95 across
+  matrix as WebKit and Firefox projects join. `npm run gate` runs it before every push that
+  touches the app's inputs, and it runs at milestone releases; when renderer, streaming or format
+  code changes, results go in the PR description. It covers frame p95 across
   every story walk; seams at Sumbawa, the Strait of Magellan, Florence, the Sierra Nevada, the Kirkuk
   corner and a pole; and throttled walks at 10 Mbps / 60 ms and 5 Mbps / 150 ms through the app's
   fetch shim (`?net=…`, dev and test builds only). The 30-minute soak runs in E1, and again only if
   the governor changes.
+  SwiftShader e2e belongs to CI, where a failure blocks the merge; it runs locally only to
+  reproduce a CI failure or for a change to walk pacing, e2e timeouts or the swiftshader project.
 - **Lab (local):** `npm run lab` runs the `*.lab.ts` files: the experiments' measurements and
   cross-browser checks. Chromium runs on Metal through Playwright. The installed Safari and Firefox,
   which Playwright does not drive, open lab pages with `open -a`, and the pages post their reports to
@@ -2819,6 +2869,12 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `eventFade` | 300 ms | event fades | eye |
 | `nowShare` | 0.1 of the ruler's visible width, at least a day | the now window events, Meanwhile and focal drops read | eye |
 | `exploreOpenYears` | 200 years, centered on the opening event | the ruler's span as Explore opens | eye |
+| `exploreMinSpanDays`, `exploreMaxSpanYears` | 10 days, 5,000 years | the narrowest and widest Explore's tape shows | eye |
+| `overviewWarpYears` | 100 years after 2000's end | the log scale of Explore's overview: 1 CE at 36%, 1500 at 63% | eye |
+| `timeWheelRate`, `timePinchRate` | 0.004, 0.01 per px | span change per wheel and pinch pixel over Explore's ruler | eye |
+| `timeFlickTauS`, `timeFlickMaxSpans` | 0.3 s, 2 spans | a flicked tape's coast | eye |
+| `timeFlightS` | 0.22-0.9 s | a flight between dates in Explore | eye |
+| `timeHoldGlide` | after 300 ms, 0.25 rising to 0.85 spans/s over 2 s | a held arrow's glide through time | eye |
 | `markPx` | 12 CSS px at 12,000 km wide and wider, 16 at 3,000, 20 at 300 and closer, log-interpolated | a mark's diameter | eye |
 | `markMinDevicePx` | 16 device px | the fewest device pixels a mark spans, over `markPx`: at one device pixel a CSS px, marks at world view are 16 CSS px so their glyphs read | eye |
 | `markTileCap` | 8 per 32 CSS px tile | marks the look inlays in one screen tile | eye |

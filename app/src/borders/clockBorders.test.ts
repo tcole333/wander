@@ -127,14 +127,19 @@ function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTI
     get peakQueued() {
       return peakQueued;
     },
-    /** One frame of `ms`: the borders' update, then the queue at the full tier's budget. */
+    /**
+     * One frame of `ms`: the borders' update, then the queue at the full tier's budget, then the
+     * loads moving on until what they inflate has inflated.
+     */
     async frame(ms = 16, frame: Partial<BordersFrame> = {}) {
       t += ms;
       borders.update({ wanted: true, previews: false, viewKm: 3000, strength: 1, ...frame });
       peakQueued = Math.max(peakQueued, queue.behindLength);
       queue.run(tunables.uploadAnimated.full);
-      // Room for Node's inflater, a thread-pool round trip a piece, and the loads to move on.
-      for (let i = 0; i < 32; i += 1) await new Promise((wake) => setImmediate(wake));
+      // Node inflates on its thread pool, a round trip each 16 KiB that takes as long as the
+      // machine's load makes it, so a frame waits on the inflates, not on a count of turns.
+      do await new Promise((wake) => setImmediate(wake));
+      while (borders.inflating);
     },
     async frames(count: number, ms = 16, frame: Partial<BordersFrame> = {}) {
       for (let i = 0; i < count; i += 1) await h.frame(ms, frame);

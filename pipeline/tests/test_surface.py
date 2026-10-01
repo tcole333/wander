@@ -9,14 +9,13 @@ import numpy as np
 import pytest
 
 from prebuild import coverage, surface
-from prebuild.codes import q_land_start
+from prebuild.config import load_fixture
 from prebuild.cube import Tile, avail_set, available_nodes, node_count, node_from_index
 from prebuild.expect import POINTS, write_surface_expectations
 from prebuild.hashing import ver8
 from prebuild.profiles import Profile, make_context
 from prebuild.records import MissingStageRecord, read_record, write_record
 from prebuild.tiles import build_tile
-from prebuild.tiles import surface as tile_surface
 from prebuild.wst import bounds_m, edge_texels, from_file, grid33, to_file
 
 SUMBAWA_EAST = Tile(1, 7, 103, 50)
@@ -32,17 +31,16 @@ def fixture_context(root, jobs: int):
     )
 
 
-def bake(root, jobs: int):
-    ctx = fixture_context(root, jobs)
-    coverage.run(ctx)
+@pytest.fixture(scope="module")
+def baked(tmp_path_factory, fixture_coverage):
+    """The fixture bake with four workers, run over what an interrupted run left in the layer."""
+    ctx = fixture_context(tmp_path_factory.mktemp("four"), 4)
+    write_record(ctx, "coverage", read_record(fixture_coverage, "coverage"))
+    partial = ctx.out / "surf" / ".tmp-999999" / "0/0/0/0.wst"
+    partial.parent.mkdir(parents=True)
+    partial.write_bytes(b"partial")
     surface.run(ctx)
     return ctx
-
-
-@pytest.fixture(scope="module")
-def baked(tmp_path_factory):
-    """The fixture bake with four workers."""
-    return bake(tmp_path_factory.mktemp("four"), 4)
 
 
 @pytest.fixture(scope="module")
@@ -59,14 +57,9 @@ def layer_files(ctx, record) -> dict[str, bytes]:
     }
 
 
-def test_one_worker_and_four_bake_the_same_layer(baked, record, tmp_path):
-    alone = bake(tmp_path, 1)
-    assert read_record(alone, "surface") == record
-    assert layer_files(alone, record) == layer_files(baked, record)
-
-
 def test_the_version_recomputes_from_the_files(baked, record):
     assert ver8(layer_files(baked, record)) == record["ver"]
+    # The layer holds only the version: the bake cleared what an interrupted run left there.
     assert [p.name for p in (baked.out / "surf").iterdir()] == [record["ver"]]
 
 
@@ -105,10 +98,20 @@ def test_each_tile_uses_its_level_s_q_land(baked, record):
         assert from_file(files[f"{tile.key()}.wst"], tile).q_land == q_land[tile.level]
 
 
-def test_a_worker_bakes_what_the_parent_would(baked, record, fixture_sources):
-    """The prepared layers survive the trip to the workers as WKB."""
-    built = build_tile(tile_surface(SUMBAWA_EAST, fixture_sources), q_land_start(7))
-    assert layer_files(baked, record)[f"{SUMBAWA_EAST.key()}.wst"] == to_file(built)
+def test_the_workers_bake_every_tile_as_the_parent_would(baked, record, fixture_surface):
+    """The prepared layers survive the trip to the workers as WKB, and each worker bakes every
+    tile it takes, one after another, byte for byte as the parent builds it alone."""
+    q_land = read_record(baked, "coverage")["qLand"]
+    files = layer_files(baked, record)
+    tiles = [node_from_index(k) for k in available_nodes(base64.b64decode(record["avail"]))]
+    differ = [
+        tile.key()
+        for tile in tiles
+        if files[f"{tile.key()}.wst"]
+        != to_file(build_tile(fixture_surface(tile), q_land[tile.level]))
+    ]
+    assert len(tiles) == len(load_fixture().tiles)
+    assert differ == []
 
 
 # Freshness
@@ -180,16 +183,6 @@ def test_bounds_bin_takes_exactly_the_available_nodes():
         surface.bounds_bin(avail_of([1]), 1, {1: (0, 1)})
     with pytest.raises(ValueError, match="i16"):
         surface.bounds_bin(avail_of([1]), 0, {1: (0, 40000)})
-
-
-def test_a_run_clears_what_an_interrupted_run_left_in_the_layer(baked, tmp_path):
-    ctx = fixture_context(tmp_path, 4)
-    write_record(ctx, "coverage", read_record(baked, "coverage"))
-    partial = ctx.out / "surf" / ".tmp-999999" / "0/0/0/0.wst"
-    partial.parent.mkdir(parents=True)
-    partial.write_bytes(b"partial")
-    surface.run(ctx)
-    assert [p.name for p in (ctx.out / "surf").iterdir()] == [read_record(ctx, "surface")["ver"]]
 
 
 # The fixture's sidecars

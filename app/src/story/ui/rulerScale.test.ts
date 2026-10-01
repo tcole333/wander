@@ -15,7 +15,6 @@ import { beatSpan, type Span } from './format';
 import {
   anchored,
   arcFor,
-  engraveHistoryTier,
   engraveScale,
   engravedUnit,
   labelledYearStep,
@@ -128,11 +127,10 @@ describe('the crafted ruler', () => {
     },
   );
 
-  it('labels both full-history ends and keeps the overview bounded too', () => {
+  it('labels both ends of all of history', () => {
     const labels = engrave(HISTORY, HISTORICAL);
     expect(labels[0]?.text).toBe('10000 BCE');
     expect(labels.at(-1)?.text).toBe('2000 CE');
-    expect(engraveHistoryTier(arc, HISTORY).labels.length).toBeLessThan(20);
     for (const width of [1024, 1440, 1920]) {
       const sized = arcFor(width);
       const angle = (day: number) =>
@@ -140,11 +138,6 @@ describe('the crafted ruler', () => {
       const labels = engraveScale(sized, HISTORY, angle, HISTORICAL, HISTORY).labels;
       expect(labels[0]?.text).toBe('10000 BCE');
       expect(labels.at(-1)?.text).toBe('2000 CE');
-      const tier = engraveHistoryTier(sized, new ExploreTime(new WorldClock()).extent).labels;
-      expect([tier[0]?.text, tier.at(-1)?.text], `the tier at ${width}px`).toEqual([
-        '10000 BCE',
-        '2000 CE',
-      ]);
     }
     for (const edge of [HISTORY.start, HISTORY.end]) {
       const span = {
@@ -334,21 +327,19 @@ describe("the free ruler's ends", () => {
     for (const width of [1024, 1280, 1440, 1920]) {
       const sized = arcFor(width);
       for (let k = 0; k <= 80; k += 1) {
-        // Zoomed to every width of view from 20 years to all of history, then taken to its
-        // start by the tier and to its end by the playhead, where the extent stops the view.
-        const explore = new ExploreTime(new WorldClock());
-        const full = explore.extent.end - explore.extent.start;
-        explore.zoom((20 * 365.2425 * (12001 / 20) ** (k / 80)) / full, 0.5);
-        for (const [go, day, text] of [
-          ['seek', HISTORY.start, /^10000 BCE$/],
-          ['scrub', HISTORY.end, /^2000( CE)?$/],
+        // Every width of view from 20 years to all of history, stopped at its start and at its
+        // end, as the extent stops the view.
+        const extent = new ExploreTime(new WorldClock()).extent;
+        const full = extent.end - extent.start;
+        const wide = Math.min(full, 20 * 365.2425 * (12001 / 20) ** (k / 80));
+        for (const [go, span, text] of [
+          ['seek', { start: extent.start, end: extent.start + wide }, /^10000 BCE$/],
+          ['scrub', { start: extent.end - wide, end: extent.end }, /^2000( CE)?$/],
         ] as const) {
-          explore[go](day);
-          const span = explore.span;
           if (labelledYearStep(sized, span, HISTORICAL) === 1) continue;
           const angle = (at: number) =>
             ((2 * (at - span.start)) / (span.end - span.start) - 1) * sized.reach;
-          const labels = engraveScale(sized, span, angle, HISTORICAL, explore.extent)
+          const labels = engraveScale(sized, span, angle, HISTORICAL, extent)
             .labels.filter((label) => label.row === LOWER_ROW)
             .toSorted((a, b) => a.angle - b.angle);
           const years = Math.round((span.end - span.start) / 365.2425);

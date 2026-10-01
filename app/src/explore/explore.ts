@@ -1,23 +1,28 @@
 // Explore (issue #79): free time over the globe, as a mode the lobby dives into (walk/mode.ts). The
-// dive opens the free clock on an event the visitor has not seen lately (openings.ts), the ruler
-// showing exploreOpenYears around its day, and flies to the world view over its place while the
-// ruler rises; from there the visitor turns the globe and scrubs through all of history. The arrow
-// keys keep panning the view, as in the lobby. Where the release has its event index and the look
-// cuts marks, the events of the now window mark the globe (exploreEvents.ts), the opening focal
-// among them; the layer's data-explore-marks counts the events marked in view. The dive lands with
-// the opening's plate pinned, its written line on it; from then a mark pointed at brings its
-// plate, a click pins it, and the keyboard reaches the marks through one listbox (labels.ts).
-// Meanwhile names what happens then elsewhere, as the event worker picks it (exploreMeanwhile.ts);
-// choosing an entry flies there, 1,500 km wide, and pins it on landing. The globe shows the
-// climate at the clock's date wherever ModE-RA has it and the ruler is close enough
-// (exploreClimate.ts). Its sound (audio/clockScore.ts) hears the clock's day, what the ruler
-// engraves around it, and whether a free flight has the camera. Leaving stops input on the ruler,
-// stops asking for events, eases their marks and the climate out and fades the sound to the room;
-// ending releases the clock, ruler, event worker and climate years and takes the marks off, so the
-// world clock has one owner at a time. Where the look holds the border steps, the borders follow
-// the clock from the dive on (exploreBorders.ts), with no plate of their own: the ruler and the
-// Credits carry the dates. window.__worldTime, window.__exploreEvents, window.__exploreLabels and
-// window.__borders serve scripts while Explore runs.
+// dive opens the free clock on an event the visitor has not seen lately (openings.ts) and flies to
+// the world view over its place while the time ruler rises (timeRuler.ts), its tape zooming in from
+// its widest to exploreOpenYears about the day as it does, so it shows it zooms. From the landing
+// the visitor turns the globe and moves through all of history: with nothing focused the arrow keys
+// move time, as in the stories, and the globe takes them from its own stop in the tab order,
+// keeping + and - everywhere (timeKeys.ts). Where the release has its event index and the look cuts
+// marks, the events of the now window, the ruler's glass, mark the globe (exploreEvents.ts), the
+// opening focal among them; the layer's data-explore-marks counts the events marked in view. The
+// dive lands with the opening's plate pinned, its written line on it; from then a mark pointed at
+// brings its plate, a click pins it, and the keyboard reaches the marks through one listbox
+// (labels.ts). A pin holds while its event's dates are on the tape, dimmed outside the glass, and
+// the ruler's bookmark marks its date. Meanwhile names what happens then elsewhere, as the event
+// worker picks it (exploreMeanwhile.ts); choosing an entry flies there, 1,500 km wide, and pins it
+// on landing. The globe shows the climate at the clock's date wherever ModE-RA has it and the tape
+// is close enough (exploreClimate.ts). Through a flight in time the events and climate hold, and
+// ask for where it lands. Its sound (audio/clockScore.ts) hears the clock's day, what the tape
+// labels around it, and whether a free flight has the camera. Leaving stops the keys and input on
+// the ruler, stops asking for events, eases their marks and the climate out and fades the sound to
+// the room; ending releases the clock, ruler, event worker and climate years and takes the marks
+// off, so the world clock has one owner at a time. Where the look holds the border steps, the
+// borders follow the clock from the dive on (exploreBorders.ts), with no plate of their own: the
+// ruler and the Credits carry the dates. window.__worldTime, window.__exploreView,
+// window.__exploreEvents, window.__exploreLabels and window.__borders serve scripts while Explore
+// runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';
@@ -35,8 +40,8 @@ import type { LonLat } from '../story/story';
 import { el } from '../story/ui/dom';
 import type { Span } from '../story/ui/format';
 import { ARRIVE_KM } from '../story/ui/meanwhile';
-import { CraftRuler } from '../story/ui/rulerCraft';
 import { ExploreTime, HISTORY } from '../time/exploreTime';
+import { YEAR_DAYS } from '../time/overviewScale';
 import { worldClock, type WorldClock, type WorldTime } from '../time/worldClock';
 import { FreeFlight } from '../view/freeFlight';
 import type { ViewControl } from '../view/viewControl';
@@ -48,16 +53,37 @@ import { ExploreEvents, focalOf, markIdOf, qidNumber } from './exploreEvents';
 import { ExploreLabels } from './labels';
 import { ExploreMeanwhile } from './exploreMeanwhile';
 import { openingForDive, openings, type Opening } from './openings';
+import { bindTimeKeys, type TimeKeys } from './timeKeys';
+import { TimeRuler } from './timeRuler';
 
 /** The dive's view keeps the event's latitude within this, degrees, so no pole faces the lamp. */
 const WORLD_LAT = 35;
+/** The landing zoom runs as the ruler rises in the dive (lobby.css), seconds. */
+const LANDING_ZOOM_S = 1.6;
+const LANDING_ZOOM_DELAY_S = 0.35;
+
+/** Whether the visitor asks for less motion. */
+function reducedMotion(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 /** The free clock and ruler, for scripts. */
 export interface WorldTimeHook {
   state(): WorldTime;
   span(): Span;
   seek(day: number): void;
-  zoom(factor: number, share: number): void;
+  /** Shows `factor` times as much about the needle; `share`, once where it pivoted, is ignored. */
+  zoom(factor: number, share?: number): void;
+  /** Moves the needle `days` along at once. */
+  pan(days: number): void;
+  /** Whether a flight, coast or glide moves the tape. */
+  moving(): boolean;
+}
+
+/** The globe's view, for scripts. */
+export interface ExploreViewHook {
+  /** Where input has sent the view. */
+  goal(): ViewState;
 }
 
 /** Explore's event marks, for scripts. */
@@ -93,6 +119,7 @@ export interface ExploreLabelsHook {
 declare global {
   interface Window {
     __worldTime?: WorldTimeHook;
+    __exploreView?: ExploreViewHook;
     __exploreEvents?: ExploreEventsHook;
     __exploreLabels?: ExploreLabelsHook;
   }
@@ -165,9 +192,19 @@ export function startExplore({
   // only then are the page, the view's control, the marks and the script hooks touched: a dive
   // that throws on the way leaves nothing behind, since the boot never gets a mode to end.
   const focal = focalOf(opening);
+  // As the ruler rises in the dive, its tape zooms in from its widest to the opening's years, so
+  // the ruler shows it zooms without a word.
+  const landingZoom = arrive === 'fly' && !reducedMotion();
   const time = new ExploreTime(clock, HISTORY, opening.day, {
-    openYears: tunables.exploreOpenYears,
+    openYears: landingZoom ? tunables.exploreMaxSpanYears : tunables.exploreOpenYears,
+    reducedMotion,
   });
+  if (landingZoom) {
+    time.fly(opening.day, tunables.exploreOpenYears * YEAR_DAYS, {
+      durationS: LANDING_ZOOM_S,
+      delayS: LANDING_ZOOM_DELAY_S,
+    });
+  }
   let flight =
     arrive === 'fly'
       ? new FreeFlight(control.current, worldViewOn(opening.at, control.maxKm))
@@ -175,7 +212,7 @@ export function startExplore({
   const layer = el('div', 'wu wu-explore wu-mode');
   const climate = look && release ? new ExploreClimate(look, release, clock, layer) : null;
   const borders = steps ? new ExploreBorders(steps) : null;
-  const ruler = new CraftRuler(time);
+  const ruler = new TimeRuler(time);
   let client: EventClient | null;
   try {
     client = source ? EventClient.create(source.release, source.dataHost) : null;
@@ -201,16 +238,17 @@ export function startExplore({
           canvas,
           openings,
           panels: () => [
-            ruler.element,
+            ...ruler.panels,
             ...(meanwhile ? [meanwhile.element] : []),
             ...(climate ? [climate.legend] : []),
             ...chrome,
           ],
         })
       : null;
-  layer.append(ruler.element);
   if (meanwhile) layer.append(meanwhile.element);
   if (labels) layer.prepend(labels.element);
+  // First in the tab order: the Date and Years shown sliders, then the events.
+  layer.prepend(ruler.element);
   root.append(layer);
   let counted = -1;
   // The globe's layers fade in over the dive and out over the return, as a story's effects do.
@@ -221,6 +259,14 @@ export function startExplore({
   const landings = new Set<() => void>();
   // Started where the view stands (the dev page), Explore has landed already.
   let dived = flight === null;
+  /** The time keys and the Globe stop, from the landing on. */
+  let keys: TimeKeys | null = null;
+  const bindKeys = () => {
+    keys = bindTimeKeys(time, ruler, control);
+    // After the Date and Years shown sliders, before the events, in the tab order.
+    ruler.element.after(keys.globe);
+    layer.append(keys.caption);
+  };
   /** What a Meanwhile flight's landing does: pins its entry. */
   let arriving: (() => void) | null = null;
   /** The flight has landed: the dive, its opening pinned, or a flight to a Meanwhile entry. */
@@ -234,6 +280,7 @@ export function startExplore({
     }
     dived = true;
     borders?.landed();
+    bindKeys();
     labels?.land(opening);
     for (const landed of [...landings]) landed();
   };
@@ -245,8 +292,12 @@ export function startExplore({
     flight = new FreeFlight(control.current, { lon, lat, viewKm: ARRIVE_KM, tilt, heading });
     arriving = () => labels?.pinEvent(event.qid, { t0: event.t0, t1: event.t1 });
   };
-  if (dived) labels?.land(null);
-  control.arrowKeys = true;
+  if (dived) {
+    bindKeys();
+    labels?.land(null);
+  }
+  // The arrow keys move time; the globe takes them only from its own stop (timeKeys.ts).
+  control.arrowKeys = false;
   // Input during the dive takes the view from the flight, and the dive counts as landed; input
   // during a flight to a Meanwhile entry takes the view, and nothing is pinned.
   control.onInput = () => {
@@ -259,9 +310,13 @@ export function startExplore({
     state: () => clock.state(),
     span: () => time.span,
     seek: (day) => time.seek(day),
-    zoom: (factor, share) => time.zoom(factor, share),
+    zoom: (factor) => time.zoomBy(factor),
+    pan: (days) => time.pan(days),
+    moving: () => time.moving,
   };
   window.__worldTime = hook;
+  const viewHook: ExploreViewHook = { goal: () => ({ ...control.goal }) };
+  window.__exploreView = viewHook;
   const eventsHook: ExploreEventsHook | null = events && {
     focus(qid) {
       const number = qid === null ? null : qidNumber(qid);
@@ -287,6 +342,13 @@ export function startExplore({
   if (borders) window.__borders = borders.hook;
   // A jump has no dive to wait for.
   if (!flight) borders?.landed();
+  /** The pinned event's day, which the ruler's bookmark marks: within its first year. */
+  const pinnedDay = (): number | null => {
+    const qid = labels?.pinned ?? null;
+    const span = events?.focal?.qid === qid ? events?.focal?.span : undefined;
+    if (qid === null || !span) return null;
+    return Math.floor(span.t0 + Math.min(span.t1 - span.t0, 366) / 2);
+  };
 
   return {
     landed(cb) {
@@ -294,7 +356,8 @@ export function startExplore({
       return () => landings.delete(cb);
     },
     lensShift: () => 0,
-    beforeCamera(_nowMs, dtS) {
+    beforeCamera(nowMs, dtS) {
+      if (!left) time.tick(nowMs);
       frameS = dtS;
       fade = Math.max(0, Math.min(1, fade + (left ? -dtS : dtS) / GLOW_FADE_S));
       if (!flight) return;
@@ -302,13 +365,17 @@ export function startExplore({
       if (flight.done) land();
     },
     afterPlace(frame, nowMs) {
-      climate?.update(frameS, fade);
+      // Through a flight the climate keeps its field and the events their question; each asks for
+      // where the flight lands, once it has, so nothing is fetched for eras flown past.
+      climate?.update(frameS, fade, time.flying);
       borders?.update(frame, frameS);
-      events?.update(frame, clock.state(), nowMs);
+      events?.update(frame, clock.state(), nowMs, time.flying);
       if (dived && !left)
         meanwhile?.ask(frame, clock.state(), [control.current.lon, control.current.lat]);
     },
     ui(drawn, nowMs) {
+      ruler.pin = pinnedDay();
+      ruler.frame();
       climate?.ui();
       labels?.update(nowMs);
       meanwhile?.update(drawn, clock.state());
@@ -331,6 +398,8 @@ export function startExplore({
       arriving = null;
       landings.clear();
       layer.inert = true;
+      keys?.dispose();
+      keys = null;
       labels?.leave();
       events?.leave();
       borders?.leave();
@@ -340,6 +409,8 @@ export function startExplore({
       flight = null;
       arriving = null;
       landings.clear();
+      keys?.dispose();
+      keys = null;
       labels?.dispose();
       events?.dispose();
       borders?.end();
@@ -347,6 +418,7 @@ export function startExplore({
       climate?.end();
       layer.remove();
       if (window.__worldTime === hook) delete window.__worldTime;
+      if (window.__exploreView === viewHook) delete window.__exploreView;
       if (eventsHook && window.__exploreEvents === eventsHook) delete window.__exploreEvents;
       if (labelsHook && window.__exploreLabels === labelsHook) delete window.__exploreLabels;
       if (borders && window.__borders === borders.hook) delete window.__borders;

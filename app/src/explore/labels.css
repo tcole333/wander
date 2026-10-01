@@ -222,3 +222,13 @@
 .wu-explore .wu-mw-date {
   font-family: var(--label);
 }
+
+/* A pin whose dates are on the ruler's tape but outside its glass dims with its mark. */
+.xl-plate.is-pinned.is-shown.is-away {
+  opacity: 0.55;
+  filter: saturate(0.7);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease,
+    visibility 0s;
+}

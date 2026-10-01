@@ -3,8 +3,10 @@
 // brings a vellum plate beside it with the event's name and date, and for a child the event it is
 // part of (plateText.ts); a hollow parent also draws its extent's ring. A click (a press that moves
 // under CLICK_PX) pins the event's plate, with its source, and makes the event focal, its ember
-// the one that blooms; a click on bare metal, Escape while the pinned plate stands in view, or the
-// now window leaving the event unpins it, and Escape with no pinned plate in view is the lobby's
+// the one that blooms. A pin holds while the event's dates are on the ruler's tape; while they
+// stand outside its glass, the now window, the plate dims as the mark does, and both come back
+// inside it. A click on bare metal, Escape while the pinned plate stands in view, another pin, or
+// the event leaving the tape unpins it, and Escape with no pinned plate in view is the lobby's
 // again. The dive lands with its opening pinned, its written line on its plate.
 //
 // The keyboard reaches the same marks, once the dive has landed, through one tab stop: a listbox,
@@ -60,6 +62,8 @@ export interface LabelEvents {
   span(id: string): MarkSpan | null;
   hover(id: string | null): void;
   readonly focal: FocalEvent | null;
+  /** Whether the focal event's dates stand in the now window, the ruler's glass. */
+  readonly focalNow: boolean;
   focus(focal: FocalEvent | null): void;
   labels(): readonly EventLabel[];
   description(row: number): EventDescription | undefined;
@@ -303,7 +307,7 @@ export class ExploreLabels {
   /** Every frame, once the marks are placed: hover, options and plates, at `nowMs`. */
   update(nowMs: number): void {
     if (this.#left) return;
-    // The focal event dropped (the now window left it), or another took its place.
+    // The focal event dropped (its dates left the tape), or another took its place.
     if (this.#pinned !== null && this.#events.focal?.qid !== this.#pinned) {
       this.#pinned = null;
       this.#unread = false;
@@ -658,7 +662,8 @@ export class ExploreLabels {
     const pinnedMark = this.#pinnedMark(placed);
     const words = qid !== null && pinnedMark ? this.#textOf(pinnedMark.id) : null;
     if (qid !== null && pinnedMark && words) {
-      const text = pinnedText(words, qid, this.#openings.get(qid));
+      const flags = this.#events.event(pinnedMark.id)?.flags ?? 0;
+      const text = pinnedText(words, qid, flags, this.#openings.get(qid));
       this.#pinPlate.set(text);
       const { side, box } = placePlate(
         anchor(pinnedMark),
@@ -668,6 +673,7 @@ export class ExploreLabels {
         view,
       );
       this.#pinPlate.show(side, box);
+      this.#pinPlate.element.classList.toggle('is-away', !this.#events.focalNow);
       if (this.#unread) {
         this.#unread = false;
         this.#live.textContent = spoken(text);

@@ -1,19 +1,43 @@
+import contextlib
+import uuid
 import warnings
+from dataclasses import replace
 from pathlib import Path
 
 import netCDF4
 import numpy as np
 import pytest
 
+from prebuild import coverage
 from prebuild.cube import Tile
-from prebuild.profiles import Profile, make_context
+from prebuild.profiles import Context, Profile, make_context
+from prebuild.slots import heavy_slot
 from prebuild.tiles import Surface, TileSources, open_sources, surface
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """The run holds one heavy-work slot (prebuild/slots.py) from its start to its end; xdist's
+    workers run inside their controller's."""
+    if hasattr(config, "workerinput"):
+        return
+    slot = contextlib.ExitStack()
+    slot.enter_context(heavy_slot())
+    config.add_cleanup(slot.close)
 
 
 @pytest.fixture(autouse=True)
 def no_raw_data(monkeypatch, tmp_path_factory):
     """Tests never read the raw-data folder: WANDER_DATA names a folder that does not exist."""
     monkeypatch.setenv("WANDER_DATA", str(tmp_path_factory.getbasetemp() / "no-wander-data"))
+
+
+@pytest.fixture(autouse=True)
+def own_cache(monkeypatch, tmp_path_factory):
+    """Each test has a fixture store of its own: WANDER_CACHE names a folder no other test uses.
+    CI is unset so that the store exists on CI too, where the prebuild keeps none; the test of
+    that sets CI itself."""
+    monkeypatch.setenv("WANDER_CACHE", str(tmp_path_factory.getbasetemp() / uuid.uuid4().hex))
+    monkeypatch.delenv("CI", raising=False)
 
 
 @pytest.fixture(scope="session")
@@ -33,6 +57,21 @@ def fixture_surface(fixture_sources):
         return computed[tile]
 
     return get
+
+
+@pytest.fixture(scope="session")
+def fixture_coverage(tmp_path_factory) -> Context:
+    """The coverage stage run once per session on the fixture profile, into a temporary build
+    folder: its context, whose stages folder holds the record."""
+    build = tmp_path_factory.mktemp("coverage")
+    ctx = replace(
+        make_context(Profile.FIXTURE, 4),
+        out=build / "fixture",
+        stages_dir=build / "stages",
+        cache=build / "cache",
+    )
+    coverage.run(ctx)
+    return ctx
 
 
 @pytest.fixture

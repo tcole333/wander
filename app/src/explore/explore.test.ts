@@ -19,6 +19,8 @@ import { openings } from './openings';
 const drawn = vi.hoisted(() => ({
   rulers: 0,
   disposed: 0,
+  /** The time keys bound and not yet let go. */
+  keys: 0,
   layers: [] as FakeLayer[],
   /** The part that throws as it is built, if any. */
   broken: null as 'ruler' | 'flight' | 'worker' | null,
@@ -135,16 +137,26 @@ vi.mock('./labels', () => ({
     dispose() {}
   },
 }));
-vi.mock('../story/ui/rulerCraft', () => ({
-  CraftRuler: class {
-    element = { ruler: true };
-    // What the ruler engraves at the world view's span: years, labelled every decade.
+vi.mock('./timeKeys', () => ({
+  bindTimeKeys(_time: unknown, _ruler: unknown, control: { arrowKeys: boolean }) {
+    control.arrowKeys = false;
+    drawn.keys++;
+    return { globe: { globe: true }, caption: { caption: true }, dispose: () => drawn.keys-- };
+  },
+}));
+vi.mock('./timeRuler', () => ({
+  TimeRuler: class {
+    element = { ruler: true, after() {} };
+    panels = [{ ruler: true }];
+    pin: number | null = null;
+    // What the tape labels at the opening's span: years, every 20.
     unit = 'year';
-    yearStep = 10;
+    yearStep = 20;
     constructor() {
       if (drawn.broken === 'ruler') throw new Error('the ruler cannot be drawn');
       drawn.rulers++;
     }
+    frame() {}
     dispose() {
       drawn.disposed++;
     }
@@ -236,6 +248,7 @@ function setup(
   Object.assign(drawn, {
     rulers: 0,
     disposed: 0,
+    keys: 0,
     layers: [],
     broken: null,
     clients: [],
@@ -281,9 +294,12 @@ afterEach(() => {
 });
 
 describe('Explore', () => {
-  it('opens the clock on Waterloo, the ruler showing 200 years around it', () => {
-    const { clock, append } = setup();
-    expect(clock.state()).toEqual({ day: dayFromIso('1815-06-18'), spanDays: 200 * 365.2425 });
+  it('opens the clock on Waterloo, the tape zooming in to 200 years as the ruler rises', () => {
+    const { clock, append, tick } = setup();
+    const waterloo = dayFromIso('1815-06-18');
+    expect(clock.state()).toEqual({ day: waterloo, spanDays: 5000 * 365.2425 });
+    for (let frame = 0; frame < 150; frame++) tick();
+    expect(clock.state()).toEqual({ day: waterloo, spanDays: 200 * 365.2425 });
     expect(drawn.rulers).toBe(1);
     const layer = drawn.layers[0]!;
     expect(layer.className).toBe('wu wu-explore wu-mode');
@@ -295,8 +311,11 @@ describe('Explore', () => {
     const { control, mode, tick } = setup();
     const landed = vi.fn();
     mode.landed(landed);
+    // The keys for time wait for the landing, so no key moves time while the dive flies.
+    expect(drawn.keys).toBe(0);
     for (let frame = 0; frame < 600 && !landed.mock.calls.length; frame++) tick();
     expect(landed).toHaveBeenCalledTimes(1);
+    expect(drawn.keys).toBe(1);
     expect(control.current.lon).toBeCloseTo(WATERLOO.at[0], 6);
     // Waterloo's 50.7°N is held to 35°N, so the event stands on the lit face.
     expect(control.current.lat).toBeCloseTo(35, 6);
@@ -317,9 +336,12 @@ describe('Explore', () => {
     expect(control.current).toEqual(view);
   });
 
-  it('starts where the view stands on the dev page, keeping the arrow keys', () => {
-    const { control, mode, tick } = setup('jump');
-    expect(control.arrowKeys).toBe(true);
+  it('starts where the view stands on the dev page, at 200 years, its keys bound', () => {
+    const { clock, control, mode, tick } = setup('jump');
+    expect(clock.state().spanDays).toBe(200 * 365.2425);
+    // The arrow keys move time; the globe takes them from its own stop.
+    expect(control.arrowKeys).toBe(false);
+    expect(drawn.keys).toBe(1);
     const landed = vi.fn();
     mode.landed(landed);
     const view = { ...control.current };
@@ -331,7 +353,7 @@ describe('Explore', () => {
   it("tells its sound the clock's day, the ruler's engraving and the dive's flight", () => {
     const { clock, mode, tick } = setup();
     const heard = (flying: boolean) => ({
-      clock: { day: clock.state().day, unit: 'year', yearStep: 10 },
+      clock: { day: clock.state().day, unit: 'year', yearStep: 20 },
       flying,
     });
     expect(mode.audio()).toEqual(heard(true));
@@ -362,6 +384,15 @@ describe('Explore', () => {
     expect(mode.audio()).toBeNull();
   });
 
+  it('lets its time keys go as it leaves', () => {
+    const { mode } = setup('jump');
+    expect(drawn.keys).toBe(1);
+    mode.leave();
+    expect(drawn.keys).toBe(0);
+    mode.end();
+    expect(drawn.keys).toBe(0);
+  });
+
   it('leaves, then releases its ruler, layer and script hook', () => {
     const { mode, leaveSound, tick } = setup();
     const landed = vi.fn();
@@ -382,7 +413,7 @@ describe('Explore', () => {
     const steps = stepsRuntime();
     const { control, mode, tick } = setup('fly', null, steps.runtime);
     const layer = drawn.layers[0]!;
-    expect(layer.children).toEqual([{ ruler: true }]);
+    expect(layer.children).toEqual([expect.objectContaining({ ruler: true })]);
     expect(window.__borders).toBeDefined();
     tick();
     expect(steps.loadPreviews).not.toHaveBeenCalled();
@@ -445,9 +476,8 @@ describe('Explore', () => {
 
     it('marks the opening focal, counting the marks drawn in view on its layer', () => {
       const { marks, events } = source();
-      const { mode } = setup('fly', events);
+      const { mode } = setup('jump', events);
       const [client] = drawn.clients;
-      expect(marks.strength).toBe(0);
       mode.afterPlace(frameOver(4.4, 35), 0);
       expect(client!.asked[0]!.focalQids).toEqual([48314]);
       expect(marks.specs).toMatchObject([{ id: 'Q48314', glyph: 'battle', focal: true }]);
@@ -468,9 +498,25 @@ describe('Explore', () => {
       expect(drawn.labels!.panels()).toEqual([{ ruler: true }, { meanwhile: true }, ...CHROME]);
     });
 
+    it('holds its question through the landing zoom, and asks for where it lands', () => {
+      const { marks, events } = source();
+      const { clock, mode, tick } = setup('fly', events);
+      const [client] = drawn.clients;
+      expect(marks.strength).toBe(0);
+      tick();
+      mode.afterPlace(frameOver(4.4, 35), 16);
+      expect(client!.asked).toHaveLength(0);
+      for (let frame = 0; frame < 150; frame++) tick();
+      mode.afterPlace(frameOver(4.4, 35), 2500);
+      expect(client!.asked).toHaveLength(1);
+      expect(clock.state().spanDays).toBe(200 * 365.2425);
+      const window = client!.asked[0] as { t0: number; t1: number };
+      expect(window.t1 - window.t0).toBeCloseTo(20 * 365.2425, 6);
+    });
+
     it('stops asking as it leaves, then ends the worker and takes the marks off', () => {
       const { marks, events } = source();
-      const { mode } = setup('fly', events);
+      const { mode } = setup('jump', events);
       const [client] = drawn.clients;
       mode.afterPlace(frameOver(4.4, 35), 0);
       mode.leave();

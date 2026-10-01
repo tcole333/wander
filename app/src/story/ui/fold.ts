@@ -6,7 +6,7 @@
 // is remembered per viewer in localStorage, as the mute is (audio/walkAudio.ts); where storage
 // refuses, it holds for this visit alone.
 import { button, el, passFocus, svg } from './dom';
-import { smallKnob } from './rulerCraft';
+import { smallKnob } from './brass';
 
 /** The knob's radius, px, as walkUi.css sizes it. */
 const RADIUS = 12;

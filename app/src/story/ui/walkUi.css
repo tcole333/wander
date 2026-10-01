@@ -21,6 +21,11 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Explore's ruler is lower (explore/timeRuler.ts), which gives Meanwhile and the legend room. */
+.wu-explore {
+  --ruler-reach: 110px;
+}
+
 .wu > * {
   pointer-events: auto;
 }

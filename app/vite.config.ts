@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import { labReports } from './e2e/lab/reports.ts';
+import { DISK_INPUTS } from './scripts/diskInputs.ts';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 
@@ -27,5 +28,19 @@ export default defineConfig({
     // The bundled packages' licenses, which the credits page links to.
     license: { fileName: 'licenses.txt' },
   },
-  test: { include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'] },
+  test: {
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    // One budget here and on CI. On a quiet Mac every test on the default budget finishes within
+    // 1.5 s, but other work on the Mac slows them 5-15 times: with Vitest's 5 s, 1 of 15 full
+    // runs passed at load 22-65, and with 60 s, 6 of 6 at load 32-43. A mirror sweep's hook ran
+    // past 120 s at load 75-110.
+    testTimeout: 60_000,
+    hookTimeout: 300_000,
+    // Watch mode runs the whole suite when an input tests read from disk changes
+    // (scripts/diskInputs.ts).
+    forceRerunTriggers: [
+      ...configDefaults.forceRerunTriggers,
+      ...DISK_INPUTS.map((glob) => `**/${glob}`),
+    ],
+  },
 });

@@ -67,12 +67,16 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   by owner (`app/src/perf/memoryHook.ts`), which E3's leak check records beside Chromium's dump,
   and `?opening=Q…` makes Explore's dive open on that opening (`app/src/explore/openings.ts`).
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
-- `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
-  uv) into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for
-  1815-1817, the scored events of those years and the border steps of 1815 and 1830, from real
-  excerpts. Meanwhile waits for a fixture story and lock of its own. Vitest checks against it and
-  fails, naming this command, when it is missing or was built from other pipeline code, shared
-  constants or excerpts than the working tree holds.
+- `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs uv)
+  into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for 1815-1817,
+  the scored events of those years and the border steps of 1815 and 1830, from real excerpts.
+  Meanwhile waits for a fixture story and lock of its own. Vitest checks against it and fails,
+  naming this command, when it is missing or was built from other inputs than the working tree
+  holds: pipeline code, shared constants, excerpts, stories, Explore's openings, source pins or
+  Python version (`FIXTURE_PATHS` in `pipeline/src/prebuild/hashing.py`). Off CI every build goes
+  into the fixture store, `~/.cache/wander/fixture/<inputs>/`, which any checkout with the same
+  inputs restores in about a second; `npm run fixture -- --rebuild` builds anyway and replaces the
+  stored copy.
 - `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).
@@ -83,22 +87,35 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   it as its own job, which the Pages deploy waits for; it fails, naming `npm run publish-data`,
   until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
-- `npm run fixture` and `npm run build`, then `npm run e2e`: Playwright on SwiftShader, as in CI.
-  The smoke tests run against that build in `app/dist/` (it does not rebuild), on the fixture's
-  data server through `?data=`, its story images answered by the media stage's test image, and
-  fail on any request to Wikimedia; the other tests run test-only pages on the Vite dev server,
-  reading the fixture from its data server, so none of it reaches the build.
-  Run `npx playwright install chromium` once first. CI runs the specs as four parallel shards that
+- `npm run check [-- --base <rev>]`: the inner loop while working, scoped to what the branch
+  changes since it left origin/main (or since `<rev>`): Prettier and ESLint on the changed app
+  files, the incremental typecheck, `vitest --changed` (the whole suite when an input tests read
+  from disk changes), ruff on the changed Python files and pytest on the changed pipeline modules'
+  own tests. It restores a stale fixture first. While fixing an e2e failure,
+  `npm run e2e[:gpu] -- --last-failed` reruns only the specs that failed.
+- `npm run fixture`, then `npm run e2e`: Playwright on SwiftShader, as in CI, where it must pass
+  before a merge. Run it locally only to reproduce a CI SwiftShader failure, or before pushing a
+  change to walk pacing, e2e timeouts or the swiftshader project; it runs two workers here. It
+  builds `app/dist/` with `vite build` first, then takes the machine-wide e2e lock and a heavy-work
+  slot (`app/scripts/slot.sh`) and starts its own servers on :6273-6275, ports no manual command
+  defaults to. Holding the lock, it first stops any server a killed run left there, so a port in
+  use after that is a run outside the lock; `lsof -nP -iTCP:6273-6275 -sTCP:LISTEN` names it. The
+  smoke tests run against that build, on the fixture's data server through `?data=`, its story
+  images answered by the media stage's test image, and fail on any request to Wikimedia; the other
+  tests run test-only pages on the Vite dev server, reading the fixture from its data server, so
+  none of it reaches the build. Pass Playwright's arguments after `--`
+  (`npm run e2e -- e2e/smoke.spec.ts`); a bare `npx playwright test` skips the lock. Run
+  `npx playwright install chromium` once first. CI runs the specs as four parallel shards that
   `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>` runs one, as its CI job does.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
-  `--use-angle=metal`), local only. It is the start of the GPU matrix
-  (`docs/design/streaming.md` 7.3): run it when renderer, streaming or format code changes, and
-  put the result in the PR description.
+  `--use-angle=metal`), local only, and the e2e `npm run gate` runs before a push. It is the
+  start of the GPU matrix (`docs/design/streaming.md` 7.3): when renderer, streaming or format
+  code changes, put its result in the PR description.
 - `npm run lab`: the experiments' lab runs on this Mac: Chromium on Metal through Playwright, and
   the installed Safari and Firefox through lab pages that post their reports to the dev server
-  (`build/lab/`). It needs no build; the lab specs that read the region bake start its data server
-  and fail, naming the command, when the bake is missing. Local only; it opens a tab in both
-  browsers.
+  (`build/lab/`). It needs no build and takes the e2e lock, since it shares e2e's dev server port;
+  the lab specs that read the region bake start its data server and fail, naming the command, when
+  the bake is missing. Local only; it opens a tab in both browsers.
 - `npm run dev`, then `/prototype-audio.html`: the Sound Cabinet, every sound in `app/src/audio/`
   on one page with its level. Every level lives in `app/src/audio/mix.ts`; Copy settings copies the
   mix as JSON to paste over it. With the dev server up, `node scripts/renderSounds.ts --out <dir>`
@@ -119,7 +136,8 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
   to Pages and repeated walks for leaks (`docs/design/streaming.md` 8.2). Local only, about 20
   minutes, with nothing else on the GPU.
-- `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`.
+- `uv sync`, then `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .`. pytest
+  runs on four workers, a whole file each; `-n 0` runs it in one process.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
@@ -219,8 +237,27 @@ works without the raw-data folder.
 - Codex agents take tasks here through `AGENTS.md`: Claude writes each brief, prepares the
   worktree, runs the browser and GPU checks Codex's sandbox cannot, and reviews the branch before
   its pull request.
+- `scripts/worktree.sh add <path> <branch> [<start>]` makes a worktree ready to test in: npm ci,
+  uv sync, links to the main checkout's global bake and the fixture (from the store when it holds
+  those inputs). `scripts/worktree.sh remove <path>` deletes the links before removing it.
 - Small commits in conventional-commit form (`feat(app): ...`, `fix(pipeline): ...`).
-- Every test passes before a push. CI runs on every pull request.
+- Before a push, `npm run gate` in `app/` on the committed tree: it runs what the change since
+  origin/main calls for (nothing for docs; lint, typecheck, Vitest and `npm run e2e:gpu` for app
+  inputs; ruff and pytest for the pipeline, with the fixture and Vitest, and e2e unless the
+  fixture came out the same as the base's) and records the tree in `build/gate/`. The tracked
+  `.githooks/pre-push` refuses a push whose tree has no record unless it changes only docs; turn
+  it on once with `git config core.hooksPath .githooks` in the main checkout, which every worktree
+  shares, and use `git push --no-verify` only in an emergency. Every test that runs locally
+  passes before a push, and CI, which runs on every pull request, passes before a merge,
+  SwiftShader e2e included; there are no unrelated failures. `npm run gate -- --swiftshader`
+  adds local SwiftShader for the cases the `npm run e2e` bullet names.
+- Run e2e only as `npm run e2e[:gpu] -- <args>` (`--workers=1` for a single spec): the script
+  takes the machine-wide e2e lock, so no brief needs a lock of its own, and a bare
+  `npx playwright test` skips it.
+- Heavy work queues for one of two machine-wide slots: `npm test`, the e2e scripts, every
+  `uv run prebuild` and every pytest run take one (`app/scripts/slot.sh`,
+  `pipeline/src/prebuild/slots.py`; `WANDER_HEAVY_SLOTS` changes the count). A direct `npx vitest`
+  ignores them.
 - Check visual work in a real browser with a real GPU. Headless Chromium on this Mac can use the
   GPU with `--use-angle=metal`; SwiftShader screenshots misrepresent rendering and timing.
 - Performance is measured on this MacBook Pro (Apple M5) for now, at 1440x900, with the lite
