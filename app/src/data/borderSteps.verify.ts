@@ -4,9 +4,10 @@
 // but for the runs EXCUSED names, that a lake ring planted in a real step is caught, that each
 // preview agrees in sign with its field near the outer borders, that each step draws as many
 // leaves as Cliopatria has rows valid in its year, with those its corrections and the
-// carry-through add and less those they take away, and it reports the overlap pairs no correction
-// acknowledges. The region bake has no steps, so the checks run for the global profile only. A
-// missing or stale bake fails, naming the command.
+// carry-through add and less those they take away, and that acknowledged.yaml lists only owed
+// places the bake still owes; it reports the overlap pairs no correction acknowledges and the
+// owed places acknowledged as known gaps and not. The region bake has no steps, so the checks run
+// for the global profile only. A missing or stale bake fails, naming the command.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -16,6 +17,7 @@ import {
   decodeStep,
   drawnLeaves,
   leafFindings,
+  owedTally,
   previewAgreement,
   previewMap,
   readBorderBake,
@@ -151,6 +153,7 @@ describe.runIf(profile === 'global')('the border steps', () => {
     const compared = findings.preview.reduce((sum, p) => sum + p.compared, 0);
     const agreed = findings.preview.reduce((sum, p) => sum + p.agreed, 0);
     const pairs = bake.record.unacknowledged ?? [];
+    const owed = owedTally(bake.record);
     console.log(
       [
         `border steps: ${steps.keys.length} steps and ${steps.previews.keys.length} chunks in ${seconds} s`,
@@ -163,8 +166,10 @@ describe.runIf(profile === 'global')('the border steps', () => {
           return `    ${polities.join(' / ')}: ${years.join(', ')}`;
         }),
         `  ${bake.record.owed?.holes.length ?? 0} stateless holes and ` +
-          `${bake.record.owed?.gaps.length ?? 0} gaps owe the history pass a cited verdict; ` +
-          'publish-data refuses them too',
+          `${bake.record.owed?.gaps.length ?? 0} gaps owe the history pass a cited verdict: ` +
+          `${owed.acknowledged} acknowledged as known gaps in acknowledged.yaml, ` +
+          `${owed.unacknowledged.length} unacknowledged, which publish-data refuses too`,
+        ...owed.unacknowledged.slice(0, SHOWN).map((id) => `    ${id}`),
       ].join('\n'),
     );
   });
@@ -239,6 +244,10 @@ describe.runIf(profile === 'global')('the border steps', () => {
 
   it('draws as many leaves in each step as Cliopatria has rows valid in its year', () => {
     expect(findings.leaves.slice(0, SHOWN)).toEqual([]);
+  });
+
+  it('acknowledges as known gaps only places the bake still owes', () => {
+    expect(owedTally(bake.record).lapsed.slice(0, SHOWN)).toEqual([]);
   });
 
   it('names each overlap pair no correction acknowledges, with its steps', () => {

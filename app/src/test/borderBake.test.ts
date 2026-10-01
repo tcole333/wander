@@ -15,6 +15,7 @@ import {
   innerDistance,
   leafFindings,
   outerDistance,
+  owedTally,
   previewAgreement,
   shoreBand,
   shoreRuns,
@@ -205,6 +206,31 @@ describe('leafFindings', () => {
     expect(leafFindings([1497], [129], byStep, { 1500: 130 })).toEqual([
       "1500: 129 rows valid, not the comparison's 130",
     ]);
+  });
+});
+
+describe('owedTally', () => {
+  const known = { verdict: 'known gap', decided: '2026-10-01', why: 'no line is cited' };
+
+  test('counts the owed places acknowledged as known gaps and names the rest', () => {
+    const owed = {
+      holes: [{ id: 'hole 347..357 67E 30N', acknowledged: known }],
+      gaps: [{ id: 'gap 1294..1313 70E 26N', acknowledged: known }, { id: 'gap 476..479 6E 44N' }],
+    };
+    expect(owedTally({ owed })).toEqual({
+      acknowledged: 2,
+      unacknowledged: ['gap 476..479 6E 44N'],
+      lapsed: [],
+    });
+  });
+
+  test('names the acknowledged ids the steps no longer owe', () => {
+    const owed = { holes: [], gaps: [], lapsed: ['hole 347..357 67E 30N'] };
+    expect(owedTally({ owed }).lapsed).toEqual(['hole 347..357 67E 30N']);
+  });
+
+  test('owes nothing for a record without an owed list', () => {
+    expect(owedTally({})).toEqual({ acknowledged: 0, unacknowledged: [], lapsed: [] });
   });
 });
 

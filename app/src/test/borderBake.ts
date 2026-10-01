@@ -40,9 +40,40 @@ export interface BordersRecord {
   steps?: BorderStepsRelease;
   unacknowledged?: { polities: string[]; steps: number[] }[];
   unclassified?: { composites: string[]; relations: string[] };
-  /** The stateless holes and gaps the history pass owes a cited verdict. */
-  owed?: { holes: unknown[]; gaps: unknown[] };
+  /**
+   * The stateless holes and gaps the history pass owes a cited verdict, each by its id and, when
+   * acknowledged.yaml lists it, the owner's acknowledgment as a known gap; and the ids that file
+   * lists that the steps no longer owe.
+   */
+  owed?: { holes: OwedPlace[]; gaps: OwedPlace[]; lapsed?: string[] };
   inputs?: { code: string; cliopatria: string };
+}
+
+/** An owed place, as the verify reads it. */
+export interface OwedPlace {
+  id: string;
+  acknowledged?: { verdict: string; decided: string; why: string };
+}
+
+/** The owed places' tally (streaming.md 3.3): known gaps, those publish-data refuses, and lapsed. */
+export interface OwedTally {
+  /** Owed places acknowledged.yaml lists as known gaps, which publish-data accepts. */
+  acknowledged: number;
+  /** The ids of those it does not list, which publish-data refuses. */
+  unacknowledged: string[];
+  /** The ids it lists that the steps no longer owe. */
+  lapsed: string[];
+}
+
+/** The tally of a borders record's owed places. */
+export function owedTally(record: BordersRecord): OwedTally {
+  const { holes = [], gaps = [], lapsed = [] } = record.owed ?? {};
+  const places = [...holes, ...gaps];
+  return {
+    acknowledged: places.filter((place) => place.acknowledged).length,
+    unacknowledged: places.filter((place) => !place.acknowledged).map((place) => place.id),
+    lapsed,
+  };
 }
 
 /** One step's review entry in borders-review.json, as the verify reads it. */
