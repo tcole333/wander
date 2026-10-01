@@ -7,6 +7,7 @@ import {
   overviewNames,
   overviewTicks,
   overviewWarp,
+  riderOn,
   riderYear,
   YEAR_DAYS,
 } from './overviewScale';
@@ -211,6 +212,11 @@ describe('the rider', () => {
     expect(texts).toEqual(texts.toSorted((a, b) => parseInt(b) - parseInt(a)));
     expect(texts).toEqual(expect.arrayContaining(['3200 BCE', '3140 BCE']));
     for (const rider of riders) expect(rider.day).toBe(middleDay(rider.year));
+  });
+
+  it('names a mark’s own year over it, flying to its day', () => {
+    const marathon = dayFromHistorical({ year: -489, month: 8, day: 12 });
+    expect(riderOn(marathon)).toEqual({ year: -489, step: 1, day: marathon, text: '490 BCE' });
   });
 
   it('flies to its year’s middle day and never names year 0', () => {

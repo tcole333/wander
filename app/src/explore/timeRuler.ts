@@ -11,7 +11,8 @@
 // The painted brass is one hit surface, clipped to the stock's outline, that dispatches by radius
 // from the arc's centre: the lip, tape and glass pull, flick, click and double-click the tape; the
 // beaded rule and overview sweep and press through all of history, a rider naming the year under
-// the pointer; the reels and bare brass swallow presses. The wheel changes the span about the
+// the pointer, or over the return point the year a press there flies back to; the reels and bare
+// brass swallow presses. The wheel changes the span about the
 // needle, a sideways swipe travels, and a pinch zooms. Time moves as time/exploreTime.ts says; the
 // ruler draws what it holds, once a frame. The tape's engraving is cut into a buffer three spans
 // wide that slides by rotating about the arc's centre, a compositor transform, and is cut again
@@ -32,6 +33,7 @@ import { ExploreTime, MAX_EXPLORE_DAYS, MIN_EXPLORE_DAYS, wheelPixels } from '..
 import {
   groupDigits,
   lensExtent,
+  riderOn,
   riderYear,
   YEAR_DAYS,
   type RiderYear,
@@ -932,6 +934,7 @@ export class TimeRuler {
     };
     if (zone.kind === 'tape') this.element.classList.add('is-pulling');
     if (zone.kind === 'overview') this.#setRider(zone.angle);
+    if (zone.kind === 'return') this.#setRider('return');
   }
 
   #move(event: PointerEvent): void {
@@ -1012,6 +1015,8 @@ export class TimeRuler {
     if (zone.kind === 'return') {
       this.#time.back();
       this.sayDate(this.#time.target.day);
+      // The return point has moved: the rider names what is under the pointer now.
+      if (event.pointerType === 'mouse') this.#hover(x, y);
     } else if (zone.kind === 'bookmark' && this.#pin !== null) {
       this.#jump(this.#pin);
     } else if (zone.kind === 'overview') {
@@ -1063,7 +1068,8 @@ export class TimeRuler {
     hit.dataset.zone = zone.kind;
     const { arc } = this.#layout;
     if (zone.kind === 'overview' || zone.kind === 'return') {
-      this.#setRider(zone.angle);
+      // Over the return point, the rider names where a press there flies back to.
+      this.#setRider(zone.kind === 'return' ? 'return' : zone.angle);
       const { u0, u1 } = lensExtent(
         this.#time.warp,
         this.#time.day,
@@ -1085,14 +1091,19 @@ export class TimeRuler {
     this.#setHot(nearEnd ? 'lens' : null);
   }
 
-  #setRider(angle: number | null): void {
-    if (angle === null) {
+  /** The rider at an angle on the overview, on the return point, or gone. */
+  #setRider(at: number | 'return' | null): void {
+    const back = this.#time.returnDay;
+    if (typeof at === 'number') {
+      const { arc, ovLen } = this.#layout;
+      this.#riderU = Math.min(1, Math.max(0, (at / arc.reach + 1) / 2));
+      this.#rider = riderYear(this.#time.warp, this.#time.extent, this.#riderU, ovLen);
+    } else if (at === 'return' && back !== null) {
+      this.#riderU = this.#time.warp.u(back);
+      this.#rider = riderOn(back);
+    } else {
       if (this.#rider === null) return;
       this.#rider = null;
-    } else {
-      const { arc, ovLen } = this.#layout;
-      this.#riderU = Math.min(1, Math.max(0, (angle / arc.reach + 1) / 2));
-      this.#rider = riderYear(this.#time.warp, this.#time.extent, this.#riderU, ovLen);
     }
     this.#invalidate();
   }

@@ -3,12 +3,12 @@
 // at the project's viewport, 960x600 on SwiftShader and 1440x900 on the GPU, so its checks are
 // relative to the view. The arrow keys move time with nothing focused, the globe takes them from
 // its own stop, + and - stay the globe's, a typed date flies there and Backspace flies back, the
-// overview's rider names the year a press flies to, a pull moves the tape 1:1 under a needle that
-// never moves, the wheel shows more or less about the needle and a sideways swipe travels, a touch
-// pulls and a pinch anywhere on the ruler, the counter's knobs included, zooms without zooming the
-// page, no label shows cut by the glass's edges or in a reel's fade, no press on the brass selects
-// text, a pin holds while its date is on the tape, and Home and End reach history's ends. Nothing
-// logs an error.
+// overview's rider names the year a press flies to, over the return point its year, a pull moves
+// the tape 1:1 under a needle that never moves, the wheel shows more or less about the needle and
+// a sideways swipe travels, a touch pulls and a pinch anywhere on the ruler, the counter's knobs
+// included, zooms without zooming the page, no label shows cut by the glass's edges or in a reel's
+// fade, no press on the brass selects text, a pin holds while its date is on the tape, and Home
+// and End reach history's ends. Nothing logs an error.
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import type { ExploreLabelsHook, ExploreViewHook, WorldTimeHook } from '../src/explore/explore';
 import { dayFromIso } from '../src/story/dates';
@@ -188,17 +188,26 @@ test('Explore’s ruler moves time by keys, typing, the overview, a pull and the
   await page.keyboard.press('Backspace');
   expect(await rested(page)).toEqual({ day: home.day, spanDays: 200 * YEAR_DAYS });
 
-  // The rider names the year under the pointer on the overview, and a press flies to it.
+  // Over the return point, now 1066, the rider names it, and a press flies back there.
   const at = await ruler(page);
-  await page.mouse.move(at.left + at.width * 0.45, at.overviewY);
   const rider = page.locator('.xr-rider.is-shown');
+  const flownYear = async () => yearOf((await date.getAttribute('aria-valuetext'))!.split(';')[0]!);
+  const mark = (await page.locator('.xr-return').boundingBox())!;
+  await page.mouse.move(mark.x + mark.width / 2 + 2, mark.y + mark.height / 2);
+  await expect(rider).toHaveText('1066');
+  await page.mouse.down();
+  await page.mouse.up();
+  await rested(page);
+  expect(await flownYear()).toBe(1066);
+
+  // Away from the marks, the rider names the year under the pointer, and a press lands on it.
+  await page.mouse.move(at.left + at.width * 0.45, at.overviewY);
   await expect(rider).toBeVisible();
   const named = yearOf((await rider.textContent())!);
   await page.mouse.down();
   await page.mouse.up();
   await rested(page);
-  const flown = yearOf((await date.getAttribute('aria-valuetext'))!.split(';')[0]!);
-  expect(Math.abs(flown - named)).toBeLessThanOrEqual(50);
+  expect(await flownYear()).toBe(named);
   await page.mouse.move(5, 5);
 
   // A pull moves the date 1:1 under a needle that never moves, and held still, does not coast.
