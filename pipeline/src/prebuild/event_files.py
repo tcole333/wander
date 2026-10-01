@@ -43,6 +43,7 @@ OVERVIEW_ROWS = 4096
 ALL_ROWS = 100_000
 ALL_BYTES = 16 * 1024 * 1024
 SCALE = 100_000
+NO_ENWIKI = 32
 COLUMNS = (
     "row",
     "qid",
@@ -235,6 +236,7 @@ def prepare(table: list[events.Event], statements: list[events.Statement]) -> li
             | (4 if len(points) > 1 else 0)
             | (8 if conflict else 0)
             | (16 if e.qid in boosts or e.qid in dates or e.qid in places else 0)
+            | (NO_ENWIKI if not e.enwiki else 0)
         )
     # Prefer a containing, then the shortest parent; score and Q number settle ties. Assign in
     # Q-number order and reject cycle-closing edges (including self-parent claims).
