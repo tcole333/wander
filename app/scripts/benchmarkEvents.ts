@@ -12,12 +12,14 @@ import type { EventsRelease } from '../src/data/release';
 import { decodePage } from '../src/events/page';
 import { describe } from '../src/events/describe';
 import { meanwhileEvents } from '../src/events/meanwhile';
-import { EventQueryEngine } from '../src/events/query';
+import { cellPxFor, EventQueryEngine } from '../src/events/query';
 import { EventIndex } from '../src/events/residency';
 import type { EventView } from '../src/events/view';
 import { dayFromIso } from '../src/story/dates';
 import { lonLatToDir, toThree } from '../src/surface/cube';
 import { tunables } from '../src/config/tunables';
+import { markPx } from '../src/marks/marks';
+import { EARTH_KM } from '../src/story/effects/geo';
 
 const [rootArg, recordArg] = process.argv.slice(2);
 if (!rootArg || !recordArg) throw new Error('pass output root and event-files.json');
@@ -45,6 +47,12 @@ for (const file of release.files) {
     arrays: page.bytes,
     decodeMs,
   });
+}
+
+/** The declutter cell for a camera `distance` globe radii out: its marks' size, at pixel ratio 1.5. */
+function cellPx(distance: number): number {
+  const viewKm = (distance - 1) * 2 * Math.tan((20 * Math.PI) / 180) * (1440 / 900) * EARTH_KM;
+  return cellPxFor(markPx(viewKm, 1.5));
 }
 
 function view(lon: number, lat: number, distance: number): EventView {
@@ -83,7 +91,7 @@ for (const tier of ['lite', 'full'] as const) {
     for (let i = 0; i < 350; i++) {
       const centerLon = lon + Math.sin(i / 20) * 10;
       const camera = view(centerLon, lat, distance);
-      const query = { t0, t1, tier, view: camera };
+      const query = { t0, t1, tier, view: camera, cellPx: cellPx(distance) };
       const before = performance.now();
       const result = engine.query(query, (i * 1000) / 30);
       const elapsed = performance.now() - before;
@@ -154,6 +162,7 @@ console.log(
         measuredQueries: 300,
         queryHz: 30,
         camera: '40-degree perspective; longitude offset sin(query / 20) * 10 degrees',
+        cell: "declutterCellMarks marks across at the view's mark size, at pixel ratio 1.5",
         queryTiming:
           'EventQueryEngine.query only; excludes fetch, messaging, camera construction and rendering',
         meanwhileTiming:

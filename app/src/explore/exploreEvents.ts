@@ -7,12 +7,14 @@
 // the split on screen gives way to its battles and stays as a hollow glyph, its extent a ring once
 // hovered, its solid mark and its hollow one crossfading as marks of their own; a hollow glyph
 // gives way to a mark already standing on its spot, so parents sharing a borrowed place do not pile
-// into one blot. An event whose place is inherited or derived, or whose date is known only to its
-// year, draws softer and half as deep (globe-language.md, principle 1). The focal event, the
-// opening at first, keeps its ember while its dates are on the ruler's tape (time/exploreTime.ts,
-// tapeWindow), its mark at half strength while they stand outside the glass's now window; once
-// they leave the tape it becomes one mark among the others. Until the index holds it, or once the
-// worker has failed, the openings lock draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
+// into one blot. The worker keeps two events to a cell four marks across at the size the look draws
+// them (tunables.declutterCellMarks), so larger marks keep as far apart. An event whose place is
+// inherited or derived, or whose date is known only to its year, draws softer and half as deep
+// (globe-language.md, principle 1). The focal event, the opening at first, keeps its ember while
+// its dates are on the ruler's tape (time/exploreTime.ts, tapeWindow), its mark at half strength
+// while they stand outside the glass's now window; once they leave the tape it becomes one mark
+// among the others. Until the index holds it, or once the worker has failed, the openings lock
+// draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
 // lobby's glows; disposing ends the worker and takes the marks off the globe.
 //
 // Explore's labels (labels.ts) pick the marks under the pointer, hover one (a hollow parent then
@@ -22,7 +24,13 @@ import { tunables, type Tier } from '../config/tunables';
 import type { EventClient } from '../events/client';
 import type { EventDescription } from '../events/describe';
 import type { MeanwhileEvent, MeanwhileQuery } from '../events/meanwhile';
-import { fadeOpacity, type EventMark, type EventResult, type Fading } from '../events/query';
+import {
+  cellPxFor,
+  fadeOpacity,
+  type EventMark,
+  type EventResult,
+  type Fading,
+} from '../events/query';
 import type { EventReply } from '../events/runtime';
 import { eventViewOf, type EventView, type ViewFrame } from '../events/view';
 import { GLOW_FADE_S } from '../lobby/lobby';
@@ -41,7 +49,7 @@ export type EventSource = Pick<
 >;
 
 /** What Explore's events need of the look's marks. */
-export type EventMarks = Pick<MarkLayer, 'set' | 'placed' | 'strength' | 'hit' | 'span'>;
+export type EventMarks = Pick<MarkLayer, 'set' | 'placed' | 'strength' | 'hit' | 'span' | 'sizePx'>;
 
 /** A label the worker gives, for an event marked in view. */
 export type EventLabel = Fading<EventMark & { text: string }>;
@@ -168,10 +176,11 @@ function arc(lon0: number, lat0: number, lon1: number, lat1: number): number {
   return 2 * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
-/** The query last asked: the now window, the view and the focal event. */
+/** The query last asked: the now window, the view, its declutter cell and the focal event. */
 interface Asked {
   window: DayWindow;
   view: EventView;
+  cellPx: number;
   focal: number | null;
 }
 
@@ -180,6 +189,7 @@ const sameAsked = (a: Asked | null, b: Asked) =>
   a.window.start === b.window.start &&
   a.window.end === b.window.end &&
   a.focal === b.focal &&
+  a.cellPx === b.cellPx &&
   a.view.width === b.view.width &&
   a.view.height === b.view.height &&
   a.view.camera.every((v, i) => v === b.view.camera[i]) &&
@@ -334,6 +344,7 @@ export class ExploreEvents {
       const asked: Asked = {
         window,
         view: eventViewOf(frame),
+        cellPx: cellPxFor(this.#marks.sizePx),
         focal: this.#focal?.qid ?? null,
       };
       if (!sameAsked(this.#asked, asked)) {
@@ -342,6 +353,7 @@ export class ExploreEvents {
           t0: window.start,
           t1: window.end,
           view: asked.view,
+          cellPx: asked.cellPx,
           tier: this.#tier,
           focalQids: asked.focal === null ? [] : [asked.focal],
         });

@@ -110,11 +110,17 @@ class InPlaceWorker implements EventSource {
 }
 
 /** The look's marks as Explore hands them over: the last list set, and its strength. */
-function marksLayer(): EventMarks & { specs: MarkSpec[]; sets: number; under: string | null } {
+function marksLayer(): Omit<EventMarks, 'sizePx'> & {
+  specs: MarkSpec[];
+  sets: number;
+  under: string | null;
+  sizePx: number;
+} {
   const layer = {
     specs: [] as MarkSpec[],
     sets: 0,
     strength: 1,
+    sizePx: 16,
     set(source: string, specs: readonly MarkSpec[]) {
       expect(source).toBe('events');
       layer.specs = [...specs];
@@ -228,6 +234,16 @@ describe("Explore's events", () => {
     events.update(frameOver(10, 45, 2), at(5000, 3650), 16);
     events.update(frameOver(10, 45, 2), at(5001, 3650), 32);
     expect(worker.asked).toHaveLength(3);
+  });
+
+  it('asks for a declutter cell four marks across at the size the look draws them', () => {
+    const { worker, marks } = setup([]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, at(5000, 3650), 0);
+    expect(worker.asked[0]?.cellPx).toBe(4 * 16);
+    marks.sizePx = 44;
+    events.update(WORLD, at(5000, 3650), 16);
+    expect(worker.asked.map((query) => query.cellPx)).toEqual([64, 176]);
   });
 
   it('marks nothing after 2000 with the ruler at history’s end', () => {

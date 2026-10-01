@@ -45,8 +45,10 @@ export const tunables = {
   eventLabels: { lite: 24, full: 40 },
   parentSplitPx: 150,
   parentMergePx: 120,
-  // Events per 64 px screen cell.
+  // Events per declutter cell, and the cell's side in mark diameters (markPx): 64 CSS px where
+  // marks are 16 px across, 176 where they are 44.
   declutterPerCell: 2,
+  declutterCellMarks: 4,
   // Score margin, on the 0-1000 event score scale, a newcomer needs to displace an incumbent.
   hysteresisScore: 20,
   eventFade: 300,
