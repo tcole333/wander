@@ -35,6 +35,14 @@ year here is astronomical.
   `pocket` correction overrides the rules, for a coastal piece too, and is how a place really
   without a state inside one stays stateless, how one between states is cited as stateless, and
   how a gap in Cliopatria's shapes is drawn as the land of the state that held it.
+- **Carried through:** land one polity draws in the steps on both sides of a stateless run of at
+  most GAP_YEARS is drawn as that polity's through the run (owner decision 38), in its shape of the
+  step before as far as the step after holds it, which is how a row Cliopatria drops for a while
+  shows. Every step is selected without it first (`Plain`), and `carry_through` reads those in year
+  order; a step the rule reaches is selected again with the land it carries, as its polity's, under
+  that polity's outer unit where the step draws it and else the unit both sides draw it in. Land a
+  stateless `pocket` keeps in any step of the run is not carried, nor land held on the two sides by
+  different polities: those stay as the rules leave them.
 - **The antimeridian:** Cliopatria's shapes stop at ±180°, so land just across it that no polity
   holds goes to the polity whose shape runs along the other side at the same latitudes: otherwise
   Chukotka east of the meridian is stateless from 1778 and a border runs down it.
@@ -48,28 +56,33 @@ valid in its two years, and selects only those years.
 
     uv run python -m prebuild.cliopatria [--profile global|region|fixture] [--jobs N]
 
-selects every step and writes the review queue `build/stages/<profile>/borders-review.json`: the
-steps that fail and the corrections that leave a step unchanged, the unclassified composites and
-relations, the members whose composite is not valid, the overlap pairs, the names that vanish and
-return, and each step's leftovers, pockets given by rule (a hole filled as its state's names the
-state) and enclosed stateless pieces kept with the outer units around them, and the leaves it
-draws that no valid row gives it or that a valid row gives it and it does not draw, naming those
-no correction names; and what the steps owe the history pass (owner decision 38), which
-publish-data refuses: each stateless hole of OWED_KM2 or more no correction cites, and each gap,
-land held on both sides of a stateless run of at most GAP_YEARS, as each step's stateless land on a
-CELL_DEG grid shows it. It exits 1 when a step fails or a correction leaves a step unchanged, after
-writing the queue.
+selects every step, twice where the carry-through reaches it, and writes the review queue
+`build/stages/<profile>/borders-review.json`: the steps that fail and the corrections that leave a
+step unchanged, the unclassified composites and relations, the members whose composite is not
+valid, the overlap pairs, the names that vanish and return, and each step's leftovers, pockets
+given by rule (a hole filled as its state's names the state), land carried through and enclosed
+stateless pieces kept with the outer units around them, and the leaves it draws that no valid row
+gives it or that a valid row gives it and it does not draw, naming those neither a correction
+names nor the carry-through draws; and what the steps owe the history pass (owner decision 38),
+which publish-data refuses: each stateless hole of OWED_KM2 or more no correction cites, and each
+gap, land held on both sides of a stateless run of at most GAP_YEARS that the carry-through leaves
+stateless, as each step's stateless land on a CELL_DEG grid shows it. It exits 1 when a step fails
+or a correction leaves a step unchanged, after writing the queue.
 """
 
 import argparse
 import base64
+import gzip
 import hashlib
 import itertools
 import json
 import math
 import multiprocessing
+import os
 import re
+import struct
 import sys
+import tempfile
 import time
 from collections import defaultdict
 from collections.abc import Iterable, Iterator, Mapping, Sequence
@@ -135,13 +148,16 @@ LARGE_POCKET_KM2 = 1000  # the review queue lists pockets this large one by one,
 SEAM_DEG = 1e-6  # a shape this close to ±180° runs along the antimeridian
 SEAM_REACH_DEG = 20.0  # land across the antimeridian goes to the polity there when within this
 REVIEW = "borders-review.json"
-# The history pass owes a cited verdict (owner decision 38) for each stateless hole this large, and
-# for each gap this large: land held in the steps on both sides of a stateless run of at most
-# GAP_YEARS, which is how a row Cliopatria drops for a while shows (Prussia's in 1866-70). Land
+# Land one polity holds in the steps on both sides of a stateless run of at most GAP_YEARS is
+# carried through it, which is how a row Cliopatria drops for a while shows. The history pass owes
+# a cited verdict (owner decision 38) for each stateless hole this large, and for each gap this
+# large the carry-through leaves: land held on both sides of such a run by two polities, as
+# Prussia's was in 1864-70, between Cliopatria's German Confederation and German Empire. Land
 # stateless for longer is more often a state's real end, which decision 35 leaves blank.
 OWED_KM2 = 10_000
 GAP_YEARS = 25
 CELL_DEG = 0.5  # the grid each step records its stateless land on, for the gaps
+PLAIN_VERTICES = 1024  # the most vertices of a piece of the stateless land the carry-through reads
 
 
 class SelectionError(ValueError):
@@ -805,14 +821,33 @@ class Selection:
     pockets: shapely.Geometry = field(default_factory=shapely.MultiPolygon)
     # The holes inside one state, by its outer unit, which the bake fills from that unit's land.
     holes: Holes = ()
+    # The stateless land a `pocket` correction keeps, which the carry-through never carries.
+    cited: shapely.Geometry = field(default_factory=shapely.MultiPolygon)
 
     def outers(self) -> dict[str, str]:
         """Each drawn polity's outer unit."""
         return {part.polity: part.outer for part in self.parts}
 
 
-def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> Selection:
-    """What the step beginning in `year` draws."""
+@dataclass(frozen=True)
+class Carried:
+    """Land a polity draws in the steps on both sides of a stateless run, drawn as its own in a step
+    of the run: its shape of the step before, as far as the step after holds it."""
+
+    polity: str
+    outer: str  # the outer unit both sides draw it in, or itself where they differ
+    shape: shapely.Geometry
+    run: tuple[int, int]  # the years the steps before and after the run begin
+
+
+def select(
+    year: int,
+    source: Cliopatria,
+    config: Config,
+    terrain: Terrain,
+    carried: Sequence[Carried] = (),
+) -> Selection:
+    """What the step beginning in `year` draws, with the land `carry_through` carries in it."""
     active = [(k, c) for k, c in enumerate(config.corrections) if c.years[0] <= year <= c.years[1]]
     applied: set[int] = set()
     rows = _valid_rows(year, source, active, applied)
@@ -829,7 +864,8 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     pockets = [(k, c.op) for k, c in active if isinstance(c.op, Pocket)]
     fills = [(k, op) for k, op in pockets if op.to is not None]
     held, named_fills = _named_fills(fills, held, drawn, outer, terrain, source, applied)
-    stateless, filled, holes, unclaimed = _stateless(
+    held, carried_through = _carry(carried, held, drawn, outer)
+    stateless, filled, holes, cited, unclaimed = _stateless(
         held,
         drawn,
         outer,
@@ -843,6 +879,7 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
     valid = {name for name, r in polities.items() if not r.composite}
     shown = {name for name in drawn if not name.startswith("(")}
     named = set().union(*(_names_of(config.corrections[k].op) for k in applied))
+    named |= {piece.polity for piece in carried}
     changed = sorted((shown - valid) | (valid - shown))
     report = {
         "year": year,
@@ -856,11 +893,12 @@ def select(year: int, source: Cliopatria, config: Config, terrain: Terrain) -> S
         "leftovers": [{"composite": n, "km2": round(a)} for n, (_, a) in leftovers.items()],
         **membership,
         "overlaps": overlaps,
+        "carried": carried_through,
         "stateless": unclaimed,
         "statelessCells": pack_cells(cells(stateless)),
     }
     return Selection(
-        year, parts, stateless, frozenset(applied), unacknowledged, report, filled, holes
+        year, parts, stateless, frozenset(applied), unacknowledged, report, filled, holes, cited
     )
 
 
@@ -1263,6 +1301,49 @@ def _named_fills(
     return held, given
 
 
+def _carry(
+    carried: Sequence[Carried],
+    held: shapely.Geometry,
+    drawn: dict[str, shapely.Geometry],
+    outer: dict[str, str],
+) -> tuple[shapely.Geometry, dict[str, Any]]:
+    """Draws the land `carry_through` carries in this step as its polities': land the step left
+    stateless when selected without it, so no other polity holds it. A polity the step does not
+    draw otherwise joins the outer unit both sides of its largest run draw it in when the step
+    draws that unit, and is its own else. The land held after, and what was carried, for the
+    report: the pieces of LARGE_POCKET_KM2 or more one by one, and the rest counted."""
+    report: dict[str, Any] = {"pieces": len(carried), "km2": 0, "large": []}
+    if not carried:
+        return held, report
+    units = set(outer.values())
+    areas = [km2(piece.shape) for piece in carried]
+    by_polity: dict[str, list[int]] = defaultdict(list)
+    for k, piece in enumerate(carried):
+        by_polity[piece.polity].append(k)
+    for name, found in by_polity.items():
+        shape = polygons(shapely.union_all([carried[k].shape for k in found]))
+        before = drawn.get(name)
+        drawn[name] = shape if before is None else polygons(shapely.union(before, shape))
+        if name not in outer:
+            largest = carried[max(found, key=lambda k: areas[k])]
+            outer[name] = largest.outer if largest.outer in units else name
+    held = shapely.union(held, shapely.union_all([piece.shape for piece in carried]))
+    report["km2"] = round(sum(areas))
+    for piece, area in zip(carried, areas, strict=True):
+        if area >= LARGE_POCKET_KM2:
+            at = shapely.point_on_surface(piece.shape)
+            report["large"].append(
+                {
+                    "polity": piece.polity,
+                    "km2": round(area),
+                    "at": [round(at.x, 2), round(at.y, 2)],
+                    "run": list(piece.run),
+                }
+            )
+    report["large"].sort(key=lambda entry: -entry["km2"])
+    return held, report
+
+
 def _stateless(
     held: shapely.Geometry,
     drawn: Mapping[str, shapely.Geometry],
@@ -1272,13 +1353,13 @@ def _stateless(
     pockets: Sequence[tuple[int, Pocket]],
     applied: set[int],
     named: Sequence[dict[str, Any]] = (),
-) -> tuple[shapely.Geometry, shapely.Geometry, Holes, dict[str, Any]]:
+) -> tuple[shapely.Geometry, shapely.Geometry, Holes, shapely.Geometry, dict[str, Any]]:
     """The stateless land kept, the other pockets given that touch a polity, the holes inside one
-    state by its outer unit, and what the rules did with the rest, with `named`, the pockets given
-    to the polities corrections name. A pocket that touches no polity, an island in a lake among
-    stateless shores, is left to the fill, as the sea is. A correction keeping a piece stateless
-    changes its step whenever it finds the piece, since it cites it, even where the rules keep it
-    too."""
+    state by its outer unit, the stateless land a correction keeps, and what the rules did with the
+    rest, with `named`, the pockets given to the polities corrections name. A pocket that touches
+    no polity, an island in a lake among stateless shores, is left to the fill, as the sea is. A
+    correction keeping a piece stateless changes its step whenever it finds the piece, since it
+    cites it, even where the rules keep it too."""
     free = shapely.difference(terrain.dry, held)
     pieces = parts_of_dimension(free, 2)
     sea = _touching(pieces, terrain.coast)
@@ -1291,7 +1372,7 @@ def _stateless(
         if holding:
             overrides[holding[0]] = (pocket.stateless, k)
     shapely.prepare(held)
-    kept, enclosed, filled = [], [], []
+    kept, enclosed, filled, cited = [], [], [], []
     given = list(named)
     holes: dict[str, list[shapely.Geometry]] = {}
     sliver_km2 = 0.0
@@ -1331,6 +1412,8 @@ def _stateless(
             )
         if rule is None:
             kept.append(piece)
+            if i in overrides and overrides[i][0]:
+                cited.append(piece)
             if not sea[i]:
                 entry = {
                     "km2": round(area),
@@ -1367,7 +1450,8 @@ def _stateless(
     stateless = shapely.multipolygons(kept) if kept else shapely.MultiPolygon()
     pocketed = shapely.multipolygons(filled) if filled else shapely.MultiPolygon()
     inside = tuple((unit, shapely.multipolygons(holes[unit])) for unit in sorted(holes))
-    return stateless, pocketed, inside, report
+    kept_by_correction = shapely.multipolygons(cited) if cited else shapely.MultiPolygon()
+    return stateless, pocketed, inside, kept_by_correction, report
 
 
 def _enclosing(
@@ -1493,6 +1577,183 @@ def _opening(piece: shapely.Geometry, radius_km: float) -> shapely.Geometry:
     reach = shapely.buffer(eroded, radius_km + OPENING_TOLERANCE_KM, quad_segs=4)
     reach = polygons(shapely.transform(shapely.segmentize(reach, 10.0), inverse))
     return polygons(shapely.intersection(piece, reach))
+
+
+# Carrying through ------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Plain:
+    """What the carry-through reads of a step selected without it: each polity's land, with the
+    holes the step fills as its own when it is its own outer unit, each polity's outer unit, and the
+    stateless land no correction keeps, cut into pieces of at most PLAIN_VERTICES vertices so the
+    land beside a polity is found without the rest."""
+
+    year: int
+    land: Mapping[str, shapely.Geometry]
+    outer: Mapping[str, str]
+    stateless: np.ndarray  # polygons
+
+    @classmethod
+    def of(cls, selection: Selection) -> Plain:
+        shapes: dict[str, list[shapely.Geometry]] = defaultdict(list)
+        for part in selection.parts:
+            shapes[part.polity].append(part.geometry)
+        for unit, hole in selection.holes:
+            if unit in shapes:
+                shapes[unit].append(hole)
+        land = {name: polygons(shapely.union_all(found)) for name, found in sorted(shapes.items())}
+        free = selection.stateless
+        if not shapely.is_empty(selection.cited):
+            free = shapely.difference(free, selection.cited)
+        return cls(selection.year, land, selection.outers(), _subdivide(free, PLAIN_VERTICES))
+
+    def to_bytes(self) -> bytes:
+        names = list(self.land)
+        head = {"year": self.year, "names": names, "outer": [self.outer[n] for n in names]}
+        shapes = np.array([*self.land.values(), *self.stateless], dtype=object)
+        return _pack(head, shapes)
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> Plain:
+        head, shapes = _unpack(data)
+        names = head["names"]
+        land = dict(zip(names, shapes[: len(names)], strict=True))
+        outer = dict(zip(names, head["outer"], strict=True))
+        return cls(head["year"], land, outer, shapes[len(names) :])
+
+
+@dataclass
+class _Run:
+    """Land a polity drew in the step before `first` and that has stood stateless since."""
+
+    polity: str
+    outer: str  # its outer unit in the step before
+    first: int  # the index of the run's first step
+    shape: shapely.Geometry
+
+
+def carry_through(plains: Iterable[Plain]) -> dict[int, tuple[Carried, ...]]:
+    """The land each step carries, by its year, from every step selected without it (`Plain`), in
+    year order: where one polity draws land in the steps on both sides of a stateless run of at
+    most GAP_YEARS, its shape of the step before, as far as the step after holds it, in each step
+    of the run. A run starts where land a polity drew turns stateless and ends where any polity
+    holds it, or where it would run past GAP_YEARS; land a stateless `pocket` keeps ends it too."""
+    found: dict[int, list[Carried]] = defaultdict(list)
+    years: list[int] = []
+    runs: list[_Run] = []
+    before: Plain | None = None
+    for plain in plains:
+        years.append(plain.year)
+        now = len(years) - 1
+        tree = shapely.STRtree(plain.stateless)
+        going: list[_Run] = []
+        for run in runs:
+            if plain.year - years[run.first] > GAP_YEARS:
+                continue
+            land = plain.land.get(run.polity)
+            back = _overlap(run.shape, [land]) if land is not None else shapely.MultiPolygon()
+            if not shapely.is_empty(back):
+                outer = run.outer if plain.outer[run.polity] == run.outer else run.polity
+                bounds = (years[run.first - 1], plain.year)
+                for k in range(run.first, now):
+                    found[years[k]].append(Carried(run.polity, outer, back, bounds))
+            rest = _overlap(run.shape, plain.stateless[tree.query(run.shape)])
+            if not shapely.is_empty(rest):
+                run.shape = rest
+                going.append(run)
+        if before is not None and plain.stateless.size:
+            names = list(before.land)
+            shapes = np.array([before.land[n] for n in names], dtype=object)
+            pairs = tree.query(shapes, predicate="intersects")
+            for k in np.unique(pairs[0]):
+                near = plain.stateless[pairs[1][pairs[0] == k]]
+                start = _overlap(shapes[k], near)
+                if not shapely.is_empty(start):
+                    going.append(_Run(names[k], before.outer[names[k]], now, start))
+        runs = going
+        before = plain
+    return {year: tuple(pieces) for year, pieces in found.items()}
+
+
+def _overlap(shape: shapely.Geometry, others: Sequence[shapely.Geometry] | np.ndarray):
+    """The land `shape` shares with `others`, polygons only, empty where it shares none."""
+    if len(others) == 0:
+        return shapely.MultiPolygon()
+    shared = shapely.intersection(shape, np.asarray(others, dtype=object))
+    return polygons(shapely.union_all(shared))
+
+
+def _subdivide(geometry: shapely.Geometry, most: int) -> np.ndarray:
+    """The geometry's polygons, each halved across its longer side until it has at most `most`
+    vertices."""
+    out = []
+    stack = list(parts_of_dimension(geometry, 2))
+    while stack:
+        piece = stack.pop()
+        if shapely.get_num_coordinates(piece) <= most:
+            out.append(piece)
+            continue
+        west, south, east, north = shapely.bounds(piece)
+        if east - west >= north - south:
+            middle = (west + east) / 2
+            halves = [(west, south, middle, north), (middle, south, east, north)]
+        else:
+            middle = (south + north) / 2
+            halves = [(west, south, east, middle), (west, middle, east, north)]
+        for half in halves:
+            stack += list(parts_of_dimension(shapely.intersection(piece, shapely.box(*half)), 2))
+    return np.array(out, dtype=object)
+
+
+_HEAD = struct.Struct("<I")
+
+
+def _pack(head: Mapping[str, Any], shapes: np.ndarray) -> bytes:
+    """`u32 length | JSON head` and the shapes' WKB records, gzip level 1."""
+    text = json.dumps(head, ensure_ascii=False).encode()
+    return gzip.compress(_HEAD.pack(len(text)) + text + records(shapes), 1, mtime=0)
+
+
+def _unpack(data: bytes) -> tuple[dict[str, Any], np.ndarray]:
+    raw = gzip.decompress(data)
+    (length,) = _HEAD.unpack_from(raw)
+    head = json.loads(raw[_HEAD.size : _HEAD.size + length])
+    rest = raw[_HEAD.size + length :]
+    shapes = parse_records(rest) if rest else np.array([], dtype=object)
+    return head, shapes
+
+
+def pack_carried(carried: Mapping[int, Sequence[Carried]]) -> bytes:
+    """What `carry_through` found, as the bake's cache keeps it."""
+    entries = [
+        {"year": year, "polity": c.polity, "outer": c.outer, "run": list(c.run)}
+        for year in sorted(carried)
+        for c in carried[year]
+    ]
+    shapes = [c.shape for year in sorted(carried) for c in carried[year]]
+    return _pack({"carried": entries}, np.array(shapes, dtype=object))
+
+
+def unpack_carried(data: bytes) -> dict[int, tuple[Carried, ...]]:
+    head, shapes = _unpack(data)
+    found: dict[int, list[Carried]] = defaultdict(list)
+    for entry, shape in zip(head["carried"], shapes, strict=True):
+        run = (int(entry["run"][0]), int(entry["run"][1]))
+        found[int(entry["year"])].append(Carried(entry["polity"], entry["outer"], shape, run))
+    return {year: tuple(pieces) for year, pieces in found.items()}
+
+
+def select_all(
+    years: Sequence[int], source: Cliopatria, config: Config, terrain: Terrain
+) -> dict[int, Selection]:
+    """Every step, the land the carry-through carries drawn, in this process: for the tests."""
+    plain = {year: select(year, source, config, terrain) for year in years}
+    carried = carry_through(Plain.of(plain[year]) for year in years)
+    return {
+        year: select(year, source, config, terrain, carried[year]) if year in carried else chosen
+        for year, chosen in plain.items()
+    }
 
 
 # Coverage, polities and the review queue --------------------------------------------------------
@@ -1754,6 +2015,7 @@ def review_queue(
                     "outer",
                     "minorPieces",
                     "leftovers",
+                    "carried",
                     "stateless",
                 )
             }
@@ -1777,17 +2039,22 @@ def _spans(found: Sequence[int], years: Sequence[int]) -> list[list[int]]:
 
 # Running every step ----------------------------------------------------------------------------
 
+type Summary = tuple[int, dict[str, Any] | None, frozenset[int], dict[str, str], str | None]
+# A step's year, the land it carries, and where its Plain is written when it is selected without.
+type Work = tuple[int, tuple[Carried, ...], Path | None]
+
 _worker: tuple[Cliopatria, Config, Terrain] | None = None
 
 
 def selections(
-    ctx: Context, years: Sequence[int], source: Cliopatria, config: Config, terrain: Terrain
-) -> Iterator[tuple[int, dict[str, Any] | None, frozenset[int], dict[str, str], str | None]]:
+    ctx: Context, work: Sequence[Work], source: Cliopatria, config: Config, terrain: Terrain
+) -> Iterator[Summary]:
     """Each step's report, the corrections it applied, its polities' outer units and its error, in
-    year order, from `ctx.jobs` worker processes."""
+    the order of `work`, from `ctx.jobs` worker processes; a step given a path writes its Plain
+    there."""
     if ctx.jobs <= 1:
-        for year in years:
-            yield _select_summary(year, source, config, terrain)
+        for item in work:
+            yield _select_summary(item, source, config, terrain)
         return
     with ProcessPoolExecutor(
         max_workers=ctx.jobs,
@@ -1795,7 +2062,7 @@ def selections(
         initializer=_start,
         initargs=(ctx, terrain.to_wkb()),
     ) as pool:
-        yield from pool.map(_task, years)
+        yield from pool.map(_task, work)
 
 
 def _start(ctx: Context, terrain: bytes) -> None:
@@ -1807,44 +2074,62 @@ def _start(ctx: Context, terrain: bytes) -> None:
     )
 
 
-def _task(year: int):
+def _task(work: Work) -> Summary:
     if _worker is None:
         raise RuntimeError("the selection's inputs exist only inside a selection worker")
-    return _select_summary(year, *_worker)
+    return _select_summary(work, *_worker)
 
 
-def _select_summary(year: int, source: Cliopatria, config: Config, terrain: Terrain):
+def _select_summary(work: Work, source: Cliopatria, config: Config, terrain: Terrain) -> Summary:
+    year, carried, path = work
     try:
-        chosen = select(year, source, config, terrain)
+        chosen = select(year, source, config, terrain, carried)
     except SelectionError as error:
         return year, None, frozenset(), {}, str(error)
+    if path is not None:
+        write_plain(path, Plain.of(chosen))
     return year, chosen.report, chosen.applied, chosen.outers(), None
 
 
+def write_plain(path: Path, plain: Plain) -> None:
+    """Writes the Plain whole: another run sees all of it or none."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    partial.write_bytes(plain.to_bytes())
+    partial.replace(path)
+
+
+def read_plains(paths: Iterable[Path]) -> Iterator[Plain]:
+    for path in paths:
+        yield Plain.from_bytes(path.read_bytes())
+
+
 def write_review(ctx: Context) -> int:
-    """Selects every step and writes the review queue; the count of failed steps and unchanged
-    corrections."""
+    """Selects every step, then again those the carry-through reaches, and writes the review queue;
+    the count of failed steps and unchanged corrections."""
     started = time.perf_counter()
     source = load_cliopatria(ctx)
     config = load_config(config_dir(ctx.repo) / CONFIG)
     terrain = load_terrain(ctx)
     years = step_years(source, config)
     print(f"cliopatria: {len(source.rows)} rows, {len(years)} steps", flush=True)
-    reports: dict[int, dict[str, Any]] = {}
-    applied: dict[int, frozenset[int]] = {}
-    failed: dict[int, str] = {}
-    chosen = selections(ctx, years, source, config, terrain)
-    for count, (year, report, used, _, error) in enumerate(chosen, 1):
-        applied[year] = used
-        if count % 25 == 0:
-            seconds = time.perf_counter() - started
-            print(f"cliopatria: {count} of {len(years)} steps, {year}, {seconds:.0f} s", flush=True)
-        if error is not None:
-            failed[year] = error
-            print(f"cliopatria: {year} fails: {error}", flush=True)
-            continue
-        assert report is not None
-        reports[year] = report
+    summaries: dict[int, Summary] = {}
+    ctx.cache.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=ctx.cache, prefix="plain-") as folder:
+        paths = {year: Path(folder) / f"{year}.bin" for year in years}
+        work: list[Work] = [(year, (), paths[year]) for year in years]
+        for count, summary in enumerate(selections(ctx, work, source, config, terrain), 1):
+            summaries[summary[0]] = summary
+            _progress("selected", count, len(work), summary, started)
+        carried = carry_through(read_plains(paths[y] for y in years if paths[y].is_file()))
+    again: list[Work] = [(year, carried[year], None) for year in years if year in carried]
+    print(f"cliopatria: {len(again)} steps carry land through a stateless run", flush=True)
+    for count, summary in enumerate(selections(ctx, again, source, config, terrain), 1):
+        summaries[summary[0]] = summary
+        _progress("carried", count, len(again), summary, started)
+    reports = {y: s[1] for y, s in summaries.items() if s[1] is not None}
+    applied = {y: s[2] for y, s in summaries.items()}
+    failed = {y: s[4] for y, s in summaries.items() if s[4] is not None}
     errors = unchanged(config, [y for y in years if y not in failed], applied)
     owing = owed(years, reports, config, cells(terrain.dry))
     queue = review_queue(source, config, years, reports, failed, errors, owing)
@@ -1861,6 +2146,15 @@ def write_review(ctx: Context) -> int:
         flush=True,
     )
     return len(failed) + len(errors)
+
+
+def _progress(doing: str, count: int, total: int, summary: Summary, started: float) -> None:
+    year, error = summary[0], summary[4]
+    if error is not None:
+        print(f"cliopatria: {year} fails: {error}", flush=True)
+    if count % 25 == 0 or count == total:
+        seconds = time.perf_counter() - started
+        print(f"cliopatria: {doing} {count} of {total} steps, {year}, {seconds:.0f} s", flush=True)
 
 
 def main(argv: Sequence[str] | None = None) -> None:

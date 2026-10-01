@@ -915,13 +915,19 @@ def test_the_review_queue_gathers_the_pairs_and_unclassified_entries_over_the_st
     assert queue["owed"] == owing
 
 
+def selected_over(rows, terrain, corrections=(), **settings):
+    """Every step of `rows`, the land the carry-through carries drawn, with what the steps owe."""
+    source = clio.Cliopatria(tuple(rows), None)
+    settings = config(corrections=corrections, **settings)
+    years = clio.step_years(source, settings)
+    chosen = clio.select_all(years, source, settings, terrain)
+    reports = {y: chosen[y].report for y in years}
+    return chosen, clio.owed(years, reports, settings, clio.cells(terrain.dry))
+
+
 def owed_over(rows, terrain, corrections=()):
     """The owed list over every step of `rows`."""
-    source = clio.Cliopatria(tuple(rows), None)
-    settings = config(corrections=corrections)
-    years = clio.step_years(source, settings)
-    reports = {y: clio.select(y, source, settings, terrain).report for y in years}
-    return clio.owed(years, reports, settings, clio.cells(terrain.dry))
+    return selected_over(rows, terrain, corrections)[1]
 
 
 HOLE = box(-15, -4, -11, 0)  # about 197,000 km², touching no lake, across the line at -13°
@@ -946,17 +952,86 @@ def test_a_cited_correction_settles_a_hole_between_states(terrain):
     assert owed_over(rows, terrain, [cited])["holes"] == []
 
 
-def held(first, last):
-    return row("Realm", LAND, first, last)
+def held(first, last, name="Realm", shape=LAND):
+    return row(name, shape, first, last)
 
 
-def test_land_held_on_both_sides_of_a_short_stateless_run_is_an_owed_gap(terrain):
-    (gap,) = owed_over([held(1800, 1809), held(1820, 1830)], terrain)["gaps"]
+DRY = shapely.difference(LAND, LAKE)
+
+
+def test_land_one_polity_holds_on_both_sides_of_a_short_stateless_run_is_carried_through_it(
+    terrain,
+):
+    chosen, owing = selected_over([held(1800, 1809), held(1820, 1830)], terrain)
+    run = chosen[1810]
+    assert area_of(run, "Realm") == pytest.approx(clio.km2(DRY), rel=0.01)
+    assert not stateless_at(run, 10, 5)
+    (carried,) = run.report["carried"]["large"]
+    assert (carried["polity"], carried["run"]) == ("Realm", [1800, 1820])
+    assert run.report["added"] == ["Realm"] and run.report["unexplained"] == []
+    assert owing["gaps"] == []
+
+
+def test_land_two_polities_hold_on_the_sides_of_a_short_stateless_run_is_an_owed_gap(terrain):
+    rows = [held(1800, 1809), held(1820, 1830, "Republic")]
+    chosen, owing = selected_over(rows, terrain)
+    assert stateless_at(chosen[1810], 10, 5)
+    assert chosen[1810].report["carried"]["pieces"] == 0
+    (gap,) = owing["gaps"]
     assert gap["years"] == [1810, 1819]
-    assert gap["km2"] == pytest.approx(clio.km2(shapely.difference(LAND, LAKE)), rel=0.05)
+    assert gap["km2"] == pytest.approx(clio.km2(DRY), rel=0.05)
 
 
-def test_land_stateless_past_gap_years_or_cited_owes_nothing(terrain):
-    assert owed_over([held(1800, 1809), held(1850, 1860)], terrain)["gaps"] == []
+def test_the_carried_land_is_the_step_befores_shape_as_far_as_the_step_after_holds_it(terrain):
+    west, east = box(-20, -10, -5, 10), box(-5, -10, 20, 10)
+    rows = [held(1800, 1809), held(1820, 1830, shape=west), held(1820, 1830, "Republic", east)]
+    chosen, owing = selected_over(rows, terrain)
+    assert area_of(chosen[1810], "Realm") == pytest.approx(clio.km2(west), rel=0.01)
+    assert stateless_at(chosen[1810], 10, 5)
+    (gap,) = owing["gaps"]
+    assert gap["km2"] == pytest.approx(clio.km2(shapely.difference(east, LAKE)), rel=0.05)
+
+
+def test_a_carried_polity_the_run_lacks_joins_the_outer_unit_both_sides_draw_it_in(terrain):
+    west, east = box(-20, -10, 0, 10), box(0, -10, 20, 10)
+    rows = [
+        held(1800, 1809, "Duchy", west),
+        held(1820, 1830, "Duchy", west),
+        held(1800, 1830, "March", east),
+        row("(Empire)", east, 1800, 1830, components=["Duchy", "March"]),
+    ]
+    chosen, _ = selected_over(rows, terrain, composites={"(Empire)": "empire"})
+    assert outers(chosen[1810])["Duchy"] == "(Empire)"
+    assert area_of(chosen[1810], "Duchy") == pytest.approx(clio.km2(west), rel=0.01)
+
+
+def test_land_stateless_past_gap_years_is_neither_carried_nor_owed(terrain):
+    chosen, owing = selected_over([held(1800, 1809), held(1850, 1860)], terrain)
+    assert stateless_at(chosen[1810], 10, 5)
+    assert owing["gaps"] == []
+
+
+def test_a_cited_stateless_pocket_keeps_the_land_a_run_would_carry_stateless(terrain):
     cited = correction(clio.Pocket(at=(10.0, 5.0), stateless=True), years=(1810, 1819))
-    assert owed_over([held(1800, 1809), held(1820, 1830)], terrain, [cited])["gaps"] == []
+    chosen, owing = selected_over([held(1800, 1809), held(1820, 1830)], terrain, [cited])
+    assert stateless_at(chosen[1810], 10, 5)
+    assert chosen[1810].report["carried"]["pieces"] == 0
+    assert chosen[1810].applied == {0}
+    assert owing["gaps"] == []
+
+
+def test_a_step_selected_without_the_carry_through_round_trips_through_its_bytes(terrain):
+    chosen = select([held(1815, 1815, shape=box(-20, -10, 0, 10))], terrain)
+    plain = clio.Plain.of(chosen)
+    again = clio.Plain.from_bytes(plain.to_bytes())
+    assert (again.year, again.outer) == (1815, {"Realm": "Realm"})
+    assert shapely.equals(again.land["Realm"], plain.land["Realm"])
+    assert shapely.equals(shapely.union_all(again.stateless), shapely.union_all(plain.stateless))
+    assert max(shapely.get_num_coordinates(again.stateless)) <= clio.PLAIN_VERTICES
+
+
+def test_what_the_carry_through_finds_round_trips_through_its_bytes():
+    found = {1810: (clio.Carried("Realm", "(Empire)", box(0, 0, 1, 1), (1800, 1820)),)}
+    (again,) = clio.unpack_carried(clio.pack_carried(found))[1810]
+    assert (again.polity, again.outer, again.run) == ("Realm", "(Empire)", (1800, 1820))
+    assert shapely.equals(again.shape, box(0, 0, 1, 1))
