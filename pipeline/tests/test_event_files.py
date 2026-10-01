@@ -79,6 +79,31 @@ def test_fixture_build_is_deterministic_and_carries_the_real_hierarchy(tmp_path)
     assert read_record(ctx, wev.STAGE) == record
 
 
+def test_article_flags_survive_the_table_and_recovered_ancestors_without_new_columns(tmp_path):
+    table = [
+        event(1, parent=("Q10",)),
+        replace(event(2, parent=("Q20",)), enwiki="Event 2"),
+    ]
+    path = tmp_path / "events.tsv.gz"
+    path.write_bytes(gzip.compress(events.encode(table), mtime=0))
+    parent = events.Statement(
+        "Q198", "Q10", "Parent", "", "P585", (1815, 1, 1), 9, None, None, 10, ()
+    )
+    rows = wev.prepare(
+        wev.read_table(path), [parent, replace(parent, qid="Q20", enwiki="Parent 20")]
+    )
+    doc = wev.document(rows, [c.name for c in load_event_classes()])
+    assert dict(zip(doc["qid"], (bool(f & 32) for f in doc["flags"]), strict=True)) == {
+        1: True,
+        2: False,
+        10: True,
+        20: False,
+    }
+    assert set(doc) == {"v", "rows", "classes", "ext", *wev.COLUMNS}
+    without_article_flags = {**doc, "flags": [f & ~32 for f in doc["flags"]]}
+    assert wev.decoded_bytes(doc) == wev.decoded_bytes(without_article_flags)
+
+
 def test_unlocated_ancestors_take_children_across_the_dateline_and_cycles_end():
     parent = event(10, at=(float("nan"), float("nan")), parent=("Q1",))
     children = [event(1, at=(179, 20), parent=("Q10",)), event(2, at=(-179, 20), parent=("Q10",))]
@@ -280,7 +305,7 @@ def test_a_curated_place_stands_for_every_point_of_a_located_event(monkeypatch):
     )
     [row] = wev.prepare([event(1, at=(-9.14, 38.71))], [statement])
     assert (row.event.lon, row.event.lat) == (-9.14, 38.71)
-    assert row.flags == 16  # curated, its own, one place
+    assert row.flags == 16 | wev.NO_ENWIKI  # curated, its own, one place; no English article
     assert row.ext is None
 
 
