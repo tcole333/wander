@@ -172,7 +172,7 @@ no single dataset, so they are curated with a source for each, as Magellan's rou
 |---|---|---|
 | Nature | land, sea floor, coasts, rivers; the seas of their date; climate; biomes; where resources lie; hazard and disease belts; eruptions, earthquakes, epidemics | GEBCO and Natural Earth; ModE-RA from 1421; RESOLVE Ecoregions 2017; the USGS petroleum provinces and critical minerals; NOAA NCEI's significant eruptions and earthquakes |
 | Culture | place names of their date; faiths; foundings | Pleiades for the ancient world and Wikidata after; Wikidata's foundings, with the Religious Characteristics of States from 1900 |
-| Governance | borders, states, capitals, polity names; wars, battles, treaties, revolutions | Cliopatria or historical-basemaps, chosen on renders; the event index |
+| Governance | borders, states, capitals, polity names; wars, battles, treaties, revolutions | Cliopatria; the event index |
 | Infrastructure | settled land and farms; cities; roads, sea lanes, railways, canals, cables; mines and wells while worked; openings | HYDE; Reba, Reitsma and Seto's historical cities; Itiner-e's Roman roads; ships' logbooks (CLIWOC, ICOADS); Wikidata's openings |
 | Commerce | trade routes and what moves on them; production; booms, busts, rushes, embargoes | curated routes; the HGIS de las Indias silver registry; RICardo's trade flows, 1787-1938; oil by country from 1932 (Ross and Mahdavi) and giant fields' discoveries (Cust and others) |
 | Fashion and art | works, premieres, lives | Wikidata |

@@ -33,5 +33,5 @@ commands.
 ## License
 
 Code is MIT-licensed (see `LICENSE`). Data comes from Natural Earth, GEBCO, ModE-RA, RESOLVE,
-USGS, GMBA, historical-basemaps, and Wikidata under their own terms; attributions ship in the app's
-Credits panel. Border geometry derived from historical-basemaps is GPL-3.0.
+USGS, GMBA, Cliopatria, and Wikidata under their own terms; attributions ship in the app's Credits
+panel. Cliopatria, and the borders drawn from it, are CC BY 4.0.
