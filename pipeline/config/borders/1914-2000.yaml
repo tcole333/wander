@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1914 to 2000 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-30
+modified: 2026-10-01
 corrections:
   - years: [1917, 1917]
     give:
@@ -320,3 +320,79 @@ corrections:
       shape_from: {polity: Republic of Vietnam, year: 1966}
     why: *tri-border
     source: *laos-vietnam
+  # The holes and gaps the bake owed, each settled by a verdict checked against its source
+  # (owner decision 38): a gap's land as the state that held it, drawn inside the shapes of
+  # the polities that held it on both sides of the run where those bound it.
+  - years: [1917, 1928]
+    pocket:
+      at: [122.75, 50.25]
+      to: Kuomintang
+      shape_from: {polity: Empire of China, year: 1916}
+      within: {polity: Kuomintang, year: 1929}
+    why: >-
+      Manchuria was governed by Zhang Zuolin's Fengtian clique as part of the Republic of China,
+      under the Beiyang government's flag until 1928; Cliopatria names China Kuomintang in these
+      years.
+    source:
+      title: Fengtian clique
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Fengtian_clique
+  - years: [1918, 1918]
+    pocket:
+      at: [33.25, 50.75]
+      to: 'Ukrainian People''s Republic'
+      shape_from: {polity: Russian Republic, year: 1917}
+      within: {polity: 'Ukrainian People''s Republic', year: 1919}
+    why: >-
+      On 1 January 1918 the Left Bank east of Kyiv (Chernihiv, Sumy) was the Central Rada's: the
+      Third Universal of November 1917 claimed the Chernihiv, Poltava and Kharkiv governorates, and
+      the Bolsheviks took Poltava only on 20 January 1918.
+    source:
+      title: 'Ukrainian People''s Republic'
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ukrainian_People's_Republic
+  - years: [1918, 1919]
+    pocket:
+      at: [42.75, 56.25]
+      to: Republics of the Soviet Union
+      shape_from: {polity: Russian Republic, year: 1917}
+      within: {polity: Republics of the Soviet Union, year: 1920}
+    why: >-
+      The Soviet heartland from Petrograd and Moscow to Voronezh and Tsaritsyn was Soviet Russia's
+      from November 1917, the Russian Soviet Republic proclaimed in January 1918; Cliopatria names
+      it the Republics of the Soviet Union from 1920. In 1918 it takes in the middle Volga toward
+      Samara, which the carry-through would draw as Cliopatria's Russian Republic of 1917 and 1919.
+      Astrakhan, contested on 1 January 1918, and the Allied-backed Northern Region's front toward
+      Shenkursk on 1 January 1919 are not drawn apart.
+    source:
+      title: Russian Soviet Federative Socialist Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Russian_Soviet_Federative_Socialist_Republic
+  - years: [1920, 1921]
+    pocket:
+      at: [36.25, 30.75]
+      to: Kingdom of Hejaz
+      shape_from: {polity: Kingdom of Hejaz, year: 1919}
+      within: {polity: British Africa, year: 1922}
+    why: >-
+      On 1 January 1920 Transjordan north of Ma'an was ruled from Damascus as a province of Faisal's
+      Syria, which Cliopatria draws as the Kingdom of Hejaz in 1918-1919.
+    source:
+      title: Interregnum (Transjordan)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Interregnum_(Transjordan)
+  - years: [1945, 1945]
+    pocket:
+      at: [132.75, -1.75]
+      to: Empire of Japan
+      shape_from: {polity: Empire of Japan, year: 1944}
+      within: {polity: Dutch East Indies, year: 1946}
+    why: >-
+      The Bird's Head interior and the eastern Bomberai Peninsula (Ayamaru, Bintuni, Kaimana) were
+      held by Japan's bypassed 2nd Army, whose troops awaited the end of the war at Manokwari,
+      Sorong and bases on the Bomberai Peninsula.
+    source:
+      title: The Approach to the Philippines
+      publisher: US Army Center of Military History
+      url: https://www.ibiblio.org/hyperwar/USA/USA-P-Approach/USA-P-Approach-18.html
+      locator: ch. 18; Robert Ross Smith
