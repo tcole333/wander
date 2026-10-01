@@ -6,8 +6,8 @@
 // no end labels: at month scale January is named by its year, and at day scale each month's 1st
 // carries the month. Past history's ends the tape runs on as a leader, unengraved, behind a stop
 // labelled with history's first or last year. As the tape moves, a label shows whole or not at
-// all: never cut by the glass's edges, never partly in a reel's fade. Pure, so it can be tested
-// without a page.
+// all, never partly in a reel's fade, and a glass edge's line opens behind one crossing it. Pure,
+// so it can be tested without a page.
 import { HISTORICAL, monthName, type Calendar, type Precision } from '../story/dates';
 import { calendarYearLabel, monthAbbrev, monthsIn, yearsIn, type Span } from '../story/ui/format';
 import { groupDigits, YEAR_DAYS } from './overviewScale';
@@ -313,20 +313,25 @@ export function engraveTape(
   return { graduation: grade, ticks, labels, stops, leaders };
 }
 
-/** A label keeps this far from the glass's edges, px, so no edge line cuts its letters. */
+/** A glass edge's line opens this far beyond a label's letters, px, so it never touches them. */
 export const GLASS_EDGE_PX = 3;
 
 /**
  * Whether a tape label from `left` to `right`, px along the tape from the needle, shows where it
- * stands now: clear of the glass's edges at ±`glassPx`, which would cut its letters, and wholly
- * out of the fade toward each reel at ±`halfPx`, where it would leave a fragment. A label is shown
- * or dropped whole as the tape moves it.
+ * stands now: wholly out of the fade toward each reel at ±`halfPx`, where it would leave a
+ * fragment. A label is shown or dropped whole as the tape moves it.
  */
-export function labelShown(left: number, right: number, halfPx: number, glassPx: number): boolean {
-  if (left < -halfPx + TAPE_FADE_PX || right > halfPx - TAPE_FADE_PX) return false;
-  return [-glassPx, glassPx].every(
-    (edge) => right <= edge - GLASS_EDGE_PX || left >= edge + GLASS_EDGE_PX,
-  );
+export function labelShown(left: number, right: number, halfPx: number): boolean {
+  return left >= -halfPx + TAPE_FADE_PX && right <= halfPx - TAPE_FADE_PX;
+}
+
+/**
+ * Whether a tape label from `left` to `right`, px along the tape from the needle, stands across
+ * the glass edge at `edgePx`, or within GLASS_EDGE_PX of it: the edge's line opens behind its
+ * letters there, so the label reads whole and no line cuts it.
+ */
+export function labelAtEdge(left: number, right: number, edgePx: number): boolean {
+  return right > edgePx - GLASS_EDGE_PX && left < edgePx + GLASS_EDGE_PX;
 }
 
 /**

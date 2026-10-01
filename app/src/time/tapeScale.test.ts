@@ -6,6 +6,7 @@ import {
   engraveTape,
   GLASS_EDGE_PX,
   graduation,
+  labelAtEdge,
   labelShown,
   seriesTicks,
   TAPE_FADE_PX,
@@ -78,7 +79,8 @@ describe("the tape's labels", () => {
   // needle, the glass a tenth of it.
   const HALF = RULE_PX / 2;
   const GLASS = RULE_PX / 20;
-  const shown = (left: number) => labelShown(left, left + 36, HALF, GLASS);
+  const shown = (left: number) => labelShown(left, left + 36, HALF);
+  const atEdge = (left: number, edge: number) => labelAtEdge(left, left + 36, edge);
 
   it('drop a label whole once any of it enters a fade', () => {
     const inside = HALF - TAPE_FADE_PX;
@@ -86,16 +88,17 @@ describe("the tape's labels", () => {
     expect([shown(-inside), shown(-inside - 0.5)]).toEqual([true, false]);
   });
 
-  it('keep clear of the glass’s edges, shown wholly to either side of one', () => {
+  it('show a label across a glass edge, whose line opens within 3 px of its letters', () => {
     for (const edge of [-GLASS, GLASS]) {
-      expect(shown(edge - GLASS_EDGE_PX - 36)).toBe(true);
-      expect(shown(edge - GLASS_EDGE_PX - 35.5)).toBe(false);
-      expect(shown(edge - 18)).toBe(false);
-      expect(shown(edge + GLASS_EDGE_PX - 0.5)).toBe(false);
-      expect(shown(edge + GLASS_EDGE_PX)).toBe(true);
+      expect(shown(edge - 18)).toBe(true);
+      expect(atEdge(edge - 18, edge)).toBe(true);
+      expect(atEdge(edge - GLASS_EDGE_PX - 36, edge)).toBe(false);
+      expect(atEdge(edge - GLASS_EDGE_PX - 35.5, edge)).toBe(true);
+      expect(atEdge(edge + GLASS_EDGE_PX - 0.5, edge)).toBe(true);
+      expect(atEdge(edge + GLASS_EDGE_PX, edge)).toBe(false);
     }
-    // Under the glass, between its edges, a label reads through it.
-    expect(shown(-18)).toBe(true);
+    // Under the glass, between its edges, a label reads through it and no line opens.
+    expect(atEdge(-18, -GLASS) || atEdge(-18, GLASS)).toBe(false);
   });
 
   it('never names a year 0 across 1 BCE and 1 CE', () => {
