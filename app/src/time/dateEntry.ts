@@ -5,7 +5,7 @@
 // Pure, so it can be tested without a page.
 import { HISTORICAL, type Calendar, type Precision } from '../story/dates';
 import type { Span } from '../story/ui/format';
-import { middleDay, YEAR_DAYS } from './overviewScale';
+import { groupDigits, middleDay, YEAR_DAYS } from './overviewScale';
 
 export type EntryRefusal = 'empty' | 'unread' | 'no-year-zero' | 'no-such-date' | 'outside';
 
@@ -113,4 +113,29 @@ export function parseEntry(typed: string, history: Span, calendar: Calendar = HI
   return d === null
     ? { ok: true, day, precision: 'month', maxSpan: 2 * YEAR_DAYS }
     : { ok: true, day, precision: 'day', maxSpan: 60 };
+}
+
+/**
+ * What a refused entry says to a screen reader, as the plaque shakes: what went wrong with what
+ * was typed, and what to type instead. `history` is inclusive.
+ */
+export function refusalText(
+  why: Exclude<EntryRefusal, 'empty'>,
+  typed: string,
+  history: Span,
+  calendar: Calendar = HISTORICAL,
+): string {
+  const text = typed.trim().replace(/\s+/g, ' ');
+  const yearText = (y: number) => (y <= 0 ? `${groupDigits(1 - y)} BCE` : String(y));
+  const [first, last] = [calendar.civil(history.start).year, calendar.civil(history.end).year];
+  switch (why) {
+    case 'unread':
+      return `${text} is not a date. Type a year, as 1066 or 500 BCE, or a day, as 18 June 1815.`;
+    case 'no-year-zero':
+      return 'There is no year 0: 1 BCE runs into 1 CE.';
+    case 'no-such-date':
+      return `There is no ${text} in the calendar.`;
+    case 'outside':
+      return `${text} is outside ${yearText(first)} to ${yearText(last)}.`;
+  }
 }
