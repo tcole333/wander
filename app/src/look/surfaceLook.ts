@@ -228,14 +228,15 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     if (lamp) lamp.getWorldPosition(lampLocal);
     else lampLocal.copy(LAMP_FALLBACK);
     lampLocal.applyMatrix4(toLocal);
-    const kLand = params.flatRelief === true ? 0 : Number(params.kLand);
+    const flat = params.flatRelief === true;
     marks.place({
       ...view,
       pixelRatio,
       forward,
       toView: object.normalMatrix,
       lamp: lampLocal,
-      kLand,
+      kLand: flat ? 0 : Number(params.kLand),
+      kSea: flat || params.bathymetry !== true ? 0 : Number(params.kSea),
     });
   };
   material.onBeforeCompile = (shader) => {

@@ -5,13 +5,16 @@
 // Any layer hands its marks over as data, by source: look.marks.set('events', specs). Each frame,
 // with the draw's own matrices (the look's onBeforeRender, beside the sea names), place() sizes
 // the marks for the view (tunables.markPx: one size at a given scale), fades them toward the limb,
-// and bins each mark's screen disc, widened by its contact shadow, its ember or its hovered ring,
-// into 32 CSS px tiles, at most tunables.markTileCap a tile, focal first, then hovered, then by
-// score. Marks that would overlap stand apart (fanOffsets). One RGBA32F table holds the tiles'
+// stands apart those that would overlap (fanOffsets), and bins each mark's screen disc into 32 CSS
+// px tiles, at most tunables.markTileCap a tile, focal first, then hovered, then by score. The look
+// finds a fragment's tile from where it stands on screen, and draws each seal flat at its anchor's
+// height, which only the height pool holds; so each disc reaches past the mark's contact shadow,
+// its ember or its hovered ring from wherever on screen that height can lift it, up to the highest
+// ground the height can read (the terrain's ceiling there). One RGBA32F table holds the tiles'
 // ranges, one texel per tile listing (its mark's screen disc and index) and four texels a mark, the
-// last naming where the height pool holds the ground under its anchor, so the look lays its seal
-// flat at that height; it is uploaded only when the view or a fade changed, and exists only while
-// some layer has marks set.
+// last naming where the height pool holds the ground under its anchor; it is uploaded only when
+// the view, a fade or the height pool under a mark changed, and exists only while some layer has
+// marks set.
 import {
   Color,
   DataTexture,
@@ -31,7 +34,7 @@ import { EMBER } from '../story/effects/ember';
 import { dirOf, EARTH_KM, EARTH_M, tangents } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
 import type { LonLat } from '../story/story';
-import type { Vec3 } from '../surface/cube';
+import { TILE, type Vec3 } from '../surface/cube';
 import { FAMILIES, familyUniforms, FAMILY_VEC4S, PACES, type Family, type Pace } from './families';
 import { GLYPH_CELL, type GlyphCell } from './glyphAtlas';
 import {
@@ -44,7 +47,6 @@ import {
   MARK_ROW,
   MARK_TEXELS,
   MARKS_MAX,
-  PAD_TILES,
   RING_PX,
   SHADOW_BLUR,
   SLOT_ROW,
@@ -87,7 +89,7 @@ export interface MarkSpec {
   group?: string;
 }
 
-/** A mark as place() last drew it: its place and radius on screen, in CSS px, and its fade. */
+/** A mark as place() last drew it: its sea-level place and radius on screen, CSS px, and its fade. */
 export interface PlacedMark {
   id: string;
   x: number;
@@ -99,8 +101,9 @@ export interface PlacedMark {
 
 /**
  * Where a placed mark may stand on screen, CSS px: from its sea-level place (x0, y0) to where the
- * terrain's ceiling would lift it (x1, y1), since the relief draws it somewhere between. The two
- * are one point at sea, and without the terrain's ceiling.
+ * highest ground its height can read would lift it (x1, y1), since its seal lies flat at its
+ * anchor's height somewhere between. The two are one point at sea, and without the terrain's
+ * ceiling or the height pool.
  */
 export interface MarkSpan {
   x0: number;
@@ -126,8 +129,9 @@ export interface MarkView {
   toView: Matrix3;
   /** The lamp's position. */
   lamp: Vector3;
-  /** The relief's exaggeration, for picking over land. */
+  /** The relief's exaggeration over land, and the sea floor's (0 with the bathymetry off). */
   kLand: number;
+  kSea: number;
 }
 
 export interface MarkUniforms {
@@ -163,6 +167,8 @@ const SEAL_THICKNESS = 0.45;
 export const RING_MAX_RAD = Math.PI / 4;
 /** The least facing a mark is drawn at: the limb fade leaves nothing below it. */
 const FACING_MIN = 0.05;
+/** The places and reaches whose terrain ceilings MarkLayer keeps, before it starts again. */
+const BOUNDS_MAX = 4096;
 /** How near its anchor, as a cosine, the look looks for a mark without a ring: about 26 degrees. */
 const MARK_COS_MIN = 0.9;
 /** The least opacity a mark is picked at: fainter, toward the limb or fading, it is let be. */
@@ -272,7 +278,9 @@ interface Candidate {
   dir: Vector3;
   x: number;
   y: number;
-  /** Its radius and its reach, CSS px, and its radius at sea level in globe radii. */
+  /** Its anchor's depth in front of the camera (clip w). */
+  w: number;
+  /** Its radius and its reach about its anchor at sea level, CSS px, and its radius in globe radii. */
   rPx: number;
   reachPx: number;
   r: number;
@@ -282,12 +290,18 @@ interface Candidate {
   ring: number;
   /** The least cosine from its anchor at which it still draws. */
   cosMin: number;
+  /** Where the height pool holds the ground under its anchor, and where on screen that lifts it. */
+  texel: HeightTexel | null;
+  /** Where its seal stands on screen lifted by the highest ground its height can read, CSS px. */
+  x1: number;
+  y1: number;
+  /** The screen disc its drawing can stand within, wherever its height lifts it, CSS px. */
+  bin: { x: number; y: number; reachPx: number };
 }
 
-/** The screen's tiles: their side, the grid's reach past each edge of the viewport, both CSS px. */
+/** The screen's tiles over the viewport: their side in CSS px, and how many across and down. */
 export interface MarkGrid {
   tilePx: number;
-  pad: number;
   across: number;
   down: number;
 }
@@ -295,15 +309,12 @@ export interface MarkGrid {
 /** The tiles over a viewport `width` by `height` CSS px, as few as the table holds. */
 export function markGrid(width: number, height: number): MarkGrid {
   let tilePx = TILE_PX;
-  const tiles = (side: number) =>
-    Math.ceil(width / side + 2 * PAD_TILES) * Math.ceil(height / side + 2 * PAD_TILES);
+  const tiles = (side: number) => Math.ceil(width / side) * Math.ceil(height / side);
   while (tiles(tilePx) > TILES_MAX) tilePx *= 2;
-  const pad = PAD_TILES * tilePx;
   return {
     tilePx,
-    pad,
-    across: Math.max(1, Math.ceil((width + 2 * pad) / tilePx)),
-    down: Math.max(1, Math.ceil((height + 2 * pad) / tilePx)),
+    across: Math.max(1, Math.ceil(width / tilePx)),
+    down: Math.max(1, Math.ceil(height / tilePx)),
   };
 }
 
@@ -320,9 +331,9 @@ export interface Binning extends MarkGrid {
 }
 
 /**
- * Bins discs (x, y, reach in CSS px, in priority order) into the tiles of the viewport and past its
- * edges (markGrid), at most `cap` a tile: a disc goes into every tile it touches, or, if one of
- * them is full, into none, so no mark is drawn cut along a tile's edge.
+ * Bins discs (x, y, reach in CSS px, in priority order) into the tiles of the viewport (markGrid),
+ * at most `cap` a tile: a disc goes into every tile it touches, or, if one of them is full, into
+ * none, so no mark is drawn cut along a tile's edge.
  */
 export function binDiscs(
   discs: readonly { x: number; y: number; reachPx: number }[],
@@ -331,22 +342,22 @@ export function binDiscs(
   cap: number,
 ): Binning {
   const grid = markGrid(width, height);
-  const { tilePx, pad, across, down } = grid;
+  const { tilePx, across, down } = grid;
   const counts = new Uint8Array(across * down);
   const binned = new Uint8Array(discs.length);
   const pairs: number[] = [];
   const touched: number[] = [];
   discs.forEach(({ x, y, reachPx }, m) => {
     touched.length = 0;
-    const x0 = Math.max(0, Math.floor((x + pad - reachPx) / tilePx));
-    const x1 = Math.min(across - 1, Math.floor((x + pad + reachPx) / tilePx));
-    const y0 = Math.max(0, Math.floor((y + pad - reachPx) / tilePx));
-    const y1 = Math.min(down - 1, Math.floor((y + pad + reachPx) / tilePx));
+    const x0 = Math.max(0, Math.floor((x - reachPx) / tilePx));
+    const x1 = Math.min(across - 1, Math.floor((x + reachPx) / tilePx));
+    const y0 = Math.max(0, Math.floor((y - reachPx) / tilePx));
+    const y1 = Math.min(down - 1, Math.floor((y + reachPx) / tilePx));
     for (let ty = y0; ty <= y1; ty++) {
       for (let tx = x0; tx <= x1; tx++) {
         // The tile's point nearest the disc's center must lie within its reach.
-        const nx = Math.max(tx * tilePx - pad, Math.min(x, (tx + 1) * tilePx - pad));
-        const ny = Math.max(ty * tilePx - pad, Math.min(y, (ty + 1) * tilePx - pad));
+        const nx = Math.max(tx * tilePx, Math.min(x, (tx + 1) * tilePx));
+        const ny = Math.max(ty * tilePx, Math.min(y, (ty + 1) * tilePx));
         if ((nx - x) ** 2 + (ny - y) ** 2 > reachPx * reachPx) continue;
         touched.push(ty * across + tx);
       }
@@ -491,12 +502,14 @@ export class MarkLayer {
   /** What the look reads while no marks are set. */
   readonly #blank: DataTexture;
   #extent = [0, 0, 0];
-  #placed: (PlacedMark & { dir: Vector3; r: number })[] = [];
+  #placed: (PlacedMark & { x1: number; y1: number })[] = [];
   #clearance: ClearanceField | null = null;
   #heights: ((dir: Vec3) => HeightTexel | null) | null = null;
   /** The unknown glyphs and paces already reported: each is logged once, and its marks not drawn. */
   readonly #reported = new Set<string>();
-  readonly #view = { toClip: new Matrix4(), kLand: 0, width: 1, height: 1 };
+  readonly #view = { toClip: new Matrix4(), width: 1, height: 1 };
+  /** The highest ground each place's seal can read its height from, by place and reach. */
+  readonly #bounds = new Map<string, number>();
   #sizePx = markPx(Infinity, 1);
 
   /** `cells` gives the glyphs' atlas cells once the look has lettered them. */
@@ -553,9 +566,13 @@ export class MarkLayer {
     return this.#sizePx;
   }
 
-  /** The terrain's ceiling, so a pick over land reaches the mark drawn on the relief. */
+  /**
+   * The terrain's ceiling: the most a seal's height can lift it on screen, which the look's tiles
+   * and the pointer reach.
+   */
   useClearance(field: ClearanceField | null): void {
     this.#clearance = field;
+    this.#bounds.clear();
   }
 
   /**
@@ -592,7 +609,6 @@ export class MarkLayer {
     const cells = this.#cells();
     const on = this.params.marks === true && this.strength > 0 && cells !== null;
     this.#view.toClip.copy(view.toClip);
-    this.#view.kLand = view.kLand;
     this.#view.width = view.width;
     this.#view.height = view.height;
     this.#placed = [];
@@ -605,8 +621,15 @@ export class MarkLayer {
     }
     const px = this.#sizePx;
     const relief = Math.max(0, Number(this.params.markRelief));
+    // How high and how deep the relief anywhere stands, displaced: a hovered ring is engraved on
+    // all of it, and no seal's height lifts it higher.
+    const field = this.#clearance;
+    const kLand = field ? Math.max(0, view.kLand) : 0;
+    const depths = {
+      highest: kLand * Math.max(0, field?.hMax ?? 0),
+      deepest: (field ? Math.max(0, view.kSea) : 0) * Math.min(0, field?.hMin ?? 0),
+    };
     const candidates: Candidate[] = [];
-    const grid = markGrid(view.width, view.height);
     const clip = new Vector4();
     const lamp = new Vector3();
     const north = new Vector3();
@@ -654,13 +677,12 @@ export class MarkLayer {
       const pxR = 1 / (rPx * Math.max(facing, FACING_MIN));
       const reachPx = markReachPx(family, spec, cell.extent, shadow, ringPx, pxPerR, pxR);
       const cosMin = Math.min(MARK_COS_MIN, Math.cos(Math.min(1.1 * ringRad + 0.02, Math.PI / 2)));
-      if (x + reachPx < -grid.pad || x - reachPx > view.width + grid.pad) continue;
-      if (y + reachPx < -grid.pad || y - reachPx > view.height + grid.pad) continue;
-      candidates.push({
+      const candidate: Candidate = {
         entry,
         dir,
         x,
         y,
+        w: clip.w,
         rPx,
         reachPx,
         r,
@@ -669,12 +691,34 @@ export class MarkLayer {
         shadowY,
         ring,
         cosMin,
-      });
+        texel: null,
+        x1: x,
+        y1: y,
+        bin: { x, y, reachPx },
+      };
+      // Left out only when no height the relief anywhere stands at lifts its drawing into view.
+      const { width, height } = view;
+      const off = (b: Candidate['bin']) =>
+        b.x + b.reachPx < 0 ||
+        b.x - b.reachPx > width ||
+        b.y + b.reachPx < 0 ||
+        b.y - b.reachPx > height;
+      if (off(candidate.bin)) {
+        const lo = ring > 0 ? depths.deepest : 0;
+        if (off(this.#binOf(candidate, lo, depths.highest))) continue;
+      }
+      candidates.push(candidate);
     }
     this.#standApart(candidates, px / 2, view);
     candidates.sort(byPriority);
     if (candidates.length > MARKS_MAX) candidates.length = MARKS_MAX;
-    const bins = binDiscs(candidates, view.width, view.height, tunables.markTileCap);
+    for (const c of candidates) this.#lift(c, kLand, depths);
+    const bins = binDiscs(
+      candidates.map(({ bin }) => bin),
+      view.width,
+      view.height,
+      tunables.markTileCap,
+    );
 
     // The table (marks.glsl.ts): each tile's first slot and its count, four a texel;
     // each slot's mark's screen disc and index; four texels a mark.
@@ -686,17 +730,17 @@ export class MarkLayer {
     const slotBase = SLOT_ROW * TABLE_WIDTH * 4;
     const slots = bins.used * 4;
     bins.slots.forEach((m, slot) => {
-      const c = candidates[m];
+      const bin = candidates[m]?.bin;
       const at = slotBase + slot * 4;
-      next[at] = c?.x ?? 0;
-      next[at + 1] = c?.y ?? 0;
-      next[at + 2] = c?.reachPx ?? 0;
+      next[at] = bin?.x ?? 0;
+      next[at + 1] = bin?.y ?? 0;
+      next[at + 2] = bin?.reachPx ?? 0;
       next[at + 3] = m;
     });
     const markBase = MARK_ROW * TABLE_WIDTH * 4;
     candidates.forEach((c, m) => {
       const { spec, family } = c.entry;
-      const { dir } = c;
+      const { dir, texel } = c;
       const cell = cells.get(spec.glyph);
       const flags =
         (spec.focal ? FLAG.focal : 0) |
@@ -719,15 +763,15 @@ export class MarkLayer {
       next[at + 9] = c.shadowY;
       next[at + 10] = c.ring;
       next[at + 11] = c.cosMin;
-      // Where the height pool holds the ground under its anchor, in the cube's frame G (three's
-      // axes are G.y, G.z, G.x): its uv, slot and level, and the tile's codeMid; slot −1 for none.
-      const texel = this.#heights?.([dir.z, dir.x, dir.y]) ?? null;
+      // Where the height pool holds the ground under its anchor: its uv, slot and level, and the
+      // tile's codeMid; slot −1 for none.
       next[at + 12] = texel?.u ?? 0;
       next[at + 13] = texel?.v ?? 0;
       next[at + 14] = texel ? texel.slot * HEIGHT_LEVELS + texel.level : -1;
       next[at + 15] = texel?.codeMid ?? 0;
       if (bins.binned[m] === 1) {
-        this.#placed.push({ id: spec.id, x: c.x, y: c.y, rPx: c.rPx, alpha: c.alpha, dir, r: c.r });
+        const { x, y, x1, y1, rPx, alpha } = c;
+        this.#placed.push({ id: spec.id, x, y, x1, y1, rPx, alpha });
       }
     });
     const extent = [ranges, slots, candidates.length * MARK_TEXELS * 4];
@@ -752,7 +796,7 @@ export class MarkLayer {
 
   /**
    * The marks drawn in view for the last draw, in priority order: not those a full tile left out,
-   * nor those binned past the viewport's edges in case relief lifts them into it.
+   * nor those whose sea-level place lies past the viewport's edges though relief lifts them into it.
    */
   placed(): readonly PlacedMark[] {
     const { width, height } = this.#view;
@@ -763,25 +807,16 @@ export class MarkLayer {
 
   /**
    * The mark under CSS px (x, y), or null: the nearest drawn and not too faint whose disc reaches
-   * the point. Over land the disc runs from the mark's sea-level place to where the terrain's
-   * ceiling there would lift it, since the mark is drawn on the relief somewhere between; only a
-   * mark within reach of the highest lift, the field's highest bound, asks the ceiling, which
-   * costs a walk over tiles.
+   * the point. Over land the disc runs from the mark's sea-level place to where the highest ground
+   * its height can read would lift it, since its seal lies flat at its anchor's height somewhere
+   * between.
    */
   hit(x: number, y: number): string | null {
     let best: string | null = null;
     let bestD = Infinity;
-    const field = this.#clearance;
-    const kLand = field ? this.#view.kLand : 0;
-    const highest = field ? kLand * Math.max(0, field.hMax) : 0;
     for (const mark of this.#placed) {
       if (mark.alpha < PICK_ALPHA_MIN) continue;
-      if (field && kLand > 0) {
-        const [xh, yh] = this.#lifted(mark.dir, highest) ?? [mark.x, mark.y];
-        if (segmentDistance(x, y, mark.x, mark.y, xh, yh) > mark.rPx) continue;
-      }
-      const [x1, y1] = this.#top(mark);
-      const d = segmentDistance(x, y, mark.x, mark.y, x1, y1);
+      const d = segmentDistance(x, y, mark.x, mark.y, mark.x1, mark.y1);
       if (d <= mark.rPx && d < bestD) {
         bestD = d;
         best = mark.id;
@@ -792,35 +827,82 @@ export class MarkLayer {
 
   /**
    * Where the mark with this id may stand on screen in the last draw, or null for one it did not
-   * place: asked for what must stand clear of a mark, as a plate does, rather than for every
-   * mark, since the terrain's ceiling costs a walk over tiles.
+   * place: asked for what must stand clear of a mark, as a plate does.
    */
   span(id: string): MarkSpan | null {
     const mark = this.#placed.find((placed) => placed.id === id);
     if (!mark) return null;
-    const [x1, y1] = this.#top(mark);
-    return { x0: mark.x, y0: mark.y, x1, y1 };
+    return { x0: mark.x, y0: mark.y, x1: mark.x1, y1: mark.y1 };
   }
 
-  /** Where the terrain's ceiling would lift a placed mark on screen, CSS px. */
-  #top(mark: { x: number; y: number; dir: Vector3; r: number }): [number, number] {
+  /**
+   * Reads where the height pool holds the ground under a candidate's anchor as drawn, and where on
+   * screen its seal and its drawing can stand: lifted off sea level by up to the highest ground
+   * that height can read, and for a hovered ring, which is engraved on the relief, by anything
+   * from the deepest sea floor to the highest ground (`depths`, displaced meters).
+   */
+  #lift(c: Candidate, kLand: number, depths: { highest: number; deepest: number }): void {
+    // The height pool and the terrain's ceiling read the cube's frame G; three's axes are G.y,
+    // G.z, G.x.
+    c.texel = this.#heights?.([c.dir.z, c.dir.x, c.dir.y]) ?? null;
     const field = this.#clearance;
-    const kLand = this.#view.kLand;
-    if (!field || kLand <= 0) return [mark.x, mark.y];
-    // The field reads the cube's frame G; three's axes are (G.y, G.z, G.x).
-    const dir: [number, number, number] = [mark.dir.z, mark.dir.x, mark.dir.y];
-    const ceiling = field.ceilingM(dir, Math.max(mark.r, 1e-5), kLand);
-    return (ceiling > 0 ? this.#lifted(mark.dir, ceiling) : null) ?? [mark.x, mark.y];
+    const bound =
+      c.texel && field && kLand > 0 ? kLand * this.#heightBound(field, c, c.texel.level) : 0;
+    const top = bound > 0 ? this.#project(c.dir, bound) : null;
+    [c.x1, c.y1] = top ?? [c.x, c.y];
+    c.bin =
+      c.ring > 0
+        ? this.#binOf(c, depths.deepest, Math.max(bound, depths.highest))
+        : this.#binOf(c, 0, bound);
   }
 
-  /** Where the place at `dir`, lifted `meters` off sea level, stands on screen, CSS px. */
-  #lifted(dir: Vector3, meters: number): [number, number] | null {
+  /**
+   * The screen disc a candidate's drawing stands within, its seal anywhere from `lo` to `hi`
+   * meters off sea level, displaced: its reach about each end, which a lift toward the camera
+   * draws larger, and the way between them.
+   */
+  #binOf(c: Candidate, lo: number, hi: number): Candidate['bin'] {
+    const [ax, ay, aw] = (lo < 0 ? this.#project(c.dir, lo) : null) ?? [c.x, c.y, c.w];
+    const [bx, by, bw] = (hi > 0 ? this.#project(c.dir, hi) : null) ?? [c.x, c.y, c.w];
+    const scale = Math.max(1, c.w / aw, c.w / bw);
+    return {
+      x: (ax + bx) / 2,
+      y: (ay + by) / 2,
+      reachPx: c.reachPx * scale + Math.hypot(bx - ax, by - ay) / 2,
+    };
+  }
+
+  /**
+   * The highest meters, not displaced, the height pool can hold where a candidate's seal reads its
+   * height from a level-`level` tile: the terrain's ceiling within its taps' reach, and as far
+   * again as it stood apart (fanOffsets). Cached by place and reach, the reach a power of √2.
+   */
+  #heightBound(field: ClearanceField, c: Candidate, level: number): number {
+    const { entry } = c;
+    // A texel of the mip the look reads (marks.glsl.ts), in radians, and the taps' reach.
+    const texel = Math.PI / 2 / (2 ** level * (TILE / 4));
+    const cap = 1.5 * texel + entry.dir.angleTo(c.dir);
+    const step = Math.ceil(2 * Math.log2(cap));
+    const key = `${entry.spec.at[0]},${entry.spec.at[1]}|${step}`;
+    let bound = this.#bounds.get(key);
+    if (bound === undefined) {
+      if (this.#bounds.size >= BOUNDS_MAX) this.#bounds.clear();
+      const { dir } = entry;
+      bound = Math.max(0, field.ceilingM([dir.z, dir.x, dir.y], 2 ** (step / 2), 1));
+      this.#bounds.set(key, bound);
+    }
+    return bound;
+  }
+
+  /** Where the place at `dir`, lifted `meters` off sea level, stands on screen (CSS px), and its depth. */
+  #project(dir: Vector3, meters: number): [number, number, number] | null {
     const lifted = liftedScratch.copy(dir).multiplyScalar(1 + meters / EARTH_M);
     const clip = clipScratch.set(lifted.x, lifted.y, lifted.z, 1).applyMatrix4(this.#view.toClip);
     if (clip.w <= 0) return null;
     return [
       (clip.x / clip.w / 2 + 0.5) * this.#view.width,
       (0.5 - clip.y / clip.w / 2) * this.#view.height,
+      clip.w,
     ];
   }
 
