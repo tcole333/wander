@@ -11,15 +11,7 @@ const NAMED_SHARDS = new Map<string, string[]>([
   ['explore', ['explore-entry.spec.ts', 'marks.spec.ts']],
   ['ruler', ['explore-ruler.spec.ts']],
   ['touch', ['explore-ruler-touch.spec.ts']],
-  [
-    'borders',
-    [
-      'borders-unpublished.spec.ts',
-      'borders.spec.ts',
-      'borders-walk.spec.ts',
-      'explore-borders.spec.ts',
-    ],
-  ],
+  ['borders', ['borders-unpublished.spec.ts', 'borders.spec.ts', 'explore-borders.spec.ts']],
 ]);
 
 export const E2E_SHARDS = [...NAMED_SHARDS.keys(), 'rest'];
