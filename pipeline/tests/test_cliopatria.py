@@ -839,6 +839,15 @@ def test_each_fixture_step_draws_every_polity_row_valid_in_its_year():
             assert chosen.report["leaves"] == 139
 
 
+def test_the_review_selects_the_fixtures_steps_and_leaves_nothing_behind_in_the_cache(tmp_path):
+    ctx = replace(make_context(Profile.FIXTURE, 1), stages_dir=tmp_path, cache=tmp_path / "cache")
+    assert clio.write_review(ctx) == 0
+    queue = json.loads((tmp_path / clio.REVIEW).read_text(encoding="utf-8"))
+    assert queue["steps"] == [1815, 1830]
+    assert queue["byStep"]["1815"]["carried"] == {"pieces": 0, "km2": 0, "large": []}
+    assert list((tmp_path / "cache").iterdir()) == []
+
+
 def test_the_fixture_draws_its_polities_with_their_ids_wikidata_and_outer_units(fixture_steps):
     source, settings, steps = fixture_steps
     document = clio.polities_document(
