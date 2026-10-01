@@ -54,11 +54,17 @@ interface SurfaceRecord {
   bounds: string;
 }
 
-/** A stateless place the history pass owes a cited verdict: where, how large and when. */
+/**
+ * A stateless place the history pass owes a cited verdict: its id, which
+ * pipeline/config/borders/acknowledged.yaml names it by, where, how large and when, and the
+ * owner's acknowledgment of it as a known gap when that file lists it.
+ */
 export interface OwedPlace {
+  id: string;
   at: [number, number];
   km2: number;
   years: [number, number];
+  acknowledged?: { verdict: 'known gap'; decided: string; why: string };
 }
 
 /**
@@ -76,9 +82,14 @@ export interface BordersRecord extends Partial<BordersRelease> {
   /**
    * Stateless holes of 10,000 km² or more no correction cites, with the states around them, and
    * gaps of that size: land held on both sides of a stateless run of at most 25 years that the
-   * carry-through leaves stateless, since two polities hold it there (3.3).
+   * carry-through leaves stateless, since two polities hold it there (3.3); and `lapsed`, the ids
+   * acknowledged.yaml lists that the steps no longer owe.
    */
-  owed?: { holes: (OwedPlace & { states: string[] })[]; gaps: OwedPlace[] };
+  owed?: {
+    holes: (OwedPlace & { states: string[] })[];
+    gaps: OwedPlace[];
+    lapsed?: string[];
+  };
   inputs?: { code: string; cliopatria: string };
 }
 
@@ -182,7 +193,8 @@ export function snapshotRelease(record: BordersRecord): BordersRelease | undefin
  * What the borders record still owes the history pass (streaming.md 3.3), which publish-data
  * refuses to upload: each overlap pair no `overlap` correction acknowledges, each composite or
  * vassalage relation hierarchy.yaml does not class, and each stateless hole and gap no correction
- * gives a verdict (owner decision 38). Empty when it owes nothing.
+ * gives a verdict (owner decision 38) and acknowledged.yaml does not list as a known gap, named by
+ * its id. Empty when it owes nothing.
  */
 export function historyOwed(record: BordersRecord): string[] {
   const pairs = (record.unacknowledged ?? []).map(
@@ -192,11 +204,19 @@ export function historyOwed(record: BordersRecord): string[] {
   const unclassed = [...composites, ...relations].map((name) => `unclassified ${name}`);
   const place = ({ at, km2, years }: OwedPlace) =>
     `${km2.toLocaleString('en')} km² at ${at[0]}, ${at[1]} in ${years[0]}-${years[1]}`;
-  const holes = (record.owed?.holes ?? []).map(
-    (hole) => `stateless hole of ${place(hole)} (${hole.states.join(', ')})`,
-  );
-  const gaps = (record.owed?.gaps ?? []).map((gap) => `stateless gap of ${place(gap)}`);
+  const holes = (record.owed?.holes ?? [])
+    .filter((hole) => !hole.acknowledged)
+    .map((hole) => `stateless hole of ${place(hole)} (${hole.states.join(', ')}), '${hole.id}'`);
+  const gaps = (record.owed?.gaps ?? [])
+    .filter((gap) => !gap.acknowledged)
+    .map((gap) => `stateless gap of ${place(gap)}, '${gap.id}'`);
   return [...pairs, ...unclassed, ...holes, ...gaps];
+}
+
+/** The owed places acknowledged.yaml lists as known gaps, which publish-data accepts (3.3). */
+export function knownGaps(record: BordersRecord): OwedPlace[] {
+  const { holes = [], gaps = [] } = record.owed ?? {};
+  return [...holes, ...gaps].filter((place) => place.acknowledged);
 }
 
 /**

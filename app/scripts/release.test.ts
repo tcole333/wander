@@ -12,6 +12,7 @@ import { readStageRecord } from '../src/test/fixture';
 import {
   eventsRelease,
   historyOwed,
+  knownGaps,
   localRelease,
   mediaRelease,
   snapshotRelease,
@@ -257,22 +258,39 @@ describe('the borders record', () => {
     expect(snapshotRelease({ steps })).toBeUndefined();
   });
 
+  const hole = {
+    id: 'hole 1825..1915 43E 28N',
+    at: [42.48, 29.31] as [number, number],
+    km2: 508122,
+    years: [1825, 1915] as [number, number],
+    states: ['Emirate of Nejd', 'Ottoman Empire'],
+  };
+  const gap = {
+    id: 'gap 1866..1870 14E 53N',
+    at: [13.9, 52.5] as [number, number],
+    km2: 336877,
+    years: [1866, 1870] as [number, number],
+  };
+  const known = {
+    verdict: 'known gap' as const,
+    decided: '2026-10-01',
+    why: 'no line between Nejd and the Ottoman desert is cited',
+  };
+
   test('owes the history pass each stateless hole and gap no correction gives a verdict', () => {
-    const hole = {
-      at: [42.48, 29.31] as [number, number],
-      km2: 508122,
-      years: [1825, 1915] as [number, number],
-      states: ['Emirate of Nejd', 'Ottoman Empire'],
-    };
-    const gap = {
-      at: [13.9, 52.5] as [number, number],
-      km2: 336877,
-      years: [1866, 1870] as [number, number],
-    };
     expect(historyOwed({ owed: { holes: [hole], gaps: [gap] } })).toEqual([
-      'stateless hole of 508,122 km² at 42.48, 29.31 in 1825-1915 (Emirate of Nejd, Ottoman Empire)',
-      'stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870',
+      'stateless hole of 508,122 km² at 42.48, 29.31 in 1825-1915 (Emirate of Nejd, Ottoman ' +
+        "Empire), 'hole 1825..1915 43E 28N'",
+      "stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870, 'gap 1866..1870 14E 53N'",
     ]);
     expect(historyOwed({ owed: { holes: [], gaps: [] } })).toEqual([]);
+  });
+
+  test('owes nothing for a place acknowledged.yaml lists as a known gap', () => {
+    const record = { owed: { holes: [{ ...hole, acknowledged: known }], gaps: [gap] } };
+    expect(historyOwed(record)).toEqual([
+      "stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870, 'gap 1866..1870 14E 53N'",
+    ]);
+    expect(knownGaps(record).map((place) => place.id)).toEqual(['hole 1825..1915 43E 28N']);
   });
 });

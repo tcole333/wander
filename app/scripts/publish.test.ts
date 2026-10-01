@@ -284,18 +284,58 @@ describe('refuseOwedBorders', () => {
     rmSync(folder, { recursive: true, force: true });
   });
 
+  const gap = { id: 'gap 1866..1870 14E 53N', at: [13.9, 52.5], km2: 336877, years: [1866, 1870] };
+  const hole = {
+    id: 'hole 1825..1915 43E 28N',
+    at: [42.48, 29.31],
+    km2: 508122,
+    years: [1825, 1915],
+    states: ['Emirate of Nejd', 'Ottoman Empire'],
+  };
+  const known = { verdict: 'known gap', decided: '2026-10-01', why: 'no line is cited' };
+
   test('stops a build whose steps hold a stateless gap no correction gives a verdict', () => {
-    const gap = { at: [13.9, 52.5], km2: 336877, years: [1866, 1870] };
     const folder = stages({ ...settled, owed: { holes: [], gaps: [gap] } });
     expect(() => refuseOwedBorders(folder, withSteps)).toThrow(
-      /stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870\).*cite each stateless hole and gap/,
+      /stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870, 'gap 1866..1870 14E 53N'\).*cite each stateless hole and gap.*acknowledged\.yaml/,
     );
     rmSync(folder, { recursive: true, force: true });
   });
 
+  test('lets a build go on whose owed places acknowledged.yaml all lists as known gaps', () => {
+    const owed = {
+      holes: [{ ...hole, acknowledged: known }],
+      gaps: [{ ...gap, acknowledged: known }],
+    };
+    const folder = stages({ ...settled, owed });
+    expect(refuseOwedBorders(folder, withSteps).map((place) => place.id)).toEqual([
+      'hole 1825..1915 43E 28N',
+      'gap 1866..1870 14E 53N',
+    ]);
+    rmSync(folder, { recursive: true, force: true });
+  });
+
+  test('stops a build naming only the owed place acknowledged.yaml does not list', () => {
+    const owed = { holes: [{ ...hole, acknowledged: known }], gaps: [gap] };
+    const folder = stages({ ...settled, owed });
+    const refusal = (() => {
+      try {
+        refuseOwedBorders(folder, withSteps);
+        return '';
+      } catch (error) {
+        return String(error);
+      }
+    })();
+    rmSync(folder, { recursive: true, force: true });
+    expect(refusal).toMatch(
+      /owe the history pass 1 entries \(stateless gap .*'gap 1866..1870 14E 53N'\)/,
+    );
+    expect(refusal).not.toMatch(/hole 1825/);
+  });
+
   test('lets a settled build, or one without steps, go on', () => {
     const folder = stages(settled);
-    expect(() => refuseOwedBorders(folder, withSteps)).not.toThrow();
+    expect(refuseOwedBorders(folder, withSteps)).toEqual([]);
     const owing = stages({ ...settled, unclassified: { composites: ['(Empire)'], relations: [] } });
     expect(() => refuseOwedBorders(owing, release(SEVEN))).not.toThrow();
     rmSync(folder, { recursive: true, force: true });
