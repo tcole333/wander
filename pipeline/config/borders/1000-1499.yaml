@@ -429,6 +429,20 @@ corrections:
       title: Chagatai Khanate
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Chagatai_Khanate
+  - years: [1352, 1374]
+    pocket:
+      at: [79.25, 34.75]
+      stateless: true
+    why: >-
+      The Aksai Chin plateau (Soda Plains, Lingzi Tang) was crossed for trade and pilgrimage but
+      never permanently inhabited, effectively a non-state space. Once the Chagatai west is drawn,
+      it lies in a piece with the Karakoram valleys beside it, which the pocket keeps stateless with
+      it, as they stood before; who held those valleys in these years is not established.
+    source:
+      title: 'The elusive watersheds of Ladakh: Explaining India and China''s missing border'
+      publisher: Observer Research Foundation
+      url: https://www.orfonline.org/expert-speak/elusive-watersheds-ladakh-explaining-india-china-missing-border
+      locator: Kyle Gardner
   - years: [1375, 1401]
     pocket:
       at: [100.23, 36.06]
