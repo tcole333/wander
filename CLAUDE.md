@@ -25,7 +25,7 @@ lobby's last plaque, All of History, dives into Explore wherever the release nam
 index, with the free clock over all of history, the now window's events as marks whose plates
 come on hover and pin on a click, the opening's line pinned at the landing, a live Meanwhile, the
 climate at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in
-it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 523 steps (#80), draw in
+it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 524 steps (#80), draw in
 Explore and on the walks' border beats wherever the release names the border steps; the bundled
 release names none until `npm run publish-data -- --border-steps`, so until then the walks draw the
 1815 field and Explore no borders.
@@ -125,10 +125,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
   fixture profile also skips `fetch`. It keeps `meanwhile` and `openings` disabled so it cannot
   rewrite their locks. `uv run prebuild borders` bakes the border steps from Cliopatria, one for
-  each of 528 change years, 523 once those equal to the step before are dropped (about 45 minutes
-  with 6 workers, or 41 with 8, when every step's key changes; a rerun bakes only the steps whose
-  inputs changed, taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the
-  fixture bakes its two steps and no 1815 field, whose GPL source is never committed.
+  each of 529 change years, 524 once those equal to the step before are dropped (about 41 minutes
+  with 8 workers when every step's key changes; a rerun bakes only the steps whose inputs changed,
+  taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the fixture bakes
+  its two steps and no 1815 field, whose GPL source is never committed.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
   2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile, and
   30 s for `borders`, the whole 1815 field and no steps).
