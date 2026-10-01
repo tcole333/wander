@@ -180,35 +180,43 @@ async function probe(dataHost: string): Promise<MarksProbe> {
         cluster.push(spec(`hot-${i}-${j}`, [hot[0] + i * step, hot[1] + j * step], cluster.length));
       }
     }
-    cluster.push({ ...spec('focal', [hot[0], hot[1] - 4 * step], 0), focal: true });
-    marks.set('probe', cluster);
-    off = render(false);
-    on = render(true);
-    const placed = discs(1.6);
-    // The brightest pixel a mark made brighter, and the ground's brightest under the cluster.
-    const brightest = (ids: (id: string) => boolean) => {
-      let most = 0;
-      for (const { indices } of placed.filter(({ id }) => ids(id))) {
+    // The cluster and the focal mark are lit apart, so the ember, which near the limb a few steps
+    // can bring within the cluster's discs, is never taken for a mark's light; Explore's own marks,
+    // its opening's ember among them, are cleared.
+    const lit = (specs: MarkSpec[]) => {
+      marks.set('events', []);
+      marks.set('probe', specs);
+      const unlit = render(false);
+      const shown = render(true);
+      return { unlit, shown, placed: discs(1.6) };
+    };
+    /** The brightest pixel the marks made brighter, and the ground's brightest under them. */
+    const brightest = ({ unlit, shown, placed }: ReturnType<typeof lit>) => {
+      let [most, ground] = [0, 0];
+      for (const { indices } of placed) {
         for (const i of indices) {
-          if (luminance(on, i) > luminance(off, i) + 0.01) {
-            most = Math.max(most, luminance(on, i));
+          ground = Math.max(ground, luminance(unlit, i));
+          if (luminance(shown, i) > luminance(unlit, i) + 0.01) {
+            most = Math.max(most, luminance(shown, i));
           }
         }
       }
-      return most;
+      return { most, ground };
     };
-    let ground = 0;
-    for (const { indices } of placed.filter(({ id }) => id !== 'focal')) {
-      for (const i of indices) ground = Math.max(ground, luminance(off, i));
-    }
+    const hotMarks = brightest(lit(cluster));
+    const placedCluster = marks.placed().length;
+    const focal = brightest(
+      lit([{ ...spec('focal', [hot[0], hot[1] - 4 * step], 0), focal: true }]),
+    );
     light.push({
       pose,
-      cluster: marks.placed().filter(({ id }) => id !== 'focal').length,
-      ground,
-      marks: brightest((id) => id !== 'focal'),
-      focal: brightest((id) => id === 'focal'),
+      cluster: placedCluster,
+      ground: hotMarks.ground,
+      marks: hotMarks.most,
+      focal: focal.most,
     });
   }
+
   marks.set('probe', []);
   target.dispose();
 
