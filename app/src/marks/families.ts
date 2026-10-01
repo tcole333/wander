@@ -82,21 +82,21 @@ export const FAMILIES: Record<Pace, Family> = {
     seal: seal(1, 0.13, '#4a6a55', 0.5, 0.5),
     bezel: bezel(0.13, '#ecca80'),
     glyph: glyph(0.68, 0.05, worn('#efd28e')),
-    flatten: 0.9,
+    flatten: 1,
   },
   governance: {
     // The treaty's seal reaches 35.4 units.
     seal: seal(1, 0.12, '#1c1510', 0.5, 0.2),
     bezel: bezel(0.13, '#e2bc6c'),
     glyph: glyph(0.72, 0.04, { color: '#e8bf64', roughness: 0.32, metalness: GILT_METALNESS }),
-    flatten: 0.9,
+    flatten: 1,
   },
   infrastructure: {
     // The wreck reaches 36.1 units, on a seal 0.8 of the mark's radius.
     seal: seal(0.8, 0.12, '#dcb25a', 0.36, GILT_METALNESS),
     bezel: bezel(0.1, '#f6de9c'),
     glyph: glyph(0.56, -0.05, NIELLO),
-    flatten: 0.9,
+    flatten: 1,
   },
 };
 
