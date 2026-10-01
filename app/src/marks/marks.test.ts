@@ -624,7 +624,7 @@ describe('fanOffsets', () => {
     ...extra,
   });
 
-  it('stands two marks at one spot side by side, the higher-scored to the west', () => {
+  it('stands two marks at one spot side by side, the higher-scored to the left', () => {
     const [treaty, battle] = fan([
       at('treaty', 100, 50, { score: 3 }),
       at('battle', 100, 50, { score: 7 }),
