@@ -15,8 +15,7 @@ import { chromium } from '@playwright/test';
 import { EVENT_CLASS_SYMBOLS, SOUTHERN_MIRRORED } from '../src/marks/eventSymbols.ts';
 import { tunables } from '../src/config/tunables.ts';
 import { FAMILIES, PACES, TOKEN_INK, type Pace } from '../src/marks/families.ts';
-import { GLYPH_UNITS } from '../src/marks/glyphs.ts';
-import { EVENT_GLYPHS, type GlyphId } from '../src/marks/symbols.ts';
+import { EVENT_GLYPHS, GLYPH_UNITS, type GlyphId } from '../src/marks/symbols.ts';
 
 const { values } = parseArgs({
   options: {

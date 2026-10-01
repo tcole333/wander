@@ -18,6 +18,9 @@
 // that sets each family apart is the look's.
 import type { GlyphSet } from './glyphs';
 
+/** The grid a glyph is drawn on, in units. */
+export const GLYPH_UNITS = 64;
+
 type Point = readonly [number, number];
 
 const C: Point = [32, 32];
