@@ -1,23 +1,28 @@
 // Explore (issue #79): free time over the globe, as a mode the lobby dives into (walk/mode.ts). The
-// dive opens the free clock on an event the visitor has not seen lately (openings.ts), the ruler
-// showing exploreOpenYears around its day, and flies to the world view over its place while the
-// ruler rises; from there the visitor turns the globe and scrubs through all of history. The arrow
-// keys keep panning the view, as in the lobby. Where the release has its event index and the look
-// cuts marks, the events of the now window mark the globe (exploreEvents.ts), the opening focal
-// among them; the layer's data-explore-marks counts the events marked in view. The dive lands with
-// the opening's plate pinned, its written line on it; from then a mark pointed at brings its
-// plate, a click pins it, and the keyboard reaches the marks through one listbox (labels.ts).
-// Meanwhile names what happens then elsewhere, as the event worker picks it (exploreMeanwhile.ts);
-// choosing an entry flies there, 1,500 km wide, and pins it on landing. The globe shows the
-// climate at the clock's date wherever ModE-RA has it and the ruler is close enough
-// (exploreClimate.ts). Its sound (audio/clockScore.ts) hears the clock's day, what the ruler
-// engraves around it, and whether a free flight has the camera. Leaving stops input on the ruler,
-// stops asking for events, eases their marks and the climate out and fades the sound to the room;
-// ending releases the clock, ruler, event worker and climate years and takes the marks off, so the
-// world clock has one owner at a time. Where the look holds the border steps, the borders follow
-// the clock from the dive on (exploreBorders.ts), with no plate of their own: the ruler and the
-// Credits carry the dates. window.__worldTime, window.__exploreEvents, window.__exploreLabels and
-// window.__borders serve scripts while Explore runs.
+// dive opens the free clock on an event the visitor has not seen lately (openings.ts) and flies to
+// the world view over its place while the time ruler rises (timeRuler.ts), its tape zooming in from
+// its widest to exploreOpenYears about the day as it does, so it shows it zooms. From the landing
+// the visitor turns the globe and moves through all of history: with nothing focused the arrow keys
+// move time, as in the stories, and the globe takes them from its own stop in the tab order,
+// keeping + and - everywhere (timeKeys.ts). Where the release has its event index and the look cuts
+// marks, the events of the now window, the ruler's glass, mark the globe (exploreEvents.ts), the
+// opening focal among them; the layer's data-explore-marks counts the events marked in view. The
+// dive lands with the opening's plate pinned, its written line on it; from then a mark pointed at
+// brings its plate, a click pins it, and the keyboard reaches the marks through one listbox
+// (labels.ts). A pin holds while its event's dates are on the tape, dimmed outside the glass, and
+// the ruler's bookmark marks its date. Meanwhile names what happens then elsewhere, as the event
+// worker picks it (exploreMeanwhile.ts); choosing an entry flies there, 1,500 km wide, and pins it
+// on landing. The globe shows the climate at the clock's date wherever ModE-RA has it and the tape
+// is close enough (exploreClimate.ts). Through a flight in time the events and climate hold, and
+// ask for where it lands. Its sound (audio/clockScore.ts) hears the clock's day, what the tape
+// labels around it, and whether a free flight has the camera. Leaving stops the keys and input on
+// the ruler, stops asking for events, eases their marks and the climate out and fades the sound to
+// the room; ending releases the clock, ruler, event worker and climate years and takes the marks
+// off, so the world clock has one owner at a time. Where the look holds the border steps, the
+// borders follow the clock from the dive on (exploreBorders.ts), with no plate of their own: the
+// ruler and the Credits carry the dates. window.__worldTime, window.__exploreView,
+// window.__exploreEvents, window.__exploreLabels and window.__borders serve scripts while Explore
+// runs.
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
 import type { WalkAudio } from '../audio/walkAudio';

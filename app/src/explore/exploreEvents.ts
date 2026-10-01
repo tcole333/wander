@@ -9,9 +9,10 @@
 // gives way to a mark already standing on its spot, so parents sharing a borrowed place do not pile
 // into one blot. An event whose place is inherited or derived, or whose date is known only to its
 // year, draws softer and half as deep (globe-language.md, principle 1). The focal event, the
-// opening at first, keeps its ember until the now window leaves its dates, when it becomes one mark
-// among the others; until the index holds it, or once the worker has failed, the openings lock
-// draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
+// opening at first, keeps its ember while its dates are on the ruler's tape (time/exploreTime.ts,
+// tapeWindow), its mark at half strength while they stand outside the glass's now window; once
+// they leave the tape it becomes one mark among the others. Until the index holds it, or once the
+// worker has failed, the openings lock draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
 // lobby's glows; disposing ends the worker and takes the marks off the globe.
 //
 // Explore's labels (labels.ts) pick the marks under the pointer, hover one (a hollow parent then
@@ -30,7 +31,7 @@ import type { MarkLayer, MarkSpan, MarkSpec, PlacedMark } from '../marks/marks';
 import type { MemoryAccount } from '../perf/memory';
 import { dayFromHistorical, historicalCivil, type Precision } from '../story/dates';
 import type { LonLat } from '../story/story';
-import { exploreWindow } from '../time/exploreTime';
+import { exploreWindow, tapeWindow } from '../time/exploreTime';
 import type { DayWindow, WorldTime } from '../time/worldClock';
 
 /** What Explore's events need of the event client. */
@@ -80,6 +81,8 @@ const BORROWED_PLACE = 1 | 2;
 const YEAR_PRECISION = 9;
 /** The longest frame a fade steps over, seconds. */
 const STEP_MAX_S = 0.1;
+/** The focal event's mark while its dates stand on the tape but outside the glass. */
+const FOCAL_AWAY = 0.5;
 const DEG = Math.PI / 180;
 
 /** What a hollow parent's mark id adds to its event's, so its solid mark can crossfade with it. */
@@ -208,6 +211,9 @@ export class ExploreEvents {
   #hovered: string | null = null;
   /** The worker's last Meanwhile answer. */
   #meanwhile: readonly MeanwhileEvent[] | null = null;
+  /** Whether the focal event's dates stand in the now window, and its mark's strength, eased. */
+  #focalNow = true;
+  #focalStrength = 1;
   readonly #reported = new Set<string>();
 
   constructor({ client, marks, focal = null, arrive = 'fly', tier = 'full' }: ExploreEventsParts) {
@@ -222,6 +228,14 @@ export class ExploreEvents {
   /** The focal event, or null once it has dropped. */
   get focal(): FocalEvent | null {
     return this.#focal;
+  }
+
+  /**
+   * Whether the focal event's dates stand in the now window (the ruler's glass), as well as on the
+   * tape; true with no focal event.
+   */
+  get focalNow(): boolean {
+    return this.#focalNow;
   }
 
   /** Makes an event focal, or none. */
@@ -304,8 +318,16 @@ export class ExploreEvents {
 
     const window = exploreWindow(time);
     const focal = this.#focal;
-    if (!hold && focal?.span && !inWindow(focal.span, window)) {
+    // The focal event holds while its dates are on the tape; outside the glass it eases to half.
+    if (!hold && focal?.span && !inWindow(focal.span, tapeWindow(time))) {
       this.#focal = null;
+      this.#changed = true;
+    }
+    if (!hold) this.#focalNow = !this.#focal?.span || inWindow(this.#focal.span, window);
+    const strength = this.#focalNow ? 1 : FOCAL_AWAY;
+    if (strength !== this.#focalStrength) {
+      const step = dtS / (tunables.eventFade / 1000);
+      this.#focalStrength += Math.max(-step, Math.min(step, strength - this.#focalStrength));
       this.#changed = true;
     }
     if (!hold && !this.#left && !this.#dead) {
@@ -439,7 +461,7 @@ export class ExploreEvents {
     /** Draws `mark` at its fade's opacity less `veil`'s share, and says what that came to. */
     const add = (mark: Fading<EventMark>, hollow: boolean, veil = 0): number => {
       const isFocal = !hollow && mark.qid === focal?.qid;
-      const own = isFocal ? 1 : fadeOpacity(mark.fade, nowMs);
+      const own = isFocal ? this.#focalStrength : fadeOpacity(mark.fade, nowMs);
       if (own !== mark.fade.to && !isFocal) fading = true;
       const opacity = own * (1 - veil);
       if (opacity <= 0) return 0;
@@ -504,7 +526,7 @@ export class ExploreEvents {
           glyph: symbol.glyph,
           mirror: mirroredAt(symbol.glyph, lock.at[1]),
           pace: symbol.pace,
-          opacity: 1,
+          opacity: this.#focalStrength,
           focal: true,
           hover: id === this.#hovered,
           soft: lock.soft,
