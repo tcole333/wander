@@ -6,7 +6,8 @@
 // overwritten and the edge keeps whatever it sees for a year; the rest follows. Every PUT carries
 // If-None-Match: *, so nothing is overwritten, and a key already there is checked by size. It
 // refuses, before reading R2, a build whose border steps still owe the history pass an overlap
-// acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap, and the 1815
+// acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap that
+// pipeline/config/borders/acknowledged.yaml does not list as a known gap, and the 1815
 // field's GPL notice goes up only once origin holds the tag it links the build scripts at. The
 // border steps stay out of the release until their first publish: `--border-steps` publishes
 // them, about 270 MB that are never deleted, and moves Tambora onto them at once, so it waits on
@@ -37,8 +38,10 @@ import { objectHeaders } from './objectHeaders.ts';
 import { R2Bucket, readR2Env, R2Error } from './r2.ts';
 import {
   historyOwed,
+  knownGaps,
   localRelease,
   OUTPUT_DIR,
+  type OwedPlace,
   profileBuild,
   readBordersRecord,
   ReleaseError,
@@ -197,19 +200,22 @@ function borderStepsSections(steps: BorderStepsRelease, root: string): Section[]
 
 /**
  * Stops the run, before R2 is read, when the border steps still owe the history pass an overlap
- * acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap (streaming.md
- * 3.3, 4.3).
+ * acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap that
+ * acknowledged.yaml does not list as a known gap (streaming.md 3.3, 4.3); else returns the known
+ * gaps the steps carry.
  */
-export function refuseOwedBorders(stages: string, release: Release): void {
-  if (!release.borderSteps) return;
-  const owed = historyOwed(readBordersRecord(stages) ?? {});
-  if (owed.length === 0) return;
+export function refuseOwedBorders(stages: string, release: Release): OwedPlace[] {
+  if (!release.borderSteps) return [];
+  const record = readBordersRecord(stages) ?? {};
+  const owed = historyOwed(record);
+  if (owed.length === 0) return knownGaps(record);
   const shown = owed.slice(0, 5).join('; ');
   throw new PublishError(
     `the border steps owe the history pass ${owed.length} entries (${shown}${owed.length > 5 ? '; …' : ''}): ` +
       'acknowledge each overlap pair with an `overlap` correction, class each composite and ' +
       'relation, and cite each stateless hole and gap with a `pocket` naming the state that held ' +
-      'it or keeping it stateless, in pipeline/config/borders/, then run ' +
+      "it or keeping it stateless, in pipeline/config/borders/, or, on the owner's decision, " +
+      'list it by its id in pipeline/config/borders/acknowledged.yaml as a known gap; then run ' +
       '`uv run prebuild borders` in pipeline/ with the same --profile',
   );
 }
@@ -329,7 +335,13 @@ export async function publish(options: PublishOptions): Promise<void> {
   if (!borderSteps && readBordersRecord(stages)?.steps) {
     console.log('the border steps stay out of the release until --border-steps publishes them');
   }
-  refuseOwedBorders(stages, release);
+  const known = refuseOwedBorders(stages, release);
+  if (known.length > 0) {
+    console.log(
+      `the border steps carry ${known.length} known gaps the owner acknowledged in ` +
+        'pipeline/config/borders/acknowledged.yaml',
+    );
+  }
   const json = releaseJson(release);
   const sections = releaseSections(release, root);
   const size = Buffer.byteLength(json);
