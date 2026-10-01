@@ -2433,12 +2433,12 @@ and the release's `media` section lists every key the locks name (3.8).
      host and, once it answers, GET `bounds.bin`, the six L0 tiles, when the release has a
      `modera` section the climate years the walk loads as it starts (`fd/modera/<ver>/mean/`
      1815-1817), when it has a `borderSteps` section the 1815 step, its preview chunk and the
-     notice (3.3), each story's
-     first image (its opening beat's 256w JPEG, which the release's `media` must name, 3.8) and,
-     when it names the event files, their overview (3.4), with the app's `Origin`, checking R2's
-     headers (4.2): one missing year turns the walk's climate off, and a missing overview leaves
-     Explore only its opening's mark. It runs as its own job on every pull request and push, so a
-     page naming data that is not live cannot merge, and the Pages deploy on `main` waits for it.
+     notice (3.3), each story's first image (its opening beat's 256w JPEG, which the release's
+     `media` must name, 3.8) and, when it names the event files, their overview (3.4), with the
+     app's `Origin`, checking R2's headers (4.2): one missing year turns the walk's climate off, and
+     a missing overview leaves Explore only its opening's mark. It runs as its own job on every pull
+     request and push, so a page naming data that is not live cannot merge, and the Pages deploy on
+     `main` waits for it.
   8. **Tested build**, after the app checks and E2E jobs, on every run: the sha256 each E2E job
      recorded for the build it tested must equal the app checks job's, so a pull request proves
      that every shard tested the build `main` would deploy.
@@ -2658,9 +2658,10 @@ simpler piece carried the Tambora walk:
   gates the deploy; the publish check and the one-shot warm are deferred past go-live (4.3, 4.4).
 - **Fixture and CI:** the fixture builds surface, real ModE-RA mean and spread over Europe for
   1815-1817, the scored events slice with its exported ancestors and the border steps of 1815 and
-  1830 (7.3). Meanwhile awaits a fixture story and lock of its own. There is no `npm run dev:fixture` (`npm run data -- --profile fixture` with
-  `?data=fixture` serves the fixture to the app). CI's Playwright runs the smoke tests, the pool
-  smoke test and the vertex readback; 7.3's other checks come with what they test.
+  1830 (7.3). Meanwhile awaits a fixture story and lock of its own. There is no
+  `npm run dev:fixture` (`npm run data -- --profile fixture` with `?data=fixture` serves the fixture
+  to the app). CI's Playwright runs the smoke tests, the pool smoke test and the vertex readback;
+  7.3's other checks come with what they test.
 - **Later** (owner decision 30): reduced motion, the article view with the no-WebGL redirect, URL
   state and deep links. The lobby's shared sound knob and WANDER/Escape return are implemented
   (5.7); a return disposes the walk's UI and director, and the next plaque choice starts at beat 1.
