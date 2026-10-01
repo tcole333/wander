@@ -1,7 +1,8 @@
 // The production build as the live site stands until publish-data's --border-steps: dist/ under
 // vite preview, on the fixture's data server through ?data=, its release routed without its
 // borderSteps section. The look then compiles milestone 1's 1815 field in place of the steps'
-// arrays; the dive into Explore draws no borders and serves no window.__borders; and Tambora's
+// arrays; the lobby preloads no step, and its Credits panel names historical-basemaps and not
+// Cliopatria; the dive into Explore draws no borders and serves no window.__borders; and Tambora's
 // sixth beat, which lists borders, shows no borders plate, since the fixture bakes no 1815 field
 // (the walk says why once, as a warning). Nothing logs an error.
 import { expect as playwrightExpect, type Page } from '@playwright/test';
@@ -62,6 +63,14 @@ test('draws no border steps in Explore or the Tambora walk where the release nam
   await expect(page.locator('#room')).toBeHidden();
   await page.keyboard.press('Shift');
   await phase(page, 'idle');
+
+  // Cliopatria's credit waits for the release to name the steps.
+  const panel = page.getByRole('dialog', { name: 'Credits' });
+  await page.locator('.lobby-credits').click();
+  await expect(panel.getByRole('link', { name: 'historical-basemaps' })).toBeVisible();
+  await expect(panel.getByRole('link', { name: 'Cliopatria' })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(panel).toBeHidden();
 
   const explorePlaque = page.locator('.lobby-plaque[data-choice="explore"]');
   await explorePlaque.scrollIntoViewIfNeeded();
