@@ -807,13 +807,16 @@ cells, 32 previews, 256 KiB an upload. The array takes the border field's sample
   fades borders out until it slows. Before 3400 BCE nothing draws. Rocking back and forth across
   one boundary swaps the slots without refetching; a third slot (+12 MiB) comes only if the rocking
   test lags.
-- **Fetches:** only a beat that lists borders and Explore with borders on fetch borders, and, once
-  Tambora moves onto the steps, the lobby's preload of the walk's first border step; the lobby's own
-  clock fetches none. `fetchData` takes an `AbortSignal`, with no request classes (owner decision
-  30). A step is fetched once the clock has rested in it for `borderRest`, and, with Tambora's move,
-  also as a beat's readiness item (5.7); a new target more than a step away aborts it. A step loads
-  into a slot no source draws, an empty one first; on lite, whose one slot draws, the preview (or,
-  in a walk, nothing) stands in until it frees. On the full tier, once a step draws, the next step
+- **Fetches:** only a beat that lists borders and Explore with borders on fetch borders, and, while
+  the lobby stands with no mode running, its preload of the walk's first border step, the step of
+  the story's first beat that lists borders, into a slot no source draws; the lobby's own clock
+  fetches none. `fetchData` takes an `AbortSignal`, with no request classes (owner decision 30). A
+  step is fetched once the clock has rested in it for `borderRest`, and a walk's beat that lists
+  borders has its step fetched from the flight's start, wherever the clock is, as its readiness
+  item (5.7): no new target aborts it, and no other step takes its slot until the walk moves on or
+  breaks out. A new target more than a step away aborts any other fetch. A step loads into a slot
+  no source draws, an empty one first; on lite, whose one slot draws, the preview (or, in a walk,
+  nothing) stands in until it frees. On the full tier, once a step draws, the next step
   in the scrub direction fills the free slot, but never in place of the step across the boundary
   just crossed, which rocking needs. Explore fetches all 33 chunks after its dive, two at a time and
   the clock's own first, and keeps them compressed until `end()`, so scrubbing needs neither the
@@ -876,16 +879,19 @@ carry Cliopatria's (owner decision 39). A story walk keeps its plate, which name
 beat's borders draw (`story/ui/bordersPlate.ts`).
 
 **License:** the notice `lic/<sha16>.txt` gives Cliopatria's attribution from `sources.toml`, the
-CC BY 4.0 URL, and every correction with its source; the Credits panel links it.
+CC BY 4.0 URL, and every correction with its source. The credits page carries that attribution and
+the license, marked for the release's `borderSteps`: the Credits panel shows it where the page's
+release names the steps, and the credits page, plain HTML with no release, always. The credits link
+the notice once the published release names it, which `credits.test.ts` asks for.
 
 **Milestone 1's 1815 field, `fd/borders/<ver8>/1815.bin`.** The live Tambora walk draws its borders
 from one historical-basemaps snapshot, 1815, the nearest to every Tambora date, until the published
 release names the border steps. Tambora's move onto the steps retires this field, its release
-section, its corrections and its license gate. Publishing the steps makes that move at once, so
-the first `--border-steps` publish waits on the lobby's preload of the walk's first border step
-and on the step as its beat's readiness item (below, and 5.7), as well as on every place on the
-history pass's owed list being settled or acknowledged as a known gap. Until then the build's
-release holds both sections
+section, its corrections and its license gate. Publishing the steps makes that move at once:
+wherever the release names them, the lobby preloads the walk's first border step in place of this
+field, and each border beat waits for its step as its readiness item (Fetches, above, and 5.7).
+`publish-data` publishes them once every place on the history pass's owed list is settled or
+acknowledged as a known gap (4.3). Until then the build's release holds both sections
 (3.8), and the look holds one border array in one sampler: this field's where the release names no
 border steps, as the published one does until publish-data's `--border-steps` (4.3), so visitors'
 program is unchanged until then, and the steps' where it names them, where Explore and the walks
@@ -2054,8 +2060,11 @@ only a failed start or a worker error ends the worker.
 - **Ready for landing at beat N:** N's core items (preview, effect datasets, climate years) are
   resident and prepared, N's critical surface and overlay tiles are uploaded, its border step is in
   a slot when it lists borders, and the 1024w card is decoded with `img.decode()` (or its preview
-  stands in). The walk's `ready()` (`story/contract.ts`) checks tiles, and waits for the beat's
-  border step once Tambora moves onto the steps (3.3).
+  stands in). The walk's `ready()` (`story/contract.ts`) checks tiles and, where the release names
+  the border steps, the beat's border step (`WalkEffects.ready`, 3.3); the page's own readiness,
+  which scripts and tests wait on, counts the step too, so a border beat settles only once its step
+  is drawn. Milestone 1's 1815 field is no beat's readiness item: it loads from the room's first
+  frame.
 - **Flights:** a van Wijk-Nuij path lasting `flightDuration`, with ρ = 1.42.
   - **Voyages:** between adjacent beats that show the same loaded route, the path follows the
     fleet. It lifts from the departing view to a north-up view centered on the ship, which the lens
