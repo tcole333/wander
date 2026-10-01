@@ -7,7 +7,7 @@
 // along 20°E, soft north of 5°N, and whose inner border runs along 30°E; slot 1 a step with no
 // border in reach. The ring holds a preview pair decoded from a chunk (25°E in R, 35°E in G), a
 // cell of previews just clear of a border beside a cell just clear of the other side, and a cell
-// whose border runs along 0° and the dateline.
+// whose border runs along 0° and the dateline. Once it has measured, it stops the walk.
 import { FloatType, Mesh, RGBAFormat, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import { BorderArray } from '../src/borders/borderArray';
@@ -191,7 +191,7 @@ async function probe(dataHost: string): Promise<BordersProbe> {
   };
   target.dispose();
 
-  return {
+  const report = {
     renderer: rendererName(gl),
     samplers: fragmentSamplers(renderer),
     world,
@@ -200,6 +200,9 @@ async function probe(dataHost: string): Promise<BordersProbe> {
     previews,
     dateline,
   };
+  // The last readback drained the GPU's queue, so the walk stops with nothing left to draw.
+  page.dispose();
+  return report;
 }
 
 /** The step: R the outer distance to 20°E, G the inner to 30°E, soft north of 5°N if `soft`. */
