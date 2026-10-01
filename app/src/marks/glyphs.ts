@@ -3,13 +3,12 @@
 // distance fields on a shelf of its sea-name atlas (glyphAtlas.ts), and every mark names one: the
 // event glyphs of the symbol family (symbols.ts), which Explore's marks take by their class
 // (eventSymbols.ts).
-import { EVENT_GLYPHS } from './symbols';
+import { EVENT_GLYPHS, GLYPH_UNITS } from './symbols';
+
+export { GLYPH_UNITS };
 
 /** Glyph names to SVG path data on a 64-unit grid, y down, nonzero fill. */
 export type GlyphSet = Readonly<Record<string, string>>;
-
-/** The grid a glyph is drawn on, in units. */
-export const GLYPH_UNITS = 64;
 
 /**
  * How far a glyph's outline reaches from its grid's center, in units: the farthest of its vertices
