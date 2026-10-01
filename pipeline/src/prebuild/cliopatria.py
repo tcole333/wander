@@ -86,7 +86,7 @@ import struct
 import sys
 import tempfile
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
@@ -1449,9 +1449,11 @@ def _stateless(
             if i in overrides and overrides[i][0]:
                 cited.append(piece)
             if not sea[i]:
+                centroid = shapely.centroid(piece)
                 entry = {
                     "km2": round(area),
                     "at": where,
+                    "centroid": [round(centroid.x, 2), round(centroid.y, 2)],
                     "lake": bool(lake[i]),
                     "states": states[i],
                 }
@@ -1836,36 +1838,56 @@ def owed(
     reports: Mapping[int, dict[str, Any]],
     config: Config,
     land: np.ndarray,
-) -> dict[str, list[dict[str, Any]]]:
+) -> dict[str, list[Any]]:
     """What the steps owe the history pass, which publish-data refuses (owner decision 38): each
     stateless hole of OWED_KM2 or more no pocket correction cites, as a place over its run of steps,
     and each gap of OWED_KM2 or more, land held in the steps on both sides of a stateless run of at
     most GAP_YEARS, holding no such hole, no stateless pocket's point and no land a stateless
     pocket keeps. `land` is the cells of the terrain's dry land; each place's years run from its
-    first step to the day before the step after its last."""
+    first step to the day before the step after its last. Each place carries its `id`
+    (`place_id`)."""
     steps = [y for y in years if y in reports]
-    if not steps:
-        return {"holes": [], "gaps": []}
-    ends = {y: after - 1 for y, after in itertools.pairwise(steps)} | {steps[-1]: LAST_YEAR}
     holes: list[dict[str, Any]] = []
-    last: list[tuple[dict[str, Any], list[float]]] = []  # the places in the step before, and where
-    for year in steps:
-        now = []
-        for entry in reports[year]["stateless"]["enclosed"]:
-            if entry["km2"] < OWED_KM2 or entry.get("correction"):
-                continue
-            place = next((p for p, at in last if _near(at, entry["at"])), None)
-            if place is None:
-                place = {"at": entry["at"], "km2": 0, "years": [year, year], "states": []}
-                holes.append(place)
-            place["years"][1] = ends[year]
-            if entry["km2"] > place["km2"]:
-                place["km2"], place["at"] = entry["km2"], entry["at"]
-            place["states"] = sorted(set(place["states"]) | set(entry["states"]))
-            place["lake"] = place.get("lake", False) or entry["lake"]
-            now.append((place, entry["at"]))
-        last = now
-    return {"holes": holes, "gaps": _gaps(steps, ends, reports, config, land)}
+    gaps: list[dict[str, Any]] = []
+    if steps:
+        ends = {y: after - 1 for y, after in itertools.pairwise(steps)} | {steps[-1]: LAST_YEAR}
+        last: list[tuple[dict[str, Any], list[float]]] = []  # the holes in the step before, where
+        for year in steps:
+            now = []
+            for entry in reports[year]["stateless"]["enclosed"]:
+                if entry["km2"] < OWED_KM2 or entry.get("correction"):
+                    continue
+                place = next((p for p, at in last if _near(at, entry["at"])), None)
+                if place is None:
+                    place = {"at": entry["at"], "km2": 0, "years": [year, year], "states": []}
+                    holes.append(place)
+                place["years"][1] = ends[year]
+                if entry["km2"] > place["km2"]:
+                    place["km2"], place["at"] = entry["km2"], entry["at"]
+                    place["centroid"] = entry["centroid"]  # for its id, then dropped
+                place["states"] = sorted(set(place["states"]) | set(entry["states"]))
+                place["lake"] = place.get("lake", False) or entry["lake"]
+                now.append((place, entry["at"]))
+            last = now
+        gaps = _gaps(steps, ends, reports, config, land)
+    ids = [place_id("hole", hole["years"], hole.pop("centroid")) for hole in holes]
+    ids += [place_id("gap", gap["years"], gap["at"]) for gap in gaps]
+    shared = {base for base, n in Counter(ids).items() if n > 1}
+    seen: Counter[str] = Counter()
+    for place, base in zip([*holes, *gaps], ids, strict=True):
+        seen[base] += 1
+        place["id"] = f"{base} #{seen[base]}" if base in shared else base
+    return {"holes": holes, "gaps": gaps}
+
+
+def place_id(kind: str, years: Sequence[int], centroid: Sequence[float]) -> str:
+    """An owed place's id: its kind, its years and its centroid to the whole degree, so a rebake
+    that moves its outline a little keeps it, as in 'hole 347..357 67E 30N'. Places that would
+    share one are told apart as '#1', '#2' in order."""
+    lon, lat = (math.floor(v + 0.5) for v in centroid)
+    east = f"{abs(lon)}{'W' if lon < 0 else 'E'}"
+    north = f"{abs(lat)}{'S' if lat < 0 else 'N'}"
+    return f"{kind} {years[0]}..{years[1]} {east} {north}"
 
 
 def _near(a: Sequence[float], b: Sequence[float]) -> bool:
@@ -2004,7 +2026,7 @@ def review_queue(
     reports: Mapping[int, dict[str, Any]],
     failed: Mapping[int, str],
     errors: Sequence[str],
-    owing: Mapping[str, list[dict[str, Any]]],
+    owing: Mapping[str, list[Any]],
 ) -> dict[str, Any]:
     """What the history pass reviews, gathered over every step, with what it owes (`owed`)."""
     unclassified: dict[str, dict[str, list[int]]] = {"composites": {}, "relations": {}}
