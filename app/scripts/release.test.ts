@@ -9,7 +9,14 @@ import { describe, expect, test } from 'vitest';
 import bundled from '../src/generated/release.json';
 import type { EventsRelease } from '../src/data/release';
 import { readStageRecord } from '../src/test/fixture';
-import { eventsRelease, localRelease, mediaRelease, surfaceRelease } from './release';
+import {
+  eventsRelease,
+  historyOwed,
+  localRelease,
+  mediaRelease,
+  snapshotRelease,
+  surfaceRelease,
+} from './release';
 
 test('the event-files record, less its inputs, becomes the release events section', () => {
   const stages = mkdtempSync(join(tmpdir(), 'wander-events-release-'));
@@ -174,5 +181,98 @@ describe('mediaRelease', () => {
     expect(bundled.media, 'run `npm run publish-data` and commit its release').toEqual(
       mediaRelease(),
     );
+  });
+});
+
+describe('the borders record', () => {
+  const steps = {
+    ver: '83a2d0b1',
+    size: 1024,
+    apron: 4,
+    years: [1815, 1830],
+    keys: ['fd/borders/s/9fd988832a6537c0.bin', 'fd/borders/s/1e38b63efeefa830.bin'],
+    bytes: [874934, 929092],
+    previews: { per: 16, keys: ['fd/borders/p/57c487dbf7e52a78.bin'], bytes: [62439] },
+    polities: 'fd/borders/m/54214a9f67b739f7.json',
+    notice: 'lic/b3239215fd491ae4.txt',
+  };
+  const snapshot = {
+    ver: 'f75bdb69',
+    stems: ['1815'],
+    years: [1815],
+    files: {
+      '1815': {
+        key: 'fd/borders/f75bdb69/1815.bin',
+        bytes: 1267355,
+        notice: 'lic/62c9984143cffea2.txt',
+        source: 'lic/1d7cceb7ee875ed1.geojson',
+      },
+    },
+  };
+  const owed = {
+    unacknowledged: [
+      { polities: ['British Cape Colony', 'Napoleonic Batavia Republic'], steps: [1815] },
+    ],
+    unclassified: { composites: ['(Mughal Empire)'], relations: [] },
+  };
+
+  function released(record: object, options?: { borderSteps?: boolean }) {
+    const stages = mkdtempSync(join(tmpdir(), 'wander-borders-release-'));
+    try {
+      writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
+      writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
+      writeFileSync(join(stages, 'borders.json'), JSON.stringify(record));
+      return localRelease(stages, 'https://data.example', undefined, options);
+    } finally {
+      rmSync(stages, { recursive: true, force: true });
+    }
+  }
+
+  test('gives the borderSteps section as its steps and the borders section as the 1815 field', () => {
+    const release = released({ steps, beats: {}, ...owed, inputs: { code: 'x' }, ...snapshot });
+    expect(release.borderSteps).toEqual(steps);
+    expect(release.borders).toEqual(snapshot);
+  });
+
+  test('leaves the steps out when asked, as publish-data does until their first publish', () => {
+    const held = released({ steps, beats: {}, ...snapshot }, { borderSteps: false });
+    expect(held.borderSteps).toBeUndefined();
+    expect(held.borders).toEqual(snapshot);
+    expect(held.id).not.toBe(released({ steps, beats: {}, ...snapshot }).id);
+  });
+
+  test('leaves out the section a profile does not bake', () => {
+    expect(released({ steps, beats: {}, ...owed }).borders).toBeUndefined();
+    expect(released(snapshot).borderSteps).toBeUndefined();
+  });
+
+  test('owes the history pass each unacknowledged pair and each unclassified entry', () => {
+    expect(historyOwed(owed)).toEqual([
+      'overlap of British Cape Colony and Napoleonic Batavia Republic (1815)',
+      'unclassified (Mughal Empire)',
+    ]);
+    expect(
+      historyOwed({ unacknowledged: [], unclassified: { composites: [], relations: [] } }),
+    ).toEqual([]);
+    expect(snapshotRelease({ steps })).toBeUndefined();
+  });
+
+  test('owes the history pass each stateless hole and gap no correction gives a verdict', () => {
+    const hole = {
+      at: [42.48, 29.31] as [number, number],
+      km2: 508122,
+      years: [1825, 1915] as [number, number],
+      states: ['Emirate of Nejd', 'Ottoman Empire'],
+    };
+    const gap = {
+      at: [13.9, 52.5] as [number, number],
+      km2: 336877,
+      years: [1866, 1870] as [number, number],
+    };
+    expect(historyOwed({ owed: { holes: [hole], gaps: [gap] } })).toEqual([
+      'stateless hole of 508,122 km² at 42.48, 29.31 in 1825-1915 (Emirate of Nejd, Ottoman Empire)',
+      'stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870',
+    ]);
+    expect(historyOwed({ owed: { holes: [], gaps: [] } })).toEqual([]);
   });
 });

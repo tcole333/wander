@@ -1,0 +1,95 @@
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from 1
+# to 999 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction covers
+# the years whose 1 January falls in its dates.
+modified: 2026-09-30
+corrections:
+  - years: [407, 409]
+    overlap:
+      polities: [Northern Liang, Western Liang]
+      winner: Western Liang
+    why: >-
+      Smaller wins, checked: Western Liang (400–421) was a separate state in the western Hexi
+      Corridor, Northern Liang's rival until it conquered it in 421.
+    source:
+      title: Western Liang (Sixteen Kingdoms)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Western_Liang_(Sixteen_Kingdoms)
+  - years: [410, 442]
+    overlap:
+      polities: [Kidarites, White Huns]
+      winner: Kidarites
+    why: >-
+      The Hephthalites (the White Huns) became a power in Bactria only around 450, or sometime
+      before, and probably took the Kidarites' Transoxianan lands around 466, so the land Cliopatria
+      gives both from 410 is the Kidarites'.
+    source:
+      title: Hephthalites
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hephthalites
+  - years: [577, 601]
+    overlap:
+      polities: [Himyarite Kingdom, Kingdom of Axum]
+      winner: Himyarite Kingdom
+    why: >-
+      Smaller wins, checked: a Sasanian force under Vahrez ended Aksumite rule in Yemen in 570, so
+      Yemen is not Axum's. After Sayf ibn Dhi Yazan was killed in 575 or 578, Vahrez governed it
+      with a large Iranian garrison under Sayf's son Ma'dikarib as king; the Himyarite row keeps
+      the land, and that Persian rule is left for review.
+    source:
+      title: Sasanian Yemen
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sasanian_Yemen
+  - years: [750, 1401]
+    pocket:
+      at: [54.02, 45.27]
+      stateless: false
+    why: >-
+      The Dead Kultuk, a shallow bay at the Caspian's northeast corner that dries to a salt flat as
+      the sea falls, is land in Natural Earth and sea in Cliopatria's shapes, so no state's row
+      reaches it and it would stand stateless inside the state holding its shores, ringed by a
+      border. It goes to the polities around it in the years they enclose it.
+    source:
+      title: Dead Kultuk
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dead_Kultuk
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, or a place without a state kept stateless, each cited (owner decision 38).
+  - years: [451, 451]
+    pocket:
+      at: [9.2, 49.57]
+      to: Kingdom of Alamannia
+    why: >-
+      The right bank of the Rhine from the Main to the Neckar, around Frankfurt, Darmstadt and
+      Heilbronn, was the Alamanni's from their taking of the Agri Decumates in 260 until Clovis
+      conquered them in 496, a confederation of cantons under kings. Cliopatria's Kingdom of
+      Alamannia begins in 462, and in 451 leaves the land empty between the Huns and the Ripuarian
+      Franks.
+    source:
+      title: Alamanni
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Alamanni
+  - years: [724, 902]
+    pocket:
+      at: [36.63, 38.71]
+      stateless: true
+    why: >-
+      The band along the Anti-Taurus between the Caliphate and Byzantium, around Sarız, Pınarbaşı
+      and Kangal, lay in the frontier zone unclaimed by either power and virtually deserted, its
+      forts razed on both sides and its people often gone. The later steps, from the Byzantine
+      resettlement of Lykandos in 903, wait for a cited shape of that district.
+    source:
+      title: Al-Awasim
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Al-Awasim
+  - years: [980, 989]
+    pocket:
+      at: [19.58, 43.36]
+      to: First Bulgarian Empire
+    why: >-
+      The upper Drina, Lim and Tara country (Foča, Višegrad, Pljevlja, Užice) was dominated by the
+      restored Bulgarian Empire after 976, when Byzantine rule through the Catepanate of Ras lapsed,
+      until Byzantium returned in 1018. Cliopatria draws it Byzantine to 979 and Bulgarian from 990.
+    source:
+      title: Catepanate of Ras
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Catepanate_of_Ras

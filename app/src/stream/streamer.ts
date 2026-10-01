@@ -6,7 +6,8 @@
 // cache. fetchData aborts a stalled request and retries a failed one, but a started request whose
 // tile nobody wants any more gives up instead of retrying. A tile that still fails draws from its
 // ancestors for `degradeFor`, then is wanted again; one the data host lacks (a 404), or whose
-// bytes do not decode, never is.
+// bytes do not decode, never is. Other uploads (the border steps' bands and preview cells) queue
+// behind the tiles and share the frame's byte budget.
 import {
   Frustum,
   Matrix4,
@@ -507,6 +508,14 @@ export const createSurfaceStreamer = (async (
         },
         dropped,
       };
+    },
+
+    uploadBehind(job) {
+      uploads.enqueue(job, true);
+    },
+
+    cancelUpload(key) {
+      uploads.cancel(key);
     },
 
     dispose() {

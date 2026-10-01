@@ -2,9 +2,10 @@
 // will read it? It HEADs rel/<id>.json (never a GET: the edge caches a 404 for hours), which
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
 // its six L0 tiles, the climate years the walk loads as it starts when the release has a modera
-// section, the 1815 border field when it has a borders section, the event overview Explore reads
-// first when it names the event files, and each story's first image, as the page fetches them,
-// cross-origin from the app's origin, so it never leaves a 404 cached for a key about to be
+// section, the 1815 border field when it has a borders section, the border step that holds 1815
+// with its preview chunk and notice when it has a borderSteps section, the event overview Explore
+// reads first when it names the event files, and each story's first image, as the page fetches
+// them, cross-origin from the app's origin, so it never leaves a 404 cached for a key about to be
 // uploaded, and checks each answers 200 with R2's headers and its Content-Type (streaming.md 4.2).
 // CI runs it as its own job, which the Pages deploy waits for, so the app never ships naming data
 // that is not there. Plain Node:
@@ -13,7 +14,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { Release } from '../src/data/release.ts';
+import type { BorderStepsRelease, Release } from '../src/data/release.ts';
 import { lockedImage, type StoryLock } from '../src/story/lock.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { REPO_ROOT } from './release.ts';
@@ -62,11 +63,24 @@ export function firstStoryImages(): string[] {
     });
 }
 
+/** The year whose border step, preview chunk and notice the check reads: Tambora's (3.3). */
+export const BORDER_YEAR = 1815;
+
+/** The border step holding `year`, its preview chunk and the steps' notice; none before the first. */
+export function borderStepKeys(steps: BorderStepsRelease, year = BORDER_YEAR): string[] {
+  let index = -1;
+  while (index + 1 < steps.years.length && steps.years[index + 1]! <= year) index += 1;
+  if (index < 0) return [steps.notice];
+  const chunk = steps.previews.keys[Math.floor(index / steps.previews.per)];
+  return [steps.keys[index]!, ...(chunk ? [chunk] : []), steps.notice];
+}
+
 /**
  * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
  * section the climate's mean for each of CLIMATE_YEARS, with a borders section the field of its
- * one snapshot (the walk's, 3.3), with an events section its overview (3.4), and each story's
- * first image.
+ * one snapshot (the walk's, 3.3), with a borderSteps section the step holding BORDER_YEAR, its
+ * preview chunk and the notice, with an events section its overview (3.4), and each story's first
+ * image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -78,11 +92,12 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
   const stem = release.borders?.stems[0];
   const border = stem === undefined ? undefined : release.borders?.files[stem]?.key;
   const borders = border ? [border] : [];
+  const steps = release.borderSteps ? borderStepKeys(release.borderSteps) : [];
   const events = release.events ? [release.events.overview] : [];
   const images = firstStoryImages();
   return {
     copy: `rel/${release.id}.json`,
-    data: [bounds, ...roots, ...climate, ...borders, ...events, ...new Set(images)],
+    data: [bounds, ...roots, ...climate, ...borders, ...steps, ...events, ...new Set(images)],
   };
 }
 

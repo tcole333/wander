@@ -1,0 +1,322 @@
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
+# 1914 to 2000 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
+# covers the years whose 1 January falls in its dates.
+modified: 2026-09-30
+corrections:
+  - years: [1917, 1917]
+    give:
+      polity: Russian Republic
+      to: Khanate of Khiva
+      shape_from: {polity: Khanate of Khiva, year: 1918}
+      member_of: Russian Republic
+    why: >-
+      Khiva was still a Russian protectorate on 1 January 1917, from the peace of 1873 until its
+      khan abdicated in 1920.
+    source:
+      title: Khanate of Khiva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khanate_of_Khiva
+  - years: [1917, 1917]
+    give:
+      polity: Russian Republic
+      to: Emirate of Bukhara
+      shape_from: {polity: Emirate of Bukhara, year: 1918}
+      member_of: Russian Republic
+    why: >-
+      Bukhara was still a Russian protectorate on 1 January 1917, from 1873 until the Bolsheviks
+      took it in 1920.
+    source:
+      title: Emirate of Bukhara
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  - years: [1917, 2000]
+    pocket:
+      at: [54.02, 45.27]
+      stateless: false
+    why: >-
+      The Dead Kultuk, a shallow bay at the Caspian's northeast corner that dries to a salt flat as
+      the sea falls, is land in Natural Earth and sea in Cliopatria's shapes, so no state's row
+      reaches it and it would stand stateless inside the state holding its shores, ringed by a
+      border. It goes to the polities around it in the years they enclose it.
+    source:
+      title: Dead Kultuk
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dead_Kultuk
+  - years: [1918, 1918]
+    overlap:
+      polities: [Kingdom of Denmark, Kingdom of Iceland]
+      winner: Kingdom of Denmark
+    why: >-
+      Iceland became a sovereign kingdom in personal union with Denmark only on 1 December 1918, so
+      on 1 January 1918 it was still Danish.
+    source: &iceland
+      title: Danish–Icelandic Act of Union
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Danish%E2%80%93Icelandic_Act_of_Union
+  - years: [1919, 1921]
+    overlap:
+      polities: [Kingdom of Denmark, Kingdom of Iceland]
+      winner: Kingdom of Iceland
+    why: >-
+      Smaller wins, checked: from 1 December 1918 Iceland was a sovereign kingdom sharing only its
+      king with Denmark.
+    source: *iceland
+  - years: [1923, 2000]
+    rename:
+      polity: Kingdom of Great Britain
+      to: United Kingdom
+    why: >-
+      After the Irish Free State left in 1922 the state was the United Kingdom of Great Britain and
+      Northern Ireland, the name it took in 1927.
+    source:
+      title: United Kingdom of Great Britain and Ireland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/United_Kingdom_of_Great_Britain_and_Ireland
+  - years: [1925, 1935]
+    rename:
+      polity: First Hellenic Republic
+      to: Second Hellenic Republic
+    why: >-
+      Parliament proclaimed the fall of the monarchy on 25 March 1924, and the Second Hellenic
+      Republic lasted until the monarchy's restoration in November 1935.
+    source: &greece
+      title: Second Hellenic Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Hellenic_Republic
+  - years: [1936, 1940]
+    rename:
+      polity: First Hellenic Republic
+      to: Kingdom of Greece
+    why: >-
+      The monarchy was restored in November 1935, and George II returned on 23 November; the name of
+      Cliopatria's rows from 1945.
+    source: *greece
+  - years: [1936, 1944]
+    drop:
+      polity: Nazi Germany
+      shape: nazi-germany-scraps.geojson
+    why: >-
+      Cliopatria's Nazi Germany rows carry 185 scraps far from the Reich: strips along the shores of
+      Ladoga, Onega and Peipus, the IJsselmeer, Mälaren and the Sea of Galilee, in the Mesopotamian
+      marshes and on Greek and Norwegian coasts. Its row of 1936, when Germany held no land beyond
+      its borders, already has them, and every later row repeats them unchanged, so they are no
+      conquests. The shape holds that row's pieces under 5,000 km² lying more than 1° from its
+      larger ones, and each row's pieces inside it are taken away.
+    source:
+      title: Territorial evolution of Germany
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Territorial_evolution_of_Germany
+  # Eastern Europe after the war: Cliopatria's Soviet row covers states that stood on their own.
+  - years: [1945, 1946]
+    carry:
+      polity: Kingdom of Romania
+      from: 1947
+    why: >-
+      Cliopatria draws Romania as Soviet in 1945 and 1946, but the Kingdom of Romania lasted until
+      King Michael's abdication on 30 December 1947.
+    source:
+      title: Kingdom of Romania
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Romania
+  - years: [1945, 1946]
+    carry:
+      polity: Kingdom of Bulgaria
+      from: 1947
+    why: >-
+      Cliopatria draws Bulgaria as Soviet in 1945 and 1946, but the tsardom lasted until the
+      monarchy was abolished on 15 September 1946.
+    source:
+      title: Kingdom of Bulgaria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bulgaria
+  - years: [1946, 1946]
+    carry:
+      polity: Hungary
+      from: 1947
+    why: >-
+      Cliopatria draws Hungary as Soviet in 1946, but the Hungarian state stood: the kingdom until 1
+      February 1946, then the Second Hungarian Republic.
+    source:
+      title: Second Hungarian Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Hungarian_Republic
+  - years: [1946, 1946]
+    carry:
+      polity: Czechoslovakia
+      from: 1947
+    why: >-
+      Cliopatria draws Czechoslovakia as Soviet in 1946, but the Third Czechoslovak Republic was
+      formed in April 1945.
+    source: &czsr
+      title: Czechoslovak Socialist Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Czechoslovak_Socialist_Republic
+  - years: [1969, 1990]
+    carry:
+      polity: Czechoslovakia
+      from: 1968
+    why: >-
+      Cliopatria draws Czechoslovakia as Soviet from 1969 to 1990, but the Warsaw Pact invasion of
+      August 1968 occupied the Czechoslovak Socialist Republic and did not annex it; it stood until
+      its renaming in 1990.
+    source: *czsr
+  - years: [1946, 1946]
+    carry:
+      polity: Republic of Poland
+      from: 1953
+    why: >-
+      Cliopatria draws Poland as Soviet until 1952, but a Polish state stood: the Provisional
+      Government of National Unity, formed on 28 June 1945 and recognised by the Allies.
+    source:
+      title: Provisional Government of National Unity
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Provisional_Government_of_National_Unity
+  - years: [1947, 1952]
+    carry:
+      polity: Republic of Poland
+      from: 1953
+    why: >-
+      Cliopatria draws Poland as Soviet until 1952, but the Republic of Poland (1947–1952), then the
+      Polish People's Republic, was a Soviet satellite, not part of the Soviet Union.
+    source:
+      title: Polish People's Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Polish_People%27s_Republic
+  - years: [1961, 1961]
+    member:
+      polity: State of Kuwait
+      of: (British Empire)
+    why: >-
+      On 1 January 1961 Kuwait was still a British protected state; it became independent on 19
+      June 1961.
+    source: &kuwait
+      title: Sheikhdom of Kuwait
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sheikhdom_of_Kuwait
+  - years: [1990, 1990]
+    carry:
+      polity: State of Kuwait
+      from: 1987
+    why: >-
+      Cliopatria's Kuwait rows skip 1990 and its Iraqi row takes Kuwait's land, but Iraq invaded
+      only on 2 August 1990; on 1 January the State of Kuwait stood.
+    source:
+      title: Iraqi invasion of Kuwait
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Iraqi_invasion_of_Kuwait
+  - years: [1963, 2000]
+    overlap:
+      polities: [French Fifth Republic, People's Democratic Republic of Algeria]
+      winner: People's Democratic Republic of Algeria
+    why: >-
+      Smaller wins, checked: French rule in Algeria ended with independence on 5 July 1962, and the
+      Fifth Republic's row still covers it.
+    source:
+      title: French Algeria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/French_Algeria
+  - years: [1967, 1968]
+    overlap:
+      polities: [British Colonial Empire, Guyana]
+      winner: Guyana
+    why: >-
+      Smaller wins, checked: Guyana became independent of the United Kingdom on 26 May 1966.
+    source:
+      title: Guyana
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Guyana
+  - years: [1976, 2000]
+    overlap:
+      polities: [Netherlands Antilles, Republic of Suriname]
+      winner: Republic of Suriname
+    why: >-
+      Smaller wins, checked: Suriname became independent on 25 November 1975, and the Netherlands
+      Antilles row still covers it; before 1975 Cliopatria draws Suriname under that name, which is
+      left for review.
+    source:
+      title: Suriname
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Suriname
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, each cited (owner decision 38).
+  - years: [1917, 1917]
+    pocket:
+      at: [99.72, 27.96]
+      to: Kuomintang
+    why: >-
+      On 1 January 1917 Yunnan and Guangxi, under Tang Jiyao and Lu Rongting, were provinces of the
+      Republic of China again: the National Protection War they had led against Yuan Shikai's
+      monarchy ended on 14 July 1916, after his death, with the provinces rescinding their
+      declarations of independence. Cliopatria's China of 1917-1929 is named Kuomintang and covers
+      the provinces around them; the hole also takes in eastern Kham, the Republic's Sichuan border
+      district, which Cliopatria draws as Tibet from 1918.
+    source:
+      title: National Protection War
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/National_Protection_War
+  - years: [1918, 1925]
+    pocket:
+      at: [101.42, 25.23]
+      to: Kuomintang
+    why: >-
+      Yunnan, and Guangxi in most of these years, were provinces of the Republic under their
+      cliques: Tang Jiyao's Yunnan kept its own army but reunified with the national government, and
+      Tang sat on the Guangzhou government's ruling committee. Cliopatria's China of these years is
+      named Kuomintang.
+    source:
+      title: Yunnan clique
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yunnan_clique
+  - years: [1926, 1926]
+    pocket:
+      at: [104.9, 25.43]
+      to: Kuomintang
+    why: >-
+      Yunnan, Guizhou and Guangxi were provinces of the Republic; Guangxi's New Guangxi clique,
+      whose Li Zongren joined the Kuomintang in 1923, led the Seventh Army of the Northern
+      Expedition. Cliopatria's Kuomintang covers the three from 1927.
+    source:
+      title: New Guangxi clique
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/New_Guangxi_clique
+  - years: [1967, 1972]
+    give:
+      polity: United States of America
+      to: Republic of Vietnam
+      shape_from: {polity: Republic of Vietnam, year: 1966}
+    why: >-
+      The Republic of Vietnam existed from 1955 to 1975, recognized by 95 countries as of January
+      1975. Cliopatria draws South Vietnam as the United States from 1967 and its own Republic of
+      Vietnam only in 1956-1966 and 1973-1975; the land returns to it in its 1966 shape.
+    source:
+      title: South Vietnam
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/South_Vietnam
+  - years: [1967, 1972]
+    pocket:
+      at: [107.44, 15.34]
+      to: Kingdom of Laos
+      shape_from: {polity: Kingdom of Laos, year: 1966}
+    why: &tri-border >-
+      The strip along the Annamite range to the tripoint of Laos, Vietnam and Cambodia, where the Ho
+      Chi Minh Trail crossed, lay within the three states along their colonial boundaries;
+      Cliopatria's shapes of 1967-1972 do not meet there. Each part takes its state's Cliopatria
+      shape of 1966.
+    source: &laos-vietnam
+      title: Laos–Vietnam border
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Laos%E2%80%93Vietnam_border
+  - years: [1967, 1972]
+    pocket:
+      at: [107.19, 14.07]
+      to: Kingdom of Cambodia
+      shape_from: {polity: Kingdom of Cambodia, year: 1966}
+    why: *tri-border
+    source: *laos-vietnam
+  - years: [1967, 1972]
+    pocket:
+      at: [107.48, 15.73]
+      to: Republic of Vietnam
+      shape_from: {polity: Republic of Vietnam, year: 1966}
+    why: *tri-border
+    source: *laos-vietnam

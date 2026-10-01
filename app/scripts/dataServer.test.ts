@@ -108,6 +108,25 @@ describe('the release', () => {
     expect(again).toEqual(release);
   });
 
+  test("holds the fixture's border steps, whose files and notice the server serves", async () => {
+    const steps = release.borderSteps;
+    expect(steps?.years).toEqual([1815, 1830]);
+    expect(release.borders).toBeUndefined(); // the fixture bakes no 1815 field
+    for (const [key, type] of [
+      [steps?.keys[0], 'application/octet-stream'],
+      [steps?.previews.keys[0], 'application/octet-stream'],
+      [steps?.polities, 'application/json'],
+      [steps?.notice, 'text/plain; charset=utf-8'],
+    ]) {
+      const response = await fetch(`${url()}/${key}`, { method: 'HEAD' });
+      expect([key, response.status, response.headers.get('content-type')]).toEqual([
+        key,
+        200,
+        type,
+      ]);
+    }
+  });
+
   test('points at a bounds.bin the server serves', async () => {
     const response = await fetch(`${url()}/${release.surface.bounds}`);
     expect(response.status).toBe(200);

@@ -1,0 +1,1082 @@
+# Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
+# 1800 to 1913 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
+# covers the years whose 1 January falls in its dates.
+modified: 2026-09-30
+corrections:
+  # The Dutch East Indies and the British interregnum.
+  - years: [1800, 1802]
+    overlap:
+      polities: [Batavian Republic, Dutch East Indies]
+      winner: Dutch East Indies
+    why: >-
+      Smaller wins, checked: the Batavian Republic's row repeats the Indies it took over when the
+      Dutch East India Company was dissolved in 1800, and the Indies' own row keeps them.
+    source:
+      title: Dutch East Indies
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+  - years: [1812, 1816]
+    give:
+      polity: Dutch East Indies
+      to: British Colonial Empire
+    why: >-
+      The British took Java in 1811 (the Dutch surrendered on 18 September), Raffles governing it as
+      lieutenant-governor, and returned Java and the other East Indian possessions to the Dutch in
+      1816. Cliopatria's British rows end in 1813, and in 1812-1813 its smaller Dutch row outdraws
+      them.
+    source:
+      title: Invasion of Java (1811)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Invasion_of_Java_(1811)
+  - years: [1800, 1811]
+    member:
+      polity: Sultan of Yogyakarta
+      of: Dutch East Indies
+    why: >-
+      A dependent by treaty: Yogyakarta, made by the VOC's Treaty of Giyanti (1755), was a
+      protectorate of the Batavian Republic within the Dutch East Indies from 1800 to 1806, when
+      the VOC's possessions had passed to the Republic, and of the Netherlands from 1806 to 1811.
+    source:
+      title: Yogyakarta Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yogyakarta_Sultanate
+  - years: [1800, 1811]
+    member:
+      polity: Surakarta Sunanate
+      of: Dutch East Indies
+    why: >-
+      A dependent by treaty: Surakarta, made by the VOC's Treaty of Giyanti (1755), was a
+      protectorate of the Batavian Republic within the Dutch East Indies from 1800 to 1806, when
+      the VOC's possessions had passed to the Republic, and of the Netherlands from 1806 to 1811.
+    source:
+      title: Surakarta Sunanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Surakarta_Sunanate
+  - years: [1812, 1816]
+    member:
+      polity: Sultan of Yogyakarta
+      of: British Colonial Empire
+    why: A protectorate of the British East India Company from 1811 to 1816.
+    source:
+      title: Yogyakarta Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yogyakarta_Sultanate
+  - years: [1812, 1816]
+    member:
+      polity: Surakarta Sunanate
+      of: British Colonial Empire
+    why: A protectorate of the British East India Company from 1811 to 1816.
+    source:
+      title: Surakarta Sunanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Surakarta_Sunanate
+  - years: [1817, 1829]
+    member:
+      polity: Sultan of Yogyakarta
+      of: Dutch East Indies
+    why: >-
+      A protectorate of the Netherlands within the Dutch East Indies from 1816 to 1942; Cliopatria's
+      Yogyakarta rows end in 1829.
+    source:
+      title: Yogyakarta Sultanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Yogyakarta_Sultanate
+  - years: [1817, 1829]
+    member:
+      polity: Surakarta Sunanate
+      of: Dutch East Indies
+    why: >-
+      A protectorate of the Netherlands within the Dutch East Indies from 1816 to 1942; Cliopatria's
+      Surakarta rows end in 1829.
+    source:
+      title: Surakarta Sunanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Surakarta_Sunanate
+  # Sumbawa's six states in 1815 (owner decision 37), their shapes traced from Chambert-Loir's map
+  # as each shape file records.
+  - years: [1815, 1815]
+    add:
+      polity: Kingdom of Tambora
+      shape: sumbawa-1815-tambora.geojson
+      wikidata: Q20426555
+    why: >-
+      One of Sumbawa's six states in 1815, on the north-west of the Sanggar peninsula round the
+      volcano; the eruption left its land empty until it was annexed to Sanggar in 1866. Shape from
+      Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 5, In the Wake of the Tambora Disaster"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C5/type/BOOK_PART
+      locator: p. 141
+  - years: [1815, 1815]
+    add:
+      polity: Kingdom of Pekat
+      shape: sumbawa-1815-pekat.geojson
+      wikidata: Q20426554
+    why: >-
+      One of Sumbawa's six states in 1815, on the south of the Sanggar peninsula; after the eruption
+      its land was annexed to Dompu in 1866. Shape from Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 5, In the Wake of the Tambora Disaster"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C5/type/BOOK_PART
+      locator: p. 141
+  - years: [1815, 1816]
+    add:
+      polity: Kingdom of Sanggar
+      shape: sumbawa-1815-sanggar.geojson
+      wikidata: Q20427303
+    why: >-
+      One of Sumbawa's six states in 1815, on the north-east of the Sanggar peninsula; it outlived
+      the eruption as a petty kingdom until it was annexed to Bima in 1928. Shape from
+      Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 5, In the Wake of the Tambora Disaster"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C5/type/BOOK_PART
+      locator: p. 141
+  - years: [1815, 1816]
+    add:
+      polity: Sultanate of Dompu
+      shape: sumbawa-1815-dompu.geojson
+    why: >-
+      One of Sumbawa's six states, between Bima and the Sanggar peninsula, bound to the VOC by
+      contract since 1669. Shape from Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 3, The Sumbawan Kingdoms under VOC Suzerainty (1)"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C3/type/BOOK_PART
+      locator: p. 77
+  - years: [1815, 1816]
+    add:
+      polity: Sultanate of Sumbawa
+      shape: sumbawa-1815-sumbawa.geojson
+      wikidata: Q20427322
+    why: >-
+      The western half of the island, bordering Dompu on the isthmus south of Saleh Bay. Shape from
+      Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 4, The Sumbawan Kingdoms under VOC Suzerainty (2)"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C4/type/BOOK_PART
+      locator: p. 115
+  - years: [1815, 1816]
+    add:
+      polity: Sultanate of Bima
+      shape: sumbawa-1815-bima.geojson
+    why: >-
+      Bima's land on Sumbawa east of Dompu, joined to Cliopatria's Bima row, which holds its lands
+      across the strait. Shape from Chambert-Loir's map in de Jong Boers (1995).
+    source:
+      title: "Held's History of Sumbawa: An Annotated Translation (Hans Hägerdal), ch. 3, The Sumbawan Kingdoms under VOC Suzerainty (1)"
+      publisher: Amsterdam University Press, 2017 (Cambridge Core)
+      url: https://www.cambridge.org/core/product/identifier/9789048531271%23C3/type/BOOK_PART
+      locator: p. 77
+  - years: [1815, 1815]
+    member:
+      polity: Kingdom of Tambora
+      of: Netherlands
+    why: &sumbawa-members >-
+      The Sumbawan states were bound to the Dutch by contract, so they are drawn as Dutch members
+      (owner decision 37) while the rest of the Indies is British, from 1812 to 1816. Raffles's
+      government sent Lieutenant Owen Phillips to inspect the eruption's damage and help the
+      islanders, but the contracts were Dutch, and they were extended in 1817, when the governor at
+      Makassar excused the rulers of Bima, Dompu and Sanggar from coming there for it.
+    source: &dejongboers
+      title: "Mount Tambora in 1815: A Volcanic Eruption in Indonesia and its Aftermath (Bernice de Jong Boers)"
+      publisher: Indonesia 60 (1995), Cornell University Southeast Asia Program
+      url: https://ecommons.cornell.edu/entities/publication/e0fab329-c363-471f-8923-6aba7eccf14b
+      locator: pp. 41, 46
+  - years: [1815, 1815]
+    member:
+      polity: Kingdom of Pekat
+      of: Netherlands
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Kingdom of Sanggar
+      of: Netherlands
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Sultanate of Dompu
+      of: Netherlands
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Sultanate of Sumbawa
+      of: Netherlands
+    why: *sumbawa-members
+    source: *dejongboers
+  - years: [1815, 1816]
+    member:
+      polity: Sultanate of Bima
+      of: Netherlands
+    why: *sumbawa-members
+    source: *dejongboers
+  # India: Mysore, Hyderabad and the Mughal emperor.
+  - years: [1800, 1947]
+    add:
+      polity: Kingdom of Mysore
+      shape: mysore-1799.geojson
+    why: >-
+      Cliopatria's Mysore ends with Tipu's kingdom in 1799. The Wodeyars' reduced state is drawn
+      from 1800 in its shape on the Imperial Gazetteer's 1909 map (native states coloured yellow),
+      traced and georeferenced on the plate's graticule; its bounds match the Gazetteer's own
+      figures to 0.03°.
+    source:
+      title: Madras (Southern Section) with Mysore, Coorg & Travancore, Imperial Gazetteer of India (J. G. Bartholomew, 1909)
+      publisher: Wikimedia Commons
+      url: https://commons.wikimedia.org/wiki/File:Madras_Prov_South_1909.jpg
+  - years: [1800, 1858]
+    member:
+      polity: Kingdom of Mysore
+      of: British Empire
+    why: >-
+      A princely state by treaty: after Tipu's death in 1799 the restored Wodeyars ruled under a
+      subsidiary alliance with a British Resident, until Mysore joined India in August 1947.
+    source:
+      title: Kingdom of Mysore
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Mysore
+  - years: [1859, 1947]
+    member:
+      polity: Kingdom of Mysore
+      of: British Raj
+    why: >-
+      A princely state under British paramountcy, directly administered from 1831 to 1881, until
+      Mysore joined India on 9 August 1947.
+    source:
+      title: Kingdom of Mysore
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Mysore
+  - years: [1801, 1946]
+    add:
+      polity: Hyderabad State
+      shape: hyderabad-1800.geojson
+    why: >-
+      In 1800 the Nizam ceded to the Company the districts he had gained from Mysore, to pay for its
+      subsidiary force; the dominions left to him are Cliopatria's own Hyderabad of 1947, which it
+      otherwise draws as British. Berar, the Nizam's from 1803 until assigned in 1853, is left for
+      review.
+    source:
+      title: Ceded Districts
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Ceded_Districts
+  - years: [1801, 1858]
+    member:
+      polity: Hyderabad State
+      of: British Empire
+    why: >-
+      A dependent by treaty: the 1798 agreement put Hyderabad under British protection, and the
+      Nizam remained a subsidiary ally under British paramountcy.
+    source:
+      title: Hyderabad State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hyderabad_State
+  - years: [1859, 1947]
+    member:
+      polity: Hyderabad State
+      of: British Raj
+    why: >-
+      A princely state under British paramountcy, with a 23-gun salute, until Indian independence;
+      Cliopatria's own Hyderabad row begins in 1947.
+    source:
+      title: Hyderabad State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Hyderabad_State
+  - years: [1858, 1858]
+    give:
+      polity: Mughal Empire
+      to: British Empire
+    why: >-
+      The British retook Delhi in September 1857 and captured Bahadur Shah II at Humayun's Tomb on
+      20 September; tried at the Red Fort and exiled to Rangoon, he was the last of his dynasty.
+      Cliopatria keeps his Delhi row into 1858.
+    source:
+      title: Bahadur Shah Zafar
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bahadur_Shah_Zafar
+  # The Cape, Persia, Arabia, Central Asia and Mexico.
+  - years: [1803, 1803]
+    overlap:
+      polities: [British Cape Colony, Napoleonic Batavia Republic]
+      winner: British Cape Colony
+    why: >-
+      Britain handed the Cape back to the Batavian Republic only on 1 March 1803, so on 1 January it
+      was still British.
+    source: &cape
+      title: Dutch Cape Colony
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_Cape_Colony
+  - years: [1804, 1806]
+    overlap:
+      polities: [British Cape Colony, Napoleonic Batavia Republic]
+      winner: Napoleonic Batavia Republic
+    why: >-
+      Smaller wins, checked: the Batavian Republic held the Cape from March 1803 until the British
+      took it in January 1806.
+    source: *cape
+  - years: [1804, 1806]
+    member:
+      polity: Napoleonic Batavia Republic
+      of: (Batavian Republic)
+    why: >-
+      The Batavian Republic's colony at the Cape, so it shares the Republic's outer border.
+    source: *cape
+  - years: [1807, 1867]
+    give:
+      polity: Napoleonic Batavia Republic
+      to: British Cape Colony
+    why: >-
+      The British occupied the Cape again in January 1806 after Blaauwberg, and the Anglo-Dutch
+      Treaty of 1814 confirmed it British; Cliopatria keeps a Batavian row to 1867.
+    source: *cape
+  - years: [1895, 1897]
+    give:
+      polity: Qajar Dynasty
+      to: Dutch East Indies
+      shape_from: {polity: Dutch East Indies, year: 1898}
+    why: >-
+      Cliopatria's rows for 1895–1897 swap two names: its Qajar Dynasty row holds the Indies and its
+      Dutch East Indies row holds Persia. This gives the Indies back to the colony that held them;
+      the next correction gives Persia back.
+    source:
+      title: Dutch East Indies
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dutch_East_Indies
+  - years: [1895, 1897]
+    give:
+      polity: Dutch East Indies
+      to: Qajar Dynasty
+      shape_from: {polity: Qajar Dynasty, year: 1898}
+    why: >-
+      Persia under the Qajars (1789–1925), drawn in 1895–1897 under the Dutch East Indies' name,
+      returns to the Qajar Dynasty.
+    source:
+      title: Qajar Iran
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Qajar_Iran
+  - years: [1842, 1845]
+    overlap:
+      polities: [Emirate of Jabal Shammar, Emirate of Nejd]
+      winner: Emirate of Nejd
+    why: >-
+      Cliopatria's Jabal Shammar row for 1842–1845 repeats Nejd's shape; the Rashidis governed Ha'il
+      as the second Saudi state's vassals until 1891, so the land is Nejd's. Jabal Shammar's own
+      Ha'il is left for review.
+    source:
+      title: Emirate of Jabal Shammar
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Jabal_Shammar
+  - years: [1873, 1960]
+    carry:
+      polity: Kuwait
+      from: 1820
+    why: >-
+      Cliopatria ends Kuwait in 1872 and draws its land as Ottoman, Omani and British. The sheikhdom
+      went on: a nominal Ottoman vassal from 1871, a British protected state from 1899 until
+      independence on 19 June 1961. Its 1820 shape is carried until the State of Kuwait's row.
+    source: &kuwait
+      title: Sheikhdom of Kuwait
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sheikhdom_of_Kuwait
+  - years: [1900, 1960]
+    member:
+      polity: Kuwait
+      of: (British Empire)
+    why: >-
+      A British protected state by the Anglo-Kuwaiti Agreement of 23 January 1899, which put its
+      foreign affairs in British hands, until 19 June 1961.
+    source: *kuwait
+  - years: [1873, 1873]
+    carry:
+      polity: Khanate of Khiva
+      from: 1872
+    why: >-
+      Khiva was an independent khanate until Russian troops took the city on 10 June 1873; on
+      1 January 1873 it stood, but Cliopatria's rows end in 1872 and draw its land as Russian.
+    source:
+      title: Khanate of Khiva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khanate_of_Khiva
+  - years: [1868, 1868]
+    carry:
+      polity: Emirate of Bukhara
+      from: 1867
+    why: >-
+      Bukhara was an independent emirate until 1873, and lost Samarkand to Russia only in the war
+      of 1868; on 1 January 1868 it held its 1864–1867 shape, but Cliopatria's rows end in 1867
+      and draw its land as Russian.
+    source: &bukhara
+      title: Emirate of Bukhara
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Bukhara
+  - years: [1869, 1873]
+    carry:
+      polity: Emirate of Bukhara
+      from: 1918
+    why: >-
+      After the war of 1868 Russia annexed much of the emirate, Samarkand among it, and the rest
+      stayed independent until it became a Russian protectorate in 1873; its own 1918 shape, the
+      emirate without Samarkand, stands for it.
+    source: *bukhara
+  - years: [1874, 1916]
+    give:
+      polity: Russian Empire
+      to: Khanate of Khiva
+      shape_from: {polity: Khanate of Khiva, year: 1918}
+      member_of: Russian Empire
+    why: >-
+      By the peace of 12 August 1873 Khiva became a quasi-independent Russian protectorate until its
+      khan abdicated in 1920; Cliopatria draws its land as Russian until 1917, so its own 1918 shape
+      returns as a Russian member.
+    source:
+      title: Khanate of Khiva
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Khanate_of_Khiva
+  - years: [1874, 1916]
+    give:
+      polity: Russian Empire
+      to: Emirate of Bukhara
+      shape_from: {polity: Emirate of Bukhara, year: 1918}
+      member_of: Russian Empire
+    why: >-
+      After losing Samarkand to Russia in 1868, the rest of the emirate became a Russian protectorate
+      in 1873 until the Bolsheviks took it in 1920; Cliopatria draws its land as Russian until 1917,
+      so its own 1918 shape returns as a Russian member.
+    source: *bukhara
+  - years: [1880, 1919]
+    member:
+      polity: Emirate of Afghanistan
+      of: British Raj
+    why: >-
+      A British protected state from the Treaty of Gandamak (1879), which gave Britain its foreign
+      affairs, until the Anglo-Afghan Treaty of 1919.
+    source:
+      title: Emirate of Afghanistan
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Emirate_of_Afghanistan
+  - years: [1911, 1947]
+    member:
+      polity: Kingdom of Bhutan
+      of: British Raj
+    why: >-
+      By the Treaty of Punakha (8 January 1910) Bhutan agreed to be guided by Britain in its
+      external relations, until 1947.
+    source:
+      title: Treaty of Punakha
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Punakha
+  - years: [1913, 1919]
+    carry:
+      polity: Mexico
+      from: 1912
+    why: >-
+      Cliopatria has no Mexico from 1913 to 1919, but the state went on through the revolution under
+      Huerta (1913–1914) and Carranza, president under the 1917 constitution until 1920.
+    source:
+      title: Mexican Revolution
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Mexican_Revolution
+  # The Door Peninsula, ceded by the Menominee.
+  - years: [1834, 1835]
+    add:
+      polity: United States of America
+      shape: door-peninsula-1832.geojson
+    why: >-
+      The Menominee ceded their claim to the Door Peninsula, east of Green Bay, to the United States
+      in the Treaty of Washington of February 1831, which the Senate ratified in June 1832.
+      Cliopatria's United States of 1834-35 holds the land along the bay's east shore but stops at
+      the peninsula's base, so the peninsula went to the nearest land, the stateless land across the
+      bay, and a border ran along its shore.
+    source:
+      title: Treaty of Washington (1831)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Washington_(1831)
+  # Names out of date in 1914, renamed over the years they are wrong.
+  - years: [1862, 1929]
+    rename:
+      polity: Argentine Confederation
+      to: Argentine Republic
+    why: >-
+      The Argentine Confederation lasted from 1831 to 1861; after Pavón (September 1861) Buenos
+      Aires rejoined and the unified country became the Argentine Republic, the name of Cliopatria's
+      rows from 1930.
+    source:
+      title: Argentine Confederation
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Argentine_Confederation
+  - years: [1821, 1849]
+    rename:
+      polity: Empire of Haiti
+      to: Republic of Haiti
+    why: >-
+      Haiti was a republic from 1820 until Faustin I was proclaimed emperor in August 1849.
+    source: &haiti
+      title: Second Empire of Haiti
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_Empire_of_Haiti
+  - years: [1860, 1915]
+    rename:
+      polity: Empire of Haiti
+      to: Republic of Haiti
+    why: >-
+      Faustin I abdicated on 15 January 1859 and a republic was proclaimed; Cliopatria names its
+      rows Empire of Haiti until 1915.
+    source: *haiti
+  - years: [1801, 1922]
+    rename:
+      polity: Kingdom of Great Britain
+      to: United Kingdom of Great Britain and Ireland
+    why: >-
+      The Acts of Union made Great Britain and Ireland one kingdom on 1 January 1801, until the Irish
+      Free State left in 1922.
+    source:
+      title: United Kingdom of Great Britain and Ireland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/United_Kingdom_of_Great_Britain_and_Ireland
+  - years: [1815, 1940]
+    rename:
+      polity: Denmark-Norway
+      to: Kingdom of Denmark
+    why: >-
+      By the Treaty of Kiel (14 January 1814) Denmark ceded Norway to Sweden, keeping Greenland,
+      Iceland and the Faroes; Cliopatria's Denmark-Norway rows are Denmark from 1815.
+    source:
+      title: Treaty of Kiel
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Treaty_of_Kiel
+  - years: [1815, 1939]
+    rename:
+      polity: Kingdom of Monaco
+      to: Principality of Monaco
+    why: >-
+      Monaco has been a principality under the Grimaldis since Honoré II took the title of prince in
+      1612; it was never a kingdom.
+    source: &monaco
+      title: Monaco
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Monaco
+  - years: [1816, 1860]
+    member:
+      polity: Principality of Monaco
+      of: Kingdom of Sardinia
+    why: >-
+      The Congress of Vienna made Monaco a protectorate of the Kingdom of Sardinia in 1815, until
+      Sardinian forces left in 1860.
+    source: *monaco
+  - years: [1816, 1879]
+    rename:
+      polity: Serbs
+      to: Principality of Serbia
+    why: >-
+      The Principality of Serbia emerged from the Second Serbian Uprising of 1815 and was recognised
+      as autonomous in 1830; Cliopatria names its rows Serbs.
+    source:
+      title: Principality of Serbia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Principality_of_Serbia
+  - years: [1885, 1915]
+    rename:
+      polity: Serbs
+      to: Kingdom of Serbia
+    why: >-
+      Serbia was a kingdom from 6 March 1882 until 1918, as Cliopatria's own rows for 1880–1884 name
+      it.
+    source:
+      title: Kingdom of Serbia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Serbia
+  - years: [1863, 1881]
+    rename:
+      polity: United Principalities of Moldavia and Wallachia
+      to: Principality of Romania
+    why: >-
+      The two principalities were formally united as the Principality of Romania in January 1862.
+    source: &romania
+      title: Kingdom of Romania
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Romania
+  - years: [1882, 1916]
+    rename:
+      polity: United Principalities of Moldavia and Wallachia
+      to: Kingdom of Romania
+    why: >-
+      Romania became a kingdom on 15 March 1881, the name of Cliopatria's rows from 1919.
+    source: *romania
+  - years: [1909, 1944]
+    rename:
+      polity: Principality of Bulgaria
+      to: Kingdom of Bulgaria
+    why: >-
+      Bulgaria was raised from a principality to a tsardom on 5 October 1908, until the monarchy
+      was abolished in 1946.
+    source:
+      title: Kingdom of Bulgaria
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bulgaria
+  - years: [1833, 1924]
+    rename:
+      polity: First Hellenic Republic
+      to: Kingdom of Greece
+    why: >-
+      Greece agreed to become a kingdom at the London Conference of 1832, the state the Treaty of
+      Constantinople (1832) established, and King Otto arrived at Nafplion in 1833; the Second
+      Hellenic Republic was proclaimed in 1924.
+    source:
+      title: Kingdom of Greece
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Greece
+  # Holes between states: a gap in Cliopatria's shapes drawn as the land of the state that held
+  # it, or a place without a state kept stateless, each cited (owner decision 38).
+  - years: [1805, 1810]
+    pocket:
+      at: [40.94, 32.5]
+      stateless: true
+    why: &syrian-desert >-
+      The Syrian Desert west of the Euphrates (Rutba, Nukhayb, the Hamad) was the range of the camel
+      tribes, the Aneza and Shammar, who had moved north out of Najd partly to escape the Wahhabi
+      movement, saw themselves as no subjects of the Sultan, paid no taxes and were regarded as
+      free; only the sheep-herding tribes on the settled margins paid Ottoman taxes. Cliopatria
+      itself leaves this desert empty in every other step before the mandates. The 1811 step, whose
+      outline differs, is left for review.
+    source: &chatty
+      title: 'The Bedouin in Contemporary Syria: The Persistence of Tribal Authority and Control'
+      publisher: Middle East Journal
+      url: https://www.ou.edu/mideast/Additional%20pages%20-%20non-catagory/Chatty_Tribes_of_Syria_2010_MEJpdf.pdf
+      locator: vol. 64, no. 1 (2010), pp. 30-31
+  - years: [1812, 1819]
+    pocket:
+      at: [40.94, 32.5]
+      stateless: true
+    why: *syrian-desert
+    source: *chatty
+  - years: [1814, 1819]
+    pocket:
+      at: [-61.28, -26.66]
+      stateless: true
+    why: >-
+      The Chaco south of the Bermejo (today's Chaco province, northern Santa Fe and eastern Santiago
+      del Estero) was held by its own peoples, who defeated Spanish and Portuguese attempts to
+      control it and kept their independence; Argentina's conquest began about 1870 and was declared
+      finished in 1917. Cliopatria draws the same land as Río de la Plata in 1811-1813 and from
+      1820, a claim rather than rule.
+    source:
+      title: Conquista del Chaco (Argentina)
+      publisher: Wikipedia (Spanish)
+      url: https://es.wikipedia.org/wiki/Conquista_del_Chaco_(Argentina)
+  - years: [1822, 1913]
+    pocket:
+      at: [94.4, 27.96]
+      stateless: true
+    why: >-
+      The hills north of the Brahmaputra from Bhutan to the Siang (Itanagar, Ziro, Daporijo, Along,
+      Seppa), with the Lohit and Patkai hills east of them in 1825-1827, lay largely outside the
+      direct rule of Assam's valley kingdoms and of Tibet, governed by their own communities under
+      customary law, clan authority, village councils and chiefs; the Adi and Mishmi kept
+      independent chiefdoms. British administration began only with the frontier tracts of 1912-1913
+      and the McMahon Line of 1914. In 1828-1833 the Upper Assam plains south of them, which
+      Cliopatria leaves out, are drawn British.
+    source:
+      title: Arunachal Pradesh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Arunachal_Pradesh
+      locator: History
+  - years: [1825, 1825]
+    pocket:
+      at: [93.92, 24.79]
+      to: Burma
+      shape_from: {polity: Burma, year: 1824}
+    why: >-
+      On 1 January 1825 the Manipur valley was still under Burmese occupation: Gambhir Singh drove
+      the Burmese out and began his reign only in June 1825. Cliopatria draws it Burmese to 1824;
+      the northern Lushai hills in the same hole, under no state, stay stateless.
+    source:
+      title: Gambhir Singh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gambhir_Singh
+  - years: [1828, 1833]
+    pocket:
+      at: [94.47, 27.0]
+      to: British Empire
+      shape: assam-1827.geojson
+    why: >-
+      After the Treaty of Yandabo (1826) the British were masters of the Brahmaputra valley, and
+      they restored Upper Assam to Purandar Singha as a protected prince only in April 1833.
+      Cliopatria's British shape leaves the plains from Golaghat to Sadiya out in 1828-1833; they
+      take its shape of 1827, clipped to the valley, and the hills north of them stay stateless.
+    source:
+      title: Purandar Singha
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Purandar_Singha
+  - years: [1846, 1847]
+    pocket:
+      at: [-97.29, 35.7]
+      to: United States of America
+    why: >-
+      Indian Territory and the Osage lands (Tulsa, Oklahoma City, Fort Gibson, Wichita) were land
+      the United States set aside for the removed nations, its borders set by the Indian Intercourse
+      Act of 1834: never an organized territory, but the United States'. Cliopatria draws it so from
+      1866.
+    source:
+      title: Indian Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Indian_Territory
+  - years: [1864, 1870]
+    pocket:
+      at: [13.4, 52.52]
+      to: Kingdom of Prussia
+      shape_from: {polity: German Confederation, year: 1863}
+    why: &prussia >-
+      Cliopatria draws Prussia under the name German Confederation until 1863 and not at all from
+      1864 to 1870, so its land stood stateless: the Rhine Province and Westphalia enclosed by the
+      states around them in 1864-1865, the rest along the coast. Prussia's provinces are drawn as
+      the Kingdom of Prussia in 1864-1870 from Cliopatria's shape of 1863, whole where a hole lies
+      inside it; the states it annexed in 1866 join it from 1867.
+    source: &prussia-source
+      title: Provinces of Prussia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Provinces_of_Prussia
+  - years: [1864, 1865]
+    pocket:
+      at: [6.58, 50.89]
+      to: Kingdom of Prussia
+    why: *prussia
+    source: *prussia-source
+  # On 1 January 1866 the north German states Cliopatria leaves out from 1866 stood as in 1865:
+  # the Austro-Prussian War began in June.
+  - years: [1866, 1866]
+    pocket:
+      at: [9.73, 52.37]
+      to: Kingdom of Hanover
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: >-
+      Hanover was a kingdom until Prussia annexed it on 20 September 1866, after the Battle of
+      Langensalza; Cliopatria's rows end in 1865, and it takes its shape of that year.
+    source:
+      title: Kingdom of Hanover
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Hanover
+  - years: [1866, 1866]
+    pocket:
+      at: [9.79, 51.48]
+      to: Kingdom of Hanover
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: >-
+      Hanover's southern part, Göttingen and Grubenhagen, beside Prussia and Brunswick: the kingdom
+      stood until Prussia annexed it on 20 September 1866, and this part takes its shape of 1865 as
+      the rest does.
+    source:
+      title: Kingdom of Hanover
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Hanover
+  - years: [1866, 1866]
+    pocket:
+      at: [9.68, 50.55]
+      to: Electorate of Hesse
+      shape_from: {polity: Electorate of Hesse, year: 1865}
+    why: >-
+      Hesse-Kassel stood until Prussian troops took Kassel on 20 June 1866 and the Peace of Prague
+      gave it to Prussia; Cliopatria's row of 1866 keeps only a scrap of it, and it takes its shape
+      of 1865.
+    source:
+      title: Electorate of Hesse
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Electorate_of_Hesse
+  - years: [1866, 1866]
+    pocket:
+      at: [8.24, 50.08]
+      to: Duchy of Nassau
+      shape_from: {polity: Duchy of Nassau, year: 1865}
+    why: >-
+      Nassau sided with Austria when the war began on 14 June 1866, and Prussia annexed it after the
+      Peace of Prague of 23 August; Cliopatria's rows end in 1865, and it takes its shape of that
+      year.
+    source:
+      title: Duchy of Nassau
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Duchy_of_Nassau
+  - years: [1866, 1866]
+    pocket:
+      at: [8.27, 50.0]
+      to: Free City of Frankfurt
+      shape_from: {polity: Free City of Frankfurt, year: 1865}
+    why: >-
+      Frankfurt was a free city until the Prussian army occupied it on 16 July 1866 and the King of
+      Prussia annexed it by decree on 20 September; Cliopatria's rows end in 1865, and it takes its
+      shape of that year.
+    source:
+      title: Free City of Frankfurt
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Free_City_of_Frankfurt
+  - years: [1866, 1867]
+    pocket:
+      at: [8.65, 49.87]
+      to: Grand Duchy of Hesse
+      shape_from: {polity: Grand Duchy of Hesse, year: 1865}
+    why: >-
+      Hesse-Darmstadt, a grand duchy from 1806 to 1918, lost only 82 km² to Prussia by the treaty of
+      3 September 1866. Cliopatria has no row of it in 1866-1867, and it takes its shape of 1865.
+    source:
+      title: Grand Duchy of Hesse
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Grand_Duchy_of_Hesse
+  - years: [1866, 1866]
+    pocket:
+      at: [8.77, 50.75]
+      to: Grand Duchy of Hesse
+      shape_from: {polity: Grand Duchy of Hesse, year: 1865}
+    why: >-
+      Upper Hesse, the grand duchy's land north of the Main, which joined the North German
+      Confederation after the war while the grand duchy lost only 82 km² to Prussia: on 1 January
+      1866 it lies in a piece of its own, and takes the grand duchy's shape of 1865 as the south
+      does.
+    source:
+      title: Grand Duchy of Hesse
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Grand_Duchy_of_Hesse
+  - years: [1866, 1867]
+    pocket:
+      at: [12.37, 51.34]
+      to: Duchy of Warsaw
+      shape_from: {polity: Duchy of Warsaw, year: 1865}
+    why: >-
+      The Kingdom of Saxony, which Cliopatria names Duchy of Warsaw from 1820, escaped the
+      annexations that ended Hanover after the war of 1866 and joined the North German
+      Confederation the next year. Cliopatria has no row of it in 1866-1867, and it takes its shape
+      of 1865 under Cliopatria's name.
+    source:
+      title: Kingdom of Saxony
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Saxony
+  - years: [1866, 1867]
+    pocket:
+      at: [14.42, 50.08]
+      to: Austrian Empire
+      shape_from: {polity: Austrian Empire, year: 1865}
+    why: >-
+      Bohemia and Moravia were crown lands of the Austrian Empire until the Compromise of 1867 made
+      them Cisleithania's. Cliopatria's Austrian row of 1866-1867 leaves them out, and they take
+      its shape of 1865.
+    source:
+      title: Kingdom of Bohemia
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Kingdom_of_Bohemia
+  - years: [1866, 1866]
+    pocket:
+      at: [10.13, 54.32]
+      to: Austrian Empire
+      shape_from: {polity: Austrian Empire, year: 1865}
+    why: &gastein >-
+      By the Gastein Convention of 14 August 1865 Austria ruled Holstein and Prussia Schleswig,
+      until the war of 1866. Cliopatria draws Holstein as Austria's in 1864-1865 and neither duchy
+      from 1866; on 1 January 1866 Holstein takes Austria's shape of 1865, and Schleswig is
+      Prussia's.
+    source: &gastein-source
+      title: Gastein Convention
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gastein_Convention
+  - years: [1866, 1866]
+    pocket:
+      at: [9.43, 54.78]
+      to: Kingdom of Prussia
+    why: *gastein
+    source: *gastein-source
+  # From 1 January 1867, Prussia with the states it took in 1866.
+  - years: [1867, 1870]
+    pocket:
+      at: [9.73, 52.37]
+      to: Kingdom of Prussia
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: &annexed >-
+      After the Austro-Prussian War (14 June to 22 July 1866) Prussia annexed Hanover, Hesse-Kassel,
+      Nassau and Frankfurt, which Cliopatria leaves out from 1866; each joins Prussia in its shape
+      of 1865.
+    source: &annexed-source
+      title: Austro-Prussian War
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Austro-Prussian_War
+  - years: [1867, 1870]
+    pocket:
+      at: [9.79, 51.48]
+      to: Kingdom of Prussia
+      shape_from: {polity: Kingdom of Hanover, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1870]
+    pocket:
+      at: [9.68, 50.55]
+      to: Kingdom of Prussia
+      shape_from: {polity: Electorate of Hesse, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1870]
+    pocket:
+      at: [8.24, 50.08]
+      to: Kingdom of Prussia
+      shape_from: {polity: Duchy of Nassau, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1869]
+    pocket:
+      at: [8.27, 50.0]
+      to: Kingdom of Prussia
+      shape_from: {polity: Free City of Frankfurt, year: 1865}
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1867]
+    give:
+      polity: Electorate of Hesse
+      to: Kingdom of Prussia
+    why: *annexed
+    source: *annexed-source
+  - years: [1867, 1870]
+    pocket:
+      at: [10.13, 54.32]
+      to: Kingdom of Prussia
+    why: >-
+      Prussia held Schleswig and Holstein from the war of 1866, which ended in Austria's defeat, and
+      Wilhelm I annexed both by decree on 12 January 1867; they became the Province of
+      Schleswig-Holstein in 1868. Cliopatria draws neither from 1866.
+    source:
+      title: Province of Schleswig-Holstein
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Province_of_Schleswig-Holstein
+  - years: [1870, 1870]
+    pocket:
+      at: [4.87, 49.02]
+      to: Second French Empire
+      shape_from: {polity: Second French Empire, year: 1869}
+    why: >-
+      On 1 January 1870 the Second French Empire, which fell on 4 September 1870 after Sedan, held
+      all of north-eastern France. Cliopatria's row of 1870 leaves Champagne, Lorraine and Alsace
+      out, and they take its shape of 1869.
+    source:
+      title: Second French Empire
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Second_French_Empire
+  - years: [1870, 1870]
+    pocket:
+      at: [7.85, 49.45]
+      to: Kingdom of Bavaria
+      shape_from: {polity: Kingdom of Bavaria, year: 1869}
+    why: >-
+      The Palatinate west of the Rhine was Bavaria's from the Treaty of Munich of 1816 until 1947.
+      Cliopatria's Bavarian row of 1870 leaves it out, and it takes Bavaria's shape of 1869.
+    source:
+      title: Palatinate (region)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Palatinate_(region)
+  - years: [1877, 1879]
+    pocket:
+      at: [-103.3, 47.53]
+      to: United States of America
+    why: >-
+      Western North Dakota and eastern Montana, to the Canadian line, lay in Dakota Territory, which
+      had the present Dakotas' bounds by 1868, and in Montana Territory. Cliopatria's United States
+      leaves the land out until 1880.
+    source:
+      title: Dakota Territory
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Dakota_Territory
+  - years: [1877, 1884]
+    pocket:
+      at: [28.08, -29.6]
+      to: British Cape Colony
+    why: >-
+      Basutoland, British from 12 March 1868, was annexed to the Cape Colony by the Cape's Act of
+      1871 and ruled from the Cape until the Order in Council that took effect on 18 March 1884
+      returned it to the Crown. Cliopatria's Cape leaves it out.
+    source:
+      title: Basutoland
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Basutoland
+  - years: [1877, 1904]
+    pocket:
+      at: [-59.47, 3.68]
+      stateless: true
+    why: >-
+      The Pirara, between the Takutu, the Ireng and the Rupununi, was neutralized in 1842 when
+      Brazil proposed and Britain accepted that neither hold it until the dispute was settled, and
+      its peoples were independent; the King of Italy's award of 1904 divided it.
+    source:
+      title: Questão do Pirara
+      publisher: Wikipedia (Portuguese)
+      url: https://pt.wikipedia.org/wiki/Quest%C3%A3o_do_Pirara
+  - years: [1895, 1910]
+    pocket:
+      at: [19.67, -15.27]
+      to: Kingdom of Portugal
+    why: &angola >-
+      South-eastern Angola (Menongue, Cuito Cuanavale, Mavinga) lay on the Portuguese side of every
+      line of the period: the German-Portuguese declaration of 1886 in the south, the
+      Anglo-Portuguese modus vivendi of 1893 on the Zambezi and the Kabompo, and from 1905 the King
+      of Italy's award on the Kwando and 22°E, the hole's eastern edge. Cliopatria draws it
+      Portuguese from 1914.
+    source: &ibs119
+      title: 'International Boundary Study No. 119: Angola – Zambia Boundary'
+      publisher: Office of the Geographer, US Department of State
+      url: https://library.law.fsu.edu/Digital-Collections/LimitsinSeas/pdf/ibs119.pdf
+  - years: [1911, 1913]
+    pocket:
+      at: [19.67, -15.27]
+      to: Portuguese Republic
+    why: *angola
+    source: *ibs119
+  - years: [1900, 1904]
+    pocket:
+      at: [4.16, 10.35]
+      to: British Africa
+    why: >-
+      Borgu west of the Niger was divided between Britain and France in 1898, and the British half
+      became part of the Northern Nigeria Protectorate; Cliopatria's British Africa takes it in from
+      1905.
+    source:
+      title: Borgu
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Borgu
+  - years: [1900, 1904]
+    pocket:
+      at: [7.06, 7.54]
+      to: British Africa
+      shape_from: {polity: British Africa, year: 1905}
+    why: >-
+      The band from Lokoja on the Niger to southern Chad, which Cliopatria leaves empty until 1905
+      and then splits among the three colonies as the partition treaties drew them, takes that split
+      in 1900. Its western part, Nigeria's Middle Belt, came under the British government on 1
+      January 1900, when it revoked the Royal Niger Company's charter; Lokoja was the protectorate's
+      capital from 1900.
+    source:
+      title: Northern Nigeria Protectorate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Northern_Nigeria_Protectorate
+  - years: [1900, 1904]
+    pocket:
+      at: [14.16, 6.96]
+      to: German Africa
+      shape_from: {polity: German Africa, year: 1905}
+    why: >-
+      The middle of the band, the southern fringe of Adamawa, lay in Kamerun, whose line with the
+      French sphere France and Germany drew roughly in 1885 and more precisely in 1894. It takes
+      Cliopatria's German shape of 1905.
+    source:
+      title: Cameroon–Chad border
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Cameroon%E2%80%93Chad_border
+  - years: [1900, 1904]
+    pocket:
+      at: [18.09, 9.28]
+      to: French Africa
+      shape_from: {polity: French Africa, year: 1905}
+    why: >-
+      The east of the band, the Sara country of southern Chad (Moundou, Doba, Sarh), was France's:
+      Émile Gentil founded Fort Archambault, today's Sarh, on the Chari in 1897. It takes
+      Cliopatria's French shape of 1905.
+    source:
+      title: Sarh
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Sarh

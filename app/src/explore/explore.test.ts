@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
+import type { ClockBorders } from '../borders/clockBorders';
 import type { MeanwhileEvent } from '../events/meanwhile';
 import type { EventReply } from '../events/runtime';
 import type { MarkLayer, MarkSpec } from '../marks/marks';
@@ -219,7 +220,19 @@ function frameOver(lon: number, lat: number): FrameContext {
 const CANVAS = { canvas: true } as unknown as HTMLElement;
 const CHROME = [{ mark: true }, { knob: true }] as unknown as HTMLElement[];
 
-function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = null) {
+/** A stand-in for the look's border steps, and its calls. */
+function stepsRuntime() {
+  const loadPreviews = vi.fn();
+  const end = vi.fn();
+  const runtime = { update: vi.fn(), loadPreviews, end, shown: null } as unknown as ClockBorders;
+  return { runtime, loadPreviews, end };
+}
+
+function setup(
+  arrive: 'fly' | 'jump' = 'fly',
+  events: EventsSource | null = null,
+  borders: ClockBorders | null = null,
+) {
   Object.assign(drawn, {
     rulers: 0,
     disposed: 0,
@@ -248,6 +261,7 @@ function setup(arrive: 'fly' | 'jump' = 'fly', events: EventsSource | null = nul
     clock,
     events,
     opening: WATERLOO,
+    borders,
   });
   let now = 0;
   const tick = () => {
@@ -364,6 +378,28 @@ describe('Explore', () => {
     expect(window.__worldTime).toBeUndefined();
   });
 
+  it('draws the border steps with no plate, their previews loading once the dive lands', () => {
+    const steps = stepsRuntime();
+    const { control, mode, tick } = setup('fly', null, steps.runtime);
+    const layer = drawn.layers[0]!;
+    expect(layer.children).toEqual([{ ruler: true }]);
+    expect(window.__borders).toBeDefined();
+    tick();
+    expect(steps.loadPreviews).not.toHaveBeenCalled();
+    control.onInput();
+    expect(steps.loadPreviews).toHaveBeenCalledTimes(1);
+    mode.leave();
+    mode.end();
+    expect(steps.end).toHaveBeenCalledTimes(1);
+    expect(window.__borders).toBeUndefined();
+  });
+
+  it('loads the border previews at once on the dev page', () => {
+    const steps = stepsRuntime();
+    setup('jump', null, steps.runtime);
+    expect(steps.loadPreviews).toHaveBeenCalledTimes(1);
+  });
+
   it.each(['ruler', 'flight'] as const)(
     'leaves the page, the view control and the script hook alone when the %s fails',
     (part) => {
@@ -375,9 +411,19 @@ describe('Explore', () => {
       const append = vi.fn();
       const root = { append } as unknown as HTMLElement;
       const sound = { leave: vi.fn() } as unknown as WalkAudio;
+      const steps = stepsRuntime();
       expect(() =>
-        startExplore({ root, control, sound, arrive: 'fly', opening: WATERLOO }),
+        startExplore({
+          root,
+          control,
+          sound,
+          arrive: 'fly',
+          opening: WATERLOO,
+          borders: steps.runtime,
+        }),
       ).toThrow(part);
+      expect(steps.loadPreviews).not.toHaveBeenCalled();
+      expect(window.__borders).toBeUndefined();
       expect(append).not.toHaveBeenCalled();
       expect(drawn.rulers - drawn.disposed).toBe(0);
       expect(control.arrowKeys).toBe(false);

@@ -11,16 +11,22 @@
 // ?story=tambora|magellan walks the story instead of the presets, as the boot plays it. The panel hides
 // behind a small gear at the top right. window.__walk serves scripts (scripts/walkShots.ts).
 // Without a story the page starts in Explore (explore/explore.ts) where the view stands, its
-// crafted ruler driving world time from 10,000 BCE through 2000 CE, with the lobby, mark and sound
-// knob for the way back; window.__worldTime serves scripts/exploreClockShots.ts. A story's page
-// shows Explore's plaque in its lobby wherever the release names its event index, as the
-// production page does. ?memory=1 installs window.__wanderMemory() (perf/memoryHook.ts), and
-// ?opening=Q… opens Explore on that opening (explore/openings.ts), as on the production page.
+// crafted ruler driving world time from 10,000 BCE through 2000 CE and the border steps following
+// it, with the lobby, mark and sound knob for the way back; window.__worldTime serves
+// scripts/exploreClockShots.ts, and window.__borders scripts/bordersShots.ts and bordersVideos.ts.
+// On any page, window.__bordersTiming (bordersTiming.ts) times the borders on the GPU.
+// A story's page shows Explore's plaque in its lobby wherever the release names its event index,
+// as the production page does. ?memory=1 installs window.__wanderMemory() (perf/memoryHook.ts),
+// and ?opening=Q… opens Explore on that opening (explore/openings.ts), as on the production page.
 //
 // ?markDemo boots in Explore with its marks cut into the look and sets the demo's (markDemo.ts),
 // without the event index, so Explore's own event marks stay off; the panel gains a Marks folder,
 // and ?markVariant=0-3, ?marks=0 and the other marks params apply. The marks compile only where
 // Explore stands, so ?markDemo with ?story stops the page, naming the conflict.
+//
+// ?borderSteps=0 boots on the release without its border steps, as the published release stands
+// until publish-data's --border-steps: a walk draws milestone 1's 1815 field, and Explore no
+// borders (scripts/bordersVideos.ts).
 import type { Params } from '../../contract';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';
@@ -31,6 +37,7 @@ import type { LonLat } from '../../story/story';
 import type { ViewControl } from '../../view/viewControl';
 import type { ViewState } from '../../view/viewState';
 import { bootWalk, WORLD, type StoryParts, type WalkStats } from '../../walk/boot';
+import { serveBordersTiming } from './bordersTiming';
 import { startMarkDemo } from './markDemo';
 import { addParams, applyQuery, GUI, tuckAway } from './panel';
 
@@ -111,6 +118,7 @@ async function main(): Promise<void> {
   const release = (await response.json()) as Release;
   // The mark demo draws its marks alone: without the event index, Explore sets none beside them.
   if (query.has('markDemo')) delete release.events;
+  if (query.get('borderSteps') === '0') delete release.borderSteps;
 
   const asked = query.get('view') ?? 'world';
   let preset = asked in PRESETS ? asked : 'world';
@@ -181,6 +189,7 @@ async function main(): Promise<void> {
     settings,
   };
   if (source) serveWalk(() => page.story?.walk ?? null, ready);
+  serveBordersTiming(museum, look.material);
 
   const hud = document.getElementById('hud');
   if (hud && showUi) setInterval(() => (hud.textContent = describe(stats())), 250);

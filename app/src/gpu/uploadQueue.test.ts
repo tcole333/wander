@@ -121,3 +121,38 @@ test('cancel drops the rest of a tile', () => {
   expect(written).toEqual(['a#0']);
   expect(queue.pendingBytes).toBe(0);
 });
+
+describe('jobs queued behind the tiles (the border steps, 3.3)', () => {
+  test('run only once no tile has a part left, within the same budget', () => {
+    const queue = queueOn();
+    const written: string[] = [];
+    queue.enqueue(job('band', [10], written), true);
+    queue.enqueue(job('a', [10, 10], written));
+    queue.enqueue(job('b', [10], written));
+    expect(queue.run(25)).toMatchObject({ parts: 2, stoppedBy: 'budget' });
+    expect(queue.run(25)).toMatchObject({ parts: 2, stoppedBy: 'empty' });
+    expect(written).toEqual(['a#0', 'a#1', 'b#0', 'band#0']);
+  });
+
+  test('wait behind a tile queued after them', () => {
+    const queue = queueOn();
+    const written: string[] = [];
+    queue.enqueue(job('band', [10, 10], written), true);
+    queue.run(10);
+    queue.enqueue(job('a', [10], written));
+    queue.run(10);
+    queue.run(10);
+    expect(written).toEqual(['band#0', 'a#0', 'band#1']);
+  });
+
+  test('count apart from the tiles, in the pending bytes, and cancel as tiles do', () => {
+    const queue = queueOn();
+    const written: string[] = [];
+    queue.enqueue(job('band', [10, 10], written), true);
+    expect([queue.length, queue.behindLength, queue.pendingBytes, queue.retainedBytes]).toEqual([
+      0, 1, 20, 0,
+    ]);
+    queue.cancel('band');
+    expect([queue.behindLength, queue.run(100).stoppedBy]).toEqual([0, 'empty']);
+  });
+});

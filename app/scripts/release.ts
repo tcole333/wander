@@ -1,6 +1,7 @@
 // The release (streaming.md 3.8), merged from the stage records (7.2) of a profile's build as
 // `npm run publish-data` publishes it: the surface section from the coverage and surface records,
-// the modera and borders sections as their records have them, when the build has run those stages,
+// the modera section as its record has it, the borderSteps and borders sections from the borders
+// record, when the build has run those stages,
 // the events section from the event-files record less its `inputs`, once they show its overview
 // holds the committed openings (3.4), and the media section, every key the stories' committed
 // locks name (3.9). The local data server (dataServer.ts) serves a release of this shape for a
@@ -11,6 +12,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type {
+  BorderStepsRelease,
   BordersRelease,
   EventsRelease,
   FxRelease,
@@ -50,6 +52,33 @@ interface SurfaceRecord {
   maxLevel: number;
   avail: string;
   bounds: string;
+}
+
+/** A stateless place the history pass owes a cited verdict: where, how large and when. */
+export interface OwedPlace {
+  at: [number, number];
+  km2: number;
+  years: [number, number];
+}
+
+/**
+ * The borders stage's record (7.2): the steps' release section, the step each story's border beats
+ * draw and what the history pass still owes, and milestone 1's 1815 field as its `borders` section.
+ * The region profile bakes only the 1815 field and the fixture only the steps.
+ */
+export interface BordersRecord extends Partial<BordersRelease> {
+  steps?: BorderStepsRelease;
+  beats?: Record<string, Record<string, number>>;
+  /** Overlap pairs past duplicateShare that no `overlap` correction acknowledges. */
+  unacknowledged?: { polities: string[]; steps: number[] }[];
+  /** Composites and vassalage relations hierarchy.yaml does not class. */
+  unclassified?: { composites: string[]; relations: string[] };
+  /**
+   * Stateless holes of 10,000 km² or more no correction cites, with the states around them, and
+   * gaps of that size: land held on both sides of a stateless run of at most 25 years (3.3).
+   */
+  owed?: { holes: (OwedPlace & { states: string[] })[]; gaps: OwedPlace[] };
+  inputs?: { code: string; cliopatria: string };
 }
 
 export class ReleaseError extends Error {
@@ -132,26 +161,72 @@ export function eventsRelease(
   return events;
 }
 
+/** The borders stage's record in `stages`, when the build has one. */
+export function readBordersRecord(stages: string): BordersRecord | undefined {
+  return existsSync(join(stages, 'borders.json'))
+    ? readRecord<BordersRecord>(stages, 'borders')
+    : undefined;
+}
+
+/** The 1815 field's `borders` section, when the record holds one. */
+export function snapshotRelease(record: BordersRecord): BordersRelease | undefined {
+  const { ver, stems, years, files } = record;
+  if (ver === undefined || stems === undefined || years === undefined || files === undefined) {
+    return undefined;
+  }
+  return { ver, stems, years, files };
+}
+
+/**
+ * What the borders record still owes the history pass (streaming.md 3.3), which publish-data
+ * refuses to upload: each overlap pair no `overlap` correction acknowledges, each composite or
+ * vassalage relation hierarchy.yaml does not class, and each stateless hole and gap no correction
+ * gives a verdict (owner decision 38). Empty when it owes nothing.
+ */
+export function historyOwed(record: BordersRecord): string[] {
+  const pairs = (record.unacknowledged ?? []).map(
+    ({ polities, steps }) => `overlap of ${polities.join(' and ')} (${steps.join(', ')})`,
+  );
+  const { composites = [], relations = [] } = record.unclassified ?? {};
+  const unclassed = [...composites, ...relations].map((name) => `unclassified ${name}`);
+  const place = ({ at, km2, years }: OwedPlace) =>
+    `${km2.toLocaleString('en')} km² at ${at[0]}, ${at[1]} in ${years[0]}-${years[1]}`;
+  const holes = (record.owed?.holes ?? []).map(
+    (hole) => `stateless hole of ${place(hole)} (${hole.states.join(', ')})`,
+  );
+  const gaps = (record.owed?.gaps ?? []).map((gap) => `stateless gap of ${place(gap)}`);
+  return [...pairs, ...unclassed, ...holes, ...gaps];
+}
+
 /**
  * The release for the build whose stage records are in `stages`, served from `dataHost`. Its id
  * follows 3.8, the first 16 hex digits of the sha256 of its JSON without the id, and `built` is
  * when the surface record was written, so the same build and locks always give the same release.
- * The modera and borders records are 3.8's sections as is (7.2), so each goes in unchanged when the
- * build has one; the event-files record goes in without its `inputs` (`eventsRelease`).
+ * The modera record is 3.8's section as is (7.2), so it goes in unchanged when the build has one;
+ * the borders record gives the borderSteps section as its `steps` and the borders section as the
+ * 1815 field's fields; the event-files record goes in without its `inputs` (`eventsRelease`).
+ * `borderSteps: false` leaves the steps out, as publish-data does until their first publish.
  */
-export function localRelease(stages: string, dataHost: string, lock = OPENINGS_LOCK): Release {
+export function localRelease(
+  stages: string,
+  dataHost: string,
+  lock = OPENINGS_LOCK,
+  { borderSteps = true }: { borderSteps?: boolean } = {},
+): Release {
   const coverage = readRecord<CoverageRecord>(stages, 'coverage');
   const surface = readRecord<SurfaceRecord>(stages, 'surface');
   const built = statSync(join(stages, 'surface.json')).mtime.toISOString();
   const optional = <T>(stage: string): T | undefined =>
     existsSync(join(stages, `${stage}.json`)) ? readRecord<T>(stages, stage) : undefined;
   const eventFiles = optional<EventFilesRecord>('event-files');
+  const borders = readBordersRecord(stages);
   const body = {
     built,
     dataHost,
     surface: surfaceRelease(coverage, surface),
     modera: optional<ModeraRelease>('modera'),
-    borders: optional<BordersRelease>('borders'),
+    borders: borders && snapshotRelease(borders),
+    borderSteps: borderSteps ? borders?.steps : undefined,
     fx: optional<FxRelease>('fx'),
     events: eventFiles ? eventsRelease(eventFiles, stages, lock) : undefined,
     media: mediaRelease(),

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { FxRelease, Release } from '../src/data/release';
-import { noticeTag, plan, releaseSections } from './publish';
+import { noticeTag, plan, refuseOwedBorders, releaseSections } from './publish';
 import type { R2Bucket } from './r2';
 
 // Bits 0-6: the six L0 nodes and L1 node 6 (face 0, x 0, y 0).
@@ -30,6 +30,11 @@ const FILES: Record<string, number> = {
   'ev/eeee1111/overview.wev': 70,
   'ev/eeee1111/all.wev': 90,
   'ev/olderver/all.wev': 200,
+  'fd/borders/s/aaaa000000000001.bin': 500,
+  'fd/borders/s/aaaa000000000002.bin': 510,
+  'fd/borders/p/bbbb000000000001.bin': 90,
+  'fd/borders/m/cccc000000000001.json': 30,
+  'lic/dddd000000000001.txt': 25,
 };
 const MODERA = {
   ver: 'cccc3333',
@@ -51,6 +56,17 @@ const BORDERS = {
       source: 'lic/5555666677778888.geojson',
     },
   },
+};
+const STEPS = {
+  ver: 'ffff6666',
+  size: 1024,
+  apron: 4,
+  years: [1815, 1830],
+  keys: ['fd/borders/s/aaaa000000000001.bin', 'fd/borders/s/aaaa000000000002.bin'],
+  bytes: [500, 510],
+  previews: { per: 16, keys: ['fd/borders/p/bbbb000000000001.bin'], bytes: [90] },
+  polities: 'fd/borders/m/cccc000000000001.json',
+  notice: 'lic/dddd000000000001.txt',
 };
 const IMAGES = ['img/cccc3333cccc3333-1024.jpg', 'img/cccc3333cccc3333-256.jpg'];
 
@@ -161,6 +177,39 @@ describe('releaseSections', () => {
     ]);
   });
 
+  test('names the border steps, their chunks and polities, and every notice under one lic/', () => {
+    const sections = releaseSections(
+      { ...release(SEVEN), borders: BORDERS, borderSteps: STEPS },
+      root,
+    );
+    const listed = Object.fromEntries(
+      sections.map(({ prefix, objects }) => [prefix, objects.map(({ key, size }) => [key, size])]),
+    );
+    expect(listed['fd/borders/s/']).toEqual([
+      ['fd/borders/s/aaaa000000000001.bin', 500],
+      ['fd/borders/s/aaaa000000000002.bin', 510],
+    ]);
+    expect(listed['fd/borders/p/']).toEqual([['fd/borders/p/bbbb000000000001.bin', 90]]);
+    expect(listed['fd/borders/m/']).toEqual([['fd/borders/m/cccc000000000001.json', 30]]);
+    expect(listed['lic/']).toEqual([
+      ['lic/1111222233334444.txt', 20],
+      ['lic/5555666677778888.geojson', 900],
+      ['lic/dddd000000000001.txt', 25],
+    ]);
+    expect(sections.filter(({ prefix }) => prefix === 'lic/')).toHaveLength(1);
+  });
+
+  test('refuses a border step or chunk of another size than the section gives', () => {
+    const step = { ...STEPS, bytes: [500, 511] };
+    expect(() => releaseSections({ ...release(SEVEN), borderSteps: step }, root)).toThrow(
+      /510 B, not the record's 511 B/,
+    );
+    const chunk = { ...STEPS, previews: { ...STEPS.previews, bytes: [91] } };
+    expect(() => releaseSections({ ...release(SEVEN), borderSteps: chunk }, root)).toThrow(
+      /90 B, not/,
+    );
+  });
+
   test("names the stories' images under img/, with their sizes", () => {
     const [, media] = releaseSections(release(SEVEN), root);
     expect(media?.prefix).toBe('img/');
@@ -202,5 +251,54 @@ describe('noticeTag', () => {
   test('names none once R2 holds the notice', async () => {
     const held = { 'lic/1111222233334444.txt': 20 };
     expect(noticeTag(withBorders, await missing(held))).toBeNull();
+  });
+});
+
+describe('refuseOwedBorders', () => {
+  const withSteps = { ...release(SEVEN), borderSteps: STEPS };
+  const stages = (record: object) => {
+    const folder = mkdtempSync(join(tmpdir(), 'wander-owed-'));
+    writeFileSync(join(folder, 'borders.json'), JSON.stringify({ steps: STEPS, ...record }));
+    return folder;
+  };
+  const settled = { unacknowledged: [], unclassified: { composites: [], relations: [] } };
+
+  test('stops a build whose steps hold an overlap pair no correction acknowledges', () => {
+    const pair = {
+      polities: ['British Cape Colony', 'Napoleonic Batavia Republic'],
+      steps: [1815],
+    };
+    const folder = stages({ ...settled, unacknowledged: [pair] });
+    expect(() => refuseOwedBorders(folder, withSteps)).toThrow(
+      /owe the history pass 1 entries \(overlap of British Cape Colony and Napoleonic Batavia/,
+    );
+    rmSync(folder, { recursive: true, force: true });
+  });
+
+  test('stops a build whose steps hold a composite hierarchy.yaml does not class', () => {
+    const folder = stages({
+      ...settled,
+      unclassified: { composites: ['(Empire)'], relations: [] },
+    });
+    expect(() => refuseOwedBorders(folder, withSteps)).toThrow(/unclassified \(Empire\)/);
+    rmSync(folder, { recursive: true, force: true });
+  });
+
+  test('stops a build whose steps hold a stateless gap no correction gives a verdict', () => {
+    const gap = { at: [13.9, 52.5], km2: 336877, years: [1866, 1870] };
+    const folder = stages({ ...settled, owed: { holes: [], gaps: [gap] } });
+    expect(() => refuseOwedBorders(folder, withSteps)).toThrow(
+      /stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870\).*cite each stateless hole and gap/,
+    );
+    rmSync(folder, { recursive: true, force: true });
+  });
+
+  test('lets a settled build, or one without steps, go on', () => {
+    const folder = stages(settled);
+    expect(() => refuseOwedBorders(folder, withSteps)).not.toThrow();
+    const owing = stages({ ...settled, unclassified: { composites: ['(Empire)'], relations: [] } });
+    expect(() => refuseOwedBorders(owing, release(SEVEN))).not.toThrow();
+    rmSync(folder, { recursive: true, force: true });
+    rmSync(owing, { recursive: true, force: true });
   });
 });

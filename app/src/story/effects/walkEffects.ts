@@ -11,6 +11,7 @@
 // globeMount (the globe frame, radius 1).
 import { Group, Vector3 } from 'three';
 import { ashUniformsOf } from '../../look/ashHook';
+import { clockBordersOf } from '../../borders/clockBorders';
 import { borderUniformsOf } from '../../look/bordersHook';
 import { climateUniformsOf } from '../../look/climateHook';
 import { climateFieldOf } from '../../climate/field';
@@ -19,7 +20,7 @@ import type { Params } from '../../contract';
 import type { CreateWalkEffects, WalkState } from '../contract';
 import { dayFromIso } from '../dates';
 import type { LonLat, Story, StoryBeat } from '../story';
-import { WalkBorders } from './borders';
+import { StepBorders, WalkBorders } from './borders';
 import { Callouts } from './callouts';
 import { StoryClimate } from './climate';
 import { Ember } from './ember';
@@ -93,7 +94,11 @@ export const createWalkEffects: CreateWalkEffects = (
   const callouts = new Callouts(labelRoot);
   const ash = ashUniformsOf(look.material);
   const climate = new StoryClimate(story, source, climateFieldOf(climateUniformsOf(look.material)));
-  const borders = new WalkBorders(story, source, borderUniformsOf(look.material));
+  // Where the release names the border steps the look holds them, and the walk draws its beats'.
+  const steps = clockBordersOf(look.material);
+  const borders = steps
+    ? new StepBorders(story, steps)
+    : new WalkBorders(story, source, borderUniformsOf(look.material));
   const routes = new WalkRoutes(
     story,
     source,

@@ -25,8 +25,10 @@ lobby's last plaque, All of History, dives into Explore wherever the release nam
 index, with the free clock over all of history, the now window's events as marks whose plates
 come on hover and pin on a click, the opening's line pinned at the landing, a live Meanwhile, the
 climate at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in
-it. The bundled release names no event index until the event files are published, so until then
-the live lobby shows the stories' plaques alone.
+it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 524 steps (#80), draw in
+Explore and on the walks' border beats wherever the release names the border steps; the bundled
+release names none until `npm run publish-data -- --border-steps`, so until then the walks draw the
+1815 field and Explore no borders.
 
 ## Layout
 
@@ -65,24 +67,25 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   by owner (`app/src/perf/memoryHook.ts`), which E3's leak check records beside Chromium's dump,
   and `?opening=Q…` makes Explore's dive open on that opening (`app/src/explore/openings.ts`).
 - `npm run lint`: ESLint and Prettier. `npm run format` rewrites formatting.
-- `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs
-  uv) into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for
-  1815-1817 and the scored events of those years, from real excerpts. Meanwhile waits for a
-  fixture story and lock of its own, and borders stay synthetic. Vitest checks against it and fails,
+- `npm run fixture`: the Python fixture build (`uv run prebuild --profile fixture`, so it needs uv)
+  into `build/fixture/` and `build/stages/fixture/`: the surface, ModE-RA over Europe for 1815-1817,
+  the scored events of those years and the border steps of 1815 and 1830, from real excerpts.
+  Meanwhile waits for a fixture story and lock of its own. Vitest checks against it and fails,
   naming this command, when it is missing or was built from other inputs than the working tree
   holds: pipeline code, shared constants, excerpts, stories, Explore's openings, source pins or
   Python version (`FIXTURE_PATHS` in `pipeline/src/prebuild/hashing.py`). Off CI every build goes
   into the fixture store, `~/.cache/wander/fixture/<inputs>/`, which any checkout with the same
-  inputs restores in about a second; `npm run fixture -- --rebuild` builds anyway and replaces
-  the stored copy.
+  inputs restores in about a second; `npm run fixture -- --rebuild` builds anyway and replaces the
+  stored copy.
 - `npm run data -- --profile fixture|region|global`: serves `build/fixture/` on :8791,
   `build/region/` on :8792 or `build/out/` on :8793 with R2's headers, plus the build's release at
   `/release.json` (`docs/design/streaming.md` 7.3).
 - `npm run check-release`: HEADs the bundled release's `rel/<id>.json` on the data host, then GETs
-  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, each
-  story's first image and, when the release names the event files, their overview, and checks R2's
-  headers. CI runs it as its own job, which the Pages deploy waits for; it fails, naming
-  `npm run publish-data`, until the release's data is uploaded.
+  its `bounds.bin`, L0 tiles, the climate years the walk starts with, the 1815 border field, with
+  border steps the step holding 1815, its preview chunk and the notice, each story's first image
+  and, when the release names the event files, their overview, and checks R2's headers. CI runs
+  it as its own job, which the Pages deploy waits for; it fails, naming `npm run publish-data`,
+  until the release's data is uploaded.
 - `npm test`: Vitest. `npm run build`: type-check and build `app/dist/`.
 - `npm run check [-- --base <rev>]`: the inner loop while working, scoped to what the branch
   changes since it left origin/main (or since `<rev>`): Prettier and ESLint on the changed app
@@ -121,6 +124,13 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   the Vite dev server and a data server up: every beat, flights, scrubs and a break-out, and the
   lobby's opening, dive and Credits panel (with a video), on this Mac's GPU at 1440x900, with any
   console errors. Each file's header gives its flags.
+- `node scripts/bordersShots.ts --url <dev server> --data <global data server>`: the border steps'
+  still renders (#80) on this Mac's GPU, the dev page's Explore drawing the world clock's step, and
+  their contact sheets, into `build/borders/renders/`; `--view` adds a view.
+- `node scripts/bordersVideos.ts --url <dev server> --data <global data server>`: Explore's border
+  scrub videos (3400 BCE to 2000 at world view, 1900 to 1950 over Europe) on this Mac's GPU, with
+  ffmpeg, into `build/borders/videos/`, measuring the borders' CPU bytes, frames, long tasks and GPU
+  time as they run, and the Tambora walk's on the steps and on the 1815 field.
 - `node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results`: E3,
   milestone 1's acceptance, against the live site in headless Chromium on Metal: cold loads at
   25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
@@ -131,12 +141,15 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
 - `uv run prebuild [--profile global|region|fixture] [--jobs N] [stage …]`: the prebuild
   (`docs/design/streaming.md` 7.1). A bare run builds the global profile into `build/out/`, taking
   every stage in order except `wikidata`, `excerpts`, `openings`, `media` and `meanwhile`; the
-  fixture profile also skips `fetch` and `borders` (its tests draw synthetic snapshots, since the
-  GPL source is never committed). It keeps `meanwhile` and `openings` disabled so it cannot
-  rewrite their locks.
+  fixture profile also skips `fetch`. It keeps `meanwhile` and `openings` disabled so it cannot
+  rewrite their locks. `uv run prebuild borders` bakes the border steps from Cliopatria, one for
+  each of 529 change years, 524 once those equal to the step before are dropped (about 41 minutes
+  with 8 workers when every step's key changes; a rerun bakes only the steps whose inputs changed,
+  taking the rest from `build/cache/borders/`), then milestone 1's 1815 field; the fixture bakes
+  its two steps and no 1815 field, whose GPL source is never committed.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
   2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile, and
-  30 s for `borders`, the whole 1815 field).
+  30 s for `borders`, the whole 1815 field and no steps).
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
@@ -159,18 +172,32 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   stops, naming it, until the lock matches the global table, and the release stops, naming
   `event-files`, until that record holds the committed lock: after any change to the table, run
   `openings`, then `event-files`, and commit the lock.
-- `npm run verify:bake -- [region|global]`: decodes every tile of `build/region/` (the default)
-  or `build/out/`, reading `build/stages/<profile>/`, and checks its seams, headers, `bounds.bin`,
-  availability and known places (`docs/design/streaming.md` 7.3). Local only, since building the
-  bake needs the raw data; verification reads it without rebuilding. It fails, naming the command,
-  when the bake is missing or was built from other pipeline code, configs or pinned sources.
-- `npm run publish-data -- [--profile global|region] [--dry-run]`: uploads the keys the build's
-  release names that R2 lacks, canary first and never overwriting a key, then writes
-  `app/src/generated/release.json` (commit it) and `rel/<id>.json` (`docs/design/streaming.md`
-  4.3). `--dry-run` lists R2 and reports what it would upload. Local only; the fixture is never
-  published. When the borders' `ver` is new, tag the commit that built them `borders-<ver>` and
-  push the tag first: their GPL notice links the build scripts there, and the run stops, naming
-  the commands, until origin holds it.
+- `uv run python -m prebuild.cliopatria [--profile global|fixture] [--jobs N]`: selects every
+  border step from Cliopatria, under `pipeline/config/borders/`, without baking, and writes the
+  review queue `build/stages/<profile>/borders-review.json` for the history pass
+  (`docs/design/streaming.md` 3.3, 7.2); it exits 1 when a step fails or a correction leaves a
+  step unchanged.
+- `npm run verify:bake -- [region|global] [surface|borders]`: decodes every tile of
+  `build/region/` (the default) or `build/out/`, reading `build/stages/<profile>/`, and checks its
+  seams, headers, `bounds.bin`, availability and known places; for global, also every border step
+  and preview chunk, against the lakes' shores, the previews' signs and Cliopatria's leaf counts
+  (`docs/design/streaming.md` 7.3). A second argument runs one part's checks. Local only, since
+  building the bake needs the raw data; verification reads it without rebuilding. It fails, naming
+  the command, when the bake is missing or was built from other pipeline code, configs or pinned
+  sources.
+- `npm run publish-data -- [--profile global|region] [--dry-run] [--border-steps]`: uploads the
+  keys the build's release names that R2 lacks, canary first and never overwriting a key, then
+  writes `app/src/generated/release.json` (commit it) and `rel/<id>.json`
+  (`docs/design/streaming.md` 4.3). `--dry-run` lists R2 and reports what it would upload. Local
+  only; the fixture is never published. The border steps stay out of the release until
+  `--border-steps` publishes them (about 270 MB): with them Explore draws the borders through time
+  and the story walks their beats' steps, and without them the walks draw the 1815 field. With it,
+  the run stops, before reading R2, while the steps owe the history pass an overlap
+  acknowledgement, a hierarchy class or a cited verdict on a stateless hole or gap (the borders
+  record's `owed`); the first such publish also waits on #80's task 9, the lobby's preload of the
+  walk's first border step. When the 1815 field's `ver` is new, tag the commit that
+  built it `borders-<ver>` and push the tag first: its GPL notice links the build scripts there,
+  and the run stops, naming the commands, until origin holds it.
 - `uv run prebuild wikidata` exports the event index's classes
   (`pipeline/config/event-classes.yaml`) from QLever's public Wikidata endpoint into
   `sources/wikidata-events-<date>/` in the raw-data folder, one class at a time, and appends its
