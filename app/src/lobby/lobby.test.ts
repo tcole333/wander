@@ -69,9 +69,15 @@ vi.mock('../story/ui/rulerCraft', () => ({
     dispose() {}
   },
 }));
+vi.mock('../explore/timeKeys', () => ({
+  bindTimeKeys(_time: unknown, _ruler: unknown, control: { arrowKeys: boolean }) {
+    control.arrowKeys = false;
+    return { globe: {}, caption: {}, dispose() {} };
+  },
+}));
 vi.mock('../explore/timeRuler', () => ({
   TimeRuler: class {
-    element = {};
+    element = { after() {} };
     panels = [];
     pin = null;
     unit = 'year';
@@ -319,7 +325,8 @@ describe('the lobby round trip', () => {
       const home = { ...s.control.current };
       drawn.choose('explore');
       expect(s.host.dataset.lobby).toBe('diving');
-      expect(s.control.arrowKeys).toBe(true);
+      // In Explore the arrow keys move time; the globe takes them from its own stop.
+      expect(s.control.arrowKeys).toBe(false);
       s.until(() => s.host.dataset.lobby === 'gone');
       expect(s.control.current.lon).toBeCloseTo(WATERLOO.at[0], 6);
       expect(window.__worldTime?.state().day).toBe(WATERLOO.day);
@@ -327,6 +334,7 @@ describe('the lobby round trip', () => {
       expect(s.host.dataset.lobby).toBe('returning');
       s.until(() => s.host.dataset.lobby === 'idle');
       expect(s.control.current).toEqual(home);
+      expect(s.control.arrowKeys).toBe(true);
       expect(s.classes.size).toBe(0);
       expect(window.__worldTime).toBeUndefined();
     }
