@@ -1,7 +1,7 @@
 # Corrections to Cliopatria for the borders, each in the file of the era it starts in, here from
 # 1500 to 1799 (streaming.md 3.3). A step shows the state of 1 January of its year, so a correction
 # covers the years whose 1 January falls in its dates.
-modified: 2026-09-30
+modified: 2026-10-01
 corrections:
   - years: [1572, 1587]
     overlap:
@@ -171,3 +171,259 @@ corrections:
       title: Ceded and Conquered Provinces
       publisher: Wikipedia
       url: https://en.wikipedia.org/wiki/Ceded_and_Conquered_Provinces
+  # The holes and gaps the bake owed, each settled by a verdict checked against its source
+  # (owner decision 38): a gap's land as the state that held it, drawn inside the shapes of
+  # the polities that held it on both sides of the run where those bound it.
+  - years: [1502, 1506]
+    pocket:
+      at: [36.75, 53.75]
+      to: Grand Principality of Moscow
+      shape_from: {polity: Golden Horde, year: 1497}
+      within: {polity: Grand Principality of Moscow, year: 1507}
+    why: >-
+      The Tula land and the upper Oka principalities (Odoyev, Belyov, Novosil) were Moscow's: the
+      treaty of 1494 made Lithuania recognise the upper Oka princes as Moscow's, Kashira and Aleksin
+      had long been Muscovite, and Tula was Muscovite by 1503 at the latest.
+    source:
+      title: Upper Oka Principalities
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Upper_Oka_Principalities
+  - years: [1519, 1525]
+    pocket:
+      at: [80.25, 26.25]
+      to: Lodi Dynasty
+      shape_from: {polity: Lodi Dynasty, year: 1516}
+      within: {polity: Mughal Empire, year: 1529}
+    why: >-
+      Central and eastern Uttar Pradesh (Kanauj, Kalpi, Lucknow, Jaunpur, Varanasi) was the Lodis',
+      whose rule under Sikandar reached from the Punjab to Saran and Champaran.
+    source:
+      title: Unit 5, Early Mughals and Afghans
+      publisher: IGNOU (eGyanKosh)
+      url: https://egyankosh.ac.in/bitstream/123456789/68909/3/Unit-5.pdf
+  - years: [1529, 1533]
+    pocket:
+      at: [84.25, 26.25]
+      to: Sultanate of Bengal
+      shape_from: {polity: Lodi Dynasty, year: 1516}
+      within: {polity: Sur Empire, year: 1540}
+    why: >-
+      On 1 January 1529 the borderland west of the Gandak (Deoria, Siwan, Gopalganj) was Bengal's:
+      Nasrat Shah annexed the land up to the Tons soon after 1522, and Babur beat Bengal's army on
+      the Ghaghra only in May 1529.
+    source:
+      title: Nasiruddin Nasrat Shah
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Nasiruddin_Nasrat_Shah
+  - years: [1552, 1555]
+    pocket:
+      at: [76.75, 23.75]
+      to: Sur Empire
+      shape_from: {polity: Sur Empire, year: 1547}
+      within: {polity: Mughal Empire, year: 1564}
+    why: >-
+      North-eastern Malwa (Sarangpur, Bhopal, Raisen, Vidisha) was governed for the Sur Empire by
+      Shuja'at Khan, whose son Baz Bahadur succeeded him as Sultan of Malwa in 1555.
+    source:
+      title: Baz Bahadur
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Baz_Bahadur
+  - years: [1564, 1578]
+    pocket:
+      at: [71.75, 28.25]
+      to: Mughal Empire
+      shape_from: {polity: Sur Empire, year: 1552}
+      within: {polity: Mughal Empire, year: 1579}
+    why: >-
+      South-western Punjab (Multan, Uch, Bahawalpur, Pakpattan) was Mughal from 1557, when Bairam
+      Khan's army took Multan; Akbar made it a subah in 1580.
+    source:
+      title: Multan
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Multan
+  - years: [1640, 1652]
+    pocket:
+      at: [-4.75, 56.75]
+      to: Kingdom of Scotland
+      shape_from: {polity: Kingdom of England, year: 1636}
+      within: {polity: Commonwealth of England, year: 1653}
+    why: >-
+      Mainland Scotland and the central Highlands were the Kingdom of Scotland's under its
+      Covenanter governments from 1638, which proclaimed Charles II in 1649, until the English
+      victories at Dunbar (1650) and Worcester (September 1651) and the Tender of Union, proclaimed
+      in Scotland in February 1652. Cliopatria folds Scotland into England in 1609-1639 and then
+      leaves it empty.
+    source:
+      title: Scotland under the Commonwealth
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Scotland_under_the_Commonwealth
+  - years: [1653, 1661]
+    pocket:
+      at: [30.75, 48.25]
+      to: Zaporozhian Cossacks
+      shape_from: {polity: Polish-Lithuanian Commonwealth, year: 1648}
+      within: {polity: Zaporozhian Cossacks, year: 1662}
+    why: >-
+      The right-bank steppe south of Chyhyryn was the Cossack Hetmanate's, recognised at Zboriv in
+      1649 and self-governing under the tsar after Pereiaslav (1654); Cliopatria's Zaporozhian
+      Cossacks row, its row for the Hetmanate, takes it from 1662.
+    source:
+      title: Cossack Hetmanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Cossack_Hetmanate
+  - years: [1653, 1661]
+    pocket:
+      at: [32.75, 49.75]
+      to: Zaporozhian Cossacks
+      shape_from: {polity: Polish-Lithuanian Commonwealth, year: 1648}
+      within: {polity: Tsardom of Russia, year: 1662}
+    why: >-
+      The left-bank core of the Hetmanate (the Lubny, Myrhorod and Pyriatyn regiments) was the
+      hetman's state from 1649, self-governing under the tsar after 1654, until Andrusovo split the
+      banks in 1667.
+    source:
+      title: Cossack Hetmanate
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Cossack_Hetmanate
+  - years: [1687, 1690]
+    pocket:
+      at: [79.75, 16.25]
+      to: Golconda Sultanate
+      shape_from: {polity: Golconda Sultanate, year: 1683}
+      within: {polity: Mughal Empire, year: 1691}
+    why: >-
+      On 1 January 1687 the Qutb Shahi heartland (Nalgonda, Guntur, the Krishna-Godavari delta) was
+      still the Golconda Sultanate's: Aurangzeb besieged Golconda from January and took it in
+      September 1687.
+    source:
+      title: Siege of Golconda
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Siege_of_Golconda
+  - years: [1687, 1705]
+    pocket:
+      at: [92.25, 52.75]
+      to: Dzungar Khanate
+      shape_from: {polity: Golden Horde, year: 1683}
+      within: {polity: Tsardom of Russia, year: 1706}
+    why: >-
+      The Minusinsk basin and Khakassia, the Yenisei Kyrgyz land, was under the Dzungars: the Kyrgyz
+      princes became their vassals, a Dzungar viceroy lived among them, and in 1703 the Dzungars
+      removed most of the Kyrgyz to Dzungaria; the Russians built Abakan fort only in 1707.
+    source:
+      title: Присоединение Хакасии к России
+      publisher: Wikipedia (Russian)
+      url: https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%B8%D1%81%D0%BE%D0%B5%D0%B4%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5_%D0%A5%D0%B0%D0%BA%D0%B0%D1%81%D0%B8%D0%B8_%D0%BA_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8
+  - years: [1721, 1756]
+    pocket:
+      at: [86.96, 50.75]
+      to: Dzungar Khanate
+    why: >-
+      The Altai mountains (Gorno-Altaisk, Ongudai, Kosh-Agach) were the Dzungar Khanate's until its
+      fall; the territory's history runs from the Zunghar Khanate to the Qing in 1757.
+    source:
+      title: Altai Republic
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Altai_Republic
+  - years: [1744, 1751]
+    pocket:
+      at: [69.11, 54.38]
+      to: Kazakh Khanate
+    why: >-
+      The strip from the Tobol to the Irtysh (Petropavlovsk, Mamlyutka) was Middle Zhuz pasture
+      until Russia fortified the Ishim line, ordered on 25 February 1752; Cliopatria's Russian row
+      covers it from 1752.
+    source:
+      title: Petropavl
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Petropavl
+  - years: [1744, 1756]
+    pocket:
+      at: [70.25, 21.25]
+      to: Mughal Empire
+      shape_from: {polity: Mughal Empire, year: 1741}
+      within: {polity: Maratha Empire, year: 1757}
+    why: >-
+      Western Kathiawar (Jamnagar, Porbandar, Veraval) paid tribute to the Mughal viceroys of
+      Gujarat, who in 1751 still collected a contribution from the Jam of Nawanagar; the Marathas
+      took Ahmedabad only on 2 April 1753.
+    source:
+      title: Gujarat under Ahmad Shah Bahadur
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Gujarat_under_Ahmad_Shah_Bahadur
+  - years: [1748, 1751]
+    pocket:
+      at: [79.75, 26.25]
+      to: Mughal Empire
+      shape_from: {polity: Mughal Empire, year: 1741}
+      within: {polity: Maratha Empire, year: 1762}
+    why: >-
+      On 1 January 1748 the lower Doab (Kanpur, Kora, Fatehpur) was still the Mughal emperor's:
+      Safdar Jang gained the subah of Allahabad only later in 1748.
+    source:
+      title: Oudh State
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Oudh_State
+  - years: [1758, 1761]
+    pocket:
+      at: [76.31, 17.64]
+      to: Hyderabad State
+    why: >-
+      Aurangabad, Beed, Latur, Solapur and Bijapur were the Nizam's, whose capital was still
+      Aurangabad, from 1724 until his defeat at Udgir in February 1760, after which he ceded
+      Bijapur, Ahmadnagar and Daulatabad to the Peshwa.
+    source:
+      title: Bijapur district, Karnataka
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Bijapur_district,_Karnataka
+  - years: [1769, 1777]
+    pocket:
+      at: [-68.55, -6.97]
+      stateless: true
+    why: >-
+      The interior of western Amazonia south of the Solimões (the Javari, Juruá and Purus basins)
+      had no state: Panoan peoples lived in the upper Purus and Juruá, and until the mid-19th
+      century there was little effort to settle the area. A few Portuguese river posts on the
+      Solimões at its north edge stay with it.
+    source:
+      title: Acre (state)
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Acre_(state)
+  - years: [1775, 1775]
+    pocket:
+      at: [-79.75, 36.75]
+      to: British Colonial Empire
+      shape_from: {polity: British Colonial Empire, year: 1772}
+      within: {polity: United States of America, year: 1776}
+    why: >-
+      On 1 January 1775 the Thirteen Colonies from Georgia to Maine were still British: the war
+      began at Lexington and Concord in April 1775, and independence was declared in 1776.
+    source:
+      title: Thirteen Colonies
+      publisher: Wikipedia
+      url: https://en.wikipedia.org/wiki/Thirteen_Colonies
+  - years: [1794, 1804]
+    pocket:
+      at: [41.32, 30.53]
+      to: Emirate of Diriyah
+      shape_from: {polity: Emirate of Diriyah, year: 1805}
+    why: >-
+      The Nafud, al-Jawf and the desert toward the Euphrates were the First Saudi State's: taking in
+      Ha'il led to its control of Taima and Dumat al-Jandal, and it extended its influence to
+      south-western Iraq. Its own shape of 1805 is drawn; the land outside it is the Hamad.
+    source:
+      title: First Saudi State
+      publisher: Saudipedia
+      url: https://saudipedia.com/en/article/651/history/the-first-saudi-state/first-saudi-state
+  - years: [1794, 1804]
+    pocket:
+      at: [40.94, 32.5]
+      stateless: true
+    why: >-
+      The Hamad, the Syrian Desert west of the Euphrates, stayed stateless: its camel tribes did not
+      see themselves as the Sultan's subjects, paid no taxes and were regarded as free, as in
+      1805-1819.
+    source:
+      title: 'The Bedouin in Contemporary Syria: The Persistence of Tribal Authority and Control'
+      publisher: Middle East Journal
+      url: https://www.ou.edu/mideast/Additional%20pages%20-%20non-catagory/Chatty_Tribes_of_Syria_2010_MEJpdf.pdf
+      locator: vol. 64, no. 1 (2010), pp. 30-31
