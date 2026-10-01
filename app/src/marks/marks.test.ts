@@ -7,12 +7,15 @@ import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
 import type { ClearanceField } from '../globe/clearance';
 import { dirOf, EARTH_M } from '../story/effects/geo';
+import { lonLatToDir } from '../surface/cube';
 import type { LonLat } from '../story/story';
 import { FAMILIES, FAMILY_VEC4S } from './families';
 import {
   FAMILY_STEP,
   FLAG,
+  HEIGHT_LEVELS,
   MARK_ROW,
+  MARK_TEXELS,
   SLOT_ROW,
   SLOTS_MAX,
   TABLE_WIDTH,
@@ -20,10 +23,14 @@ import {
 } from './marks.glsl';
 import {
   binDiscs,
+  FAN_APART,
+  fanOffsets,
+  type FanMark,
   limbFade,
   MarkLayer,
   markPx,
   RING_MAX_RAD,
+  type MarkSpan,
   type MarkSpec,
   type MarkView,
 } from './marks';
@@ -46,6 +53,7 @@ function over([lon, lat]: LonLat, altitude: number): MarkView {
     toView: new Matrix3(),
     lamp: new Vector3(-4.2, 5.2, 9.5),
     kLand: 0,
+    kSea: 0,
   };
 }
 
@@ -60,19 +68,20 @@ const mark = (id: string, at: LonLat, extra: Partial<MarkSpec> = {}): MarkSpec =
 });
 
 describe('markPx', () => {
-  it('is 12 px at 12,000 km wide and wider, 16 at 3,000 and 20 at 300 and closer', () => {
-    const px = [30, 300, 3000, 12_000, 40_000].map((km) => markPx(km, 2));
-    expect(px).toEqual([20, 20, 16, 12, 12]);
+  it('is 14 px at 12,000 km wide and wider, 22 at 3,000, 32 at 1,000 and 44 at 300 and closer', () => {
+    const px = [30, 300, 1000, 3000, 12_000, 40_000].map((km) => markPx(km, 2));
+    expect(px).toEqual([44, 44, 32, 22, 14, 14]);
   });
 
   it('interpolates on the log of the width', () => {
-    expect(markPx(Math.sqrt(300 * 3000), 2)).toBeCloseTo(18, 6);
+    expect(markPx(Math.sqrt(1000 * 3000), 2)).toBeCloseTo(27, 6);
+    expect(markPx(Math.sqrt(300 * 1000), 2)).toBeCloseTo(38, 6);
   });
 
   it('spans at least 16 device px, so a mark at world view is 16 CSS px at one to a CSS px', () => {
-    expect([12_000, 3000, 300].map((km) => markPx(km, 1))).toEqual([16, 16, 20]);
-    expect(markPx(12_000, 1.25)).toBeCloseTo(12.8, 6);
-    expect(markPx(12_000, 1.5)).toBe(12);
+    expect([12_000, 3000, 300].map((km) => markPx(km, 1))).toEqual([16, 22, 44]);
+    expect(markPx(12_000, 1.25)).toBe(14);
+    expect(markPx(12_000, 1.5)).toBe(14);
   });
 });
 
@@ -101,8 +110,7 @@ describe('the table', () => {
 describe('binDiscs', () => {
   /** The tile holding CSS px (x, y) in `bins`. */
   const tileAt = (bins: ReturnType<typeof binDiscs>, x: number, y: number) =>
-    Math.floor((y + bins.pad) / bins.tilePx) * bins.across +
-    Math.floor((x + bins.pad) / bins.tilePx);
+    Math.floor(y / bins.tilePx) * bins.across + Math.floor(x / bins.tilePx);
 
   it('puts a disc in every tile it touches', () => {
     const bins = binDiscs([{ x: 64, y: 64, reachPx: 6 }], 128, 128, 8);
@@ -115,10 +123,17 @@ describe('binDiscs', () => {
     ]);
   });
 
-  it('bins a disc just past the viewport, where relief lifts a mark into view', () => {
-    const bins = binDiscs([{ x: 64, y: 128 + 40, reachPx: 6 }], 128, 128, 8);
+  it('bins a disc centered past the viewport into the tiles in view it reaches', () => {
+    const bins = binDiscs([{ x: 64, y: 128 + 4, reachPx: 6 }], 128, 128, 8);
     expect(bins.binned[0]).toBe(1);
-    expect(bins.counts[tileAt(bins, 64, 168)]).toBe(1);
+    expect(bins.counts[tileAt(bins, 64, 127)]).toBe(1);
+    expect(bins.counts).toHaveLength(16);
+  });
+
+  it('bins no disc that reaches no tile in view', () => {
+    const bins = binDiscs([{ x: 64, y: 128 + 40, reachPx: 6 }], 128, 128, 8);
+    expect(bins.binned[0]).toBe(0);
+    expect(bins.used).toBe(0);
   });
 
   it('keeps the first discs a crowded tile can hold, in their order', () => {
@@ -158,13 +173,11 @@ describe('MarkLayer', () => {
     expect(marks.uniforms.lookMarksOn.value).toBe(true);
   });
 
-  it('draws the owner’s cast token unless asked for another variant', () => {
+  it('gives the look each family’s seal and glyph', () => {
     const marks = layer();
-    marks.update(0);
-    const token = FAMILIES.governance.variants[0];
-    expect(marks.params.markVariant).toBe(0);
-    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S + 1]?.w).toBe(token.glyph.scale);
-    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S]?.w).toBe(token.disc?.radius);
+    const { seal, glyph } = FAMILIES.governance;
+    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S + 1]?.w).toBe(glyph.scale);
+    expect(marks.uniforms.lookMarkFamily.value[FAMILY_VEC4S]?.w).toBe(seal.radius);
   });
 
   it('packs a mirrored glyph’s flag below its family', () => {
@@ -220,10 +233,10 @@ describe('MarkLayer', () => {
     expect(marks.uniforms.lookMarksOn.value).toBe(false);
   });
 
-  it('reaches past a soft token’s blurred contact shadow at world view', () => {
+  it('reaches past a soft seal’s blurred contact shadow at world view', () => {
     const marks = layer();
     const world = over([20, 10], 2);
-    // The lamp low in the east, so the token's shadow runs long to the west.
+    // The lamp low in the east, so the seal's shadow runs long to the west.
     const east = dirOf([110, 10]).multiplyScalar(10);
     marks.set('events', [mark('a', [20, 10], { soft: true })]);
     marks.place({ ...world, lamp: east });
@@ -233,9 +246,9 @@ describe('MarkLayer', () => {
     const at = MARK_ROW * TABLE_WIDTH * 4;
     const shadow = Math.hypot(data[at + 8] ?? 0, data[at + 9] ?? 0);
     expect(shadow).toBeGreaterThan(0.3);
-    // The look blurs the shadow's edge over 2 × 2.5 px and 0.12 r beyond the disc's radius, 1 r.
+    // The look blurs the shadow's edge over 2 × 2.5 px and 0.12 r beyond the seal's radius, 1 r.
     const rPx = placed?.rPx ?? 0;
-    expect(rPx).toBeCloseTo(6, 0);
+    expect(rPx).toBeCloseTo(7, 0);
     expect(reachPx).toBeGreaterThanOrEqual((shadow + 1 + 0.12) * rPx + 2 * 2.5);
   });
 
@@ -350,8 +363,9 @@ describe('MarkLayer', () => {
 
   it('neither draws nor picks a mark its full tiles leave out', () => {
     const marks = layer();
+    // One group's marks, which share their place rather than stand apart.
     const crowd = Array.from({ length: tunables.markTileCap + 1 }, (_, i) =>
-      mark(`m${i}`, [20 + i * 0.002, 10], { score: -i }),
+      mark(`m${i}`, [20 + i * 0.002, 10], { score: -i, group: 'crowd' }),
     );
     marks.set('events', crowd);
     marks.place(view);
@@ -361,18 +375,23 @@ describe('MarkLayer', () => {
     expect(marks.hit(720, 450)).not.toBe(last);
   });
 
-  it('lists only the marks in view, though it draws those just past its edges', () => {
+  it('lists only the marks in view, though it draws those past its edges whose drawing reaches in', () => {
     const marks = layer();
-    // A place 20 to 60 px below the view's bottom edge.
+    // Places whose seals stand just past the view's bottom edge, their contact shadows reaching
+    // into it, and well past it.
     const yOf = (lat: number) => (0.5 - dirOf([20, lat]).applyMatrix4(view.toClip).y / 2) * 900;
-    const lats = Array.from({ length: 40 }, (_, i) => 5 - i * 0.1);
-    const below = lats.find((lat) => yOf(lat) > 920 && yOf(lat) < 960) ?? 0;
-    marks.set('events', [mark('in', [20, 10]), mark('below', [20, below])]);
+    const lats = Array.from({ length: 400 }, (_, i) => 5 - i * 0.01);
+    const rPx = markPx(2400, view.pixelRatio) / 2;
+    const below = lats.find((lat) => yOf(lat) > 900 + rPx + 1) ?? 0;
+    const far = lats.find((lat) => yOf(lat) > 900 + 4 * rPx) ?? 0;
+    marks.set('events', [mark('in', [20, 10]), mark('below', [20, below]), mark('far', [20, far])]);
     marks.place(view);
     expect(marks.placed().map(({ id }) => id)).toEqual(['in']);
     const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
     const slots = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => data[SLOT_ROW * TABLE_WIDTH * 4 + i * 4 + 3]);
+    // In priority order, 'in' is mark 0, 'below' mark 1 and 'far' mark 2.
     expect(slots).toContain(1);
+    expect(slots).not.toContain(2);
   });
 
   it('picks no mark too faint to see', () => {
@@ -392,63 +411,337 @@ describe('MarkLayer', () => {
     expect(marks.hit((b?.x ?? 0) + 2, b?.y ?? 0)).toBe('b');
     expect(marks.hit(720, 300)).toBeNull();
   });
+});
 
-  it('picks a mark on land anywhere between its place and where the relief can lift it', () => {
-    // A tilted view north over a place: its relief rises toward the top of the screen, up to the
-    // field's highest bound, 20,000 m.
+/** A camera south of `at`, low and looking north at it, as a tilted view over land, `kLand` 1. */
+function tilted(at: LonLat): MarkView {
+  const camera = new PerspectiveCamera(30, 1440 / 900, 0.001, 100);
+  camera.position.copy(dirOf([at[0], at[1] - 6]).multiplyScalar(1.1));
+  camera.up.copy(dirOf([at[0], at[1] - 6]));
+  camera.lookAt(dirOf(at));
+  camera.updateMatrixWorld();
+  return {
+    ...over(at, 0.47),
+    camera: camera.position.clone(),
+    forward: camera.getWorldDirection(new Vector3()),
+    toClip: new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+    kLand: 1,
+    kSea: 1,
+  };
+}
+
+/** Where `dir` lifted `meters` off sea level stands on screen in `view`, CSS px, and its depth. */
+function project(view: MarkView, dir: Vector3, meters = 0) {
+  const lifted = dir.clone().multiplyScalar(1 + meters / EARTH_M);
+  const clip = new Vector4(lifted.x, lifted.y, lifted.z, 1).applyMatrix4(view.toClip);
+  return {
+    x: (clip.x / clip.w / 2 + 0.5) * view.width,
+    y: (0.5 - clip.y / clip.w / 2) * view.height,
+    w: clip.w,
+  };
+}
+
+/** A terrain ceiling of `meters` everywhere, the relief's highest and lowest `hMax` and `hMin`. */
+function ceiling(meters: number, hMax = meters, hMin = 0, asks: number[][] = []): ClearanceField {
+  return {
+    ceilingM: (dir: number[], _cap: number, k: number) => {
+      asks.push([...dir, k]);
+      return k * meters;
+    },
+    hMax,
+    hMin,
+  } as unknown as ClearanceField;
+}
+
+const texel = { slot: 9, u: 0.25, v: 0.5, level: 7, codeMid: -120 };
+
+describe('MarkLayer’s seals over the relief', () => {
+  it('tells the look where the height pool holds the ground under each anchor', () => {
+    const marks = new MarkLayer(() => cells);
+    marks.set('events', [mark('a', [20, 10])]);
+    const at = MARK_ROW * TABLE_WIDTH * 4 + 12;
+    const data = () => marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    marks.place(over([20, 10], 0.47));
+    // No height to lay the seal at: it lies on the relief.
+    expect(data()[at + 2]).toBe(-1);
+    const asked: number[][] = [];
+    marks.useHeights((dir) => {
+      asked.push([...dir]);
+      return { slot: 9, u: 0.25, v: 0.5, level: 6, codeMid: -120 };
+    });
+    marks.place(over([20, 10], 0.47));
+    expect([...data().subarray(at, at + 4)]).toEqual([0.25, 0.5, 9 * HEIGHT_LEVELS + 6, -120]);
+    // Asked at the anchor, in the cube's frame.
+    const own = lonLatToDir(20, 10);
+    asked[0]!.forEach((v, i) => expect(v).toBeCloseTo(own[i] ?? NaN, 6));
+  });
+
+  it('bins a seal over everywhere on screen its height can lift it, from sea level up', () => {
     const at: LonLat = [20, 10];
-    const liftedM = 20_000;
-    const kLand = 1;
-    const camera = new PerspectiveCamera(30, 1440 / 900, 0.001, 100);
-    camera.position.copy(dirOf([20, 4]).multiplyScalar(1.1));
-    camera.up.copy(dirOf([20, 4]));
-    camera.lookAt(dirOf(at));
-    camera.updateMatrixWorld();
-    const onLand: MarkView = {
-      ...view,
-      camera: camera.position.clone(),
-      forward: camera.getWorldDirection(new Vector3()),
-      toClip: new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
-      kLand,
-    };
-    const project = (dir: Vector3) => {
-      const clip = new Vector4(dir.x, dir.y, dir.z, 1).applyMatrix4(onLand.toClip);
-      return { x: (clip.x / clip.w / 2 + 0.5) * 1440, y: (0.5 - clip.y / clip.w / 2) * 900 };
-    };
-    const sea = project(dirOf(at));
-    const top = project(dirOf(at).multiplyScalar(1 + liftedM / EARTH_M));
-    // The lifted mark stands well clear of its sea-level disc.
+    const view = tilted(at);
+    const highestM = 20_000;
+    const sea = project(view, dirOf(at));
+    const top = project(view, dirOf(at), highestM);
+    // The lifted seal stands well clear of its sea-level disc.
     expect(sea.y - top.y).toBeGreaterThan(20);
-    const marks = layer();
+    const marks = new MarkLayer(() => cells);
+    const asks: number[][] = [];
+    marks.useClearance(ceiling(highestM, highestM, 0, asks));
+    marks.useHeights(() => texel);
     marks.set('events', [mark('peak', at)]);
-    marks.place(onLand);
+    marks.place(view);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const [x, y, reach] = [
+      ...data.subarray(SLOT_ROW * TABLE_WIDTH * 4, SLOT_ROW * TABLE_WIDTH * 4 + 3),
+    ];
+    const rPx = marks.placed()[0]!.rPx;
+    // Its reach about either end, the lifted end's drawn larger as it nears the camera.
+    for (const end of [sea, top]) {
+      expect(Math.hypot(end.x - x!, end.y - y!) + 1.3 * rPx * (sea.w / end.w)).toBeLessThan(reach!);
+    }
+    expect(reach).toBeLessThan(Math.hypot(top.x - sea.x, top.y - sea.y) / 2 + 3 * rPx);
+    // The terrain's ceiling is asked at the anchor, in the cube's frame, without the relief's
+    // exaggeration, within a few of the heights' texels at their level.
+    const own = lonLatToDir(...at);
+    expect(asks.length).toBeGreaterThan(0);
+    for (const ask of asks) {
+      own.forEach((v, i) => expect(ask[i]).toBeCloseTo(v, 9));
+      expect(ask[3]).toBe(1);
+    }
+  });
+
+  it('bins a seal about its sea-level place without the height pool, at sea level', () => {
+    const at: LonLat = [20, 10];
+    const view = tilted(at);
+    const marks = new MarkLayer(() => cells);
+    marks.useClearance(ceiling(20_000));
+    marks.set('events', [mark('peak', at)]);
+    marks.place(view);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const sea = project(view, dirOf(at));
+    expect(data[SLOT_ROW * TABLE_WIDTH * 4]).toBeCloseTo(sea.x, 3);
+    expect(data[SLOT_ROW * TABLE_WIDTH * 4 + 1]).toBeCloseTo(sea.y, 3);
+    expect(marks.span('peak')).toMatchObject({ x1: sea.x, y1: sea.y });
+  });
+
+  it('bins a hovered ring from the deepest sea floor to the highest ground', () => {
+    const at: LonLat = [20, 10];
+    const view = tilted(at);
+    const marks = new MarkLayer(() => cells);
+    marks.useClearance(ceiling(0, 8000, -10_000));
+    marks.useHeights(() => texel);
+    marks.set('events', [mark('war', at, { hover: true, hollow: true, ringRad: 0.01 })]);
+    marks.place(view);
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const [x, y, reach] = [
+      ...data.subarray(SLOT_ROW * TABLE_WIDTH * 4, SLOT_ROW * TABLE_WIDTH * 4 + 3),
+    ];
+    const deep = project(view, dirOf(at), -10_000);
+    const high = project(view, dirOf(at), 8000);
+    expect(x).toBeCloseTo((deep.x + high.x) / 2, 3);
+    expect(y).toBeCloseTo((deep.y + high.y) / 2, 3);
+    expect(reach).toBeGreaterThan(Math.hypot(high.x - deep.x, high.y - deep.y) / 2);
+  });
+
+  it('picks a seal anywhere between its place and where its height can lift it', () => {
+    const at: LonLat = [20, 10];
+    const view = tilted(at);
+    const liftedM = 20_000;
+    const sea = project(view, dirOf(at));
+    const top = project(view, dirOf(at), liftedM);
+    const marks = new MarkLayer(() => cells);
+    marks.useClearance(ceiling(liftedM));
+    marks.set('events', [mark('peak', at)]);
+    marks.place(view);
+    // Without the height pool, the seal lies at sea level.
     expect(marks.hit(top.x, top.y)).toBeNull();
-    // Without the terrain's ceiling, the mark stands where its sea-level place does.
-    const flat = marks.span('peak')!;
-    expect([flat.x1 - flat.x0, flat.y1 - flat.y0]).toEqual([0, 0]);
-    expect([flat.x0, flat.y0].map(Math.round)).toEqual([sea.x, sea.y].map(Math.round));
-    const ceilings: number[] = [];
-    marks.useClearance({
-      ceilingM: (_dir: number[], _cap: number, k: number) => {
-        ceilings.push(k);
-        return liftedM;
-      },
-      hMax: liftedM / kLand,
-    } as unknown as ClearanceField);
+    marks.useHeights(() => texel);
+    marks.place(view);
     expect(marks.hit(top.x, top.y)).toBe('peak');
-    // What stands clear of it stands clear of all the way the relief can lift it.
+    // What stands clear of it stands clear of all the way its height can lift it.
     const lifted = marks.span('peak')!;
     expect(lifted.x1).toBeCloseTo(top.x, 3);
     expect(lifted.y1).toBeCloseTo(top.y, 3);
     expect(marks.span('elsewhere')).toBeNull();
     expect(marks.hit((sea.x + top.x) / 2, (sea.y + top.y) / 2)).toBe('peak');
     expect(marks.hit(sea.x, sea.y)).toBe('peak');
-    expect(ceilings).toContain(kLand);
     // Past its lifted place, nothing.
-    expect(marks.hit(top.x, top.y - 20)).toBeNull();
-    // A pointer beyond the reach of any relief asks no ceiling.
-    const asked = ceilings.length;
-    expect(marks.hit(sea.x + 300, sea.y)).toBeNull();
-    expect(ceilings).toHaveLength(asked);
+    expect(marks.hit(top.x, top.y - 30)).toBeNull();
+  });
+
+  it('picks, of marks stood apart north and south and lifted into each other, the one drawn there', () => {
+    const at: LonLat = [20, 10];
+    const view = tilted(at);
+    const marks = new MarkLayer(() => cells);
+    marks.useClearance(ceiling(80_000));
+    marks.useHeights(() => texel);
+    // Nearly at one place, the southern one first in priority: stood apart north and south, a
+    // little across the screen.
+    marks.set('events', [
+      mark('south', [20, 10], { score: 9 }),
+      mark('north', [20.0005, 10.001], { score: 1 }),
+    ]);
+    marks.place(view);
+    const [south, north] = ['south', 'north'].map((id) => marks.span(id)!) as [MarkSpan, MarkSpan];
+    const rPx = marks.placed()[0]!.rPx;
+    expect(south.y0 - north.y0).toBeGreaterThan(rPx);
+    // On the northern seal, seven tenths of a radius from its likeliest place toward the southern
+    // one's way up, which runs nearer the pointer than the northern one's own way.
+    const side = Math.sign(south.x0 - north.x0);
+    const pointer = {
+      x: (north.x0 + north.x1) / 2 + side * 0.7 * rPx,
+      y: (north.y0 + north.y1) / 2,
+    };
+    const way = (s: MarkSpan) => {
+      const [dx, dy] = [s.x1 - s.x0, s.y1 - s.y0];
+      const t = Math.max(
+        0,
+        Math.min(1, ((pointer.x - s.x0) * dx + (pointer.y - s.y0) * dy) / (dx * dx + dy * dy)),
+      );
+      return Math.hypot(pointer.x - s.x0 - t * dx, pointer.y - s.y0 - t * dy);
+    };
+    expect(way(south)).toBeLessThan(way(north));
+    expect(way(south)).toBeLessThan(rPx);
+    expect(marks.hit(pointer.x, pointer.y)).toBe('north');
+    expect(marks.hit((south.x0 + south.x1) / 2, (south.y0 + south.y1) / 2)).toBe('south');
+  });
+});
+
+describe('fanOffsets', () => {
+  const fan = (marks: FanMark[], rPx = 10) => {
+    const offsets = fanOffsets(marks, rPx);
+    return marks.map((m, i) => ({
+      x: m.x + (offsets[2 * i] ?? 0),
+      y: m.y + (offsets[2 * i + 1] ?? 0),
+    }));
+  };
+  const at = (id: string, x: number, y: number, extra: Partial<FanMark> = {}): FanMark => ({
+    id,
+    x,
+    y,
+    alpha: 1,
+    score: 0,
+    ...extra,
+  });
+
+  it('stands two marks at one spot side by side, the higher-scored to the left', () => {
+    const [treaty, battle] = fan([
+      at('treaty', 100, 50, { score: 3 }),
+      at('battle', 100, 50, { score: 7 }),
+    ]);
+    expect(battle!.x).toBeCloseTo(100 - (FAN_APART * 10) / 2, 6);
+    expect(treaty!.x).toBeCloseTo(100 + (FAN_APART * 10) / 2, 6);
+    expect([battle!.y, treaty!.y]).toEqual([50, 50]);
+  });
+
+  it('pushes overlapping marks apart along the line between them, and leaves the rest', () => {
+    const [a, b, c] = fan([at('a', 0, 0), at('b', 6, 8), at('c', 200, 0)]);
+    expect(Math.hypot(b!.x - a!.x, b!.y - a!.y)).toBeCloseTo(FAN_APART * 10, 3);
+    // Along the line from a to b, 3 to 4.
+    expect((b!.y - a!.y) / (b!.x - a!.x)).toBeCloseTo(8 / 6, 6);
+    expect(c).toEqual({ x: 200, y: 0 });
+  });
+
+  it('slides a mark fading in out from under one standing, which gives way as it comes', () => {
+    const [standing, coming] = fan([at('standing', 0, 0), at('coming', 2, 0, { alpha: 0.2 })]);
+    expect(Math.hypot(coming!.x - standing!.x, coming!.y - standing!.y)).toBeCloseTo(
+      FAN_APART * 10,
+      0,
+    );
+    expect(-standing!.x).toBeLessThan((coming!.x - 2) / 3);
+  });
+
+  it('leaves a group’s marks on their shared place', () => {
+    const marks = [at('Q1', 0, 0, { group: 'Q1' }), at('Q1/outline', 0, 0, { group: 'Q1' })];
+    expect(fan(marks)).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
+  });
+
+  it('places the marks the same whatever their order', () => {
+    const marks = [at('a', 0, 0), at('b', 5, 1), at('c', 9, -2, { score: 2 }), at('d', 9, -2)];
+    const forward = fan(marks);
+    const backward = fan([...marks].reverse()).reverse();
+    forward.forEach((p, i) => {
+      expect(p.x).toBeCloseTo(backward[i]!.x, 9);
+      expect(p.y).toBeCloseTo(backward[i]!.y, 9);
+    });
+  });
+});
+
+describe('MarkLayer’s marks at one place', () => {
+  const view = over([20, 10], 0.47);
+
+  it('stands them apart, drawn, picked and spanned where each stands', () => {
+    const marks = new MarkLayer(() => cells);
+    marks.set('events', [
+      mark('treaty', [20, 10], { pace: 'governance', score: 5 }),
+      mark('flood', [20, 10], { score: 9 }),
+    ]);
+    marks.place(view);
+    const placed = marks.placed();
+    const flood = placed.find((p) => p.id === 'flood')!;
+    const treaty = placed.find((p) => p.id === 'treaty')!;
+    expect(flood.x).toBeLessThan(treaty.x);
+    expect(Math.hypot(treaty.x - flood.x, treaty.y - flood.y)).toBeCloseTo(
+      FAN_APART * flood.rPx,
+      0,
+    );
+    // Each is picked, and spanned, where it stands.
+    expect(marks.hit(flood.x, flood.y)).toBe('flood');
+    expect(marks.hit(treaty.x, treaty.y)).toBe('treaty');
+    expect(marks.span('treaty')).toMatchObject({ x0: treaty.x, y0: treaty.y });
+    // The look draws each about its own anchor, its place on screen.
+    const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+    const anchor = (m: number) => {
+      const i = MARK_ROW * TABLE_WIDTH * 4 + m * MARK_TEXELS * 4;
+      const clip = new Vector4(data[i], data[i + 1], data[i + 2], 1).applyMatrix4(view.toClip);
+      return [(clip.x / clip.w / 2 + 0.5) * 1440, (0.5 - clip.y / clip.w / 2) * 900];
+    };
+    const drawn = [anchor(0), anchor(1)].sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
+    expect(drawn[0]![0]).toBeCloseTo(flood.x, 1);
+    expect(drawn[0]![1]).toBeCloseTo(flood.y, 1);
+    expect(drawn[1]![0]).toBeCloseTo(treaty.x, 1);
+  });
+
+  it('stands them as far apart while the layer fades in or out, and toward the limb', () => {
+    const at = (strength: number, where: LonLat, from: MarkView) => {
+      const marks = new MarkLayer(() => cells);
+      marks.strength = strength;
+      marks.set('events', [mark('a', where, { score: 2 }), mark('b', where, { score: 1 })]);
+      marks.place(from);
+      const [a, b] = ['a', 'b'].map((id) => marks.placed().find((p) => p.id === id)!);
+      return Math.hypot(b!.x - a!.x, b!.y - a!.y) / a!.rPx;
+    };
+    expect(at(0.3, [20, 10], view)).toBeCloseTo(at(1, [20, 10], view), 6);
+    expect(at(1, [20, 10], view)).toBeCloseTo(FAN_APART, 1);
+    // Toward the limb, where the limb fades them, they still stand apart.
+    const limb: LonLat = [77, 10];
+    const world = over([20, 10], 2);
+    expect(limbFade(dirOf(limb), world.camera)).toBeLessThan(0.9);
+    expect(limbFade(dirOf(limb), world.camera)).toBeGreaterThan(0.3);
+    expect(at(1, limb, world)).toBeGreaterThan(0.9 * FAN_APART);
+  });
+
+  it('reaches as far about each mark stood apart as about a mark standing alone', () => {
+    const marks = new MarkLayer(() => cells);
+    const reaches = () => {
+      const data = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+      const ranges = (MARK_ROW - SLOT_ROW) * TABLE_WIDTH;
+      const out = new Map<number, number>();
+      for (let slot = 0; slot < ranges; slot++) {
+        const reach = data[SLOT_ROW * TABLE_WIDTH * 4 + slot * 4 + 2] ?? 0;
+        if (reach > 0) out.set(data[SLOT_ROW * TABLE_WIDTH * 4 + slot * 4 + 3] ?? -1, reach);
+      }
+      return out;
+    };
+    marks.set('events', [mark('alone', [20, 10])]);
+    marks.place(view);
+    const alone = reaches().get(0);
+    expect(alone).toBeGreaterThan(0);
+    marks.set('events', [mark('a', [20, 10], { score: 2 }), mark('b', [20, 10], { score: 1 })]);
+    marks.place(view);
+    expect([...reaches().values()]).toEqual([alone, alone]);
   });
 });

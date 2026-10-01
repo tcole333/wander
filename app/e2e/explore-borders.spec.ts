@@ -6,10 +6,11 @@
 // and back in the lobby, Tambora's sixth beat, the first after the eruption to list borders, draws
 // its step under the walk's plate, its images answered by the media stage's test image. Nothing
 // logs an error.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { dayFromIso } from '../src/story/dates';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
 const TIMEOUT = 90_000;
@@ -26,9 +27,6 @@ const JPEG = readFileSync(
 
 // CI's software renderer needs fewer pixels per frame.
 test.use({ viewport: { width: 640, height: 400 } });
-// The whole test, fixtures included, takes the long budget: on CI the browser context itself can
-// take over 30 s to set up after a heavy software-rendered spec such as the borders probe.
-test.describe.configure({ timeout: 600_000 });
 
 async function phase(page: Page, name: string): Promise<void> {
   await expect(page.locator('body')).toHaveAttribute('data-lobby', name);
@@ -45,6 +43,7 @@ async function stepDrawn(page: Page): Promise<number | null> {
 test('draws the border steps in Explore as its clock moves, and in the Tambora walk', async ({
   page,
 }) => {
+  test.setTimeout(600_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {

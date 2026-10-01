@@ -1,8 +1,9 @@
 // Where the production entry reads its data. The public page reads the bundled release only; a page
 // served from this machine may name a local data server instead (npm run data, streaming.md 7.3)
 // with ?data=<origin>, or one of the local bakes' servers by name, and reads that server's
-// /release.json. Such a page may also ask for the memory account (?memory=1). The public page never
-// asks: a query on any other host is ignored.
+// /release.json. Such a page may also ask for the memory account (?memory=1) and for the view hook
+// scripts set the view through (?hooks=1, page/viewHook.ts). The public page never asks: a query
+// on any other host is ignored.
 
 /** The local bakes' data servers by name, on the ports scripts/dataServer.ts gives them. */
 export const DATA_SERVERS: Readonly<Record<string, string>> = {
@@ -17,6 +18,11 @@ export const LOOPBACK: ReadonlySet<string> = new Set(['127.0.0.1', 'localhost', 
 /** The memory account is opt-in even on loopback; public URLs can never switch it on. */
 export function memoryRequested(page: { hostname: string; search: string }): boolean {
   return LOOPBACK.has(page.hostname) && new URLSearchParams(page.search).get('memory') === '1';
+}
+
+/** The view hook is opt-in even on loopback; public URLs can never switch it on. */
+export function viewHookRequested(page: { hostname: string; search: string }): boolean {
+  return LOOPBACK.has(page.hostname) && new URLSearchParams(page.search).get('hooks') === '1';
 }
 
 /** The data server a page asks for, or null for the bundled release. */

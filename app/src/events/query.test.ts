@@ -17,7 +17,7 @@ import { indexOf, pageOf, viewOf } from '../test/events';
 import { extentPixels, project } from './view';
 
 const active = (marks: Fading<EventMark>[]) => marks.filter((m) => m.fade.to === 1);
-const base: EventQuery = { t0: 1, t1: 10, tier: 'lite', view: viewOf() };
+const base: EventQuery = { t0: 1, t1: 10, tier: 'lite', view: viewOf(), cellPx: 64 };
 
 describe('the detail budget', () => {
   test.each(['lite', 'full'] as const)(
@@ -40,6 +40,32 @@ describe('the detail budget', () => {
       expect(Math.max(...cells.values())).toBeLessThanOrEqual(2);
     },
   );
+  test('keeps two to a cell as large as the marks’ size asks, so larger marks stand apart', () => {
+    const rows = Array.from({ length: 360 }, (_, row) => ({
+      row,
+      lon: -60 + (row % 24) * 5,
+      lat: -35 + Math.floor(row / 24) * 5,
+    }));
+    const view = viewOf();
+    const shown = (cellPx: number) => {
+      const engine = new EventQueryEngine(indexOf([pageOf(rows)]));
+      const result = engine.query({ ...base, tier: 'full', view, cellPx }, 0);
+      const cells = new Map<string, number>();
+      for (const m of result.markers) {
+        const cell = `${Math.floor(m.x / cellPx)},${Math.floor(m.y / cellPx)}`;
+        cells.set(cell, (cells.get(cell) ?? 0) + 1);
+      }
+      expect(Math.max(...cells.values())).toBeLessThanOrEqual(2);
+      return result.markers.length;
+    };
+    expect(shown(176)).toBeLessThan(shown(64));
+  });
+  test('asks for a declutter cell of some size', () => {
+    const engine = new EventQueryEngine(indexOf([pageOf([{ row: 0 }])]));
+    for (const cellPx of [0, -64, NaN, Infinity]) {
+      expect(() => engine.query({ ...base, cellPx }, 0)).toThrow(/cell/);
+    }
+  });
   test('labels share two slots per cell, including a split parent context', () => {
     const engine = new EventQueryEngine(
       indexOf([
@@ -218,7 +244,7 @@ test('the real fixture can be queried at Waterloo with both budgets, without a w
   const day = dayFromIso('1815-06-18');
   for (const tier of ['lite', 'full'] as const) {
     const result = engine.query(
-      { t0: day, t1: day, tier, view: viewOf(0.02, 4.41222, 50.67806) },
+      { t0: day, t1: day, tier, view: viewOf(0.02, 4.41222, 50.67806), cellPx: 64 },
       0,
     );
     expect(result.markers.some((m) => m.qid === 48314 && !m.focal)).toBe(true);

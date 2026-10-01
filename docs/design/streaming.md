@@ -58,7 +58,7 @@ Stories compile in CI into bundled JSON; data is immutable whole files on R2, pi
 | **Thematic overlays** | Prebaked `.wot` id + distance tiles (3.2) on the surface's cube addresses, L0-L5, in one shared overlay pool with a per-layer indirection texture. Constant and empty tiles get no file. | Independent toggles rule out one global 8192×4096 raster per layer (128 MiB of GPU each); tiles keep memory proportional to the view. |
 | **Minerals, mountains, labels** | Minerals: JSON, 2,121 points, instanced markers on `surfaceHeight()`. Mountains: an overlay layer built from the legacy-derived 42-range GMBA v2.0 selection. Place labels: troika inlay text, at most `placeLabelsMax` shown; polity names follow Borders and range names follow Mountains. Ocean and sea names follow Labels: a curated list of modern English names bundled with the app (`app/src/look/seaNames.json`: text, place, em size in degrees, tracking, angle, and the view widths it shows within), lettered at boot into one canvas atlas (oceans in the display face's tracked capitals, seas in the reading face's italic) and inlaid by the surface look in the lacquer at sea level, as the graticule is. Each name fades in and out with its em on screen (7-48 px) and toward the limb, so a sea shows several names across zoom levels, each with its own size and place; of the names in the view, the 16 strongest are inlaid, so none beyond its edges holds back one on screen. Petroleum and minerals are present-day geology, dated in Credits. | A raster decal follows exaggerated relief for free; outline ribbons would need ~2 km densification not to cut through ridges. Inlaid in the look, the sea names never bend with relief and take the lamp, ash and climate as the lacquer does; they are lettered into one R8 atlas 2048 texels wide and as tall as the list needs (1638 for milestone 1's 50 placements of 42 names: ~4.3 MiB on the GPU with mips, plus the 3.2 MiB of texels three keeps; the lettering canvas is released), with nothing to fetch and no labels stage. |
 | **Historical borders** | Cliopatria's polities (owner decision 33) in a step for every year a polity begins or ends, 3400 BCE to 2000: 523 steps, each holding from its year's 1 January in the historical calendar until the next (3.0), with no per-beat pins. Each step is one six-face field, 1024 texels a side, with two planes: outer borders, between empires and independent states and against land no state held, drawn at every scale; and inner borders, between an empire's members and around states under 50,000 km², which come forward as the view closes in. A state's edge against stateless land draws softer (owner decisions 34-36). A step streams whole into one of two GPU slots (one on lite) once the clock has rested in it for `borderRest`, and dissolves from the step before over `borderFade`; while Explore's clock moves, 512×256 signed previews, all resident, dissolve into each other over `borderScrubFade`. Explore names no step on a plate: the ruler and the Credits carry the dates (owner decision 39). A walk draws the steps of its border beats where the release names them, and until it does, as the published release does until publish-data's `--border-steps`, milestone 1's 1815 field from historical-basemaps (3.3). | A step at every change year rather than a grid or a fold: a grid of years shows states that had already ended in 29% of first-millennium years, and a fold hides 29 states [M Cliopatria v0.2.0]. 1024 texels: at world view 2048 fades its borders out (a pixel spans 4-5 of its texels, past the field's 8-texel reach), and at 800 km it is only slightly crisper, for 2.3× the bytes and 4× the GPU memory (owner decision 36). Whole fields keep one sampler and no indirection. A coarse global raster cannot hold island-scale shape, so previews stand in only while scrubbing. |
-| **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore stands: wherever the release names its event index (3.4), and where a page starts in Explore, as the dev shell does. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The tiles run three past each edge of the viewport, since a mark on relief seen tilted stands above the sea-level foot its tile is found from. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and three texels a mark, uploaded only when the view or a fade changed. The look finds a fragment's tile from its inlay direction, so relief never moves it out of its mark's tile, and cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own, by default the cast token: a raised bronze boss for nature, a dark seal with a niello glyph for governance and a small gilt seal with its glyph sunk for infrastructure, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`TOKEN_INK`, 0.8 of its radius, clear of the rim its bevel casts); `?markVariant` and the dev panel draw the other candidates. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. A hovered expanded parent's extent is a dashed line engraved about 2 px wide at full weight: the graticule's brass over the sea and niello over land, between walls that slope into it and take the lamp. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. The cast token is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
+| **Event marks** | Cut into the globe by the surface look's own fragment shader (`app/src/marks/`), and compiled only where Explore stands: wherever the release names its event index (3.4), and where a page starts in Explore, as the dev shell does. Each frame the marks are sized for the view (`markPx`: one size at a given scale), faded toward the limb and binned into the viewport's 32 CSS px screen tiles, at most `markTileCap` a tile, focal first, each mark into every tile its drawing reaches or, when one is full, none. The look finds a fragment's tile from where the fragment stands on screen, so each mark's screen disc spans everywhere its drawing can stand: from its sea-level place up to where the highest ground its height can read lifts it (the terrain's ceiling about the texel it reads), and for a hovered ring, which is engraved on the relief, from the deepest sea floor to the highest ground. One RGBA32F table (512×16, 128 KiB), held only while some layer has marks set, holds the tiles' ranges, one texel per tile listing (its mark's screen disc and index) and four texels a mark, the last naming where the height pool holds the ground under its anchor (in the source tile the surface draws there), uploaded only when the view, a fade or the height pool under a mark changed. The look cuts each mark from a signed-distance glyph kept on a shelf of the sea-name atlas, whose one row of 96-texel cells holds 21 glyphs (a storm south of the equator reads its northern glyph mirrored rather than take a cell). Each pace layer's marks are one family with a material of its own (`app/src/marks/families.ts`): a seal standing on the relief, which it hides, casting a contact shadow and ringed by a polished brass bezel that catches the lamp, the seal green patina with a bright glyph for nature, dark niello with a gilt glyph for governance and a smaller gilt one with a niello glyph for infrastructure, its gilt lit partly as a diffuse surface so it reads gilt seen tilted, each glyph as large as its family's farthest-reaching glyph stays on the seal's face (`SEAL_INK`, 0.8 of its radius, inside the bezel and clear of the rim its bevel casts). Marks that would overlap on screen stand apart, 2.1 radii center to center (`fanOffsets`): each pair is pushed along the line between them, marks at one spot stand side by side on screen, the higher-scored to the left, a mark fading in slides out from under one standing, each by its own fade alone, and each moved mark's anchor moves with it on the globe, so it is drawn and picked where it stands; an event's solid and hollow marks crossfade on their place. Where marks still touch, the first in priority is drawn on top. Each seal lies flat at its anchor's height, read from the height pool (at sea level without one): a fragment is cut from where the view ray crosses that plane, so in a tilted view over mountains the seal keeps its round footprint rather than bend over ridges, and relief rising more than a seal's radius above the plane in front of it hides it, as a ridge does; a hovered parent's ring stays engraved on the relief. A mark spans at least `markMinDevicePx` device pixels, so where the globe is drawn at one device pixel a CSS px its marks at world view are 16 px and their glyphs read. Only the active event's ember reaches the bloom's threshold. A hovered expanded parent's extent is a dashed line engraved about 2 px wide at full weight: the graticule's brass over the sea and niello over land, between walls that slope into it and take the lamp. | Inlaid, the marks take the lamp, the shadows, the polish and the ridges' occlusion as the relief does, with no program, light, draw or precompile entry of their own; instanced markers would stand apart from the object and need all of those. The budget is 140 marks at world view within 0.6 ms of GPU time over `?marks=0` on the M5, which `scripts/exploreShots.ts --demo` times; `--events` renders Explore's own. Closer views cost more, their marks being larger: 150 marks (the dev page's `markDemo.stress` and `gpuAB`, at 1440×900 and one device pixel a CSS px) cost about 0.3 ms at world view, 0.55 ms at 1,700 km over Europe and 0.8 ms at 300 km over the Alps tilted 50 degrees, where each mark's screen disc spans the way its height can lift it. The seal is inlaid too, hiding the relief under it; a family whose material must stand proud of the relief would get an instanced backend then. |
 | **Event index** | All eras in v1. Columnar JSON `.wev` (3.4): a 4,096-row stratified overview, then `all.wev`, or era pages once the corpus passes 100K rows or 16 MiB decoded. One event worker holds and queries it while Explore is open: bundled inline in the entry, started at each dive and terminated when Explore ends (5.3). | Under gzip, JSON is within ~14% of the best binary (1,032 vs 891 KB for 48.8K rows) [M `work/revision/evjson.json`, `work/wikidata/encode_results.json`] and needs no encoder/decoder pair. A worker keeps a ~10× explore corpus off the main thread. Inlined, it fetches nothing from Pages after boot. Ended with Explore, it holds nothing during a walk, whose memory already stands at its CPU line (6). |
 | **ModE-RA** | Native 192×96 Gaussian grid. One file per year per variable (mean, spread), u8 with a per-frame offset and scale (3.5), plus one annual-mean file. GPU: one monthly field the CPU blends, and three annual arrays. | Nothing clips (1814-1817 spans −15.57 to +7.74 K); the step stays ≤ 0.1 K in all but 30 of 7,056 months; 81-121 KB per mean year, 59-85 KB per spread year [M]. ES3 guarantees only 256 array layers [S]. |
 | **Effects** | Pure functions of historical and presentation time, prepared one beat ahead, with programs compiled in the lobby. Spread: u16 arrival days (3.6). Route: a dated polyline densified to 2 km on land and 10 km at sea; land legs follow `surfaceHeight()`, sea legs sit at sea level. Plume: seeded analytic particles, noted as illustrative in Credits. | Scrubbing backwards needs no replay. u8 ten-day steps cannot hold 1346-1353 (2,921 days) [M `codex/review-events-climate-measurements.json`]. |
@@ -1566,7 +1566,9 @@ only a failed start or a worker error ends the worker.
   scrub. A failed file stays failed until explicit `retry()` clears it, avoiding a retry loop.
   A timed retry after `degradeFor` (5.2) remains to be added, including a failed overview.
 - **Detail budget:** lite/full target 80/140 markers and 24/40 labels, each with at most two per
-  64 × 64 CSS-pixel cell. Resident focal Q numbers bypass time, nesting, cell and count budgets
+  square cell `declutterCellMarks` marks across at the size the look draws them (`cellPx` in the
+  query; 64 CSS px where marks are 16 px, 176 where they are 44), so larger marks keep as far
+  apart. Resident focal Q numbers bypass time, nesting, cell and count budgets
   because a story names them explicitly; view and horizon culling still apply. Missing focal Q
   numbers are returned so the story can use its compiled place while loading.
 - **Nesting:** a parent shows until its projected extent exceeds 150 px, and returns below
@@ -1626,15 +1628,18 @@ only a failed start or a worker error ends the worker.
   family (`app/src/marks/eventSymbols.ts`) and the worker's fade, interpolated every frame; an
   expanded parent is hollow, a mark of its own (`Q…/outline`) beside its solid one so the two
   crossfade as it splits or merges, the farthest reach of its extent the ring a hover draws, and
-  it fades out while a mark of another event stands within one mark's radius of it on screen, the
-  highest-scored parent standing first, so parents sharing a borrowed place draw one glyph; the
-  layer's `data-explore-marks` counts the events marked in view, each once; an inherited
-  or derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser)
-  is soft, its edge within a fifth of its radius so a 12 px seal keeps its shape, and half as deep.
-  The focal event, the opening until a pin replaces it, passes the query's budgets while its dates
-  are on the ruler's tape (`tapeWindow`), at half strength while they stand outside the glass's now
-  window, then drops to an ordinary mark; until the index holds it, or once the worker has failed,
-  the openings lock draws it. A failed worker (an error naming neither a file
+  it fades out while a mark of another event stands within a mark's width of it on screen, where
+  their seals would overlap, the highest-scored parent standing first, so parents sharing a borrowed
+  place draw one glyph, while other events at one place stand side by side (section 2, Event marks);
+  the layer's `data-explore-marks` counts the events marked in view, each once; an inherited or
+  derived place (flags bit0 or bit1) or a date known only to its year (precision 9 or coarser) is
+  soft: its seal's outer edge spreads up to a fifth of its radius, so a 14 px seal keeps its shape,
+  while its face, bezel and glyph are drawn as a sure mark's, so a war, whose place is nearly always
+  borrowed, keeps its family's dark niello. The focal event, the opening until a pin replaces it,
+  passes the query's budgets while its dates are on the ruler's tape (`tapeWindow`), at half
+  strength while they stand outside the glass's now window, then drops to an ordinary mark; until
+  the index holds it, or once the worker has failed, the openings lock draws it. A failed worker (an
+  error naming neither a file
   nor a request) logs once and takes the index's marks off, and nothing more is asked of it; a
   window the index cap cannot hold logs its plan's error once, from a result as from a state. The
   marks ease in with the dive and out with the lobby's glows as Explore leaves, and
@@ -1649,15 +1654,16 @@ only a failed start or a worker error ends the worker.
   parenthesis cut, its date as history writes it (`formatHistorical`), and for a child the event it
   is part of, from the worker's description; a hovered hollow parent also draws its extent's ring.
   `marks.hit` picks among the placed discs, and over land along the segment from a mark's sea-level
-  place to where the clearance field's ceiling would lift it, since the relief draws it somewhere
-  between. A click (a press moving less than 4 px) pins the plate, adds its source and makes the
-  event focal: "Wikipedia", the English article through Wikidata's `Special:GoToLinkedPage`, or
-  "Wikidata", the item's page, which lists its articles in other languages, when flags bit5 says
-  it has none in English (3.4), never an article guessed from the label; or for an opening its
-  written line and the source that line rests on. A click on bare metal, Escape while the pinned
-  plate stands in view, another pin, or the event's dates leaving the ruler's tape unpins it (its
-  plate dims while they stand outside the glass), and Escape with no pinned plate in view (none
-  pinned, or its mark panned away)
+  place to where the highest ground its height can read would lift it, since its seal lies flat at
+  its anchor's height somewhere between; of the marks whose segment reaches the pointer, the one
+  nearest the segment's middle, its likeliest place, is picked. A click (a press moving less than
+  4 px) pins the plate, adds its source and makes the event focal: "Wikipedia", the English article
+  through Wikidata's `Special:GoToLinkedPage`, or "Wikidata", the item's page, which lists its
+  articles in other languages, when flags bit5 says it has none in English (3.4), never an article
+  guessed from the label; or for an opening its written line and the source that line rests on. A
+  click on bare metal, Escape while the pinned plate stands in view, another pin, or the event's
+  dates leaving the ruler's tape unpins it (its plate dims while they stand outside the glass), and
+  Escape with no pinned plate in view (none pinned, or its mark panned away)
   returns to the lobby. One listbox, hidden from sight, holds the worker's labels for the events
   marked in view behind one tab stop, reached once the dive has landed: its active option shows its
   plate as a hover does, or rings the pinned plate when it is the pinned event's, and while it has
@@ -2081,9 +2087,10 @@ only a failed start or a worker error ends the worker.
   head their index table rather than take a texture of their own, so the program still reads 12
   (`e2e/marks.spec.ts` holds them). Adding one needs a check against those counts.
 - **Marks:** Explore's marks are part of the surface program (section 2, Event marks), so they add
-  no program to compile; `lookMarksOn` false skips them, and where the release names no event
-  index (and the page does not start in Explore) the program and the sea-name atlas are exactly
-  the look's alone.
+  no program to compile, and read the height pool the look already samples for each seal's
+  anchor; `lookMarksOn` false skips them, and where the release names no event index (and the
+  page does not start in Explore) the program and the sea-name atlas are exactly the look's
+  alone.
 - **Anti-aliasing:** the canvas is created with `antialias: false`, and the composer runs SMAA (FXAA on
   lite if E1 shows SMAA costs too much). MSAA 4× on the composer input is used only on full, and only if
   E1 shows headroom (~+60 MiB at 1440×900).
@@ -2413,14 +2420,20 @@ and the release's `media` section lists every key the locks name (3.8).
      SwiftShader and Metal): only outer lines at 8,000 km across and inner lines too at 2,000 km,
      soft edges lighter, half strength mid-dissolve, both previews of a cell decoded, and no seam at
      ±180°. The pool, readback and probe tests run test-only pages on the Vite dev server, not the
-     production build, so nothing of them reaches the bundle. CI runs it as six E2E jobs, one per
-     shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
-     `lobby` (lobby-round-trip, globe-mesh, lobby-reach), `explore` (explore-entry, marks), `ruler`
-     (explore-ruler), `touch` (explore-ruler-touch) and `rest`, every spec the others do not name,
-     so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
-     test at a time, since two SwiftShader walks starve a four-core runner, and builds its own dist,
-     recording its sha256. The dev server scans the test pages at startup (`optimizeDeps.entries`),
-     so each job's cold server bundles their imports before a test loads them.
+     production build, so nothing of them reaches the bundle. CI runs it as one E2E job per shard
+     that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
+     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks), `ruler`
+     (explore-ruler), `touch` (explore-ruler-touch), `borders` (borders-unpublished, the borders
+     probe, explore-borders) and `rest`, every spec the others do not name, so a new spec lands
+     there; a Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD`
+     picks one; unset, every spec runs. Each job runs one test at a time, since two SwiftShader
+     walks starve a four-core runner, and builds its own dist, recording its sha256. A page that
+     draws the globe closes only once the GPU process has drawn the frames it queued
+     (`e2e/idle.ts`), and the probes stop their walks once measured: on a runner's four cores
+     SwiftShader draws those frames seconds apart, and a page closed while drawing left the next
+     test's browser context waiting on them past its 30 s. The dev server scans the test pages at
+     startup (`optimizeDeps.entries`), so each job's cold server bundles their imports before a
+     test loads them.
      - **Surface vertex readback** (`e2e/globe-mesh.spec.ts`): the page decodes every fixture tile
        in the decode workers, uploads it through the upload queue into the real pools, packs every
        mesh scenario against the slots its tiles landed in, and reads the vertex stage back on both
@@ -2886,7 +2899,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `eventQueryHz` | 30 | event query rate while moving | E5 |
 | `eventMarkers`, `eventLabels` | 80 / 140, 24 / 40 | event detail budget | eye, when explore opens |
 | `parentSplitPx`, `parentMergePx` | 150, 120 px | parent → children switch | eye |
-| `declutterPerCell` | 2 per 64 px cell | event declutter | eye |
+| `declutterPerCell`, `declutterCellMarks` | 2 per cell, 4 marks across (64 CSS px at 16 px marks, 176 at 44) | event declutter: the cell scales with the marks' size | eye |
 | `hysteresisScore` | 20 on the 0-1000 score scale | margin to displace an incumbent | eye |
 | `eventFade` | 300 ms | event fades | eye |
 | `nowShare` | 0.1 of the ruler's visible width, at least a day | the now window events, Meanwhile and focal drops read | eye |
@@ -2897,7 +2910,7 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `timeFlickTauS`, `timeFlickMaxSpans` | 0.3 s, 2 spans | a flicked tape's coast | eye |
 | `timeFlightS` | 0.22-0.9 s | a flight between dates in Explore | eye |
 | `timeHoldGlide` | after 300 ms, 0.25 rising to 0.85 spans/s over 2 s | a held arrow's glide through time | eye |
-| `markPx` | 12 CSS px at 12,000 km wide and wider, 16 at 3,000, 20 at 300 and closer, log-interpolated | a mark's diameter | eye |
+| `markPx` | 14 CSS px at 12,000 km wide and wider, 22 at 3,000, 32 at 1,000, 44 at 300 and closer, log-interpolated | a mark's diameter | eye |
 | `markMinDevicePx` | 16 device px | the fewest device pixels a mark spans, over `markPx`: at one device pixel a CSS px, marks at world view are 16 CSS px so their glyphs read | eye |
 | `markTileCap` | 8 per 32 CSS px tile | marks the look inlays in one screen tile | eye |
 | `markRoughMin`, `markSpecMax` | 0.35, 0.9 | a mark's roughness floor; the cap on its lit luminance, under the bloom's 1.05 | eye |

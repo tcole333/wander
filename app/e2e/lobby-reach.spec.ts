@@ -6,7 +6,8 @@
 // 1440x800, whether the page opens there or the window grows to it, every plaque stands in view
 // and More stays hidden. Nothing logs an error or raises an error event on the window, as a
 // ResizeObserver loop would without throwing.
-import { expect as playwrightExpect, test, type Locator, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Locator, type Page } from '@playwright/test';
+import { test } from './idle';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
 const TIMEOUT = 90_000;

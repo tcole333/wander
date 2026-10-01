@@ -1,39 +1,28 @@
-// Every variant gives each pace layer's family a material of its own, so no two layers part by
-// glyph alone; and the look without marks compiles none of their code.
+// Each pace layer's family has a material of its own, so no two layers part by glyph alone, and
+// holds every glyph of its family on its seal's face; the look without marks compiles none of their
+// code.
 import { Color, Vector4 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { lookFragment } from '../look/lookFragment.glsl';
 import { EVENT_CLASS_SYMBOLS } from './eventSymbols';
-import {
-  FAMILIES,
-  familyUniforms,
-  FAMILY_VEC4S,
-  MARK_VARIANTS,
-  PACES,
-  TOKEN_INK,
-  type Pace,
-} from './families';
+import { FAMILIES, familyUniforms, FAMILY_VEC4S, PACES, SEAL_INK, type Pace } from './families';
 import { GLYPH_UNITS, glyphReach } from './glyphs';
 import { markPx } from './marks';
 import { EVENT_GLYPHS } from './symbols';
 
 describe('FAMILIES', () => {
-  it.each(MARK_VARIANTS.map((name, variant) => [name, variant] as const))(
-    '%s gives each family its own material',
-    (_, variant) => {
-      const looks = PACES.map((pace) => {
-        const t = FAMILIES[pace].variants[variant];
-        return JSON.stringify([t?.disc?.color, t?.disc?.radius, t?.glyph.color, t?.glyph.height]);
-      });
-      expect(new Set(looks).size).toBe(PACES.length);
-    },
-  );
+  it('gives each family a seal and a glyph of its own', () => {
+    const seals = PACES.map((pace) => FAMILIES[pace].seal.color);
+    const glyphs = PACES.map((pace) => FAMILIES[pace].glyph.color);
+    expect(new Set(seals).size).toBe(PACES.length);
+    expect(new Set(glyphs).size).toBe(PACES.length);
+  });
 });
 
-describe('the cast token', () => {
-  /** How far each of a family's glyphs reaches from its token's center, in r. */
+describe('the seal', () => {
+  /** How far each of a family's glyphs reaches from its seal's center, in r. */
   const reaches = (pace: Pace) => {
-    const { glyph } = FAMILIES[pace].variants[0];
+    const { glyph } = FAMILIES[pace];
     const glyphs = new Set(
       Object.values(EVENT_CLASS_SYMBOLS)
         .filter((symbol) => symbol.pace === pace)
@@ -45,19 +34,24 @@ describe('the cast token', () => {
   };
 
   it.each(PACES)('keeps every %s glyph on its seal’s face, as large as the face allows', (pace) => {
-    const seal = TOKEN_INK * (FAMILIES[pace].variants[0].disc?.radius ?? 0);
+    const seal = SEAL_INK * FAMILIES[pace].seal.radius;
     const far = reaches(pace);
     expect(far.filter(([, reach]) => reach > seal)).toEqual([]);
     // Scaled for its farthest-reaching glyph: a hundredth more, and that glyph would leave it.
-    const { scale } = FAMILIES[pace].variants[0].glyph;
+    const { scale } = FAMILIES[pace].glyph;
     const farthest = Math.max(...far.map(([, reach]) => reach));
     expect((farthest * (scale + 0.01)) / scale).toBeGreaterThan(seal);
+  });
+
+  it.each(PACES)('keeps the %s seal’s face inside its bezel', (pace) => {
+    const { seal, bezel } = FAMILIES[pace];
+    expect(SEAL_INK * seal.radius).toBeLessThan(seal.radius - bezel.width);
   });
 
   it.each(PACES)('holds the %s glyph over more than 7 device px on the smallest mark', (pace) => {
     // The least the drawing rules (symbols.ts) hold a glyph to: a 6-unit stroke two thirds of a
     // device pixel. markMinDevicePx takes it past that where the globe draws one to a CSS px.
-    const { scale } = FAMILIES[pace].variants[0].glyph;
+    const { scale } = FAMILIES[pace].glyph;
     for (const ratio of [1, 1.25, 1.5, 2]) {
       expect(scale * markPx(Infinity, ratio) * ratio, `${ratio}`).toBeGreaterThan(7);
     }
@@ -65,13 +59,16 @@ describe('the cast token', () => {
 });
 
 describe('familyUniforms', () => {
-  it('holds each family’s disc and glyph in linear color, in PACES order', () => {
+  it('holds each family’s seal, glyph and bezel in linear color, in PACES order', () => {
     const out = Array.from({ length: PACES.length * FAMILY_VEC4S }, () => new Vector4());
-    familyUniforms(2, out);
-    const nature = FAMILIES.nature.variants[2];
-    const color = new Color(nature.disc?.color);
-    expect(out[0]?.toArray()).toEqual([color.r, color.g, color.b, nature.disc?.radius]);
-    expect(out[FAMILY_VEC4S + 1]?.w).toBe(FAMILIES.governance.variants[2].glyph.scale);
+    familyUniforms(out);
+    const { seal } = FAMILIES.nature;
+    const color = new Color(seal.color);
+    expect(out[0]?.toArray()).toEqual([color.r, color.g, color.b, seal.radius]);
+    expect(out[FAMILY_VEC4S + 1]?.w).toBe(FAMILIES.governance.glyph.scale);
+    const { bezel } = FAMILIES.infrastructure;
+    const brass = new Color(bezel.color);
+    expect(out[2 * FAMILY_VEC4S + 4]?.toArray()).toEqual([brass.r, brass.g, brass.b, bezel.width]);
   });
 });
 
@@ -83,8 +80,10 @@ describe('lookFragment', () => {
 
   it('cuts the marks in with them', () => {
     const chunks = lookFragment({ marks: true });
-    expect(chunks.pars).toContain('void lookMarksApply(inout LookSurface o');
-    expect(chunks.pars).toContain('lookMarksApply(o, gratDir, lookMarkDx, lookMarkDy);');
+    expect(chunks.pars).toContain('void lookMarksApply(\n  inout LookSurface o,');
+    expect(chunks.pars).toContain(
+      'lookMarksApply(o, gratDir, lookMarkDx, lookMarkDy, lookMarkRay, lookMarkRayX, lookMarkRayY);',
+    );
     expect(chunks.specular).toContain('totalEmissiveRadiance += lookS.marks.glow');
   });
 });

@@ -21,7 +21,7 @@ class FakeWorker implements EventWorker {
     this.onmessage?.({ data: reply } as MessageEvent<EventReply>);
   }
 }
-const query = { t0: 1, t1: 10, tier: 'lite' as const, view: viewOf() };
+const query = { t0: 1, t1: 10, tier: 'lite' as const, view: viewOf(), cellPx: 64 };
 const result = { markers: [], labels: [], outlines: [], missingFocal: [] };
 const plan = { needs: [], resident: [], bytes: 0, complete: true };
 
@@ -89,7 +89,7 @@ test.each([0, 98765.4321])(
           worker.onmessage?.({ data: pending } as MessageEvent<EventReply>);
           pending = undefined;
         }
-        client.query({ t0: 0, t1: frame, tier: 'lite', view: viewOf() });
+        client.query({ t0: 0, t1: frame, tier: 'lite', view: viewOf(), cellPx: 64 });
         for (const reply of client.drain(offset + frame * (1000 / 60))) {
           if (reply.type === 'result') delivered.push(reply.generation);
         }

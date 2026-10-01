@@ -14,16 +14,11 @@ const shard = shardSpecs(process.env.WANDER_E2E_SHARD);
 
 // CI's software renderer. SwiftShader screenshots misrepresent the look and timing, so this
 // project only proves that a frame renders and that the GPU pools behave. It never lists tests
-// tagged @gpu, walks too long for CI's four cores: a test skipped from inside its body still sets
-// up a browser context first, and under that load the setup can pass its 30 s.
+// tagged @gpu, walks too long for CI's four cores, so none sets up a browser context only to skip.
 const swiftshader: Project = {
   name: 'swiftshader',
   ...shard,
   grepInvert: /@gpu\b/,
-  // A test's browser context is set up within its timeout, before its body can raise it, and on
-  // CI's runner the setup after a page that drew heavily has taken from 27 s to past 30 s:
-  // cpu-memory's after the borders probe, and lobby-reach's second test's after its first.
-  timeout: 90_000,
   // Locally at most two SwiftShader walks at once: five on a loaded Mac starved each other of CPU
   // and failed where CI passed. CI runs one (workers below).
   workers: 2,

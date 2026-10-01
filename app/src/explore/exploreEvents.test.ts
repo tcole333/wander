@@ -110,11 +110,17 @@ class InPlaceWorker implements EventSource {
 }
 
 /** The look's marks as Explore hands them over: the last list set, and its strength. */
-function marksLayer(): EventMarks & { specs: MarkSpec[]; sets: number; under: string | null } {
+function marksLayer(): Omit<EventMarks, 'sizePx'> & {
+  specs: MarkSpec[];
+  sets: number;
+  under: string | null;
+  sizePx: number;
+} {
   const layer = {
     specs: [] as MarkSpec[],
     sets: 0,
     strength: 1,
+    sizePx: 16,
     set(source: string, specs: readonly MarkSpec[]) {
       expect(source).toBe('events');
       layer.specs = [...specs];
@@ -228,6 +234,16 @@ describe("Explore's events", () => {
     events.update(frameOver(10, 45, 2), at(5000, 3650), 16);
     events.update(frameOver(10, 45, 2), at(5001, 3650), 32);
     expect(worker.asked).toHaveLength(3);
+  });
+
+  it('asks for a declutter cell four marks across at the size the look draws them', () => {
+    const { worker, marks } = setup([]);
+    const events = new ExploreEvents({ client: worker, marks });
+    events.update(WORLD, at(5000, 3650), 0);
+    expect(worker.asked[0]?.cellPx).toBe(4 * 16);
+    marks.sizePx = 44;
+    events.update(WORLD, at(5000, 3650), 16);
+    expect(worker.asked.map((query) => query.cellPx)).toEqual([64, 176]);
   });
 
   it('marks nothing after 2000 with the ruler at history’s end', () => {
@@ -415,6 +431,9 @@ describe("Explore's events", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(byId(marks.specs, 100)).toMatchObject({ hollow: false, opacity: 0.5 });
     expect(byId(marks.specs, 100, true)).toMatchObject({ hollow: true, opacity: 0.5 });
+    // One event's two marks crossfade on its place rather than stand apart.
+    expect(byId(marks.specs, 100)?.group).toBe('Q100');
+    expect(byId(marks.specs, 100, true)?.group).toBe('Q100');
     // Each mark tells its own record, and the war counts once.
     expect(events.event(markIdOf(100))?.context).toBe(false);
     expect(events.event(markIdOf(100, true))?.context).toBe(true);
@@ -451,6 +470,32 @@ describe("Explore's events", () => {
     ]);
     events.update(close, at(1050), 1000 + tunables.eventFade * 2);
     expect(hollows()).toEqual([{ id: 'Q201/outline', opacity: 1 }]);
+  });
+
+  it('lets a hollow parent give way to one within a mark’s width of it, where seals overlap', () => {
+    // Two wars a little apart, each with a battle in view.
+    const war = { lat: 45, t0: 900, t1: 1100, cls: WAR, flags: 1 };
+    const { worker, marks } = setup([
+      { row: 0, qid: 200, lon: 10, ...war, ext: [0, 38, 22, 52] },
+      { row: 1, qid: 201, lon: 10.6, ...war, ext: [2, 40, 20, 50] },
+      { row: 2, qid: 202, lon: 4, lat: 50, t0: 1000, t1: 1000, parent: 0, cls: BATTLE },
+      { row: 3, qid: 203, lon: 16, lat: 48, t0: 1000, t1: 1000, parent: 1, cls: BATTLE },
+    ]);
+    const events = new ExploreEvents({ client: worker, marks });
+    const close = frameOver(10, 45, 1);
+    const hollows = () => marks.specs.filter((s) => s.hollow).map(({ id }) => id);
+    // Marks a pixel across stand clear of each other.
+    marks.sizePx = 1;
+    events.update(close, at(1000), 0);
+    events.update(close, at(1000), tunables.eventFade * 2);
+    expect(hollows()).toEqual(['Q200/outline', 'Q201/outline']);
+    const [a, b] = [200, 201].map((qid) => events.event(markIdOf(qid, true))!);
+    const apart = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+    // Marks wider than the wars stand apart, though not twice as wide, would overlap.
+    marks.sizePx = apart * 1.5;
+    events.update(close, at(1000), tunables.eventFade * 3);
+    events.update(close, at(1000), tunables.eventFade * 5);
+    expect(hollows()).toEqual(['Q200/outline']);
   });
 
   it('takes the index’s marks off, the lock’s focal mark staying, once the worker fails', () => {

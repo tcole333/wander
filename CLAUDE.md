@@ -105,7 +105,7 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   tests run test-only pages on the Vite dev server, reading the fixture from its data server, so
   none of it reaches the build. Pass Playwright's arguments after `--`
   (`npm run e2e -- e2e/smoke.spec.ts`); a bare `npx playwright test` skips the lock. Run
-  `npx playwright install chromium` once first. CI runs the specs as four parallel shards that
+  `npx playwright install chromium` once first. CI runs the specs as parallel shards that
   `app/e2e/shards.ts` names; `WANDER_E2E_SHARD=<shard>` runs one, as its CI job does.
 - The same, then `npm run e2e:gpu`: the same tests on this Mac's GPU (Chromium with
   `--use-angle=metal`), local only, and the e2e `npm run gate` runs before a push. It is the

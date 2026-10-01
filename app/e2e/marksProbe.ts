@@ -7,16 +7,27 @@
 // - sea names: the atlas with the glyph shelf letters its names exactly as the atlas without;
 // - coverage: every mark placed in view changes the pixels of its disc;
 // - the limb: marks past it change nothing anywhere;
-// - light: at the lamp's own reflection, in every variant, no mark but the focal one reaches the
-//   bloom's threshold (1.05), and the focal one's ember passes it.
+// - light: at the lamp's own reflection, at world view and at 3,000 km, no mark but the focal one
+//   reaches the bloom's threshold (1.05), and the focal one's ember passes it;
+// - seals over relief, tilted over Tambora on the fixture's finest tiles: a seal on its flank
+//   covers the ellipse of its disc laid flat at its anchor's height, which the probe reads from
+//   the tile itself, and a seal behind the summit changes no pixel, though seen from the other side
+//   it does.
+// Once it has measured, it stops the walk.
 import { FloatType, Mesh, RGBAFormat, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import type { Release } from '../src/data/release';
+import type { SurfaceLayer } from '../src/data/surfaceLayer';
 import { SeaNameLayer } from '../src/look/seaNames';
-import { MARK_VARIANTS, PACES } from '../src/marks/families';
+import { PACES } from '../src/marks/families';
 import { MARK_GLYPHS } from '../src/marks/glyphs';
 import type { MarkSpec } from '../src/marks/marks';
+import { HEIGHT_LEVELS, MARK_ROW, TABLE_WIDTH } from '../src/marks/marks.glsl';
+import { dirOf, EARTH_M, tangents } from '../src/story/effects/geo';
 import type { LonLat } from '../src/story/story';
+import { faceOf, faceSt, lonLatToDir, tileOf } from '../src/surface/cube';
+import { halfValue } from '../src/surface/half';
+import { decodeWst, MIP_SIZES } from '../src/surface/wst';
 import { bootWalk } from '../src/walk/boot';
 
 export interface MarksProbe {
@@ -26,7 +37,6 @@ export interface MarksProbe {
   covered: { id: string; change: number }[];
   pastLimb: { placed: number; change: number };
   light: {
-    variant: string;
     pose: string;
     /** The cluster's marks placed in view, beside the focal one. */
     cluster: number;
@@ -34,6 +44,20 @@ export interface MarksProbe {
     marks: number;
     focal: number;
   }[];
+  relief: {
+    /**
+     * The seal on Tambora's flank: its anchor's height in meters as its tile holds it, how far
+     * that lifts it on screen (device px), how far its changed pixels' center lies from its anchor
+     * so lifted, and the share of its disc laid flat there (0.85 of its radius) that changed and of
+     * its changed pixels that lie past 1.3 of its radius.
+     */
+    slope: { height: number; lift: number; offset: number; inside: number; outside: number };
+    /**
+     * A seal behind the summit seen from the south over it, placed in view, and the most it
+     * changes any pixel; and the most it changes seen from the north.
+     */
+    behind: { placed: boolean; hidden: number; shown: number };
+  };
 }
 
 declare global {
@@ -180,52 +204,227 @@ async function probe(dataHost: string): Promise<MarksProbe> {
         cluster.push(spec(`hot-${i}-${j}`, [hot[0] + i * step, hot[1] + j * step], cluster.length));
       }
     }
-    cluster.push({ ...spec('focal', [hot[0], hot[1] - 4 * step], 0), focal: true });
-    marks.set('probe', cluster);
-    for (const [variant, name] of MARK_VARIANTS.entries()) {
-      marks.params.markVariant = variant;
-      marks.update(0);
-      off = render(false);
-      on = render(true);
-      const placed = discs(1.6);
-      // The brightest pixel a mark made brighter, and the ground's brightest under the cluster.
-      const brightest = (ids: (id: string) => boolean) => {
-        let most = 0;
-        for (const { indices } of placed.filter(({ id }) => ids(id))) {
-          for (const i of indices) {
-            if (luminance(on, i) > luminance(off, i) + 0.01) {
-              most = Math.max(most, luminance(on, i));
-            }
+    // The cluster and the focal mark are lit apart, so the ember, which near the limb a few steps
+    // can bring within the cluster's discs, is never taken for a mark's light; Explore's own marks,
+    // its opening's ember among them, are cleared.
+    const lit = (specs: MarkSpec[]) => {
+      marks.set('events', []);
+      marks.set('probe', specs);
+      const unlit = render(false);
+      const shown = render(true);
+      return { unlit, shown, placed: discs(1.6) };
+    };
+    /** The brightest pixel the marks made brighter, and the ground's brightest under them. */
+    const brightest = ({ unlit, shown, placed }: ReturnType<typeof lit>) => {
+      let [most, ground] = [0, 0];
+      for (const { indices } of placed) {
+        for (const i of indices) {
+          ground = Math.max(ground, luminance(unlit, i));
+          if (luminance(shown, i) > luminance(unlit, i) + 0.01) {
+            most = Math.max(most, luminance(shown, i));
           }
         }
-        return most;
-      };
-      let ground = 0;
-      for (const { indices } of placed.filter(({ id }) => id !== 'focal')) {
-        for (const i of indices) ground = Math.max(ground, luminance(off, i));
       }
-      light.push({
-        variant: name,
-        pose,
-        cluster: marks.placed().filter(({ id }) => id !== 'focal').length,
-        ground,
-        marks: brightest((id) => id !== 'focal'),
-        focal: brightest((id) => id === 'focal'),
-      });
+      return { most, ground };
+    };
+    const hotMarks = brightest(lit(cluster));
+    const placedCluster = marks.placed().length;
+    const focal = brightest(
+      lit([{ ...spec('focal', [hot[0], hot[1] - 4 * step], 0), focal: true }]),
+    );
+    light.push({
+      pose,
+      cluster: placedCluster,
+      ground: hotMarks.ground,
+      marks: hotMarks.most,
+      focal: focal.most,
+    });
+  }
+
+  // Seals over relief, tilted over Tambora. Each render sets the probe's marks and clears
+  // Explore's, so only the seal tested differs; with no relief the seal casts its contact shadow
+  // straight under itself, so its pixels center on it.
+  const renderWith = (specs: MarkSpec[]) => {
+    marks.set('events', []);
+    marks.set('probe', specs);
+    return render(true);
+  };
+  /** A globe-frame point in the readback's pixels, rows from the bottom. */
+  const pixelOf = (local: Vector3) => {
+    const ndc = globe.localToWorld(local.clone()).project(camera);
+    return { x: ((ndc.x + 1) / 2) * size.x, y: ((ndc.y + 1) / 2) * size.y };
+  };
+  const seal = (id: string, at: LonLat): MarkSpec => ({
+    id,
+    at,
+    glyph: 'battle',
+    pace: 'governance',
+    opacity: 1,
+  });
+  const relief = Number(marks.params.markRelief);
+  marks.params.markRelief = 0;
+
+  // On the flank: its anchor's height from the tile its table entry names, and its disc laid flat
+  // there.
+  page.control.go({ ...TAMBORA_SLOPE.view, heading: 0 }, true);
+  await settle();
+  const bare = renderWith([]);
+  const sealed = renderWith([seal('slope', TAMBORA_SLOPE.at)]);
+  const table = marks.uniforms.lookMarkTable.value.image.data as Float32Array;
+  const entry = MARK_ROW * TABLE_WIDTH * 4;
+  const r = table[entry + 3] ?? 0;
+  const [u = 0, v = 0, packed = -1] = table.subarray(entry + 12, entry + 15);
+  const height = await heightOf(
+    page.streamer.layer,
+    TAMBORA_SLOPE.at,
+    packed % HEIGHT_LEVELS,
+    u,
+    v,
+  );
+  const anchor = dirOf(TAMBORA_SLOPE.at);
+  const kLand = Number(page.look.params.kLand);
+  const top = anchor.clone().multiplyScalar(1 + (kLand * Math.max(height, 0)) / EARTH_M);
+  const drawnAt = pixelOf(top);
+  const sea = pixelOf(anchor);
+  const { east, north } = tangents(TAMBORA_SLOPE.at);
+  const outline = (k: number) =>
+    Array.from({ length: 64 }, (_, i) => {
+      const a = (2 * Math.PI * i) / 64;
+      return pixelOf(
+        top
+          .clone()
+          .addScaledVector(east, k * r * Math.cos(a))
+          .addScaledVector(north, k * r * Math.sin(a)),
+      );
+    });
+  const [inner, outer] = [outline(0.85), outline(1.3)];
+  const reach = Math.hypot((outer[0]?.x ?? 0) - drawnAt.x, (outer[0]?.y ?? 0) - drawnAt.y);
+  let [sum, sumX, sumY, innerAll, innerChanged, beyond] = [0, 0, 0, 0, 0, 0];
+  for (let y = Math.floor(drawnAt.y - 2 * reach); y <= drawnAt.y + 2 * reach; y++) {
+    for (let x = Math.floor(drawnAt.x - 2 * reach); x <= drawnAt.x + 2 * reach; x++) {
+      if (x < 0 || y < 0 || x >= size.x || y >= size.y) continue;
+      const i = (y * size.x + x) * 4;
+      const changed = colorChange(bare, sealed, i) > 0.02;
+      const p = { x: x + 0.5, y: y + 0.5 };
+      if (inside(p, inner)) {
+        innerAll += 1;
+        if (changed) innerChanged += 1;
+      }
+      if (!changed) continue;
+      sum += 1;
+      sumX += p.x;
+      sumY += p.y;
+      if (!inside(p, outer)) beyond += 1;
     }
   }
-  marks.params.markVariant = 0;
+  const slope = {
+    height,
+    lift: Math.hypot(drawnAt.x - sea.x, drawnAt.y - sea.y),
+    offset: sum > 0 ? Math.hypot(sumX / sum - drawnAt.x, sumY / sum - drawnAt.y) : Infinity,
+    inside: innerAll > 0 ? innerChanged / innerAll : 0,
+    outside: sum > 0 ? beyond / sum : 1,
+  };
+
+  // Behind the summit: seen from the south over it, then from the north.
+  const changeFrom = async (heading: number) => {
+    page.control.go({ ...TAMBORA_BEHIND.view, heading }, true);
+    await settle();
+    const without = renderWith([]);
+    const withSeal = renderWith([seal('behind', TAMBORA_BEHIND.at)]);
+    const placed = marks.placed().some(({ id }) => id === 'behind');
+    let most = 0;
+    for (let i = 0; i < without.length; i += 4)
+      most = Math.max(most, colorChange(without, withSeal, i));
+    return { placed, most };
+  };
+  const south = await changeFrom(0);
+  const fromNorth = await changeFrom(180);
+  const behind = { placed: south.placed, hidden: south.most, shown: fromNorth.most };
+  marks.params.markRelief = relief;
+
   marks.set('probe', []);
   target.dispose();
 
-  return {
+  const report = {
     renderer: rendererName(gl),
     samplers: fragmentSamplers(renderer),
-    seaNames: await seaNamesAlike(),
     covered,
     pastLimb,
     light,
+    relief: { slope, behind },
   };
+  // The last readback drained the GPU's queue, so the walk stops with nothing left to draw.
+  page.dispose();
+  return { ...report, seaNames: await seaNamesAlike() };
+}
+
+/** Tambora's flank, and a view tilted over it from the south. */
+const TAMBORA_SLOPE = {
+  at: [118.03, -8.29] as LonLat,
+  view: { lon: 118.0, lat: -8.32, viewKm: 100, tilt: 55 },
+};
+/**
+ * A place on Tambora's northern foot, and a view low over it, 12 degrees above the horizon: from
+ * the south the summit stands in front of it, far more than a seal's radius above it.
+ */
+const TAMBORA_BEHIND = {
+  at: [118.0, -8.14] as LonLat,
+  view: { lon: 118.0, lat: -8.14, viewKm: 50, tilt: 78 },
+};
+
+/**
+ * The height in meters the look reads for a seal at `at` from the level-`level` tile at (u, v):
+ * the tile fetched and decoded here, its heights' mip 2 sampled bilinearly, as the look's
+ * textureLod does, and its codes turned to meters as the vertex stage does.
+ */
+async function heightOf(
+  layer: Pick<SurfaceLayer, 'url' | 'surface'>,
+  at: LonLat,
+  level: number,
+  u: number,
+  v: number,
+): Promise<number> {
+  const dir = lonLatToDir(...at);
+  const face = faceOf(dir);
+  const [s, t] = faceSt(face, dir);
+  const tile = { face, level, x: tileOf(s, level), y: tileOf(t, level) };
+  const decoded = await decodeWst(await (await fetch(layer.url(tile))).arrayBuffer(), tile);
+  const mip = decoded.heightMips[2];
+  const n = MIP_SIZES[2];
+  const at2 = (i: number, j: number) =>
+    halfValue(mip[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))] ?? 0);
+  const [x, y] = [u * n - 0.5, v * n - 0.5];
+  const [i, j] = [Math.floor(x), Math.floor(y)];
+  const [fx, fy] = [x - i, y - j];
+  const code =
+    decoded.header.codeMid +
+    (1 - fy) * ((1 - fx) * at2(i, j) + fx * at2(i + 1, j)) +
+    fy * ((1 - fx) * at2(i, j + 1) + fx * at2(i + 1, j + 1));
+  const q = layer.surface.qLand[level] ?? NaN;
+  const c2 = layer.surface.c200[level] ?? NaN;
+  return (code >= c2 ? code : c2 + 4 * (code - c2)) * q;
+}
+
+/** The most any of a pixel's channels changed from `a` to `b`. */
+function colorChange(a: Float32Array, b: Float32Array, i: number): number {
+  return Math.max(
+    Math.abs((a[i] ?? 0) - (b[i] ?? 0)),
+    Math.abs((a[i + 1] ?? 0) - (b[i + 1] ?? 0)),
+    Math.abs((a[i + 2] ?? 0) - (b[i + 2] ?? 0)),
+  );
+}
+
+/** Whether `p` lies inside the polygon `ring`. */
+function inside(p: { x: number; y: number }, ring: readonly { x: number; y: number }[]): boolean {
+  let within = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i]!;
+    const b = ring[j]!;
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
+      within = !within;
+    }
+  }
+  return within;
 }
 
 function spec(id: string, at: LonLat, i: number): MarkSpec {

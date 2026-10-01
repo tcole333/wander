@@ -1,26 +1,19 @@
-// Each pace layer's marks as one family: the material its marks take in each variant, so that no
-// two layers part by glyph alone (docs/design/globe-language.md, principle 4). The variants are
-// the candidates drawn side by side on R1's renders; the marks draw 0, the cast token, unless
-// ?markVariant or the dev panel asks for another:
+// Each pace layer's marks as one family: the material its marks take, so that no two layers part by
+// glyph alone (docs/design/globe-language.md, principle 4). Every mark is a seal standing on the
+// relief, which it hides, casting a contact shadow, ringed by a polished brass bezel that catches
+// the lamp and parts it from the bronze around it; each family's seal and glyph are its own:
 //
-//   0 Cast token (E1b): a raised bronze boss with its glyph worn bright; a raised dark seal with a
-//     niello glyph; a small gilt seal with its glyph sunk. Each casts a contact shadow.
-//   1 Cast and cut: a glyph raised in the bronze; a glyph engraved flush and filled with niello; a
-//     gilt seal laid on.
-//   2 Niello: a patina disc with a bright glyph; a polished disc with a black one; a gilt disc
-//     with a black one.
-//   3 Muted champlevé: verdigris, oxblood and ivory enamel in cells cut into the bronze.
+//   nature          a green patina seal with a bright worn glyph;
+//   governance      a dark niello seal with a gilt glyph;
+//   infrastructure  a smaller gilt seal with a niello glyph.
 //
-// Every family is drawn by the look's inlay (marks.glsl.ts). A family whose chosen material has to
-// stand proud of the relief, as E1b's token does, would get an instanced backend of its own.
+// Every family is drawn by the look's inlay (marks.glsl.ts). A family whose material has to stand
+// proud of the relief would get an instanced backend of its own.
 import { Color, Vector4 } from 'three';
 
 /** The pace layers whose events mark the globe (globe-language.md, Speeds and pace layers). */
 export type Pace = 'nature' | 'governance' | 'infrastructure';
 export const PACES: readonly Pace[] = ['nature', 'governance', 'infrastructure'];
-
-export const MARK_VARIANTS = ['Cast token', 'Cast and cut', 'Niello', 'Muted champlevé'] as const;
-export type MarkVariant = 0 | 1 | 2 | 3;
 
 /** One part of a mark: its height (in r, the mark's radius: + raised, − cut), sRGB color, finish. */
 export interface Part {
@@ -28,121 +21,82 @@ export interface Part {
   color: string;
   roughness: number;
   metalness: number;
-  /** How much of its own color it takes over the ground's: 1 all, 0 the ground's bronze. */
-  fill: number;
 }
 
-/** A family's material in one variant. */
-export interface Treatment {
-  /** The disc the glyph sits on, `radius` in r; none, and the glyph is cut in the ground. */
-  disc: (Part & { radius: number }) | null;
+/** A family's material. */
+export interface Family {
+  /** The seal the glyph sits on, `radius` in r. */
+  seal: Part & { radius: number };
+  /** The polished band just inside the seal's edge: its width in r, sRGB color and roughness. */
+  bezel: { width: number; color: string; roughness: number };
   /** The glyph, its 64-unit grid spanning `scale` of the mark's diameter. */
   glyph: Part & { scale: number };
-  /** The share of the ground's relief a disc hides: a cast token sits on the relief. */
+  /** The share of the ground's relief the seal hides, standing on it. */
   flatten: number;
-  /** A contact shadow cast on the ground away from the lamp. */
-  shadow: boolean;
-  /** A band of polished metal round the glyph, in r: champlevé's cell walls. */
-  rim: number;
 }
 
-export interface Family {
-  /** How the family's marks are drawn: inlaid by the look. */
-  backend: 'inlay';
-  variants: readonly [Treatment, Treatment, Treatment, Treatment];
-}
+/**
+ * How far a seal's glyph may reach from its center, as a share of the seal's radius: its farthest
+ * ink keeps to the seal's face, inside the bezel and clear of the rim the seal's bevel (markBevel)
+ * casts. Each family's glyph scale is the largest that holds its farthest-reaching glyph there,
+ * which families.test.ts measures; legible on the smallest mark is markMinDevicePx's part.
+ */
+export const SEAL_INK = 0.8;
 
-const NIELLO = { color: '#0d0a08', roughness: 0.55, metalness: 0.1, fill: 1 };
-const GILT = { color: '#dcb25a', roughness: 0.36, metalness: 1, fill: 1 };
-
-/** A disc: its radius and height in r, color, roughness and metalness. */
-const disc = (radius: number, height: number, color: string, roughness: number, metalness = 1) => ({
+const NIELLO = { color: '#0d0a08', roughness: 0.55, metalness: 0.1 };
+/** A seal: its radius and height in r, color, roughness and metalness. */
+const seal = (
+  radius: number,
+  height: number,
+  color: string,
+  roughness: number,
+  metalness: number,
+) => ({
   radius,
   height,
   color,
   roughness,
   metalness,
-  fill: 1,
 });
 /** A glyph over `scale` of the mark's diameter, `height` in r, in a finish. */
 const glyph = (
   scale: number,
   height: number,
-  finish: { color: string; roughness: number; metalness: number; fill: number },
+  finish: { color: string; roughness: number; metalness: number },
 ) => ({ scale, height, ...finish });
-const worn = (color: string, fill = 1) => ({ color, roughness: 0.35, metalness: 1, fill });
-
-/** A cast token standing on the relief, which it hides, casting a contact shadow. */
-const token = { flatten: 0.9, shadow: true, rim: 0 };
 /**
- * How far a cast token's glyph may reach from the token's center, as a share of its seal's radius:
- * its farthest ink keeps to the seal's face, clear of the rim the seal's bevel (markBevel) casts.
- * Each family's glyph scale is the largest that holds its farthest-reaching glyph there, which
- * families.test.ts measures; legible on the smallest mark is markMinDevicePx's part.
+ * Gilt's metalness: polished, but with a share of its color lit as a diffuse surface is. Wholly
+ * metal, gilt reflects only what lies in its mirror direction, which in a tilted view is the dark
+ * room rather than the lamp behind the camera: a flat gilt face reads as dark as niello there, and a
+ * glyph as its bevel's two bright rims.
  */
-export const TOKEN_INK = 0.8;
-/**
- * Cut or laid into the bronze: the relief carries on round it, smoothed under the glyph so the
- * glyph's own edges catch the lamp, even at world view.
- */
-const cut = { flatten: 0.6, shadow: false, rim: 0 };
-/** A flush inlay, polished smooth. */
-const inlay = { flatten: 0.85, shadow: false, rim: 0 };
-/** Champlevé: enamel in cells cut into the bronze, with walls of polished metal round them. */
-const enamel = (color: string): Treatment => ({
-  disc: null,
-  glyph: glyph(0.96, -0.025, { color, roughness: 0.3, metalness: 0, fill: 1 }),
-  flatten: 0.7,
-  shadow: false,
-  rim: 0.09,
-});
+const GILT_METALNESS = 0.6;
+/** A glyph's worn metal, bright where hands have polished it. */
+const worn = (color: string) => ({ color, roughness: 0.35, metalness: GILT_METALNESS });
+/** A polished bezel `width` of r inside the seal's edge. */
+const bezel = (width: number, color: string) => ({ width, color, roughness: 0.3 });
 
 export const FAMILIES: Record<Pace, Family> = {
   nature: {
-    backend: 'inlay',
-    variants: [
-      // The eruption and the slide reach 37.5 of the grid's 32 units from its center.
-      { disc: disc(1, 0.13, '#76552a', 0.5), glyph: glyph(0.68, 0.04, worn('#ecd08c')), ...token },
-      { disc: null, glyph: glyph(0.96, 0.1, worn('#e2bc72', 0.8)), ...cut },
-      {
-        disc: disc(1, 0.015, '#43604e', 0.65, 0.3),
-        glyph: glyph(0.66, 0, worn('#e8c880')),
-        ...inlay,
-      },
-      enamel('#4f7563'),
-    ],
+    // The eruption and the slide reach 37.5 of the grid's 32 units from its center.
+    seal: seal(1, 0.13, '#4a6a55', 0.5, 0.5),
+    bezel: bezel(0.13, '#ecca80'),
+    glyph: glyph(0.68, 0.05, worn('#efd28e')),
+    flatten: 1,
   },
   governance: {
-    backend: 'inlay',
-    variants: [
-      // The treaty's seal reaches 35.4 units.
-      { disc: disc(1, 0.12, '#5a4029', 0.5, 0.85), glyph: glyph(0.72, -0.07, NIELLO), ...token },
-      { disc: null, glyph: glyph(0.96, -0.07, NIELLO), ...cut },
-      { disc: disc(1, 0.015, '#a06a36', 0.35), glyph: glyph(0.66, -0.02, NIELLO), ...inlay },
-      enamel('#6a2620'),
-    ],
+    // The treaty's seal reaches 35.4 units.
+    seal: seal(1, 0.12, '#1c1510', 0.5, 0.2),
+    bezel: bezel(0.13, '#e2bc6c'),
+    glyph: glyph(0.72, 0.04, { color: '#e8bf64', roughness: 0.32, metalness: GILT_METALNESS }),
+    flatten: 1,
   },
   infrastructure: {
-    backend: 'inlay',
-    variants: [
-      {
-        // The wreck reaches 36.1 units, on a seal 0.8 of the mark's radius.
-        disc: { ...GILT, radius: 0.8, height: 0.12 },
-        glyph: glyph(0.56, -0.05, worn('#7d5b26', 0.85)),
-        ...token,
-      },
-      {
-        disc: { ...GILT, radius: 0.9, height: 0.07 },
-        glyph: glyph(0.6, -0.04, worn('#7a5a24', 0.85)),
-        ...cut,
-      },
-      {
-        disc: { ...GILT, radius: 1, height: 0.015, color: '#e6c062' },
-        glyph: glyph(0.66, -0.02, NIELLO),
-        ...inlay,
-      },
-      enamel('#bfb294'),
-    ],
+    // The wreck reaches 36.1 units, on a seal 0.8 of the mark's radius.
+    seal: seal(0.8, 0.12, '#dcb25a', 0.36, GILT_METALNESS),
+    bezel: bezel(0.1, '#f6de9c'),
+    glyph: glyph(0.56, -0.05, NIELLO),
+    flatten: 1,
   },
 };
 
@@ -150,23 +104,23 @@ export const FAMILIES: Record<Pace, Family> = {
 export const FAMILY_VEC4S = 5;
 
 /**
- * Every family's treatment in `variant`, in PACES order, as the look's uniform: per family the
- * disc's linear color and radius (0: none); the glyph's color and scale; the disc's and glyph's
- * heights and roughness; their metalness, the flattening and the shadow; their fills and the rim.
+ * Every family's material, in PACES order, as the look's uniform: per family the seal's linear
+ * color and radius; the glyph's color and scale; the seal's and glyph's heights and roughness;
+ * their metalness, the flattening and the bezel's roughness; the bezel's linear color and width.
  */
-export function familyUniforms(variant: MarkVariant, out: Vector4[]): Vector4[] {
+export function familyUniforms(out: Vector4[]): Vector4[] {
   const color = new Color();
   PACES.forEach((pace, f) => {
-    const t = FAMILIES[pace].variants[variant];
-    const disc = t.disc;
+    const { seal, bezel, glyph, flatten } = FAMILIES[pace];
     const at = (k: number) => out[f * FAMILY_VEC4S + k] ?? new Vector4();
-    color.set(disc?.color ?? '#000000');
-    at(0).set(color.r, color.g, color.b, disc?.radius ?? 0);
-    color.set(t.glyph.color);
-    at(1).set(color.r, color.g, color.b, t.glyph.scale);
-    at(2).set(disc?.height ?? 0, t.glyph.height, disc?.roughness ?? 1, t.glyph.roughness);
-    at(3).set(disc?.metalness ?? 0, t.glyph.metalness, t.flatten, t.shadow ? 1 : 0);
-    at(4).set(disc?.fill ?? 0, t.glyph.fill, t.rim, 0);
+    color.set(seal.color);
+    at(0).set(color.r, color.g, color.b, seal.radius);
+    color.set(glyph.color);
+    at(1).set(color.r, color.g, color.b, glyph.scale);
+    at(2).set(seal.height, glyph.height, seal.roughness, glyph.roughness);
+    at(3).set(seal.metalness, glyph.metalness, flatten, bezel.roughness);
+    color.set(bezel.color);
+    at(4).set(color.r, color.g, color.b, bezel.width);
   });
   return out;
 }

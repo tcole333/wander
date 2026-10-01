@@ -3,10 +3,10 @@
 // family (eventSymbols.ts), and one place in eight hollow or soft; a few more on the Alps' valleys,
 // for a close view among ridges; and a specimen tray in the Sahara, each family's row of four of
 // its glyphs over a row of the states (a hovered hollow parent with its extent, a soft mark, a
-// plain one, a hollow one). ?markVariant=0-3 picks the families' materials, ?marks=0 turns the
-// marks off (the GPU time's baseline), and ?markStress=<n> sets n marks spread over the view
-// instead. The page boots without the event index while the demo runs (main.ts), so Explore sets
-// no event marks beside the demo's. window.__markDemo serves scripts/exploreShots.ts.
+// plain one, a hollow one). ?marks=0 turns the marks off (the GPU time's baseline), and
+// ?markStress=<n> sets n marks spread over the view instead. The page boots without the event
+// index while the demo runs (main.ts), so Explore sets no event marks beside the demo's.
+// window.__markDemo serves scripts/exploreShots.ts.
 import {
   HalfFloatType,
   Mesh,
@@ -35,7 +35,7 @@ export interface MarkDemoApi {
   focus(id: string | null): void;
   /** Hovers one mark, or none. */
   hover(id: string | null): void;
-  /** Sets marks params, such as markVariant or marks (off for the GPU time's baseline). */
+  /** Sets marks params, such as marks (off for the GPU time's baseline). */
   set(params: Params): void;
   /** Replaces the demo's marks with n spread over a cap `radiusDeg` about `center`; 0 restores them. */
   stress(n: number, center?: LonLat, radiusDeg?: number): void;

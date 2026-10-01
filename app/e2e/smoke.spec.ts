@@ -7,9 +7,10 @@
 // an error; no request goes to Wikimedia: the images are the media stage's, on the data host;
 // bounds.bin is fetched once; and once the room opens, nothing more is fetched from the app's own
 // host: every face and worker came with the boot.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { fetchedSinceOpening, markOpening } from './opening';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
@@ -74,11 +75,9 @@ async function litFraction(page: Page): Promise<number> {
 // Small, so CI's software renderer, which draws the walk seconds apart on its few cores, fills
 // fewer pixels a frame.
 test.use({ viewport: { width: 640, height: 400 } });
-// The whole test, fixtures included, takes the long budget: on CI the browser context itself can
-// take over 30 s to set up after a heavy software-rendered spec such as the marks probe.
-test.describe.configure({ timeout: 240_000 });
 
 test('enters the Tambora walk from the lobby and opens its credits', async ({ page }) => {
+  test.setTimeout(240_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {

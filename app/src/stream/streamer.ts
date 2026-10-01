@@ -36,6 +36,7 @@ import { nodeIndex, tileKey, type Tile } from '../surface/cube';
 import type { DecodedWst } from '../surface/wst';
 import { DecodePool } from '../workers/decodePool';
 import { decodeTiles } from '../workers/decodeTiles';
+import { heightTexelAt } from './heightTexel';
 import { createInstanceGeometry } from './instanceGeometry';
 import { NodeSelector } from './selectNodes';
 import { assignSources } from './sources';
@@ -174,6 +175,8 @@ export const createSurfaceStreamer = (async (
   /** Tiles the instance buffer reads, and their ancestors within KEEP_ANCESTORS: never evicted. */
   let kept = new Set<string>();
   let drawnTiles: Tile[] = [];
+  /** The instances' nodes as last packed, each key to its source level: what the surface draws. */
+  let drawnSources = new Map<string, number>();
   let packedSignature = '';
   let refusedSignature = '';
   let levels = new Array<number>(LEVELS).fill(0);
@@ -406,6 +409,7 @@ export const createSurfaceStreamer = (async (
     if (nodes.length > CAPACITY) logOnce(`${nodes.length} nodes; drawing the first ${CAPACITY}`);
     const words = new Uint32Array(count * INSTANCE_WORDS);
     const keep = new Set<string>();
+    const nextDrawn = new Map<string, number>();
     const nextLevels = new Array<number>(LEVELS).fill(0);
     const nextSources = new Array<number>(LEVELS).fill(0);
     try {
@@ -419,6 +423,7 @@ export const createSurfaceStreamer = (async (
         for (let level = node.source; level >= low; level -= 1) {
           keep.add(tileKey(ancestorAt(node.tile, level)));
         }
+        nextDrawn.set(tileKey(node.tile), node.source);
         nextLevels[node.tile.level] = (nextLevels[node.tile.level] ?? 0) + 1;
         nextSources[node.source] = (nextSources[node.source] ?? 0) + 1;
       }
@@ -430,6 +435,7 @@ export const createSurfaceStreamer = (async (
     instances.words.set(words);
     instances.commit(count);
     kept = keep;
+    drawnSources = nextDrawn;
     packedSignature = signature;
     levels = nextLevels;
     sources = nextSources;
@@ -458,6 +464,10 @@ export const createSurfaceStreamer = (async (
         residentCpuGridBytes: 0,
         fetches: inFlight.size,
       };
+    },
+
+    heightTexel(dir) {
+      return heightTexelAt(dir, drawnSources, table, codeMids, layer.surface.maxLevel);
     },
 
     update(camera, viewport, globe) {

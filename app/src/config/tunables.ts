@@ -45,8 +45,10 @@ export const tunables = {
   eventLabels: { lite: 24, full: 40 },
   parentSplitPx: 150,
   parentMergePx: 120,
-  // Events per 64 px screen cell.
+  // Events per declutter cell, and the cell's side in mark diameters (markPx): 64 CSS px where
+  // marks are 16 px across, 176 where they are 44.
   declutterPerCell: 2,
+  declutterCellMarks: 4,
   // Score margin, on the 0-1000 event score scale, a newcomer needs to displace an incumbent.
   hysteresisScore: 20,
   eventFade: 300,
@@ -74,12 +76,13 @@ export const tunables = {
   // A mark's diameter in CSS px by the view's width in km, log-interpolated between the rows and
   // held beyond them: one size at a given scale (globe-language.md, principle 7).
   markPx: [
-    { km: 300, px: 20 },
-    { km: 3000, px: 16 },
-    { km: 12_000, px: 12 },
+    { km: 300, px: 44 },
+    { km: 1000, px: 32 },
+    { km: 3000, px: 22 },
+    { km: 12_000, px: 14 },
   ],
   // The fewest device pixels a mark spans, so its glyph reads where the globe is drawn at one
-  // device pixel a CSS px: there marks at world view are 16 CSS px, not 12.
+  // device pixel a CSS px: there marks at world view are 16 CSS px, not 14.
   markMinDevicePx: 16,
   // Marks the look inlays in one 32 CSS px screen tile: focal first, then hovered, then by score.
   markTileCap: 8,

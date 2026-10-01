@@ -5,7 +5,7 @@ import { readFixtureFile, readStageRecord } from '../test/fixture';
 import { viewOf } from '../test/events';
 import { EventRuntime } from './runtime';
 
-const query = { t0: 1, t1: 10, tier: 'lite' as const, view: viewOf() };
+const query = { t0: 1, t1: 10, tier: 'lite' as const, view: viewOf(), cellPx: 64 };
 
 test('the real handler decodes the fixture and returns queries with generation and residency', async () => {
   const release = readStageRecord<EventsRelease>('event-files');

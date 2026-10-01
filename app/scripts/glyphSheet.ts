@@ -1,9 +1,9 @@
 // The event marks' specimen sheet: every glyph of src/marks/symbols.ts by pace layer, at the
-// marks' sizes on the globe (12, 16 and 20 px) and at the size the smallest mark's cast token
-// holds it (variant 0, the marks' default), on bronze and on the lacquer of the sea, and at 128 px
-// on its 64-unit grid, with the classes of pipeline/config/event-classes.yaml that take it, the
-// circle its family's token holds it within and, for a storm, its mirrored southern form; then
-// every glyph on its family's cast token at the marks' sizes, drawn flat.
+// sizes its family's seal draws it on each of the marks' sizes on the globe (tunables.markPx), on
+// bronze and on the lacquer of the sea, and at 128 px on its 64-unit grid, with the classes of
+// pipeline/config/event-classes.yaml that take it, the circle its family's seal holds it within
+// and, for a storm, its mirrored southern form; then every glyph on its family's seal and bezel at
+// the marks' sizes, drawn flat.
 // Writes the SVG, then a PNG of it through headless Chromium, and prints each glyph's ink. From app/:
 //   node scripts/glyphSheet.ts --out ../build/explore/glyphs.svg [--png <path>] [--scale 1]
 // --png defaults to the SVG's path with .png; --scale is the PNG's device pixel ratio (1 shows the
@@ -14,9 +14,8 @@ import { parseArgs } from 'node:util';
 import { chromium } from '@playwright/test';
 import { EVENT_CLASS_SYMBOLS, SOUTHERN_MIRRORED } from '../src/marks/eventSymbols.ts';
 import { tunables } from '../src/config/tunables.ts';
-import { FAMILIES, PACES, TOKEN_INK, type Pace } from '../src/marks/families.ts';
-import { GLYPH_UNITS } from '../src/marks/glyphs.ts';
-import { EVENT_GLYPHS, type GlyphId } from '../src/marks/symbols.ts';
+import { FAMILIES, PACES, SEAL_INK, type Pace } from '../src/marks/families.ts';
+import { EVENT_GLYPHS, GLYPH_UNITS, type GlyphId } from '../src/marks/symbols.ts';
 
 const { values } = parseArgs({
   options: {
@@ -33,13 +32,12 @@ const png = resolve(values.png ?? out.replace(/\.svg$/, '.png'));
 
 /** The marks' sizes on the globe, smallest first. */
 const MARK_SIZES = tunables.markPx.map((row) => row.px).sort((a, b) => a - b);
-const SMALLEST = MARK_SIZES[0]!;
-/** The width a family's cast token holds its glyph at on the smallest mark. */
-const tokenGlyph = (pace: Pace) => FAMILIES[pace].variants[0].glyph.scale * SMALLEST;
-/** How far from its center, in units, a family's cast token holds its glyphs (TOKEN_INK). */
-const tokenReach = (pace: Pace) => {
-  const { disc, glyph } = FAMILIES[pace].variants[0];
-  return (TOKEN_INK * (disc?.radius ?? 0) * (GLYPH_UNITS / 2)) / glyph.scale;
+/** The width a family's seal draws its glyph at on a mark `size` px across. */
+const sealGlyph = (pace: Pace, size: number) => FAMILIES[pace].glyph.scale * size;
+/** How far from its center, in units, a family's seal holds its glyphs (SEAL_INK). */
+const sealReach = (pace: Pace) => {
+  const { seal, glyph } = FAMILIES[pace];
+  return (SEAL_INK * seal.radius * (GLYPH_UNITS / 2)) / glyph.scale;
 };
 const BIG = 128;
 const PAD = 32;
@@ -63,10 +61,10 @@ for (const id of SOUTHERN_MIRRORED) {
 }
 const ids = Object.keys(EVENT_GLYPHS) as GlyphId[];
 
-/** The sizes a glyph is shown at: on its family's smallest token, then the marks' sizes. */
+/** The sizes a glyph is shown at: as its family's seal draws it on each of the marks' sizes. */
 function sizes(id: GlyphId): number[] {
   const pace = family.get(id);
-  return [...(pace ? [tokenGlyph(pace)] : []), ...MARK_SIZES];
+  return pace ? MARK_SIZES.map((size) => sealGlyph(pace, size)) : [];
 }
 
 function escape(text: string): string {
@@ -110,11 +108,11 @@ function card(id: GlyphId, x: number, y: number): string {
   const parts = [
     `<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="6" fill="#1d1812" stroke="#3a2f22"/>`,
     `<rect x="${x + 12}" y="${y + 20}" width="${box}" height="${box}" rx="4" fill="url(#bronze)"/>`,
-    // The drawing rules: the 4-unit margin, and the circle its family's token holds it within.
+    // The drawing rules: the 4-unit margin, and the circle its family's seal holds it within.
     `<g fill="none" stroke="${INK}" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="3 3">`,
     `<rect x="${x + 20 + 4 * unit}" y="${y + 28 + 4 * unit}" width="${56 * unit}" height="${56 * unit}"/>`,
     pace
-      ? `<circle cx="${x + 20 + 32 * unit}" cy="${y + 28 + 32 * unit}" r="${tokenReach(pace) * unit}"/>`
+      ? `<circle cx="${x + 20 + 32 * unit}" cy="${y + 28 + 32 * unit}" r="${sealReach(pace) * unit}"/>`
       : '',
     '</g>',
     glyph(id, x + 20, y + 28, BIG, INK),
@@ -140,11 +138,11 @@ function card(id: GlyphId, x: number, y: number): string {
     let left = x + 184;
     for (const size of sizes(id)) {
       parts.push(glyph(id, left, top + Math.round((36 - size) / 2), size, fill));
-      left += size + (southern ? 28 : 40);
+      left += size + (southern ? 14 : 24);
     }
-    if (southern) {
-      const size = MARK_SIZES.at(-1)!;
-      parts.push(glyph(id, left, top + Math.round((36 - size) / 2), size, fill, true));
+    const largest = sizes(id).at(-1);
+    if (southern && largest) {
+      parts.push(glyph(id, left, top + Math.round((36 - largest) / 2), largest, fill, true));
     }
   };
   row(y + 104, 'url(#bronze)', INK);
@@ -158,7 +156,7 @@ const body: string[] = [
   text(
     PAD,
     y + 46,
-    `One family per pace layer, drawn on a 64-unit grid. Marks are ${MARK_SIZES.join(', ')} px across, and ${tunables.markMinDevicePx} device px at least; a ${SMALLEST} px cast token holds its glyph at ${PACES.map((pace) => tokenGlyph(pace).toFixed(1)).join(', ')} px (${PACES.join(', ')}).`,
+    `One family per pace layer, drawn on a 64-unit grid. Marks are ${MARK_SIZES.join(', ')} px across, and ${tunables.markMinDevicePx} device px at least; a ${MARK_SIZES[0]} px seal holds its glyph at ${PACES.map((pace) => sealGlyph(pace, MARK_SIZES[0]!).toFixed(1)).join(', ')} px (${PACES.join(', ')}).`,
     13,
     FAINT,
   ),
@@ -183,14 +181,15 @@ for (const [ground, fill] of [
   ['url(#bronze)', INK],
   ['#0f1512', BRASS],
 ] as const) {
-  for (const [row, size] of ['token', ...MARK_SIZES].entries()) {
-    // On the token row, a glyph no class takes yet has no token: its place stays empty.
+  for (const size of MARK_SIZES) {
+    // Each glyph as its family's seal draws it; a glyph no class takes yet has no seal, and its
+    // place stays empty.
     const at = (id: GlyphId) => {
       const pace = family.get(id);
-      return row > 0 ? Number(size) : pace ? tokenGlyph(pace) : 0;
+      return pace ? sealGlyph(pace, size) : 0;
     };
-    const step = Math.max(...ids.map(at)) + 14;
     const tallest = Math.max(...ids.map(at));
+    const step = tallest + 14;
     body.push(
       `<rect x="${PAD}" y="${y}" width="${ids.length * step + 60}" height="${tallest + 16}" rx="3" fill="${ground}"/>`,
       text(PAD + 8, y + tallest / 2 + 12, `${size}`, 11, fill),
@@ -209,12 +208,12 @@ for (const [ground, fill] of [
     y += tallest + 16 + 8;
   }
 }
-// Every glyph on its family's cast token, the marks' default, flat: its disc and its glyph in
-// their colors, at each mark size, on lit bronze.
-body.push(text(PAD, y + 16, 'ON THE CAST TOKEN', 14, TEXT, 'letter-spacing="3"'));
+// Every glyph on its family's seal, flat: the seal, its bezel and its glyph in their colors, at
+// each mark size, on lit bronze.
+body.push(text(PAD, y + 16, 'ON THE SEAL', 14, TEXT, 'letter-spacing="3"'));
 y += 28;
 for (const pace of PACES) {
-  const { disc, glyph: face } = FAMILIES[pace].variants[0];
+  const { seal, bezel, glyph: face } = FAMILIES[pace];
   const members = ids.filter((id) => family.get(id) === pace);
   const largest = MARK_SIZES.at(-1)!;
   const step = largest + 12;
@@ -229,8 +228,10 @@ for (const pace of PACES) {
     members.forEach((id, i) => {
       const cx = PAD + 130 + i * step * 1.4;
       const g = face.scale * size;
+      const band = (bezel.width * size) / 2;
       body.push(
-        `<circle cx="${cx}" cy="${cy}" r="${((disc?.radius ?? 1) * size) / 2}" fill="${disc?.color ?? 'none'}" stroke="${INK}" stroke-opacity="0.35" stroke-width="0.5"/>`,
+        `<circle cx="${cx}" cy="${cy}" r="${(seal.radius * size) / 2}" fill="${seal.color}"/>`,
+        `<circle cx="${cx}" cy="${cy}" r="${(seal.radius * size) / 2 - band / 2}" fill="none" stroke="${bezel.color}" stroke-width="${band}"/>`,
         glyph(id, cx - g / 2, cy - g / 2, g, face.color),
       );
     });

@@ -4,9 +4,10 @@
 // arrays; the dive into Explore draws no borders and serves no window.__borders; and Tambora's
 // sixth beat, which lists borders, shows no borders plate, since the fixture bakes no 1815 field
 // (the walk says why once, as a warning). Nothing logs an error.
-import { expect as playwrightExpect, test, type Page } from '@playwright/test';
+import { expect as playwrightExpect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parseStory } from '../src/story/story';
+import { test } from './idle';
 import { DATA_URL, PREVIEW_URL } from './servers';
 
 const TIMEOUT = 90_000;
@@ -23,9 +24,6 @@ const JPEG = readFileSync(
 
 // CI's software renderer needs fewer pixels per frame.
 test.use({ viewport: { width: 640, height: 400 } });
-// On CI the browser context itself can take over 30 s to set up after a heavy software-rendered
-// spec, so the whole test, fixtures included, takes the long budget.
-test.describe.configure({ timeout: 600_000 });
 
 async function phase(page: Page, name: string): Promise<void> {
   await expect(page.locator('body')).toHaveAttribute('data-lobby', name);
@@ -34,6 +32,7 @@ async function phase(page: Page, name: string): Promise<void> {
 test('draws no border steps in Explore or the Tambora walk where the release names none', async ({
   page,
 }) => {
+  test.setTimeout(600_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
