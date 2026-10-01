@@ -60,19 +60,20 @@ const mark = (id: string, at: LonLat, extra: Partial<MarkSpec> = {}): MarkSpec =
 });
 
 describe('markPx', () => {
-  it('is 12 px at 12,000 km wide and wider, 16 at 3,000 and 20 at 300 and closer', () => {
-    const px = [30, 300, 3000, 12_000, 40_000].map((km) => markPx(km, 2));
-    expect(px).toEqual([20, 20, 16, 12, 12]);
+  it('is 14 px at 12,000 km wide and wider, 22 at 3,000, 32 at 1,000 and 44 at 300 and closer', () => {
+    const px = [30, 300, 1000, 3000, 12_000, 40_000].map((km) => markPx(km, 2));
+    expect(px).toEqual([44, 44, 32, 22, 14, 14]);
   });
 
   it('interpolates on the log of the width', () => {
-    expect(markPx(Math.sqrt(300 * 3000), 2)).toBeCloseTo(18, 6);
+    expect(markPx(Math.sqrt(1000 * 3000), 2)).toBeCloseTo(27, 6);
+    expect(markPx(Math.sqrt(300 * 1000), 2)).toBeCloseTo(38, 6);
   });
 
   it('spans at least 16 device px, so a mark at world view is 16 CSS px at one to a CSS px', () => {
-    expect([12_000, 3000, 300].map((km) => markPx(km, 1))).toEqual([16, 16, 20]);
-    expect(markPx(12_000, 1.25)).toBeCloseTo(12.8, 6);
-    expect(markPx(12_000, 1.5)).toBe(12);
+    expect([12_000, 3000, 300].map((km) => markPx(km, 1))).toEqual([16, 22, 44]);
+    expect(markPx(12_000, 1.25)).toBe(14);
+    expect(markPx(12_000, 1.5)).toBe(14);
   });
 });
 
@@ -233,7 +234,7 @@ describe('MarkLayer', () => {
     expect(shadow).toBeGreaterThan(0.3);
     // The look blurs the shadow's edge over 2 × 2.5 px and 0.12 r beyond the seal's radius, 1 r.
     const rPx = placed?.rPx ?? 0;
-    expect(rPx).toBeCloseTo(6, 0);
+    expect(rPx).toBeCloseTo(7, 0);
     expect(reachPx).toBeGreaterThanOrEqual((shadow + 1 + 0.12) * rPx + 2 * 2.5);
   });
 
