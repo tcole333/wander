@@ -128,14 +128,14 @@ describe('Explore’s time keys', () => {
     expect(clock.state()).toEqual({ day: WATERLOO, spanDays: MAX_EXPLORE_DAYS });
   });
 
-  it('move a span with PageUp and PageDown, landing on a labelled tick', () => {
+  it('move exactly a span with PageUp and PageDown, each undoing the other', () => {
     const { clock, press, run } = setup();
     press('PageDown');
     run();
-    expect(historicalCivil(clock.state().day).year).toBe(1620);
+    expect(clock.state().day).toBe(WATERLOO - Y200);
     press('PageUp');
     run();
-    expect(historicalCivil(clock.state().day).year).toBe(1820);
+    expect(clock.state().day).toBe(WATERLOO);
   });
 
   it('fly to history’s ends with Home and End, and back with Backspace', () => {

@@ -309,15 +309,20 @@ export class ExploreTime {
 
   /**
    * One step from where the tape is going: to the next fine or labelled tick the tape engraves,
-   * or a span on, landing on a labelled tick.
+   * or exactly a span on. A span's step lands on a labelled tick only from one, so a step each way
+   * comes back to where it began and repeated steps never drift.
    */
   step(dir: 1 | -1, kind: 'fine' | 'label' | 'span'): void {
     const { day, span } = this.target;
     const grade = graduation(span, this.rulePx, day);
+    if (kind === 'span') {
+      const onTick = Math.abs(nearestTick(day, grade.label) - day) < 1e-6;
+      const to = day + dir * span;
+      this.fly(onTick ? nearestTick(to, grade.label) : to, span);
+      return;
+    }
     const series = kind === 'fine' ? (grade.fine ?? grade.mid ?? grade.label) : grade.label;
-    const to =
-      kind === 'span' ? nearestTick(day + dir * span, grade.label) : nextTick(day, dir, series);
-    this.fly(to, span);
+    this.fly(nextTick(day, dir, series), span);
   }
 
   /** One detent wider (1) or narrower (-1), about the needle. */
