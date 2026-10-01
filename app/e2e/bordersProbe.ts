@@ -3,7 +3,8 @@
 // with synthetic steps and previews through the runtime's own upload parts and decoder, and checks
 // what the look draws of them. Each check renders the scene as the composer's first pass does,
 // linear and before the bloom, into a float target, once with the borders off and once on, with the
-// relief flat so every place sits where it projects. Slot 0 holds a step whose outer border runs
+// relief flat so every place sits where it projects and the cuts' light uncapped, so a line
+// brightens the metal as far as its share takes it. Slot 0 holds a step whose outer border runs
 // along 20°E, soft north of 5°N, and whose inner border runs along 30°E; slot 1 a step with no
 // border in reach. The ring holds a preview pair decoded from a chunk (25°E in R, 35°E in G), a
 // cell of previews just clear of a border beside a cell just clear of the other side, and a cell
@@ -28,16 +29,28 @@ import { FACES } from '../src/surface/cube';
 import { innerByte, outerByte, previewByte, previewChunk } from '../src/test/borderFiles';
 import { bootWalk } from '../src/walk/boot';
 
+/**
+ * How a line changes the metal along it: the median, over points along it, of the most any pixel
+ * near each brightens it (its cut) and darkens it (its shadow), as shares of its light.
+ */
+export interface LineChange {
+  bright: number;
+  dark: number;
+}
+
 export interface BordersProbe {
   renderer: string;
   samplers: { count: number; names: string[] };
-  /** Median darkening along each line, 0 to 1, in each check. */
-  world: { outer: number; inner: number };
+  /** At 10,000 km. */
+  world: { outer: LineChange; inner: LineChange };
   /** At 2,000 km; `soft` and `hard` along one stretch, soft and its hard twin. */
-  close: { outer: number; inner: number; soft: number; hard: number };
-  dissolve: { whole: number; half: number };
-  previews: { r: { own: number; other: number }; g: { own: number; other: number } };
-  dateline: { clear: number; border: number };
+  close: { outer: LineChange; inner: LineChange; soft: LineChange; hard: LineChange };
+  dissolve: { whole: LineChange; half: LineChange };
+  previews: {
+    r: { own: LineChange; other: LineChange };
+    g: { own: LineChange; other: LineChange };
+  };
+  dateline: { clear: LineChange; border: LineChange };
 }
 
 declare global {
@@ -63,6 +76,8 @@ const TEXEL_RAD = (Math.PI / 4) * (2 / (STEP_TEXELS - 8));
 const DEG = Math.PI / 180;
 
 const nextFrame = () => new Promise((done) => requestAnimationFrame(done));
+const median = (values: number[]) =>
+  [...values].sort((x, y) => x - y)[Math.floor(values.length / 2)] ?? 0;
 const luminance = (p: Float32Array, i: number) =>
   0.2126 * (p[i] ?? 0) + 0.7152 * (p[i + 1] ?? 0) + 0.0722 * (p[i + 2] ?? 0);
 
@@ -72,6 +87,7 @@ async function probe(dataHost: string): Promise<BordersProbe> {
   const uniforms = stepUniformsOf(page.look.material);
   if (!uniforms) throw new Error('the look holds no border steps');
   page.look.params.flatRelief = true;
+  page.look.params.borderEtchedCap = 1e3;
   page.cameraParams.reliefByZoom = false;
   const globe = findMesh(page.museum.scene, page.look.material);
   let drawn: { renderer: WebGLRenderer; camera: Camera } | null = null;
@@ -124,26 +140,31 @@ async function probe(dataHost: string): Promise<BordersProbe> {
     }
     uniforms.lookBorderStrength.value = 0;
     const [off, on] = shots as [Float32Array, Float32Array];
-    /** The median, over points along a meridian, of the most any pixel near each darkens. */
-    return (lon: number, [south, north]: [number, number]) => {
-      const most: number[] = [];
+    /** How the line along a meridian changes the metal (LineChange). */
+    return (lon: number, [south, north]: [number, number]): LineChange => {
+      const brightest: number[] = [];
+      const darkest: number[] = [];
       for (let lat = south; lat <= north; lat += (north - south) / 40) {
         const p = globe.localToWorld(threeDir(lon, lat)).project(camera);
         if (p.z > 1 || Math.abs(p.x) > 0.95 || Math.abs(p.y) > 0.95) continue;
         const [cx, cy] = [((p.x + 1) / 2) * size.x, ((p.y + 1) / 2) * size.y];
+        let bright = 0;
         let dark = 0;
         for (let y = Math.round(cy) - 3; y <= Math.round(cy) + 3; y++) {
           for (let x = Math.round(cx) - 5; x <= Math.round(cx) + 5; x++) {
             if (x < 0 || y < 0 || x >= size.x || y >= size.y) continue;
             const i = (y * size.x + x) * 4;
             const lit = luminance(off, i);
-            if (lit > 1e-3) dark = Math.max(dark, 1 - luminance(on, i) / lit);
+            if (lit <= 1e-3) continue;
+            const change = luminance(on, i) / lit - 1;
+            bright = Math.max(bright, change);
+            dark = Math.max(dark, -change);
           }
         }
-        most.push(dark);
+        brightest.push(bright);
+        darkest.push(dark);
       }
-      most.sort((x, y) => x - y);
-      return most[Math.floor(most.length / 2)] ?? 0;
+      return { bright: median(brightest), dark: median(darkest) };
     };
   };
   const go = async (lon: number, lat: number, viewKm: number) => {
@@ -154,8 +175,8 @@ async function probe(dataHost: string): Promise<BordersProbe> {
   const slot1: BorderSource = { kind: 'slot', slot: 1 };
   const hard: [number, number] = [-10, SOFT_NORTH_OF - 2];
 
-  await go(25, 5, 8000);
-  let lines = render(8000, slot0);
+  await go(25, 5, 10_000);
+  let lines = render(10_000, slot0);
   const world = { outer: lines(OUTER_LON, hard), inner: lines(INNER_LON, [-10, 20]) };
 
   await go(25, 5, 2000);
@@ -294,7 +315,7 @@ function fragmentSamplers(renderer: WebGLRenderer): { count: number; names: stri
       (shader) => gl.getShaderParameter(shader, gl.SHADER_TYPE) === gl.FRAGMENT_SHADER,
     );
     const source = fragment ? (gl.getShaderSource(fragment) ?? '') : '';
-    if (!source.includes('lookBorderGroove')) continue;
+    if (!source.includes('lookBorderCut')) continue;
     const declared = new Set(
       [...source.matchAll(/uniform\s+(?:(?:lowp|mediump|highp)\s+)?\w*sampler\w*\s+(\w+)/g)].map(
         (m) => m[1],

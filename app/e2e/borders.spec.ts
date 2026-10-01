@@ -1,11 +1,12 @@
 // The border steps as the look draws them (e2e/borders.html, bordersProbe.ts), on synthetic steps
-// and previews over the fixture's globe: at 8,000 km across only the outer lines draw, and at
-// 2,000 km the inner lines too; a soft edge draws lighter than a hard one; a step dissolving into
-// one with no borders draws its lines at half strength halfway; both previews of a ring cell
-// decode and draw, each in its own channel; the dateline draws no seam in a preview, and a border
-// along it draws; and the look reads the steps through the border field's one sampler.
+// and previews over the fixture's globe: each line an etched cut brighter than the metal with a
+// shadow beside it; at 10,000 km across only the outer lines draw, and at 2,000 km the inner lines
+// too; a soft edge draws dimmer than a hard one, without its shadow; a step dissolving into one
+// with no borders draws its lines at half strength halfway; both previews of a ring cell decode
+// and draw, each in its own channel; the dateline draws no seam in a preview, and a border along it
+// draws; and the look reads the steps through the border field's one sampler.
 import { expect, test } from '@playwright/test';
-import type { BordersProbe } from './bordersProbe';
+import type { BordersProbe, LineChange } from './bordersProbe';
 import { closeIdle } from './idle';
 import { DATA_URL, DEV_URL } from './servers';
 
@@ -15,9 +16,21 @@ const RENDERER: Record<string, RegExp> = {
 };
 /** The look's fragment samplers, as many as without the steps (e2e/marks.spec.ts). */
 const SAMPLERS_MAX = 12;
-/** A line drawn darkens the metal along it at least this much; one not drawn, at most `NONE`. */
+/**
+ * A line drawn brightens the metal along it by at least this share of its light, and its shadow
+ * darkens it by at least this share; one not drawn changes it by at most `NONE`.
+ */
 const DRAWN = 0.2;
 const NONE = 0.05;
+
+const drawn = (line: LineChange) => {
+  expect(line.bright).toBeGreaterThan(DRAWN);
+  expect(line.dark).toBeGreaterThan(DRAWN);
+};
+const none = (line: LineChange) => {
+  expect(line.bright).toBeLessThan(NONE);
+  expect(line.dark).toBeLessThan(NONE);
+};
 
 let report: BordersProbe;
 const problems: string[] = [];
@@ -51,31 +64,35 @@ test('reads the steps through the border field’s one sampler', () => {
   expect(report.samplers.count).toBeLessThanOrEqual(SAMPLERS_MAX);
 });
 
-test('draws only the outer lines at 8,000 km across, and the inner lines too at 2,000 km', () => {
-  expect(report.world.outer).toBeGreaterThan(DRAWN);
-  expect(report.world.inner).toBeLessThan(NONE);
-  expect(report.close.outer).toBeGreaterThan(DRAWN);
-  expect(report.close.inner).toBeGreaterThan(DRAWN);
+test('draws only the outer lines at 10,000 km across, and the inner lines too at 2,000 km', () => {
+  drawn(report.world.outer);
+  none(report.world.inner);
+  drawn(report.close.outer);
+  drawn(report.close.inner);
 });
 
-test('draws a soft edge lighter than a hard one', () => {
-  expect(report.close.soft).toBeGreaterThan(DRAWN);
-  expect(report.close.soft / report.close.hard).toBeLessThan(0.9);
+test('draws a soft edge dimmer than a hard one, without its shadow', () => {
+  expect(report.close.soft.bright).toBeGreaterThan(DRAWN);
+  expect(report.close.soft.bright / report.close.hard.bright).toBeLessThan(0.9);
+  expect(report.close.soft.dark).toBeLessThan(NONE);
+  expect(report.close.hard.dark).toBeGreaterThan(DRAWN);
 });
 
 test('draws a step dissolving into one without borders at half strength halfway', () => {
-  expect(report.dissolve.half / report.dissolve.whole).toBeGreaterThan(0.35);
-  expect(report.dissolve.half / report.dissolve.whole).toBeLessThan(0.65);
+  // The shadow darkens the metal in proportion to the line's share; the cut's light does not.
+  expect(report.dissolve.half.dark / report.dissolve.whole.dark).toBeGreaterThan(0.35);
+  expect(report.dissolve.half.dark / report.dissolve.whole.dark).toBeLessThan(0.65);
+  expect(report.dissolve.half.bright).toBeLessThan(report.dissolve.whole.bright);
 });
 
 test('decodes and draws both previews of a cell, each in its own channel', () => {
-  expect(report.previews.r.own).toBeGreaterThan(DRAWN);
-  expect(report.previews.r.other).toBeLessThan(NONE);
-  expect(report.previews.g.own).toBeGreaterThan(DRAWN);
-  expect(report.previews.g.other).toBeLessThan(NONE);
+  drawn(report.previews.r.own);
+  none(report.previews.r.other);
+  drawn(report.previews.g.own);
+  none(report.previews.g.other);
 });
 
 test('draws no seam at the dateline in a preview, and a border along it', () => {
-  expect(report.dateline.clear).toBeLessThan(NONE);
-  expect(report.dateline.border).toBeGreaterThan(DRAWN);
+  none(report.dateline.clear);
+  drawn(report.dateline.border);
 });
