@@ -7,6 +7,7 @@ import { tunables } from '../config/tunables';
 import { MemoryAccount } from '../perf/memory';
 import type { ClearanceField } from '../globe/clearance';
 import { dirOf, EARTH_M } from '../story/effects/geo';
+import { lonLatToDir } from '../surface/cube';
 import type { LonLat } from '../story/story';
 import { FAMILIES, FAMILY_VEC4S } from './families';
 import {
@@ -430,9 +431,11 @@ describe('MarkLayer', () => {
     expect([flat.x1 - flat.x0, flat.y1 - flat.y0]).toEqual([0, 0]);
     expect([flat.x0, flat.y0].map(Math.round)).toEqual([sea.x, sea.y].map(Math.round));
     const ceilings: number[] = [];
+    const asks: number[][] = [];
     marks.useClearance({
-      ceilingM: (_dir: number[], _cap: number, k: number) => {
+      ceilingM: (dir: number[], _cap: number, k: number) => {
         ceilings.push(k);
+        asks.push(dir);
         return liftedM;
       },
       hMax: liftedM / kLand,
@@ -446,6 +449,9 @@ describe('MarkLayer', () => {
     expect(marks.hit((sea.x + top.x) / 2, (sea.y + top.y) / 2)).toBe('peak');
     expect(marks.hit(sea.x, sea.y)).toBe('peak');
     expect(ceilings).toContain(kLand);
+    // Asked at the mark's own place, in the cube's frame.
+    const own = lonLatToDir(...at);
+    for (const dir of asks) dir.forEach((v, i) => expect(v).toBeCloseTo(own[i] ?? NaN, 9));
     // Past its lifted place, nothing.
     expect(marks.hit(top.x, top.y - 20)).toBeNull();
     // A pointer beyond the reach of any relief asks no ceiling.
