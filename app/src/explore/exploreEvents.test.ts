@@ -431,6 +431,9 @@ describe("Explore's events", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(byId(marks.specs, 100)).toMatchObject({ hollow: false, opacity: 0.5 });
     expect(byId(marks.specs, 100, true)).toMatchObject({ hollow: true, opacity: 0.5 });
+    // One event's two marks crossfade on its place rather than stand apart.
+    expect(byId(marks.specs, 100)?.group).toBe('Q100');
+    expect(byId(marks.specs, 100, true)?.group).toBe('Q100');
     // Each mark tells its own record, and the war counts once.
     expect(events.event(markIdOf(100))?.context).toBe(false);
     expect(events.event(markIdOf(100, true))?.context).toBe(true);
