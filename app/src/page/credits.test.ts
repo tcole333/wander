@@ -91,8 +91,8 @@ describe('credits.html', () => {
   });
 
   it('links exactly the notices and sources the bundled release publishes under lic/', () => {
-    // The 1815 field's GPL notice and changed source; the border steps' notice joins them with the
-    // steps' first publish, which names it.
+    // The 1815 field's GPL notice and changed source, and the border steps' notice where the
+    // release names the steps.
     const release = bundled as Release;
     const keys = [
       ...Object.values(release.borders?.files ?? {}).flatMap((file) => [file.notice, file.source]),
