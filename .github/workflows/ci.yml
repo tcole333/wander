@@ -132,7 +132,11 @@ jobs:
       - run: uv sync --locked
         working-directory: pipeline
       - run: npm run fixture
-      - run: npx playwright install --with-deps --only-shell chromium
+      # The browser alone: the runner's image already holds every library the headless shell
+      # links, and --with-deps added only fallback fonts no test reads and a Mesa SwiftShader never
+      # uses, through apt downloads that took up to 11 of the job's 15 minutes when the mirror
+      # was slow. A library the image lacks fails the first launch, which names it.
+      - run: npx playwright install --only-shell chromium
       # npm run e2e builds app/dist with vite build, then runs this shard's specs against it.
       - run: npm run e2e
         env:
