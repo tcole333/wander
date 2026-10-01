@@ -8,6 +8,11 @@
 // one and eight draws into the same target, with no pass break between them, measured 10 ms and
 // 15 ms; ending each group's pass (a one-pixel readback) gave 1.2 ms and 9.1 ms. Time passes that
 // draw to targets of their own, as the globe, post and shadow passes do.
+//
+// A query also counts the GPU's other work during its pass, other pages' and other processes': a
+// draw of about 1.2 ms measured up to 14 ms beside four test browsers' walks, and up to 8.4 ms
+// beside another app's steady load. Other work only ever adds time, so the fastest of several
+// passes is the nearest to a pass's own.
 
 /** EXT_disjoint_timer_query_webgl2's enums, which TypeScript's DOM types lack. */
 interface TimerQueryExtension {
