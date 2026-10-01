@@ -2590,8 +2590,10 @@ and the release's `media` section lists every key the locks name (3.8).
   means only where the owner tile is baked, and the mirror covers same-level neighbors at d = 0.
   The mixed-level, moving and GPU checks remain with the fixture and E2.
 - **GPU matrix (local):** `npm run e2e:gpu` on the target machines, against production data. It
-  starts as one local Playwright project, `gpu-chromium` (Chromium on Metal), and grows into the
-  matrix as WebKit and Firefox projects join. `npm run gate` runs it before every push that
+  starts as Chromium on Metal in two local Playwright projects, `gpu-chromium` and, after it,
+  `gpu-alone`, which runs the tests tagged `@alone` one at a time: a GPU timer query counts
+  whatever else the GPU draws during its pass. It grows into the matrix as WebKit and Firefox
+  projects join. `npm run gate` runs it before every push that
   touches the app's inputs, and it runs at milestone releases; when renderer, streaming or format
   code changes, results go in the PR description. It covers frame p95 across
   every story walk; seams at Sumbawa, the Strait of Magellan, Florence, the Sierra Nevada, the Kirkuk
