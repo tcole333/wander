@@ -1,13 +1,13 @@
 // The crafted time ruler's geometry and scale (rulerCraft.ts draws them): the band's circle, the
 // radial rows its parts sit on, the span's calendar engraved in two rows, and the whole story in
 // whole years on the base plate beneath. Pure, so it can be tested without a page.
-// A story's ruler engraves the proleptic Gregorian calendar its dates are written in; Explore's
-// engraves the historical one (dates.ts), Julian before 15 October 1582.
+// A story's ruler engraves the proleptic Gregorian calendar its dates are written in; the scale
+// takes another calendar and a stretch whose ends it names, as the historical one (dates.ts),
+// Julian before 15 October 1582.
 import {
   civilFromDay,
   dayFromCivil,
   GREGORIAN,
-  HISTORICAL,
   monthName,
   yearLabel,
   type Calendar,
@@ -492,28 +492,6 @@ export function engraveTier(
       cls: 'rc-tier-year',
     });
   }
-  return tier;
-}
-
-/**
- * Exploration's overview uses bounded intervals of the historical calendar; story tiers always
- * name every year.
- */
-export function engraveHistoryTier(arc: Arc, history: Span): ReturnType<typeof engraveTier> {
-  const tier = { years: '', months: '', labels: [] as Label[] };
-  const tierArc = { ...arc, reach: arc.reach * TIER_REACH };
-  const scale = engraveScale(
-    tierArc,
-    history,
-    (day) => tierAngle(arc, history, day),
-    HISTORICAL,
-    history,
-  );
-  for (const label of scale.labels) {
-    tier.years += radial(arc, label.tickAngle ?? label.angle, TIER_RULE, TIER_RULE - 8);
-    tier.labels.push({ ...label, row: TIER_ROW, cls: 'rc-tier-year' });
-  }
-  for (const angle of scale.unnamed) tier.years += radial(arc, angle, TIER_RULE, TIER_RULE - 8);
   return tier;
 }
 

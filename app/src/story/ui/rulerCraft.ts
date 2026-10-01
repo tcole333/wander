@@ -1,10 +1,7 @@
 // The time ruler as part of the instrument: a curved band of engraved, aged brass along the foot
 // of the view, between two knurled knobs with gearwork behind them, drawn in SVG over the canvas.
-// Its geometry and scale are rulerScale.ts's.
-// With ExploreTime instead of a walk it reads the world clock, wheels through calendar scales,
-// and uses the knobs to zoom and the bottom tier to range across all of history. A walk's ruler
-// reads its story's proleptic Gregorian dates; Explore's reads the historical calendar (dates.ts),
-// Julian before 15 October 1582, as the sources of its events do.
+// Its geometry and scale are rulerScale.ts's, and its brass brass.ts's. It reads its story's
+// proleptic Gregorian dates. Explore has a ruler of its own (explore/timeRuler.ts).
 //
 // The band zooms to each beat's own time (beatSpan), easing from span to span during flights,
 // engraved with years, months and, once wide enough, days. A garnet playhead marks story time:
@@ -28,19 +25,9 @@
 // engraves the band again only while its span changes.
 import './rulerCraft.css';
 import { LENS } from '../../scene/lens';
-import {
-  formatDay,
-  formatHistorical,
-  GREGORIAN,
-  HISTORICAL,
-  monthName,
-  yearLabel,
-  type Calendar,
-  type Precision,
-} from '../dates';
+import { formatDay, GREGORIAN, monthName, yearLabel, type Precision } from '../dates';
 import type { Walk, WalkState } from '../contract';
 import type { Story } from '../story';
-import { ExploreTime, wheelZoom } from '../../time/exploreTime';
 import {
   engraved,
   gearSvg,
@@ -60,14 +47,7 @@ import {
   teeth,
 } from './brass';
 import { button, el, onPress, svg } from './dom';
-import {
-  beatSpan,
-  calendarYearLabel,
-  mixSpans,
-  platePrecision,
-  spreadPips,
-  type Span,
-} from './format';
+import { beatSpan, mixSpans, platePrecision, spreadPips, type Span } from './format';
 import {
   along,
   anchored,
@@ -77,7 +57,6 @@ import {
   BASE,
   deg,
   engravedUnit,
-  engraveHistoryTier,
   engraveScale,
   engraveTier,
   f,
@@ -143,12 +122,8 @@ type ScrubFrom = 'band' | 'plate' | 'tier';
 
 export class CraftRuler {
   readonly element = el('div', 'rc');
-  readonly #walk: Walk | null;
-  readonly #story: Story | null;
-  readonly #explore: ExploreTime | null;
-  /** The calendar the band and plaque read: the story's Gregorian, or Explore's historical. */
-  readonly #calendar: Calendar;
-  #unsubscribe: (() => void) | undefined;
+  readonly #walk: Walk;
+  readonly #story: Story;
   /** The story's whole years, which the tier on the base plate shows. */
   readonly #years: Span;
   readonly #body = svg('svg', { class: 'rc-body', 'aria-hidden': 'true' });
@@ -210,17 +185,13 @@ export class CraftRuler {
     this.#resizeFrame = requestAnimationFrame(() => this.#build());
   };
 
-  constructor(walk: Walk, story: Story);
-  constructor(explore: ExploreTime);
-  constructor(source: Walk | ExploreTime, story?: Story) {
-    this.#explore = source instanceof ExploreTime ? source : null;
-    this.#walk = source instanceof ExploreTime ? null : source;
-    this.#calendar = this.#explore ? HISTORICAL : GREGORIAN;
-    this.#story = story ?? null;
-    const beats = story?.beats ?? [];
-    this.#years = this.#explore?.extent ?? storyYears(beats);
-    const first = beats[this.#walk?.state().beat ?? 0] ?? beats[0];
-    this.#span = this.#to = this.#explore?.span ?? (first ? beatSpan(first) : { start: 0, end: 1 });
+  constructor(walk: Walk, story: Story) {
+    this.#walk = walk;
+    this.#story = story;
+    const beats = story.beats;
+    this.#years = storyYears(beats);
+    const first = beats[walk.state().beat] ?? beats[0];
+    this.#span = this.#to = first ? beatSpan(first) : { start: 0, end: 1 };
     this.#from = { span: this.#span, share: 0.5 };
 
     for (const side of [-1, 1] as const) {
@@ -268,7 +239,7 @@ export class CraftRuler {
       if (beat)
         mark.title = `${roman(i + 1)}. ${beat.title}, ${formatDay(beat.day, beat.precision)}`;
       mark.setAttribute('aria-label', mark.title);
-      onPress(mark, () => this.#walk?.goTo(i));
+      onPress(mark, () => this.#walk.goTo(i));
       return mark;
     };
     this.#studs = beats.map((_, i) => markButton('rc-stud', i));
@@ -276,8 +247,8 @@ export class CraftRuler {
 
     this.#playhead.innerHTML = JEWEL_SVG;
 
-    this.#back = button('rc-lever is-back', 'Back', () => this.#walk?.back());
-    this.#next = button('rc-lever is-next', 'Next', () => this.#walk?.next());
+    this.#back = button('rc-lever is-back', 'Back', () => this.#walk.back());
+    this.#next = button('rc-lever is-next', 'Next', () => this.#walk.next());
     for (const [lever, side] of [
       [this.#back, -1],
       [this.#next, 1],
@@ -309,13 +280,10 @@ export class CraftRuler {
       engraved(plateText, 'rc-plate-top', PLATE_W / 2, 18),
       engraved(plateText, 'rc-plate-year', PLATE_W / 2, 38.5),
     ];
-    if (this.#walk) this.#plate.append(this.#back, this.#next);
+    this.#plate.append(this.#back, this.#next);
     this.#plate.append(plateBody, plateText);
 
-    this.#play = button('rc-knob rc-play', this.#explore ? 'Zoom in' : 'Play', () => {
-      if (this.#explore) this.#explore.zoomBy(0.5);
-      else this.#walk?.togglePlay();
-    });
+    this.#play = button('rc-knob rc-play', 'Play', () => this.#walk.togglePlay());
     const mark = knobLayer('rc-knob-mark');
     const glyphDefs = svg('defs');
     glyphDefs.append(this.#glyph);
@@ -330,10 +298,7 @@ export class CraftRuler {
     ring.append(this.#ring);
     this.#play.append(...this.#knob(0), mark, ring);
 
-    this.#count = button('rc-knob rc-count', this.#explore ? 'Zoom out' : 'Resume story', () => {
-      if (this.#explore) this.#explore.zoomBy(2);
-      else this.#walk?.resume();
-    });
+    this.#count = button('rc-knob rc-count', 'Resume story', () => this.#walk.resume());
     const countMark = knobLayer('rc-knob-mark');
     this.#countLines = [
       engraved(countMark, 'rc-count-num', 0, 6),
@@ -369,62 +334,8 @@ export class CraftRuler {
     void document.fonts.ready.then(() => {
       for (const cut of this.#cuts.values()) [cut.half, cut.shown] = [0, NaN];
       this.#placed = '';
-      this.#updateExplore();
     });
-    if (this.#explore) {
-      this.element.classList.add('rc-explore');
-      this.#glyph.setAttribute('d', 'M-12 -2 H-2 V-12 H2 V-2 H12 V2 H2 V12 H-2 V2 H-12 Z');
-      setEngraved(this.#countLines[0], '−');
-      setEngraved(this.#countLines[1], 'ZOOM');
-      this.#play.title = 'Zoom in';
-      this.#count.title = 'Zoom out';
-      this.#plate.tabIndex = 0;
-      this.#plate.setAttribute('role', 'slider');
-      this.#plate.setAttribute('aria-label', 'World date');
-      this.#plate.setAttribute('aria-valuemin', String(this.#explore.bounds.start));
-      this.#plate.setAttribute('aria-valuemax', String(this.#explore.bounds.end));
-      this.#plate.addEventListener('keydown', (event) => {
-        const explore = this.#explore!;
-        const day = explore.clock.state().day;
-        const step = Math.max(1, Math.round((this.#span.end - this.#span.start) / 100));
-        if (event.key === 'ArrowLeft') explore.scrub(day - step);
-        else if (event.key === 'ArrowRight') explore.scrub(day + step);
-        else if (event.key === 'Home') explore.seek(explore.bounds.start);
-        else if (event.key === 'End') explore.seek(explore.bounds.end);
-        else return;
-        event.preventDefault();
-        event.stopPropagation();
-      });
-      this.element.addEventListener(
-        'wheel',
-        (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          this.#explore?.zoomBy(wheelZoom(event.deltaY, event.deltaMode, innerHeight));
-        },
-        { passive: false },
-      );
-      this.#unsubscribe = this.#explore.subscribe(() => this.#updateExplore());
-    }
     this.#build();
-  }
-
-  #updateExplore(): void {
-    if (!this.#explore) return;
-    const span = this.#explore.span;
-    if (!this.#laidOut || span.start !== this.#span.start || span.end !== this.#span.end) {
-      this.#span = span;
-      this.#engrave();
-    }
-    const { day } = this.#explore.clock.state();
-    this.#place(day, this.#unit);
-    this.#turn(day);
-    this.#plate.setAttribute('aria-valuenow', String(day));
-    const date = this.#calendar.civil(day);
-    this.#plate.setAttribute(
-      'aria-valuetext',
-      `${date.day} ${monthName(date.month)} ${calendarYearLabel(date.year, true)}`,
-    );
   }
 
   update(state: WalkState): void {
@@ -475,7 +386,6 @@ export class CraftRuler {
   }
 
   dispose(): void {
-    this.#unsubscribe?.();
     removeEventListener('resize', this.#onResize);
     cancelAnimationFrame(this.#resizeFrame);
     this.element.remove();
@@ -575,14 +485,11 @@ export class CraftRuler {
     this.#plate.style.transform = `translate(${f(px)}px, ${f(py)}px) rotate(${f(deg(plateAngle), 2)}deg)`;
     setShade(this.#plate, shadeAt(px, py - PLATE_H / 2));
     this.#clearPlate(plateAngle);
-    if (this.#explore) this.#clearExploreLabels();
 
-    const text = this.#explore
-      ? formatHistorical(dayNumber, precision)
-      : formatDay(dayNumber, precision);
+    const text = formatDay(dayNumber, precision);
     if (text === this.#plateText) return;
     this.#plateText = text;
-    const { day, month, year } = this.#calendar.civil(dayNumber);
+    const { day, month, year } = GREGORIAN.civil(dayNumber);
     const upper =
       precision === 'year'
         ? ''
@@ -591,7 +498,7 @@ export class CraftRuler {
           : `${day} ${monthName(month)}`;
     const [top, bottom] = this.#plateLines;
     setEngraved(top, upper.toUpperCase());
-    const yearText = this.#explore ? calendarYearLabel(year, true) : yearLabel(year);
+    const yearText = yearLabel(year);
     setEngraved(bottom, yearText);
     this.#plate.classList.toggle('is-long-year', yearText.length > 7);
     for (const line of bottom ?? []) line.setAttribute('y', upper ? '38.5' : '31');
@@ -629,28 +536,6 @@ export class CraftRuler {
     }
   }
 
-  /** Free dates can meet any tick: keep both rows clear of the plaque, its tail and the needle. */
-  #clearExploreLabels(): void {
-    const obstacles = [
-      this.#plate.querySelector('.rc-plate-body')!,
-      this.#playhead.firstElementChild!,
-    ].map((element) => element.getBoundingClientRect());
-    for (const { element, label, shown } of this.#cuts.values()) {
-      const rect = element.getBoundingClientRect();
-      const covered =
-        (label.from !== undefined && shown === null) ||
-        obstacles.some(
-          (obstacle) =>
-            rect.left < obstacle.right + 3 &&
-            rect.right + 3 > obstacle.left &&
-            rect.top < obstacle.bottom + 3 &&
-            rect.bottom + 3 > obstacle.top,
-        );
-      // Recompute even for a hidden label: moving the date away must reveal it again.
-      element.classList.toggle('is-covered', covered);
-    }
-  }
-
   /** The band's angle for a day: the span maps onto the rule, clamped to its ends. */
   #angle(day: number): number {
     const { start, end } = this.#span;
@@ -661,8 +546,7 @@ export class CraftRuler {
   /** The day at an angle on the band, kept as clear of the ends as the span keeps the playhead. */
   #dayAtAngle(angle: number): number {
     const t = (angle / this.#arc.reach + 1) / 2;
-    const margin = this.#explore ? 0 : this.#margin;
-    const kept = Math.min(1 - margin, Math.max(margin, t));
+    const kept = Math.min(1 - this.#margin, Math.max(this.#margin, t));
     return this.#span.start + kept * (this.#span.end - this.#span.start);
   }
 
@@ -691,13 +575,7 @@ export class CraftRuler {
     let offset = 0;
     let startX = 0;
     let moved = false;
-    let drag: { angle: number; day: number; width: number } | null = null;
-    const scrub = (day: number) => {
-      if (this.#explore) {
-        if (from === 'tier') this.#explore.seek(day);
-        else this.#explore.scrub(day);
-      } else this.#walk?.scrub(day);
-    };
+    const scrub = (day: number) => this.#walk.scrub(day);
     target.addEventListener('pointerdown', (event) => {
       const e = event as PointerEvent;
       if (e.button !== 0 || (e.target as Element).closest('.rc-lever')) return;
@@ -705,12 +583,8 @@ export class CraftRuler {
       target.setPointerCapture(e.pointerId);
       this.element.classList.add('is-scrubbing');
       const angle = this.#angleAt(e.clientX, e.clientY);
-      const day = this.#explore?.clock.state().day ?? this.#walk!.state().day;
+      const day = this.#walk.state().day;
       offset = relative ? this.#angle(day) - angle : 0;
-      drag =
-        this.#explore && from !== 'tier'
-          ? { angle, day: relative ? day : dayAt(angle), width: this.#span.end - this.#span.start }
-          : null;
       startX = e.clientX;
       moved = !relative;
       if (!relative) scrub(dayAt(angle));
@@ -721,11 +595,7 @@ export class CraftRuler {
       if (!moved && Math.abs(e.clientX - startX) < 3) return;
       moved = true;
       const angle = this.#angleAt(e.clientX, e.clientY);
-      scrub(
-        drag
-          ? drag.day + ((angle - drag.angle) / (2 * this.#arc.reach)) * drag.width
-          : dayAt(angle + offset),
-      );
+      scrub(dayAt(angle + offset));
     });
     const end = () => this.element.classList.remove('is-scrubbing');
     target.addEventListener('pointerup', end);
@@ -746,7 +616,7 @@ export class CraftRuler {
       layer.setAttribute('height', String(HEIGHT));
       layer.setAttribute('viewBox', `0 0 ${width} ${HEIGHT}`);
     }
-    this.#body.innerHTML = bodySvg(arc, this.#years, this.#explore !== null);
+    this.#body.innerHTML = bodySvg(arc, this.#years);
     this.#finish.innerHTML = finishSvg(arc);
     this.#hit.setAttribute(
       'd',
@@ -778,7 +648,7 @@ export class CraftRuler {
       gear.element.innerHTML = gearSvg(r, n);
     }
 
-    const beats = this.#story?.beats ?? [];
+    const beats = this.#story.beats;
     const trueS = beats.map((beat) => tierAngle(arc, this.#years, beat.day) * arc.r);
     const reachS = arc.reach * TIER_REACH * arc.r;
     const dotS = spreadPips(trueS, DOT_GAP, -reachS, reachS);
@@ -788,7 +658,6 @@ export class CraftRuler {
     });
     this.#laidOut = false;
     this.#placed = '';
-    this.#updateExplore();
   }
 
   /** Engraves the span's scale on the band, sets the studs on the rail, and the tier's window. */
@@ -796,23 +665,17 @@ export class CraftRuler {
     this.#laidOut = true;
     const arc = this.#arc;
     const span = this.#span;
-    const unit = engravedUnit(arc, span, this.#calendar);
+    const unit = engravedUnit(arc, span);
     this.#unit = unit === 'day' || unit === 'month' ? unit : 'year';
-    this.#yearStep = labelledYearStep(arc, span, this.#calendar);
-    const scale = engraveScale(
-      arc,
-      span,
-      (day) => this.#angle(day),
-      this.#calendar,
-      this.#explore?.extent,
-    );
+    this.#yearStep = labelledYearStep(arc, span);
+    const scale = engraveScale(arc, span, (day) => this.#angle(day));
     for (const kind of TICK_KINDS) {
       for (const path of this.#ticks.get(kind) ?? []) path.setAttribute('d', scale[kind]);
     }
     this.#setLabels(scale.labels);
 
     // Only the beats in the span have studs on the rail; the tier shows them all.
-    const beats = this.#story?.beats ?? [];
+    const beats = this.#story.beats;
     const inside = beats.map((beat) => beat.day >= span.start && beat.day <= span.end);
     const trueS = beats.map((beat) => this.#angle(beat.day) * arc.r);
     const reachS = arc.reach * arc.r;
@@ -852,8 +715,7 @@ export class CraftRuler {
     const [s0, s1] = [tierAngle(arc, years, span.start), tierAngle(arc, years, span.end)];
     const least = 2 / arc.r;
     const [w0, w1] = [Math.min(s0, (s0 + s1) / 2 - least), Math.max(s1, (s0 + s1) / 2 + least)];
-    // Exploration has no beat studs on the rail: put its window above the rule, off the years.
-    const [inner, outer, foot] = this.#explore ? [4, 14, 3] : [-8, 2.5, -9];
+    const [inner, outer, foot] = [-8, 2.5, -9];
     this.#window.setAttribute('d', sector(arc, w0, w1, TIER_RULE + inner, TIER_RULE + outer));
     const [x0, y0] = at(arc, w0, TIER_RULE + foot);
     const [x1, y1] = at(arc, w1, TIER_RULE + foot);
@@ -932,7 +794,7 @@ function place(element: HTMLElement | SVGElement, left: number, top: number): vo
  * under them, with the engraving that never changes: the band's border rules, the rail's beaded
  * edges, and the story tier's years in gilt.
  */
-function bodySvg(arc: Arc, years: Span, exploring: boolean): string {
+function bodySvg(arc: Arc, years: Span): string {
   const [a0, a1] = [-arc.end, arc.end];
   const knobY = HEIGHT - KNOB_FOOT;
   const sockets = [KNOB_SIDE, arc.width - KNOB_SIDE]
@@ -942,7 +804,7 @@ function bodySvg(arc: Arc, years: Span, exploring: boolean): string {
     .map((dr) => along(arc, -arc.reach - 0.008, arc.reach + 0.008, dr))
     .join('');
   const beads = along(arc, a0, a1, RAIL_TOP - 3.5);
-  const tier = exploring ? engraveHistoryTier(arc, years) : engraveTier(arc, years);
+  const tier = engraveTier(arc, years);
   const tierReach = arc.reach * TIER_REACH;
   const tierRule = along(arc, -tierReach, tierReach, TIER_RULE);
   const tierYears = tier.labels

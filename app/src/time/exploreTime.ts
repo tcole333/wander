@@ -458,11 +458,6 @@ export function wheelPixels(delta: number, mode: number, pagePx: number): number
   return delta * (mode === 1 ? 16 : mode === 2 ? pagePx : 1);
 }
 
-/** WheelEvent pixel, line and page deltas in one restrained exponential zoom (the walks' ruler). */
-export function wheelZoom(delta: number, mode: number, pagePx: number): number {
-  return Math.exp(clamp(wheelPixels(delta, mode, pagePx), -600, 600) * 0.002);
-}
-
 function clamp(value: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, value));
 }

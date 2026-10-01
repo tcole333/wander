@@ -5,7 +5,6 @@ import { parseStory } from '../story';
 import {
   arcFor,
   BAND,
-  engraveHistoryTier,
   engraveScale,
   engraveTier,
   LOWER_ROW,
@@ -97,14 +96,5 @@ describe('review: free ruler calendar', () => {
     const tick = angle(historical('-8999-01-01'));
     expect(scale.unnamed.some((unnamed) => Math.abs(unnamed - tick) < 1e-9)).toBe(true);
     expect(scale.full).toContain(radial(arc, tick, -BAND + 1, BAND - 1));
-  });
-
-  it('never labels the exclusive year 2001 on the history tier', () => {
-    const span = new ExploreTime(new WorldClock()).extent;
-    for (const width of [560, 640, 720, 1024, 1440, 1920]) {
-      const labels = engraveHistoryTier(arcFor(width), span).labels.map((label) => label.text);
-      expect(labels).not.toContain('2001 CE');
-      if (width >= 1440) expect(labels).toContain('2000 CE');
-    }
   });
 });
