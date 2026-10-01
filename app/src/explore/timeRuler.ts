@@ -476,7 +476,8 @@ export class TimeRuler {
     for (const side of [-1, 1]) {
       const [x, y] = at(arc, side * arc.end, TAPE_MID);
       const r = reelR + 3;
-      d += `M${f(x - r)} ${f(y)}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
+      // Clockwise, as the sector runs, so where they overlap the outline stays whole.
+      d += `M${f(x - r)} ${f(y)}a${r} ${r} 0 1 1 ${2 * r} 0a${r} ${r} 0 1 1 ${-2 * r} 0Z`;
     }
     this.#hit.style.width = `${width}px`;
     this.#hit.style.height = `${RULER_H}px`;
