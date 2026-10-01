@@ -1,0 +1,747 @@
+# The places the borders owe a cited verdict (streaming.md 3.3) that the owner acknowledged as
+# known gaps (owner decision 41): the steps publish with them, each drawn as the rules leave it,
+# blank where nothing is cited, while the history pass keeps looking. Each is named by its id, as
+# the borders record gives it: its kind, its years and its centroid to the whole degree. Its `why`
+# says what is missing. publish-data refuses an owed place this file does not list, and verify:bake
+# fails on an entry the bake no longer owes, so an entry goes when a cited correction settles it.
+acknowledged:
+  - id: hole 347..357 67E 31N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Quetta-Pishin: nothing names its holder; the Sasanians are likely but uncited.
+  - id: hole 347..352 80E 17N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Krishna valley: Warangal and Khammam, about a third of the hole, have no cited holder.
+  - id: hole 347..352 82E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Shahdol: the date of Samudragupta's campaign against Mahendra of Kosala is not given.
+  - id: hole 490..499 14E 51N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Bohemia and Saxony: the verdict was refuted, since Moravia may have been the Heruli kingdom's,
+      and the northern part has no verdict.
+  - id: hole 623..660 12E 49N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Upper Palatinate: the verdict was refuted, since Bavarian rule is dated only for the strip
+      by the Danube.
+  - id: hole 627..629 19E 45N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Balkans: Slavonia, about 30,000 km², has no cited holder; the rest is cited Sklavinia.
+  - id: hole 630..637 20E 43N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Balkans: Slavonia, about 30,000 km², has no cited holder; the rest is cited Sklavinia.
+  - id: hole 750..899 64E 43N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Kyzylkum: the verdict was refuted for these years, since the Oghuz reached the Syr Darya
+      only in the 9th century.
+  - id: hole 850..1009 76E 38N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Yarkand and the Pamirs: the verdict is uncertain.
+  - id: hole 860..910 98E 37N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Qinghai and Qaidam interior: the verdict is uncertain.
+  - id: hole 875..895 25E 46N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Transylvania: Maramureș, about 15,000 km², has no holder, and the source names only southern
+      Transylvania.
+  - id: hole 922..1235 100E 38N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      North Qaidam and the Qilian: the verdict is uncertain.
+  - id: hole 960..979 46E 41N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Kakheti-Hereti: the verdict was refuted, since no Hereti state is attested after 959, and
+      Kakheti's part needs a cut.
+  - id: hole 970..1259 106E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Guizhou: south Guizhou, north-west Guangxi and Zhaotong are unsourced, and no lines divide
+      Mu'ege, Luoshi and Ziqi.
+  - id: hole 1000..1138 79E 29N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Awadh, the Doab and the eastern Himalaya: the verdict is uncertain.
+  - id: hole 1072..1151 82E 22N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Chhattisgarh: Chota Nagpur is unsourced, and no lines divide the Kalachuris and the Chindaka
+      Nagas.
+  - id: hole 1202..1259 82E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Chhattisgarh: Chota Nagpur is unsourced, the holders after 1225 are unknown, and no lines
+      divide the Kalachuris and the Chindaka Nagas.
+  - id: hole 1236..1249 73E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Marwar: the verdict is uncertain.
+  - id: hole 1255..1284 22E 44N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Braničevo: the Timok valley, up to half the hole, has no cited holder, probably Vidin.
+  - id: hole 1294..1313 25E 45N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Wallachia: the plain east of the Dâmbovița has no holder, and no lines divide the
+      voivodeships.
+  - id: hole 1375..1384 101E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Yunnan: nothing shows whether the Tai Lue lands, Sipsongpanna's 80,000 km² or so, answered to
+      Basalawarmi.
+  - id: hole 1440..1555 53E 57N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Vyatka, Perm, Bashkiria and Nizhny Novgorod: the land is split among Vyatka, Moscow, Kazan,
+      the Nogai and Sibir, with no lines.
+  - id: hole 1492..1501 46E 57N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Vyatka, Perm, Bashkiria and Nizhny Novgorod: the land is split among Vyatka, Moscow, Kazan,
+      the Nogai and Sibir, with no lines.
+  - id: hole 1526..1587 74E 36N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Chitral, Gilgit and Baltistan: several states, none of them in Cliopatria, with no boundaries,
+      and tribal valleys.
+  - id: hole 1588..1594 49E 50N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Volga-Ural steppe: the holder is the Great Nogai Horde, not Cliopatria's Small Horde, its
+      rival; drawing it needs the owner's call on the name.
+  - id: hole 1612..1658 83E 21N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Chhattisgarh and Nagpur: the other rajas and the Gond kingdom of Deogarh are uncited, with no
+      lines.
+  - id: hole 1645..1647 105E 31N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Sichuan: Zhang Xianzhong's reach at Hanzhong and into the western hills, over 100,000 km², is
+      unsourced.
+  - id: hole 1648..1720 78E 54N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      South Siberia: no line divides the Russian slobodas, Kazakh pasture and Dzungar land.
+  - id: hole 1718..1743 74E 55N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Tobol and Ishim: no line divides the Russian slobodas, Kazakh pasture and Dzungar land.
+  - id: hole 1757..1768 87E 51N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Altai: no line divides the zaisans sworn to Russia from the Qing's Uriankhai, and the
+      Russian oath source could not be reached.
+  - id: hole 1772..1790 79E 31N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Garhwal to Kangra: the hill states and Ladakh's fringe are uncited, with no lines.
+  - id: hole 1796..1804 46E 43N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Dagestan: eastern Dagestan's khanates are uncited; the plains Chechens acknowledged Kumyk
+      rule.
+  - id: hole 1820..1921 42E 30N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The north Arabian desert: the verdict is uncertain.
+  - id: hole 1822..1824 92E 24N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Garo, Khasi, Jaintia, Cachar and Lushai: several holders, some uncited, with no lines.
+  - id: hole 1836..1841 89E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Sikkim: no cut along the Teesta divides Sikkim from Bhutan's Kalimpong.
+  - id: hole 1858..1858 79E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      North India: rebel Awadh and Rohilkhand need the owner's call.
+  - id: hole 1862..1894 102E 2S
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Upper Jambi and Kerinci: several holders with no lines, and Kerinci's status needs the owner's
+      call.
+  - id: hole 1865..1866 82E 44N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Ili: the verdict was refuted for these years, when the rebel regime came before the
+      Taranchi sultanate.
+  - id: hole 1895..1899 39E 7N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      South-west Ethiopia: Kaffa, independent to 1897, Benishangul's polities, the Ogaden and the
+      South Sudan lowlands are uncited.
+  - id: hole 1895..1897 12E 8N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The land south of Rabih's Bornu in 1895-97 (Dar al-Kuti, Baguirmi's south, the Sara country)
+      became an enclosed hole once Bornu was drawn, and no verdict covers it yet.
+  - id: hole 1926..1935 51E 20N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Rub' al Khali: the verdict is uncertain.
+  - id: hole 1946..1946 112E 43N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Inner Mongolia: no line divides Communist from Nationalist Suiyuan, and the Ordos is
+      unchecked.
+  - id: gap -674..-650 29E 39N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Phrygia to its
+      Lydia.
+  - id: gap -278..-277 22E 40N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Thessaly: Cliopatria shows Antigonus Gonatas there, and the source names no holder.
+  - id: gap -224..-212 20E 41N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides the Roman protectorate coast from Philip V's gains of 217 BCE.
+  - id: gap -205..-203 11E 45N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted, since the Boii had kings; the corrected holder needs the owner's
+      sign-off.
+  - id: gap -205..-203 112E 39N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the Yanmen north of the pass, about 11,000 km², probably Dai's.
+  - id: gap -205..-202 113E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Zhai to its Han
+      Dynasty.
+  - id: gap -205..-188 9E 45N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Liguria is cited stateless, but its free land runs on into the continent's, so a stateless
+      pocket would keep all of it; it needs a pocket that cites part of a piece.
+  - id: gap -90..-66 77E 28N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides the Mitra, Yaudheya and Arjunayana lands.
+  - id: gap -49..-31 77E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Eastern Malwa became a gap, held on both sides, once the run beside it was drawn, and no
+      verdict covers it yet.
+  - id: gap 78..90 86E 40N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides the Han- and Xiongnu-aligned oases of the Tarim.
+  - id: gap 91..105 89E 44N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Xiongnu and Wusun to
+      its Xianbei and Xiongnu.
+  - id: gap 154..160 81E 46N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Xiongnu to its
+      Xianbei.
+  - id: gap 238..259 72E 36N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Kushan Empire to its
+      Indo-Sasanian Empire.
+  - id: gap 387..401 106E 39N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Former Qin to its
+      Rouran Khaganate.
+  - id: gap 476..479 6E 44N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted, since Provence was still Rome's on 1 January 476; the corrected
+      holder needs the owner's sign-off.
+  - id: gap 480..489 12E 45N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Odoacer's Raetia is unsourced, and Italy shares its piece.
+  - id: gap 647..655 76E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Harsha's Empire to
+      its Maitraka Dynasty.
+  - id: gap 755..771 81E 19N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Chalukya Dynasty to
+      its Rashtrakuta Dynasty.
+  - id: gap 772..777 83E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Kannauj-Varman
+      Dynasty to its Pala Empire.
+  - id: gap 772..782 81E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Kannauj-Varman
+      Dynasty to its Gurjara-Pratihara Dynasty.
+  - id: gap 850..859 92E 41N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Tibetan Empire and
+      Uyghur Khaganate to its Qocho Kingdom and Ganzhou Kingdom.
+  - id: gap 911..921 16E 48N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut runs along the Enns, beyond which the Traungau stayed Bavarian.
+  - id: gap 911..925 16E 46N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's East Franks to its
+      Kingdom of Croatia.
+  - id: gap 936..946 71E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Gurjara-Pratihara
+      Dynasty to its Chaulukya Dynasty.
+  - id: gap 947..959 89E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Pala Empire to its
+      Kamarupa Kingdom.
+  - id: gap 960..979 75E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Gurjara-Pratihara
+      Dynasty to its Paramara Dynasty and Chauhan Dynasty.
+  - id: gap 961..969 19E 44N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Principality of
+      Serbia to its Byzantine Empire.
+  - id: gap 980..999 76E 12N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the Mushika coast.
+  - id: gap 1018..1027 111E 8S
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Nothing names the holder after the pralaya.
+  - id: gap 1152..1176 83E 19N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the Eastern Ganga coast.
+  - id: gap 1177..1191 76E 30N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut runs along the Sutlej.
+  - id: gap 1210..1226 76E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted; the corrected holder, from Cliopatria's Ghurid Dynasty to its Mamluk
+      Dynasty, needs the owner's sign-off.
+  - id: gap 1216..1219 77E 9N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides Venad from the Pandyas.
+  - id: gap 1216..1226 132E 45N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No verdict settles who held it between the Great Jin and the Mongol Empire.
+  - id: gap 1227..1235 46E 41N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides Tbilisi's land from the Arran strip, both Khwarazmian.
+  - id: gap 1250..1259 79E 14N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Rayalaseema in 1250-59 became a gap, held on both sides, once the run beside it was drawn, and
+      no verdict covers it yet.
+  - id: gap 1294..1304 76E 24N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Paramara Malwa and Guhila Mewar share one piece with the uncited Mandsaur-Kota fringe, with no
+      cut.
+  - id: gap 1294..1313 70E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Mamluk Dynasty to
+      its Khalji Dynasty.
+  - id: gap 1294..1313 82E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      It shares one piece with an uncertain gap in Bengal, with no cut between them.
+  - id: gap 1294..1313 84E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Mamluk Dynasty to
+      its Khalji Dynasty.
+  - id: gap 1294..1313 85E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      It shares one piece with an uncertain gap in Bengal, with no cut between them.
+  - id: gap 1294..1313 90E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Mamluk Dynasty to
+      its Khalji Dynasty.
+  - id: gap 1344..1351 88E 24N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides Bengal from Sonargaon.
+  - id: gap 1507..1511 36E 52N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted, since the land was Lithuanian in 1507; the corrected holder needs the
+      owner's sign-off.
+  - id: gap 1507..1511 62E 29N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Timurid Empire to
+      its Safavid Dynasty.
+  - id: gap 1519..1520 32E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Lower Nubia is cited stateless, but its free land runs on into the continent's, so a stateless
+      pocket would keep all of it; it needs a pocket that cites part of a piece.
+  - id: gap 1519..1528 84E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No verdict settles these steps of the run between the Lodi and Sur empires.
+  - id: gap 1526..1528 81E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The date of the Jaunpur kingdom is not given.
+  - id: gap 1534..1539 84E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No verdict settles these steps of the run between the Lodi and Sur empires.
+  - id: gap 1534..1555 86E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides Singhbhum from the Ramgarh country.
+  - id: gap 1556..1563 77E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut divides Adil Shah Sur's east from the Rajput states.
+  - id: gap 1556..1571 70E 30N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Multan's capture date is not given, and the Derajat to 1571 is unsourced.
+  - id: gap 1579..1594 69E 28N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Sindh in 1579-94 became a gap, held on both sides, once the run beside it was drawn, and no
+      verdict covers it yet.
+  - id: gap 1588..1594 60E 54N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      It shares one piece with an uncertain gap on the Ob, with no cut between them.
+  - id: gap 1588..1594 73E 64N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Khanate of Sibir to
+      its Tsardom of Russia.
+  - id: gap 1588..1601 80E 66N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Khanate of Sibir to
+      its Tsardom of Russia.
+  - id: gap 1588..1608 82E 66N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Khanate of Sibir to
+      its Tsardom of Russia.
+  - id: gap 1670..1672 77E 13N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the Keladi west.
+  - id: gap 1670..1676 74E 16N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the south Konkan coast.
+  - id: gap 1670..1690 77E 15N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it from Cliopatria's Bijapur Sultanate to its Mughal Empire, with no cut
+      between them.
+  - id: gap 1713..1717 63E 28N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Safavid Dynasty to
+      its Hotaki Dynasty.
+  - id: gap 1721..1737 61E 39N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Safavid Dynasty to
+      its Afsharid Iran.
+  - id: gap 1741..1756 56E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted, since Ras al-Khaimah was Afsharid; the corrected holder needs the
+      owner's sign-off.
+  - id: gap 1741..1761 69E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      It shares one Indus piece with two other gaps, with no cut between them.
+  - id: gap 1741..1761 71E 30N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      It shares one Indus piece with two other gaps, with no cut between them.
+  - id: gap 1744..1747 80E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it from Cliopatria's Mughal Empire to its Maratha Empire, with no cut
+      between them.
+  - id: gap 1744..1751 81E 22N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it from Cliopatria's Mughal Empire to its Maratha Empire, with no cut
+      between them.
+  - id: gap 1744..1756 76E 18N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Cliopatria has no shape for the Nizam's western Deccan in 1744-56.
+  - id: gap 1744..1761 71E 32N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted; the corrected holder, from Cliopatria's Afsharid Iran to its Durrani
+      Empire, needs the owner's sign-off.
+  - id: gap 1744..1761 72E 25N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      It shares one Indus piece with two other gaps, with no cut between them.
+  - id: gap 1748..1751 68E 31N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it from Cliopatria's Afsharid Iran to its Durrani Empire, with no cut
+      between them.
+  - id: gap 1748..1756 63E 28N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it from Cliopatria's Afsharid Iran to its Durrani Empire and Zand Dynasty,
+      with no cut between them.
+  - id: gap 1752..1761 80E 27N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Kanpur part is unsourced.
+  - id: gap 1757..1761 76E 34N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it from Cliopatria's Afsharid Iran to its Durrani Empire, with no cut
+      between them.
+  - id: gap 1772..1790 77E 32N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Several states held it after Cliopatria's Durrani Empire, with no cut between them.
+  - id: gap 1820..1821 4W 15N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the northern third, toward Timbuktu.
+  - id: gap 1825..1827 40E 26N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Ottoman Empire to
+      its Emirate of Nejd.
+  - id: gap 1856..1879 47E 4N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Omani Slave Coast to
+      its Sultanate of Hobyo.
+  - id: gap 1856..1879 49E 6N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Omani Slave Coast to
+      its Sultanate of Hobyo.
+  - id: gap 1865..1865 9E 55N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The condominium's name needs the owner's call.
+  - id: gap 1866..1884 45E 28N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Emirate of Nejd to
+      its Emirate of Jabal Shammar.
+  - id: gap 1873..1894 47E 23N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Emirate of Nejd to
+      its Emirate of Jabal Shammar.
+  - id: gap 1885..1889 41E 10N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict was refuted; the corrected holder, from Cliopatria's Khedivate of Egypt to its
+      Ethiopian Empire, needs the owner's sign-off.
+  - id: gap 1885..1899 42E 10N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Khedivate of Egypt
+      to its Ethiopian Empire.
+  - id: gap 1898..1899 15E 13N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      Baguirmi after the French treaty is unsourced.
+  - id: gap 1898..1921 57E 19N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Sultanate of Oman to
+      its Sultanate of Muscat and Oman.
+  - id: gap 1900..1904 24E 16N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The verdict is uncertain: no source settles who held it from Cliopatria's Mahdist State to its
+      French Africa.
+  - id: gap 1905..1921 46E 28N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the Kuwait strip east of Hafar al-Batin.
+  - id: gap 1913..1921 47E 29N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the strip held from Basra.
+  - id: gap 1943..1943 15E 32N
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      No cut sets off the land east of Buerat, which was British-held.
+  - id: gap 1945..1945 138E 4S
+    verdict: known gap
+    decided: 2026-10-01
+    why: >-
+      The Baliem highlands need the owner's call.
