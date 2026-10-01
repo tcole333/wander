@@ -1,9 +1,10 @@
 // The globe's material (SurfaceLook in ../contract.ts): a MeshStandardMaterial whose vertex stage
 // is the merged surface vertex chunk and whose fragment stage computes the spike's baked look from
 // the surface pools, per fragment, with the ocean and sea names inlaid in its lacquer
-// (seaNames.ts) and its rivers in blued steel. A MeshDepthMaterial with the same vertex stage lets the displaced globe cast its
-// own shadows. Given a glyph set, where Explore stands, the look also cuts marks into its
-// surface (marks/marks.ts, look.marks); without one, its program and atlas are the look's alone.
+// (seaNames.ts) and its rivers in blued steel. A MeshDepthMaterial with the same vertex stage lets
+// the displaced globe cast its own shadows. Given a glyph set, where Explore stands, the look also
+// cuts marks into its surface (marks/marks.ts, look.marks); without one, its program and atlas are
+// the look's alone.
 // Given a tier for the border steps, where the release names them, its border array holds the
 // steps' slots and preview ring (bordersHook.ts) in place of milestone 1's 1815 field.
 // The faces the sea names are lettered in, declared wherever the look is made.
