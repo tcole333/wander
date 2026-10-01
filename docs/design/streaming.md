@@ -2353,11 +2353,11 @@ and the release's `media` section lists every key the locks name (3.8).
      SwiftShader and Metal): only outer lines at 8,000 km across and inner lines too at 2,000 km,
      soft edges lighter, half strength mid-dissolve, both previews of a cell decoded, and no seam at
      ±180°. The pool, readback and probe tests run test-only pages on the Vite dev server, not the
-     production build, so nothing of them reaches the bundle. CI runs it as four E2E jobs, one per
+     production build, so nothing of them reaches the bundle. CI runs it as five E2E jobs, one per
      shard that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
-     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks) and `rest`, every spec
-     the others do not name, so a new spec lands there; a Vitest test holds `ci.yml`'s lists of the
-     shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
+     `lobby` (lobby-round-trip, globe-mesh), `explore` (explore-entry, marks), `ruler`
+     (explore-ruler) and `rest`, every spec the others do not name, so a new spec lands there; a
+     Vitest test holds `ci.yml`'s lists of the shards to that module. `WANDER_E2E_SHARD` picks one; unset, every spec runs. Each job runs one
      test at a time, since two SwiftShader walks starve a four-core runner, and builds its own dist,
      recording its sha256. The dev server scans the test pages at startup (`optimizeDeps.entries`),
      so each job's cold server bundles their imports before a test loads them.
