@@ -1,8 +1,8 @@
 // Screenshots of a walk (prototype.html?story=...) on this Mac's GPU: Chromium on
 // Metal at 1440x900. It steps through the story as a visitor would and shoots each beat once the
-// flight has landed, the streamer has been idle for a second, story time has come to rest (the ash
-// and veil beats play their spread out after landing) and the card's image has loaded (or
-// failed). Tambora: three flights halfway; the ruler scrubbed to 11 April 1815 on the ash beat, and from
+// flight has landed, the streamer has been idle for a second with a border beat's step in (the
+// page's own readiness), story time has come to rest (the ash and veil beats play their spread out
+// after landing) and the card's image has loaded (or failed). Tambora: three flights halfway; the ruler scrubbed to 11 April 1815 on the ash beat, and from
 // the veil beat to February 1816, between beats, where Meanwhile shows that month's entries; and a
 // break-out, a Meanwhile entry chosen, with the Resume plaque. Magellan: every voyage leg at 20%,
 // 50% and 80% of its clock, plus port and Pacific scrubs. It waits for the ship's loaded route

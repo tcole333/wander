@@ -149,7 +149,10 @@ export interface WalkPage {
   /** The lobby for any page with a story, including a dev page starting on a beat. */
   lobby: Lobby | null;
   stats(): WalkStats;
-  /** True once the view has settled and the streamer has been idle for a while. */
+  /**
+   * True once the view has settled and the streamer has been idle for a while, with a story's beat
+   * holding its own border step where it lists borders.
+   */
   ready(): boolean;
   /** Stops the frame loop and releases what the boot made, its canvas and DOM too. */
   dispose(): void;
@@ -334,10 +337,11 @@ async function assemble(
 
   // A story's effects hang in the globe frame from the start, so the precompile readies their
   // programs, the climate's and the borders' too, whose files come from the release's data host;
-  // the borders' field loads in the background from the room's first frame. Its page steps
-  // through its beats: the walk flies the camera, and holds a late landing until the streamer has
-  // nothing in hand. It starts on its first beat, or in the lobby, which starts it in the press
-  // that chooses its plaque.
+  // the borders' field loads in the background from the room's first frame, or, on the border
+  // steps, the walk's first border step while the lobby stands. Its page steps through its beats:
+  // the walk flies the camera, and holds a late landing until the streamer has nothing in hand and
+  // the beat has its border step. It starts on its first beat, or in the lobby, which starts it in
+  // the press that chooses its plaque.
   const prepared = new Map(
     sources.map((source) => {
       const effects = createWalkEffects(source.story, look, labels, release);
@@ -488,7 +492,7 @@ async function assemble(
       museum.setSize(innerWidth, innerHeight, cameraParams.pixelRatio);
     }
     lobby?.update(dt, camera);
-    for (const { effects } of prepared.values()) effects.background();
+    for (const { effects } of prepared.values()) effects.background(mode === null);
     mode?.beforeCamera(now, dt);
     control.step(now, dt);
     frameLens(dt);
@@ -525,8 +529,11 @@ async function assemble(
     sound?.update(mode?.audio() ?? null, drawn, dt, lobby?.returning);
 
     const s = streamer.stats();
-    // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good.
-    const busy = s.inFlight + s.decoding + s.uploading > 0;
+    // Not the streamer's queue: when the pool is full, a wanted tile can wait there for good. A
+    // story's beat waits for its own data too: its border step, where it lists borders.
+    const busy =
+      s.inFlight + s.decoding + s.uploading > 0 ||
+      (story !== null && !story.effects.ready(story.walk.state()));
     if (busy || !control.settled) {
       idleSince = Infinity;
       idleFrames = 0;
@@ -622,7 +629,12 @@ function startStory(
   ready: () => boolean,
   reachChanged: () => void,
 ): { mode: Mode; parts: StoryParts } {
-  const walk = createWalk(story, control, { ready, arrive, route: (name) => effects.route(name) });
+  // The flight's readiness gate waits for the tiles and for the beat's own border step.
+  const walk: DirectedWalk = createWalk(story, control, {
+    ready: () => ready() && effects.ready(walk.state()),
+    arrive,
+    route: (name) => effects.route(name),
+  });
   let ui: WalkUi;
   try {
     ui = createWalkUi(root, walk, meanwhile, dataHost, reachChanged);
