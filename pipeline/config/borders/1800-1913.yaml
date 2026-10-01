@@ -1086,14 +1086,14 @@ corrections:
     pocket:
       at: [54.75, 23.25]
       to: Sheikhdom of Abu Dhabi
-      shape_from: {polity: Emirate of Diriyah, year: 1814}
-      within: {polity: Trucial States, year: 1820}
+      shape: liwa-1814.geojson
       wikidata: Q187712
     why: >-
       Liwa and the Dhafra interior were the Bani Yas homeland under the Al Bu Falah, who settled in
       Liwa around 1700 and moved their seat to Abu Dhabi island in 1793-1795; the sheikhdom's lands
       ran from Abu Dhabi to Khor al Adaid. Cliopatria draws them only as the Trucial States from
-      1820.
+      1820; the land both its Diriyah of 1814 and its Trucial States of 1820 hold is drawn
+      (liwa-1814.geojson).
     source:
       title: Bani Yas
       publisher: Wikipedia
@@ -1102,13 +1102,13 @@ corrections:
     pocket:
       at: [93.92, 24.79]
       to: Kingdom of Manipur
-      shape_from: {polity: Burma, year: 1824}
+      shape: manipur-1824.geojson
       wikidata: Q889030
     why: >-
       The Manipur valley and hills were Gambhir Singh's kingdom, restored with British support in
       1825 and recognised as independent by the Treaty of Yandabo in February 1826, until his death
-      in January 1834. Manipur takes the shape Burma held it in 1824; the southern hills toward the
-      Lushai country stay stateless.
+      in January 1834. Manipur takes the shape Burma held it in 1824 (manipur-1824.geojson); the
+      southern hills toward the Lushai country stay stateless.
     source:
       title: Gambhir Singh
       publisher: Wikipedia
