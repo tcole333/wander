@@ -209,6 +209,13 @@ test('Explore’s ruler moves time by keys, typing, the overview, a pull and the
 
   // No press on the brass selects text: dragged up off a reel, or off the lip.
   const reel = (await page.locator('.xr-reel').first().boundingBox())!;
+  // The reels are painted brass: they take presses rather than let them through to the globe.
+  expect(
+    await page.evaluate(
+      ({ x, y }) => document.elementFromPoint(x, y)?.classList.contains('xr-hit'),
+      { x: reel.x + reel.width / 2, y: reel.y + reel.height / 2 },
+    ),
+  ).toBe(true);
   for (const [x, y] of [
     [reel.x + reel.width / 2, reel.y + reel.height / 2],
     [view.width / 2 + 60, at.tapeY - 19],
