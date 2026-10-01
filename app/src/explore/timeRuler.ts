@@ -162,6 +162,8 @@ export class TimeRuler {
   #hot: 'lens' | 'return' | 'bookmark' | null = null;
   #wheel: { t: number; axis: 'x' | 'y' } | null = null;
   #repeat = 0;
+  /** A finger on a counter knob that has not stepped: it steps when lifted, unless it pinched. */
+  #knobTouch: number | null = null;
   #entryOpen = false;
   #spoken = '';
   /** The pinned event's day, which the bookmark marks, or null. */
@@ -333,7 +335,11 @@ export class TimeRuler {
     }
   }
 
-  /** A counter knob: fewer years (-1) or more (1), stepping one detent, repeating while held. */
+  /**
+   * A counter knob: fewer years (-1) or more (1), stepping one detent, repeating while held. A
+   * finger steps when it lifts or once it has held, so a pinch that lands on a knob steps nothing:
+   * its second finger, anywhere on the ruler, makes it the ruler's pinch (#down).
+   */
   #knob(name: string, dir: 1 | -1): HTMLButtonElement {
     const knob = el('button', `xr-knob is-${name}`);
     knob.type = 'button';
@@ -350,27 +356,36 @@ export class TimeRuler {
     glyph.innerHTML = `<path d="${d}" class="rc-cut-lip" transform="translate(0.5 0.7)"/><path d="${d}" class="rc-niello"/>`;
     knob.append(face, glyph);
     const { signal } = this.#listeners;
-    const stop = () => {
-      clearTimeout(this.#repeat);
-      this.#repeat = 0;
-    };
     knob.addEventListener(
       'pointerdown',
       (event) => {
         if (event.button !== 0) return;
         event.preventDefault();
         this.#counter.focus({ preventScroll: true });
+        // A second finger joins a pinch, which the counter starts as the press reaches it.
+        if (this.#pointers.size > 0) return;
         const step = () => {
+          this.#knobTouch = null;
           this.#detent(dir);
           this.#repeat = window.setTimeout(step, REPEAT_MS);
         };
-        this.#detent(dir);
+        if (event.pointerType === 'mouse') this.#detent(dir);
+        else this.#knobTouch = event.pointerId;
         this.#repeat = window.setTimeout(step, REPEAT_WAIT_MS);
       },
       { signal },
     );
-    for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const)
-      knob.addEventListener(type, stop, { signal });
+    knob.addEventListener(
+      'pointerup',
+      (event) => {
+        // A tap.
+        if (this.#knobTouch === event.pointerId) this.#detent(dir);
+        this.#stopKnob();
+      },
+      { signal },
+    );
+    for (const type of ['pointerleave', 'pointercancel', 'blur'] as const)
+      knob.addEventListener(type, () => this.#stopKnob(), { signal });
     // A click the keyboard makes (none reaches it: the knobs are out of the tab order), or a
     // screen reader's, steps once.
     knob.addEventListener(
@@ -381,6 +396,13 @@ export class TimeRuler {
       { signal },
     );
     return knob;
+  }
+
+  /** A knob stops repeating, and a finger on it will not step. */
+  #stopKnob(): void {
+    clearTimeout(this.#repeat);
+    this.#repeat = 0;
+    this.#knobTouch = null;
   }
 
   /** One detent wider or narrower, said once it lands. */
@@ -701,7 +723,11 @@ export class TimeRuler {
     this.#plaque.addEventListener('pointerdown', (event) => this.#down(event, 'plaque'), {
       signal,
     });
-    for (const target of [hit, this.#plaque]) {
+    // Presses on the counter, its knobs' among them, focus it, select nothing, and may pinch.
+    this.#counter.addEventListener('pointerdown', (event) => this.#down(event, 'counter'), {
+      signal,
+    });
+    for (const target of [hit, this.#plaque, this.#counter]) {
       target.addEventListener('pointermove', (event) => this.#move(event), { signal });
       target.addEventListener('pointerup', (event) => this.#up(event, false), { signal });
       target.addEventListener('pointercancel', (event) => this.#up(event, true), { signal });
@@ -721,16 +747,6 @@ export class TimeRuler {
         passive: false,
       });
     }
-    // Presses on the counter's body focus it and select nothing.
-    this.#counter.addEventListener(
-      'pointerdown',
-      (event) => {
-        if ((event.target as Element).closest('.xr-knob')) return;
-        event.preventDefault();
-        this.#counter.focus({ preventScroll: true });
-      },
-      { signal },
-    );
     this.#plaque.addEventListener(
       'keydown',
       (event) => {
@@ -820,24 +836,32 @@ export class TimeRuler {
     return Math.atan2(x - arc.cx, arc.cy - y);
   }
 
-  #down(event: PointerEvent, from: 'surface' | 'plaque'): void {
+  #down(event: PointerEvent, from: 'surface' | 'plaque' | 'counter'): void {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     // A press in the open entry places its caret.
     if (from === 'plaque' && this.#entryOpen) return;
     // Painted brass takes every press: no text is selected and the globe never turns.
     event.preventDefault();
-    const target = event.currentTarget as HTMLElement;
-    target.setPointerCapture(event.pointerId);
+    if (from === 'counter') {
+      this.#counter.focus({ preventScroll: true });
+      // A mouse on the counter only presses its knobs. A finger is kept for a pinch, and keeps
+      // to the knob or body it touched, so a knob's own lift and hold still reach it.
+      if (event.pointerType === 'mouse') return;
+    } else {
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
     const [x, y] = this.#local(event);
     this.#pointers.set(event.pointerId, { x, y });
     if (from === 'plaque') this.#plaque.focus({ preventScroll: true });
     if (this.#pointers.size === 2) {
-      // Two fingers: a pinch, whose midpoint's slide travels.
+      // Two fingers, wherever on the ruler: a pinch, whose midpoint's slide travels.
       const [p, q] = [...this.#pointers.values()] as [
         { x: number; y: number },
         { x: number; y: number },
       ];
       this.#press = null;
+      this.#stopKnob();
+      this.element.classList.remove('is-pulling');
       this.#time.interrupt();
       this.#pinch = {
         dist: Math.max(8, Math.hypot(p.x - q.x, p.y - q.y)),
@@ -846,6 +870,7 @@ export class TimeRuler {
       };
       return;
     }
+    if (from === 'counter') return;
     const zone = from === 'plaque' ? { kind: 'tape' as const, angle: 0 } : this.#zoneAt(x, y);
     if (zone.kind === 'bare') return;
     this.#time.interrupt();
