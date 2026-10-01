@@ -1,19 +1,17 @@
 // The release (streaming.md 3.8), merged from the stage records (7.2) of a profile's build as
 // `npm run publish-data` publishes it: the surface section from the coverage and surface records,
-// the modera section as its record has it, the borderSteps and borders sections from the borders
-// record, when the build has run those stages,
-// the events section from the event-files record less its `inputs`, once they show its overview
-// holds the committed openings (3.4), and the media section, every key the stories' committed
-// locks name (3.9). The local data server (dataServer.ts) serves a release of this shape for a
-// profile's build, so lab and dev pages read what a published release will give them; both find
-// the build with profileBuild. Plain Node, so it runs outside Vite.
+// the modera section as its record has it, the borderSteps section from the borders record, when
+// the build has run that stage, the events section from the event-files record less its `inputs`,
+// once they show its overview holds the committed openings (3.4), and the media section, every key
+// the stories' committed locks name (3.9). The local data server (dataServer.ts) serves a release
+// of this shape for a profile's build, so lab and dev pages read what a published release will
+// give them; both find the build with profileBuild. Plain Node, so it runs outside Vite.
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type {
   BorderStepsRelease,
-  BordersRelease,
   EventsRelease,
   FxRelease,
   MediaRelease,
@@ -69,10 +67,10 @@ export interface OwedPlace {
 
 /**
  * The borders stage's record (7.2): the steps' release section, the step each story's border beats
- * draw and what the history pass still owes, and milestone 1's 1815 field as its `borders` section.
- * The region profile bakes only the 1815 field and the fixture only the steps.
+ * draw and what the history pass still owes. The global and fixture profiles bake it; the region
+ * profile bakes no borders.
  */
-export interface BordersRecord extends Partial<BordersRelease> {
+export interface BordersRecord {
   steps?: BorderStepsRelease;
   beats?: Record<string, Record<string, number>>;
   /** Overlap pairs past duplicateShare that no `overlap` correction acknowledges. */
@@ -180,15 +178,6 @@ export function readBordersRecord(stages: string): BordersRecord | undefined {
     : undefined;
 }
 
-/** The 1815 field's `borders` section, when the record holds one. */
-export function snapshotRelease(record: BordersRecord): BordersRelease | undefined {
-  const { ver, stems, years, files } = record;
-  if (ver === undefined || stems === undefined || years === undefined || files === undefined) {
-    return undefined;
-  }
-  return { ver, stems, years, files };
-}
-
 /**
  * What the borders record still owes the history pass (streaming.md 3.3), which publish-data
  * refuses to upload: each overlap pair no `overlap` correction acknowledges, each composite or
@@ -224,8 +213,8 @@ export function knownGaps(record: BordersRecord): OwedPlace[] {
  * follows 3.8, the first 16 hex digits of the sha256 of its JSON without the id, and `built` is
  * when the surface record was written, so the same build and locks always give the same release.
  * The modera record is 3.8's section as is (7.2), so it goes in unchanged when the build has one;
- * the borders record gives the borderSteps section as its `steps` and the borders section as the
- * 1815 field's fields; the event-files record goes in without its `inputs` (`eventsRelease`).
+ * the borders record gives the borderSteps section as its `steps`; the event-files record goes in
+ * without its `inputs` (`eventsRelease`).
  */
 export function localRelease(stages: string, dataHost: string, lock = OPENINGS_LOCK): Release {
   const coverage = readRecord<CoverageRecord>(stages, 'coverage');
@@ -240,7 +229,6 @@ export function localRelease(stages: string, dataHost: string, lock = OPENINGS_L
     dataHost,
     surface: surfaceRelease(coverage, surface),
     modera: optional<ModeraRelease>('modera'),
-    borders: borders && snapshotRelease(borders),
     borderSteps: borders?.steps,
     fx: optional<FxRelease>('fx'),
     events: eventFiles ? eventsRelease(eventFiles, stages, lock) : undefined,

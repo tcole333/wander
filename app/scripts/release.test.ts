@@ -15,7 +15,6 @@ import {
   knownGaps,
   localRelease,
   mediaRelease,
-  snapshotRelease,
   surfaceRelease,
 } from './release';
 
@@ -197,19 +196,6 @@ describe('the borders record', () => {
     polities: 'fd/borders/m/54214a9f67b739f7.json',
     notice: 'lic/b3239215fd491ae4.txt',
   };
-  const snapshot = {
-    ver: 'f75bdb69',
-    stems: ['1815'],
-    years: [1815],
-    files: {
-      '1815': {
-        key: 'fd/borders/f75bdb69/1815.bin',
-        bytes: 1267355,
-        notice: 'lic/62c9984143cffea2.txt',
-        source: 'lic/1d7cceb7ee875ed1.geojson',
-      },
-    },
-  };
   const owed = {
     unacknowledged: [
       { polities: ['British Cape Colony', 'Napoleonic Batavia Republic'], steps: [1815] },
@@ -229,15 +215,14 @@ describe('the borders record', () => {
     }
   }
 
-  test('gives the borderSteps section as its steps and the borders section as the 1815 field', () => {
-    const release = released({ steps, beats: {}, ...owed, inputs: { code: 'x' }, ...snapshot });
+  test("gives the borderSteps section as the record's steps, and no other borders", () => {
+    const release = released({ steps, beats: {}, ...owed, inputs: { code: 'x' } });
     expect(release.borderSteps).toEqual(steps);
-    expect(release.borders).toEqual(snapshot);
+    expect(Object.keys(release)).not.toContain('borders');
   });
 
-  test('leaves out the section a profile does not bake', () => {
-    expect(released({ steps, beats: {}, ...owed }).borders).toBeUndefined();
-    expect(released(snapshot).borderSteps).toBeUndefined();
+  test('leaves out the section a record without steps does not give', () => {
+    expect(released({ beats: {}, ...owed }).borderSteps).toBeUndefined();
   });
 
   test('owes the history pass each unacknowledged pair and each unclassified entry', () => {
@@ -248,7 +233,6 @@ describe('the borders record', () => {
     expect(
       historyOwed({ unacknowledged: [], unclassified: { composites: [], relations: [] } }),
     ).toEqual([]);
-    expect(snapshotRelease({ steps })).toBeUndefined();
   });
 
   const hole = {

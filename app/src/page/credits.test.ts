@@ -90,14 +90,10 @@ describe('credits.html', () => {
     }
   });
 
-  it('links exactly the notices and sources the bundled release publishes under lic/', () => {
-    // The 1815 field's GPL notice and changed source, and the border steps' notice where the
-    // release names the steps.
+  it('links exactly the notices the bundled release publishes under lic/', () => {
+    // The border steps' notice, where the release names the steps, is the one a release names.
     const release = bundled as Release;
-    const keys = [
-      ...Object.values(release.borders?.files ?? {}).flatMap((file) => [file.notice, file.source]),
-      ...(release.borderSteps ? [release.borderSteps.notice] : []),
-    ];
+    const keys = release.borderSteps ? [release.borderSteps.notice] : [];
     const linked = [...credits.matchAll(/href="([^"]*\/lic\/[^"]*)"/g)].map((match) => match[1]);
     expect(new Set(linked)).toEqual(new Set(keys.map((key) => `${release.dataHost}/${key}`)));
   });

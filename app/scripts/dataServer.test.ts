@@ -111,7 +111,6 @@ describe('the release', () => {
   test("holds the fixture's border steps, whose files and notice the server serves", async () => {
     const steps = release.borderSteps;
     expect(steps?.years).toEqual([1815, 1830]);
-    expect(release.borders).toBeUndefined(); // the fixture bakes no 1815 field
     for (const [key, type] of [
       [steps?.keys[0], 'application/octet-stream'],
       [steps?.previews.keys[0], 'application/octet-stream'],
