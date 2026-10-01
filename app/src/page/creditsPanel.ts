@@ -4,7 +4,9 @@
 // Credits links open it in place and still point at /credits, for a new tab or a link passed on.
 // Escape, its close controls or a press beside the sheet close it. Focus moves into it, and back
 // to the link when the keyboard opened it; keys pressed while it is open stay in it, so neither
-// the walk nor the globe acts on them.
+// the walk nor the globe acts on them. An entry the page marks data-release credits data only
+// some releases name, the border steps': the panel shows it only where the page's release names
+// that section, while the credits page, which has no release, shows every entry.
 import creditsPage from '../../credits.html?raw';
 import '../story/ui/tokens.css';
 import '../story/ui/walkUi.css';
@@ -21,6 +23,23 @@ interface Panel {
 }
 
 let panel: Panel | null = null;
+/** The sections the page's release names, once the page has named its release. */
+let named: ReadonlySet<string> | null = null;
+
+/**
+ * Names the release the page draws from: an entry marked data-release shows in the panel only
+ * where this release names that section.
+ */
+export function creditsFor(release: object): void {
+  named = new Set(
+    Object.entries(release)
+      .filter(([, section]) => section !== undefined)
+      .map(([name]) => name),
+  );
+  // A panel built for another release is built again when it next opens.
+  panel?.dialog.remove();
+  panel = null;
+}
 
 /** Opens the panel over the page; `returnTo` has focus back when it closes. */
 export function openCredits(returnTo: HTMLElement | null = null): void {
@@ -57,6 +76,9 @@ function buildPanel(): Panel {
   const source = page.querySelector('.credits-card .wu-sheet');
   if (!source) throw new Error('credits.html has no credits sheet');
   const sheet = document.importNode(source, true) as HTMLElement;
+  for (const entry of sheet.querySelectorAll<HTMLElement>('[data-release]')) {
+    if (named && !named.has(entry.dataset.release ?? '')) entry.remove();
+  }
   // The attributions lead off the site, so they open in a tab of their own and the walk keeps its
   // place.
   for (const link of sheet.querySelectorAll('a[href]')) {

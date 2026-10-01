@@ -15,7 +15,9 @@
   <!-- The credits page: every source, image, typeface and code license, on a vellum sheet in the
        museum's room (src/page/credits.css). A test (src/page/credits.test.ts) checks its images'
        Commons pages and licenses against both stories' locks, and that it carries their sources
-       and their own credits. -->
+       and their own credits. An entry marked data-release shows in the Credits panel only where
+       the page's release names that section (src/page/creditsPanel.ts); this page, plain HTML
+       with no release, shows every entry. -->
   <body class="credits-page">
     <header class="credits-mark">
       <a href="/" aria-label="Wander, back to the globe">
@@ -641,6 +643,23 @@
               >). Licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
               Changed for Wander: the ensemble mean’s monthly 2&nbsp;m temperature anomalies against
               1901–2000, rounded to a tenth of a degree and blended from one month to the next.
+            </dd>
+            <dt data-release="borderSteps">
+              Borders, <span class="credits-range">3400 BCE–2000</span>
+            </dt>
+            <dd data-release="borderSteps">
+              <a href="https://github.com/Seshat-Global-History-Databank/cliopatria">Cliopatria</a>,
+              the Seshat Global History Databank’s polity shapes by year: Bennett et al. (2025),
+              v0.2.0 (<a href="https://doi.org/10.5281/zenodo.20274630"
+                >doi:10.5281/zenodo.20274630</a
+              >), described in <cite>Scientific Data</cite> (<a
+                href="https://doi.org/10.1038/s41597-025-04516-9"
+                >doi:10.1038/s41597-025-04516-9</a
+              >). Licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+              Changed for Wander: each step draws the polities Cliopatria gives for its years, an
+              empire’s members inside one outer border, with corrections, each citing its source,
+              where the record is wrong or has gaps; and the borders are redrawn on the globe to
+              within about 10&nbsp;km.
             </dd>
             <dt>Borders, <span class="credits-range">1815</span></dt>
             <dd>

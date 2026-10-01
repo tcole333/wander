@@ -36,6 +36,7 @@ import type { Release } from '../data/release';
 import type { SurfaceLayer } from '../data/surfaceLayer';
 import { ClearanceField } from '../globe/clearance';
 import { createLobby, GLOW_FADE_S, type Lobby } from '../lobby/lobby';
+import { creditsFor } from '../page/creditsPanel';
 import { lobbyPlaces } from '../lobby/places';
 import { attachBorderSteps } from '../borders/clockBorders';
 import { createSurfaceLook } from '../look/surfaceLook';
@@ -200,6 +201,8 @@ async function assemble(
   }: BootOptions,
   made: (() => void)[],
 ): Promise<WalkPage> {
+  // The Credits panel credits the data this release names.
+  creditsFor(release);
   const renderer = createRenderer();
   renderer.shadowMap.enabled = true;
   // A shader that does not link draws nothing and throws nowhere, so the boot counts them. This
