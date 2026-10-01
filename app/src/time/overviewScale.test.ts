@@ -159,7 +159,7 @@ describe('the rider', () => {
   it.each([
     ['1066', 1066, 5, '1065'],
     ['500 BCE', -499, 10, '500 BCE'],
-  ])('names every step about %s at whole pixels', (_, target, step, text) => {
+  ])('names every step about %s at whole pixels, in order', (_, target, step, text) => {
     // Years as history numbers them, BCE negative, so a step's multiples are the names.
     const named = (y: number) => (y <= 0 ? y - 1 : y);
     const x = Math.round(WARP.u(year(target)) * L);
@@ -174,6 +174,7 @@ describe('the rider', () => {
       const last = riders[i - 1];
       if (last && named(rider.year) - named(last.year) > Math.max(rider.step, last.step))
         failures.push(`${last.text} to ${rider.text} passes over a step`);
+      if (last && rider.year < last.year) failures.push(`${last.text} to ${rider.text} runs back`);
     });
     const shown = new Set(riders.map((r) => named(r.year)));
     for (let k = -2; k <= 2; k += 1) {
@@ -182,6 +183,34 @@ describe('the rider', () => {
     }
     expect(failures).toEqual([]);
     expect(riders.map((r) => r.text)).toContain(text);
+  });
+
+  // Swept a quarter pixel at a time along the whole overview at each width: where the step
+  // changes, a name never moves back against the pointer. At 1440 the step goes from 50 to 20
+  // years about 3155 BCE, where rounding each pixel to its own step read 3150 BCE, then 3160 BCE.
+  it.each([1262, 1263.5, 882, 473.3, 304])('never runs back along an overview %s px long', (L) => {
+    const failures: string[] = [];
+    let last = riderYear(WARP, EXTENT, 0, L);
+    for (let x = 0.25; x <= L; x += 0.25) {
+      const rider = riderYear(WARP, EXTENT, x / L, L);
+      if (rider.year < last.year) failures.push(`${last.text} to ${rider.text} at ${x} px`);
+      const yearsPerPx = WARP.daysPerU(rider.day) / L / YEAR_DAYS;
+      if (rider.step < yearsPerPx) failures.push(`${rider.text} in steps of ${rider.step}`);
+      last = rider;
+    }
+    expect(failures).toEqual([]);
+  });
+
+  it('reads 3200, 3160, 3140 BCE across the step’s change at 1440, a press landing on each', () => {
+    const L = 1263.5;
+    const x = Math.round(WARP.u(year(-3154)) * L);
+    const riders = Array.from({ length: 13 }, (_, i) =>
+      riderYear(WARP, EXTENT, (x - 6 + i) / L, L),
+    );
+    const texts = [...new Set(riders.map((r) => r.text))];
+    expect(texts).toEqual(texts.toSorted((a, b) => parseInt(b) - parseInt(a)));
+    expect(texts).toEqual(expect.arrayContaining(['3200 BCE', '3140 BCE']));
+    for (const rider of riders) expect(rider.day).toBe(middleDay(rider.year));
   });
 
   it('flies to its year’s middle day and never names year 0', () => {

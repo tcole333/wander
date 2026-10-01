@@ -176,11 +176,11 @@ export function lensExtent(
   return { u0, u1, u };
 }
 
-/** The rider's year: rounded to a step no finer than a pixel there holds. */
+/** The rider's year: a name a pixel there can tell from the next. */
 export interface RiderYear {
   /** Astronomical year, as the calendar counts. */
   year: number;
-  /** The years it is rounded to, one of RIDER_STEPS. */
+  /** The years between names where it stands, one of RIDER_STEPS. */
   step: number;
   /** Its middle day, where a press flies. */
   day: number;
@@ -188,15 +188,18 @@ export interface RiderYear {
 }
 
 /**
- * The years the rider rounds to. Wider than 50 only on a narrow view, whose overview holds more
- * years to a pixel in the deep past.
+ * The years the rider's names keep apart. Wider than 50 only on a narrow view, whose overview
+ * holds more years to a pixel in the deep past.
  */
 export const RIDER_STEPS: readonly number[] = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
 
 /**
- * The year under `u` on an overview `lengthPx` long, rounded to the finest step of RIDER_STEPS at
- * least the years a pixel holds there: as the pointer moves a pixel the year moves a step at most,
- * so every year it names is one a pointer at whole pixels can reach.
+ * The year the rider names at `u` on an overview `lengthPx` long. Its names are the years, as
+ * history numbers them, that are multiples of the finest of RIDER_STEPS at least the years a pixel
+ * holds where each stands, with 1 BCE and 1 CE either side of the era's seam; the rider names the
+ * one nearest the pointer's year. As the pointer moves a pixel the name moves a name at most, and
+ * never back against it, even where the step changes, so every name is one a pointer at whole
+ * pixels can reach.
  */
 export function riderYear(
   warp: Warp,
@@ -205,17 +208,31 @@ export function riderYear(
   lengthPx: number,
   calendar: Calendar = HISTORICAL,
 ): RiderYear {
-  const at = warp.day(u);
-  const yearsPerPx = warp.daysPerU(at) / lengthPx / YEAR_DAYS;
-  const step = RIDER_STEPS.find((s) => s >= yearsPerPx) ?? RIDER_STEPS.at(-1)!;
-  const exact = calendar.civil(Math.min(extent.end - 1, Math.max(extent.start, at))).year;
   const first = calendar.civil(extent.start).year;
   const last = calendar.civil(extent.end - 1).year;
-  // Rounded in history's numbering, which has no year 0: 500 BCE, not 499 BCE.
-  const count = exact <= 0 ? 1 - exact : exact;
-  const rounded = step === 1 ? count : Math.max(1, Math.round(count / step) * step);
-  const year = Math.min(last, Math.max(first, exact <= 0 ? 1 - rounded : rounded));
-  return { year, step, day: middleDay(year, calendar), text: riderText(year) };
+  const stepAt = (day: number) => {
+    const yearsPerPx = warp.daysPerU(day) / lengthPx / YEAR_DAYS;
+    return RIDER_STEPS.find((s) => s >= yearsPerPx) ?? RIDER_STEPS.at(-1)!;
+  };
+  // Years as history numbers them, BCE negative and no year 0, so a step's multiples are names.
+  const toYear = (n: number) => (n < 0 ? n + 1 : n);
+  const isName = (n: number) =>
+    Math.abs(n) === 1 || n % stepAt(middleDay(toYear(n), calendar)) === 0;
+  const at = Math.min(extent.end - 1, Math.max(extent.start, warp.day(u)));
+  const exact = calendar.civil(at).year;
+  const n = exact <= 0 ? exact - 1 : exact;
+  // The nearest name each way, which is never more than the coarser step there away.
+  const near = (dir: 1 | -1) => {
+    let k = n;
+    while (!isName(k)) k += k + dir === 0 ? 2 * dir : dir;
+    return Math.min(last, Math.max(first, toYear(k)));
+  };
+  const [before, after] = [near(-1), near(1)];
+  // A tie goes away from the era's seam: 500 BCE, not 490 BCE, from 495 BCE.
+  const [down, up] = [exact - before, after - exact];
+  const year = up < down || (up === down && exact > 0) ? after : before;
+  const day = middleDay(year, calendar);
+  return { year, step: stepAt(day), day, text: riderText(year) };
 }
 
 /** A year's middle day in `calendar`. */
