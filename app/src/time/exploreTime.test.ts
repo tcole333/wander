@@ -169,6 +169,30 @@ describe('Explore’s time', () => {
     expect([there, clock.state().day]).toEqual([{ year: 1740, month: 1, day: 1 }, start]);
   });
 
+  it('steps a span of day ticks across a long month and back to the same day', () => {
+    // Day labels fall every 2 days and start again at each month's 1st, so a span off 18 June
+    // (19 April) stands between two ticks.
+    const { clock, time, run } = setup(dayFromIso('1815-06-18'));
+    time.zoomTo(60);
+    const start = clock.state().day;
+    time.step(-1, 'span');
+    run();
+    const back = clock.state().day;
+    time.step(1, 'span');
+    run();
+    expect(clock.state().day).toBe(start);
+    expect(Math.abs(back - (start - 60))).toBeLessThanOrEqual(2);
+    for (let press = 0; press < 3; press += 1) {
+      time.step(-1, 'span');
+      run();
+    }
+    for (let press = 0; press < 3; press += 1) {
+      time.step(1, 'span');
+      run();
+    }
+    expect(historicalCivil(clock.state().day)).toEqual({ year: 1815, month: 6, day: 18 });
+  });
+
   it('hands a flight to a hand at the span it was going to', () => {
     const { clock, time, run } = setup();
     time.fly(dayFromIso('1066-10-14'), 20 * YEAR_DAYS, { jump: true });

@@ -10,7 +10,7 @@ import { tunables } from '../config/tunables';
 import { dayFromHistorical } from '../story/dates';
 import type { Span } from '../story/ui/format';
 import { overviewWarp, YEAR_DAYS, type Warp } from './overviewScale';
-import { graduation } from './tapeScale';
+import { graduation, seriesDays } from './tapeScale';
 import {
   coastStep,
   easeInOut,
@@ -22,6 +22,7 @@ import {
   nextTick,
   planFlight,
   takeOver,
+  ticksOn,
   withinDays,
   type Coast,
   type Flight,
@@ -309,16 +310,21 @@ export class ExploreTime {
 
   /**
    * One step from where the tape is going: to the next fine or labelled tick the tape engraves,
-   * or exactly a span on. A span's step lands on a labelled tick only from one, so a step each way
-   * comes back to where it began and repeated steps never drift.
+   * or a span on. From a labelled tick a span's step moves the whole number of labelled ticks
+   * nearest a span, and from anywhere else exactly a span, so a step each way comes back to where
+   * it began and repeated steps never drift.
    */
   step(dir: 1 | -1, kind: 'fine' | 'label' | 'span'): void {
     const { day, span } = this.target;
     const grade = graduation(span, this.rulePx, day);
     if (kind === 'span') {
-      const onTick = Math.abs(nearestTick(day, grade.label) - day) < 1e-6;
-      const to = day + dir * span;
-      this.fly(onTick ? nearestTick(to, grade.label) : to, span);
+      const label = grade.label;
+      if (Math.abs(nearestTick(day, label) - day) >= 1e-6) {
+        this.fly(day + dir * span, span);
+        return;
+      }
+      const count = Math.max(1, Math.round(span / seriesDays(label)));
+      this.fly(ticksOn(day, dir, label, count), span);
       return;
     }
     const series = kind === 'fine' ? (grade.fine ?? grade.mid ?? grade.label) : grade.label;

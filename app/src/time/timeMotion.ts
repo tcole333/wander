@@ -179,6 +179,22 @@ export function nextTick(
   return day + dir * seriesDays(series);
 }
 
+/**
+ * The tick of `series` `count` ticks past `day` in `dir`: a step of whole ticks, which the same
+ * step back undoes exactly, however unevenly the ticks fall (a month's days restart at its 1st).
+ */
+export function ticksOn(
+  day: number,
+  dir: 1 | -1,
+  series: Series,
+  count: number,
+  calendar: Calendar = HISTORICAL,
+): number {
+  let at = day;
+  for (let k = 0; k < count; k += 1) at = nextTick(at, dir, series, calendar);
+  return at;
+}
+
 /** The tick of `series` nearest `day`. */
 export function nearestTick(day: number, series: Series, calendar: Calendar = HISTORICAL): number {
   const reach = seriesDays(series) * 1.2 + 32;
