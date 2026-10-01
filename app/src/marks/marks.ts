@@ -445,8 +445,8 @@ export class MarkLayer {
   }
 
   /**
-   * The marks' diameter in CSS px for the last draw (tunables.markPx at its width), which the
-   * event declutter's cells are sized by.
+   * The marks' diameter in CSS px for the last draw (tunables.markPx at its width): what the
+   * event declutter's cells and a hollow parent's veil keep marks apart by.
    */
   get sizePx(): number {
     return this.#sizePx;

@@ -6,16 +6,17 @@
 // the worker's fades say, interpolated every frame between replies. A war whose extent grows past
 // the split on screen gives way to its battles and stays as a hollow glyph, its extent a ring once
 // hovered, its solid mark and its hollow one crossfading as marks of their own; a hollow glyph
-// gives way to a mark already standing on its spot, so parents sharing a borrowed place do not pile
-// into one blot. The worker keeps two events to a cell four marks across at the size the look draws
-// them (tunables.declutterCellMarks), so larger marks keep as far apart. An event whose place is
-// inherited or derived, or whose date is known only to its year, draws softer and half as deep
-// (globe-language.md, principle 1). The focal event, the opening at first, keeps its ember while
-// its dates are on the ruler's tape (time/exploreTime.ts, tapeWindow), its mark at half strength
-// while they stand outside the glass's now window; once they leave the tape it becomes one mark
-// among the others. Until the index holds it, or once the worker has failed, the openings lock
-// draws it. A failed worker logs once and its marks go. Leaving eases every mark out with the
-// lobby's glows; disposing ends the worker and takes the marks off the globe.
+// gives way to a mark already standing within a mark's width of it, where their seals would
+// overlap, so parents sharing a borrowed place do not pile into one blot. The worker keeps two
+// events to a cell four marks across at the size the look draws them (tunables.declutterCellMarks),
+// so larger marks keep as far apart. An event whose place is inherited or derived, or whose date is
+// known only to its year, draws softer and half as deep (globe-language.md, principle 1). The focal
+// event, the opening at first, keeps its ember while its dates are on the ruler's tape
+// (time/exploreTime.ts, tapeWindow), its mark at half strength while they stand outside the glass's
+// now window; once they leave the tape it becomes one mark among the others. Until the index holds
+// it, or once the worker has failed, the openings lock draws it. A failed worker logs once and its
+// marks go. Leaving eases every mark out with the lobby's glows; disposing ends the worker and
+// takes the marks off the globe.
 //
 // Explore's labels (labels.ts) pick the marks under the pointer, hover one (a hollow parent then
 // draws its extent's ring), read the worker's labels and describe their events through here, and
@@ -95,8 +96,6 @@ const DEG = Math.PI / 180;
 
 /** What a hollow parent's mark id adds to its event's, so its solid mark can crossfade with it. */
 const HOLLOW_ID = '/outline';
-/** One mark's radius on screen, CSS px, until the look has placed one: the smallest scale's. */
-const MARK_RADIUS_PX = Math.min(...tunables.markPx.map((row) => row.px)) / 2;
 
 /**
  * A mark's id: its event's Q number, the same whether the index or the lock draws it, and a
@@ -459,8 +458,8 @@ export class ExploreEvents {
 
   /**
    * The marks for the last result and the focal event, their fades at `nowMs`. A hollow parent
-   * fades out as a mark of another event stands within one mark's radius of it on screen, the
-   * highest-scored parent standing first.
+   * fades out as a mark of another event stands within a mark's width of it on screen, where
+   * their seals would overlap, the highest-scored parent standing first.
    */
   #draw(nowMs: number): void {
     const specs: MarkSpec[] = [];
@@ -469,7 +468,7 @@ export class ExploreEvents {
     let fading = false;
     /** Marks drawn with their anchors in view, and their opacities. */
     const standing: { mark: EventMark; opacity: number }[] = [];
-    const radius = this.#marks.placed()[0]?.rPx ?? MARK_RADIUS_PX;
+    const width = this.#marks.sizePx;
     /** Draws `mark` at its fade's opacity less `veil`'s share, and says what that came to. */
     const add = (mark: Fading<EventMark>, hollow: boolean, veil = 0): number => {
       const isFocal = !hollow && mark.qid === focal?.qid;
@@ -502,14 +501,14 @@ export class ExploreEvents {
       if (mark.anchorVisible) standing.push({ mark, opacity });
       return opacity;
     };
-    /** The most opaque mark of another event standing within one mark's radius of `mark`. */
+    /** The most opaque mark of another event standing within a mark's width of `mark`. */
     const veilOf = (mark: EventMark): number => {
       if (!mark.anchorVisible) return 0;
       let veil = 0;
       for (const other of standing)
         if (
           other.mark.qid !== mark.qid &&
-          Math.hypot(other.mark.x - mark.x, other.mark.y - mark.y) <= radius
+          Math.hypot(other.mark.x - mark.x, other.mark.y - mark.y) < width
         )
           veil = Math.max(veil, other.opacity);
       return veil;
