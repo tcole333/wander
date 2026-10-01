@@ -296,7 +296,10 @@ edge, 281,516 at a face corner and 284,222 at L0.
   Rivers by level: scalerank ≤ 2 at L0-L1, ≤ 4 at L2, ≤ 6 at L3, and all at L4 and deeper.
   Half-width is `max(0.35 texel, halfWidthKm[scalerank] / texel_km(L))`.
   `pipeline/config/water.yaml` holds `halfWidthKm` for scalerank 0-12 and the allowlist, keyed by
-  NE id. The shader holds on-screen line width with `fwidth`.
+  NE id. The shader holds on-screen line width with `fwidth`, and inlays rivers in blued steel
+  (owner decision 42): polished deep blue metal (`#2250b8`, roughness 0.5) without the casting's
+  grain, laid in a channel the relief cuts at 0.6 of its full depth, so the lamp lights it in blue
+  between darker walls. The climate's wash leaves it bare (3.5).
 - **Edges:** within a face, border texels equal the neighbor's interior values because both are the
   same function of position, and so do their mips, since a tile's stored array starts at face-global
   texel 256x − 4, a multiple of 4. A side inside a face therefore stores no profile. Across a face
@@ -760,26 +763,28 @@ climate wash and before the ash:
   texel lies farther from every line the source draws than a line reaches (2.5 px), with what a
   neighbor in its quad and the other taps can add (4 px and 2.5 texels in all), the fragment draws
   none and skips the other three taps. Most of the land takes the one tap, which halves a step's
-  cost at rest close in, and a quad that draws keeps all its fragments, so the dots' derivatives
+  cost at rest close in, and a quad that draws keeps all its fragments, so the lines' derivatives
   hold.
-- **Outer line:** at 6,000 km across and closer, milestone 1's dotted groove of constant on-screen
-  width and pitch, a dot of about 2 px every 5 px, 2 px wide, darkening the metal by 0.75 and
-  leaving it a touch rougher. The dots tell frontiers from the solid river lines, as engraved maps
-  of the period do; a solid groove read as one more river at the beats' distances.
-- **Inner line:** 0.55 darkening, 2 px dots every 4 px, 1.5 px wide, fading in as the view narrows
-  from 6,000 to 2,500 km across (`borderInnerKm`): fainter and finer than the outer line, the
-  empire far and its members near (owner decisions 34 and 36).
-- **Soft edge:** where R's nearest border has stateless land on one side, two thirds of the
-  darkening, feathered from 0.25 to 2.5 px from the line's middle, as task 0 rendered it (owner
-  decisions 35 and 36).
-- **Weight far out** (owner decision 40): at 6,000 km across and closer the outer line is the one
-  above; wider, it eases on a log scale of the view's width (`borderWeightKm`) to a 3.5 px groove
-  darkening 0.95, its dots closing up to 4.5 px in 5, at 32,000 km and at world view, through about
-  3 px and 0.88 at 17,500 km, since under Explore's lighting the near line is hard to see that far
-  out. Its soft edges take on its width, darkening and dots as it grows (`OUTER_NEAR` and
-  `OUTER_FAR` in `look/bordersHook.ts`). A line wider than 2 px narrows toward 2 px as a pixel spans
-  more texels, to 3 px at 3 texels and 2 px at 4, where the field's reach could no longer hold it,
-  so it fades as the near line does.
+- **Outer line** (owner decision 42): an etched cut through the patina, 1.25 CSS px wide, of polished
+  metal lighter than the bronze (`#e4d2aa`, roughness 0.5), with a hairline shadow 0.75 CSS px wide
+  beside it on the lamp's side, where the cut's near wall faces away from the lamp, darkening the
+  metal by 0.7 and leaving it a touch rougher; the shadow fades as a line turns to run toward the
+  lamp, whose direction the look takes from the scene's spot light. A cut reflects at most 0.7 in
+  luminance, under the bloom's threshold, so it never glows. Lines are sized in CSS px, so they
+  keep their size on screen at any pixel ratio. Light lines against the rivers' dark blued steel
+  tell borders from rivers at a glance at every distance. Milestone 1's 1815 field, which a walk
+  draws while the release names no steps, keeps its dotted groove.
+- **Inner lines** (owner decisions 34 and 42): a 0.75 CSS px cut at 0.45 of the outer cut's
+  brightness, with a 0.5 px shadow darkening by 0.3, fading in as the view narrows from 9,000 to
+  4,500 km across (`borderInnerKm`) and dimming on a log scale to 0.79 of that from 2,000 to
+  1,000 km across and closer (`borderInnerCloseKm`): finer and fainter than the outer line, the
+  empire far and its members near.
+- **Soft edge** (owner decisions 35 and 42): where R's nearest border has stateless land on one
+  side, the cut at 0.55 of its brightness and without its shadow.
+- **Weight far out** (owner decisions 40 and 42): at 14,000 km across and closer the outer line is
+  the one above; wider, it grows on a log scale of the view's width (`borderWeightKm`) to 1.27 times
+  that size at 32,000 km and at world view, since under Explore's lighting the near line is hard to
+  see that far out.
 - **Fades:** both lines fade out as the view closes in from 400 to 220 km across (`borderCloseKm`),
   where a texel spans tens of pixels, and as it widens past 4 to 5 texels a pixel, where the field's
   reach of 8 texels no longer spans the line.
@@ -861,12 +866,14 @@ stage (owner decision 26), and Cliopatria gives no capitals.
   1.41 ms. The budget is 0.3 ms mid-dissolve (section 6), which only the previews at world view
   meet: whether to allow the rest or cut the cost is open for the owner. At Tambora's sixth beat a
   step at rest adds 0.27 ms and the 1815 field 0.25 ms.
-- **The eased line** (owner decision 40) costs what the near line does. Timed in the same frames
-  with the outer line at each weight, on a quiet GPU, its passes and the near line's differ by at
-  most 0.09 ms either way at world view and at 17,500 km over two runs, about as much as two passes
-  drawing the same line differ at 4,000 km (0.07 ms). There a step at rest adds 0.15-0.38 ms and a
-  dissolve 0.24-0.46 ms, so the budget question above is as it was, and no frame came late in 400 at
-  any of the four views [M `borders/results/eased-2026-09-30.json`].
+- **The etched lines and the steel rivers** (owner decision 42) cost no more than a dotted groove
+  and dark engraved rivers. Drawn in one program at 2160×1350 (a Retina display at the page's 1.5
+  cap) and timed by the GPU process's own GPU time over interleaved windows, every look's median
+  over three rounds lies within 0.25 ms a draw of theirs, over Europe at 4,750 km and at 3,000 km,
+  as close as drawing no borders at all does (−0.11 and +0.26 ms), against 1.7-2.1 ms for the whole
+  scene, so the budget question above is as it was. Firefox held the GPU at
+  86% throughout, so the timer queries, which count other processes' work, back nothing there
+  [M `borders/results/etched-2026-10-01.json`].
 - **Frames:** scrubbing through all the steps (521 in that bake) at world view, eight a second, and
   from 1900 to 1950 over Europe, five a second, no task passed 50 ms, and every frame at world view
   came within 16.8 ms. Over Europe at 4,000 km, 6% of frames come late (over 20 ms) with the borders
@@ -1152,8 +1159,10 @@ u8 data[frames][96][192]    native grid (3.0): row 0 = 88.57°N (Gaussian latitu
   whenever they are.
 - **Look** (owner decision 22): a frost and verdigris wash on the metal
   (`app/src/look/climateHook.ts`). Cold land takes a blue-green patina that tints the metal rather
-  than covering it, so its wear, rivers and coast still show, and loses some of its polish (rougher,
-  less metallic); warm land takes a rosy copper blush; the sea's lacquer takes a third of either.
+  than covering it, so its wear and coast still show, and loses some of its polish (rougher, less
+  metallic); warm land takes a rosy copper blush; the sea's lacquer takes a third of either. The
+  rivers' blued steel takes no patina: the wash lies on the bronze around it, so a river stays
+  deep blue against cold land's blue-green (owner decision 42).
   It saturates at `climateRangeK`. Where the climate is drawn, the illustrative veil gives way to
   it, keyed on the data being drawn rather than on the beat's layers. Explore's marks keep their
   families' materials over it: the wash lies on the casting around a mark, not on the mark.
@@ -2442,8 +2451,8 @@ and the release's `media` section lists every key the locks name (3.8).
      (5.6); borders, failing on any console error: an 1815 opening draws the 1815 step from its slot
      with no plate of its own, a scrub to 1830 draws 1830's, and Tambora's beat 6 draws borders
      under the walk's plate; and the borders probe (`e2e/borders.html`, on synthetic fields, on
-     SwiftShader and Metal): only outer lines at 8,000 km across and inner lines too at 2,000 km,
-     soft edges lighter, half strength mid-dissolve, both previews of a cell decoded, and no seam at
+     SwiftShader and Metal): only outer lines at 10,000 km across and inner lines too at 2,000 km,
+     soft edges dimmer, half strength mid-dissolve, both previews of a cell decoded, and no seam at
      ±180°. The pool, readback and probe tests run test-only pages on the Vite dev server, not the
      production build, so nothing of them reaches the bundle. CI runs it as one E2E job per shard
      that `app/e2e/shards.ts` names from the specs' CI times: `magellan` (story-selection),
@@ -2916,8 +2925,9 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `borderFade`, `borderRest` | 400 ms, 250 ms | a step's dissolve into the next, and a beat's borders easing in and out; the clock's rest in a step before the step streams in (3.3) | eye |
 | `borderScrubFade` | 120 ms | border previews dissolving into each other while the clock moves | eye |
 | `borderCloseKm` | 400 to 220 km across | borders fading out as the view closes in | owner decision 36 |
-| `borderInnerKm` | 6,000 to 2,500 km across | the inner border line fading in as the view narrows | owner decision 36 |
-| `borderWeightKm` | 6,000 to 32,000 km across | the outer border line easing from its near weight to its world-view weight (3.3) | owner decision 40 |
+| `borderInnerKm` | 9,000 to 4,500 km across | the inner border lines fading in as the view narrows | owner decision 42 |
+| `borderInnerCloseKm` | 2,000 to 1,000 km across | the inner border lines dimming to 0.79 of their brightness as the view closes in (3.3) | owner decision 42 |
+| `borderWeightKm` | 14,000 to 32,000 km across | the etched outer border line growing from its near size to its world-view size (3.3) | owner decisions 40 and 42 |
 | `minorKm2`, `pocketKm2` | 50,000 km², 100,000 km² | build rules in `pipeline/config/borders/rules.yaml` (3.3): a piece of an outer unit under `minorKm2` draws its borders with other outer units as inner lines; a hole between states that touches a lake goes to its neighbours under `pocketKm2`, while a hole inside one state is its land whatever its size | owner decisions 36 and 38 |
 | `sliverKm`, `leftoverKm2` | 14 km, 100 km² | build rules in `rules.yaml` (3.3): stateless land narrower than 2·`sliverKm` goes to its neighbours, and land within `sliverKm` of a lake and of another polity is emptied for the fill; a composite's own land is drawn from `leftoverKm2` | eye, on the still renders |
 | `reviewKm2`, `duplicateShare` | 2,000 km², 0.5 | build rules in `rules.yaml` (3.3): two polities overlapping past `reviewKm2` go to the review queue, and past `duplicateShare` of the larger need an `overlap` correction | the history pass |
@@ -3141,11 +3151,11 @@ the look renders baked from Cliopatria:
     subsidiary allies, each cited and dated. Tribute relations stay out.
 35. **No borders where no state existed:** that land stays unbordered, where people lived keeping
     it from reading empty, and a state's edge against it draws softer.
-36. **The border look:** fields of 1024 texels a side; states under 50,000 km²,
-    measured per piece, draw the inner line; the inner line at 0.55 darkening, 2 px dots every 4 px,
-    1.5 px wide, fading in as the view narrows from 6,000 to 2,500 km across; the soft edge at two
-    thirds of the darkening, feathered; the close fade kept at 400 to 220 km; and a lake-touching
-    hole filled only under the 100,000 km² pocket cap.
+36. **The border look:** fields of 1024 texels a side; states under 50,000 km², measured per piece,
+    draw the inner line; the close fade kept at 400 to 220 km; and a lake-touching hole filled only
+    under the 100,000 km² pocket cap. Decision 42 replaced the dotted groove decided here with an
+    etched cut, keeping its inner line finer and fainter than the outer and its soft edge drawn
+    softer.
 37. **Sumbawa in 1815:** Sanggar, Tambora, Pekat, Dompu and western Sumbawa's sultanate, which
     Cliopatria lacks, join Bima as Dutch members under decision 34, cited to Hägerdal's *Held's
     History of Sumbawa* (2017), so the peninsula the story names is not drawn stateless.
@@ -3158,13 +3168,22 @@ the look renders baked from Cliopatria:
 
 Decided on the renders of the outer line's weights far out (issue #80), 2026-09-30:
 
-40. **The outer line far out:** the eased weight. At 6,000 km across and closer the outer line
-    stays as decision 36 left it; wider, it grows with the view's width all the way out, to a
-    3.5 px groove darkening 0.95 with dots of 4.5 px in 5 at world view, its soft edges taking on
-    its weight.
+40. **The outer line far out:** the outer line grows with the view's width all the way out, its
+    soft edges with it, since under Explore's lighting the near line is hard to see that far out.
+    Decision 42 replaced the groove decided here with an etched cut, which grows from 14,000 km
+    across to 1.27 times its size at world view.
 
 Decided on the history pass's owed places (#111), 2026-10-01:
 
 41. **Known gaps:** the borders publish now. The owed places no cited verdict settles yet are
     listed as known gaps, drawn blank where nothing is cited, and the history pass keeps
     researching them in follow-up PRs.
+
+Decided on the rivers and borders renders (issue #80), 2026-10-01:
+
+42. **Rivers and borders apart:** rivers are a blued-steel inlay, polished deep blue metal laid in
+    their channel, which the climate's wash leaves bare; borders are an etched bright cut through
+    the patina with a hairline shadow on the lamp's side, their inner lines finer and fainter and
+    their soft edges dimmer, sized in CSS px. As dark lines both, borders read as more rivers and
+    were hard to see on a Retina display; light cuts against blue steel tell them apart at a
+    glance at the walks' distances, in Explore and at world view.

@@ -37,6 +37,12 @@ and the Tambora walk on the steps and on the 1815 field, its `borders.*` bytes w
 settled and the GPU time its borders add at the sixth beat. GPU times are the fastest twentieth of
 300 samples, where other work sharing the GPU has added least.
 
+`borders/results/etched-2026-10-01.json` records what owner decision 42's looks cost (streaming.md
+3.3): the rivers' and borders' looks switched by uniforms in one program on the comparison branch's
+dev page, over Europe at 4,750 and 3,000 km with a step at rest, timed on the M5 at 2160x1350 by the
+Chromium GPU process's own GPU time (ioreg's AGXDeviceUserClient) over interleaved windows, since
+Firefox held the GPU at 86% and timer queries count other processes' work.
+
 `e4/` holds E4 (streaming.md 8.2): `e4.py` uploaded and warmed 200 objects under `_e4/` on
 2026-09-25, as `state.json` records, and reads one cohort of 50 at each checkpoint from this Mac.
 `results/warm.json` is the warm, `results/24h.json` and `results/72h.json` the checkpoints, and

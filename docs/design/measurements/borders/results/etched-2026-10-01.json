@@ -1,0 +1,288 @@
+{
+  "what": "GPU time of a whole scene draw on the comparison branch's dev page, Explore over Europe with one border step at rest, the rivers' and borders' looks switched by uniforms in one program, each against today's dark rivers and dotted groove: the Chromium GPU process's own accumulated GPU time (ioreg AGXDeviceUserClient) over 6 interleaved windows of 30 frames of 3 draws for each look, three rounds per view; and, for reference, the 5th percentile of 200 timer-query samples of 3 draws",
+  "machine": "MacBook Pro (Apple M5), Chromium headless on Metal, 1440x900 at device pixel ratio 2, drawn at the page's 1.5 cap (2160x1350); Firefox held the GPU at 86% throughout, so the timer queries, which count other processes' work, back nothing",
+  "date": "2026-10-01",
+  "views": {
+    "europe-4750-1816": "lon 10, lat 50, 4,750 km across, 1 July 1816",
+    "europe-3000-1810": "lon 10, lat 49, 3,000 km across, 1 July 1810"
+  },
+  "passes": {
+    "off": "the borders off, today's dark engraved rivers",
+    "style:today": "today's dark engraved rivers and dotted groove borders, a step at rest",
+    "style:steel": "blued-steel rivers, today's borders",
+    "style:enamel": "blue enamel rivers, today's borders",
+    "style:both": "today's rivers, the dotted groove at the firmer weights",
+    "style:etched": "today's rivers, the etched cut",
+    "style:double": "today's rivers, two fine grooves",
+    "style:steel-both": "blued-steel rivers, the firmer dotted groove",
+    "style:steel-etched": "blued-steel rivers, the etched cut (the look owner decision 42 chose)",
+    "style:steel-double": "blued-steel rivers, two fine grooves",
+    "style:enamel-etched": "blue enamel rivers, the etched cut"
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "view": "europe-4750-1816",
+      "pixelRatio": 1.5,
+      "ownMsPerDraw": {
+        "off": 1.906,
+        "style:today": 2.013,
+        "style:steel": 1.848,
+        "style:enamel": 1.865,
+        "style:both": 1.864,
+        "style:etched": 1.808,
+        "style:double": 1.75,
+        "style:steel-both": 1.858,
+        "style:steel-etched": 1.708,
+        "style:steel-double": 1.837,
+        "style:enamel-etched": 1.803
+      },
+      "ownAddedMs": {
+        "off": -0.107,
+        "style:today": 0,
+        "style:steel": -0.165,
+        "style:enamel": -0.148,
+        "style:both": -0.149,
+        "style:etched": -0.205,
+        "style:double": -0.263,
+        "style:steel-both": -0.155,
+        "style:steel-etched": -0.305,
+        "style:steel-double": -0.176,
+        "style:enamel-etched": -0.209
+      },
+      "timerP05Ms": {
+        "off": 162.188,
+        "style:today": 162.7,
+        "style:steel": 162.414,
+        "style:enamel": 161.875,
+        "style:both": 158.312,
+        "style:etched": 156.136,
+        "style:double": 155.751,
+        "style:steel-both": 158.399,
+        "style:steel-etched": 159.222,
+        "style:steel-double": 162.487,
+        "style:enamel-etched": 162.306
+      }
+    },
+    {
+      "round": 0,
+      "view": "europe-3000-1810",
+      "pixelRatio": 1.5,
+      "ownMsPerDraw": {
+        "off": 2.038,
+        "style:today": 1.752,
+        "style:steel": 1.672,
+        "style:enamel": 1.914,
+        "style:both": 1.905,
+        "style:etched": 1.742,
+        "style:double": 1.96,
+        "style:steel-both": 1.998,
+        "style:steel-etched": 1.787,
+        "style:steel-double": 1.601,
+        "style:enamel-etched": 1.781
+      },
+      "ownAddedMs": {
+        "off": 0.285,
+        "style:today": 0,
+        "style:steel": -0.081,
+        "style:enamel": 0.161,
+        "style:both": 0.152,
+        "style:etched": -0.011,
+        "style:double": 0.207,
+        "style:steel-both": 0.245,
+        "style:steel-etched": 0.035,
+        "style:steel-double": -0.151,
+        "style:enamel-etched": 0.029
+      },
+      "timerP05Ms": {
+        "off": 181.639,
+        "style:today": 181.034,
+        "style:steel": 182.76,
+        "style:enamel": 180.273,
+        "style:both": 183.053,
+        "style:etched": 179.989,
+        "style:double": 184.485,
+        "style:steel-both": 183.189,
+        "style:steel-etched": 181.522,
+        "style:steel-double": 180.58,
+        "style:enamel-etched": 182.742
+      }
+    },
+    {
+      "round": 1,
+      "view": "europe-3000-1810",
+      "pixelRatio": 1.5,
+      "ownMsPerDraw": {
+        "off": 1.98,
+        "style:today": 1.722,
+        "style:steel": 1.871,
+        "style:enamel": 1.635,
+        "style:both": 1.769,
+        "style:etched": 1.736,
+        "style:double": 1.962,
+        "style:steel-both": 1.865,
+        "style:steel-etched": 1.839,
+        "style:steel-double": 1.728,
+        "style:enamel-etched": 1.785
+      },
+      "ownAddedMs": {
+        "off": 0.258,
+        "style:today": 0,
+        "style:steel": 0.149,
+        "style:enamel": -0.087,
+        "style:both": 0.047,
+        "style:etched": 0.014,
+        "style:double": 0.24,
+        "style:steel-both": 0.142,
+        "style:steel-etched": 0.117,
+        "style:steel-double": 0.006,
+        "style:enamel-etched": 0.063
+      },
+      "timerP05Ms": {
+        "off": 185.053,
+        "style:today": 184.883,
+        "style:steel": 186.3,
+        "style:enamel": 186.338,
+        "style:both": 184.507,
+        "style:etched": 184.225,
+        "style:double": 185.798,
+        "style:steel-both": 184.85,
+        "style:steel-etched": 184.638,
+        "style:steel-double": 186.025,
+        "style:enamel-etched": 185.854
+      }
+    },
+    {
+      "round": 1,
+      "view": "europe-4750-1816",
+      "pixelRatio": 1.5,
+      "ownMsPerDraw": {
+        "off": 1.944,
+        "style:today": 2.134,
+        "style:steel": 1.705,
+        "style:enamel": 1.655,
+        "style:both": 1.603,
+        "style:etched": 1.646,
+        "style:double": 1.966,
+        "style:steel-both": 1.781,
+        "style:steel-etched": 1.884,
+        "style:steel-double": 1.741,
+        "style:enamel-etched": 1.852
+      },
+      "ownAddedMs": {
+        "off": -0.19,
+        "style:today": 0,
+        "style:steel": -0.429,
+        "style:enamel": -0.479,
+        "style:both": -0.53,
+        "style:etched": -0.488,
+        "style:double": -0.168,
+        "style:steel-both": -0.353,
+        "style:steel-etched": -0.25,
+        "style:steel-double": -0.393,
+        "style:enamel-etched": -0.282
+      },
+      "timerP05Ms": {
+        "off": 169.986,
+        "style:today": 170.239,
+        "style:steel": 170.023,
+        "style:enamel": 169.504,
+        "style:both": 169.664,
+        "style:etched": 170.061,
+        "style:double": 170.135,
+        "style:steel-both": 170.61,
+        "style:steel-etched": 170.722,
+        "style:steel-double": 172.25,
+        "style:enamel-etched": 171.038
+      }
+    },
+    {
+      "round": 2,
+      "view": "europe-4750-1816",
+      "pixelRatio": 1.5,
+      "ownMsPerDraw": {
+        "off": 1.939,
+        "style:today": 1.744,
+        "style:steel": 2.129,
+        "style:enamel": 1.887,
+        "style:both": 1.844,
+        "style:etched": 1.832,
+        "style:double": 1.772,
+        "style:steel-both": 1.78,
+        "style:steel-etched": 2.08,
+        "style:steel-double": 1.933,
+        "style:enamel-etched": 1.892
+      },
+      "ownAddedMs": {
+        "off": 0.195,
+        "style:today": 0,
+        "style:steel": 0.385,
+        "style:enamel": 0.143,
+        "style:both": 0.1,
+        "style:etched": 0.088,
+        "style:double": 0.028,
+        "style:steel-both": 0.036,
+        "style:steel-etched": 0.336,
+        "style:steel-double": 0.189,
+        "style:enamel-etched": 0.148
+      },
+      "timerP05Ms": {
+        "off": 169.94,
+        "style:today": 168.609,
+        "style:steel": 168.605,
+        "style:enamel": 170.036,
+        "style:both": 169.696,
+        "style:etched": 169.531,
+        "style:double": 168.557,
+        "style:steel-both": 169.871,
+        "style:steel-etched": 168.532,
+        "style:steel-double": 169.792,
+        "style:enamel-etched": 169.156
+      }
+    },
+    {
+      "round": 2,
+      "view": "europe-3000-1810",
+      "pixelRatio": 1.5,
+      "ownMsPerDraw": {
+        "off": 1.775,
+        "style:today": 1.783,
+        "style:steel": 2.008,
+        "style:enamel": 1.74,
+        "style:both": 1.701,
+        "style:etched": 1.793,
+        "style:double": 1.926,
+        "style:steel-both": 1.656,
+        "style:steel-etched": 1.844,
+        "style:steel-double": 1.678,
+        "style:enamel-etched": 1.616
+      },
+      "ownAddedMs": {
+        "off": -0.009,
+        "style:today": 0,
+        "style:steel": 0.224,
+        "style:enamel": -0.043,
+        "style:both": -0.082,
+        "style:etched": 0.009,
+        "style:double": 0.142,
+        "style:steel-both": -0.128,
+        "style:steel-etched": 0.061,
+        "style:steel-double": -0.106,
+        "style:enamel-etched": -0.168
+      },
+      "timerP05Ms": {
+        "off": 186.361,
+        "style:today": 186.046,
+        "style:steel": 185.73,
+        "style:enamel": 186.287,
+        "style:both": 186.223,
+        "style:etched": 184.728,
+        "style:double": 185.857,
+        "style:steel-both": 186.215,
+        "style:steel-etched": 186.129,
+        "style:steel-double": 184.99,
+        "style:enamel-etched": 185.99
+      }
+    }
+  ]
+}
