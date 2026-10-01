@@ -1,11 +1,11 @@
 // The GPU timer (src/perf/gpuTimer.ts) in a real browser: e2e/gpu-timer.html times one and eight
 // heavy full-target draws. Everywhere the extension exists, every pass's time must arrive, finite
 // and positive, and nested timing must be refused. On this Mac's GPU, eight draws must measure at
-// least four times one; SwiftShader runs on the CPU, so its times say nothing about GPU work. That
-// check is tagged @alone, so it runs once no other test draws: a timer query counts the GPU's
-// other work during its pass too (playwright.config.ts).
+// least four times one; SwiftShader runs on the CPU, so its times say nothing about GPU work. A
+// timer query counts the GPU's other work during its pass too, so that check runs once no other
+// test draws (tagged @alone, playwright.config.ts) and compares the fastest pass of each: other
+// apps' work, which no test can stop, only ever adds time.
 import { expect, test } from '@playwright/test';
-import { nearestRank } from '../src/perf/frameStats';
 import type { GpuTimerReport } from '../src/perf/gpuTimerProbe';
 import { DEV_URL } from './servers';
 
@@ -44,5 +44,5 @@ test('raises no GL error', () => {
 
 test('on this GPU, eight draws take at least four times one', { tag: '@alone' }, () => {
   test.skip(test.info().project.name !== 'gpu-alone', 'SwiftShader times the CPU, not a GPU');
-  expect(nearestRank(times('eight'), 0.5)).toBeGreaterThan(4 * nearestRank(times('one'), 0.5));
+  expect(Math.min(...times('eight'))).toBeGreaterThan(4 * Math.min(...times('one')));
 });
