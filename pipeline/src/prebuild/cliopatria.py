@@ -42,7 +42,8 @@ year here is astronomical.
   order; a step the rule reaches is selected again with the land it carries, as its polity's, under
   that polity's outer unit where the step draws it and else the unit both sides draw it in. Land a
   stateless `pocket` keeps in any step of the run is not carried, nor land held on the two sides by
-  different polities: those stay as the rules leave them.
+  different polities, nor a part narrower than 2·`sliverKm` throughout, where two steps' outlines
+  differ a little: those stay as the rules leave them.
 - **The antimeridian:** Cliopatria's shapes stop at ±180°, so land just across it that no polity
   holds goes to the polity whose shape runs along the other side at the same latitudes: otherwise
   Chukotka east of the meridian is stateless from 1778 and a border runs down it.
@@ -1633,12 +1634,14 @@ class _Run:
     shape: shapely.Geometry
 
 
-def carry_through(plains: Iterable[Plain]) -> dict[int, tuple[Carried, ...]]:
+def carry_through(plains: Iterable[Plain], sliver_km: float) -> dict[int, tuple[Carried, ...]]:
     """The land each step carries, by its year, from every step selected without it (`Plain`), in
     year order: where one polity draws land in the steps on both sides of a stateless run of at
     most GAP_YEARS, its shape of the step before, as far as the step after holds it, in each step
     of the run. A run starts where land a polity drew turns stateless and ends where any polity
-    holds it, or where it would run past GAP_YEARS; land a stateless `pocket` keeps ends it too."""
+    holds it, or where it would run past GAP_YEARS; land a stateless `pocket` keeps ends it too. A
+    part narrower than 2·`sliver_km` throughout, where two steps' outlines differ a little, is left
+    to the rules, as a narrow hole is."""
     found: dict[int, list[Carried]] = defaultdict(list)
     years: list[int] = []
     runs: list[_Run] = []
@@ -1652,7 +1655,9 @@ def carry_through(plains: Iterable[Plain]) -> dict[int, tuple[Carried, ...]]:
             if plain.year - years[run.first] > GAP_YEARS:
                 continue
             land = plain.land.get(run.polity)
-            back = _overlap(run.shape, [land]) if land is not None else shapely.MultiPolygon()
+            back = shapely.MultiPolygon()
+            if land is not None:
+                back = _wide(_overlap(run.shape, [land]), sliver_km)
             if not shapely.is_empty(back):
                 outer = run.outer if plain.outer[run.polity] == run.outer else run.polity
                 bounds = (years[run.first - 1], plain.year)
@@ -1674,6 +1679,14 @@ def carry_through(plains: Iterable[Plain]) -> dict[int, tuple[Carried, ...]]:
         runs = going
         before = plain
     return {year: tuple(pieces) for year, pieces in found.items()}
+
+
+def _wide(shape: shapely.Geometry, radius_km: float) -> shapely.Geometry:
+    """The parts of `shape` at least 2·radius wide somewhere, each whole."""
+    parts = [
+        p for p in parts_of_dimension(shape, 2) if not shapely.is_empty(_opening(p, radius_km))
+    ]
+    return shapely.multipolygons(parts) if parts else shapely.MultiPolygon()
 
 
 def _overlap(shape: shapely.Geometry, others: Sequence[shapely.Geometry] | np.ndarray):
@@ -1749,7 +1762,7 @@ def select_all(
 ) -> dict[int, Selection]:
     """Every step, the land the carry-through carries drawn, in this process: for the tests."""
     plain = {year: select(year, source, config, terrain) for year in years}
-    carried = carry_through(Plain.of(plain[year]) for year in years)
+    carried = carry_through((Plain.of(plain[year]) for year in years), config.rules.sliver_km)
     return {
         year: select(year, source, config, terrain, carried[year]) if year in carried else chosen
         for year, chosen in plain.items()
@@ -2121,7 +2134,8 @@ def write_review(ctx: Context) -> int:
         for count, summary in enumerate(selections(ctx, work, source, config, terrain), 1):
             summaries[summary[0]] = summary
             _progress("selected", count, len(work), summary, started)
-        carried = carry_through(read_plains(paths[y] for y in years if paths[y].is_file()))
+        plains = read_plains(paths[y] for y in years if paths[y].is_file())
+        carried = carry_through(plains, config.rules.sliver_km)
     again: list[Work] = [(year, carried[year], None) for year in years if year in carried]
     print(f"cliopatria: {len(again)} steps carry land through a stateless run", flush=True)
     for count, summary in enumerate(selections(ctx, again, source, config, terrain), 1):

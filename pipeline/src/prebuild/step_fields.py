@@ -603,7 +603,8 @@ def carried_steps(
         print(f"borders: selecting {len(work)} steps without the carry-through", flush=True)
     selected = clio.selections(ctx, work, source, config, terrain)
     failed = {summary[0] for summary in selected if summary[4] is not None}
-    carried = clio.carry_through(clio.read_plains(paths[y] for y in years if y not in failed))
+    plains = clio.read_plains(paths[y] for y in years if y not in failed)
+    carried = clio.carry_through(plains, config.rules.sliver_km)
     if not failed:
         _write_file(found, clio.pack_carried(carried))
     print(f"borders: {len(carried)} steps carry land through a stateless run", flush=True)

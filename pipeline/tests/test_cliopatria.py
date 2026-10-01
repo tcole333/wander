@@ -1014,6 +1014,18 @@ def test_a_carried_polity_the_run_lacks_joins_the_outer_unit_both_sides_draw_it_
     assert area_of(chosen[1810], "Duchy") == pytest.approx(clio.km2(west), rel=0.01)
 
 
+def test_a_sliver_one_polity_holds_on_both_sides_of_a_run_is_left_to_the_rules(terrain):
+    # Realm's shapes before and after the run share a strip 0.1° (11 km) wide.
+    rows = [
+        held(1800, 1809, shape=box(-20, -10, 0, 10)),
+        held(1820, 1830, shape=box(-0.1, -10, 20, 10)),
+        held(1820, 1830, "Other", box(-20, -10, -0.1, 10)),
+    ]
+    chosen, _ = selected_over(rows, terrain)
+    assert chosen[1810].report["carried"]["pieces"] == 0
+    assert stateless_at(chosen[1810], -0.05, 5)
+
+
 def test_land_stateless_past_gap_years_is_neither_carried_nor_owed(terrain):
     chosen, owing = selected_over([held(1800, 1809), held(1850, 1860)], terrain)
     assert stateless_at(chosen[1810], 10, 5)
