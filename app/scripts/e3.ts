@@ -20,8 +20,10 @@
 //  7. leaks: after each of --walks walks through all eight beats and a lobby round trip,
 //     unthrottled, the renderer's and
 //     the GPU process's footprint, the renderer's allocators from a Chromium memory dump, the JS
-//     heap and the DOM's counts. This one drives the headless shell over a bare CDP connection:
-//     Playwright keeps the Network domain on, whose agent holds response bodies in the renderer.
+//     heap and the DOM's counts, at beat 1 of the next dive; and at each return, the lobby's own
+//     nodes, footprint and account, which no walk may add to (owner decision 43). This one drives
+//     the headless shell over a bare CDP connection: Playwright keeps the Network domain on, whose
+//     agent holds response bodies in the renderer.
 //
 // The public production page has no hooks, so an init script logs what the DOM shows on the page's own
 // clock: the room opening, the lobby's phase (data-lobby, 'gone' at the dive's landing), a beat's
@@ -83,6 +85,10 @@ const SPREAD_S = 8;
 /** Quiet on the data host this long counts as settled, in ms. */
 const SETTLE_QUIET_MS = 2000;
 const VIEWPORT = { width: 1440, height: 900 };
+/** The full tier's CPU line, in MiB: the renderer's footprint may never pass it (streaming.md 6). */
+const CPU_LINE_MIB = 288;
+/** After a return lands, the lobby stands this long before its sample, in ms. */
+const LOBBY_SETTLE_MS = 3000;
 /** Where the drags and the wheel land: on the globe, right of the card. */
 const GLOBE = { x: 1000, y: 450 };
 
@@ -695,6 +701,8 @@ async function leakSession(): Promise<Record<string, unknown>> {
       { walks: 0, ...(await sample(bare)) },
     ];
     const walks = Number(values.walks);
+    // The lobby after each return, where the walk's own DOM and mode are gone.
+    const lobby: (Awaited<ReturnType<typeof sample>> & { walks: number })[] = [];
     // Each flight, for its landing against the plan: unthrottled, how late a landing reads.
     const flights: Flight[] = [];
     for (let w = 1; w <= walks; w += 1) {
@@ -722,6 +730,10 @@ async function leakSession(): Promise<Record<string, unknown>> {
       // dive, with old cards, directors, event handlers and fading cues already released.
       await bare.click('.wu-mark');
       await bare.until("document.body.dataset.lobby === 'idle'");
+      // What the walk left behind: the lobby's own DOM and account, with no allocator dump, whose
+      // trace this sample would leave in the renderer before the walk's.
+      await sleep(LOBBY_SETTLE_MS);
+      lobby.push({ walks: w, ...(await sample(bare, { dump: false })) });
       await bare.click('.lobby-plaque[data-story="tambora"]');
       await bare.until("document.body.dataset.lobby === 'gone'");
       firstLandingMs = await bare.evaluate<number>('performance.now()');
@@ -763,11 +775,13 @@ async function leakSession(): Promise<Record<string, unknown>> {
       driver: 'bare CDP, no Network domain',
       url: leakUrl.href,
       cpuBudget: {
-        limitMiB: 256,
-        passed: samples.filter((s) => s.walks > 0).every((s) => s.rendererMB <= 256),
+        limitMiB: CPU_LINE_MIB,
+        passed: samples.filter((s) => s.walks > 0).every((s) => s.rendererMB <= CPU_LINE_MIB),
       },
       samples,
       growth: { walks3to6: growth(3, 6), walks6toLast: growth(6, walks) },
+      lobbySamples: lobby,
+      leftBehind: leftBehind(lobby),
       landingsUnthrottled: {
         flights: flights.length,
         observed: late.length,
@@ -784,6 +798,23 @@ async function leakSession(): Promise<Record<string, unknown>> {
   }
 }
 
+/**
+ * What the walks left in the lobby: its node count and the app's account by owner, which must stay
+ * as the second return left them (the first still carries what the first walk warmed), and the
+ * renderer's footprint at each return.
+ */
+function leftBehind(returns: { nodes: number; memoryAccount: unknown; rendererMB: number }[]) {
+  const later = returns.slice(1);
+  const owners = (s: { memoryAccount: unknown }) =>
+    JSON.stringify((s.memoryAccount as { owners?: unknown } | null)?.owners ?? null);
+  return {
+    nodes: returns.map((s) => s.nodes),
+    nodesFlat: new Set(later.map((s) => s.nodes)).size <= 1,
+    accountFlat: new Set(later.map(owners)).size <= 1,
+    rendererMB: returns.map((s) => s.rendererMB),
+  };
+}
+
 /** The ruler's status line, which names the beat. */
 const STATUS = "document.querySelector('.rc-status')?.textContent ?? ''";
 
@@ -792,20 +823,24 @@ const RENDERER_PARTS = {
   arrayBuffers: 'partition_alloc/partitions/array_buffer',
   blinkBuffers: 'partition_alloc/partitions/buffer',
   blinkGc: 'blink_gc',
+  blinkGcLive: 'blink_gc/main/allocated_objects',
   v8: 'v8',
   malloc: 'malloc',
   gpuClient: 'gpu',
 } as const;
 
 /**
- * After gc() in the page and every worker: the page's JS heap and DOM counts; the footprint of
- * the renderer and of the GPU process (its graphics lines hold the textures and buffers it has
- * allocated); and the renderer's allocators from a Chromium memory dump, in MB.
+ * After gc() in the page and every worker: the page's JS live set (read at once) and its heap a
+ * moment later, and the DOM counts; the footprint of the renderer and of the GPU process (its
+ * graphics lines hold the textures and buffers it has allocated); and, unless `dump` is off, the
+ * renderer's allocators from a Chromium memory dump, in MB.
  */
-async function sample(bare: Bare) {
+async function sample(bare: Bare, { dump: withDump = true }: { dump?: boolean } = {}) {
   for (const session of [...bare.workers, bare.page]) {
     await bare.send('Runtime.evaluate', { expression: 'gc()' }, session).catch(() => {});
   }
+  // The live set, read before the frames that follow allocate again.
+  const live = await bare.send<{ usedSize: number }>('Runtime.getHeapUsage', {}, bare.page);
   await sleep(1500);
   const heap = await bare.send<{ usedSize: number; totalSize: number }>(
     'Runtime.getHeapUsage',
@@ -825,13 +860,14 @@ async function sample(bare: Bare) {
     .map((p) => ({ pid: p.id, ...footprint(p.id) }))
     .sort((a, b) => b.total - a.total)[0];
   const gpu = processInfo.filter((p) => p.type === 'GPU').map((p) => footprint(p.id));
-  const dump = await bare.memoryDump();
+  const dump = withDump ? await bare.memoryDump() : {};
   const parts = (renderer && dump[renderer.pid]) ?? {};
   // Sample last, so allocating/serializing the account cannot inflate this allocator dump.
   const memoryAccount = await bare.evaluate<unknown>('window.__wanderMemory?.() ?? null');
   const mb = (bytes: number) => Math.round((bytes / 2 ** 20) * 10) / 10;
   return {
     memoryAccount,
+    jsLiveMB: mb(live.usedSize),
     jsHeapUsedMB: mb(heap.usedSize),
     jsHeapTotalMB: mb(heap.totalSize),
     nodes: dom.nodes,
