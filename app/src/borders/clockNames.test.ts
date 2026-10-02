@@ -46,6 +46,8 @@ function harness() {
   const missing = new Set<string>();
   const flaky = new Set<string>();
   const held = new Map<string, () => void>();
+  /** Held fetches not yet let go. */
+  let waiting = 0;
   const fetched: string[] = [];
   const load = vi.fn((url: string, signal: AbortSignal) => {
     fetched.push(url.slice(HOST.length + 1));
@@ -57,24 +59,42 @@ function harness() {
     }
     const bytes = chunkFile(Number(/(\d+)\.wsn$/.exec(key)?.[1]));
     if (!held.has(key)) return Promise.resolve(bytes);
+    waiting += 1;
     return new Promise<ArrayBuffer>((resolve, reject) => {
-      held.set(key, () => resolve(bytes));
-      signal.addEventListener('abort', () => reject(signal.reason as Error));
+      let done = false;
+      const settle = () => {
+        if (!done) waiting -= 1;
+        done = true;
+      };
+      held.set(key, () => {
+        settle();
+        resolve(bytes);
+      });
+      signal.addEventListener('abort', () => {
+        settle();
+        reject(signal.reason as Error);
+      });
     });
   });
   const names = new ClockNames({ section: SECTION, dataHost: HOST, load, now: () => t });
-  return {
+  const h = {
     names,
     fetched,
     missing,
     flaky,
     held,
     advance: (ms: number) => (t += ms),
-    /** Lets every fetch and inflate in flight settle. */
+    /**
+     * Lets every fetch and inflate in flight settle: Node inflates on its thread pool, taking as
+     * long as the machine's load makes it, so this waits on the loads, not on a count of turns. A
+     * held fetch never settles, and is left in flight.
+     */
     async settle() {
-      for (let i = 0; i < 20; i++) await new Promise((wake) => setImmediate(wake));
+      do await new Promise((wake) => setImmediate(wake));
+      while (names.inFlight > waiting);
     },
   };
+  return h;
 }
 
 describe('the state names', () => {

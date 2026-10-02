@@ -62,6 +62,14 @@ export class ClockNames {
   }
 
   /**
+   * The chunks being fetched or decoded: for tests, which let each finish however long the
+   * platform takes over its inflate.
+   */
+  get inFlight(): number {
+    return this.#loads.size;
+  }
+
+  /**
    * The steps the borders draw or wait for, the most wanted first (null for none): their chunks are
    * fetched first, and in a walk kept before any other.
    */
