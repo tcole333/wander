@@ -607,10 +607,14 @@ export class StateNameLayer {
     return { data, next: new Float32Array(data.length), texture };
   }
 
-  /** Drops the table and the steps' places: the look reads the blank, and draws no names. */
+  /**
+   * Drops the table, the steps' places and the names' layouts: the look reads the blank, and draws
+   * no names.
+   */
   #release(): void {
     this.uniforms.lookNamesOn.value = false;
     this.#entries.clear();
+    this.#layouts.clear();
     if (!this.#table) return;
     this.uniforms.lookNameTable.value = this.#blank;
     this.#table.texture.dispose();
