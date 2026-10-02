@@ -762,7 +762,14 @@ async function leakSession(): Promise<Record<string, unknown>> {
     const growth = (from: number, to: number) => {
       const [a, b] = [at(from), at(to)];
       if (!a || !b || from >= to) return null;
-      const keys = ['rendererMB', 'gpuMB', 'gpuGraphicsMB', 'jsHeapUsedMB', 'nodes'] as const;
+      const keys = [
+        'rendererMB',
+        'gpuMB',
+        'gpuGraphicsMB',
+        'jsHeapUsedMB',
+        'nodes',
+        'domNodes',
+      ] as const;
       const parts = Object.keys(b.renderer);
       return {
         ...Object.fromEntries(keys.map((key) => [key, { from: a[key], to: b[key] }])),
@@ -803,13 +810,16 @@ async function leakSession(): Promise<Record<string, unknown>> {
  * as the second return left them (the first still carries what the first walk warmed), and the
  * renderer's footprint at each return.
  */
-function leftBehind(returns: { nodes: number; memoryAccount: unknown; rendererMB: number }[]) {
+function leftBehind(
+  returns: { nodes: number; domNodes: number; memoryAccount: unknown; rendererMB: number }[],
+) {
   const later = returns.slice(1);
   const owners = (s: { memoryAccount: unknown }) =>
     JSON.stringify((s.memoryAccount as { owners?: unknown } | null)?.owners ?? null);
   return {
     nodes: returns.map((s) => s.nodes),
-    nodesFlat: new Set(later.map((s) => s.nodes)).size <= 1,
+    domNodes: returns.map((s) => s.domNodes),
+    nodesFlat: new Set(later.map((s) => s.domNodes)).size <= 1,
     accountFlat: new Set(later.map(owners)).size <= 1,
     rendererMB: returns.map((s) => s.rendererMB),
   };
@@ -828,6 +838,15 @@ const RENDERER_PARTS = {
   malloc: 'malloc',
   gpuClient: 'gpu',
 } as const;
+
+/**
+ * Every node of the live document: elements, text and comments. Blink's own counter (`nodes`) also
+ * holds nodes still awaiting the collector's sweep, which moves it by a hundred or so with when it
+ * is read, so the walks' flatness is read from this count.
+ */
+const DOCUMENT_NODES =
+  '(() => { const walker = document.createTreeWalker(document, NodeFilter.SHOW_ALL);' +
+  ' let nodes = 0; while (walker.nextNode()) nodes += 1; return nodes; })()';
 
 /**
  * After gc() in the page and every worker: the page's JS live set (read at once) and its heap a
@@ -852,6 +871,7 @@ async function sample(bare: Bare, { dump: withDump = true }: { dump?: boolean } 
     {},
     bare.page,
   );
+  const domNodes = await bare.evaluate<number>(DOCUMENT_NODES);
   const { processInfo } = await bare.send<{ processInfo: { type: string; id: number }[] }>(
     'SystemInfo.getProcessInfo',
   );
@@ -871,6 +891,7 @@ async function sample(bare: Bare, { dump: withDump = true }: { dump?: boolean } 
     jsHeapUsedMB: mb(heap.usedSize),
     jsHeapTotalMB: mb(heap.totalSize),
     nodes: dom.nodes,
+    domNodes,
     listeners: dom.jsEventListeners,
     documents: dom.documents,
     rendererMB: mb(renderer?.total ?? NaN),
