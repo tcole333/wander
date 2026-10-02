@@ -2981,6 +2981,10 @@ E-number means that experiment sets it. Paired values are lite / full.
 | `markMinDevicePx` | 16 device px | the fewest device pixels a mark spans, over `markPx`: at one device pixel a CSS px, marks at world view are 16 CSS px so their glyphs read | eye |
 | `markTileCap` | 8 per 32 CSS px tile | marks the look inlays in one screen tile | eye |
 | `markRoughMin`, `markSpecMax` | 0.35, 0.9 | a mark's roughness floor; the cap on its lit luminance, under the bloom's 1.05 | eye |
+| `namePx` | outer names fade in over 7-9.5 CSS px of em, drawn at most 26 px, fading out over 44-58 px; inner names 9-12, 20 and 32-44 | a state name's size on screen (3.3, Names) | eye, on the state names renders |
+| `nameFullPx` | 12 CSS px of em, 13 for inner names | where a region's full name takes over from its short name | eye |
+| `nameFade` | 250 ms | a state name fading in as it takes a place, or out as it gives way | eye |
+| `nameTileCap` | 6 per 32 CSS px tile | state names the look cuts in one screen tile | eye |
 | `meanwhileCount`, `meanwhileMinKm` | 3, 2,000 km from the target and between entries (a sparse month's down to 500 km apart, reaching up to 90 days) | Meanwhile rule: the `meanwhile` stage's constants, and Explore's worker query (5.3) | eye |
 | `meanwhileRest` | 250 ms | clock and view at rest before Explore's Meanwhile asks the event worker | eye |
 | `openingsRecent` | 5 | the visitor's last openings Explore does not open on again | eye |
