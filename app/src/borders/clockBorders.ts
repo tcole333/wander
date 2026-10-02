@@ -20,6 +20,12 @@
 // empties the slots and the ring and drops the chunks. A step or chunk that does not arrive logs
 // once and waits `degradeFor`, and is fetched again once the clock wants it; one the data host
 // lacks, or that does not decode, never comes back.
+//
+// Where the release names the state names and the look draws them, the names' runtime
+// (clockNames.ts) follows the steps the borders draw and wait for, a beat's step is ready only once
+// its names are in, and hiding the borders gives the names' chunks back; the look's names layer
+// (look/stateNames.ts) reads what the borders draw each frame (drawn) and each drawn step's names
+// (namesAt). The lobby's preload fetches no names: a walk's names come as its beats want them.
 import type { Material, WebGLRenderer } from 'three';
 import { tunables, type Tier } from '../config/tunables';
 import { BordersError, CELL_BYTES, decodePreviewPair, stepBands } from '../data/borders';
@@ -34,10 +40,12 @@ import {
   type BorderSource,
   type StepUniforms,
 } from '../look/bordersHook';
+import { stateNamesOf } from '../look/stateNames';
 import type { MemoryAccount } from '../perf/memory';
 import { smoothstep } from '../story/effects/timeline';
 import { worldClock, type WorldClock } from '../time/worldClock';
 import { BorderArray, type BorderGpu } from './borderArray';
+import { ClockNames, type StepNames } from './clockNames';
 import { borderSteps, cellOf, chunkOf, stepAt, type BorderSteps } from './steps';
 
 /** Where uploads go: the streamer's queue, behind its tiles. */
@@ -57,6 +65,27 @@ export interface ClockBordersOptions {
   clock?: WorldClock;
   load?: (url: string, signal: AbortSignal) => Promise<ArrayBuffer>;
   now?: () => number;
+  /** The state names' runtime, where the release names them and the look draws them. */
+  names?: ClockNames | null;
+}
+
+/** A step the borders draw, and whether its preview stands in for it. */
+export interface StepDrawn {
+  step: number;
+  preview: boolean;
+}
+
+/** What the borders draw this frame: for the state names, which dissolve as they do. */
+export interface BordersDrawn {
+  /** The source dissolving out and the one dissolving in, each a step, or none. */
+  from: StepDrawn | null;
+  to: StepDrawn | null;
+  /** `to`'s share. */
+  mix: number;
+  /** The borders' strength: the mode's, the scrub's and the close fade. */
+  strength: number;
+  /** How strongly the inner lines draw, by the view's width. */
+  inner: number;
 }
 
 /** What the active mode asks of the borders this frame. */
@@ -128,6 +157,7 @@ export class ClockBorders {
   readonly #clock: WorldClock;
   readonly #load: (url: string, signal: AbortSignal) => Promise<ArrayBuffer>;
   readonly #now: () => number;
+  readonly #names: ClockNames | null;
   readonly #slots: Slot[];
   readonly #cells: Cell[];
   #chunks: (ArrayBuffer | null)[] = [];
@@ -153,6 +183,7 @@ export class ClockBorders {
   #fast = 1;
   #last: number | null = null;
   #strength = 0;
+  #inner = 0;
   #serial = 0;
   /** Inflates in flight: a step's next band, or a preview cell. */
   #inflates = 0;
@@ -168,6 +199,7 @@ export class ClockBorders {
     this.#clock = options.clock ?? worldClock;
     this.#load = options.load ?? ((url, signal) => fetchData(url, () => true, signal));
     this.#now = options.now ?? (() => performance.now());
+    this.#names = options.names ?? null;
     this.#slots = Array.from({ length: options.gpu.slots }, () => ({
       step: null,
       ready: false,
@@ -186,6 +218,24 @@ export class ClockBorders {
     if (!to || !this.#steps || this.#strength <= 0) return null;
     const year = this.#steps.years[to.step] ?? 0;
     return { year, strength: this.#strength * this.#mix, preview: to.kind === 'cell' };
+  }
+
+  /** What the borders draw this frame, for the state names. */
+  get drawn(): BordersDrawn {
+    const drawnOf = (source: Drawn | null): StepDrawn | null =>
+      source ? { step: source.step, preview: source.kind === 'cell' } : null;
+    return {
+      from: drawnOf(this.#from),
+      to: drawnOf(this.#to),
+      mix: this.#mix,
+      strength: this.#strength,
+      inner: this.#inner,
+    };
+  }
+
+  /** A step's state names, once their chunk is in; null without the names' runtime. */
+  namesAt(step: number): StepNames | null {
+    return this.#names?.at(step) ?? null;
   }
 
   /** The steps each slot holds, null for an empty or loading one; for tests and the dev page. */
@@ -235,6 +285,12 @@ export class ClockBorders {
       const settled = this.#to?.kind === 'slot' && this.#to.step === step && !this.#from;
       if (settled) this.#wantNeighbour(step);
     }
+    this.#names?.follow([
+      this.#pinned,
+      this.#to?.step ?? null,
+      this.#from?.step ?? null,
+      frame.wanted ? step : null,
+    ]);
     this.#write(frame.strength * this.#fast, frame.viewKm);
   }
 
@@ -256,6 +312,7 @@ export class ClockBorders {
   holds(day: number): boolean {
     const step = this.#steps ? stepAt(this.#steps, day) : null;
     if (step === null) return true;
+    if (this.#names && !this.#names.holds(step)) return false;
     if (this.#slots.some((slot) => slot.ready && slot.step === step)) return true;
     return this.#failing(this.#section?.keys[step] ?? '');
   }
@@ -269,6 +326,7 @@ export class ClockBorders {
       this.#chunks = new Array<ArrayBuffer | null>(count).fill(null);
     this.#chunksWanted = true;
     this.#pumpChunks();
+    this.#names?.loadAll();
   }
 
   /**
@@ -308,12 +366,16 @@ export class ClockBorders {
     }
   }
 
-  /** Clears the borders from the view, keeping what the slots and cells hold. */
+  /**
+   * Clears the borders from the view, keeping what the slots and cells hold; the state names give
+   * back their chunks, which the next walk or dive fetches again.
+   */
   hide(): void {
     this.#from = null;
     this.#to = null;
     this.#mix = 1;
     this.#pinned = null;
+    this.#names?.end();
     this.#write(0, Infinity);
   }
 
@@ -347,6 +409,7 @@ export class ClockBorders {
     }
     for (const chunk of this.#chunks) account.array('borders.cpu', chunk);
     account.array('borders.cpu', this.#decode?.texels);
+    this.#names?.inspectMemory(account);
     account.details.borders = {
       slots: this.slotSteps,
       cells: this.#cells.filter((cell) => cell.ready).length,
@@ -627,6 +690,7 @@ export class ClockBorders {
     const fades = viewFades(viewKm);
     const drawing = this.#to !== null || this.#from !== null;
     this.#strength = drawing ? strength * fades.close : 0;
+    this.#inner = fades.inner;
     uniforms.lookBorderStrength.value = this.#strength;
     uniforms.lookBorderInner.value = fades.inner;
     uniforms.lookBorderScale.value = etchedScale(viewKm);
@@ -659,20 +723,29 @@ const bound = new WeakMap<Material, ClockBorders>();
 
 /**
  * Where a look holds the border steps (the release names them), allocates and warms its array, and
- * binds the borders' runtime to its material for the modes to drive; otherwise null.
+ * binds the borders' runtime to its material for the modes to drive; otherwise null. Where the
+ * release names the state names too and the look draws them, the names follow the borders.
  */
 export function attachBorderSteps(
   renderer: WebGLRenderer,
   material: Material,
   uploads: BehindUploads,
-  { borderSteps: section, dataHost }: Pick<Release, 'borderSteps' | 'dataHost'>,
+  {
+    borderSteps: section,
+    names: namesSection,
+    dataHost,
+  }: Pick<Release, 'borderSteps' | 'names' | 'dataHost'>,
   tier: Tier,
 ): ClockBorders | null {
   const uniforms = stepUniformsOf(material);
   if (!uniforms) return null;
   const gpu = new BorderArray(renderer, uniforms.lookBorderField.value, tier);
   gpu.warm();
-  const borders = new ClockBorders({ section, dataHost, uniforms, gpu, uploads, tier });
+  const layer = stateNamesOf(material);
+  const names =
+    layer && namesSection && section ? new ClockNames({ section: namesSection, dataHost }) : null;
+  const borders = new ClockBorders({ section, dataHost, uniforms, gpu, uploads, tier, names });
+  if (names) layer?.follow(borders);
   bound.set(material, borders);
   return borders;
 }

@@ -4,12 +4,15 @@
 // beat has its step fetched at once and kept, and the lobby's preload loads one with no mode
 // running; slots dissolve into each other and rocking swaps them without refetching; previews
 // stand in while the step streams and dissolve over the scrub fade; a fast clock fades the
-// borders out; nothing draws before the first step; and end() leaves no memory behind.
+// borders out; nothing draws before the first step; and end() leaves no memory behind. Where the
+// state names follow them, a beat waits for its step's names too, Explore's dive fetches every
+// chunk of names with the previews', and end() drops them.
 import { gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { tunables, type Tier } from '../config/tunables';
 import { BAND_BYTES, STEP_BANDS } from '../data/borders';
-import type { BorderStepsRelease } from '../data/release';
+import { NAMES_FIELDS } from '../data/names';
+import type { BorderStepsRelease, NamesRelease } from '../data/release';
 import { UploadQueue } from '../gpu/uploadQueue';
 import { createStepUniforms, etchedScale, innerShare, sourceVector } from '../look/bordersHook';
 import { MemoryAccount } from '../perf/memory';
@@ -18,6 +21,7 @@ import { previewChunk, stepFile } from '../test/borderFiles';
 import { WorldClock } from '../time/worldClock';
 import type { BorderGpu } from './borderArray';
 import { ClockBorders, type BordersFrame } from './clockBorders';
+import { ClockNames } from './clockNames';
 import { firstDay } from './steps';
 
 const YEARS = [1800, 1805, 1810, 1815, 1817, 1820];
@@ -36,6 +40,32 @@ const SECTION: BorderStepsRelease = {
   notice: 'lic/0.txt',
 };
 
+/** The state names of the steps, in chunks of the previews' four steps. */
+const NAMES: NamesRelease = {
+  ver: 'beadfeed',
+  steps: SECTION.ver,
+  per: 4,
+  keys: ['fd/names/0.wsn', 'fd/names/1.wsn'],
+  bytes: [1, 1],
+  placements: 2,
+  faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
+  glyphs: { outer: 'AEIMPRST', inner: 'AEIMPRST' },
+};
+
+/** A chunk of names: one name over all its steps. */
+function namesFile(chunk: number): Uint8Array {
+  const years = YEARS.slice(4 * chunk, 4 * chunk + 4);
+  const doc = {
+    version: 1,
+    first: 4 * chunk,
+    years,
+    fields: [...NAMES_FIELDS],
+    names: [['State', 'State']],
+    place: [0, 0, years.length - 1, 1000, 4500, 0, 4000, 9000, 100000, 0, 0],
+  };
+  return new TextEncoder().encode(JSON.stringify(doc));
+}
+
 function gz(raw: Uint8Array): ArrayBuffer {
   const out = gzipSync(raw);
   return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
@@ -51,6 +81,7 @@ const FILES = new Map<string, () => Uint8Array>([
     const layers = years.map((_, k) => new Uint8Array(512 * 256).fill(10 * (4 * chunk + k)));
     return [`${HOST}/${SECTION.previews.keys[chunk]}`, () => previewChunk(years, layers)] as const;
   }),
+  ...[0, 1].map((chunk) => [`${HOST}/${NAMES.keys[chunk]}`, () => namesFile(chunk)] as const),
 ]);
 const stored = new Map<string, ArrayBuffer>();
 function file(url: string): ArrayBuffer | undefined {
@@ -65,7 +96,11 @@ const inYear = (year: number, month = 6) => dayFromCivil({ year, month, day: 1 }
 
 afterEach(() => vi.restoreAllMocks());
 
-function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTION) {
+function harness(
+  tier: Tier = 'full',
+  section: BorderStepsRelease | null = SECTION,
+  { names: withNames = false } = {},
+) {
   const clock = new WorldClock(inYear(1815), 365);
   let t = 0;
   const queue = new UploadQueue({ stopMs: Infinity, slowCallMs: Infinity, now: () => 0 });
@@ -113,6 +148,9 @@ function harness(tier: Tier = 'full', section: BorderStepsRelease | null = SECTI
     clock,
     load,
     now: () => t,
+    names: withNames
+      ? new ClockNames({ section: NAMES, dataHost: HOST, load, now: () => t })
+      : null,
   });
   /** The bands and cells in hand: queued, not yet landed. */
   let peakQueued = 0;
@@ -527,5 +565,40 @@ describe('without a borderSteps section', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(h.fetched).toEqual([]);
     expect(h.uniforms.lookBorderStrength.value).toBe(0);
+  });
+});
+
+describe('the state names', () => {
+  test("a beat waits for its step's names, and the names read what the borders draw", async () => {
+    const h = harness('full', SECTION, { names: true });
+    const beat = inYear(1815);
+    await h.until(() => h.borders.holds(beat), { beat });
+    expect(h.fetched.map(({ url }) => url)).toContain(`${HOST}/${NAMES.keys[0]}`);
+    expect(h.borders.namesAt(at(1815))?.chunk.full).toEqual(['State']);
+    await h.until(() => h.borders.drawn.to?.step === at(1815) && h.borders.drawn.mix === 1, {
+      beat,
+    });
+    expect(h.borders.drawn).toMatchObject({ from: null, strength: 1 });
+    expect(h.borders.drawn.to).toEqual({ step: at(1815), preview: false });
+  });
+
+  test("come in every chunk with Explore's previews, and go with end()", async () => {
+    const h = harness('full', SECTION, { names: true });
+    h.borders.loadPreviews();
+    await h.until(
+      () => h.borders.namesAt(at(1800)) !== null && h.borders.namesAt(at(1820)) !== null,
+      {
+        previews: true,
+      },
+    );
+    const names = () => {
+      const account = new MemoryAccount();
+      h.borders.inspectMemory(account);
+      return account.owners['names.cpu']?.arrayBuffers ?? 0;
+    };
+    expect(names()).toBeGreaterThan(0);
+    h.borders.end();
+    expect(names()).toBe(0);
+    expect(h.borders.namesAt(at(1815))).toBeNull();
   });
 });

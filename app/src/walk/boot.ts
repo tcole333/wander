@@ -251,10 +251,12 @@ async function assemble(
   const layer = streamer.layer;
   // The look cuts event marks where Explore stands, and holds the border steps where the release
   // names them: Explore's borders and the walks' border beats follow the world clock through them.
-  // Without them neither draws borders.
+  // Without them neither draws borders. Where the release names the state names too, the look
+  // cuts them with the borders.
   const look = createSurfaceLook(streamer.pools, release.surface, {
     ...(explore ? { marks: MARK_GLYPHS } : {}),
     ...(release.borderSteps ? { borderSteps: BORDER_TIER } : {}),
+    ...(release.borderSteps && release.names ? { names: release.names.glyphs } : {}),
   });
   made.push(() => look.dispose());
   const borders = attachBorderSteps(renderer, look.material, streamer, release, BORDER_TIER);

@@ -444,7 +444,9 @@ ${marks ? MARKS_DECLARATIONS : ''}struct LookSurface {
   // The rivers' steel inlay's share of the fragment, on land.
   float river;
   // A border's etched cut, 0 to 1 (bordersHook.ts).
-  float cut;${marks ? '\n  // The marks cut into it (marks.glsl.ts).\n  LookMarks marks;' : ''}
+  float cut;
+  // How far the climate's wash pulls the metal toward its frost or copper, 0 to 1 (climateHook.ts).
+  float wash;${marks ? '\n  // The marks cut into it (marks.glsl.ts).\n  LookMarks marks;' : ''}
 };
 ${marks ? MARKS_FUNCTIONS : ''}
 LookSurface lookSurface() {
@@ -571,6 +573,7 @@ LookSurface lookSurface() {
   o.names = names * (1.0 - land);
   o.river = river * land;
   o.cut = 0.0;
+  o.wash = 0.0;
   o.albedo = max(mix(seaColor, landColor, land), 0.0);
   o.roughness = clamp(mix(seaRough, landRough, land), 0.05, 1.0);
   o.metalness = clamp(mix(seaMetal, landMetal, land), 0.0, 1.0);${marks ? MARKS_APPLY : ''}
