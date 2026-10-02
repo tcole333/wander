@@ -17,6 +17,7 @@ from prebuild import (
     meanwhile,
     media,
     modera,
+    names,
     openings,
     surface,
     wikidata,
@@ -37,6 +38,7 @@ STAGES: dict[str, Runner] = {
     "coverage": coverage.run,
     "surface": surface.run,
     "borders": borders.run,
+    "names": names.run,
     "events": events.run,
     "openings": openings.run,
     "event-files": event_files.run,
@@ -58,9 +60,9 @@ STORY_STAGES = frozenset({"media", "meanwhile"})
 # slice of.
 RAW_DATA_ONLY = frozenset({"fetch", "wikidata", "excerpts", "meanwhile", "openings"})
 # The region profile bakes the surface, climate and events of the milestone-1 beats' region, and no
-# borders: the steps' carry-through selects every step of Cliopatria first, which takes longer than
-# the rest of the region bake together, and nothing reads the region's.
-NOT_IN_REGION = frozenset({"borders"})
+# borders or names: the steps' carry-through selects every step of Cliopatria first, which takes
+# longer than the rest of the region bake together, and nothing reads the region's.
+NOT_IN_REGION = frozenset({"borders", "names"})
 
 
 def default_stages(profile: Profile, stages: Mapping[str, Runner] = STAGES) -> list[str]:
@@ -94,7 +96,7 @@ def plan(
                 parser.error("openings checks its list against the whole event index")
             parser.error(f"the fixture profile reads no raw data, so it does not run {name}")
         if profile is Profile.REGION and name in NOT_IN_REGION:
-            parser.error("the region profile bakes no borders; the global and fixture profiles do")
+            parser.error(f"the region profile bakes no {name}; the global and fixture profiles do")
     for name in STORY_STAGES & set(named):
         if args.story is None:
             parser.error(f"{name} builds one story: name it with --story <id>")
@@ -160,7 +162,7 @@ def _parser(stages: Mapping[str, Runner]) -> argparse.ArgumentParser:
         epilog=(
             f"Stages, in order: {_listed(stages)}. With none named, every stage runs except "
             "wikidata, excerpts, openings, media and meanwhile; the fixture profile also skips "
-            "fetch, and the region profile borders."
+            "fetch, and the region profile borders and names."
         ),
     )
     parser.add_argument(

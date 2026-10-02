@@ -22,6 +22,7 @@ STAND_INS = {
         "coverage",
         "surface",
         "borders",
+        "names",
         "events",
         "openings",
         "modera",
@@ -39,10 +40,14 @@ def planned(*argv: str) -> list[str]:
 @pytest.mark.parametrize(
     ("argv", "stages"),
     [
-        ((), ["fetch", "coverage", "surface", "borders", "events", "modera", "fx"]),
+        ((), ["fetch", "coverage", "surface", "borders", "names", "events", "modera", "fx"]),
         (("--profile", "region"), ["fetch", "coverage", "surface", "events", "modera", "fx"]),
-        (("--profile", "fixture"), ["coverage", "surface", "borders", "events", "modera", "fx"]),
+        (
+            ("--profile", "fixture"),
+            ["coverage", "surface", "borders", "names", "events", "modera", "fx"],
+        ),
         (("--profile", "fixture", "borders"), ["borders"]),
+        (("--profile", "fixture", "names", "borders"), ["borders", "names"]),
         (("surface", "coverage"), ["coverage", "surface"]),
         (("coverage", "coverage"), ["coverage"]),
         (("excerpts",), ["excerpts"]),
@@ -67,6 +72,7 @@ def test_plan_runs_the_named_stages_or_every_implicit_one_in_order(argv, stages)
         ("--profile", "fixture", "excerpts"),
         ("--profile", "fixture", "wikidata"),
         ("--profile", "region", "borders"),
+        ("--profile", "region", "names"),
         ("--profile", "moon"),
         ("--jobs", "0"),
         ("--jobs", "many"),
@@ -150,7 +156,7 @@ def test_a_full_fixture_build_writes_the_sidecars_and_stamp(tmp_path):
     stages = recording_stages(ran)
     ctx, names = plan(["--profile", "fixture"], stages=stages, repo=tmp_path)
     run(ctx, names, stages)
-    assert ran == ["coverage", "surface", "borders", "events", "modera", "fx"]
+    assert ran == ["coverage", "surface", "borders", "names", "events", "modera", "fx"]
     assert (ctx.stages_dir / "expect" / "cube-samples.json").is_file()
     assert "inputs" in json.loads((ctx.stages_dir / "stamp.json").read_text())
 
@@ -210,6 +216,7 @@ def test_the_stages_that_have_landed_are_registered_in_order():
         "coverage",
         "surface",
         "borders",
+        "names",
         "events",
         "openings",
         "event-files",
