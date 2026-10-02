@@ -15,7 +15,7 @@ const RENDERER: Record<string, RegExp> = {
   'gpu-chromium': /Metal/,
 };
 /** The look's fragment samplers, as many as without the steps (e2e/marks.spec.ts). */
-const SAMPLERS_MAX = 12;
+const SAMPLERS_MAX = 13;
 /**
  * A line drawn brightens the metal along it by at least `DRAWN` of its light, and an outer line's
  * shadow, a hairline under a pixel wide at CI's pixel ratio, darkens it by at least `SHADOWED`; one
