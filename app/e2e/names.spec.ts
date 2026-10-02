@@ -3,8 +3,8 @@
 // step and the look draws them; each letter of a name in capitals and of a Vietnamese name in small
 // capitals is cut, its floor brightening the ground and its rim darkening it, and nothing changes
 // past what the look may draw about a name; no name reaches the bloom's threshold; the mask draws
-// every letter's floor magenta; and the look's program reads no more than the one sampler more
-// the names may take.
+// every letter's floor magenta; a name an event mark stands on keeps its place, the mark lying over
+// it; and the look's program reads no more than the one sampler more the names may take.
 import { expect, test } from '@playwright/test';
 import { closeIdle } from './idle';
 import type { NamesProbe } from './namesProbe';
@@ -79,4 +79,10 @@ test('keeps every name under the bloom’s threshold', () => {
 
 test('draws every letter’s floor magenta for measuring', () => {
   for (const name of report.synthetic) expect(name.masked).toBe(name.letters.length);
+});
+
+test('keeps a name an event mark stands on, under the mark', () => {
+  expect(report.marked.drawn).toBe(true);
+  expect(report.marked.first).toBeGreaterThan(FLOOR);
+  expect(report.marked.under).toBeLessThan(NONE);
 });

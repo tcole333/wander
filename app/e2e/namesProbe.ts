@@ -10,9 +10,10 @@
 //   look may draw above and below the name nothing changes;
 // - light: no name's pixel reaches the bloom's threshold;
 // - the mask: the floor drawn flat magenta at each letter's middle;
+// - under a mark: a third name with an event mark on its middle keeps its place, its first letter
+//   cut, and under the mark's seal it changes no pixel: the mark lies over it;
 // - samplers: the look's program with the names reads at most 13.
-// The marks are off for the synthetic names, so none takes their places. Once it has measured, it
-// stops the walk.
+// Once it has measured, it stops the walk.
 import { FloatType, Mesh, RGBAFormat, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import { clockBordersOf, type BordersDrawn } from '../src/borders/clockBorders';
@@ -20,6 +21,8 @@ import type { StepNames } from '../src/borders/clockNames';
 import { NAME_FLAG, NAMES_FIELDS, namesChunk } from '../src/data/names';
 import type { Release } from '../src/data/release';
 import { layoutName, NAME_CAP_EM } from '../src/look/nameLayout';
+import { PACES } from '../src/marks/families';
+import { MARK_GLYPHS } from '../src/marks/glyphs';
 import { dayFromHistorical } from '../src/story/dates';
 import { worldClock } from '../src/time/worldClock';
 import { bootWalk } from '../src/walk/boot';
@@ -42,6 +45,11 @@ export interface NamesProbe {
   /** The fixture's names the layer drew over Europe in 1815. */
   fixture: string[];
   synthetic: NameChange[];
+  /**
+   * The name under a mark: whether it was drawn, the most its first letter brightens the ground,
+   * and the most it changes any pixel within 0.6 of the mark's radius of its anchor.
+   */
+  marked: { drawn: boolean; first: number; under: number };
 }
 
 declare global {
@@ -60,6 +68,8 @@ const SYNTHETIC = [
   { text: 'TESTING', plane: 'outer', at: [6, 24], em: 0.55 },
   { text: 'Đại Việt', plane: 'inner', at: [17, 24], em: 0.45 },
 ] as const;
+/** The name an event mark stands on, at its anchor. */
+const MARKED = { text: 'MARKED', plane: 'outer', at: [12, 18], em: 0.55 } as const;
 
 const nextFrame = () => new Promise((done) => requestAnimationFrame(done));
 const luminance = (p: Float32Array, i: number) =>
@@ -94,8 +104,19 @@ async function probe(dataHost: string): Promise<NamesProbe> {
   }
   const fixture = names.shown.drawn.map((name) => name.text);
 
-  // The synthetic names, on a source of the probe's own, with the marks off.
-  if (page.look.marks) page.look.marks.params.marks = false;
+  // The synthetic names, on a source of the probe's own, and a mark on the middle of one.
+  const marks = page.look.marks;
+  if (!marks) throw new Error('the look cuts no marks');
+  marks.set('probe', [
+    {
+      id: 'probe',
+      at: [...MARKED.at],
+      glyph: Object.keys(MARK_GLYPHS)[0] ?? 'battle',
+      pace: PACES[0] ?? 'nature',
+      opacity: 1,
+    },
+  ]);
+  const all = [...SYNTHETIC, MARKED];
   const row = (name: number, [lon, lat]: readonly [number, number], em: number, inner: boolean) => [
     name,
     0,
@@ -114,8 +135,8 @@ async function probe(dataHost: string): Promise<NamesProbe> {
     first: 0,
     years: [1815],
     fields: [...NAMES_FIELDS],
-    names: SYNTHETIC.map(({ text }) => [text, text]),
-    place: SYNTHETIC.flatMap(({ at, em, plane }, n) => row(n, at, em, plane === 'inner')),
+    names: all.map(({ text }) => [text, text]),
+    place: all.flatMap(({ at, em, plane }, n) => row(n, at, em, plane === 'inner')),
   });
   const source = {
     drawn: { from: null, to: { step: 0, preview: false }, mix: 1, strength: 1, inner: 1 },
@@ -142,6 +163,7 @@ async function probe(dataHost: string): Promise<NamesProbe> {
   // On first, and what it drew: turned off, the layer lets its fades go.
   const on = render({ names: true, namesMask: false });
   const shown = new Map(names.shown.drawn.map((name) => [name.text, name]));
+  const seal = marks.placed().find((mark) => mark.id === 'probe');
   const mask = render({ names: true, namesMask: true });
   const off = render({ names: false, namesMask: false });
   Object.assign(names.params, { names: true, namesMask: false });
@@ -149,7 +171,7 @@ async function probe(dataHost: string): Promise<NamesProbe> {
 
   const glyphs = names.glyphs;
   if (!glyphs) throw new Error('the names have no glyphs');
-  const synthetic = SYNTHETIC.map(({ text, plane, at }): NameChange => {
+  const change = ({ text, plane, at }: (typeof all)[number]): NameChange => {
     const name = shown.get(text);
     const laid = layoutName(text, plane, 6, glyphs[plane]);
     if (!name || !laid) return { text, letters: [], beside: Infinity, brightest: 0, masked: 0 };
@@ -197,13 +219,34 @@ async function probe(dataHost: string): Promise<NamesProbe> {
       );
     }).length;
     return { text, letters, beside, brightest, masked };
-  });
+  };
+  const synthetic = SYNTHETIC.map(change);
+  // Under the mark's seal, device px with y up, the name changes nothing.
+  let under = Infinity;
+  if (seal) {
+    under = 0;
+    const [cx, cy, r] = [seal.x * ratio, size.y - seal.y * ratio, 0.6 * seal.rPx * ratio];
+    for (let y = Math.floor(cy - r); y <= cy + r; y++) {
+      for (let x = Math.floor(cx - r); x <= cx + r; x++) {
+        if (x < 0 || y < 0 || x >= size.x || y >= size.y) continue;
+        if (Math.hypot(x + 0.5 - cx, y + 0.5 - cy) > r) continue;
+        const i = (y * size.x + x) * 4;
+        under = Math.max(under, Math.abs(luminance(on, i) - luminance(off, i)));
+      }
+    }
+  }
+  const marked = {
+    drawn: shown.has(MARKED.text),
+    first: change(MARKED).letters[0]?.bright ?? 0,
+    under,
+  };
 
   const report = {
     renderer: rendererName(gl),
     samplers: fragmentSamplers(renderer),
     fixture,
     synthetic,
+    marked,
   };
   page.dispose();
   return report;
