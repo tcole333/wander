@@ -19,10 +19,11 @@ const BLOOM_THRESHOLD = 1.05;
 /**
  * The look's fragment samplers with marks, as many as without them under three 0.186: the surface
  * pools, the sea-name atlas, climate, borders, three for routes (their cells heading the index
- * table), the marks' table, the environment, three's DFG table and the lamp's shadow, of the 16
- * WebGL 2 guarantees.
+ * table), the marks' table, the environment, three's DFG table and the lamp's shadow, and the
+ * state names' table where the release names them (e2e/names.spec.ts), of the 16 WebGL 2
+ * guarantees.
  */
-const SAMPLERS_MAX = 12;
+const SAMPLERS_MAX = 13;
 
 let report: MarksProbe;
 const problems: string[] = [];
