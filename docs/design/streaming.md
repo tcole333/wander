@@ -1260,7 +1260,7 @@ pages are built from the same JSON.
                   "previews":{"per":16, "keys":["fd/borders/p/<sha16>.bin", …], "bytes":[…]},
                   "polities":"fd/borders/m/<sha16>.json", "notice":"lic/<sha16>.txt"},
   "names": {"ver", "steps":"<borderSteps' ver>", "per":16, "keys":["fd/names/<sha16>.wsn", …],
-            "bytes":[…], "placements", "faces":{"outer", "inner"}},
+            "bytes":[…], "placements", "faces":{"outer", "inner"}, "glyphs":{"outer", "inner"}},
   "events": {"ver", "overview", "rows", "eraEdges":[…23 finite day-number edges],
              "files":[{"key","t0","t1","rows","bytes","decoded","jsonBytes","bin"?}]},
   "modera": {"ver", "years":[1421,2008], "lat":[88.57, …], "lon0":-180, "dlon":1.875,
@@ -1276,8 +1276,9 @@ sizes, the polities and the notice (3.3), about 6 KB under Brotli. `ver`, the la
 of its files (section 3), names the set, while each key is its own file's content hash, so a
 correction uploads only what it changes. A release without the section draws no borders.
 
-`names` names the state names' chunks (3.3, Names), with their stored sizes, the placements in all
-and the faces their letters were fitted in. Its `steps` is the `borderSteps` section's `ver`: the
+`names` names the state names' chunks (3.3, Names), with their stored sizes, the placements in all,
+the faces their letters were fitted in and the characters each face letters across every chunk,
+whose glyphs the app makes at boot. Its `steps` is the `borderSteps` section's `ver`: the
 names are placed on those steps alone, so a release whose names record was placed on other steps
 stops, naming the `names` stage, and a release without border steps names no names.
 
