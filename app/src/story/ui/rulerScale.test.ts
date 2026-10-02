@@ -15,6 +15,7 @@ import { beatSpan, type Span } from './format';
 import {
   anchored,
   arcFor,
+  deg,
   engraveScale,
   engravedUnit,
   labelledYearStep,
@@ -22,6 +23,8 @@ import {
   storyYears,
   TIER_REACH,
   tierAngle,
+  TURN_STEP_DEG,
+  turnDeg,
   type Label,
 } from './rulerScale';
 import { ExploreTime, HISTORY } from '../../time/exploreTime';
@@ -438,5 +441,20 @@ describe('the calendars the ruler engraves', () => {
     expect(Math.floor(explore.dayAt(explore.lower.find((label) => label.text === '17')!))).toBe(
       mactan,
     );
+  });
+});
+
+describe("the labels' tilt", () => {
+  it('stays within half a step of the true turn, so no label strays a tenth of a pixel', () => {
+    for (let angle = -0.5; angle <= 0.5; angle += 0.00071) {
+      expect(Math.abs(turnDeg(angle) - deg(angle))).toBeLessThanOrEqual(TURN_STEP_DEG / 2 + 1e-9);
+    }
+  });
+
+  it('takes a few hundred turns across the whole band, not one for each frame of a flight', () => {
+    const turns = new Set<number>();
+    for (let angle = -arc.reach; angle <= arc.reach; angle += 1e-5) turns.add(turnDeg(angle));
+    expect(turns.size).toBeLessThanOrEqual(Math.ceil((2 * deg(arc.reach)) / TURN_STEP_DEG) + 1);
+    for (const turn of turns) expect(Math.round(turn / TURN_STEP_DEG) * TURN_STEP_DEG).toBe(turn);
   });
 });

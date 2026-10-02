@@ -77,6 +77,7 @@ import {
   TIER_REACH,
   TIER_RULE,
   tierAngle,
+  turnDeg,
   type Arc,
   type Label,
   type TickKind,
@@ -762,7 +763,7 @@ export class CraftRuler {
 /** Where a label along the band stands: at its angle on its row, turned with the band. */
 function labelTransform(arc: Arc, angle: number, row: number): string {
   const [x, y] = at(arc, angle, row);
-  return `translate(${f(x)} ${f(y)}) rotate(${f(deg(angle), 2)})`;
+  return `translate(${f(x)} ${f(y)}) rotate(${f(turnDeg(angle), 2)})`;
 }
 
 /** One of a knob's stacked layers, a square centered on the knob. */

@@ -526,6 +526,20 @@ export function deg(angle: number): number {
   return (angle * 180) / Math.PI;
 }
 
+/** The least turn, in degrees, that a label's tilt takes (turnDeg). */
+export const TURN_STEP_DEG = 0.25;
+
+/**
+ * The tilt, in degrees, a label at `angle` is drawn at: its true turn at the nearest step.
+ * Chromium keeps the glyphs it rasterizes for each turn a text is drawn at, and the band's labels
+ * turn a little more every frame of a flight, so a finer tilt fills that cache with turns no eye
+ * tells apart: about 8 MiB of the renderer's malloc heap over a walk's first visits (streaming.md
+ * 8.2). At this step a label stands under a tenth of a pixel from its true place at its far end.
+ */
+export function turnDeg(angle: number): number {
+  return Math.round(deg(angle) / TURN_STEP_DEG) * TURN_STEP_DEG;
+}
+
 export function f(x: number, digits = 1): string {
   return x.toFixed(digits);
 }
