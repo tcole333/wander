@@ -10,11 +10,13 @@ import {
   DataTexture,
   LinearFilter,
   LinearMipmapLinearFilter,
+  Matrix4,
   RedFormat,
+  Vector2,
   Vector3,
   Vector4,
-  type Matrix4,
   type Texture,
+  type WebGLRenderer,
 } from 'three';
 import { tunables } from '../config/tunables';
 import { releaseDataAfterUpload } from '../gpu/uploadOnce';
@@ -23,6 +25,14 @@ import type { GlyphSet } from '../marks/glyphs';
 import type { GlyphCells } from '../marks/marks';
 import { dirOf, EARTH_KM } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
+import {
+  letterNameShelf,
+  loadNameFaces,
+  nameShelf,
+  type NameGlyphs,
+  type NameGlyphSet,
+  type NameShelf,
+} from './nameGlyphs';
 import list from './seaNames.json';
 
 /** A name as seaNames.json holds it. */
@@ -92,6 +102,7 @@ export interface PlacedName {
 }
 
 const clip = new Vector4();
+const cornerDir = new Vector3();
 
 /**
  * The names to inlay and how strongly, strongest first and at most SEA_NAMES_MAX: those at least
@@ -159,9 +170,18 @@ export interface Lettered {
   h: number;
 }
 
+/** The state names' glyphs while they are lettered and written into the atlas's rows. */
+type NameRows =
+  | { state: 'waiting' | 'lettering' | 'failed' }
+  | { state: 'lettered'; data: Uint8Array; glyphs: NameGlyphs }
+  | { state: 'written'; glyphs: NameGlyphs };
+
 /**
  * The Labels layer: the names, their atlas and the uniforms the look's shader reads. Given the
- * marks' glyphs, the atlas also holds their distance fields, on shelves below the names.
+ * marks' glyphs, the atlas also holds their distance fields, on shelves below the names; given the
+ * state names' characters, it keeps rows below those for the state names' glyphs (nameGlyphs.ts),
+ * lettered from the first frame on (letterStateNames) and written in once they are
+ * (writeStateNames).
  */
 export class SeaNameLayer {
   readonly uniforms: SeaNameUniforms;
@@ -169,11 +189,20 @@ export class SeaNameLayer {
   readonly ready: Promise<void>;
   readonly #placed: PlacedName[];
   readonly #glyphs: GlyphSet | null;
+  readonly #nameSet: NameGlyphSet | null;
   #boxes: Lettered[] | null = null;
   #cells: GlyphCells | null = null;
+  /** The state names' shelf and its first row in the atlas, once the atlas is lettered. */
+  #nameShelf: { shelf: NameShelf; top: number } | null = null;
+  #nameRows: NameRows = { state: 'waiting' };
+  /** The names the last draw inlaid, and its projection and viewport, for screenBoxes. */
+  #picked: { index: number; alpha: number }[] = [];
+  readonly #toClip = new Matrix4();
+  #viewport: [number, number] = [1, 1];
 
-  constructor(glyphs: GlyphSet | null = null) {
+  constructor(glyphs: GlyphSet | null = null, names: NameGlyphSet | null = null) {
     this.#glyphs = glyphs;
+    this.#nameSet = names;
     const vectors = () => Array.from({ length: SEA_NAMES_MAX }, () => new Vector4());
     const frames = Array.from({ length: SEA_NAMES_MAX }, () => new Vector3());
     const blank = new DataTexture(new Uint8Array(1), 1, 1, RedFormat);
@@ -194,11 +223,15 @@ export class SeaNameLayer {
   /** Picks the names for this view and fills the uniforms; `strength` is the layer's. */
   place(view: SeaNameView, strength: number): void {
     const boxes = this.#boxes;
+    this.#picked = [];
     if (!boxes || strength <= 0) {
       this.uniforms.lookSeaCount.value = 0;
       return;
     }
     const picked = pickSeaNames(this.#placed, view);
+    this.#picked = picked.map(({ index, alpha }) => ({ index, alpha: alpha * strength }));
+    this.#toClip.copy(view.toClip);
+    this.#viewport = [view.width, view.height];
     const { lookSeaPlace, lookSeaFrame, lookSeaBox } = this.uniforms;
     picked.forEach(({ index, alpha }, i) => {
       const name = SEA_NAMES[index];
@@ -215,6 +248,103 @@ export class SeaNameLayer {
   /** The marks' glyph cells in the atlas, once it is lettered; null without glyphs. */
   get glyphCells(): GlyphCells | null {
     return this.#cells;
+  }
+
+  /**
+   * The boxes on screen, CSS px, of the names the last draw inlaid at a tenth of their strength or
+   * more: each name's box in the atlas, turned to its baseline about its center, its corners
+   * projected. The state names stand clear of them.
+   */
+  screenBoxes(): { x0: number; y0: number; x1: number; y1: number }[] {
+    const boxes = this.#boxes;
+    if (!boxes) return [];
+    const [width, height] = this.#viewport;
+    const found: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    for (const { index, alpha } of this.#picked) {
+      const name = SEA_NAMES[index];
+      const box = boxes[index];
+      if (!name || !box || alpha < 0.1) continue;
+      const perDeg = EM_TEXELS / name.size;
+      const [hw, hh] = [box.w / 2 / perDeg, box.h / 2 / perDeg];
+      const angle = (name.angle ?? 0) * DEG;
+      const [c, s] = [Math.cos(angle), Math.sin(angle)];
+      let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const [u, v] of [
+        [-hw, -hh],
+        [hw, -hh],
+        [hw, hh],
+        [-hw, hh],
+        [0, hh],
+        [0, -hh],
+      ] as const) {
+        const east = c * u - s * v;
+        const north = s * u + c * v;
+        const lat = name.lat + north;
+        const lon = name.lon + east / Math.max(Math.cos(name.lat * DEG), 1e-6);
+        const dir = dirOf([lon, lat], cornerDir);
+        clip.set(dir.x, dir.y, dir.z, 1).applyMatrix4(this.#toClip);
+        if (clip.w <= 0) continue;
+        const x = (clip.x / clip.w / 2 + 0.5) * width;
+        const y = (0.5 - clip.y / clip.w / 2) * height;
+        [x0, y0, x1, y1] = [Math.min(x0, x), Math.min(y0, y), Math.max(x1, x), Math.max(y1, y)];
+      }
+      if (Number.isFinite(x0)) found.push({ x0, y0, x1, y1 });
+    }
+    return found;
+  }
+
+  /** The state names' glyphs in the atlas, once they are written there; null until then. */
+  get nameGlyphs(): NameGlyphs | null {
+    return this.#nameRows.state === 'written' ? this.#nameRows.glyphs : null;
+  }
+
+  /**
+   * Starts lettering the state names' glyphs, once: their faces load and each glyph's field is
+   * made a turn apart. Called from the first frame on, so neither holds the first frame back.
+   */
+  letterStateNames(): void {
+    const shelf = this.#nameShelf;
+    const set = this.#nameSet;
+    if (!shelf || !set || this.#nameRows.state !== 'waiting') return;
+    this.#nameRows = { state: 'lettering' };
+    const letter = async (): Promise<NameRows> => {
+      if (!(await loadNameFaces(set))) {
+        console.warn('The state names are not drawn: their faces did not load.');
+        return { state: 'failed' };
+      }
+      return { state: 'lettered', ...(await letterNameShelf(shelf.shelf, shelf.top)) };
+    };
+    letter().then(
+      (rows) => (this.#nameRows = rows),
+      (error: unknown) => {
+        console.warn('The state names are not drawn: their glyphs were not lettered:', error);
+        this.#nameRows = { state: 'failed' };
+      },
+    );
+  }
+
+  /**
+   * Writes the state names' lettered glyphs into the atlas's rows kept for them, once, through a
+   * staging texture three knows nothing of, so copyTextureToTexture takes its texSubImage2D path
+   * and makes the mips again; the glyphs' bytes go with it.
+   */
+  writeStateNames(renderer: WebGLRenderer): void {
+    const rows = this.#nameRows;
+    const shelf = this.#nameShelf;
+    if (rows.state !== 'lettered' || !shelf) return;
+    const atlas = this.uniforms.lookSeaAtlas.value;
+    renderer.initTexture(atlas);
+    const staging = new DataTexture(rows.data, shelf.shelf.width, shelf.shelf.height, RedFormat);
+    staging.flipY = false;
+    staging.unpackAlignment = 1;
+    renderer.copyTextureToTexture(staging, atlas, null, new Vector2(0, shelf.top), 0, 0);
+    staging.image.data = null;
+    this.#nameRows = { state: 'written', glyphs: rows.glyphs };
+  }
+
+  /** The state names' glyphs while they wait to be written: their bytes, else none. */
+  get nameRowsPending(): Uint8Array | null {
+    return this.#nameRows.state === 'lettered' ? this.#nameRows.data : null;
   }
 
   /** Each name's box in the atlas, texels, once it is lettered. */
@@ -308,10 +438,14 @@ export class SeaNameLayer {
     });
 
     // Only the red channel is kept, as the R8 texture's own bytes, and the canvas's pixels go. The
-    // marks' glyphs follow the names on shelves of their own.
+    // marks' glyphs follow the names on shelves of their own, and below them the rows kept for the
+    // state names' glyphs, far outside every edge until those are written.
     const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const namesHeight = canvas.height;
-    const height = namesHeight + (glyphs?.height ?? 0);
+    const stateNames = this.#nameSet ? nameShelf(this.#nameSet, ATLAS_WIDTH) : null;
+    const top = namesHeight + (glyphs?.height ?? 0);
+    const height = top + (stateNames?.height ?? 0);
+    if (stateNames) this.#nameShelf = { shelf: stateNames, top };
     const red = new Uint8Array(canvas.width * height);
     for (let i = 0; i < canvas.width * namesHeight; i++) red[i] = data[i * 4] ?? 0;
     if (glyphs) {
