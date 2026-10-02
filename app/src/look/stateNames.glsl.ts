@@ -9,7 +9,9 @@
 // own light under the cut's cap and the bloom; walls the lamp lights on one side and leaves dark
 // on the other; a fine dark rim just outside every stroke; and a calm band about a third of an em
 // around the name, where the relief and the grain lie flatter and the ground darker, the more so
-// where the climate's wash pales it, so the letters keep their contrast there.
+// where the climate's wash pales it, so the letters keep their contrast there. Where the look cuts
+// marks, they lie over the names like seals: a name fades out under a mark's cover, and the mark's
+// contact shadow falls on its letters as on the ground.
 import { NAME_CAP_EM } from './nameLayout';
 import { NAME_CELL_EM, NAME_EM, NAME_SPREAD } from './nameGlyphs';
 
@@ -55,8 +57,11 @@ export const NAME_LOOK = {
 
 const f = (x: number) => (Number.isInteger(x) ? `${x}.0` : String(x));
 
-/** After the look's pars and the borders' (lookBorderEtched): the uniforms and lookStateNames(). */
-export const NAMES_FRAGMENT_PARS = /* glsl */ `
+/**
+ * After the look's pars and the borders' (lookBorderEtched): the uniforms and lookStateNames(), the
+ * names under the marks where the look cuts them (`marks`).
+ */
+export const namesFragmentPars = (marks: boolean) => /* glsl */ `
 #define LOOK_NAME_TILE_CAP ${NAME_TILE_COUNT_MAX}
 #define LOOK_NAME_EM ${f(NAME_EM)}
 #define LOOK_NAME_SPREAD ${f(NAME_SPREAD)}
@@ -234,7 +239,8 @@ void lookStateNames(inout LookSurface s) {
     calm = max(calm, max(one.halo, band) * alpha);
     if (dot(one.slope, one.slope) * alpha > dot(slope, slope)) slope = one.slope * alpha;
   }
-  float limb = smoothstep(0.05, 0.3, dot(p, normalize(lookCamLocal - p)));
+  // Toward the limb the names fade, and under a mark they lie covered.
+  float limb = smoothstep(0.05, 0.3, dot(p, normalize(lookCamLocal - p)))${marks ? ' * (1.0 - s.marks.cover)' : ''};
   ink *= limb;
   rim *= limb * (1.0 - ink);
   calm *= limb * (1.0 - ink);
@@ -249,10 +255,12 @@ void lookStateNames(inout LookSurface s) {
   s.roughness = min(1.0, s.roughness + 0.2 * rim);
   // The floor: the etched borders' pale metal, half diffuse, its light capped with theirs.
   s.cut = max(s.cut, ink);
-  s.albedo = mix(s.albedo, lookBorderEtched, ink);
+  // A mark's contact shadow falls on the floor as on the ground about it.
+  vec3 lookNameFloor = lookBorderEtched${marks ? ' * (1.0 - s.marks.shade)' : ''};
+  s.albedo = mix(s.albedo, lookNameFloor, ink);
   s.roughness = mix(s.roughness, ${f(NAME_LOOK.roughness)}, ink);
   s.metalness = mix(s.metalness, ${f(NAME_LOOK.metalness)}, ink);
-  lookNameGlow = lookBorderEtched * ${f(NAME_LOOK.lift)} * ink;
+  lookNameGlow = lookNameFloor * ${f(NAME_LOOK.lift)} * ink;
   lookNameTilt = (slope.x * ex + slope.y * ey) * ${f(NAME_LOOK.wall)} * limb;
 }
 `;

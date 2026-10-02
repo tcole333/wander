@@ -59,7 +59,7 @@ import {
   NAMES_FRAGMENT_APPLY,
   NAMES_FRAGMENT_LIGHT,
   NAMES_FRAGMENT_NORMAL,
-  NAMES_FRAGMENT_PARS,
+  namesFragmentPars,
 } from './stateNames.glsl';
 import { registerStateNames, StateNameLayer } from './stateNames';
 
@@ -202,7 +202,6 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
   const names = nameSet
     ? new StateNameLayer(
         () => seaNames.nameGlyphs,
-        () => marks?.placed() ?? [],
         () => seaNames.screenBoxes(),
       )
     : null;
@@ -272,7 +271,6 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
         kSea: flat || params.bathymetry !== true ? 0 : Number(params.kSea),
       });
     }
-    // After the marks, which the names stand clear of.
     names?.place({ ...view, pixelRatio });
   };
   material.onBeforeCompile = (shader) => {
@@ -281,7 +279,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${steps ? STEPS_FRAGMENT_PARS : ''}\n${names ? NAMES_FRAGMENT_PARS : ''}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
+        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${steps ? STEPS_FRAGMENT_PARS : ''}\n${names ? namesFragmentPars(marks !== null) : ''}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
       ],
       [
         '#include <color_fragment>',

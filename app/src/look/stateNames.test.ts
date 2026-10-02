@@ -110,7 +110,6 @@ function harness(drawn: Partial<BordersDrawn> = {}) {
   const boxes: NameBox[] = [];
   const layer = new StateNameLayer(
     () => GLYPHS,
-    () => [],
     () => boxes,
     () => t,
   );

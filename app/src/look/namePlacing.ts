@@ -7,10 +7,11 @@
 // em on screen, and the lowest level whose name stands at full strength, else the lowest shown at
 // all, each choice kept until the view has moved past it by a margin. Names that would overlap on
 // screen give way, the stronger in priority keeping its place, and none stands over an obstacle: a
-// mark, a sea name, a story's callout or a plate. A name kept last frame needs less room to stay
-// than a new one needs to come, so names that touch do not flicker. A name repeats on screen only
-// far from its other copies. Then each kept name goes into every screen tile its footprint reaches,
-// or, where one is full, none, so no name is drawn cut along a tile's edge.
+// sea name, a story's callout or a plate. The event marks are no obstacle: they lie over the
+// names, which the look draws under them. A name kept last frame needs less room to stay than a new
+// one needs to come, so names that touch do not flicker. A name repeats on screen only far from its
+// other copies. Then each kept name goes into every screen tile its footprint reaches, or, where
+// one is full, none, so no name is drawn cut along a tile's edge.
 import { smoothstep } from '../story/effects/timeline';
 
 /** A plane's sizes, CSS px of em: the fade in, the largest drawn, the fade out. */
@@ -82,10 +83,12 @@ export function chooseInRegion(
 /** A name's footprint on screen, CSS px: discs along its baseline, (x, y, radius) each. */
 export type Footprint = Float64Array;
 
-/** What no name may stand over, CSS px: discs (marks) and boxes (sea names, callouts, plates). */
-export interface Obstacles {
-  discs: readonly { x: number; y: number; r: number }[];
-  boxes: readonly { x0: number; y0: number; x1: number; y1: number }[];
+/** A box no name may stand over, CSS px: a sea name's, a callout's or a plate's. */
+export interface ObstacleBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
 }
 
 /** A name in the running for its place, in priority order. */
@@ -118,7 +121,7 @@ export const ROOM_PX = { keep: 0, come: 6 } as const;
  */
 export function keepApart(
   contenders: readonly Contender[],
-  obstacles: Obstacles,
+  obstacles: readonly ObstacleBox[],
   apartPx: number,
 ): Set<string> {
   const kept = new Set<string>();
@@ -156,17 +159,13 @@ export function middleOf(footprint: Footprint): [number, number] {
 function hitsObstacles(
   footprint: Footprint,
   core: number,
-  { discs, boxes }: Obstacles,
+  boxes: readonly ObstacleBox[],
   room: number,
 ): boolean {
   for (let i = 0; i < footprint.length; i += 3) {
     const x = footprint[i] ?? 0;
     const y = footprint[i + 1] ?? 0;
     const r = (footprint[i + 2] ?? 0) * core + room;
-    for (const disc of discs) {
-      const reach = r + disc.r;
-      if ((x - disc.x) ** 2 + (y - disc.y) ** 2 < reach * reach) return true;
-    }
     for (const box of boxes) {
       const nx = Math.max(box.x0, Math.min(x, box.x1));
       const ny = Math.max(box.y0, Math.min(y, box.y1));
