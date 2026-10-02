@@ -847,8 +847,8 @@ draw the steps where the release names them (3.8), and no borders where it names
 Explore (`app/src/explore/exploreBorders.ts`), where the release names the steps, draws borders from
 its dive: they ease in over `borderFade` as it starts, the opening's step streams in once the clock
 has rested, the chunks come once the dive lands, so they never crowd the tiles the landing view
-needs, and the borders ease out as the lobby takes the view back. Polity names come with the labels
-stage (owner decision 26), and Cliopatria gives no capitals.
+needs, and the borders ease out as the lobby takes the view back. The state names come from the
+`names` stage (Names, below), and Cliopatria gives no capitals.
 
 **Measured** on the M5 at 1440×900, Chromium on Metal, the dev page on the global bake
 (`scripts/bordersVideos.ts`) [M `borders/results/explore-2026-09-30.json`]:
@@ -886,6 +886,70 @@ CC BY 4.0 URL, and every correction with its source. The credits page carries th
 the license, marked for the release's `borderSteps`: the Credits panel shows it where the page's
 release names the steps, and the credits page, plain HTML with no release, always. The credits link
 the notice once the published release names it, which `credits.test.ts` asks for.
+
+**Names** (owner decision 44), so every border says whose it is. The `names` stage
+(`pipeline/src/prebuild/names.py`, its rules in `pipeline/config/names.yaml`) runs after `borders`
+in the global and fixture profiles and places every step's state names:
+
+- **Land:** each step as the bake draws it, read from the borders cache: the step's selection
+  without the carry-through (its Plain, `build/cache/borders/plain/`) and the land the
+  carry-through carries in it, so no step is selected again. Each polity's land is clipped to
+  Natural Earth's coasts, simplified to 0.02°.
+- **What is named:** an outer unit's name, a composite's parentheses stripped, on each region of its
+  land (its pieces within 3° of each other), the largest always and the others from 50,000 km², on
+  the region's largest piece and on any other at least 0.4 of it; on the outer plane where the
+  region is at least `minorKm2` (50,000 km²), else on the inner, which comes forward with the inner
+  lines. An empire's member is named alike on the inner plane, unless its name is its unit's.
+- **Fit:** on an azimuthal equidistant projection about the piece, a name's capitals stand
+  0.462 km × km²^0.38 high from its region's area (0.85 of that for an inner name), and shrink, halving
+  first where the piece is thinner than the letters, until they fit a straight band 1.36 cap
+  heights high across the piece, at the angle (−80° to 80°, every 5°) where they stand largest,
+  nearest level, with room to spread; the letters then spread by tracking over up to 0.8 of the
+  band's run, 0.32 to 1.04 cap heights between capitals (0.13 to 0.58 for an inner name). Big
+  regions take the name again at levels 1, 2… in windows 2.8^k smaller than the piece, its letters
+  as much smaller while they stay at least 18.5 km high, each window fitted on its own projection,
+  so a zoomed view of Russia still reads its name.
+- **Short far, full close:** where a name's short form differs, both are fitted at level 0: the
+  short drawn far, the full close, and windows take the full name. The short form drops a trailing
+  parenthesized qualifier, one leading title (`Kingdom of`, `Sultanate of`, `Principality of`,
+  `Republic of`… in `names.yaml`) and a trailing `Dynasty`; `Commonwealth of` stays, since
+  `Nations` alone would not name it. 556 of the 1,585 polities take a short form.
+- **Faces:** the letters are fitted with the faces' own advances, read from the WOFF files the app
+  bundles through @fontsource (`faces.py`): Cormorant Garamond 700's capitals for outer names and
+  Cormorant SC 700, whose lowercase are small capitals, for inner names. A name with a character
+  its face lacks fails the stage, naming it: both faces cover every name, Vietnamese included.
+- **Cache:** each name's placements on a piece are kept in `build/cache/names/` by a key over the
+  piece, its texts, plane and area to three significant digits, the rules, the faces and the stage's
+  code, so steps that keep a polity's land reuse them. Consecutive steps' equal placements merge
+  into one with a run of steps. The stage keeps a key of its own: the steps' keys never hash its
+  code, so changing it rebakes no step.
+
+```
+fd/names/<sha16>.wsn: gzip-in-file JSON, one chunk per `per` steps (the previews' chunks):
+{"version":1, "first":<its first step's index>, "years":[…its steps' years],
+ "fields":["name","s0","s1","lon","lat","angle","em","span","km2","flags","group"],
+ "names":[[full, short], …], "place":[…11 integers a placement]}
+  name        index into names                 s0, s1   its first and last step in the chunk
+  lon, lat    anchor, centidegrees             angle    baseline at the anchor, decidegrees from east
+  em          the face's em, 1e-4 degrees      span     the letters' span, 1e-3 degrees of arc
+  km2         its region's area, km²: a larger region's name keeps its place first
+  flags       bit 0 inner plane, bit 1 member, bit 2 short form, bits 3-4 level
+  group       its region within the chunk: a region draws one level and form of its name at a time
+```
+
+A chunk holds every placement whose run meets its steps, its run clipped to them, so a walk reads
+the chunk of its beat's step alone and Explore all of them. The stage record (7.2) gives the
+release's `names` section (3.8), the polities a step draws but names nowhere, with why, and the
+names still longer than 30 characters after the short-name rule, for the owner: the rule leaves
+them whole rather than inventing shorter ones.
+
+**Measured** on the global bake [M global bake, 1 October]: 27,551 placements over the 523 steps,
+a step drawing 202 on median and at most 418, in 33 chunks of 1.8-32.7 KB, 530 KB in all (the
+largest inflates to 101 KB of JSON; decoded into typed columns, all 33 hold about 1.1 MB, a walk's
+one chunk at most 0.1 MB). Every polity a step draws is named. 21 names stay over 30 characters,
+from *Sovereign Principality of the United Netherlands* (48) to *Taifa of Santa Maria do Algarve*
+(31). The stage takes 5.2 minutes with 8 workers when no placement is cached, 24 CPU-minutes, and
+53 s when all are; the fixture's two steps take 11 s.
 
 ### 3.4 Event files `ev/<ver8>/{overview,all,p00..p23,long}.wev`
 
@@ -1195,6 +1259,8 @@ pages are built from the same JSON.
                   "keys":["fd/borders/s/<sha16>.bin", …], "bytes":[…],
                   "previews":{"per":16, "keys":["fd/borders/p/<sha16>.bin", …], "bytes":[…]},
                   "polities":"fd/borders/m/<sha16>.json", "notice":"lic/<sha16>.txt"},
+  "names": {"ver", "steps":"<borderSteps' ver>", "per":16, "keys":["fd/names/<sha16>.wsn", …],
+            "bytes":[…], "placements", "faces":{"outer", "inner"}},
   "events": {"ver", "overview", "rows", "eraEdges":[…23 finite day-number edges],
              "files":[{"key","t0","t1","rows","bytes","decoded","jsonBytes","bin"?}]},
   "modera": {"ver", "years":[1421,2008], "lat":[88.57, …], "lon0":-180, "dlon":1.875,
@@ -1209,6 +1275,11 @@ pages are built from the same JSON.
 sizes, the polities and the notice (3.3), about 6 KB under Brotli. `ver`, the layer version over all
 of its files (section 3), names the set, while each key is its own file's content hash, so a
 correction uploads only what it changes. A release without the section draws no borders.
+
+`names` names the state names' chunks (3.3, Names), with their stored sizes, the placements in all
+and the faces their letters were fitted in. Its `steps` is the `borderSteps` section's `ver`: the
+names are placed on those steps alone, so a release whose names record was placed on other steps
+stops, naming the `names` stage, and a release without border steps names no names.
 
 `events` is optional until the `event-files` stage has run. Its record is copied into the release:
 `rows` counts unique events, `eraEdges` converts the ruler window to bins, and `files` includes the
@@ -1347,6 +1418,7 @@ ov/<layer>/<ver8>/index.bin | meta.json | <L>/<face>/<x>/<y>.wot     thematic ov
 ev/<ver8>/overview.wev | all.wev | pNN.wev | long.wev | details/<n>.json
 fd/modera/<ver8>/mean/<year>.bin | spread/<year>.bin | annual.bin
 fd/borders/s/<sha16>.bin | p/<sha16>.bin | m/<sha16>.json border steps, preview chunks, polities (3.3)
+fd/names/<sha16>.wsn                                    the state names, a chunk per previews' chunk (3.3)
 fx/<sha16>.bin | fx/<sha16>.json                        story datasets
 pt/<sha16>.json  lb/<sha16>.json                        minerals, place labels
 img/<sha16>-1024.jpg | -256.jpg                         story images (AVIF deferred)
@@ -2124,14 +2196,14 @@ while refinement arrives [M `e3/results/live-2026-09-28.json`].
 |---|---|---|
 | **Before the first live frame** | **2.20 MB** [M `e3/results/live-2026-09-28.json`]. The requirement stays a live frame < 3 s at cold 25 Mbps / 50 ms (owner decision 5). | The room waits for L0-L1 and the page's fonts: 0.515 MB from Pages and 1.684 MB from the data host arrive before it opens. Where the release names its event index, the fonts include Explore's label family, Source Serif 4 400 and 600 in Latin and Latin Extended (`story/ui/fonts.ts`): four woff2 files, 78 KB, the same the reading face already fetches for the page's own text, so they add no bytes. Keep the entry's ≤ 500 KB br and the worker modules' ≤ 40 KB allowances for growth; the instrument and environment are procedural. |
 | **First paint / first live frame** | **0.19 s / 1.24 s** cold at 25/50; live frame **< 3 s** required | Medians of three cold live loads [M `e3/results/live-2026-09-28.json`]. The CSS room covers pool allocation, compiles and L0-L1. At 5/150 the medians are 0.47 s / 4.51 s; that connection's requirement is whole beat landings. |
-| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], thematic indexes, metas and L0 tiles ~0.15 MB [E], label fonts ≤ 160 KB and the lobby's preload of the walk's first border step (≤ 1.2 MB); Explore's 1.9 MB of preview chunks arrive after its dive (3.3). |
+| **Lobby settle** (background) | later layers ≤ 3 MB [E], alongside surface refinement | L0-L1 are already in the first-frame row. Milestone 1 starts L2 during the lamp-up. The later layers' allowance covers the event overview 142 KB [M `e5/results/runtime-2026-09-29.json`], thematic indexes, metas and L0 tiles ~0.15 MB [E], label fonts ≤ 160 KB and the lobby's preload of the walk's first border step (≤ 1.2 MB); Explore's 1.9 MB of preview chunks and 0.53 MB of state names' chunks arrive after its dive (3.3). |
 | **Story core** | ≤ 3 MiB, reported | previews ~15 KB × beats; climate years ~110 KB each per variable; spread fields as built (0.1-0.4 MB each); routes ≤ 100 KB; the border steps its beats draw (0.92-0.93 MB each around 1815 [M global bake]); audio samples ≤ `audioEncodedMax`. Tambora ≈ 1.3 MB [D] before its three border steps (2.8 MB together), which put it over the line. |
 | **Critical set per beat** | planning line: (median flight 1.7 s + `holdMax`) × the floor bandwidth, 2.0 MB at 5 Mbps (owner decision 5) | For the per-beat plans deferred in 8.1: model, full, median 0.8 / p90 1.9 / max 2.2 MB; lite: 0.32 / 0.8 / 0.98 [model, planning tile sizes], +30% on mountains. At the floor, beats above it land on ancestors, as milestone 1's queue already does. |
 | **New bytes per beat** | reported above **10 MiB** | Beats 1, 2, 6 and 7 fetch 8.3-9.5 MiB each on the full tier [M `e3/results/live-2026-09-28.json`]. Round the measured maximum up to a whole MiB to flag growth in later walks. Every beat lands whole at 5/150, so this line reports refinement traffic without holding navigation. |
 | **Per story** | reported above **48 MiB** (full) / 18 MiB (lite, model) | Tambora fetches 47.8 MiB across its eight beats, rounded up to a whole MiB for the full tier's reporting line [M `e3/results/live-2026-09-28.json`]. The lite tier is unmeasured; its planning allowance remains: model tiles 7.5-11.3 MB ×1.3 for mountains, images ~1.2 MB, audio ≤ 0.32 MiB, overlays and effects 0.5-2 MB, about 18.2 MB at the upper estimates [D]. |
 | **Reading pace** | navigation stays on ancestors while refinement arrives | The measured 9.5 MiB maximum needs about 16 s at 5 Mbps before round trips, so a 15 s read need not hide all refinement [D from `e3/results/live-2026-09-28.json`]. Next-beat prefetch remains deferred (8.1); its later plan must account for that transfer time. |
 | **GPU** | full ≤ **320 MiB**, lite ≤ **192 MiB** | full at render scale 1.0: surface 92 (256 slots of 369.4 KiB) + overlay 21 + borders 28 (two step slots and the preview ring, 3.3) + climate 12 + effects ≤ 8 + noise/LUT/indirection/draw-index ~2 + labels ~4 + instrument/env ~30 + framebuffers ~35 (HDR input + depth, bloom, SMAA, output; no MSAA) + shadow 16 ≈ **248**. MSAA 4× would add ~60. Each +0.25 render scale adds ~10-30 MiB of framebuffers, and the governor never passes the cap. lite at 1.25: surface 58 (160 slots) + 13 + borders 16 (one slot and the ring) + 12 + 6 + 2 + 4 + 20 + framebuffers ~40 + shadow 4 ≈ **175**. Iris Xe shares system RAM. The spike used 240-280 MiB with no streaming [M]. |
-| **CPU** (all threads, incl. audio and decoded images) | full ≤ **288 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4 + borders, in a walk ≤ 2 while a step loads and 0 once it is uploaded, in Explore ≤ 6 loading and ≤ 4 settled, its preview chunks held compressed (3.3); event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. The full line is 288 MiB, room for the layers still to come, and no walk may leave memory behind, so the number of walks never raises it (owner decision 43). With the border steps live, ten walks hold the renderer at 235-259 MiB on the live site, and at 216-231 MiB on a local production build, 225-229 before the ruler's labels took quarter-degree turns (8.2); after each return the lobby holds the same nodes and account [M `e3/results/live-2026-10-01-borders.json`, `e3/results/local-2026-10-01-leak-before.json`, `e3/results/local-2026-10-01-leak-after.json`]; about 25 MiB of a walk's is cached audio noise, past `audioDecodedMax` [M `e3/results/live-2026-09-28-trims.json`, `e3/results/local-2026-09-28-cpu-after.json`]. Once a return lands, the lobby keeps only the noise of the room tone playing on in it, 9.2 MiB after a Tambora walk, so Explore opens from a lobby a walk has visited without the rest. |
+| **CPU** (all threads, incl. audio and decoded images) | full ≤ **288 MiB**, lite ≤ **192 MiB**; main JS heap ≤ 140 MB | main: three/app 60-80 [E] + byte cache 16/32 + grids 1.1 + staging ≤ 4 + borders, in a walk ≤ 2 while a step loads and 0 once it is uploaded, in Explore ≤ 6 loading and ≤ 4 settled, its preview chunks held compressed (3.3); the state names' placements decoded, about 1.1 in Explore and ≤ 0.1 in a walk, its beats' chunk alone (3.3, Names); event worker: resident index ≤ 16/24 MiB (paged, 5.3) + ~8 working; decode workers 2 × ≤ 16; decoded audio ≤ `audioDecodedMax`; decoded cards ~13. Totals at the upper estimates ≈ 180 (lite) and 200 (full) [D]. E5 records the decoded MiB. The spike measured 451-459 MB [M]. The full line is 288 MiB, room for the layers still to come, and no walk may leave memory behind, so the number of walks never raises it (owner decision 43). With the border steps live, ten walks hold the renderer at 235-259 MiB on the live site, and at 216-231 MiB on a local production build, 225-229 before the ruler's labels took quarter-degree turns (8.2); after each return the lobby holds the same nodes and account [M `e3/results/live-2026-10-01-borders.json`, `e3/results/local-2026-10-01-leak-before.json`, `e3/results/local-2026-10-01-leak-after.json`]; about 25 MiB of a walk's is cached audio noise, past `audioDecodedMax` [M `e3/results/live-2026-09-28-trims.json`, `e3/results/local-2026-09-28-cpu-after.json`]. Once a return lands, the lobby keeps only the noise of the room tone playing on in it, 9.2 MiB after a Tambora walk, so Explore opens from a lobby a walk has visited without the rest. |
 | **Frame time** | gates: p95 ≤ **22.2 ms** presented at 1440×900 on the target machines (full and lite tiers; see the hardware note in 8.2), all layers on; no rAF gap over 2× the refresh interval during flights; no task over 50 ms while animating | Tasks over 8 ms are investigated. Allocation guesses, not gates: main thread scene and walk ≤ 2 ms, lod + scheduler + instances ≤ 1, uploads ~1, event-label placement ≤ 0.5, UI ≤ 1.5; GPU [E] globe with overlays and climate ≤ 8 (borders ≤ 0.3 ms of it mid-dissolve, which Explore's borders miss at 0.35-1.41 ms, open for the owner, 3.3), instrument ≤ 3, effects ≤ 2, post ≤ 3, uploads ~1. CPU and GPU overlap, so the presented frame is the measure. |
 | **Scrubbing** | uniforms + a worker query at ≤ `eventQueryHz` | at most one climate year inflated and one 72 KiB climate field uploaded per frame; border previews dissolve over `borderScrubFade` from Explore's resident chunks with no fetch, and a step streams in only once the clock rests (3.3) |
 
@@ -2149,8 +2221,9 @@ each builds one story, named with `--story <id>`. A bare run builds the global p
 decision 17). Each profile has its own output root: `build/out/` for global, `build/region/` for the
 milestone-1 bake (8.1) and `build/fixture/` for the fixture (7.3); `publish-data` takes the same
 `--profile` (4.3). The fixture profile skips `fetch`, `wikidata` and `excerpts`, so it needs no raw
-data. It runs `events`, `modera` and `borders` on committed excerpts (7.3); `borders` bakes two
-steps there. The region profile bakes no borders. `meanwhile` stays disabled until
+data. It runs `events`, `modera`, `borders` and `names` on committed excerpts (7.3); `borders`
+bakes two steps there, and `names` names them. The region profile bakes no borders or names.
+`meanwhile` stays disabled until
 a fixture story has its own lock, so the fixture cannot rewrite Tambora's global-build lock, and
 `openings` never runs there, since it checks its list against the whole index. `--jobs` defaults to
 min(8, CPUs), with spawn-context worker processes. `media` also takes `--offline`.
@@ -2163,8 +2236,9 @@ min(8, CPUs), with spawn-context worker processes. `media` also takes `--offline
 | `coverage` | GEBCO + NE land and minor islands (owner decision 12) + `pipeline/config/l7.yaml` (`[{name, lon, lat, radiusKm: {L: km}}]`), plus `regions-milestone1.yaml` in the same form (region profile, owner decision 16) or `fixture.yaml` (fixture profile, 7.3) → the 1', 4' and 16' overviews (cached in `build/cache/gebco/<sha16>/`, the first 16 hex characters of the `.nc`'s sha256 pinned in `sources.toml`), L5-L7 availability, qLand and c200 per level, tile counts | 36 s with 8 workers when it builds the overviews, 30 s once they are cached (region profile) [M `work/surface-bake/region-bake.json`] | local |
 | `surface` | GEBCO_2026.nc (`elevation` int16 43200×86400; 7,466,018,396 B, unzips in 36 s [M]) + NE → `.wst` + `bounds.bin` | 95 s for the region profile's 2,649 tiles with 8 workers in format v2 [M `work/surface-bake/region-bake-v2.json`]; at that rate the global profile's ~15.5K tiles take ~9 min [D] | local |
 | `borders` | Cliopatria v0.2.0's polities + `pipeline/config/borders/` (`hierarchy.yaml`, `rules.yaml`, the era correction files and `acknowledged.yaml`) + NE land and lakes → a WBF2 field per step (`fd/borders/s/`), WBP2 preview chunks (`fd/borders/p/`), `polities.json` (`fd/borders/m/`) and the CC BY notice (`lic/`), skipping steps whose inputs are unchanged (`build/cache/borders/`), the review queue and the lakes and land `verify:bake` reads (3.3, 7.2). The global profile bakes every step, the fixture two from its excerpt, and the region profile none | about 22 CPU-seconds a step: about 41 min for all 529 with 8 workers on the M5 when every key changes, after 6 min selecting every step for the carry-through, 9 s when none changed; 38 s for the fixture's two steps with 8 workers [M] | local |
+| `names` | the borders record and cache (each step's Plain and carried land) + NE land + `pipeline/config/names.yaml` + the faces' WOFF files in `app/node_modules/@fontsource/` → the state names' chunks (`fd/names/`), each name fitted on its pieces, short and full, at its levels, its placements kept in `build/cache/names/`; fails on a character a name's face lacks (3.3, Names). The global and fixture profiles name every step they bake, the region profile none | 5.2 min for all 523 steps with 8 workers when nothing is cached (24 CPU-minutes), 53 s when everything is; 11 s for the fixture's two steps [M] | local |
 | `thematic` | RESOLVE, USGS petroleum, the 42 ranges → `.wot` + index + meta | RESOLVE `make_valid` 36 s + `coverage_simplify` 14 s [M]; rasterize + EDT ~2-5 min per layer [E] | local |
-| `labels` | range names + polity names from `polities.json` → `lb/*.json` and the fontTools `.woff` subset. Fails if any code point in any label or polity name (spaces and punctuation included) is missing from the subset. | seconds | local |
+| `labels` | range names → `lb/*.json` and the fontTools `.woff` subset; the state names come from `names`. Fails if any code point in any label (spaces and punctuation included) is missing from the subset. | seconds | local |
 | `events` | the pinned export + `event-classes.yaml` + `events-curated.yaml` → the scored table `ev/events.tsv.gz` for Meanwhile and lobby picks (3.4), with all accepted rows | 1 s for 29,649 events [M] | local |
 | `openings` | `explore/openings.yaml` + `ev/events.tsv.gz` in the profile's output root → the committed `explore/openings.lock.json` (3.4); it stops, naming `events`, when the events record's `inputs` differ from the current export and configs | under 1 s [M] | local |
 | `event-files` | that table and its pinned local export + the event, era and region configs + `explore/openings.lock.json`, whose openings join the overview → versioned overview and all-events `.wev`, or era pages above the thresholds, with percentile scores and display parents (3.4); runs for the fixture too | about 1 s for 30,070 rows [M] | local |
@@ -2212,6 +2286,7 @@ and the release's `media` section lists every key the locks name (3.8).
 | coverage | `{qLand[L], c200[L], counts[L], avail, inputs}` |
 | surface | `{ver, maxLevel, avail, bounds, inputs}` |
 | borders | `{steps, beats, unacknowledged, unclassified, owed, inputs}`: `steps` is 3.8's `borderSteps` section as is; `beats` gives the step each story's border beats draw, `{story: {beat: year}}`; `unacknowledged` lists the overlap pairs no `overlap` correction names, each with the steps it needs one in, `unclassified` the composites and vassalage relations `hierarchy.yaml` does not class, and `owed` the stateless holes and gaps no correction gives a verdict, `{holes: [{at, km2, years, states, lake, id, acknowledged?}], gaps: [{at, km2, years, id, acknowledged?}], lapsed}`, each place's `acknowledged` the `{verdict, decided, why}` of its entry in `acknowledged.yaml`, and `lapsed` the ids that file lists that the steps no longer owe, which `verify:bake` fails on; `publish-data` refuses the pairs, the unclassified entries and the owed places not acknowledged (3.3); `inputs` holds the code tree hash and the sha256 of the Cliopatria file read, which `verify:bake` checks. The global and fixture profiles write the record. Beside it go the review queue, `borders-review.json`: the steps that fail and the corrections that leave a step unchanged, the unclassified entries, the members whose `MemberOf` names no valid composite, the overlap pairs, the names that vanish and return, and each step's leaves, leftovers, pockets given with their rule (a hole filled as the land of the state around it names that state), the land carried through (each piece of 1,000 km² or more with its polity and the steps on either side of its run, the rest counted), enclosed pieces kept with the outer units around them, and corrections applied, with the record's `owed`; and what `verify:bake` checks the steps against, face after face at their texels: `borders-lakes.bin`, the signed distance to the drawn lakes' shores as R stores it, and `borders-land.bin`, a byte per texel, 1 on land less lakes. `uv run python -m prebuild.cliopatria` writes the queue alone, selecting every step and then again the 198 the carry-through reaches, without baking, in about 9 minutes with 8 workers [M] |
+| names | `{names, unnamed, longNames, inputs}`: `names` is 3.8's `names` section as is; `unnamed` lists each polity a step draws but names nowhere, `{polity, reason, years}`, its reason no land on Natural Earth's coasts or no fit for any of its names, and its years the runs of steps it is so in; `longNames` lists each name still over `longName` (30) characters after the short-name rule, `{name, full, length, years}`, for the owner; `inputs` holds the hash every placement's key joins, of the stage's code, rules and faces, and the `borderSteps` section's `ver` the names were placed on. The global and fixture profiles write the record |
 | thematic | `{layer: {ver, maxLevel}}` |
 | labels | `{labels, font}` |
 | events | `{key, export, exported, rows, bytes, decoded, classes, inputs}`: the build-only table's key, export id/timestamp, row count, stored and decoded TSV bytes, rows per class, and export id plus config sha256s for freshness checks |
@@ -2245,7 +2320,8 @@ and the release's `media` section lists every key the locks name (3.8).
   date in 1815-1817, and all their ancestors present in the export, in source order: 394 statements
   for 239 events. Cliopatria's excerpt keeps the POLITY rows valid in 1815 or 1830, 246 rows in
   0.56 MB of gzipped GeoJSON [M Cliopatria v0.2.0], so the fixture bakes those two border steps with
-  the real selection, hierarchy and field code; the 1,073 rows valid in 1790-1830 would take 4.3 MB,
+  the real selection, hierarchy and field code, and names them with the real placement code and
+  faces, in one chunk; the 1,073 rows valid in 1790-1830 would take 4.3 MB,
   past the cap. The source pins, licenses, credits and selection rules sit in JSON sidecars. The
   ModE-RA and events excerpts take 139 KB; all excerpts took 1.98 MB [M] before Cliopatria's. GEBCO
   rasters are int16 gzip and NE vectors gzipped WKB, each with a JSON sidecar; FlatGeobuf output is
@@ -3142,3 +3218,10 @@ Decided on E3's memory with the border steps live (#80), 2026-10-01:
 
 43. **The CPU line and the walks:** the full tier's CPU line is 288 MiB, giving room for the layers
     still to come, and no walk may leave memory behind, so the number of walks never raises it.
+
+Decided on the state names renders (#80), 2026-10-01:
+
+44. **State names:** state names engraved as polished V-cut capitals in pale cream with a fine
+    dark rim, on a calm band of ground, straight, short far and full close, in Cormorant
+    Garamond's capitals, Cormorant SC for the inner states' small caps; chosen for legibility, at
+    3:1 or better against the ground around them.
