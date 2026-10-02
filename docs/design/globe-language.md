@@ -182,7 +182,7 @@ no single dataset, so they are curated with a source for each, as Magellan's rou
 ## Budget
 
 New layers in time arrive as small tables, lines and low-resolution global fields, uploaded to the
-GPU and released on the CPU, because CPU memory is at its line (`streaming.md` 6, 8.2).
+GPU and released on the CPU, so the layers still to come fit the CPU line (`streaming.md` 6, 8.2).
 
 ## Later
 

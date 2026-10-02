@@ -11,7 +11,7 @@ A desktop web experience for exploring history on a 3D brass-orrery globe. Read 
 ## Status
 
 Milestones 1 and 2, the Tambora and Magellan stories, are live at `wander.traviscole.xyz`; E3,
-milestone 1's acceptance, passed there on 2026-09-28 except CPU memory, now at its line
+milestone 1's acceptance, passed there on 2026-09-28 except CPU memory, now under its 288 MiB line
 (`docs/design/streaming.md` 8.1 lists where it departs from the design, and 8.2 what the
 experiments settled). The site opens on the lobby, whose plaques dive into the eight-beat Tambora
 walk and the ten-beat Magellan voyage: the global surface bake, ModE-RA's 1816 cold on two of
