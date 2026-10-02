@@ -293,6 +293,7 @@ describe('the names record', () => {
     bytes: [11620],
     placements: 571,
     faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
+    glyphs: { outer: 'ABC', inner: 'Abc' },
   };
 
   function released(records: Record<string, object>) {

@@ -70,6 +70,8 @@ export interface NamesRelease {
   placements: number;
   /** The faces the letters were fitted in: outer names' capitals, inner names' small capitals. */
   faces: { outer: string; inner: string };
+  /** The characters each face letters across every chunk, sorted: the glyphs made at boot. */
+  glyphs: { outer: string; inner: string };
 }
 
 /**

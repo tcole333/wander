@@ -211,6 +211,14 @@ def test_a_chunk_holds_each_record_it_meets_with_its_steps_inside_it():
     assert flags & names.FLAG_SHORT and flags & names.FLAG_INNER and flags & names.FLAG_MEMBER
 
 
+def test_the_glyph_set_holds_each_faces_letters_once_without_spaces():
+    records = [
+        names.Record(placed("Đại Việt"), 0, 0),
+        names.Record(placed("Ava", form="short", kind="member", plane="inner"), 0, 0),
+    ]
+    assert names.glyph_set(records) == {"outer": "ITVĐẠỆ", "inner": "Aav"}
+
+
 def test_a_name_with_a_character_its_face_lacks_fails_naming_it():
     narrow = Face("Narrow", [Subset({c: 1 for c in range(0x20, 0x7F)}, (0, 600), 1000, 625)])
     step = [placed("Đại Việt")]
@@ -254,6 +262,18 @@ def test_the_stage_writes_a_chunk_of_both_steps_and_its_release_section(staged):
     rows = [doc["place"][k : k + 11] for k in range(0, len(doc["place"]), 11)]
     assert len(rows) == section["placements"]
     assert {0, 1} <= {r[1] for r in rows} | {r[2] for r in rows}
+
+
+def test_the_section_names_every_character_the_chunk_letters(staged):
+    ctx, record, _ = staged
+    doc = json.loads(gzip.decompress((ctx.out / record["names"]["keys"][0]).read_bytes()))
+    glyphs = record["names"]["glyphs"]
+    rows = [doc["place"][k : k + 11] for k in range(0, len(doc["place"]), 11)]
+    for row in rows:
+        full, short = doc["names"][row[0]]
+        plane = "inner" if row[9] & names.FLAG_INNER else "outer"
+        text = names.lettered(short if row[9] & names.FLAG_SHORT else full, plane)
+        assert set(text) - {" "} <= set(glyphs[plane]), text
 
 
 def test_every_drawn_polity_is_named_or_reported(staged):

@@ -1031,7 +1031,18 @@ def write_chunks(
         "bytes": sizes,
         "placements": len(records),
         "faces": {plane: rules.faces[plane].label for plane in ("outer", "inner")},
+        "glyphs": glyph_set(records),
     }
+
+
+def glyph_set(records: Sequence[Record]) -> dict[str, str]:
+    """The characters each face letters across every placement, sorted, spaces left out: the
+    glyphs the app makes at boot (streaming.md 3.3, Names)."""
+    found: dict[str, set[str]] = {"outer": set(), "inner": set()}
+    for r in records:
+        p = r.placed
+        found[p.plane].update(lettered(p.short if p.form == "short" else p.full, p.plane))
+    return {plane: "".join(sorted(chars - {" "})) for plane, chars in found.items()}
 
 
 def _runs(years: Sequence[int], indices: Sequence[int]) -> list[list[int]]:

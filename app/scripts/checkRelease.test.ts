@@ -138,6 +138,7 @@ describe('the border steps it reads', () => {
       bytes: [1, 1],
       placements: 2,
       faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
+      glyphs: { outer: 'ABC', inner: 'Abc' },
     };
     expect(namesKeys(names, steps)).toEqual(['fd/names/a.wsn']);
     expect(namesKeys(names, steps, 1834)).toEqual(['fd/names/b.wsn']);

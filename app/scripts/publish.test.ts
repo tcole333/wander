@@ -62,6 +62,7 @@ const NAMES = {
   bytes: [40, 45],
   placements: 9,
   faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
+  glyphs: { outer: 'ABC', inner: 'Abc' },
 };
 const IMAGES = ['img/cccc3333cccc3333-1024.jpg', 'img/cccc3333cccc3333-256.jpg'];
 
