@@ -27,7 +27,8 @@ come on hover and pin on a click, the opening's line pinned at the landing, a li
 climate at the clock's date and its own sound; `app/prototype.html` without `?story=` starts in
 it. The borders through time, Cliopatria's states from 3400 BCE to 2000 in 523 steps (#80), draw in
 Explore and on the walks' border beats from the bundled release's border steps; a release that
-names none draws no borders.
+names none draws no borders. Where the release names the state names too, the look engraves them
+with the borders (owner decision 44); until then it draws none.
 
 ## Layout
 
@@ -129,6 +130,10 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   scrub videos (3400 BCE to 2000 at world view, 1900 to 1950 over Europe) on this Mac's GPU, with
   ffmpeg, into `build/borders/videos/`, measuring the borders' CPU bytes, frames, long tasks and GPU
   time as they run, and the Tambora walk's.
+- `node scripts/namesShots.ts --url <dev server> --data <global data server>`: the state names'
+  renders at the five views they were chosen on, without names, with them and as a mask, each
+  name's contrast measured against the ground about it, into `build/names/renders/`; `--gpu` times
+  them over interleaved windows by the GPU process's own GPU time (ioreg).
 - `node scripts/e3.ts --out ../build/m1/e3 --results ../docs/design/measurements/e3/results`: E3,
   milestone 1's acceptance, against the live site in headless Chromium on Metal: cold loads at
   25/50 and 5/150, the throttled walk and its holds, hostile input, offline, context loss, requests
