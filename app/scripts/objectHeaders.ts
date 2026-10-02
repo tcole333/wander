@@ -8,6 +8,7 @@ export const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.wst': 'application/octet-stream',
   '.wot': 'application/octet-stream',
   '.wev': 'application/octet-stream',
+  '.wsn': 'application/octet-stream',
   '.bin': 'application/octet-stream',
   '.json': 'application/json',
   '.txt': 'text/plain; charset=utf-8',

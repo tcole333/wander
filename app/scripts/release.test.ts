@@ -15,6 +15,7 @@ import {
   knownGaps,
   localRelease,
   mediaRelease,
+  namesRelease,
   surfaceRelease,
 } from './release';
 
@@ -269,5 +270,62 @@ describe('the borders record', () => {
       "stateless gap of 336,877 km² at 13.9, 52.5 in 1866-1870, 'gap 1866..1870 14E 53N'",
     ]);
     expect(knownGaps(record).map((place) => place.id)).toEqual(['hole 1825..1915 43E 28N']);
+  });
+});
+
+describe('the names record', () => {
+  const steps = {
+    ver: '83a2d0b1',
+    size: 1024,
+    apron: 4,
+    years: [1815, 1830],
+    keys: ['fd/borders/s/9fd988832a6537c0.bin', 'fd/borders/s/1e38b63efeefa830.bin'],
+    bytes: [874934, 929092],
+    previews: { per: 16, keys: ['fd/borders/p/57c487dbf7e52a78.bin'], bytes: [62439] },
+    polities: 'fd/borders/m/54214a9f67b739f7.json',
+    notice: 'lic/b3239215fd491ae4.txt',
+  };
+  const names = {
+    ver: '29db91ee',
+    steps: '83a2d0b1',
+    per: 16,
+    keys: ['fd/names/22b0a9bb451b0347.wsn'],
+    bytes: [11620],
+    placements: 571,
+    faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
+  };
+
+  function released(records: Record<string, object>) {
+    const stages = mkdtempSync(join(tmpdir(), 'wander-names-release-'));
+    try {
+      writeFileSync(join(stages, 'coverage.json'), JSON.stringify(coverage));
+      writeFileSync(join(stages, 'surface.json'), JSON.stringify(surface));
+      for (const [stage, record] of Object.entries(records)) {
+        writeFileSync(join(stages, `${stage}.json`), JSON.stringify(record));
+      }
+      return localRelease(stages, 'https://data.example');
+    } finally {
+      rmSync(stages, { recursive: true, force: true });
+    }
+  }
+
+  test("gives the names section as the record's names, placed on the release's steps", () => {
+    const before = released({ borders: { steps } });
+    const release = released({
+      borders: { steps },
+      names: { names, unnamed: [], longNames: [], inputs: { code: 'x', steps: steps.ver } },
+    });
+    expect(release.names).toEqual(names);
+    expect(release.id).not.toBe(before.id);
+  });
+
+  test('leaves out names a release without border steps could not draw', () => {
+    expect(released({ names: { names } }).names).toBeUndefined();
+  });
+
+  test('is refused, naming the stage, when the names were placed on other steps', () => {
+    expect(() =>
+      namesRelease({ names: { ...names, steps: 'ffffffff' } }, steps, '/build/stages/global'),
+    ).toThrow('run `uv run prebuild --profile global names` in pipeline/');
   });
 });

@@ -25,6 +25,7 @@ import type {
   FxRelease,
   MediaRelease,
   ModeraRelease,
+  NamesRelease,
   Release,
   SurfaceRelease,
 } from '../src/data/release.ts';
@@ -75,6 +76,7 @@ export function releaseSections(release: Release, root: string): Section[] {
     sections.push(...borderStepsSections(release.borderSteps, root));
     sections.push({ prefix: 'lic/', objects: [localObject(root, release.borderSteps.notice)] });
   }
+  if (release.names) sections.push(namesSection(release.names, root));
   if (release.fx) sections.push(fxSection(release.fx, root));
   if (release.events) sections.push(eventsSection(release.events, root));
   sections.push(mediaSection(release.media, root));
@@ -155,6 +157,26 @@ function borderStepsSections(steps: BorderStepsRelease, root: string): Section[]
     { prefix: 'fd/borders/p/', objects: sized(steps.previews.keys, steps.previews.bytes) },
     { prefix: 'fd/borders/m/', objects: [localObject(root, steps.polities)] },
   ];
+}
+
+/** The state names' chunks under fd/names/, each the size the section gives it (3.3, Names). */
+function namesSection(names: NamesRelease, root: string): Section {
+  if (names.keys.length !== names.bytes.length) {
+    throw new PublishError(
+      `the names section gives ${names.bytes.length} sizes for ${names.keys.length} keys`,
+    );
+  }
+  const objects = names.keys.map((key, k) => {
+    const object = localObject(root, key);
+    if (object.size !== names.bytes[k]) {
+      throw new PublishError(
+        `${object.path} holds ${object.size} B, not the record's ${names.bytes[k]} B: ` +
+          'run `uv run prebuild names` in pipeline/ with the same --profile',
+      );
+    }
+    return object;
+  });
+  return { prefix: 'fd/names/', objects };
 }
 
 /**

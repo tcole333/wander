@@ -16,6 +16,7 @@ import type {
   FxRelease,
   MediaRelease,
   ModeraRelease,
+  NamesRelease,
   Release,
   SurfaceRelease,
 } from '../src/data/release.ts';
@@ -89,6 +90,17 @@ export interface BordersRecord {
     lapsed?: string[];
   };
   inputs?: { code: string; cliopatria: string };
+}
+
+/**
+ * The names stage's record (7.2): the release's names section, each polity a step draws but names
+ * nowhere with why, and the names still long after the short-name rule, for the owner.
+ */
+export interface NamesRecord {
+  names: NamesRelease;
+  unnamed?: { polity: string; reason: string; years: number[][] }[];
+  longNames?: { name: string; full: string; length: number; years: number[][] }[];
+  inputs?: { code: string; steps: string };
 }
 
 export class ReleaseError extends Error {
@@ -209,12 +221,34 @@ export function knownGaps(record: BordersRecord): OwedPlace[] {
 }
 
 /**
+ * The names section, once the names record was placed on the border steps the release names; a
+ * release without them names none. `stages` is build/stages/<profile>/, which names the command.
+ */
+export function namesRelease(
+  record: NamesRecord | undefined,
+  steps: BorderStepsRelease | undefined,
+  stages: string,
+): NamesRelease | undefined {
+  if (!record || !steps) return undefined;
+  if (record.names.steps !== steps.ver) {
+    const profile = basename(stages);
+    const rebuild =
+      profile === 'fixture'
+        ? REBUILD.fixture
+        : `run \`uv run prebuild --profile ${profile} names\` in pipeline/`;
+    throw new ReleaseError(`the names were placed on other border steps: ${rebuild}`);
+  }
+  return record.names;
+}
+
+/**
  * The release for the build whose stage records are in `stages`, served from `dataHost`. Its id
  * follows 3.8, the first 16 hex digits of the sha256 of its JSON without the id, and `built` is
  * when the surface record was written, so the same build and locks always give the same release.
  * The modera record is 3.8's section as is (7.2), so it goes in unchanged when the build has one;
- * the borders record gives the borderSteps section as its `steps`; the event-files record goes in
- * without its `inputs` (`eventsRelease`).
+ * the borders record gives the borderSteps section as its `steps`, and the names record the names
+ * section placed on them (`namesRelease`); the event-files record goes in without its `inputs`
+ * (`eventsRelease`).
  */
 export function localRelease(stages: string, dataHost: string, lock = OPENINGS_LOCK): Release {
   const coverage = readRecord<CoverageRecord>(stages, 'coverage');
@@ -230,6 +264,7 @@ export function localRelease(stages: string, dataHost: string, lock = OPENINGS_L
     surface: surfaceRelease(coverage, surface),
     modera: optional<ModeraRelease>('modera'),
     borderSteps: borders?.steps,
+    names: namesRelease(optional<NamesRecord>('names'), borders?.steps, stages),
     fx: optional<FxRelease>('fx'),
     events: eventFiles ? eventsRelease(eventFiles, stages, lock) : undefined,
     media: mediaRelease(),

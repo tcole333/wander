@@ -32,6 +32,8 @@ const FILES: Record<string, number> = {
   'fd/borders/p/bbbb000000000001.bin': 90,
   'fd/borders/m/cccc000000000001.json': 30,
   'lic/dddd000000000001.txt': 25,
+  'fd/names/eeee000000000001.wsn': 40,
+  'fd/names/eeee000000000002.wsn': 45,
 };
 const MODERA = {
   ver: 'cccc3333',
@@ -51,6 +53,15 @@ const STEPS = {
   previews: { per: 16, keys: ['fd/borders/p/bbbb000000000001.bin'], bytes: [90] },
   polities: 'fd/borders/m/cccc000000000001.json',
   notice: 'lic/dddd000000000001.txt',
+};
+const NAMES = {
+  ver: 'eeee5555',
+  steps: 'ffff6666',
+  per: 16,
+  keys: ['fd/names/eeee000000000001.wsn', 'fd/names/eeee000000000002.wsn'],
+  bytes: [40, 45],
+  placements: 9,
+  faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
 };
 const IMAGES = ['img/cccc3333cccc3333-1024.jpg', 'img/cccc3333cccc3333-256.jpg'];
 
@@ -179,6 +190,19 @@ describe('releaseSections', () => {
     expect(() => releaseSections({ ...release(SEVEN), borderSteps: chunk }, root)).toThrow(
       /90 B, not/,
     );
+  });
+
+  test("names the state names' chunks under fd/names/, each at the size the section gives", () => {
+    const sections = releaseSections({ ...release(SEVEN), borderSteps: STEPS, names: NAMES }, root);
+    const names = sections.find(({ prefix }) => prefix === 'fd/names/');
+    expect(names?.objects.map(({ key, size }) => [key, size])).toEqual([
+      ['fd/names/eeee000000000001.wsn', 40],
+      ['fd/names/eeee000000000002.wsn', 45],
+    ]);
+    const wrong = { ...NAMES, bytes: [40, 46] };
+    expect(() =>
+      releaseSections({ ...release(SEVEN), borderSteps: STEPS, names: wrong }, root),
+    ).toThrow(/45 B, not the record's 46 B: run `uv run prebuild names`/);
   });
 
   test("names the stories' images under img/, with their sizes", () => {
