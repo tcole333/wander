@@ -19,11 +19,16 @@
 // as the production page does. ?memory=1 installs window.__wanderMemory() (perf/memoryHook.ts),
 // and ?opening=Q… opens Explore on that opening (explore/openings.ts), as on the production page.
 //
+// Where the look draws the state names, window.__names serves scripts (scripts/namesShots.ts): what
+// the last draw drew and the names' params, and the panel gains a Names folder; ?names=0 and
+// ?namesMask=1 apply.
+//
 // ?markDemo boots in Explore with its marks cut into the look and sets the demo's (markDemo.ts),
 // without the event index, so Explore's own event marks stay off; the panel gains a Marks folder,
 // and ?marks=0 and the other marks params apply. The marks compile only where Explore stands, so
 // ?markDemo with ?story stops the page, naming the conflict.
 import type { Params } from '../../contract';
+import type { NamesShown } from '../../look/stateNames';
 import type { Release } from '../../data/release';
 import { DATA_SERVERS, memoryRequested } from '../../page/dataOrigin';
 import type { WalkState } from '../../story/contract';
@@ -99,6 +104,14 @@ declare global {
        */
       landed(): boolean;
       flights(): readonly FlightRecord[];
+      /** The story effects' params, as the panel's Story effects folder sets them. */
+      effects(): Params;
+    };
+    __names?: {
+      /** What the last draw drew. */
+      shown(): NamesShown;
+      /** The names' params (stateNames.ts, defaultNameParams). */
+      params: Params;
     };
   }
 }
@@ -136,6 +149,11 @@ async function main(): Promise<void> {
     applyQuery(look.marks.params, query);
     if (query.has('markDemo')) startMarkDemo(look.marks, stories, museum, look.material, query);
   }
+  const names = look.names;
+  if (names) {
+    applyQuery(names.params, query);
+    window.__names = { shown: () => names.shown, params: names.params };
+  }
   const go = (name: string, instant = false) => {
     const view = PRESETS[name];
     if (!view) return;
@@ -150,6 +168,7 @@ async function main(): Promise<void> {
         scene: withoutGimbal(museum.params),
         look: look.params,
         ...(look.marks ? { marks: look.marks.params } : {}),
+        ...(look.names ? { names: look.names.params } : {}),
         streamer: streamer.params,
         camera: { ...cameraParams, view: page.stats().view },
       },
@@ -186,7 +205,12 @@ async function main(): Promise<void> {
     },
     settings,
   };
-  if (source) serveWalk(() => page.story?.walk ?? null, ready);
+  if (source)
+    serveWalk(
+      () => page.story?.walk ?? null,
+      ready,
+      () => page.story?.effects.params,
+    );
   serveBordersTiming(museum, look.material);
 
   const hud = document.getElementById('hud');
@@ -197,7 +221,11 @@ async function main(): Promise<void> {
  * window.__walk, for scripts: `ready` is the page's own check that the streamer is idle and the
  * beat has its border step.
  */
-function serveWalk(current: () => DirectedWalk | null, ready: () => boolean): void {
+function serveWalk(
+  current: () => DirectedWalk | null,
+  ready: () => boolean,
+  effects: () => Params | undefined,
+): void {
   const walk = () => {
     const active = current();
     if (!active) throw new Error('No story is running');
@@ -218,6 +246,11 @@ function serveWalk(current: () => DirectedWalk | null, ready: () => boolean): vo
     flyTo: (target, viewKm) => walk().flyTo(target, viewKm),
     landed: () => current()?.state().flight === null && ready(),
     flights: () => current()?.flights() ?? [],
+    effects: () => {
+      const params = effects();
+      if (!params) throw new Error('No story is running');
+      return params;
+    },
   };
 }
 
@@ -247,7 +280,7 @@ function describe(s: ProtoStats): string {
 
 interface UiParts {
   museum: { params: Params };
-  look: { params: Params; marks: { params: Params } | null };
+  look: { params: Params; marks: { params: Params } | null; names: { params: Params } | null };
   streamer: { params: Params };
   cameraParams: Params;
   control: ViewControl;
@@ -294,6 +327,7 @@ function buildUi(parts: UiParts): void {
   byZoom.get('reliefByZoom')?.onChange(lockRelief);
   lockRelief();
   if (look.marks) addParams(gui.addFolder('Marks'), look.marks.params);
+  if (look.names) addParams(gui.addFolder('Names'), look.names.params);
   addParams(gui.addFolder('Streamer').close(), streamer.params);
   // In a story the panel hides behind a gear, out of the walk's way.
   if (story) {
