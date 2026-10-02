@@ -12,6 +12,7 @@ const NAMED_SHARDS = new Map<string, string[]>([
   ['ruler', ['explore-ruler.spec.ts']],
   ['touch', ['explore-ruler-touch.spec.ts']],
   ['borders', ['borders.spec.ts', 'explore-borders.spec.ts']],
+  ['memory', ['catalog-round-trips.spec.ts']],
 ]);
 
 export const E2E_SHARDS = [...NAMED_SHARDS.keys(), 'rest'];
