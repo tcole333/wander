@@ -144,9 +144,15 @@ Run npm commands in `app/` and uv commands in `pipeline/`.
   each of 529 change years, 523 once those equal to the step before are dropped (about 41 minutes
   with 8 workers when every step's key changes; a rerun bakes only the steps whose inputs changed,
   taking the rest from `build/cache/borders/`); the fixture bakes its two steps from its excerpt.
+  `uv run prebuild names`, after `borders`, places the state names on every step from the borders
+  cache, short and full, into `fd/names/` (about 5 min with 8 workers when nothing is cached, under
+  a minute when all is, from `build/cache/names/`), reading the faces' WOFF files from
+  `app/node_modules/@fontsource/` (so `npm ci` first), and fails on a character a name's face
+  lacks; its record lists any polity left unnamed and the names still over 30 characters after the
+  short-name rule. Its own key keeps it from rekeying the border steps.
   `uv run prebuild --profile region` bakes the milestone-1 region into `build/region/` (about
   2.5 min on the M5, plus 50 s for `modera`, which writes all of ModE-RA for the region profile),
-  with no borders.
+  with no borders or names.
 - `uv run prebuild media --story <id>`: bakes the story's Commons images, as `story.md` pins and
   crops them, into `img/` in the profile's output root, and writes `stories/<id>/story.lock.json`
   (commit it) with their keys, sizes, credits and licenses (`docs/design/streaming.md` 3.9, 7.1).
