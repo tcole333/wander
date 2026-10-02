@@ -1,0 +1,370 @@
+{
+  "date": "2026-10-01T22:38:18.410Z",
+  "url": "https://wander.traviscole.xyz/",
+  "release": "f6853ca88a794657",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "leak": {
+    "driver": "bare CDP, no Network domain",
+    "url": "https://wander.traviscole.xyz/",
+    "cpuBudget": {
+      "limitMiB": 256,
+      "passed": false
+    },
+    "samples": [
+      {
+        "walks": -1,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 0.3,
+        "jsHeapTotalMB": 1,
+        "nodes": 4,
+        "listeners": 2,
+        "documents": 1,
+        "rendererMB": 13,
+        "gpuMB": 11,
+        "gpuGraphicsMB": 0.5,
+        "renderer": {
+          "arrayBuffers": null,
+          "blinkBuffers": 0.8,
+          "blinkGc": 0.5,
+          "v8": 2.4,
+          "malloc": 8.4,
+          "gpuClient": 0.1
+        }
+      },
+      {
+        "walks": 0,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 24,
+        "jsHeapTotalMB": 48.1,
+        "nodes": 1815,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 180,
+        "gpuMB": 1053,
+        "gpuGraphicsMB": 780.4,
+        "renderer": {
+          "arrayBuffers": 17.8,
+          "blinkBuffers": 16.7,
+          "blinkGc": 11.3,
+          "v8": 17.2,
+          "malloc": 57.5,
+          "gpuClient": 43.2
+        }
+      },
+      {
+        "walks": 1,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 28,
+        "jsHeapTotalMB": 81.4,
+        "nodes": 1817,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 235,
+        "gpuMB": 1078,
+        "gpuGraphicsMB": 790.5,
+        "renderer": {
+          "arrayBuffers": 18,
+          "blinkBuffers": 15.5,
+          "blinkGc": 17.8,
+          "v8": 18.9,
+          "malloc": 57.8,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 2,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 19.6,
+        "jsHeapTotalMB": 81.1,
+        "nodes": 1816,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 236,
+        "gpuMB": 1081,
+        "gpuGraphicsMB": 791.5,
+        "renderer": {
+          "arrayBuffers": 17.6,
+          "blinkBuffers": 16.4,
+          "blinkGc": 20.6,
+          "v8": 19.2,
+          "malloc": 64.4,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 3,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 34.9,
+        "jsHeapTotalMB": 81.6,
+        "nodes": 1836,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 236,
+        "gpuMB": 1084,
+        "gpuGraphicsMB": 791.5,
+        "renderer": {
+          "arrayBuffers": 17,
+          "blinkBuffers": 15.8,
+          "blinkGc": 22.2,
+          "v8": 19.4,
+          "malloc": 61.7,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 4,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 35,
+        "jsHeapTotalMB": 80.9,
+        "nodes": 1833,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 241,
+        "gpuMB": 1085,
+        "gpuGraphicsMB": 791.5,
+        "renderer": {
+          "arrayBuffers": 16.8,
+          "blinkBuffers": 16.6,
+          "blinkGc": 22.9,
+          "v8": 19.6,
+          "malloc": 60.1,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 5,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 35.1,
+        "jsHeapTotalMB": 81.4,
+        "nodes": 1837,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 246,
+        "gpuMB": 1086,
+        "gpuGraphicsMB": 792.5,
+        "renderer": {
+          "arrayBuffers": 18.2,
+          "blinkBuffers": 17.7,
+          "blinkGc": 23.3,
+          "v8": 19.6,
+          "malloc": 64.4,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 6,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 26.3,
+        "jsHeapTotalMB": 82.4,
+        "nodes": 1828,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 247,
+        "gpuMB": 1087,
+        "gpuGraphicsMB": 793.5,
+        "renderer": {
+          "arrayBuffers": 17.3,
+          "blinkBuffers": 17.2,
+          "blinkGc": 23.8,
+          "v8": 19.7,
+          "malloc": 62.9,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 7,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 27.1,
+        "jsHeapTotalMB": 82.6,
+        "nodes": 1860,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 245,
+        "gpuMB": 1076,
+        "gpuGraphicsMB": 783.5,
+        "renderer": {
+          "arrayBuffers": 18.1,
+          "blinkBuffers": 17.1,
+          "blinkGc": 24.2,
+          "v8": 20.2,
+          "malloc": 61.2,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 8,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 37.2,
+        "jsHeapTotalMB": 81.6,
+        "nodes": 1834,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 257,
+        "gpuMB": 1085,
+        "gpuGraphicsMB": 790.5,
+        "renderer": {
+          "arrayBuffers": 18.4,
+          "blinkBuffers": 18.1,
+          "blinkGc": 24.4,
+          "v8": 19.6,
+          "malloc": 66.3,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 9,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 39.9,
+        "jsHeapTotalMB": 82.9,
+        "nodes": 1870,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 251,
+        "gpuMB": 1062,
+        "gpuGraphicsMB": 777.5,
+        "renderer": {
+          "arrayBuffers": 16.8,
+          "blinkBuffers": 17.7,
+          "blinkGc": 25.7,
+          "v8": 20.4,
+          "malloc": 68.6,
+          "gpuClient": 51.2
+        }
+      },
+      {
+        "walks": 10,
+        "memoryAccount": null,
+        "jsHeapUsedMB": 33.5,
+        "jsHeapTotalMB": 82.9,
+        "nodes": 1867,
+        "listeners": 146,
+        "documents": 6,
+        "rendererMB": 259,
+        "gpuMB": 1065,
+        "gpuGraphicsMB": 779.5,
+        "renderer": {
+          "arrayBuffers": 17.9,
+          "blinkBuffers": 17.8,
+          "blinkGc": 25.4,
+          "v8": 20,
+          "malloc": 66.6,
+          "gpuClient": 47.2
+        }
+      }
+    ],
+    "growth": {
+      "walks3to6": {
+        "rendererMB": {
+          "from": 236,
+          "to": 247
+        },
+        "gpuMB": {
+          "from": 1084,
+          "to": 1087
+        },
+        "gpuGraphicsMB": {
+          "from": 791.5,
+          "to": 793.5
+        },
+        "jsHeapUsedMB": {
+          "from": 34.9,
+          "to": 26.3
+        },
+        "nodes": {
+          "from": 1836,
+          "to": 1828
+        },
+        "renderer": {
+          "arrayBuffers": {
+            "from": 17,
+            "to": 17.3
+          },
+          "blinkBuffers": {
+            "from": 15.8,
+            "to": 17.2
+          },
+          "blinkGc": {
+            "from": 22.2,
+            "to": 23.8
+          },
+          "v8": {
+            "from": 19.4,
+            "to": 19.7
+          },
+          "malloc": {
+            "from": 61.7,
+            "to": 62.9
+          },
+          "gpuClient": {
+            "from": 51.2,
+            "to": 51.2
+          }
+        }
+      },
+      "walks6toLast": {
+        "rendererMB": {
+          "from": 247,
+          "to": 259
+        },
+        "gpuMB": {
+          "from": 1087,
+          "to": 1065
+        },
+        "gpuGraphicsMB": {
+          "from": 793.5,
+          "to": 779.5
+        },
+        "jsHeapUsedMB": {
+          "from": 26.3,
+          "to": 33.5
+        },
+        "nodes": {
+          "from": 1828,
+          "to": 1867
+        },
+        "renderer": {
+          "arrayBuffers": {
+            "from": 17.3,
+            "to": 17.9
+          },
+          "blinkBuffers": {
+            "from": 17.2,
+            "to": 17.8
+          },
+          "blinkGc": {
+            "from": 23.8,
+            "to": 25.4
+          },
+          "v8": {
+            "from": 19.7,
+            "to": 20
+          },
+          "malloc": {
+            "from": 62.9,
+            "to": 66.6
+          },
+          "gpuClient": {
+            "from": 51.2,
+            "to": 47.2
+          }
+        }
+      }
+    },
+    "landingsUnthrottled": {
+      "flights": 70,
+      "observed": 60,
+      "lateMsMedian": 315.1999999880834,
+      "lateMsMax": 420.23333330949526,
+      "held": 49,
+      "overFullHoldMsMax": 136.89999997616292
+    },
+    "appHostAfterOpen": [],
+    "problems": []
+  },
+  "shots": [
+    "leak-after.png"
+  ]
+}

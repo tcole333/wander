@@ -57,6 +57,17 @@ beats 3-8 and broke out after 9b3f8312bae73f83 deployed, with no failed request 
 The walk of the live lobby, dive and beats 1-3 in headless WebKit 26.6 and Firefox 155 was also
 run by hand, and has no record here.
 
+`e3/results/live-2026-10-01-borders.json` is the leak walks again on the live site, at release
+f6853ca88a794657 with the border steps live. `local-2026-10-01-leak-before.json` and
+`local-2026-10-01-leak-after.json` are the same ten walks on local production builds (`vite
+preview`, reading the production data host at the bundled release 4c99f4e3ffc53121) of origin/main
+at 4a26e987 without and with the ruler's labels taking quarter-degree turns, from `app/scripts/e3.ts
+--only leak --walks 10`, which now also samples the lobby after each return (`lobbySamples`,
+`leftBehind`), reads the JS live set at once after a collection (`jsLiveMB`) and walks the
+document's nodes (`domNodes`) beside Blink's counter. Only WindowServer (8%) and the Claude app (1%)
+used the GPU when either run started (ioreg's AGXDeviceUserClient). Landings were as late as on the
+live run (medians 291 and 298 ms against 315).
+
 `e1/results/` and `e2/results/` hold the experiments' lab runs (`npm run lab`, streaming.md 7.3),
 copied from `build/lab/`. The first ones ran on 2026-09-25 on the M5 (macOS 26.5) in Chromium 153 on
 Metal through Playwright, Safari 26.5 and Firefox 156:
