@@ -11,7 +11,7 @@ import {
   sizeFade,
   type Contender,
   type Footprint,
-  type Obstacles,
+  type ObstacleBox,
   type RegionEntry,
 } from './namePlacing';
 
@@ -83,7 +83,7 @@ function line(x0: number, x1: number, y: number, r: number): Footprint {
   return out;
 }
 
-const NONE: Obstacles = { discs: [], boxes: [] };
+const NONE: ObstacleBox[] = [];
 
 function contender(id: string, footprint: Footprint, more: Partial<Contender> = {}): Contender {
   return { id, name: id, sources: 2, footprint, core: 0.5, kept: false, ...more };
@@ -114,14 +114,12 @@ describe('names kept apart', () => {
     expect(near(true).has('b')).toBe(true);
   });
 
-  test('an obstacle over its letters holds a name back, one over its band alone does not', () => {
+  test('a box over its letters holds a name back, one over its band alone does not', () => {
     const name = contender('name', line(0, 200, 100, 20));
-    const onLetters = { discs: [{ x: 100, y: 100, r: 4 }], boxes: [] };
-    const onBand = { discs: [{ x: 100, y: 119, r: 1 }], boxes: [] };
-    const box = { discs: [], boxes: [{ x0: 90, y0: 95, x1: 110, y1: 105 }] };
+    const onLetters = [{ x0: 90, y0: 95, x1: 110, y1: 105 }];
+    const onBand = [{ x0: 95, y0: 118, x1: 105, y1: 120 }];
     expect(keepApart([name], onLetters, 1000).size).toBe(0);
     expect(keepApart([name], onBand, 1000).size).toBe(1);
-    expect(keepApart([name], box, 1000).size).toBe(0);
   });
 
   test('copies of a name stand far apart, and a name crossfading between steps is not held back', () => {

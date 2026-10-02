@@ -8,9 +8,10 @@
 // drawn no larger than its plane's cap (tunables.namePx), toward the limb, with the inner lines
 // for an inner name, and in the borders' dissolve: a name both steps hold stays, another dissolves
 // out or in with its step. A region shows one form and level of its name (namePlacing.ts), names
-// give way to stronger ones and stand clear of the marks, the sea names and what the modes ask
-// them to avoid (avoid: a walk's callouts, Explore's plates), each fading in or out over
-// tunables.nameFade as it comes or goes. The names drawn are binned into 32 CSS px screen tiles,
+// give way to stronger ones and stand clear of the sea names and what the modes ask them to avoid
+// (avoid: a walk's callouts, Explore's plates), each fading in or out over tunables.nameFade as it
+// comes or goes. The event marks lie over the names like seals: the look draws the names under
+// them, covered only where a mark lies (stateNames.glsl.ts). The names drawn are binned into 32 CSS px screen tiles,
 // at most tunables.nameTileCap a tile, each name into every tile its footprint reaches or none.
 // One RGBA32F table (512×21, 168 KiB) holds the tiles' ranges, their slots, four texels a name and
 // a texel a letter, its pen's place along the baseline and its glyph's cell; it exists only while
@@ -30,7 +31,6 @@ import type { StepNames } from '../borders/clockNames';
 import { tunables } from '../config/tunables';
 import type { Params } from '../contract';
 import { NAME_FLAG, type NamesChunk } from '../data/names';
-import type { PlacedMark } from '../marks/marks';
 import type { MemoryAccount } from '../perf/memory';
 import { dirOf, tangents } from '../story/effects/geo';
 import { smoothstep } from '../story/effects/timeline';
@@ -44,7 +44,7 @@ import {
   sizeFade,
   type Contender,
   type Footprint,
-  type Obstacles,
+  type ObstacleBox,
   type RegionChoice,
 } from './namePlacing';
 import {
@@ -199,7 +199,6 @@ export class StateNameLayer {
   readonly uniforms: NameUniforms;
   readonly params: Params = defaultNameParams();
   readonly #glyphs: () => NameGlyphs | null;
-  readonly #marks: () => readonly PlacedMark[];
   readonly #seaBoxes: () => readonly NameBox[];
   readonly #blank: DataTexture;
   readonly #now: () => number;
@@ -218,17 +217,15 @@ export class StateNameLayer {
   #shown: NamesShown = { steps: [], candidates: 0, drawn: [] };
 
   /**
-   * `glyphs` gives the names' glyphs once the look has lettered them; `marks` the marks the last
-   * draw placed, and `seaBoxes` the sea names', which the names stand clear of.
+   * `glyphs` gives the names' glyphs once the look has lettered them, and `seaBoxes` the boxes of
+   * the sea names the last draw inlaid, which the names stand clear of.
    */
   constructor(
     glyphs: () => NameGlyphs | null,
-    marks: () => readonly PlacedMark[],
     seaBoxes: () => readonly NameBox[],
     now: () => number = () => performance.now(),
   ) {
     this.#glyphs = glyphs;
-    this.#marks = marks;
     this.#seaBoxes = seaBoxes;
     this.#now = now;
     this.#blank = floatTexture(new Float32Array(4), 1, 1);
@@ -475,13 +472,9 @@ export class StateNameLayer {
     return letters;
   }
 
-  /** What no name stands over: the marks drawn, the sea names and the modes' boxes. */
-  #obstacles(): Obstacles {
-    const discs = this.#marks()
-      .filter((mark) => mark.alpha >= 0.1)
-      .map((mark) => ({ x: mark.x, y: mark.y, r: mark.rPx }));
-    const boxes = [...this.#seaBoxes(), ...[...this.#avoid.values()].flat()];
-    return { discs, boxes };
+  /** What no name stands over: the sea names and the modes' boxes. */
+  #obstacles(): ObstacleBox[] {
+    return [...this.#seaBoxes(), ...[...this.#avoid.values()].flat()];
   }
 
   /** Bins the names drawn into the tiles and packs the table (stateNames.glsl.ts). */

@@ -136,6 +136,9 @@ struct LookMarks {
   // shapes out to the edge's last antialiased pixel, where a bevel can still face the lamp.
   float cover;
   float cap;
+  // How much their contact shadows darken the ground, 0 to SHADOW_DEPTH: what lies under a mark, as
+  // the state names do, takes it too (stateNames.glsl.ts).
+  float shade;
   // The marks' relief as a surface gradient in the globe frame: rise per run.
   vec3 grad;
   // What they emit: the sub-threshold glow, and the focal ember apart, which blooms.
@@ -184,6 +187,7 @@ void lookMarksApply(
 ) {
   o.marks.cover = 0.0;
   o.marks.cap = 0.0;
+  o.marks.shade = 0.0;
   o.marks.grad = vec3(0.0);
   o.marks.glow = vec3(0.0);
   o.marks.ember = vec3(0.0);
@@ -407,6 +411,7 @@ void lookMarksApply(
 
     float a = cover * fill;
     o.albedo = mix(o.albedo, color, fill) * (1.0 - ${float(SHADOW_DEPTH)} * shade);
+    o.marks.shade = max(o.marks.shade, ${float(SHADOW_DEPTH)} * shade);
     rough = max(rough / lookMarkPolish, LOOK_MARK_ROUGH_MIN);
     o.roughness = mix(o.roughness, rough, a);
     o.metalness = mix(o.metalness, metal, fill);
