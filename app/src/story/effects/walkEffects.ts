@@ -233,6 +233,8 @@ export const createWalkEffects: CreateWalkEffects = (
       veil.update(day, kLand, wideKm, camera, lampLocal, veilStrength, t);
 
       callouts.update(state.flight === null, cam, camera, globe, viewport, strength('labels'));
+      // The state names stand clear of the callouts.
+      look.names?.avoid('callouts', callouts.boxes());
     },
 
     load() {
@@ -266,6 +268,7 @@ export const createWalkEffects: CreateWalkEffects = (
       shown = -1;
       lastS = null;
       callouts.clear();
+      look.names?.avoid('callouts', []);
       if (ash) ash.lookAshStrength.value = 0;
       climate.hide();
       borders.hide();
@@ -288,6 +291,7 @@ export const createWalkEffects: CreateWalkEffects = (
       ember.dispose();
       veil.dispose();
       callouts.clear();
+      look.names?.avoid('callouts', []);
       group.removeFromParent();
     },
   };
