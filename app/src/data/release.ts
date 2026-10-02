@@ -55,6 +55,24 @@ export interface BorderStepsRelease {
 }
 
 /**
+ * release.json's `names` (3.3, Names): where the state names stand on the border steps, in chunks
+ * of `per` steps (the previews' chunks), each `fd/names/<sha16>.wsn`, gzip-in-file JSON
+ * (data/names.ts), with the faces their letters were fitted in.
+ */
+export interface NamesRelease {
+  ver: string;
+  /** The borderSteps section's `ver`: the names are placed on those steps alone. */
+  steps: string;
+  per: number;
+  keys: string[];
+  bytes: number[];
+  /** Placements in all, each over a run of steps. */
+  placements: number;
+  /** The faces the letters were fitted in: outer names' capitals, inner names' small capitals. */
+  faces: { outer: string; inner: string };
+}
+
+/**
  * release.json's `media`: every key the stories' committed locks name (streaming.md 3.9), sorted,
  * so publish-data uploads them and check-release reads one.
  */
@@ -112,6 +130,8 @@ export interface Release {
   modera?: ModeraRelease;
   /** Present once the build has baked the border steps (not the region profile). */
   borderSteps?: BorderStepsRelease;
+  /** Present once the build has named the border steps, which it is placed on. */
+  names?: NamesRelease;
   /** Present once the build has run the fx stage. */
   fx?: FxRelease;
   /** Present once the build has run event-files. */

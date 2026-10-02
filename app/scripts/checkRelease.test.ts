@@ -13,7 +13,7 @@ import bundled from '../src/generated/release.json' with { type: 'json' };
 import { climateYears } from '../src/story/effects/climate';
 import { parseStory } from '../src/story/story';
 import { assertFixtureFresh, REPO_ROOT } from '../src/test/fixture';
-import { borderStepKeys, checkRelease, releaseKeys } from './checkRelease';
+import { borderStepKeys, checkRelease, namesKeys, releaseKeys } from './checkRelease';
 import { startDataServer, type DataServer } from './dataServer';
 
 const servers: DataServer[] = [];
@@ -127,6 +127,23 @@ describe('the border steps it reads', () => {
 
   test('are the notice alone before the first step', () => {
     expect(borderStepKeys(steps, 1799)).toEqual(['lic/n.txt']);
+  });
+
+  test('read the names chunk naming the step that holds 1815, when the release names names', () => {
+    const names = {
+      ver: 'eeee5555',
+      steps: 'ffff6666',
+      per: 16,
+      keys: ['fd/names/a.wsn', 'fd/names/b.wsn'],
+      bytes: [1, 1],
+      placements: 2,
+      faces: { outer: 'Cormorant Garamond 700', inner: 'Cormorant SC 700' },
+    };
+    expect(namesKeys(names, steps)).toEqual(['fd/names/a.wsn']);
+    expect(namesKeys(names, steps, 1834)).toEqual(['fd/names/b.wsn']);
+    expect(namesKeys(names, steps, 1799)).toEqual([]);
+    const release = { ...(bundled as Release), borderSteps: steps, names };
+    expect(releaseKeys(release).data).toContain('fd/names/a.wsn');
   });
 
   test("join the release's keys when it has a borderSteps section", () => {

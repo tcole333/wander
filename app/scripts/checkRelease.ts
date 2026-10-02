@@ -3,7 +3,8 @@
 // publish-data uploads last. Only once that answers 200 does it GET the surface's bounds.bin and
 // its six L0 tiles, the climate years the walk loads as it starts when the release has a modera
 // section, the border step that holds 1815 with its preview chunk and notice when it has a
-// borderSteps section, the event overview Explore reads first when it names the event files, and
+// borderSteps section, the names chunk naming that step when it has a names section, the event
+// overview Explore reads first when it names the event files, and
 // each story's first image, as the page fetches them, cross-origin from the app's origin, so it
 // never leaves a 404 cached for a key about to be uploaded, and checks each answers 200 with R2's
 // headers and its Content-Type (streaming.md 4.2).
@@ -14,7 +15,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { BorderStepsRelease, Release } from '../src/data/release.ts';
+import type { BorderStepsRelease, NamesRelease, Release } from '../src/data/release.ts';
 import { lockedImage, type StoryLock } from '../src/story/lock.ts';
 import { objectHeaders } from './objectHeaders.ts';
 import { REPO_ROOT } from './release.ts';
@@ -75,11 +76,23 @@ export function borderStepKeys(steps: BorderStepsRelease, year = BORDER_YEAR): s
   return [steps.keys[index]!, ...(chunk ? [chunk] : []), steps.notice];
 }
 
+/** The names chunk holding the step that holds `year`; none before the first step (3.3, Names). */
+export function namesKeys(
+  names: NamesRelease,
+  steps: BorderStepsRelease,
+  year = BORDER_YEAR,
+): string[] {
+  let index = -1;
+  while (index + 1 < steps.years.length && steps.years[index + 1]! <= year) index += 1;
+  const chunk = index < 0 ? undefined : names.keys[Math.floor(index / names.per)];
+  return chunk ? [chunk] : [];
+}
+
 /**
  * The keys the check reads: the release's copy, then bounds.bin, the L0 tiles, with a modera
  * section the climate's mean for each of CLIMATE_YEARS, with a borderSteps section the step
- * holding BORDER_YEAR, its preview chunk and the notice, with an events section its overview (3.4),
- * and each story's first image.
+ * holding BORDER_YEAR, its preview chunk and the notice, with a names section the chunk naming that
+ * step, with an events section its overview (3.4), and each story's first image.
  */
 export function releaseKeys(release: Release): { copy: string; data: string[] } {
   const { ver, bounds } = release.surface;
@@ -89,11 +102,13 @@ export function releaseKeys(release: Release): { copy: string; data: string[] } 
     ? CLIMATE_YEARS.map((year) => `fd/modera/${modera.ver}/mean/${year}.bin`)
     : [];
   const steps = release.borderSteps ? borderStepKeys(release.borderSteps) : [];
+  const names =
+    release.names && release.borderSteps ? namesKeys(release.names, release.borderSteps) : [];
   const events = release.events ? [release.events.overview] : [];
   const images = firstStoryImages();
   return {
     copy: `rel/${release.id}.json`,
-    data: [bounds, ...roots, ...climate, ...steps, ...events, ...new Set(images)],
+    data: [bounds, ...roots, ...climate, ...steps, ...names, ...events, ...new Set(images)],
   };
 }
 
