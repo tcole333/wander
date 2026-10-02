@@ -7,7 +7,9 @@
 // the look's alone.
 // Given a tier for the border steps, where the release names them, the look holds their slots and
 // preview ring in one border array (bordersHook.ts); without one it has no border hook and draws
-// no borders.
+// no borders. Given the state names' characters too, where the release names the names, it cuts
+// the state names into the land with the borders (stateNames.ts, look.names), their glyphs on rows
+// of the sea-name atlas lettered from the first frame on.
 // The faces the sea names are lettered in, declared wherever the look is made.
 import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/source-serif-4/400-italic.css';
@@ -53,6 +55,13 @@ import {
   routeFragmentPars,
 } from './routeHook';
 import { SeaNameLayer } from './seaNames';
+import {
+  NAMES_FRAGMENT_APPLY,
+  NAMES_FRAGMENT_LIGHT,
+  NAMES_FRAGMENT_NORMAL,
+  NAMES_FRAGMENT_PARS,
+} from './stateNames.glsl';
+import { registerStateNames, StateNameLayer } from './stateNames';
 
 /** The spike's art-direction palette (surface.js PAL), as sRGB hex. */
 export const PALETTE = {
@@ -186,8 +195,17 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
   const ash = createAshUniforms();
   const climate = createClimateUniforms();
   const steps = options.borderSteps ? createStepUniforms(options.borderSteps) : null;
-  const seaNames = new SeaNameLayer(options.marks ?? null);
+  // The state names draw with the borders: only where the look holds the steps.
+  const nameSet = steps ? (options.names ?? null) : null;
+  const seaNames = new SeaNameLayer(options.marks ?? null, nameSet);
   const marks = options.marks ? new MarkLayer(() => seaNames.glyphCells) : null;
+  const names = nameSet
+    ? new StateNameLayer(
+        () => seaNames.nameGlyphs,
+        () => marks?.placed() ?? [],
+        () => seaNames.screenBoxes(),
+      )
+    : null;
   const fragment = lookFragment({ marks: marks !== null });
   // With the marks' table, the routes' cells head their index table, so the look reads as many
   // samplers as it does without marks.
@@ -201,6 +219,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     ...routes,
     ...seaNames.uniforms,
     ...marks?.uniforms,
+    ...names?.uniforms,
   };
 
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 1, envMapIntensity: 1 });
@@ -208,6 +227,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
   registerAsh(material, ash);
   registerClimate(material, climate);
   if (steps) registerBorderSteps(material, steps);
+  if (names) registerStateNames(material, names);
   registerRoutes(material, routes);
   material.defines = { ...material.defines, ...chunk.defines };
   // The graticule and the sea names need the camera in the globe frame: the mesh's local frame.
@@ -234,22 +254,26 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
       .multiply(object.matrixWorld);
     const view = { camera: camLocal, pxPerUnit, width: viewport.x, height: viewport.y, toClip };
     seaNames.place(view, Number(params.seaNames));
-    if (!marks) return;
-    camera.getWorldDirection(forward).transformDirection(toLocal);
-    lamp ??= scene.getObjectByProperty('isSpotLight', true) ?? null;
-    if (lamp) lamp.getWorldPosition(lampLocal);
-    else lampLocal.copy(LAMP_FALLBACK);
-    lampLocal.applyMatrix4(toLocal);
-    const flat = params.flatRelief === true;
-    marks.place({
-      ...view,
-      pixelRatio,
-      forward,
-      toView: object.normalMatrix,
-      lamp: lampLocal,
-      kLand: flat ? 0 : Number(params.kLand),
-      kSea: flat || params.bathymetry !== true ? 0 : Number(params.kSea),
-    });
+    seaNames.writeStateNames(renderer);
+    if (marks) {
+      camera.getWorldDirection(forward).transformDirection(toLocal);
+      lamp ??= scene.getObjectByProperty('isSpotLight', true) ?? null;
+      if (lamp) lamp.getWorldPosition(lampLocal);
+      else lampLocal.copy(LAMP_FALLBACK);
+      lampLocal.applyMatrix4(toLocal);
+      const flat = params.flatRelief === true;
+      marks.place({
+        ...view,
+        pixelRatio,
+        forward,
+        toView: object.normalMatrix,
+        lamp: lampLocal,
+        kLand: flat ? 0 : Number(params.kLand),
+        kSea: flat || params.bathymetry !== true ? 0 : Number(params.kSea),
+      });
+    }
+    // After the marks, which the names stand clear of.
+    names?.place({ ...view, pixelRatio });
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -257,16 +281,22 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     shader.fragmentShader = replaceAll(shader.fragmentShader, [
       [
         '#include <common>',
-        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${steps ? STEPS_FRAGMENT_PARS : ''}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
+        `#include <common>\n${fragment.pars}\n${climateFragmentPars(marks !== null)}\n${steps ? STEPS_FRAGMENT_PARS : ''}\n${names ? NAMES_FRAGMENT_PARS : ''}\n${ASH_FRAGMENT_PARS}\n${routeFragmentPars(marks !== null)}`,
       ],
       [
         '#include <color_fragment>',
-        `${fragment.color}\n${CLIMATE_FRAGMENT_APPLY}\n${steps ? STEPS_FRAGMENT_APPLY : ''}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
+        `${fragment.color}\n${CLIMATE_FRAGMENT_APPLY}\n${steps ? STEPS_FRAGMENT_APPLY : ''}\n${names ? NAMES_FRAGMENT_APPLY : ''}\n${ASH_FRAGMENT_APPLY}\n${ROUTE_FRAGMENT_APPLY}`,
       ],
       ['#include <roughnessmap_fragment>', fragment.roughness],
       ['#include <metalnessmap_fragment>', fragment.metalness],
-      ['#include <normal_fragment_maps>', fragment.normal],
-      ['#include <lights_fragment_end>', `#include <lights_fragment_end>\n${fragment.specular}`],
+      [
+        '#include <normal_fragment_maps>',
+        `${fragment.normal}${names ? NAMES_FRAGMENT_NORMAL : ''}`,
+      ],
+      [
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>\n${fragment.specular}${names ? NAMES_FRAGMENT_LIGHT : ''}`,
+      ],
     ]);
   };
 
@@ -313,18 +343,23 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
     update(elapsedS) {
       update();
       marks?.update(elapsedS);
+      // From the first frame on: the state names' glyphs never hold it back.
+      seaNames.letterStateNames();
     },
     ready: seaNames.ready,
     marks,
+    names,
     inspectMemory(account) {
       if (steps) account.texture('borders.slots', steps.lookBorderField.value);
       account.texture('climate.uploadField', climate.lookClimateField.value);
       account.texture('labels.seaAtlas', seaNames.uniforms.lookSeaAtlas.value);
+      account.array('labels.nameGlyphs', seaNames.nameRowsPending);
       account.texture('routes.segments', routes.lookRouteSegments.value);
       if (routes.lookRouteCells) account.texture('routes.cells', routes.lookRouteCells.value);
       account.texture('routes.indices', routes.lookRouteIndices.value);
       account.texture('routes.state', routes.lookRouteState.value);
       marks?.inspectMemory(account);
+      names?.inspectMemory(account);
     },
     dispose() {
       material.dispose();
@@ -334,6 +369,7 @@ export const createSurfaceLook: CreateSurfaceLook = (pools, surface, options = {
       disposeRouteTextures(routes);
       seaNames.dispose();
       marks?.dispose();
+      names?.dispose();
     },
   };
 };

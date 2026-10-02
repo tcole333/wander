@@ -17,6 +17,8 @@ import type { Release, SurfaceRelease } from './data/release';
 import type { SurfaceLayer } from './data/surfaceLayer';
 import type { SurfacePools } from './gpu/surfaceUploads';
 import type { UploadJob } from './gpu/uploadQueue';
+import type { NameGlyphSet } from './look/nameGlyphs';
+import type { StateNameLayer } from './look/stateNames';
 import type { GlyphSet } from './marks/glyphs';
 import type { MarkLayer } from './marks/marks';
 import type { MemoryAccount } from './perf/memory';
@@ -103,6 +105,8 @@ export interface SurfaceLook {
   ready: Promise<void>;
   /** The marks cut into the surface, where the look was made with glyphs; otherwise null. */
   marks: MarkLayer | null;
+  /** The state names cut into the land, where the look was made with them; otherwise null. */
+  names: StateNameLayer | null;
   dispose(): void;
 }
 
@@ -113,8 +117,10 @@ export type CreateSurfaceLook = (
    * `marks`: the glyphs of the marks to cut into the surface, only where Explore stands.
    * `borderSteps`: where the release names the border steps, the tier whose slots and preview ring
    * the border array holds (streaming.md 3.3); without it the look draws no borders.
+   * `names`: where the release names the state names too, the characters each face letters, whose
+   * glyphs the look makes; with the border steps alone the look draws no state names.
    */
-  options?: { marks?: GlyphSet; borderSteps?: Tier },
+  options?: { marks?: GlyphSet; borderSteps?: Tier; names?: NameGlyphSet },
 ) => SurfaceLook;
 
 /** The dark museum room, its lamps, the instrument and the post chain, ported from the spike. */

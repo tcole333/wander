@@ -8,7 +8,9 @@
 // sampled with a B-spline, so its 1.9-degree cells never show. With its strength at 0, the
 // default, the look is unchanged; the walk compiles it at 0 before it starts. Where the look cuts
 // marks, each keeps its family's material: the wash lies on the casting around a mark, not on the
-// mark (globe-language.md, principle 4: nature's channel never takes another pace layer's).
+// mark (globe-language.md, principle 4: nature's channel never takes another pace layer's). How far
+// the wash pulls the metal is left in the surface (wash), where the state names' calm band darkens
+// the ground the more for it (stateNames.glsl.ts).
 import {
   ClampToEdgeWrapping,
   DataTexture,
@@ -194,12 +196,14 @@ void lookClimate(inout LookSurface s) {
     // polish.
     float c = -t * a;
     float rel = clamp(dot(s.albedo, vec3(0.2126, 0.7152, 0.0722)) / ${f(CLIMATE_LOOK.frostLuminance)}, 0.3, 1.7);
-    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.frost)} * rel, c * ${f(CLIMATE_LOOK.frostMix)});
+    s.wash = c * ${f(CLIMATE_LOOK.frostMix)};
+    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.frost)} * rel, s.wash);
     s.roughness = mix(s.roughness, ${f(CLIMATE_LOOK.coldRoughness)}, c * s.land);
     s.metalness = mix(s.metalness, ${f(CLIMATE_LOOK.coldMetalness)}, c * s.land);
   } else {
     // A rosy copper blush.
-    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.copper)}, t * a * ${f(CLIMATE_LOOK.copperMix)});
+    s.wash = t * a * ${f(CLIMATE_LOOK.copperMix)};
+    s.albedo = mix(s.albedo, ${vec3(CLIMATE_LOOK.copper)}, s.wash);
   }
 }
 `;
