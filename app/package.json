@@ -26,6 +26,8 @@
     "lab": "WANDER_LAB=1 sh scripts/slot.sh e2e playwright test --project=lab"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/cormorant-sc": "5.3.0",
     "@fontsource/libre-baskerville": "5.3.0",
     "@fontsource/source-serif-4": "5.3.0",
     "three": "0.186.1",
