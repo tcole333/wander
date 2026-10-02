@@ -1,0 +1,87 @@
+# The state names' placement rules (streaming.md 3.3, Names; owner decision 44). Lengths are in km
+# and degrees of arc, areas in km², and letter sizes in cap heights: a capital's height in the face,
+# which `faces` names, so the rules hold whatever its proportions.
+
+# The faces, as the app bundles them through @fontsource: outer names in the first's capitals,
+# inner names in the second, whose lowercase are small capitals. Each lists its subsets' WOFF files
+# under app/node_modules/@fontsource/<package>/files/; a character takes the first subset's glyph.
+faces:
+  outer:
+    package: cormorant-garamond
+    weight: 700
+    label: Cormorant Garamond 700
+  inner:
+    package: cormorant-sc
+    weight: 700
+    label: Cormorant SC 700
+subsets: [latin, latin-ext, vietnamese, cyrillic, cyrillic-ext]
+
+# A region is a unit's or a member's pieces lying within regionGapDeg of each other, named once on
+# its largest piece and again on any other piece at least pieceShare of it and regionMinKm2. Beyond
+# its largest region, a unit's or member's regions are named from regionMinKm2.
+regionGapDeg: 3.0
+regionMinKm2: 50000
+pieceShare: 0.4
+# A region under minorKm2 (rules.yaml) is named on the inner plane, with the inner lines.
+minorKm2: 50000
+# The capitals' height from the region's area: capKm[0] · km²^capKm[1]; an inner name's at
+# innerShare of that. The letters then shrink until they fit a band bandCaps cap heights high across
+# the piece, at the angle where they stand largest, nearest level, with room to spread.
+capKm: [0.462, 0.38]
+innerShare: 0.85
+bandCaps: 1.36
+# Of the band's run, the most a name's letters take at their least tracking, and the most they
+# spread over; tracking between letters, in cap heights, least and most.
+fitFill: 0.92
+spreadFill: 0.8
+track:
+  outer: [0.32, 1.04]
+  inner: [0.13, 0.58]
+# The angles tried, degrees from east, and the fitting raster's cells across the piece's extent.
+angles: [-80, 80, 5]
+cells: 480
+# Natural Earth's coasts are simplified this much before fitting, degrees.
+landSimplifyDeg: 0.02
+# Levels: the name again in windows levelStep^k smaller than the piece, its letters as much
+# smaller, while they stay at least levelMinCapKm high; each window at least levelLand land, its
+# name at least levelFit of its letters, the names at least levelSpacing of a window apart, fitted
+# at levelAngles on levelCells, with one tracking for all: levelTrack, cap heights.
+levelStep: 2.8
+levelMinCapKm: 18.5
+levelLand: 0.06
+levelFit: 0.6
+levelSpacing: 0.6
+levelAngles: [-50, 50, 10]
+levelCells: 200
+levelTrack:
+  outer: 0.39
+  inner: 0.16
+
+# The short name, drawn far, where it differs from the full name, drawn close: Cliopatria's name
+# with a composite's parentheses and a trailing parenthesized qualifier stripped, less one leading
+# title below and a trailing "Dynasty" (owner decision 44). "Commonwealth of" stays: it alone would
+# leave "Nations".
+titles:
+  - Kingdom of the
+  - Kingdom of
+  - Sultanate of
+  - Principality of
+  - Grand Duchy of
+  - Duchy of
+  - Emirate of
+  - Khanate of
+  - Empire of
+  - Free City of
+  - County of
+  - Oriental Republic of
+  - Republic of
+  - Imamate of
+  - Banate of
+  - Giudicato of
+  - Sheikhdom of
+  - Electorate of
+  - Regency of
+  - Beylik of
+trailing: [Dynasty, dynasty]
+# Names longer than this after the rule go to the record for the owner, unshortened.
+longName: 30
