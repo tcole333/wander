@@ -33,7 +33,25 @@ interface Callout {
   dir: Vector3;
   outer: HTMLElement;
   inner: HTMLElement;
+  plaque: HTMLElement;
+  /** The plaque's size, measured once it is in the page; where its pin stands, and whether shown. */
+  size: { width: number; height: number } | null;
+  x: number;
+  y: number;
+  shown: boolean;
 }
+
+/** A callout's box on screen, CSS px. */
+export interface CalloutBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+/** The plaque's top below its pin, as the style sets it, and the pin's half size, CSS px. */
+const PLAQUE_TOP = 10;
+const PIN = 3;
 
 export class Callouts {
   readonly #root: HTMLElement;
@@ -66,8 +84,28 @@ export class Callouts {
       inner.append(pin, plaque);
       outer.append(inner);
       this.#root.append(outer);
-      return { dir: dirOf(at), outer, inner };
+      return { dir: dirOf(at), outer, inner, plaque, size: null, x: 0, y: 0, shown: false };
     });
+  }
+
+  /**
+   * The boxes on screen of the callouts shown, their pins and plaques, CSS px: the state names
+   * stand clear of them. A plaque is measured the first time it is asked for.
+   */
+  boxes(): CalloutBox[] {
+    const boxes: CalloutBox[] = [];
+    for (const item of this.#items) {
+      if (!item.shown) continue;
+      item.size ??= { width: item.plaque.offsetWidth, height: item.plaque.offsetHeight };
+      const { width, height } = item.size;
+      boxes.push({
+        x0: Math.min(item.x - PIN, item.x - width / 2),
+        y0: item.y - PIN,
+        x1: Math.max(item.x + PIN, item.x + width / 2),
+        y1: item.y + PLAQUE_TOP + height,
+      });
+    }
+    return boxes;
   }
 
   /** `camera` is in the globe frame's parent world; `cameraLocal` is it in the globe frame. */
@@ -93,6 +131,7 @@ export class Callouts {
       const onScreen =
         p.z < 1 && x > -40 && x < viewport.width + 40 && y > -40 && y < viewport.height + 40;
       const shown = landed && onScreen && facing > 0 && strength > 0;
+      Object.assign(item, { x, y, shown });
       item.inner.classList.toggle('shown', shown);
       item.outer.style.opacity = String(Math.min(1, strength) * facing);
       item.outer.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;

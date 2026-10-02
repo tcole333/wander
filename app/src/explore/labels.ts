@@ -304,6 +304,11 @@ export class ExploreLabels {
     if (this.#events.focal?.qid === qid) this.#events.focus(null);
   }
 
+  /** The boxes of the plates standing, CSS px: the state names stand clear of them. */
+  plateBoxes(): Box[] {
+    return [this.#pinPlate, this.#hoverPlate].flatMap((plate) => (plate.box ? [plate.box] : []));
+  }
+
   /** Every frame, once the marks are placed: hover, options and plates, at `nowMs`. */
   update(nowMs: number): void {
     if (this.#left) return;

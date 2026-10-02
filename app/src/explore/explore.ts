@@ -378,6 +378,16 @@ export function startExplore({
       ruler.frame();
       climate?.ui();
       labels?.update(nowMs);
+      // The state names stand clear of the plates, from the next draw.
+      look?.names?.avoid(
+        'plates',
+        (labels?.plateBoxes() ?? []).map((box) => ({
+          x0: box.left,
+          y0: box.top,
+          x1: box.right,
+          y1: box.bottom,
+        })),
+      );
       meanwhile?.update(drawn, clock.state());
       if (!events) return;
       const count = events.markedInView();
@@ -412,6 +422,7 @@ export function startExplore({
       keys?.dispose();
       keys = null;
       labels?.dispose();
+      look?.names?.avoid('plates', []);
       events?.dispose();
       borders?.end();
       ruler.dispose();
