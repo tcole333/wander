@@ -67,7 +67,8 @@ export async function glyphShelf(set: GlyphSet, width: number): Promise<GlyphShe
       const field = signedDistance(inside, side, side);
       const x = (n % perRow) * GLYPH_CELL;
       const y = Math.floor(n / perRow) * GLYPH_CELL;
-      writeCell(field, side, data, width, x, y);
+      const cell = { width: GLYPH_CELL, height: GLYPH_CELL, supersample: SUPERSAMPLE };
+      writeField(field, cell, GLYPH_SPREAD, data, width, x, y);
       cells.set(name, { x, y, extent: extentOf(inside, side) });
     }
   } finally {
@@ -77,7 +78,7 @@ export async function glyphShelf(set: GlyphSet, width: number): Promise<GlyphShe
 }
 
 /** Lets the page draw and answer input before the next glyph. */
-function yieldToPage(): Promise<void> {
+export function yieldToPage(): Promise<void> {
   const { scheduler } = globalThis as { scheduler?: { yield?: () => Promise<void> } };
   return scheduler?.yield ? scheduler.yield() : new Promise((done) => setTimeout(done, 0));
 }
@@ -95,30 +96,42 @@ export function extentOf(inside: Uint8Array, side: number): number {
   return most / ((side / GLYPH_CELL) * (GLYPH_UNITS / 2));
 }
 
-/** Averages a supersampled field (in fine pixels) into one cell of bytes at (x, y). */
-function writeCell(
+/** A cell of texels, `width` by `height`, filled at `supersample` times its resolution. */
+export interface FieldCell {
+  width: number;
+  height: number;
+  supersample: number;
+}
+
+/**
+ * Averages a supersampled field (in fine pixels, `cell.width × cell.supersample` wide) into one
+ * cell of bytes at (x, y) of `out`, `outWidth` texels a row, each holding its distance over `spread`.
+ */
+export function writeField(
   field: Float32Array,
-  side: number,
+  cell: FieldCell,
+  spread: number,
   out: Uint8Array,
-  width: number,
+  outWidth: number,
   x: number,
   y: number,
 ): void {
-  const s = SUPERSAMPLE;
-  for (let j = 0; j < GLYPH_CELL; j++) {
-    for (let i = 0; i < GLYPH_CELL; i++) {
+  const s = cell.supersample;
+  const fine = cell.width * s;
+  for (let j = 0; j < cell.height; j++) {
+    for (let i = 0; i < cell.width; i++) {
       let sum = 0;
       for (let b = 0; b < s; b++) {
-        for (let a = 0; a < s; a++) sum += field[(j * s + b) * side + i * s + a] ?? 0;
+        for (let a = 0; a < s; a++) sum += field[(j * s + b) * fine + i * s + a] ?? 0;
       }
-      out[(y + j) * width + x + i] = encodeDistance(sum / (s * s) / s);
+      out[(y + j) * outWidth + x + i] = encodeDistance(sum / (s * s) / s, spread);
     }
   }
 }
 
-/** A distance in texels, positive inside, as the byte the atlas holds. */
-export function encodeDistance(texels: number): number {
-  return Math.max(0, Math.min(255, Math.round(128 + (127 * texels) / GLYPH_SPREAD)));
+/** A distance in texels, positive inside, as the byte the atlas holds: over `spread` either side. */
+export function encodeDistance(texels: number, spread = GLYPH_SPREAD): number {
+  return Math.max(0, Math.min(255, Math.round(128 + (127 * texels) / spread)));
 }
 
 /**

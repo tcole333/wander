@@ -41,7 +41,9 @@ describe('signedDistance', () => {
 
 describe('encodeDistance', () => {
   it('holds the edge at 128 and the spread either side at the ends', () => {
-    expect([0, GLYPH_SPREAD, -GLYPH_SPREAD, -1e9].map(encodeDistance)).toEqual([128, 255, 1, 0]);
+    expect([0, GLYPH_SPREAD, -GLYPH_SPREAD, -1e9].map((d) => encodeDistance(d))).toEqual([
+      128, 255, 1, 0,
+    ]);
   });
 });
 
