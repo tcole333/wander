@@ -94,6 +94,19 @@ export const tunables = {
   // focal one reaches the bloom's threshold (1.05).
   markRoughMin: 0.35,
   markSpecMax: 0.9,
+  // A state name's em on screen, CSS px, by plane: it fades in over `in`, is drawn no larger than
+  // `cap`, so an empire's name never outweighs the map, and fades out over `out` as its region's
+  // smaller windows take over (look/namePlacing.ts).
+  namePx: {
+    outer: { in: [7, 9.5], cap: 26, out: [44, 58] },
+    inner: { in: [9, 12], cap: 20, out: [32, 44] },
+  },
+  // The full name's em on screen, CSS px, from which a region shows it rather than its short name.
+  nameFullPx: { outer: 12, inner: 13 },
+  // A state name fading in as it takes a place, or out as it gives way.
+  nameFade: 250,
+  // State names the look cuts in one 32 CSS px screen tile.
+  nameTileCap: 6,
   meanwhileCount: 3,
   meanwhileMinKm: 2000,
   // How long Explore's clock and view stand still before Meanwhile asks the event worker again.
