@@ -6,7 +6,7 @@
 // measured: the median luminance of its strokes, a pixel in from their edges, over the median of
 // the ground 4 to 8 device px about them (the legibility test's measure), and the WCAG ratio of the
 // two. A walk is broken out once it lands, so its camera stops its slow push in, and its names are
-// measured again with its labels off, where a callout or a sea name took a name's place.
+// measured again with its callouts off, where one took a name's place (Villa Diodati's France).
 // With --gpu, it then times the names at each view on the GPU at 2160x1350 (1440x900 at the page's
 // 1.5): over
 // interleaved windows with the names off and on, the GPU time ioreg gives the browser's GPU
@@ -19,7 +19,7 @@
 //     [--gpu] [--windows 8]
 //
 // --query adds dev page params to every page's query, as for renders without the marks.
-// Writes <out>/<view>-{off,on,on-mask}.png (and -unlabelled for a walk) and <out>/shots.json: each
+// Writes <out>/<view>-{off,on,on-mask}.png (and -nocallouts for a walk) and <out>/shots.json: each
 // view's camera, the names drawn with their boxes and contrast, any console problems, and the GPU
 // timing.
 import { chromium, type Page } from '@playwright/test';
@@ -393,14 +393,14 @@ try {
     await page.waitForTimeout(900);
     const shot = await shootNames(page, `${view.name}-on`);
     const measured = await contrast(page, shot.on, shot.mask, shot.shown.drawn);
-    // A walk's callouts and sea names take their places from the names, which give way to them:
-    // measured again without them, so every name the beat holds is measured.
-    let unlabelled: { shown: NamesShown; contrast: Contrast[] } | null = null;
+    // A walk's callouts take their places from the names, which give way to them: measured again
+    // without them, so every name the beat holds is measured.
+    let nocallouts: { shown: NamesShown; contrast: Contrast[] } | null = null;
     if (walk) {
       await page.evaluate(() => ((window as unknown as NamesWindow).__walk!.effects().labels = 0));
       await page.waitForTimeout(1200);
-      const bare = await shootNames(page, `${view.name}-unlabelled`);
-      unlabelled = {
+      const bare = await shootNames(page, `${view.name}-nocallouts`);
+      nocallouts = {
         shown: bare.shown,
         contrast: await contrast(page, bare.on, bare.mask, bare.shown.drawn),
       };
@@ -414,16 +414,16 @@ try {
       camera,
       shown: shot.shown,
       contrast: measured,
-      unlabelled,
+      nocallouts,
       problems: [...problems],
     });
     console.log(`${view.name}: ${shot.shown.drawn.length} names of ${shot.shown.candidates}`);
     for (const row of measured) {
       console.log(`  ${row.text}: ${row.ratio} (WCAG ${row.wcag}), em ${row.emPx} px`);
     }
-    for (const row of unlabelled?.contrast ?? []) {
+    for (const row of nocallouts?.contrast ?? []) {
       if (measured.some((m) => m.text === row.text)) continue;
-      console.log(`  ${row.text}, without the labels: ${row.ratio} (WCAG ${row.wcag})`);
+      console.log(`  ${row.text}, without the callouts: ${row.ratio} (WCAG ${row.wcag})`);
     }
     await page.close();
   }

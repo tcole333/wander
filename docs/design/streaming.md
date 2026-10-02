@@ -999,7 +999,7 @@ against the approved option-2 Cormorant renders (`scripts/namesShots.ts`) [M ren
 - **Contrast:** at Tambora's sixth beat every name drawn clears 3:1 against the ground 4-8 device
   px about it, from 5.4 (Bavaria) up; *Netherlands* 5.6, *Spanish Empire* 7.4, and *Bourbon Kingdom
   of France* 6.6, which gives way to the *Villa Diodati* callout and is measured with the beat's
-  labels off. In Explore every name drawn clears 3:1 but *Tibetans* in 1200, 2.8 on the plateau's
+  callouts off. In Explore every name drawn clears 3:1 but *Tibetans* in 1200, 2.8 on the plateau's
   bright worn brass, which the climate's wash alone darkens more.
 - **Names drawn:** with the event marks, which the names give way to, 5 of 43 names in view over
   Europe in 1810 (18 with the marks off), 2 of 8 at world view in 1914 (5), 6 of 16 over the
