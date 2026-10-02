@@ -977,10 +977,13 @@ from *Sovereign Principality of the United Netherlands* (48) to *Taifa of Santa 
   until its full name's em reaches 12 px (13), and the lowest level standing at full strength, each
   choice kept until the view has moved past it by a margin. Names give way to stronger ones, the
   outer plane's first, then a region's own name before another's window, then the larger region's,
-  their footprints, the letters and the calm band, kept apart; none stands over a mark, a sea name,
-  a walk's callout or Explore's plates, which may lie over a calm band but not its letters; a name
+  their footprints, the letters and the calm band, kept apart; none stands over a sea name, a
+  walk's callout or Explore's plates, which may lie over a calm band but not its letters; a name
   kept needs 6 px less room to stay than a new one needs to come, and each fades in or out over
-  `nameFade`. A name repeats on screen only half the screen's diagonal from its other copies.
+  `nameFade`. A name repeats on screen only half the screen's diagonal from its other copies. The
+  event marks are no obstacle: they lie over the names like seals, covering only the letters they
+  overlap, the look drawing a name under a mark's cover and the mark's contact shadow on its letters
+  (owner decision 44).
 - **Tiles:** the names drawn are binned into 32 CSS px screen tiles, at most `nameTileCap` a
   tile, each over everywhere the look may draw it, or not drawn. One RGBA32F table, 512×21 (168
   KiB), holds the tiles' ranges, their slots, four texels a name and a texel a letter (its pen's
@@ -997,13 +1000,14 @@ from *Sovereign Principality of the United Netherlands* (48) to *Taifa of Santa 
 **Measured,** drawing, on the M5 at 1440×900, Chromium on Metal, the dev page on the global bake,
 against the approved option-2 Cormorant renders (`scripts/namesShots.ts`) [M renders, 2 October]:
 - **Contrast:** at Tambora's sixth beat every name drawn clears 3:1 against the ground 4-8 device
-  px about it, from 5.4 (Bavaria) up; *Netherlands* 5.6, *Spanish Empire* 7.4, and *Bourbon Kingdom
-  of France* 6.6, which gives way to the *Villa Diodati* callout and is measured with the beat's
+  px about it, from 5.3 (Bavaria) up; *Netherlands* 5.6, *Spanish Empire* 7.5, and *Bourbon Kingdom
+  of France* 6.7, which gives way to the *Villa Diodati* callout and is measured with the beat's
   callouts off. In Explore every name drawn clears 3:1 but *Tibetans* in 1200, 2.8 on the plateau's
   bright worn brass, which the climate's wash alone darkens more.
-- **Names drawn:** with the event marks, which the names give way to, 5 of 43 names in view over
-  Europe in 1810 (18 with the marks off), 2 of 8 at world view in 1914 (5), 6 of 16 over the
-  Mediterranean in 100 (7) and 13 of 43 over East Asia in 1200 (14); 19 at Tambora's sixth beat.
+- **Names drawn,** under the event marks: 18 of 43 names in view over Europe in 1810, 5 of 8 at
+  world view in 1914, 7 of 16 over the Mediterranean in 100, 14 of 43 over East Asia in 1200, and 19
+  at Tambora's sixth beat. Given way to the marks, as first built, the 1810 and 1914 views drew 5
+  and 2.
 - **CPU:** in Explore, all 33 chunks decoded hold 0.95 MiB (`names.cpu`) and the table and its
   staging 0.33 MiB (`names.layer`); a return to the lobby leaves both at 0, as the lobby held them
   before the dive.
@@ -3290,4 +3294,6 @@ Decided on the state names renders (#80), 2026-10-01:
 44. **State names:** state names engraved as polished V-cut capitals in pale cream with a fine
     dark rim, on a calm band of ground, straight, short far and full close, in Cormorant
     Garamond's capitals, Cormorant SC for the inner states' small caps; chosen for legibility, at
-    3:1 or better against the ground around them.
+    3:1 or better against the ground around them. The names lie under the event marks, which cover
+    only the letters they overlap, so a busy era keeps its names (decided on the production renders,
+    2026-10-02, where names giving way to the marks left 5 of 18 over Europe in 1810).
